@@ -56,6 +56,7 @@ typedef enum
 static Macro *macroList;
 
 static bool Macro_GetLine (char *bufP, size_t bufSize);
+static const Macro *Macro_Find (const char *name, size_t len, bool addSfxWildcard);
 
 /**
  * Similar to FS_PopFilePObject().
@@ -116,12 +117,20 @@ FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
 }
 
 
-void
-Macro_Call (const Macro *m, const Lex *label)
+/**
+ * \return true when macro can not be found.  false otherwise.
+ */
+bool
+Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
 {
-  const char *args[MACRO_ARG_LIMIT];
+  const Macro *m = Macro_Find (macroName, macroNameLen, false);
+  if (m == NULL)
+    return true;
 
-  int marg = 0;
+  const char *args[MACRO_ARG_LIMIT];
+  unsigned marg = 0;
+
+  /* Handle label argument.  */
   if (label->tag == LexId || label->tag == LexLocalLabel)
     {
       if (m->labelArg)
@@ -138,17 +147,29 @@ Macro_Call (const Macro *m, const Lex *label)
 	}
     }
   else if (m->labelArg)
-    args[marg++] = NULL; /* Null label argument */
-    
+    args[marg++] = NULL; /* No label argument given.  */
+
+  /* Handle macro suffix argument.  */
+  assert (macroNameLen >= m->nameLen);
+  if (macroNameLen > m->nameLen)
+    {
+      /* Macro suffix given.  */
+      assert (m->suffixArg);
+      if ((args[marg++] = strndup (&macroName[m->nameLen], macroNameLen - m->nameLen)) == NULL)
+	errorOutOfMem ();
+    }
+  else if (m->suffixArg)
+    args[marg++] = NULL; /* No macro suffix given.  */
+  
   skipblanks ();
   bool tryEmptyParam = false;
   while (tryEmptyParam || !Input_IsEolOrCommentStart ())
     {
       if (marg == m->numArgs)
 	{
-	  error (ErrorError, "Too many arguments");
-	  Input_Rest ();
-	  return;
+	  error (ErrorError, "Too many macro arguments");
+	  errorLine (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
+	  return false;
 	}
       const char *arg;
       size_t len;
@@ -198,6 +219,7 @@ Macro_Call (const Macro *m, const Lex *label)
 #endif
 
   FS_PushMacroPObject (m, args);
+  return false;
 }
 
 /**
@@ -257,15 +279,22 @@ Macro_GetLine (char *bufP, size_t bufSize)
  * Find macro with given name.
  * \param name Macro name to look for, not NUL terminated.
  * \param len Macro name length.
+ * \param addSfxWildcard Match only up to len macro name bytes, i.e. add
+ * an implicit wildcard to macroname (name,len).
  * \return When macro is known, return pointer to corresponding Macro
  * object.  NULL when macro is not known.
  */
-const Macro *
-Macro_Find (const char *name, size_t len)
+static const Macro *
+Macro_Find (const char *name, size_t len, bool addSfxWildcard)
 {
   for (const Macro *m = macroList; m != NULL; m = m->next)
     {
-      if (!memcmp (name, m->name, len) && m->name[len] == '\0')
+      if ((len < m->nameLen && !addSfxWildcard)
+          || (len > m->nameLen && !m->suffixArg))
+	continue;
+
+      size_t charsToMatch = len < m->nameLen ? len : m->nameLen;
+      if (!memcmp (name, m->name, charsToMatch))
 	return m;
     }
   return NULL;
@@ -297,9 +326,28 @@ Macro_GetKeyword (void)
 
 
 /**
+ * Add given argument name and optionally default argument value to given
+ * macro object.
+ * \param macro Macro object.
+ * \param arg Argument name (length terminated).
+ * \param argLen Length argument name.
+ * \param defValue NULL or malloced string representing default argument value.
+ */
+static void
+AddMacroArg (Macro *macro, const char *arg, size_t argLen, const char *defValue)
+{
+  assert (macro->numArgs < MACRO_ARG_LIMIT);
+  if ((macro->args[macro->numArgs] = strndup (arg, argLen)) == NULL)
+    errorOutOfMem ();
+  macro->defArgs[macro->numArgs] = defValue;
+  macro->numArgs++;
+}
+
+
+/**
  * Implements MACRO:
  *         MACRO
- * $<lbl> <marco name> [$<param>[=<default value>]]*
+ * $<lbl> <marco name>[$<suffix>] [$<param>[=<default value>]]*
  */
 bool
 c_macro (void)
@@ -309,28 +357,30 @@ c_macro (void)
 
   char *buf = NULL;
 
+  /* Only process macro bodies during the first pass.  */
   if (gPhase == ePassTwo)
     goto lookforMEND;
-  
+
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
     error (ErrorWarning, "Skipping characters following MACRO");
 
   /* Process macro prototype statement (= optional label, macro name,
-     zero or more macro parameters).  */
-  /* Read optional '$' + label name.  */
+     optionally a suffix and followed by zero or more macro parameters
+     separated by a comma).  */
+
   if (!Input_NextLine (eNoVarSubst))
     errorAbort ("End of file found within macro definition");
+
+  /* Read optional '$' + label name.  */
   if (Input_Match ('$', false))
     {
-      size_t len;
-      const char *ptr = inputSymbol (&len, '\0');
-      if (len)
+      size_t lblLen;
+      const char *lbl = inputSymbol (&lblLen, '\0');
+      if (lblLen)
 	{
 	  m.labelArg = true;
-	  m.numArgs = 1;
-	  if ((m.args[0] = strndup (ptr, len)) == NULL)
-	    errorOutOfMem ();
+	  AddMacroArg (&m, lbl, lblLen, NULL);
 	}
     }
   else if (!isspace ((unsigned char)inputLook ()))
@@ -341,20 +391,54 @@ c_macro (void)
   skipblanks ();
 
   /* Read macro name.  */
-  size_t len;
-  const char *ptr;
-  if ((ptr = Input_Symbol (&len)) == NULL)
+  size_t macroNameLen;
+  const char *macroName;
+  if ((macroName = Input_Symbol (&macroNameLen)) == NULL)
     errorAbort ("Missing macro name");
-  const Macro *prevDefMacro = Macro_Find (ptr, len);
+  if (Input_Match ('$', false))
+    {
+      const char *suffix;
+      size_t suffixLen;
+      if ((suffix = Input_Symbol (&suffixLen)) == NULL)
+	{
+	  error (ErrorError, "Missing macro name suffix");
+	  goto lookforMEND;
+	}
+      m.suffixArg = true;
+      AddMacroArg (&m, suffix, suffixLen, NULL);
+    }
+  else
+    m.suffixArg = false;
+  const Macro *prevDefMacro = Macro_Find (macroName, macroNameLen, true);
   if (prevDefMacro != NULL)
     {
-      error (ErrorError, "Macro '%.*s' is already defined", (int)len, ptr);
-      errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
-		 "note: Previous definition of macro '%.*s' was here", (int)len, ptr);
+      /* Macro definition is matching an already given macro definition
+         (possibly via a macro suffix).  */
+      if (prevDefMacro->suffixArg && !m.suffixArg)
+	{
+	  error (ErrorError, "Macro '%.*s' is eclipsed by macro '%s' with suffix",
+		 (int)macroNameLen, macroName, prevDefMacro->name);
+	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+		     "note: Macro '%s' definition was here", prevDefMacro->name);
+	}
+      else if (!prevDefMacro->suffixArg && m.suffixArg)
+	{
+	  error (ErrorError, "Macro '%.*s' with suffix can become eclipsed by macro '%s'",
+		 (int)macroNameLen, macroName, prevDefMacro->name);
+	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+		     "note: Macro '%s' definition was here", prevDefMacro->name);
+	}
+      else
+	{
+	  error (ErrorError, "Macro '%.*s' is already defined", (int)macroNameLen, macroName);
+	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+		     "note: Previous macro '%s' definition was here", prevDefMacro->name);
+	}
       goto lookforMEND;
     }
-  if ((m.name = strndup (ptr, len)) == NULL)
+  if ((m.name = strndup (macroName, macroNameLen)) == NULL)
     errorOutOfMem ();
+  m.nameLen = macroNameLen;
   skipblanks ();
 
   /* Read zero or more macro parameters.  */
@@ -363,51 +447,50 @@ c_macro (void)
       if (m.numArgs == MACRO_ARG_LIMIT)
 	{
 	  error (ErrorError, "Too many arguments in macro definition");
-	  Input_Rest ();
 	  break;
 	}
       if (!Input_Match ('$', false))
 	{
 	  error (ErrorError, "Illegal parameter start in macro definition");
-	  Input_Rest ();
 	  break;
 	}
-      ptr = Input_Symbol (&len);
-      if (ptr == NULL)
+      const char *arg;
+      size_t argLen;
+      arg = Input_Symbol (&argLen);
+      if (arg == NULL)
 	{
 	  error (ErrorError, "Failed to parse macro parameter");
-	  Input_Rest ();
 	  break;
 	}
-      if ((m.args[m.numArgs] = strndup (ptr, len)) == NULL)
+      if ((m.args[m.numArgs] = strndup (arg, argLen)) == NULL)
 	errorOutOfMem ();
       skipblanks ();
+      const char *defValue;
       if (Input_Match ('=', false))
 	{
 	  /* There is a default argument value.  */
-	  const char *defarg;
 	  /* If there is a '"' as start of the default argument value, it needs
 	     to be right after the '='.  */
 	  if (Input_Match ('"', false))
 	    {
-	      size_t defarglen;
-	      defarg = Input_GetString (&defarglen);
+	      size_t defValueLen;
+	      defValue = Input_GetString (&defValueLen);
 	      skipblanks ();
 	    }
 	  else
 	    {
 	      /* We do NOT skip spaces, nor do we remove the spaces before
 	         the next comma found.  */
-	      size_t defarglen;
-	      defarg = inputSymbol (&defarglen, ',');
-	      if ((defarg = strndup (defarg, defarglen)) == NULL)
+	      size_t defValueLen;
+	      const char *defValueRaw = inputSymbol (&defValueLen, ',');
+	      if ((defValue = strndup (defValueRaw, defValueLen)) == NULL)
 		errorOutOfMem ();
 	    }
-	  m.defArgs[m.numArgs] = defarg;
 	}
       else
-	m.defArgs[m.numArgs] = NULL;
-      ++m.numArgs;
+	defValue = NULL;
+      AddMacroArg (&m, arg, argLen, defValue);
+
       if (!Input_Match (',', true))
 	break;
     }
@@ -456,14 +539,14 @@ c_macro (void)
 		{
 		  /* Token ? Check list and substitute.  */
 		  bool vbar_symbol = Input_Match ('|', false);
-		  ptr = inputSymbol (&len, '\0');
+		  size_t tokenLen;
+		  const char *token = inputSymbol (&tokenLen, '\0');
 		  if (vbar_symbol && !Input_Match ('|', false))
 		    error (ErrorError, "Missing vertical bar");
 		  (void) Input_Match ('.', false);
 		  int i;
 		  for (i = 0;
-		       i != m.numArgs
-			 && (memcmp (ptr, m.args[i], len) || m.args[i][len] != '\0');
+		       i != m.numArgs && (memcmp (token, m.args[i], tokenLen) || m.args[i][tokenLen] != '\0');
 		       ++i)
 		    /* */;
 		  if (i != m.numArgs)

@@ -1,3 +1,21 @@
+Sat Oct 27 20:31:57 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* macros.c (Macro_Find): Make local.  Add addSfxWildcard parameter.
+	(Macro_Call): Pass macro by name and namelength instead of macro
+	pointer.  Support macro suffix.
+	(AddMacroArg): Add.
+	(c_macro): Support macro suffix.
+	* macros.h: Remove global.h and whileif.h header include.
+	(Macro): Add nameLen, suffixArg fields.  Update comments.
+	(Macro_Find): Remove declaration.
+	(Macro_Call): Update declaration.
+	* decode.c: Add whileif.h include.
+	(decode): Remove Macro_Find call, update Macro_Call call.
+
+	* unittests/compare/core/macro_args.s: Enhance with a macro suffix
+	test.
+
 Wed Oct 24 00:39:47 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

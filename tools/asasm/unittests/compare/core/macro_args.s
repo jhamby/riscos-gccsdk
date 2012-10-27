@@ -135,4 +135,53 @@ Test3_Foo_Val2	*	2 :SHL: 0
 
 	]
 
+	; Test macro label and suffix argument
+	AREA	LblSfxData, DATA
+	[ :LNOT: REFERENCE
+	MACRO
+	LSTest1$sfx
+	= "LSTest1, sfx is '$sfx'\n"
+	MEND
+
+	MACRO
+$lbl	LSTest2$sfx
+$lbl	= "LSTest2, sfx is '$sfx', lbl is '$lbl'"
+	[ "$lbl" <> ""
+	= " (", :STR:($lbl - LblSfxData), ")"
+	]
+	= "\n"
+	MEND
+
+	MACRO
+$lbl	LSTest3$sfx $arg1, $arg2
+$lbl	= "LSTest3, sfx is '$sfx', lbl is '$lbl'"
+	[ "$lbl" <> ""
+	= " (", :STR:($lbl - LblSfxData), ")"
+	]
+	= ", arg1 is '$arg1', arg2 is '$arg2'\n"
+	MEND
+
+	LSTest1
+	LSTest1SFX1
+lbl1	LSTest1SFX2
+
+	LSTest2
+	LSTest2SFX1
+lbl2	LSTest2SFX2
+
+	LSTest3 ARG1, ARG2
+	LSTest3SFX1 ARG1, ARG2
+lbl3	LSTest3SFX2 ARG1, ARG2
+	|
+	= "LSTest1, sfx is ''\n"
+	= "LSTest1, sfx is 'SFX1'\n"
+	= "LSTest1, sfx is 'SFX2'\n"
+	= "LSTest2, sfx is '', lbl is ''\n"
+	= "LSTest2, sfx is 'SFX1', lbl is ''\n"
+	= "LSTest2, sfx is 'SFX2', lbl is 'lbl2' (00000081)\n"
+	= "LSTest3, sfx is '', lbl is '', arg1 is 'ARG1', arg2 is 'ARG2'\n"
+	= "LSTest3, sfx is 'SFX1', lbl is '', arg1 is 'ARG1', arg2 is 'ARG2'\n"
+	= "LSTest3, sfx is 'SFX2', lbl is 'lbl3' (00000132), arg1 is 'ARG1', arg2 is 'ARG2'\n"
+	]
+
 	END

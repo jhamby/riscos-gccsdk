@@ -24,10 +24,8 @@
 #define macros_header_included
 
 #include <stdbool.h>
-#include "global.h"
 #include "lex.h"
 #include "variables.h"
-#include "whileif.h"
 
 #define MACRO_ARG_LIMIT (18)
 /* Characters MACRO_ARG0 up to MACRO_ARG0 + MACRO_ARG_LIMIT may not appear
@@ -38,14 +36,16 @@
 typedef struct Macro
 {
   const struct Macro *next;
-  const char *name; /**< Name of this macro.  */
+  const char *name; /**< Name of this macro.  Malloced string.  */
+  size_t nameLen; /**< Length of macro name.  */  
   const char *fileName; /**< Filename where this macro has been defined.  */
   const char *buf;
   bool labelArg; /**< When true, macro supports label as one of its arguments.  */
+  bool suffixArg; /**< When true, macro name as a suffix as one if its arguments.  */
   unsigned char numArgs; /**< Number of macro arguments (including the label
     one if there is one).  Varies from 0 .. MACRO_ARG_LIMIT - 1.  */
-  const char *args[MACRO_ARG_LIMIT];	/**< Current argument values during macro execution.  */
-  const char *defArgs[MACRO_ARG_LIMIT];	/**< Default argument value.  */
+  const char *args[MACRO_ARG_LIMIT]; /**< Macro argument names.  NULL or malloced strings.  */
+  const char *defArgs[MACRO_ARG_LIMIT]; /**< Default argument value.  NULL or malloced strings.  */
   unsigned startLineNum; /**< Line number in Macro::fileName where its macro definition starts.  */
 } Macro;
 
@@ -53,7 +53,7 @@ typedef struct
 {
   const Macro *macro;
   const char *curPtr; /**< Current pointer inside macro buffer Macro::buf.  */
-  const char *args[MACRO_ARG_LIMIT];
+  const char *args[MACRO_ARG_LIMIT]; /**< Current argument values during macro execution.  */
   VarPos *varListP; /**< Linked list of local variables defined in this macro.  */
   unsigned optDirective; /**< Value {OPT} just before macro invocation.
     {OPT} gets restored after macro invocation.  */
@@ -61,8 +61,7 @@ typedef struct
 
 void FS_PopMacroPObject (bool noCheck);
 
-const Macro *Macro_Find (const char *, size_t len);
-void Macro_Call (const Macro *, const Lex *);
+bool Macro_Call (const char *macroName, size_t macroNameLen, const Lex *lbl);
 
 bool c_macro (void);
 bool c_mexit (void);
