@@ -57,6 +57,7 @@
 #include "option.h"
 #include "main.h"
 #include "state.h"
+#include "whileif.h"
 
 typedef bool (*po_void)(void); /* For eCB_Void.  */
 typedef bool (*po_void_pm)(bool doLowerCase); /* For eCB_VoidPMatch.  As
@@ -741,10 +742,7 @@ decode (const Lex *label)
       Input_RollBackToMark (inputMark);
       size_t macroNameLen;
       const char *macroName = Input_Symbol (&macroNameLen);
-      const Macro *m = Macro_Find (macroName, macroNameLen);
-      if (m)
-        Macro_Call (m, label);
-      else
+      if (Macro_Call (macroName, macroNameLen, label))
 	{
 	  error (ErrorError, "'%.*s' is not a recognized mnemonic, directive nor known macro",
 		 (int)macroNameLen, macroName);
