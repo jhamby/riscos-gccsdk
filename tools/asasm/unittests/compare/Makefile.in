@@ -15,7 +15,7 @@
 #
 # When a test fails, its reference file will be automatically deleted.  If you
 # want this to be re-created:
-$   $ make -C unittests/compare output_reference/<specific_test>.o
+#   $ make -C unittests/compare output_reference/<specific_test>.o
 #
 # To clean up after testing or to re-do all tests again:
 #   $ make -C unittests/compare clean
@@ -63,7 +63,7 @@ VPATH = @srcdir@/core:@srcdir@/option_apcs:@srcdir@/option_cpu:@srcdir@/option_d
 all:
 
 check: $(act_PROGRAMS)
-	@$(ECHO) "*** All 'compare' tests were OK (do 'make -C @builddir@ clean' first if you want to re-do them)"
+	@$(ECHO) "*** All 'compare' tests were OK (do 'make -C `echo @abs_builddir@ | sed -e s#^@abs_top_builddir@/##` clean' first if you want to re-do them)"
 
 clean:
 	-rm -fr output_actual

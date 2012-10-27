@@ -1,3 +1,9 @@
+Sat Oct 27 20:34:51 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/reloc/Makefile.in: Fix typo and update the check target
+	output.
+	* unittests/compare/Makefile.in: Update the check target output.
+
 Sat Oct 27 20:31:57 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

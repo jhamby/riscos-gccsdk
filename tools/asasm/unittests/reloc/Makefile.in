@@ -37,7 +37,7 @@ VPATH = @srcdir@/src
 all:
 
 check: $(check_OUT_ELF_FILES) $(check_OUT_AOF_FILES)
-	@$(ECHO) "*** All 'reloc' tests were OK (do 'make -C @builddir@ clean' first if you want to re-do them)"
+	@$(ECHO) "*** All 'reloc' tests were OK (do 'make -C `echo @abs_builddir@ | sed -e s#^@abs_top_builddir@/##` clean' first if you want to re-do them)"
 
 clean:
 	-rm -rf out
