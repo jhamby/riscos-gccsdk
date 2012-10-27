@@ -1,3 +1,7 @@
+Sat Oct 27 20:37:47 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/area.c (c_area): Remove unnecessary calls to Input_Rest.
+
 Sat Oct 27 20:34:51 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/reloc/Makefile.in: Fix typo and update the check target

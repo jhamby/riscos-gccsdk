@@ -661,7 +661,6 @@ c_area (void)
   if (SYMBOL_KIND (sym->type))
     {
       error (ErrorError, "Redefinition of label as area %s", sym->str);
-      Input_Rest ();
       return false;
     }
   unsigned int prevAreaAttrib;  
