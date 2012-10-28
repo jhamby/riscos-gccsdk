@@ -119,6 +119,23 @@ namespace riscos
 				throw new ErrorException (error);
 		}
 
+		[StructLayout(LayoutKind.Sequential)]
+		public class ScaleFactors
+		{
+			public int XMultiplier;
+			public int YMultiplier;
+			public int XDivisor;
+			public int YDivisor;
+
+			public ScaleFactors (int xm, int ym, int xd, int yd)
+			{
+				XMultiplier = xm;
+				YMultiplier = ym;
+				XDivisor = xd;
+				YDivisor = yd;
+			}
+		}
+
 		public class Rect
 		{
 			public int MinX { get; set; }

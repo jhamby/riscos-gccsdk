@@ -8,6 +8,7 @@ riscos_dll_sources = \
 	NativeMethods/misc.cs \
 	NativeMethods/colourtrans.cs \
 	NativeMethods/font.cs \
+	NativeMethods/spriteop.cs \
 	toolbox/toolbox.cs \
 	toolbox/window.cs \
 	toolbox/iconbar.cs \
@@ -46,7 +47,8 @@ riscos_dll_sources = \
 	colourtrans.cs \
 	reporter.cs \
 	font.cs \
-	menu.cs
+	menu.cs \
+	sprite.cs
 
 riscos_dll_build_sources = $(addprefix $(srcdir)/, $(riscos_dll_sources))
 
