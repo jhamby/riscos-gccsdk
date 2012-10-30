@@ -103,6 +103,23 @@ namespace riscos
 			public const int PlotAbsoluteBG = 7;
 		}
 
+		/*! \brief The flags that can be used when creating a dynamic area.  */
+		public enum DynamicAreaFlags
+		{
+			AccessAllRW = 0,
+			AccessPrivRWUserRO = (1 << 1),
+			AccessAllRO = (1 << 2),
+			AccessPrivRWUserNone = 3,
+			Unbufferable = (1 << 4),
+			Uncachable = (1 << 5),
+			DoubleMapped = (1 << 6),
+			NoUserDrag = (1 << 7),
+			NeedsSpecificPages = (1 << 8),
+			Shrinkable = (1 << 9),
+			Sparse = (1 << 10),
+			BoundToClient = (1 << 11)
+		}
+
 		public class ErrorException : System.Exception
 		{
 			public NativeOS.Error OSError;
@@ -376,6 +393,215 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Encapsulate a dynamic area.  */
+		public class DynamicArea : IDisposable
+		{
+			protected readonly int Number;
+
+			protected readonly IntPtr BaseAddress;
+
+			bool disposed = false;
+
+			public DynamicArea (string name, int initSize, int maxSize)
+			{
+				int returned_size_limit;
+
+				Number = DynamicAreaCreate (name, initSize, maxSize, DynamicAreaFlags.AccessAllRW,
+								out BaseAddress, out returned_size_limit);
+			}
+
+			/*! \brief Gets the current size of the dynamic area.  */
+			public int Size
+			{
+				get {
+					DynamicAreaFlags flags;
+					int sizeLimit;
+					string name;
+
+					return ReadInfo (out flags, out sizeLimit, out name);
+				}
+			}
+
+			/*! \brief Gets the maximum size that the dynamic area can be extended to.  */
+			public int MaximumSize
+			{
+				get {
+					DynamicAreaFlags flags;
+					int sizeLimit;
+					string name;
+
+					ReadInfo (out flags, out sizeLimit, out name);
+
+					return sizeLimit;
+				}
+			}
+
+			/*! \brief Gets the name of the dynamic area as displayed in the task manager.  */
+			public string Name
+			{
+				get {
+					DynamicAreaFlags flags;
+					int sizeLimit;
+					string name;
+
+					ReadInfo (out flags, out sizeLimit, out name);
+
+					return name;
+				}
+			}
+
+			/*! \brief Gets the flags that the dynamic area was created with.  */
+			public DynamicAreaFlags Flags
+			{
+				get {
+					DynamicAreaFlags flags;
+					int sizeLimit;
+					string name;
+
+					ReadInfo (out flags, out sizeLimit, out name);
+
+					return flags;
+				}
+			}
+
+			/*! \brief Resize the dynamic area by the amount given.
+			 * \param [in] sizeIncrease Amount to change the size of the dynamic area by
+			 * (+ve to extend, -ve to shrink).
+			 * \return Nothing.  */
+			public void Resize (int sizeIncrease)
+			{
+				if (sizeIncrease != 0)
+					ChangeDynamicArea (Number, sizeIncrease);
+			}
+
+			/*! \brief Read details about the dynamic area.
+			 * \param [out] flags The flags that the dyanmic area was created with.
+			 * \param [out] sizeLimit The maximum size that the dynamic area can be extended to.
+			 * \param [out] name The name of the dynamic area as displayed in the task manager.
+			 * \return The current size of the dynamic area.  */
+			public int ReadInfo (out DynamicAreaFlags flags,
+					     out int sizeLimit,
+					     out string name)
+			{
+				IntPtr base_address;
+
+				return DynamicAreaRead (Number,
+							out base_address,
+							out flags,
+							out sizeLimit,
+							out name);
+			}
+
+			~DynamicArea ()
+			{
+				Dispose (false);
+			}
+
+			public void Dispose ()
+			{
+				Dispose (true);
+				// This object will be cleaned up by the Dispose method.
+				// Call GC.SupressFinalize to take this object off the
+				// finalization queue and prevent finalization code for
+				// this object from executing a second time.
+				GC.SuppressFinalize(this);
+			}
+
+			protected virtual void Dispose (bool disposing)
+			{
+				if (!this.disposed)
+				{
+					DynamicAreaDelete (Number);
+					disposed = true;
+				}
+			}
+		}
+
+		/*! \brief An OS heap within a dynamic area.  */
+		public class DynamicAreaHeap : DynamicArea
+		{
+			public DynamicAreaHeap (string name, int maxSize, int initSize) :
+				base (name, maxSize, initSize)
+			{
+				HeapInitialise (BaseAddress, initSize);
+			}
+
+			/*! \brief Allocate memory from this heap.
+			 * \param [in] size The amount of memory required.
+			 * \return The allocated block of memory.
+			 * \note The underlying dynamic area will be automatically extended up to
+			 * its maximum size as required.
+			 * \throw OS.ErrorException Exception thrown if the allocation fails.  */
+			public IntPtr Alloc (int size)
+			{
+				bool heap_extended = false;
+
+				while (true)
+				{
+					try {
+						return HeapAlloc (BaseAddress, size);
+					}
+					catch {
+						if (heap_extended)
+							throw;
+
+						int heap_inc = (((size * 2) + 0xfff) & ~0xfff);
+
+						Resize (heap_inc);
+						HeapResize (BaseAddress, heap_inc);
+						heap_extended = true;
+					}
+				}
+			}
+
+			/*! \brief Free a previously allocated block.
+			 * \param [in] block The block to free.  */
+			public void Free (IntPtr block)
+			{
+				if (block == IntPtr.Zero)
+					return;
+
+				HeapFree (BaseAddress, block);
+			}
+
+			/*! \brief Reallocate an exiting block of memory to increase/decrease its size.
+			 * \param [in] block The block to reallocate.
+			 * \param [in] sizeIncrease The amount by which to change the block size (+ve to
+			 * extend, -ve to shrink).
+			 * \return The reallocated block of memory. The returned pointer may or may not
+			 * be the same as the one on entry.
+			 * \note The underlying dynamic area will be automatically extended up to
+			 * its maximum size as required.
+			 * \throw OS.ErrorException Exception thrown if the allocation fails.  */
+			public IntPtr Realloc (IntPtr block, int sizeIncrease)
+			{
+				bool heap_extended = false;
+
+				while (true)
+				{
+					try {
+						return HeapRealloc (BaseAddress, block, sizeIncrease);
+					}
+					catch {
+						// If we've already extended the heap and it still fails,
+						// then don't try again, throw on the error.
+						if (heap_extended)
+							throw;
+
+						// Attempt to increase heap size and try again.
+						// Extend by the size of the block as well as the
+						// extra in case the block needs to be moved.
+						// Add on the extra and round to 4KB.
+						int heap_inc = ((HeapReadSize (BaseAddress, block) +
+									sizeIncrease) + 0xfff) & ~0xfff;
+						Resize (heap_inc);
+						HeapResize (BaseAddress, heap_inc);
+						heap_extended = true;
+					}
+				}
+			}
+		}
+
 		/*! \brief Convert an angle in degrees into radians.
 		 * \param [in] angle Angle in degrees.
 		 * \return Angle in radians. */
@@ -476,6 +702,175 @@ namespace riscos
 			NativeMethods.OS_ReadMonotonicTime (out time);
 
 			return time;
+		}
+
+		/*! \brief Create a dynamic area.
+		 * \param [in] name The name to give the dynamic area for display in the task manager.
+		 * \param [in] size The initial size of the dynamic area in bytes.
+		 * \param [in] sizeLimit The maximum size the dynamic area can be extended to in bytes.
+		 * \param [in] flags The flags used to define the behaviour of the dynamic area.
+		 * \param [out] baseAddress Pointer to the base of the dynamic area.
+		 * \param [out] sizeLimit_out The actual size limit after adjustments.
+		 * \return The number assigned to the new dynamic area to identify it.  */
+		public static int DynamicAreaCreate (string name,
+						     int size,
+						     int sizeLimit,
+						     DynamicAreaFlags flags,
+						     out IntPtr baseAddress,
+						     out int sizeLimit_out)
+		{
+			int number;
+
+			OS.ThrowOnError (NativeMethods.OS_DynamicAreaCreate (-1,
+									     size,
+									     -1,
+									     flags,
+									     sizeLimit,
+									     IntPtr.Zero,
+									     IntPtr.Zero,
+									     name,
+									     out number,
+									     out baseAddress,
+									     out sizeLimit_out));
+			return number;
+		}
+
+		/*! \brief Delete a dynamic area.
+		 * \param [in] number The number used to identify the dynamic area to delete.
+		 * \return Nothing.  */
+		public static void DynamicAreaDelete (int number)
+		{
+			OS.ThrowOnError (NativeMethods.OS_DynamicAreaDelete (number));
+		}
+
+		/*! \brief Return information on a dynamic area.
+		 * \param [in] number The number used to identify the dynamic area.
+		 * \param [out] baseAddress Pointer to the base of the dynamic area.
+		 * \param [out] flags The flags that were used to create the dynamic area.
+		 * \param [out] sizeLimit The maximum size that the dynamic area can be extended to.
+		 * \param [out] name The name that the dynamic area was created with.
+		 * \return The current size of the dynamic area in bytes.  */
+		public static int DynamicAreaRead (int number,
+						   out IntPtr baseAddress,
+						   out DynamicAreaFlags flags,
+						   out int sizeLimit,
+						   out string name)
+		{
+			IntPtr handler;
+			IntPtr workspace;
+			IntPtr name_ptr;
+			int size;
+
+			OS.ThrowOnError (NativeMethods.OS_DynamicAreaRead (number,
+									   out size,
+									   out baseAddress,
+									   out flags,
+									   out sizeLimit,
+									   out handler,
+									   out workspace,
+									   out name_ptr));
+			name = Marshal.PtrToStringAnsi (name_ptr);
+
+			return size;
+		}
+
+		/*! \brief Alter the space allocation of a dynamic area.
+		 * \param [in] number The number used to identify the dynamic area.
+		 * \param [in] sizeIncrease The required size change in bytes (+ve to extend, -ve to shrink).
+		 * \return The number of bytes that were actually moved.  */
+		public static uint ChangeDynamicArea (int number, int sizeIncrease)
+		{
+			uint bytes_moved;
+
+			OS.ThrowOnError (NativeMethods.OS_ChangeDynamicArea (number,
+									     sizeIncrease,
+									     out bytes_moved));
+			return bytes_moved;
+		}
+
+		/*! \brief Initialise a heap.
+		 * Method checks the given heap pointer, and then writes a valid descriptor into the heap
+		 * it points to.
+		 * \param [in] heap Pointer to the heap to initialise.
+		 * \param [in] size The size to set the heap to.
+		 * \return Nothing.  */
+		public static void HeapInitialise (IntPtr heap, int size)
+		{
+			ThrowOnError (NativeMethods.OS_HeapInitialise (heap, size));
+		}
+
+		/*! \brief Describe a heap.
+		 * Method returns information on the space available in the heap.
+		 * \param [in] heap Pointer to the heap to describe.
+		 * \param [out] totalFree The total amount of memory, in bytes, available for
+		 * allocation in the heap.
+		 * \return The largest available block size.  */
+		public static int HeapDescribe (IntPtr heap, out int totalFree)
+		{
+			int largest_block;
+
+			ThrowOnError (NativeMethods.OS_HeapDescribe (heap,
+								     out largest_block,
+								     out totalFree));
+			return largest_block;
+		}
+
+		/*! \brief Get a heap block.
+		 * \param [in] heap Pointer to the heap to allocate memory from.
+		 * \param [in] size The size of the memory block required.
+		 * \return Pointer to a block of memory of the requested size.  */
+		public static IntPtr HeapAlloc (IntPtr heap, int size)
+		{
+			IntPtr block;
+
+			ThrowOnError (NativeMethods.OS_HeapAlloc (heap, size, out block));
+
+			return block;
+		}
+
+		/*! \brief Free a heap block.
+		 * \param [in] heap Pointer to the heap which contains the block to free.
+		 * \param [in] block Pointer to the block to free.
+		 * \return Nothing.  */
+		public static void HeapFree (IntPtr heap, IntPtr block)
+		{
+			ThrowOnError (NativeMethods.OS_HeapFree (heap, block));
+		}
+
+		/*! \brief Extend or shrink a heap block.
+		 * \param [in] heap Pointer to the heap which contains the block to extend/shrink.
+		 * \param [in] block Pointer to the block to extend/shrink.
+		 * \param [in] sizeIncrease The required size change in bytes (+ve to extend, -ve to shrink).
+		 * \return Pointer to the extended/shrunk block.  */ 
+		public static IntPtr HeapRealloc (IntPtr heap, IntPtr block, int sizeIncrease)
+		{
+			IntPtr new_block;
+
+			ThrowOnError (NativeMethods.OS_HeapRealloc (heap, block, sizeIncrease, out new_block));
+
+			return new_block;
+		}
+
+		/*! \brief Extend or shrink a heap.
+		 * \param [in] heap Pointer to the heap to extend/shrink.
+		 * \param [in] sizeIncrease The required size change in bytes (+ve to extend, -ve to shrink).
+		 * \return Nothing.  */
+		public static void HeapResize (IntPtr heap, int sizeIncrease)
+		{
+			ThrowOnError (NativeMethods.OS_HeapResize (heap, sizeIncrease));
+		}
+
+		/*! \brief Read block size.
+		 * \param [in] heap Pointer to the heap which contains the block to read.
+		 * \param [in] block Pointer to block to read the size of.
+		 * \return The size of the block.  */
+		public static int HeapReadSize (IntPtr heap, IntPtr block)
+		{
+			int size;
+
+			ThrowOnError (NativeMethods.OS_HeapReadSize (heap, block, out size));
+
+			return size;
 		}
 	}
 }

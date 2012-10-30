@@ -99,5 +99,78 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xos_read_monotonic_time")]
 		internal static extern void OS_ReadMonotonicTime (out uint time);
+
+		// RISC OS 3.5+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosdynamicarea_create")]
+		internal static extern IntPtr OS_DynamicAreaCreate (int number,
+								    int size,
+								    int baseAddress,
+								    OS.DynamicAreaFlags flags,
+								    int sizeLimit,
+								    IntPtr handler,
+								    IntPtr workspace,
+								    string name,
+								    out int number_out,
+								    out IntPtr baseAddress_out,
+								    out int sizeLimit_out);
+
+		// RISC OS 3.5+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosdynamicarea_delete")]
+		internal static extern IntPtr OS_DynamicAreaDelete (int number);
+
+		// RISC OS 3.5+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosdynamicarea_read")]
+		internal static extern IntPtr OS_DynamicAreaRead (int number,
+								  out int size,
+								  out IntPtr baseAddress,
+								  out OS.DynamicAreaFlags flags,
+								  out int sizeLimit,
+								  out IntPtr handler,
+								  out IntPtr workspace,
+								  out IntPtr name);
+
+		// RISC OS 3.5+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosdynamicarea_enumerate")]
+		internal static extern IntPtr OS_DynamicAreaEnumerate (int context, out int context_out);
+
+		// RISC OS 3.5+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosdynamicarea_renumber")]
+		internal static extern IntPtr OS_DynamicAreaRenumber (int old_number, int new_number);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xos_change_dynamic_area")]
+		internal static extern IntPtr OS_ChangeDynamicArea (int number,
+								    int sizeIncrease,
+								    out uint sizeIncrease_out);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosheap_initialise")]
+		internal static extern IntPtr OS_HeapInitialise (IntPtr heap, int size);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosheap_describe")]
+		internal static extern IntPtr OS_HeapDescribe (IntPtr heap,
+							       out int largestBlockSize,
+							       out int totalFree);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosheap_alloc")]
+		internal static extern IntPtr OS_HeapAlloc (IntPtr heap,
+							    int size,
+							    out IntPtr block);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosheap_free")]
+		internal static extern IntPtr OS_HeapFree (IntPtr heap, IntPtr block);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosheap_realloc")]
+		internal static extern IntPtr OS_HeapRealloc (IntPtr heap,
+							      IntPtr block,
+							      int sizeIncrease,
+							      out IntPtr block_out);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosheap_resize")]
+		internal static extern IntPtr OS_HeapResize (IntPtr heap,
+							     int sizeIncrease);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosheap_read_size")]
+		internal static extern IntPtr OS_HeapReadSize (IntPtr heap,
+							       IntPtr block,
+							       out int size);
 	}
 }
