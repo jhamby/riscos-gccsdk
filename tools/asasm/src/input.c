@@ -95,13 +95,13 @@ inputLookLower (void)
 }
 
 /**
- * \return true if next input character is NUL or start of a comment.
+ * \return true if next input character is NUL (i.e. EOL) or start of a comment.
  */
 bool
 Input_IsEolOrCommentStart (void)
 {
   const char c = *input_pos;
-  return c == '\0' || c == ';';
+  return c == '\0' || c == ';' || (c == '*' && input_pos == input_buff);
 }
 
 
