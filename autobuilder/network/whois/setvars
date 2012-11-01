@@ -3,7 +3,7 @@ AB_PRECONF=:
 AB_LICENCE=GPLv2
 
 ab_package() {
- ab_create_command_app whois Apps/Network
+ ab_create_command_app Whois Apps/Network
  ab_add_commands $S/whois
 
  cp $S/COPYING $A/

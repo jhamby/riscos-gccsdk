@@ -8,12 +8,12 @@
  
  PERL = perl
  INSTALL = install
-@@ -33,7 +34,7 @@
- mkpasswd_LDADD += -lxcrypt
- DEFS += -DHAVE_XCRYPT
- else
+@@ -50,7 +51,7 @@
+ # owl and openSUSE have crypt_gensalt(3) in the libc's libcrypt
+ DEFS += -DHAVE_LINUX_CRYPT_GENSALT
+ endif
 -mkpasswd_LDADD += -lcrypt
 +#mkpasswd_LDADD += -lcrypt
  endif
  
- all: Makefile.depend whois mkpasswd #pos
+ CPPFLAGS += $(DEFS) $(INCLUDES)
