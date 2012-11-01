@@ -15,5 +15,5 @@ ab_package() {
   mkdir $A/doc
   cp -av $S/AUTHORS $S/CHANGELOG $S/LICENSE $S/README $S/VERSION $A/doc/
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome -name AlienBlaster
 }
