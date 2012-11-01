@@ -4,7 +4,7 @@ AB_LICENCE=GPLv2
 
 ab_package() {
  ab_create_command_app Whois Apps/Network
- ab_add_commands $S/whois
+ ab_add_commands $S/whois$AB_EXEEXT
 
  cp $S/COPYING $A/
  rman -f HTML $S/whois.1 > $A/\!Help,faf
