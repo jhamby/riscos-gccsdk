@@ -12,7 +12,7 @@ ab_package() {
 
   echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/COPYING
 }
 
 
