@@ -188,8 +188,9 @@ namespace riscos
 			public int TitleBufferLen;
 			public int IconCount;
 
-			public WindowBlock (Wimp.IconBuffer title)
+			public WindowBlock (Wimp.WindowAttributes attr)
 			{
+				// The first seven entries are not used during window creation.
 				Visible.MinX = 0;
 				Visible.MinY = 0;
 				Visible.MaxX = 0;
@@ -197,27 +198,51 @@ namespace riscos
 				Scroll.X = 0;
 				Scroll.Y = 0;
 				BehindWindow = Wimp.WindowStackPosition.Top;
-				Flags = 0xff000042;
-				TitleFg = 7;
-				TitleBg = 2;
-				WorkAreaFg = 7;
-				WorkAreaBg = 0;
-				ScrollBarOuterColour = 3;
-				ScrollBarInnerColour = 1;
-				TitleFocusColour = 12;
-				ExtraFlags = 0;
-				WorkArea.MinX = 0;
-				WorkArea.MinY = 0;
-				WorkArea.MaxX = 1000;
-				WorkArea.MaxY = 1000;
-				TitleFlags = 0x13d;
-				WorkAreaButtonFlags = 0;
-				SpriteArea = (IntPtr)1;
-				MinWidth = 0;
-				MinHeight = 0;
-				TitleBuffer = title.Buffer;
-				TitleValidation = (IntPtr)1;
-				TitleBufferLen = title.BufferSize;
+
+				// We only support indirected titles.
+				attr.TitleIndirected = true;
+
+				Flags = (uint)attr.Flags;
+				TitleFg = (byte)attr.TitleFGColour;
+				TitleBg = (byte)attr.TitleBGColour;
+				WorkAreaFg = (byte)attr.WorkAreaFGColour;
+				WorkAreaBg = (byte)attr.WorkAreaBGColour;
+				ScrollBarOuterColour = (byte)attr.ScrollBarOuterColour;
+				ScrollBarInnerColour = (byte)attr.ScrollBarInnerColour;
+				TitleFocusColour = (byte)attr.TitleFocusColour;
+				ExtraFlags = (byte)attr.ExtraFlags;
+				WorkArea.MinX = attr.WorkArea.MinX;
+				WorkArea.MinY = attr.WorkArea.MinY;
+				WorkArea.MaxX = attr.WorkArea.MaxX;
+				WorkArea.MaxY = attr.WorkArea.MaxY;
+				TitleFlags = (uint)attr.TitleFlags;
+				WorkAreaButtonFlags = (uint)attr.ButtonType;
+				SpriteArea = attr.SpriteArea;
+				MinWidth = (short)attr.MinimumWidth;
+				MinHeight = (short)attr.MinimumHeight;
+
+				if ((attr.TitleFlags & Wimp.WindowTitleFlags.ContainsText) != 0)
+				{
+					// Indirected, text only.
+					// Indirected, text plus sprite.
+					TitleBuffer = attr.Title.Text.Buffer;
+					TitleValidation = attr.Title.Validation.Buffer;
+					TitleBufferLen = attr.Title.Text.BufferSize;
+				}
+				else if ((attr.TitleFlags & Wimp.WindowTitleFlags.ContainsSprite) != 0)
+				{
+					// Indirected, sprite only.
+					TitleBuffer = attr.Title.Text.Buffer;
+					TitleValidation = attr.SpriteArea;
+					TitleBufferLen = attr.Title.Text.BufferSize;
+				}
+				else
+				{
+					// Keep the compiler happy.
+					TitleBuffer = TitleValidation = IntPtr.Zero;
+					TitleBufferLen = 0;
+				}
+
 				IconCount = 0;
 			}
 		}

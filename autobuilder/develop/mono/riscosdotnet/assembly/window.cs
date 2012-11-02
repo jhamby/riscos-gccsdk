@@ -126,13 +126,13 @@ namespace riscos
 
 		/*! \class Window
 		 * \brief Encapsulates a RISC OS WIMP window. */
-		public class Window
+		public class Window : IDisposable
 		{
 			public WindowHandle WimpWindow;
 
-			public IconBuffer Title;
+			public IconData Title;
 
-			bool Created = false;
+			bool disposed = false;
 
 			// Cache the window extent, the WIMP never changes this unless the
 			// user explicitly requests it.
@@ -140,70 +140,56 @@ namespace riscos
 
 			public Hashtable MyIcons;
 
-			public Window ()
+			public Window (WindowAttributes attr)
 			{
 				MyIcons = new Hashtable ();
+
+				WimpWindow = new WindowHandle (Wimp.CreateWindow (attr));
+				WimpTask.AllWindows.Add (WimpWindow.Handle, this);
+				Title = attr.Title;
 			}
 
 			~Window ()
 			{
-				MyIcons.Clear ();
-				WimpTask.AllWindows.Remove (WimpWindow.Handle);
-				Title.Clear ();
+				Dispose (false);
+			}
+
+			public void Dispose ()
+			{
+				Dispose (true);
+				// This object will be cleaned up by the Dispose method.
+				// Call GC.SupressFinalize to take this object off the
+				// finalization queue and prevent finalization code for
+				// this object from executing a second time.
+				GC.SuppressFinalize(this);
+			}
+
+			protected virtual void Dispose (bool disposing)
+			{
+				if (!this.disposed)
+				{
+					MyIcons.Clear ();
+					WimpTask.AllWindows.Remove (WimpWindow.Handle);
+					Title.Text.Clear ();
+					Title.Validation.Clear ();
+					Title = null;
+					disposed = true;
+				}
 			}
 
 			public void SetExtent (OS.Rect extent)
 			{
 				this.Extent = extent;
-				if (Created)
-				{
-					NativeOS.Rect native_extent = new NativeOS.Rect (extent);
-					OS.ThrowOnError (NativeMethods.Wimp_SetExtent (WimpWindow.Handle, ref native_extent));
-				}
+				NativeOS.Rect native_extent = new NativeOS.Rect (extent);
+				OS.ThrowOnError (NativeMethods.Wimp_SetExtent (WimpWindow.Handle, ref native_extent));
 			}
 
-			/*! \brief Set the title of the window.
-			 * The title buffer is big enough to hold the given string and terminator.
-			 * Used for a title that will remain constant. */
+			/*! \brief Set the title of the window.  */
 			public void SetTitle (string title)
 			{
-				SetTitle (title, title.Length + 1);
-			}
-
-			/*! \brief Set the title of the window.
-			 * The title buffer size is user defined so that it can be bigger than the given string.
-			 * Used for a title that can be altered. */
-			public void SetTitle (string title, int maxLen)
-			{
-				// Allow the size of the title buffer to be changed if the window has
-				// not been created yet.
-				if (Created == false)
-					Title.Clear ();
-
-				Title.Set (title, maxLen);
+				Title.Text.Set (title);
 
 				// TODO: Redraw title bar.
-			}
-
-			public void Create (string title)
-			{
-				Create (title, title.Length + 1);
-			}
-
-			public void Create (string title, int titleMaxLen)
-			{
-				uint handle;
-
-				Title = new IconBuffer (title, titleMaxLen);
-
-				NativeWimp.WindowBlock block = new NativeWimp.WindowBlock (Title);
-
-				block.WorkArea = new NativeOS.Rect (Extent);
-
-				OS.ThrowOnError (NativeMethods.Wimp_CreateWindow (ref block, out handle));
-				WimpWindow = new WindowHandle (handle);
-				WimpTask.AllWindows.Add (handle, this);
-				Created = true;
 			}
 
 			/*! \brief Open a normal window (no nesting) */

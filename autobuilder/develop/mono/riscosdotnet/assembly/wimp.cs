@@ -114,7 +114,103 @@ namespace riscos
 			public const uint RightLow = 0xfffffff9;
 			public const uint RightHigh = 0xfffffff8;
 		}
-	
+
+		/*! \brief The flags used when creating a Wimp window.  */
+		public enum WindowFlags
+		{
+			IsMoveable = (1 << 1),
+			NoUserRedraw = (1 << 4),
+			IsAPane = (1 << 5),
+			CanOpenBeyondScreen = (1 << 6),
+			GenerateAutoRepeatScrollRequests = (1 << 8),
+			GenerateScrollRequests = (1 << 9),
+			GCOLColours = (1 << 10),
+			NoWindowsBelow = (1 << 11),
+			GenerateHotKeyEvents = (1 << 12),
+			KeepOnScreen = (1 << 13),
+			IgnoreRightExtent = (1 << 14),
+			IgnoreLowerExtent = (1 << 15),
+
+			IsOpen = (1 << 16),
+			FullyVisible = (1 << 17),
+			IsFullSize = (1 << 18),
+			ToggleSizeClicked = (1 << 19),
+			HasInputFocus = (1 << 20),
+			ForceOnScreen = (1 << 21),
+
+			HasBackIcon = (1 << 24),
+			HasCloseIcon = (1 << 25),
+			HasTitleBar = (1 << 26),
+			HasToggleSizeIcon = (1 << 27),
+			HasVerticalScrollBar = (1 << 28),
+			HasAdjustSizeIcon = (1 << 29),
+			HasHorizontalScrollBar = (1 << 30),
+			UseNewControlBits = (1 << 31)
+		}
+
+		/*! \brief Extra flags stored at byte offset 39 of the window creation block.  */
+		public enum WindowExtraFlags
+		{
+			/*! \brief Use 24bit colour in title bar validation string. \b RISC \b %OS \b 4.00+  */
+			FullColour = (1 << 0),
+			/*! \brief Use extended scroll requests. \b RISC \b %OS \b Select \b 2 */
+			ExtendedScrollRequests = (1 << 1),
+			/*! \brief Window should never be given a 3D border. \b RISC \b %OS \b 4.00+  */
+			Never3DBorder = (1 << 2),
+			/*! \brief Window should always be given a 3D border. \b RISC \b %OS \b 4.00+  */
+			Always3DBorder = (1 << 3),
+			/*! \brief Wimp.GetPointerInfo should return shaded icons. \b RISC \b %OS \b 5.00+  */
+			ReturnShadedIcons = (1 << 4)
+		}
+
+		/*! \brief The flags used for the title bar of a Wimp window when it is created.  */
+		public enum WindowTitleFlags
+		{
+			ContainsText = (1 << 0),
+			ContainsSprite = (1 << 1),
+			CentredHorizontally = (1 << 3),
+			CentredVertically = (1 << 4),
+			TextIsAntiAliased = (1 << 6),
+			Indirected = (1 << 8),
+			RightJustified = (1 << 9)
+		}
+
+		/*! \brief The button type of the work area.  */
+		public enum WindowButtonType
+		{
+			/*! \brief Ignore all mouse clicks.  */
+			IgnoreAllClicks,
+			/*! \brief Notify task continually while pointer is over the work area.  */
+			NotifyContinually,
+			/*! \brief Click notifies task (auto-repeat).  */
+			ClickAutoRepeat,
+			/*! \brief Click notifies task (once only).  */
+			Click,
+			/*! \brief Release over the work area notifies task.  */
+			Release,
+			/*! \brief Double click notifies task.  */
+			DoubleClick,
+			/*! \brief As \e Click but can also drag (returns button state * 16).  */
+			ClickDrag,
+			/*! \brief As \e Release but can also drag (returns button state * 16).  */
+			ReleaseDrag,
+			/*! \brief As \e Double \e Click but can also drag (returns button state * 16).  */
+			DoubleClickDrag,
+			/*! \brief Same as \e Click above,  */
+			// I'm not sure how this differs from Click above
+			Click9,
+			/*! \brief Click returns button state * 256.<br>
+			 *	   Double Click returns button state * 16.<br>
+			 *	   Drag returns button state * 1.  */
+			ClickDoubleClickDrag,
+			/*! \brief Click returns button state.<br>
+			 *	   Drag returns button state * 16.  */
+			// I'm not sure how this differs from ClickDrag above
+			ClickDrag11,
+			/*! \brief Mouse clicks cause window to gain input focus.  */
+			GainInputFocus = 15
+		}
+
 		/*! \brief Provides data for the event raised when a window's contents need updating.  */
 		public class RedrawEventArgs : Wimp.EventArgs
 		{
@@ -445,6 +541,18 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Create a Wimp window using the given attributes.
+		 * \return The Wimp handle of the window.  */
+		public static uint CreateWindow (WindowAttributes attr)
+		{
+			uint handle;
+			NativeWimp.WindowBlock block = new NativeWimp.WindowBlock (attr);
+
+			OS.ThrowOnError (NativeMethods.Wimp_CreateWindow (ref block, out handle));
+
+			return handle;
+		}
+
 		/*! \brief Sets the anti-aliased font colours from the two Wimp colours specified.
 		 * \param [in] bg The Wimp colour to use for the font background (0-15).
 		 * \param [in] fg The Wimp colour to use for the font foreground (0-15).
@@ -493,6 +601,335 @@ namespace riscos
 							name,
 							out result);
 			return result;
+		}
+
+		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */
+		public class WindowAttributes
+		{
+			public WindowFlags Flags = WindowFlags.IsMoveable |
+						   WindowFlags.NoUserRedraw |
+						   WindowFlags.CanOpenBeyondScreen |
+						   WindowFlags.HasBackIcon |
+						   WindowFlags.HasCloseIcon |
+						   WindowFlags.HasTitleBar |
+						   WindowFlags.HasToggleSizeIcon |
+						   WindowFlags.HasVerticalScrollBar |
+						   WindowFlags.HasAdjustSizeIcon |
+						   WindowFlags.HasHorizontalScrollBar |
+						   WindowFlags.UseNewControlBits;
+			public WindowExtraFlags ExtraFlags = 0;
+			public WindowTitleFlags TitleFlags = WindowTitleFlags.ContainsText |
+							     WindowTitleFlags.CentredHorizontally |
+							     WindowTitleFlags.CentredVertically |
+							     WindowTitleFlags.Indirected;
+
+			// Keep the colours as ints rather than OS.DesktopColours because they can
+			// be GCOL colours.
+			public int TitleFGColour = (int)OS.DesktopColour.Black;
+			public int TitleBGColour = (int)OS.DesktopColour.Grey2;
+			public int WorkAreaFGColour = (int)OS.DesktopColour.Black;
+			public int WorkAreaBGColour = (int)OS.DesktopColour.White;
+			public int ScrollBarOuterColour = (int)OS.DesktopColour.Grey3;
+			public int ScrollBarInnerColour = (int)OS.DesktopColour.Grey1;
+			public int TitleFocusColour = (int)OS.DesktopColour.Cream;
+
+			public OS.Rect WorkArea = new OS.Rect (0, 0, 1000, 1000);
+			public WindowButtonType ButtonType = WindowButtonType.IgnoreAllClicks;
+			public IntPtr SpriteArea = (IntPtr)1;
+			public int MinimumWidth = 0;
+			public int MinimumHeight = 0;
+
+			public IconData Title;
+
+			public WindowAttributes (string title, int titleMaxLen, string titleValidation)
+			{
+				Title = new IconData (new IconBuffer (title, titleMaxLen),
+						      new IconBuffer (titleValidation));
+			}
+
+			public WindowAttributes (string title, int titleMaxLen)
+			{
+				Title = new IconData (new IconBuffer (title, titleMaxLen));
+			}
+
+			public WindowAttributes (string title)
+			{
+				Title = new IconData (new IconBuffer (title));
+			}
+
+			/*! \brief Sets whether the window is moveable by its title bar.
+			 * \note Default value is \e true.  */
+			public bool Moveable {
+				set {
+					Flags = value ? Flags |  WindowFlags.IsMoveable :
+							Flags & ~WindowFlags.IsMoveable; 
+				}
+			}
+
+			/*! \brief Sets whether the window requires the task to redraw it.
+			 * \note Default value is \e false.  */
+			public bool UserRedrawn {
+				set {
+					Flags = value ? Flags & ~WindowFlags.NoUserRedraw :
+							Flags |  WindowFlags.NoUserRedraw;
+				}
+			}
+
+			/*! \brief Sets whether the window has a back icon or not.
+			 * \note Default value is \e true.  */
+			public bool BackIcon {
+				set {
+					Flags = value ? Flags |  WindowFlags.HasBackIcon :
+							Flags & ~WindowFlags.HasBackIcon;
+				}
+			}
+
+			/*! \brief Sets whether the window has a close icon or not.
+			 * \note Default value is \e true.  */
+			public bool CloseIcon {
+				set {
+					Flags = value ? Flags |  WindowFlags.HasCloseIcon :
+							Flags & ~WindowFlags.HasCloseIcon;
+				}
+			}
+
+			/*! \brief Sets whether the window has a toggle size icon or not.
+			 * \note Default value is \e true.  */
+			public bool ToggleSizeIcon {
+				set {
+					Flags = value ? Flags |  WindowFlags.HasToggleSizeIcon :
+							Flags & ~WindowFlags.HasToggleSizeIcon;
+				}
+			}
+
+			/*! \brief Sets whether the window has a vertical scroll bar or not.
+			 * \note Default value is \e true.  */
+			public bool VerticalScrollBar {
+				set {
+					Flags = value ? Flags |  WindowFlags.HasVerticalScrollBar :
+							Flags & ~WindowFlags.HasVerticalScrollBar;
+				}
+			}
+
+			/*! \brief Sets whether the window has a horizontal scroll bar or not.
+			 * \note Default value is \e true.  */
+			public bool HorizontalScrollBar {
+				set {
+					Flags = value ? Flags |  WindowFlags.HasHorizontalScrollBar :
+							Flags & ~WindowFlags.HasHorizontalScrollBar;
+				}
+			}
+
+			/*! \brief Sets whether the window has a adjust size icon or not.
+			 * \note Default value is \e true.  */
+			public bool AdjustSizeIcon {
+				set {
+					Flags = value ? Flags |  WindowFlags.HasAdjustSizeIcon :
+							Flags & ~WindowFlags.HasAdjustSizeIcon;
+				}
+			}
+
+			/*! \brief Sets whether the window has a title bar or not.
+			 * \note Default value is \e true.  */
+			public bool TitleBar {
+				set {
+					Flags = value ? Flags |  WindowFlags.HasTitleBar :
+							Flags & ~WindowFlags.HasTitleBar;
+				}
+			}
+
+			/*! \brief Sets whether the colours given for the window furniture and work
+			 * area are desktop wimp colours (i.e., 0 - 15) or GCOL colours (i.e., 0 - 254).
+			 * \note Default value is \e false (i.e., colours are desktop wimp colours.  */
+			public bool GCOLColours {
+				set {
+					Flags = value ? Flags |  WindowFlags.GCOLColours :
+							Flags & ~WindowFlags.GCOLColours;
+				}
+			}
+
+			/*! \brief Sets whether scroll requests (no auto-repeat) should be sent to the
+			 * task.
+			 * \note Default value is \e false.  */
+			public bool GenerateScrollRequests {
+				set {
+					Flags = value ? Flags |  WindowFlags.GenerateScrollRequests :
+							Flags & ~WindowFlags.GenerateScrollRequests;
+				}
+			}
+
+			/*! \brief Sets whether scroll requests (with auto-repeat) should be sent to the
+			 * task.
+			 * \note Default value is \e false.  */
+			public bool GenerateAutoRepeatScrollRequests {
+				set {
+					Flags = value ? Flags |  WindowFlags.GenerateAutoRepeatScrollRequests :
+							Flags & ~WindowFlags.GenerateAutoRepeatScrollRequests;
+				}
+			}
+
+			/*! \brief Sets whether 'hot keys' events are generated and passed back through
+			 * Wimp.ProcessKey.
+			 * \note Default value is \e false.  */
+			public bool GenerateHotKeyEvents {
+				set {
+					Flags = value ? Flags |  WindowFlags.GenerateHotKeyEvents :
+							Flags & ~WindowFlags.GenerateHotKeyEvents;
+				}
+			}
+
+			/*! \brief Sets whether this window will be a pane.
+			 * \note Default value is \e false.  */
+			public bool Pane {
+				set {
+					Flags = value ? Flags |  WindowFlags.IsAPane :
+							Flags & ~WindowFlags.IsAPane;
+				}
+			}
+
+			/*! \brief Sets whether the window can be opened or dragged outside the screen
+			 * area.
+			 * \note Default value is \e true.  */
+			public bool AllowBeyondScreen {
+				set {
+					Flags = value ? Flags |  WindowFlags.CanOpenBeyondScreen :
+							Flags & ~WindowFlags.CanOpenBeyondScreen;
+				}
+			}
+
+			/*! \brief Sets whether the window will be forced to stay on screen.
+			 * \note Default value is \e false.  */
+			public bool KeepOnScreen {
+				set {
+					Flags = value ? Flags |  WindowFlags.KeepOnScreen :
+							Flags & ~WindowFlags.KeepOnScreen;
+				}
+			}
+
+			/*! \brief Sets whether to ignore the right-hand extent if the size of the window
+			 * is dragged.
+			 * \note Default value is \e false.  */
+			public bool IgnoreRightExtent {
+				set {
+					Flags = value ? Flags |  WindowFlags.IgnoreRightExtent :
+							Flags & ~WindowFlags.IgnoreRightExtent;
+				}
+			}
+
+			/*! \brief Sets whether to ignore the lower-hand extent if the size of the window
+			 * is dragged.
+			 * \note Default value is \e false.  */
+			public bool IgnoreLowerExtent {
+				set {
+					Flags = value ? Flags |  WindowFlags.IgnoreLowerExtent :
+							Flags & ~WindowFlags.IgnoreLowerExtent;
+				}
+			}
+
+			/*! \brief Sets whether the window title bar contains text.
+			 * \note Default value is \e true.  */
+			public bool TitleContainsText {
+				set {
+					TitleFlags = value ? TitleFlags |  WindowTitleFlags.ContainsText :
+							     TitleFlags & ~WindowTitleFlags.ContainsText;
+				}
+			}
+
+			/*! \brief Sets whether the window title bar contains a sprite.
+			 * \note Default value is \e false.  */
+			public bool TitleContainsSprite {
+				set {
+					TitleFlags = value ? TitleFlags |  WindowTitleFlags.ContainsSprite :
+							     TitleFlags & ~WindowTitleFlags.ContainsSprite;
+				}
+			}
+
+			/*! \brief Sets whether the text in the window title bar is Horizontally centred.
+			 * \note Default value is \e true.  */
+			public bool TitleCentredHorizontally {
+				set {
+					TitleFlags = value ? TitleFlags |  WindowTitleFlags.CentredHorizontally :
+							     TitleFlags & ~WindowTitleFlags.CentredHorizontally;
+				}
+			}
+
+			/*! \brief Sets whether the text in the window title bar is vertically centred.
+			 * \note Default value is \e true.  */
+			public bool TitleCentredVertically {
+				set {
+					TitleFlags = value ? TitleFlags |  WindowTitleFlags.CentredVertically :
+							     TitleFlags & ~WindowTitleFlags.CentredVertically;
+				}
+			}
+
+			/*! \brief Sets whether the window title is indirected.
+			 * \note Default value is \e true.  */
+			public bool TitleIndirected {
+				set {
+					TitleFlags = value ? TitleFlags |  WindowTitleFlags.Indirected :
+							     TitleFlags & ~WindowTitleFlags.Indirected;
+				}
+			}
+
+			/*! \brief Sets whether the text in the window title bar is right justified.
+			 * \note Default value is \e false.  */
+			public bool TitleRightJustified {
+				set {
+					TitleFlags = value ? TitleFlags |  WindowTitleFlags.RightJustified :
+							     TitleFlags & ~WindowTitleFlags.RightJustified;
+				}
+			}
+
+			/*! \brief Sets whether 24 bit colour should be enabled via the title bar validation
+			 * string.
+			 * \note Default value is \e false.
+			 * \note RISC %OS 4.00+  */
+			public bool FullColour {
+				set {
+					ExtraFlags = value ? ExtraFlags |  WindowExtraFlags.FullColour :
+							     ExtraFlags & ~WindowExtraFlags.FullColour;
+				}
+			}
+
+			/*! \brief Sets whether extended scroll requests should be sent to the task.
+			 * \note Default value is \e false.
+			 * \note RISC %OS Select 2.  */
+			public bool ExtendedScrollRequests {
+				set {
+					ExtraFlags = value ? ExtraFlags |  WindowExtraFlags.ExtendedScrollRequests :
+							     ExtraFlags & ~WindowExtraFlags.ExtendedScrollRequests;
+				}
+			}
+
+			/*! \brief Sets whether a 3D border should never be given to the window.
+			 * \note Default value is \e false.
+			 * \note RISC %OS 4.00+  */
+			public bool Never3DBorder {
+				set {
+					ExtraFlags = value ? ExtraFlags |  WindowExtraFlags.Never3DBorder :
+							     ExtraFlags & ~WindowExtraFlags.Never3DBorder;
+				}
+			}
+
+			/*! \brief Sets whether a 3D border should always be given to the window.
+			 * \note Default value is \e false.
+			 * \note RISC %OS 4.00+  */
+			public bool Always3DBorder {
+				set {
+					ExtraFlags = value ? ExtraFlags |  WindowExtraFlags.Always3DBorder :
+							     ExtraFlags & ~WindowExtraFlags.Always3DBorder;
+				}
+			}
+
+			/*! \brief Sets whether Wimp.GetPointerInfo should return shaded icons as well.
+			 * \note Default value is \e false.
+			 * \note RISC %OS 5.  */
+			public bool ReturnShadedIcons {
+				set {
+					ExtraFlags = value ? ExtraFlags |  WindowExtraFlags.ReturnShadedIcons :
+							     ExtraFlags & ~WindowExtraFlags.ReturnShadedIcons;
+				}
+			}
 		}
 	}
 }

@@ -184,16 +184,18 @@ public class Test
 
 			task.main_font = new Font.Instance ("Trinity.Bold", 24 << 4, 24 << 4);
 
-			Wimp.Window window = new Wimp.Window ();
+			var attributes = new Wimp.WindowAttributes ("CSharp Window");
+
+			attributes.WorkArea = new OS.Rect (0, 0, 2000, 2000);
+			attributes.UserRedrawn = true;
+
+			var window = new Wimp.Window (attributes);
 
 			// Register the event handlers for the window.
 			window.Paint += task.redraw_main_window;
 			window.Closed += task.close_main_window;
 			window.MouseClick += task.mouse_click;
 			window.MsgDataLoad += task.window_DataLoad;
-
-			window.SetExtent (new OS.Rect (0, 0, 2000, 2000));
-			window.Create ("CSharp Window");
 
 			window.CreateIcon (new OS.Rect (150, 150, 350, 350),
 					   0x2700313fU,					// Iconflags
