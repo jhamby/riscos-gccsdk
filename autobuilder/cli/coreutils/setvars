@@ -1,12 +1,12 @@
 
 
 ab_package() {
-  ab_create_command_app Apps/Utilities
+  ab_create_command_app CoreUtils Apps/Utilities
   ab_add_commands $S/src/*$AB_EXEEXT
 
   cp $S/COPYING $A
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/COPYING -name CoreUtils
 }
 
 export gl_cv_func_fflush_stdin=yes
