@@ -9,7 +9,7 @@ page=urllib2.urlopen(url)
 soup = BeautifulSoup(page.read())
 #print soup
 for link in soup.findAll('a'): # find all links
-  if "BCM2835Dev.5.19.zip" in link['href']:
+  if "BCM2835.5.19.zip" in link['href']:
     url=link['href']
     
 url="http://www.riscosopen.org"+url

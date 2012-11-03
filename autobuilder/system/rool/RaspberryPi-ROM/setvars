@@ -85,7 +85,11 @@ ab_package () {
     mkdir -p $D/$AB_PACKAGE/Bootloader
     cp riscos,fe5 $D/$AB_PACKAGE/Bootloader/RISCOS.IMG,fe5
     mkdir -p $D/$AB_PACKAGE/RiscPkg
-    cp ReadMe.txt,fff $D/$AB_PACKAGE/RiscPkg/Copyright
+    echo "RISC OS ROM built on $ROOL_ROM_DATESTAMP" > Copyright
+    echo "" >> Copyright
+    cat ReadMe.txt,fff >> Copyright
+    cp Copyright $D/$AB_PACKAGE/RiscPkg/Copyright
+
 
     AB_SUBPACKAGE=$AB_PACKAGE $AB_HOME/add-riscpkg -section System \
 	-name RaspberryPi-ROM        \

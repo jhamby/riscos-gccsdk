@@ -4,13 +4,14 @@
 # instead, say we'll fetch things manually
 AB_NOREMOTE=yes
 
-AB_PACKAGE=RaspberryPi-Firmware
+AB_PACKAGE=RaspberryPi-FirmwareConfig
 AB_MAINTAINER="RISC OS Open Ltd <info@riscosopen.org>"
-AB_LICENCE="Non-free"
+AB_LICENCE=Free
+
+AB_PVERSION=1.00
+AB_ROVERSION=2
 
 # version information and git fetching is in the 'preprocess' file
-
-GIT_LOCAL_TREE=/home/tmarkettos/raspberrypi
 
 # Command in front of invocation of RISC OS GNU configure wrapper.  If you do
 # not want this to be called, you could set this var to ":"
@@ -33,8 +34,6 @@ AB_MAKE=
 # Zip name; alternate name for package to be zipped as.  No extension is
 # needed. Useful if tools from a library, etc.
 #AB_ZIPNAME=
-
-AB_LICENCE=Non-free
 
 # Make function
 #
@@ -64,25 +63,13 @@ AB_CATEGORY=System
 AB_PACKAGES=$AB_PACKAGE
 
 ab_package () {
-
-#    git update and version number fetch done by preprocess script
-
-#    wget $GIT_DOWNLOAD_URL/bootcode.bin
-#    wget $GIT_DOWNLOAD_URL/loader.bin
-#    wget $GIT_DOWNLOAD_URL/start.elf
-#    wget $GIT_DOWNLOAD_URL/LICENCE.broadcom
-
     mkdir -p $D/$AB_PACKAGE/Bootloader
-    cp $GIT_LOCAL_TREE/firmware/boot/start.elf $D/$AB_PACKAGE/Bootloader/START.ELF
-    cp $GIT_LOCAL_TREE/firmware/boot/start_cd.elf $D/$AB_PACKAGE/Bootloader/START_CD.ELF
-    cp $GIT_LOCAL_TREE/firmware/boot/bootcode.bin $D/$AB_PACKAGE/Bootloader/BOOTCODE.BIN
-    cp $GIT_LOCAL_TREE/firmware/boot/fixup.dat $D/$AB_PACKAGE/Bootloader/FIXUP.DAT
-    cp $GIT_LOCAL_TREE/firmware/boot/fixup_cd.dat $D/$AB_PACKAGE/Bootloader/FIXUP_CD.DAT
+    cp $H/config.txt $D/$AB_PACKAGE/Bootloader/CONFIG.TXT
     mkdir -p $D/$AB_PACKAGE/RiscPkg
-    cp $GIT_LOCAL_TREE/firmware/boot/LICENCE.broadcom $D/$AB_PACKAGE/RiscPkg/Copyright
+    echo "The contents of this file is public domain: no copyright is asserted on it" > $D/$AB_PACKAGE/RiscPkg/Copyright
 
     AB_SUBPACKAGE=$AB_PACKAGE $AB_HOME/add-riscpkg -section System \
-	-name RaspberryPi-Firmware -depends RaspberryPi-FirmwareConfig        # Make a package
+	-name RaspberryPi-FirmwareConfig         # Make a package
 
 }
 

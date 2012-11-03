@@ -1,0 +1,4 @@
+Description: Configuration file (config.txt) for Raspberry Pi boot process
+ Configuration settings for the Raspberry Pi bootloader
+ Note: upgrade with care.
+ GETTING THIS WRONG MAY RENDER YOUR MACHINE UNBOOTABLE
