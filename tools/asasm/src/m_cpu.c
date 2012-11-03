@@ -271,19 +271,6 @@ m_eor (bool doLowerCase)
 }
 
 
-static void
-Put_Ins_MOVW_MOVT (uint32_t cc, uint32_t destReg, uint32_t value, bool isMOVT)
-{
-  if (State_GetInstrType () == eInstrType_ARM)
-    Put_Ins (4, cc | (isMOVT ? 0x03400000 : 0x03000000) | ((value & 0xF000)<<4) | (destReg<<12) | (value & 0x0FFF));
-  else
-    {
-      Put_Ins (2, (isMOVT ? 0xF2C0 : 0xF240) | ((value & 0x0800) >> 1) | ((value & 0xF000) >> 12));
-      Put_Ins (2, ((value & 0x0700) << 4) | (destReg<<8) | (value & 0x00FF));
-    }
-}
-
-
 /**
  *   MOVW<c> <Rd>, #<imm16>
  *   MOVT<c> <Rd>, #<imm16>

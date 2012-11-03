@@ -37,7 +37,7 @@ export APCS := APCS-32
 # EXTENSION enables extra tests for functionality ASASM has but ObjAsm hasn't.
 
 ASASM := @top_builddir@/src/asasm
-ASFLAGS := -i @srcdir@ -aof -PD "EXTENSION SETL {TRUE}"
+ASFLAGS := -i @srcdir@ -i @srcdir@/core -aof -PD "EXTENSION SETL {TRUE}"
 DIFF := diff
 DIFFFLAGS := -q
 ECHO := echo

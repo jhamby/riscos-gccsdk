@@ -1,5 +1,8 @@
 ; ADR / ADRL tests:
 
+		GBLL	CanUseMOVW
+CanUseMOVW	SETL	{TARGET_ARCH_6T2} :LOR: {TARGET_ARCH_7} 
+
 	[ {FALSE}	; FIXME: results in relocations, how to test ?
 	; ADR/ADRL simple label cases
 	AREA	Code1, CODE, READONLY
@@ -125,8 +128,12 @@ dt6lbl3	%	4
 	|
 	MOV	r2, #0
 	MOV	r2, #0x2a
+	[ CanUseMOVW
+	MOVW	r2, #&123	; Generates "Using ADR instead of ADRL" warning
+	|
 	MOV	r2, #0x23
 	ADD	r2, r2, #0x100
+	]
 
 	MVN	r3, #0x29
 	MVN	r3, #0x22
@@ -202,7 +209,7 @@ tstlbl6	#	32
 01
 	DCD	1
 	ADR	r1, %b01		; SUB r1, pc, #...
-	ADRL	r2, %f02		; ADD r2, pc, #... + ADD r2, r2, #0
+	ADRL	r2, %f02		; ADD r2, pc, #... + ADD r2, r2, #0, generates "ADR instead of ADRL can be used" alike warning"
 02
 	DCD	2
 
@@ -273,13 +280,22 @@ tstlbl6	#	32
 	DCD	1,2,3,4
 	[ :LNOT: REFERENCE
 Code13lbl
-	ADR	r2, &120		; Can only be done with MOV, this gives a warning
+	ADR	r2, &120		; Can only be done with MOV.
 	ADR	r3, Code13lbl		; SUB r3, pc, #&c
 	ADR	r4, &100000		; SUB r4, pc, #&20
+	[ CanUseMOVW
+	ADR	r5, &1234		; Can only be done with MOVW.
+	ADRL	r6, &12345678		; Can only be done with MOV32.
+	]
 	|
 	MOV	r2, #&120
 	SUB	r3, pc, #&c
 	SUB	r4, pc, #&20
+	[ CanUseMOVW
+	MOVW	r5, #&1234
+	MOVW	r6, #&5678
+	MOVT	r6, #&1234
+	]
 	]
 
 	]

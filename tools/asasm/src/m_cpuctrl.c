@@ -278,16 +278,25 @@ m_bkpt (void)
  * there is no base register specified and constant is absolute.
  * When baseReg == 0 .. 14, 15 in non-ABS area :
  *     ADD/SUB Rx, baseReg, #... + ADD/SUB Rx, Rx, #...
+ *
  * When baseReg == 15 in ABS area :
  *     ADD/SUB Rx, R15, #... + ADD/SUB Rx, Rx, #...
  *  or
  *     MOV/MVN Rx, #... + ADD/SUB Rx, Rx, #...
+ *     MOVW Rx, #... (ARMv6T2, ARMv7 only)
+ *     MOV32 Rx, #... (ARMv6T2, ARMv7 only)
+ *
  * When baseReg < 0 (non-ABS area) :
  *     MOV/MVN Rx, #... + ADD/SUB Rx, Rx, #...
+ *     MOVW Rx, #... (ARMv6T2, ARMv7 only)
+ *     MOV32 Rx, #... (ARMv6T2, ARMv7 only)
+ *
  * When baseReg < 0 (ABS area) :
  *     ADD/SUB Rx, R15, #... + ADD/SUB Rx, Rx, #...
  *  or
  *     MOV/MVN Rx, #... + ADD/SUB Rx, Rx, #...
+ *     MOVW Rx, #... (ARMv6T2, ARMv7 only)
+ *     MOV32 Rx, #... (ARMv6T2, ARMv7 only)
  * \param baseInstr Base instruction as returned from optionAdrL with bit 0
  * cleared.
  * \param isADRL true when the input was ADRL, false for ADR.
@@ -305,18 +314,22 @@ m_bkpt (void)
  * a label in their ABS area.
  */
 static void
-ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
+ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
 		      bool isADRL, bool canSwitch)
 {
   uint32_t offset = areaCurrentSymbol->area.info->curIdx;
   uint32_t areaOffset = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
 
+  /* When we don't have a base register, use PC as base register but only
+     for an ABS area.  */
   bool baseRegUnspecified = baseReg < 0;
-  if (baseRegUnspecified)
+  if (baseRegUnspecified
+      && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
     {
       /* Make constant relative to {PC} + 8.  */
       constant -= areaOffset + offset + 8;
       baseReg = 15;
+      baseRegUnspecified = false;
     }
   
   /* FIXME: Can clever use of an ADD/SUB/ORR/BIC mixture cover more constants ? */
@@ -324,8 +337,8 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
     {
       uint32_t try[4];
       unsigned num;
-    } split[4];
-  if (!baseRegUnspecified || (areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
+    } split[6];
+  if (!baseRegUnspecified)
     {
       /* ADD/SUB Rx, baseReg, #... [ + ADD/SUB Rx, Rx, #... ] */
       split[0].num = Help_SplitByImm8s4 (constant, split[0].try); /* ADD [ + ADD ] (all baseReg).  */
@@ -337,16 +350,29 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
       || (baseReg == 15 && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0))
     {
       /* MOV/MVN Rx, #... [ + ADD/SUB Rx, Rx, #... ]  */
-      int absConstant = constant + (areaOffset + offset + 8);
+      uint32_t absConstant = baseRegUnspecified ? constant : constant + (areaOffset + offset + 8);
       split[2].num = Help_SplitByImm8s4 (absConstant, split[2].try); /* MOV [ + ADD ].  */
       split[3].num = Help_SplitByImm8s4 (~absConstant, split[3].try); /* MVN [ + SUB ].  */
     }
   else
     split[3].num = split[2].num = INT_MAX;
-  /* FIXME: we can use MOVW as well.  */
+  /* MOVW or MOV32 */
+  if (Target_CheckCPUFeature (kCPUExt_v6T2, false)
+      && (baseRegUnspecified
+          || (baseReg == 15 && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0)))
+    {
+      uint32_t absConstant = baseRegUnspecified ? constant : constant + (areaOffset + offset + 8);
+      split[4].num = absConstant < 0x10000 ? 1 : INT_MAX; /* MOVW.  */
+      split[4].try[0] = absConstant & 0xFFFF;
+      split[5].num = 2; /* MOV32 can encode all 32-bit constants.  */
+      split[5].try[0] = absConstant & 0xFFFF;
+      split[5].try[1] = absConstant >> 16;
+    }
+  else
+    split[5].num = split[4].num = INT_MAX;
 
-  int bestIndex = 0, bestScore = split[0].num;
-  for (int i = 0; i != 4; ++i)
+  unsigned bestIndex = 0, bestScore = split[0].num;
+  for (unsigned i = 0; i != sizeof (split)/sizeof (split[0]); ++i)
     {
       if (bestScore > split[i].num)
 	{
@@ -356,14 +382,19 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
     }
   assert (bestScore != INT_MAX && "At least a solution of 4 instr should have been found");
 
+  char toEncode[32]; /* Textual representation what we're trying to encode by preference.  */
+  if (baseRegUnspecified)
+    sprintf (toEncode, "&%x", constant);
+  else
+    sprintf (toEncode, "[r%d, #&%x]", baseReg, constant);
   if (bestScore >= 3 || (bestScore == 2 && !isADRL))
     {
-      if (areaCurrentSymbol->area.info->type & AREA_ABS)
-	error (ErrorError, "%s at area offset 0x%x with base address 0x%x can not be used to encode [r%d, #0x%x]",
-	       (isADRL) ? "ADRL" : "ADR", offset, areaOffset, baseReg, constant);
+      if ((areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
+	error (ErrorError, "%s at area offset 0x%x with base address 0x%x can not be used to encode %s",
+	       (isADRL) ? "ADRL" : "ADR", offset, areaOffset, toEncode);
       else
-	error (ErrorError, "%s at area offset 0x%x can not be used to encode [r%d, #0x%x]",
-	       (isADRL) ? "ADRL" : "ADR", offset, baseReg, constant);
+	error (ErrorError, "%s at area offset 0x%x can not be used to encode %s",
+	       (isADRL) ? "ADRL" : "ADR", offset, toEncode);
       bestScore = isADRL ? 2 : 1;
     }
 
@@ -372,20 +403,20 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
       if (canSwitch)
 	{
 	  if (areaCurrentSymbol->area.info->type & AREA_ABS)
-	    error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
-		   offset, areaOffset, baseReg, constant);
+	    error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x with base address 0x%x to encode %s",
+		   offset, areaOffset, toEncode);
 	  else
-	    error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x to encode [r%d, #0x%x]",
-		   offset, baseReg, constant);
+	    error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x to encode %s",
+		   offset, toEncode);
 	}
       else
 	{
 	  if (areaCurrentSymbol->area.info->type & AREA_ABS)
-	    error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
-		   offset, areaOffset, baseReg, constant);
+	    error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x with base address 0x%x to encode %s",
+		   offset, areaOffset, toEncode);
 	  else
-	    error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x to encode [r%d, #0x%x]",
-		   offset, baseReg, constant);
+	    error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x to encode %s",
+		   offset, toEncode);
 	  bestScore = 2;
 	  split[bestIndex].try[1] = 0;
 	}
@@ -394,52 +425,60 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
     {
       /* We switch from ADR to ADRL because there is no other option.  */
       if (areaCurrentSymbol->area.info->type & AREA_ABS)
-	error (ErrorWarning, "Using ADRL instead of ADR at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
-	       offset, areaOffset, baseReg, constant);
+	error (ErrorWarning, "Using ADRL instead of ADR at area offset 0x%x with base address 0x%x to encode %s",
+	       offset, areaOffset, toEncode);
       else
-	error (ErrorWarning, "Using ADRL instead of ADR at area offset 0x%x to encode [r%d, #0x%x]",
-	       offset, baseReg, constant);
+	error (ErrorWarning, "Using ADRL instead of ADR at area offset 0x%x to encode %s",
+	       offset, toEncode);
     }
 
-  ARMWord irop1, irop2;
-  switch (bestIndex)
+  assert (bestScore == 1 || bestScore == 2);
+  if (bestIndex < 4)
     {
-      case 0:
-	irop2 = irop1 = M_ADD;
-	break;
-      case 1:
-	irop2 = irop1 = M_SUB;
-	break;
-      case 2:
-	irop1 = M_MOV;
-	irop2 = M_ADD;
-	break;
-      case 3:
-	irop1 = M_MVN;
-	irop2 = M_SUB;
-	break;
-      default:
-	assert (0);
-	break;
+      ARMWord irop1, irop2;
+      switch (bestIndex)
+	{
+	  case 0:
+	    irop2 = irop1 = M_ADD;
+	    break;
+	  case 1:
+	    irop2 = irop1 = M_SUB;
+	    break;
+	  case 2:
+	    irop1 = M_MOV;
+	    irop2 = M_ADD;
+	    break;
+	  case 3:
+	    irop1 = M_MVN;
+	    irop2 = M_SUB;
+	    break;
+	}
+
+      if (bestScore == 2 && GET_DST_OP(baseInstr) == 15)
+	error (ErrorError, "ADRL can not be used with register 15 as destination");
+
+      for (unsigned n = 0; n != bestScore; ++n)
+	{
+	  /* Fix up the base register.  */
+	  uint32_t irs = baseInstr | (n == 0 ? irop1 : irop2);
+	  if (bestIndex < 2 /* = when ADD/SUB is used */ || n != 0)
+	    irs = irs | LHS_OP (n == 0 ? (ARMWord)baseReg : GET_DST_OP(baseInstr));
+
+	  uint32_t i8s4 = Help_CPUImm8s4 (split[bestIndex].try[n]);
+	  assert (i8s4 != UINT32_MAX);
+	  irs |= i8s4;
+
+	  Put_Ins (4, irs);
+	}
     }
-
-  if (bestScore == 2 && GET_DST_OP(baseInstr) == 15)
-    error (ErrorError, "ADRL can not be used with register 15 as destination");
-  if (bestIndex >= 2 /* = when MOV/MVN is used.  */)
-    error (ErrorWarning, "%s can only be assembled using MOV/MVN which makes it unrelocatable", isADRL ? "ADRL" : "ADR");
-
-  for (int n = 0; n != bestScore; ++n)
+  else
     {
-      /* Fix up the base register.  */
-      uint32_t irs = baseInstr | (n == 0 ? irop1 : irop2);
-      if (bestIndex < 2 /* = when ADD/SUB is used */ || n != 0)
-        irs = irs | LHS_OP (n == 0 ? (ARMWord)baseReg : GET_DST_OP(baseInstr));
-
-      uint32_t i8s4 = Help_CPUImm8s4 (split[bestIndex].try[n]);
-      assert (i8s4 != UINT32_MAX);
-      irs |= i8s4;
-
-      Put_Ins (4, irs);
+      assert (bestIndex == 4 || bestIndex == 5);
+      uint32_t cc = baseInstr & NV;
+      uint32_t destReg = GET_DST_OP(baseInstr);
+      Put_Ins_MOVW_MOVT (cc, destReg, split[bestIndex].try[0], false);
+      if (bestScore == 2)
+	Put_Ins_MOVW_MOVT (cc, destReg, split[bestIndex].try[1], true);
     }
 }
 
@@ -466,6 +505,7 @@ m_adr (bool doLowerCase)
   const Value *valP = exprBuildAndEval (tag);
 
   if (valP->Tag == ValueIllegal
+      || (valP->Tag == ValueInt && valP->Data.Int.type != eIntType_PureInt)
       || (valP->Tag == ValueSymbol && valP->Data.Symbol.factor != 1))
     {
       if (gPhase == ePassOne)
@@ -508,7 +548,7 @@ m_adr (bool doLowerCase)
     {
       case ValueInt:
 	/* Absolute value : results in MOV/MVN (followed by ADD/SUB in case of
-	   ADRL).  */
+	   ADRL) or MOVW or MOV32.  */
 	constant = valP->Data.Int.i;
 	baseReg = -1;
 	break;

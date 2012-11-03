@@ -1,3 +1,18 @@
+Sat Nov  3 17:09:24 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cpuctrl.c (ADR_RelocUpdaterCore): Support MOVW/MOV32 generation.
+	(m_adr): Add pure int test.
+	* m_cpu (Put_Ins_MOVW_MOVT): Move to...
+	* put.c, put.h: ...here.
+
+	unittests/compare:
+	* Makefile.in: Add core subdirectory as extra include directory.
+	* core/adr.s: Move to...
+	* core/include/adr.s: ...here.  Update for MOVW/MOV32 case. 
+	* core/adr_adrl_before_6t2.s: Add.
+	* core/adr_adrl_6t2.s: Add.
+
 Sat Nov  3 14:41:24 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

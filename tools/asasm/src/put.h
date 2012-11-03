@@ -23,6 +23,9 @@
 #ifndef put_header_included
 #define put_header_included
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "global.h"
 
 void Put_Data (unsigned size, ARMWord data);
@@ -31,6 +34,8 @@ void Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data,
 void Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool alignBefore);
 void Put_Ins (unsigned size, ARMWord ins);
 void Put_InsWithOffset (uint32_t offset, unsigned size, ARMWord data);
+
+void Put_Ins_MOVW_MOVT (uint32_t cc, uint32_t destReg, uint32_t value, bool isMOVT);
 
 ARMWord GetWord (uint32_t offset);
 
