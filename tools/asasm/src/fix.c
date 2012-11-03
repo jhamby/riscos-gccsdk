@@ -289,7 +289,7 @@ Fix_Int (const char *fileName, unsigned lineNum, int size, int value)
 bool
 Fix_CheckForOverflow (unsigned dataSize, uint32_t dataValue)
 {
-  if (dataSize == 4)
+  if (dataSize == 4 || dataSize == 8)
     return false;
 
   int32_t dataValueOffset = (int32_t)dataValue;
@@ -300,6 +300,9 @@ Fix_CheckForOverflow (unsigned dataSize, uint32_t dataValue)
 	break;
       case 2:
 	dataValueOffset += 1<<15;
+	break;
+      default:
+	assert (0);
 	break;
     }
   return dataValueOffset < 0;

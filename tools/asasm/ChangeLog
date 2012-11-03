@@ -1,3 +1,7 @@
+Sat Nov  3 18:04:05 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/fix.c (Fix_CheckForOverflow): Support size 8.
+
 Sat Nov  3 17:09:24 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
