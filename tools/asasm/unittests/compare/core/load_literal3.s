@@ -31,11 +31,11 @@ Bla1010A	* &1010A
 
 	MOV	r0, #5
 	MVN	r1, #5
-	DCI &e30b2a98	; FIXME: MOVW	r2, #&BA98
+	MOVW	r2, #&BA98
 
 	MOV	r0, #10
 	MVN	r1, #10
-	DCI &e3042321	; FIXME: MOVW	r2, #&4321
+	MOVW	r2, #&4321
 
 	LDR	r0, lc1
 	LDR	r1, lc2

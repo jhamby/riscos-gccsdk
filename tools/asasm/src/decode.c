@@ -220,9 +220,7 @@ static const decode_table_t oDecodeTable[] =
   { "MLA", eCB_VoidPMatch, 1, 1, {.vdpm = m_mla } }, /* MLA CC S */
   { "MLS", eCB_VoidPMatch, 1, 1, {.vdpm = m_mls } }, /* MLS CC */
   { "MNF", eCB_VoidPMatch, 1, 1, {.vdpm = m_mnf } }, /* MNF CC P R */
-  { "MOV", eCB_VoidPMatch, 1, 1, {.vdpm = m_mov } }, /* MOV CC s */
-  /* FIXME: MOV32 */
-  /* FIXME: MOVT */
+  { "MOV", eCB_VoidPMatch, 1, 1, {.vdpm = m_mov } }, /* MOV / MOVW / MOVT / MOV32 */
   { "MRC", eCB_VoidPMatch, 1, 1, {.vdpm = m_mrc } }, /* MRC CC */
   { "MRC2", eCB_Void, 1, 1, {.vd = m_mrc2 } }, /* MRC2 */
   { "MRRC", eCB_VoidPMatch, 1, 1, {.vdpm = m_mrrc } }, /* MRRC CC */
@@ -742,7 +740,13 @@ decode (const Lex *label)
       Input_RollBackToMark (inputMark);
       size_t macroNameLen;
       const char *macroName = Input_Symbol (&macroNameLen);
-      if (Macro_Call (macroName, macroNameLen, label))
+      /* In case we have a column, we don't read any symbol.  */
+      if (macroNameLen == 0)
+	{
+	  error (ErrorError, "Mnemonic, directive or macro missing");
+	  return;
+	}
+      else if (Macro_Call (macroName, macroNameLen, label))
 	{
 	  error (ErrorError, "'%.*s' is not a recognized mnemonic, directive nor known macro",
 		 (int)macroNameLen, macroName);

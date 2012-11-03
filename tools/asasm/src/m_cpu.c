@@ -41,6 +41,13 @@
 #include "state.h"
 #include "targetcpu.h"
 
+typedef enum
+{
+  eIsMOVT,
+  eIsMOVW,
+  eIsMOV32
+} MOV_Type_e;
+
 /** DATA none (or optional register) **/
 
 /**
@@ -263,12 +270,116 @@ m_eor (bool doLowerCase)
   return dstlhsrhs (cc | M_EOR);
 }
 
+
+static void
+Put_Ins_MOVW_MOVT (uint32_t cc, uint32_t destReg, uint32_t value, bool isMOVT)
+{
+  if (State_GetInstrType () == eInstrType_ARM)
+    Put_Ins (4, cc | (isMOVT ? 0x03400000 : 0x03000000) | ((value & 0xF000)<<4) | (destReg<<12) | (value & 0x0FFF));
+  else
+    {
+      Put_Ins (2, (isMOVT ? 0xF2C0 : 0xF240) | ((value & 0x0800) >> 1) | ((value & 0xF000) >> 12));
+      Put_Ins (2, ((value & 0x0700) << 4) | (destReg<<8) | (value & 0x00FF));
+    }
+}
+
+
 /**
- * Implements MOV.
+ *   MOVW<c> <Rd>, #<imm16>
+ *   MOVT<c> <Rd>, #<imm16>
+ *   MOV32<c> <Rd>, #<imm32>
+ */
+static bool
+m_movw_movt_mov32 (bool doLowerCase, MOV_Type_e movType)
+{
+  ARMWord cc = optionCond (doLowerCase);
+  if (cc == kOption_NotRecognized)
+    return true;
+
+  ARMWord destReg = getCpuReg ();
+  skipblanks ();
+  if (!Input_Match (',', true))
+    {
+      error (ErrorError, "%sdst", InsertCommaAfter);
+      return false;
+    }
+  if (!Input_Match ('#', false))
+    {
+      error (ErrorError, "Missing immediate constant");
+      return false;
+    }
+  uint32_t immValue = 0;
+  const Value *im = exprBuildAndEval (ValueInt | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
+  switch (im->Tag)
+    {
+      case ValueString:
+	if (im->Data.String.len != 1)
+	  error (ErrorError, "String too long to be an immediate expression");
+	else
+	  immValue = (uint32_t)im->Data.String.s[0];
+	break;
+
+      case ValueInt:
+	if (im->Data.Int.type == eIntType_PureInt)
+	  {
+	    immValue = im->Data.Int.i;
+	    break;
+	  }
+	/* Fall through.  */
+
+      default:
+	/* During pass one, we discard any errors of the evaluation as it
+	   might contain unresolved symbols.  Wait until during pass two.  */
+	if (gPhase != ePassOne)
+	  error (ErrorError, "Illegal immediate expression");
+	break;
+    }
+
+  switch (movType)
+    {
+      case eIsMOVT:
+      case eIsMOVW:
+	if (immValue >= 0x10000)
+	  {
+	    error (ErrorError, "Value 0x%x is out of range", immValue);
+	    immValue &= 0xFFFF;
+	  }
+	Put_Ins_MOVW_MOVT (cc, destReg, immValue, movType == eIsMOVT);
+	break;
+
+      case eIsMOV32:
+	Put_Ins_MOVW_MOVT (cc, destReg, immValue & 0xFFFF, false); /* MOVW */
+	Put_Ins_MOVW_MOVT (cc, destReg, immValue >> 16, true); /* MOVT */
+	break;
+    }
+
+  return false;
+}
+
+
+/**
+ * Implements MOV, MOVW, MOVT and MOV32.
+ * MOVW/MOVT/MOV32 are only supported for ARMv6T2 and ARMv7. 
  */
 bool
 m_mov (bool doLowerCase)
 {
+  if (Target_CheckCPUFeature (kCPUExt_v6T2, false))
+    {
+      /* MOVW ? */
+      if (Input_Match (doLowerCase ? 'w' : 'W', false))
+	return m_movw_movt_mov32 (doLowerCase, eIsMOVW);
+      /* MOVT ? */
+      if (Input_Match (doLowerCase ? 't' : 'T', false))
+	return m_movw_movt_mov32 (doLowerCase, eIsMOVT);
+      /* MOV32 ? */
+      if (inputLookN (0) == '3' && inputLookN (1) == '2')
+	{
+	  inputSkipN (2);
+	  return m_movw_movt_mov32 (doLowerCase, eIsMOV32);
+	}
+    }
+
   ARMWord cc = optionCondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;

@@ -1,3 +1,16 @@
+Sat Nov  3 14:41:24 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cpu.c (MOV_Type_e, Put_Ins_MOVW_MOVT, m_movw_movt_mov32): Add.
+	(m_mov): Call m_movw_movt_mov32.
+	* decode.c (oDecodeTable): Update MOV* related comments.
+	(decode): Give a more appropriate erorr message when read symbol has
+	0 length.
+
+	unittests/compare:
+	* core/load_literal3.s: Update for MOVW.
+	* core/movt_movw_mov32.s: Add.
+
 Sat Nov  3 14:36:15 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/get.c (getRhs): Rework rotator code.
