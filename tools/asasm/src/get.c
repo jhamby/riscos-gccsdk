@@ -310,60 +310,50 @@ getRhs (bool regshift, bool shift, ARMWord ir)
       const Value *im = exprBuildAndEval (ValueInt | ValueAddr | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
       switch (im->Tag)
 	{
-	  case ValueInt:
-	    {
-	      const int imBase = im->Data.Int.i;
-	      if (Input_Match (',', false))
-		{
-		  if (im->Data.Int.i < 0 || im->Data.Int.i >= 256)
-		    error (ErrorError, "Immediate value out of range: 0x%x", im->Data.Int.i);
-
-		  /* FIXME: why not call exprBuildAndEval instead ? vvv */
-		  Lex rotator = lexGetPrim ();
-		  int rotatorValue;
-		  switch (rotator.tag)
-		    {
-		      case LexId:
-			codeInit ();
-			codeSymbol (Symbol_Get (&rotator), 0);
-			const Value *rotatorResult = exprEval (ValueInt);
-			if (rotatorResult->Tag != ValueInt)
-			  {
-			    error (ErrorError, "Illegal immediate expression");
-			    rotatorValue = 0;
-			  }
-			else
-			  rotatorValue = rotatorResult->Data.Int.i;
-			break;
-		      case LexInt:
-			rotatorValue = rotator.Data.Int.value;
-			break;
-		      default:
-			error (ErrorError, "Rotator is not an integer");
-			rotatorValue = 0;
-			break;
-		    }
-		  if (rotatorValue < 0 || rotatorValue > 30
-		      || (rotatorValue % 2) == 1)
-		    error (ErrorError, "Bad rotator %d", rotatorValue);
-
-		  ir |= (rotatorValue >> 1) << 8;
-	        }
-	      ir = fixImm8s4 (0, ir, imBase);
-	      break;
-	    }
-
 	  case ValueAddr: /* This is for "MOV Rx, #@" support.  */
 	    ir = fixImm8s4 (0, ir, im->Data.Addr.i);
 	    break;
 
 	  case ValueString:
-	    /* FIXME: Use Lex_Char2Int ? */
 	    if (im->Data.String.len != 1)
 	      error (ErrorError, "String too long to be an immediate expression");
 	    else
 	      ir = fixImm8s4 (0, ir, (uint8_t)im->Data.String.s[0]);
 	    break;
+
+	  case ValueInt:
+	    if (im->Data.Int.type == eIntType_PureInt)
+	      {
+	        const int imBase = im->Data.Int.i;
+		if (Input_Match (',', false))
+		  {
+		    if (im->Data.Int.i < 0 || im->Data.Int.i >= 256)
+		      error (ErrorError, "Immediate value out of range: 0x%x", im->Data.Int.i);
+
+		    uint32_t rotatorResult = 0;
+		    const Value *rotatorValue = exprBuildAndEval (ValueInt);
+		    switch (rotatorValue->Tag)
+		      {
+			case ValueInt:
+			  if (rotatorValue->Data.Int.type == eIntType_PureInt)
+			    {
+			      rotatorResult = rotatorValue->Data.Int.i;
+			      break;
+			    }
+			  /* Fall through.  */
+			default:
+			  error (ErrorError, "Illegal immediate expression");
+			  break;
+		      }
+		    if (rotatorResult > 30 || (rotatorResult % 2) == 1)
+		      error (ErrorError, "Bad rotator %d", rotatorResult);
+
+		    ir |= (rotatorResult >> 1) << 8;
+		  }
+	        ir = fixImm8s4 (0, ir, imBase);
+	        break;
+	      }
+	    /* Fall through.  */
 
 	  default:
 	    /* During pass one, we discard any errors of the evaluation as it
