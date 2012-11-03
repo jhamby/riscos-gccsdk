@@ -157,6 +157,7 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
     {
       case ValueInt:
 	sym->value.Data.Int.i = 0;
+	sym->value.Data.Int.type = eIntType_PureInt;
 	break;
 
       case ValueBool:

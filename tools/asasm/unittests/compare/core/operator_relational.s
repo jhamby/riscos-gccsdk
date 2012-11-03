@@ -68,8 +68,10 @@ FooR3	RN	r3
 	= :STR:(. $rel %b10)
 	= :STR:(. $rel %b10)
 	= :STR:(FooR3 $rel r3)
-	= :STR:(FooR3 $rel c0)
+	= :STR:(FooR3 $rel c0)	; Register type gets ignored.  Only register value counts.
 	= :STR:(FooR3 $rel f3)	; Register type gets ignored.  Only register value counts.
+	= :STR:(FooR3 $rel p4)	; Register type gets ignored.  Only register value counts.
+	= :STR:(FooR3 $rel 4)
 	]
 	= "\n"
 	MEND
@@ -90,13 +92,13 @@ FooR3	RN	r3
 
 	|
 
-	= "Test = : FFFT/FT/FTFF/FTFT/FFTFFFF/TFFT/TFTFT\n"
-	= "Test /= : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTF\n"
+	= "Test = : FFFT/FT/FTFF/FTFT/FFTFFFF/TFFT/TFTFTFF\n"
+	= "Test /= : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTFTT\n"
 
 	[ EXTENSION
-	= "Test == : FFFT/FT/FTFF/FTFT/FFTFFFF/TFFT/TFTFT\n"
-	= "Test <> : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTF\n"
-	= "Test != : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTF\n"
+	= "Test == : FFFT/FT/FTFF/FTFT/FFTFFFF/TFFT/TFTFTFF\n"
+	= "Test <> : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTFTT\n"
+	= "Test != : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTFTT\n"
 	]
 
 	= "Test > : FTTF/TF/FFFT/TFFF/FTFFFFF\n"

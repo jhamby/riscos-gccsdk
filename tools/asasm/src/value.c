@@ -224,9 +224,15 @@ valueEqual (const Value *a, const Value *b)
 	break;
 
       case ValueInt:
-	/* FIXME? Check on Value::Data.Int.type ? */
-	result = (b->Tag == ValueInt && a->Data.Int.i == b->Data.Int.i)
-		   || (b->Tag == ValueFloat && (ARMFloat)a->Data.Int.i == b->Data.Float.f);
+	/* For ValueInt: a pure int matches any other int type.  */
+	result = (b->Tag == ValueInt
+	           && a->Data.Int.i == b->Data.Int.i
+	           && (a->Data.Int.type == b->Data.Int.type
+		        || a->Data.Int.type == eIntType_PureInt
+		        || b->Data.Int.type == eIntType_PureInt))
+		 || (b->Tag == ValueFloat
+		      && a->Data.Int.type == eIntType_PureInt
+		      && (ARMFloat)a->Data.Int.i == b->Data.Float.f);
 	break;
 
       case ValueInt64:
@@ -235,7 +241,7 @@ valueEqual (const Value *a, const Value *b)
 	
       case ValueFloat:
 	result = (b->Tag == ValueFloat && a->Data.Float.f == b->Data.Float.f)
-		   || (b->Tag == ValueInt && a->Data.Float.f == (ARMFloat)b->Data.Int.i);
+		   || (b->Tag == ValueInt && b->Data.Int.type == eIntType_PureInt && a->Data.Float.f == (ARMFloat)b->Data.Int.i);
 	break;
 
       case ValueString:
@@ -388,7 +394,7 @@ valuePrint (const Value *v)
 			isReg = true;
 			break;
 		    }
-		  printf ("%s %c%d", isReg ? "Reg" : "CoPro num ", type, v->Data.Int.i);
+		  printf ("%s %c%d", isReg ? "Reg" : "CoPro num", type, v->Data.Int.i);
 		}
 	    }
 	  break;
