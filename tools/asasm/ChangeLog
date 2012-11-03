@@ -1,3 +1,7 @@
+Sat Nov  3 13:53:22 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/compare/core/comment.s: Add.
+
 Thu Nov  1 16:30:45 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* input.c (): Support asterisk at beginning of a line as comment.
