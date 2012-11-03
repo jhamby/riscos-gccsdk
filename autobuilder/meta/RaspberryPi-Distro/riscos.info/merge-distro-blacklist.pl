@@ -21,9 +21,10 @@ my @blacklist = ( 'firefox-riscpc', 'GCC', 'CPP-2.95', 'GCC-2.95', 'G++',
   'RiscPkg',  # won't handle firmware updates correctly
   'Manuals', # Misc v Miscellaneous sections - tidies the index (ROOL version in Miscellaenous)
   'BumpRace',  # sprite file issue
-  'Alienblaster', 'Anagramarama', 'Flobopuyo', 'Defendguin', # crashes
+#  'Alienblaster',
+  'Anagramarama', 'Flobopuyo', 'Defendguin', # crashes
   'Arcem', # missing UnixHome dependency
-  'Bc', # missing description
+#  'Bc', # missing description
   'Fillets-Ng', 'Fillets-Ng-Data', # huge, install breaks
   'GCC4','GCC4-C++', # thrashes SD until it crashes
   'UnZip' # new package is 'Unzip'
