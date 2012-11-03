@@ -1,14 +1,8 @@
-; RUNOPT: -CPU=7-A
+; Tests MSR/MRS
 
 		AREA |C$$code|, CODE, READONLY
 
-		; Miscellaneous instructions
-
 	[ :LNOT: REFERENCE
-		BKPT	1234
-
-		CLZ	R0,R1
-
 		MRS	R0,APSR
 		MRS	R0,CPSR
 		MRS	R0,SPSR
@@ -49,10 +43,6 @@
 		MSR	SPSR_csx,R0
 		MSR	SPSR_csxf,R0
 	|
-		DCI	&E1204D72
-
-		DCI	&E16F0F11
-
 		DCI	&E10F0000
 		DCI	&E10F0000
 		DCI	&E14F0000

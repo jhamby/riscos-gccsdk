@@ -1,0 +1,12 @@
+; Tests BKPT.
+; RUNOPT: -CPU=7-A
+
+		AREA |C$$code|, CODE, READONLY
+
+	[ :LNOT: REFERENCE
+		BKPT	1234
+	|
+		DCI	&E1204D72
+	]
+
+		END

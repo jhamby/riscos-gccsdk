@@ -1,7 +1,6 @@
 ; Tests the rotator syntax for immediate values.
 
-	AREA	Code, CODE
-
+	AREA	Code1, CODE
 	[ :LNOT: REFERENCE
 
 	; $base needs :
@@ -34,6 +33,23 @@ cnt	SETA	0
 cnt	SETA	cnt + 2
 	WEND
 
+	]
+
+	AREA	Code2, CODE
+	[ :LNOT: REFERENCE
+	MOV	r1, #&81,0
+	MOV	r2, #&81,2
+	MOV	r3, #&81,8
+	MOV	r4, #&81,16
+	MOV	r5, #&81,24
+	MOV	r6, #&81,30
+	|
+	MOV	r1, #&81
+	MOV	r2, #&40000020
+	MOV	r3, #&81000000
+	MOV	r4, #&810000
+	MOV	r5, #&8100
+	MOV	r6, #&204
 	]
 
 	END

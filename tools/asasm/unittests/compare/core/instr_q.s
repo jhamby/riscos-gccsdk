@@ -1,0 +1,25 @@
+; -RUNOPT: -CPU=7-A
+
+		AREA |C$$code|, CODE, READONLY
+
+		; Enhanced DSP instructions
+
+	[ :LNOT: REFERENCE
+		QADD	R0,R1,R2
+
+		QDADD	R0,R1,R2
+
+		QDSUB	R0,R1,R2
+
+		QSUB	R0,R1,R2
+	|
+		DCI	&E1020051
+
+		DCI	&E1420051
+
+		DCI	&E1620051
+
+		DCI	&E1220051
+	]
+
+		END
