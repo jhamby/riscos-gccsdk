@@ -13,11 +13,12 @@ diff -u -r1.1503.2.119 configure.in
      esac
  else
      OS_TARGET=`uname -s`
-@@ -1403,6 +1404,10 @@
+@@ -1403,6 +1404,11 @@
      HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O2}"
      ;;
  
 +*riscos*)
++    HOST_CFLAGS="-O2"
 +    BIN_SUFFIX=,e1f
 +    ;;
 +
