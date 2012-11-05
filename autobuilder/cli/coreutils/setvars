@@ -2,6 +2,11 @@
 
 ab_package() {
   ab_create_command_app CoreUtils Apps/Utilities
+  
+# remove these as they interfere with the function of RISC OS
+  rm -f $S/src/cat$AB_EXEEXT
+  rm -f $S/src/dir$AB_EXEEXT
+
   ab_add_commands $S/src/*$AB_EXEEXT
 
   cp $S/COPYING $A

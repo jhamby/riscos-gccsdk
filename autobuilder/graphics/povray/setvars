@@ -11,7 +11,9 @@ ab_package() {
 
   cp -av AUTHORS ChangeLog COPYING NEWS README $A
   cp -av povray.conf povray.ini $A
-  cp -av include doc ini scenes $A
+  cp -av doc ini scenes $A
+  mkdir -p $A/povray-3.6
+  cp -av include $A/povray-3.6
 
   $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }

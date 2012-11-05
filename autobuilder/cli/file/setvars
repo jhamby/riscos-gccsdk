@@ -11,19 +11,19 @@ AB_PRECONF="CFLAGS=\"-I$GCCSDK_INSTALL_ENV/include -O2 -D_USE_BSD\""
 AB_CONFLAGS="--disable-elf --disable-elf-core"
 
 ab_package() {
-  ab_create_command_app file Apps/Utilities
+  ab_create_command_app File Apps/Utilities
   ab_add_commands $S/src/*$AB_EXEEXT
 
   rman -f HTML $S/doc/file.1 > $A/\!Help,faf
 
   cp -av $S/README $S/COPYING $A
   mkdir $A/files/
-  cp -av $S/magic/magic $S/debian/legacy/magic.mime $A/files
+  cp -av $S/magic/Magdir $A/files
   cp -av $S/magic/*.mgc $A/files
 
   echo "" >> $A/\!Boot,feb
   echo "Set unixfile\$Path <Obey\$Dir>." >> $A/\!Boot,feb
-  echo "Set UnixEnv\$MAGIC unixfile:/files/magic" >> $A/\!Boot,feb
+  echo "Set UnixEnv\$MAGIC unixfile:/files/Magdir" >> $A/\!Boot,feb
 
   $AB_HOME/add-riscpkg -unixlib
 }
