@@ -34,7 +34,7 @@ retrieving revision 3.61.2.1
 diff -u -r3.61.2.1 rules.mk
 --- nsprpub/config/rules.mk	22 Feb 2006 22:53:55 -0000	3.61.2.1
 +++ nsprpub/config/rules.mk	5 Sep 2008 04:34:45 -0000
-@@ -352,7 +352,11 @@
+@@ -352,6 +352,10 @@
  	  fi; \
  	fi
  endif	# OpenVMS
@@ -43,8 +43,7 @@ diff -u -r3.61.2.1 rules.mk
 +else
  	$(MKSHLIB) $(OBJS) $(RES) $(EXTRA_LIBS)
 +endif
- endif   # OS2 vacpp
- endif	# WINNT
+ endif	# WINNT && !GCC
  endif	# AIX 4.1
 Index: nsprpub/pr/include/md/_riscos.h
 ===================================================================

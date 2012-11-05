@@ -10,8 +10,6 @@ AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
 AB_ROVERSION=2
 
-export RO_SHAREDLIBS=yes
-
 # 'Official' build:
 # We don't have permission for this
 #export MOZILLA_OFFICIAL=1
