@@ -40,8 +40,8 @@
  * \return Parsed condition code.  When there is no condition code,
  * kOption_NotRecognized is returned instead.
  */
-static ARMWord
-GetCCodeIfThere (bool doLowerCase)
+ARMWord
+Option_GetCCodeIfThere (bool doLowerCase)
 {
   ARMWord cc = kOption_NotRecognized;
   const char c1 = inputLook ();
@@ -147,7 +147,7 @@ GetCCodeIfThere (bool doLowerCase)
 static ARMWord
 GetCCode (bool doLowerCase)
 {
-  ARMWord ccode = GetCCodeIfThere (doLowerCase);
+  ARMWord ccode = Option_GetCCodeIfThere (doLowerCase);
   if (ccode == kOption_NotRecognized)
     ccode = AL;
   return ccode;
@@ -443,7 +443,7 @@ Option_LdrStrType (bool isStore, bool doLowerCase)
 ARMWord
 Option_LdrStrCondAndType (bool isStore, bool doLowerCase)
 {
-  ARMWord option = GetCCodeIfThere (doLowerCase);
+  ARMWord option = Option_GetCCodeIfThere (doLowerCase);
   if (option == kOption_NotRecognized)
     {
       /* No condition code recognised, try to parse <type> + [ <cond> ]

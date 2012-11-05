@@ -1,3 +1,32 @@
+Mon Nov  5 23:55:22 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	Add IT support.
+	src:
+	* it.c, it.h: Add.
+	* decode.c (oDecodeTable): Add IT.
+	* phase.c (Phase_PrepareFor): Add call to IT_PrepareForPhase.
+	* m_cpumem.c (m_swp): Add call to IT_ApplyCond.
+	* m_cpu.c (m_nop, m_und, core_bitfield_instr, m_pkh, core_sxt_uxt): Add
+	IT support.
+	(core_sxt_lxt): Rename to core_sxt_uxt.
+	* directive_data.c (m_dci): Add IT support.
+	* m_cpumem.c (m_swp): Add IT support.
+	* option.c, option.h (Option_GetCCodeIfThere): Renamed from
+	GetCCodeIfThere and un-static it.
+	* Makefile.am (asasm_CFLAGS): Add it.c.
+	* area.c (areaNew): Rename to Area_Create.  Add call to
+	IT_InitializeState.
+	* area.h (Area): Add it subfield.
+
+	unittests/compare:
+	* core/instr_it.s: Add.
+	* core/instr_und.s: Update.
+	* core/instr_bfc_bfi_sbfx_ubfx.s: Update.
+	* core/include/nop.s: Update.
+	* core/instr_pkhbt_pkhtb.s: Update.
+	* core/instr_sxt_uxt.s: Update.
+	* core/instr_swp.s: Update.
+
 Sat Nov  3 18:23:32 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	unittests/compare:

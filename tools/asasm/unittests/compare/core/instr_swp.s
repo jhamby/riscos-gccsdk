@@ -6,18 +6,26 @@
 
 		MACRO
 		MkSWP	$p1, $p2
-		LCLA	cc
+		LCLA	ccIdx
 		LCLS	ccs
+		LCLS	cc
 ccs		SETS	"EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO"
 		LCLS	instr
-		WHILE	cc <= :LEN:ccs
-		[ cc = :LEN:ccs
-instr		SETS	"SWP$p1$p2"
+		WHILE	ccIdx <= :LEN:ccs
+		[ ccIdx = :LEN:ccs
+		; SWPB
+instr		SETS	"SWP$p1.$p2"
+cc		SETS	"AL"
 		|
-instr		SETS	"SWP$p1" :CC: ((ccs:LEFT:(cc+2)):RIGHT:2) :CC: "$p2"
+		; SWP<cc>B
+cc		SETS	(ccs:LEFT:(ccIdx+2)):RIGHT:2
+instr		SETS	"SWP$p1.$cc.$p2"
 		]
+		;INFO 0, "IT $cc"
+		;INFO 0, "$instr"
+		IT	$cc
 		$instr	r2,r3,[r4]
-cc		SETA	cc + 2
+ccIdx		SETA	ccIdx + 2
 		WEND
 		MEND
 

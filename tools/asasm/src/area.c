@@ -95,32 +95,34 @@ Area_ResetPrivateVars (void)
 }
 
 static Area *
-areaNew (Symbol *sym, uint32_t type)
+Area_Create (Symbol *sym, uint32_t type)
 {
-  Area *res;
-  if ((res = malloc (sizeof (Area))) == NULL)
+  Area *newAreaP;
+  if ((newAreaP = malloc (sizeof (Area))) == NULL)
     errorOutOfMem ();
 
-  res->next = areaHeadSymbol;
-  res->type = type;
-  res->imagesize = 0;
-  res->image = NULL;
+  newAreaP->next = areaHeadSymbol;
+  newAreaP->type = type;
+  newAreaP->imagesize = 0;
+  newAreaP->image = NULL;
 
-  res->curIdx = 0;
-  res->maxIdx = 0;
+  newAreaP->curIdx = 0;
+  newAreaP->maxIdx = 0;
 
-  res->entryType = eInvalid;
+  newAreaP->entryType = eInvalid;
   
-  res->relocs = NULL;
+  newAreaP->relocs = NULL;
 
-  res->litPool = NULL;
+  newAreaP->litPool = NULL;
 
-  res->number = 0;
-  res->numRelocs = 0;
+  IT_InitializeState (&newAreaP->it);
+  
+  newAreaP->number = 0;
+  newAreaP->numRelocs = 0;
   
   areaHeadSymbol = sym;
 
-  return res;
+  return newAreaP;
 }
 
 
@@ -422,7 +424,7 @@ Area_Ensure (void)
       /* When an area is made absolute, ensure its symbol is also absolute.  */
       sym->type = (areaType & AREA_ABS) ? SYMBOL_ABSOLUTE | SYMBOL_AREA : SYMBOL_AREA;
       sym->value = Value_Int (0, eIntType_PureInt);
-      sym->area.info = areaNew (sym, areaType);
+      sym->area.info = Area_Create (sym, areaType);
     }
   areaCurrentSymbol = sym;
 }
@@ -674,7 +676,7 @@ c_area (void)
       prevAreaAttrib = 0;
       sym->type = SYMBOL_AREA;
       sym->value = Value_Int (0, eIntType_PureInt);
-      sym->area.info = areaNew (sym, 0);
+      sym->area.info = Area_Create (sym, 0);
     }
   skipblanks ();
 

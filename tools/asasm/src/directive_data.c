@@ -38,6 +38,7 @@
 #include "expr.h"
 #include "fix.h"
 #include "input.h"
+#include "it.h"
 #include "option.h"
 #include "phase.h"
 #include "put.h"
@@ -601,7 +602,9 @@ c_dci (bool doLowerCase)
   unsigned alignValue;
   int instructionSize;
   bool swapHalfwords;
-  if (State_GetInstrType () == eInstrType_ARM)
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (areaCurrentSymbol->area.info->it.cc, instrState != eInstrType_ARM); 
+  if (instrState == eInstrType_ARM)
     {
       alignValue = 4;
       instructionSize = 4;

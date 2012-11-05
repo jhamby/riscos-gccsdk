@@ -44,6 +44,7 @@
 #include "error.h"
 #include "frame.h"
 #include "input.h"
+#include "it.h"
 #include "lit.h"
 #include "local.h"
 #include "macros.h"
@@ -193,7 +194,7 @@ static const decode_table_t oDecodeTable[] =
   { "INCLUDE", eCB_NoLex, 0, 0, {.nolex = c_get } }, /* GET / INCLUDE */
   { "INFO", eCB_NoLex, 0, 0, {.nolex = c_info } }, /* INFO */
   { "ISB", eCB_Void, 1, 1, {.vd = m_isb } }, /* ISB */
-  /* FIXME: IT */
+  { "IT", eCB_VoidPMatch, 1, 1, {.vdpm = m_it } }, /* IT */
   { "KEEP", eCB_NoLex, 0, 0, {.nolex = c_keep } }, /* KEEP */
   { "LCL", eCB_NoLexPMatch, 0, 0, { .nolex = c_lcl } }, /* LCLA, LCLL, LCLS */
   { "LDC", eCB_VoidPMatch, 1, 1, {.vdpm = m_ldc } }, /* LDC CC L */

@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 #include "phase.h"
+#include "it.h"
 #include "symbol.h"
 
 /* Lowest 8 bits encode the alignment of the start of the area as a power
@@ -109,6 +110,8 @@ typedef struct AREA
   struct RELOC *relocs;
 
   struct LITPOOL *litPool;	/** The current literal pool waiting to be assembled. */
+
+  IT_State_t it;
 
   /* For output: */
   uint32_t number; /** AOF: area number (from 0 onwards).  ELF: section ID (from 3 onwards).  Determined start of Output_AOF()/Output_ELF().  */

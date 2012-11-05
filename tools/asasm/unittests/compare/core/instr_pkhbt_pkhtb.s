@@ -68,12 +68,14 @@
 	DCI.W &eac20103	; 	pkhbt	r1, r2, r3
 	DCI.W &eac20103	; 	pkhbt	r1, r2, r3
 	DCI.W &eac21103	; 	pkhbt	r1, r2, r3, lsl #4
-	DCI.W &eac272c3	; 	pkhbt	r2, r2, r3, lsl #31  FIXME: IT support missing
+	DCI.N &bf28	;	it	cs
+	DCI.W &eac272c3	; 	pkhbt	r2, r2, r3, lsl #31
 
 	DCI.W &eac20103	; 	pkhbt	r1, r2, r3
 	DCI.W &eac20103	; 	pkhbt	r1, r2, r3
 	DCI.W &eac21103	; 	pkhbt	r1, r2, r3, lsl #4
-	DCI.W &eac272c3	; 	pkhbt	r2, r2, r3, lsl #31  FIXME: IT support missing
+	DCI.N &bf28	; 	it	cs
+	DCI.W &eac272c3	; 	pkhbt	r2, r2, r3, lsl #31
 
 	; PKHTB
 	ARM
@@ -90,12 +92,14 @@
 	THUMB
 	DCI.W &eac20103	; 	pkhbt	r1, r2, r3
 	DCI.W &eac21123	; 	pkhtb	r1, r2, r3, asr #4
-	DCI.W &eac272e3	; 	pkhtb	r2, r2, r3, asr #31  FIXME: IT support missing
+	DCI.N &bf28	;	it	cs
+	DCI.W &eac272e3	; 	pkhtb	r2, r2, r3, asr #31
 	DCI.W &eac20123	; 	pkhtb	r1, r2, r3, asr #32
 
 	DCI.W &eac20103	; 	pkhbt	r1, r2, r3
 	DCI.W &eac21123	; 	pkhtb	r1, r2, r3, asr #4
-	DCI.W &eac272e3	; 	pkhtb	r2, r2, r3, asr #31  FIXME: IT support missing
+	DCI.N &bf28	;	it	cs
+	DCI.W &eac272e3	; 	pkhtb	r2, r2, r3, asr #31
 	DCI.W &eac20123	; 	pkhtb	r1, r2, r3, asr #32
 
 	]

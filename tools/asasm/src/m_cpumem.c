@@ -811,15 +811,17 @@ m_swp (bool doLowerCase)
   if (State_GetInstrType () != eInstrType_ARM)
     return true;
 
-  ARMWord cc = Option_CondB (doLowerCase);
-  if (cc == kOption_NotRecognized)
+  ARMWord cc_b = Option_CondB (doLowerCase);
+  if (cc_b == kOption_NotRecognized)
     return true;
 
   Target_CheckCPUFeature (kCPUExt_v2a, true);
   if (option_pedantic && Target_CheckCPUFeature (kCPUExt_v6, false))
     error (ErrorWarning, "The use of SWP/SWPB is deprecated from ARMv6 onwards");
 
-  int ir = cc | 0x01000090;
+  IT_ApplyCond (cc_b & NV, false);
+
+  int ir = cc_b | 0x01000090;
   ARMWord rt = getCpuReg ();
   ir |= DST_OP (rt);
   skipblanks ();

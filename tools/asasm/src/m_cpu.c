@@ -34,6 +34,7 @@
 #include "get.h"
 #include "global.h"
 #include "input.h"
+#include "it.h"
 #include "main.h"
 #include "m_cpu.h"
 #include "option.h"
@@ -74,6 +75,8 @@ m_nop (bool doLowerCase)
 	return true;
 
       InstrType_e instrState = State_GetInstrType ();
+      IT_ApplyCond (cc, instrState != eInstrType_ARM); 
+
       if (instrState == eInstrType_ARM)
 	{
 	  if (instrWidth == eInstrWidth_Enforce16bit)
@@ -143,8 +146,10 @@ m_und (bool doLowerCase)
   else
     intValue = 0;
 
-  unsigned maxValue;
   InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  unsigned maxValue;
   if (instrState == eInstrType_ARM)
     maxValue = 65536;
   else
@@ -1293,6 +1298,9 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
       width = 1;
     }
 
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM); 
+
   unsigned widthInd;
   ARMWord baseInstr;
   switch (bitFieldType)
@@ -1301,7 +1309,7 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
       case eIsBFI:
 	{
 	  widthInd = lsb + width - 1;
-	  if (State_GetInstrType () == eInstrType_ARM)
+	  if (instrState == eInstrType_ARM)
 	    {
 	      if (rd == 15)
 		error (ErrorWarning, "Use of PC is unpredictable");
@@ -1322,7 +1330,7 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
       case eIsUBFX:
 	{
 	  widthInd = width - 1;
-	  if (State_GetInstrType () == eInstrType_ARM)
+	  if (instrState == eInstrType_ARM)
 	    {
 	      if (rd == 15 || rn == 15)
 		error (ErrorWarning, "Use of PC in unpredictable");
@@ -1340,13 +1348,10 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 	}
     }
 
-  if (State_GetInstrType () == eInstrType_ARM)
+  if (instrState == eInstrType_ARM)
     Put_Ins (4, baseInstr | cc | (widthInd << 16) | (rd << 12) | (lsb << 7) | rn);
   else
-    {
-      // FIXME: condition
-      Put_Ins (4, baseInstr | (rn << 16) | ((lsb & 0x1C) << 12) | (rd << 8) | ((lsb & 3) << 6) | widthInd);
-    }
+    Put_Ins (4, baseInstr | (rn << 16) | ((lsb & 0x1C) << 12) | (rd << 8) | ((lsb & 3) << 6) | widthInd);
   
   return false;
 }
@@ -1486,7 +1491,10 @@ m_pkh (bool doLowerCase)
   const ARMWord rd = regIndex == 0 ? regs[regIndex] : regs[--regIndex];
   assert (regIndex == 0);
 
-  if (State_GetInstrType () == eInstrType_ARM)
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  if (instrState == eInstrType_ARM)
     {
       if (rd == 15 || rn == 15 || rm == 15)
 	error (ErrorWarning, "Use of PC for Rd, Rn or Rm is unpredictable");
@@ -1514,10 +1522,10 @@ typedef enum
 } Extend_e;
 
 /**
- * Implements SXT/SXTA/LXT/LXTA.
+ * Implements SXT/SXTA/UXT/UXTA.
  */
 static bool
-core_sxt_lxt (bool doLowerCase, bool isLXT)
+core_sxt_uxt (bool doLowerCase, bool isLXT)
 {
   bool isAcc = Input_Match (doLowerCase ? 'a' : 'A', false);
   Extend_e extend;
@@ -1594,8 +1602,11 @@ core_sxt_lxt (bool doLowerCase, bool isLXT)
   const ARMWord rd = regIndex == 0 ? regs[regIndex] : regs[--regIndex];
   assert (regIndex == 0);
 
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
   /* Determine 16bit or 32bit Thumb.  */
-  if (State_GetInstrType () != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
     instrWidth = !isAcc && extend != eIsByte16 && ror == 0 && rd < 8 && rm < 8 ? eInstrWidth_Enforce16bit : eInstrWidth_Enforce32bit;
   if (instrWidth == eInstrWidth_Enforce16bit && ror != 0)
     {
@@ -1603,7 +1614,7 @@ core_sxt_lxt (bool doLowerCase, bool isLXT)
       ror = 0;
     }
 
-  if (State_GetInstrType () == eInstrType_ARM)
+  if (instrState == eInstrType_ARM)
     {
       if (rd == 15 || rm == 15)
 	error (ErrorWarning, "Use of PC for Rd or Rm is unpredictable");
@@ -1657,16 +1668,16 @@ core_sxt_lxt (bool doLowerCase, bool isLXT)
 bool
 m_sxt (bool doLowerCase)
 {
-  return core_sxt_lxt (doLowerCase, false);
+  return core_sxt_uxt (doLowerCase, false);
 }
 
 
 /**
  * Implements 
- *   LXT{"A"}{"B"|"B16"|"H"}{<c>}{<q>} {<Rd>,} <Rn> {, <Rm>} {, <rotation>}
+ *   UXT{"A"}{"B"|"B16"|"H"}{<c>}{<q>} {<Rd>,} <Rn> {, <Rm>} {, <rotation>}
  */
 bool
 m_uxt (bool doLowerCase)
 {
-  return  core_sxt_lxt (doLowerCase, true);
+  return  core_sxt_uxt (doLowerCase, true);
 }

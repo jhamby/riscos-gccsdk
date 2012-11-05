@@ -45,6 +45,8 @@ ARMWord optionLinkCond (bool doLowerCase);
 ARMWord optionExceptionCond (bool doLowerCase);
 ARMWord optionAdrL (bool doLowerCase);
 
+ARMWord Option_GetCCodeIfThere (bool doLowerCase);
+
 #define kOption_NotRecognized ((ARMWord) -1)
 
 typedef enum
