@@ -6,7 +6,7 @@ Description: Persistence of vision raytracer (3D renderer)
  quite CPU-intensive, at the benefit of more realistic images compared to
  real time rendering techniques. For example, in POV-Ray, you can model a
  glass prism, and you will see a spectrum in the resulting image.
-
+ .
  POV-Ray by itself is a command-line utility that will take scene
  descriptions, written in a special easy-to-understand language, to
  produce ray-traced images (or even a sequence of images, for animations).
