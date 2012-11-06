@@ -90,7 +90,7 @@ namespace riscos
 		}
 
 		/*! \class PlotModifier
-		 * Modifies how the graphics primitives are to be drawn \e OS.Plot. */
+		 * Modifies how the graphics primitives are to be drawn by \e OS.Plot. */
 		public static class PlotModifier
 		{
 			public const int MoveRelative = 0;
@@ -118,6 +118,16 @@ namespace riscos
 			Shrinkable = (1 << 9),
 			Sparse = (1 << 10),
 			BoundToClient = (1 << 11)
+		}
+
+		public enum PixelDepth
+		{
+			BPP1,
+			BPP2,
+			BPP4,
+			BPP8,
+			BPP16,
+			BPP24
 		}
 
 		public class ErrorException : System.Exception
@@ -406,8 +416,13 @@ namespace riscos
 			{
 				int returned_size_limit;
 
-				Number = DynamicAreaCreate (name, initSize, maxSize, DynamicAreaFlags.AccessAllRW,
-								out BaseAddress, out returned_size_limit);
+				Number = DynamicAreaCreate (name,
+							    initSize,
+							    maxSize,
+							    DynamicAreaFlags.AccessAllRW |
+								DynamicAreaFlags.NoUserDrag,
+							    out BaseAddress,
+							    out returned_size_limit);
 			}
 
 			/*! \brief Gets the current size of the dynamic area.  */
@@ -599,6 +614,33 @@ namespace riscos
 						heap_extended = true;
 					}
 				}
+			}
+		}
+
+		/*! \brief A mode selector block (also known as a mode specifier).  */
+		[StructLayout(LayoutKind.Sequential)]
+		public class ModeSelector
+		{
+			public int Flags;
+			public int XRes;
+			public int YRes;
+			public PixelDepth Depth;
+			public int FrameRate;
+
+			// There are 12 possible mode variables plus terminator.
+			[MarshalAs (UnmanagedType.ByValArray, SizeConst=26)]
+			public int[] ModeVariables = new int [26];
+
+			public ModeSelector (int xRes, int yRes, PixelDepth depth)
+			{
+				Flags = 1;
+				XRes = xRes;
+				YRes = yRes;
+				Depth = depth;
+				FrameRate = -1;
+
+				/*! \todo Allow mode variables to be added to mode selector.  */
+				ModeVariables [0] = ModeVariables [1] = -1;
 			}
 		}
 
