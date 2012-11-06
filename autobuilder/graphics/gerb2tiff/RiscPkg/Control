@@ -1,3 +1,3 @@
-Descritpion: gerb2tiff is a command line driven program that will read an
+Description: gerb2tiff is a command line driven program that will read an
   input file of Gerber RS273X format and generates a raster graphics
   bitmap. Output file is uncompressed monochrome TIFF image.
