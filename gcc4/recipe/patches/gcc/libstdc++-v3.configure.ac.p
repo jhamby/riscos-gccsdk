@@ -1,6 +1,6 @@
 Index: libstdc++-v3/configure.ac
 ===================================================================
---- libstdc++-v3/configure.ac	(revision 188171)
+--- libstdc++-v3/configure.ac	(revision 193302)
 +++ libstdc++-v3/configure.ac	(working copy)
 @@ -88,6 +88,11 @@
  # up critical shell variables.
@@ -11,10 +11,10 @@ Index: libstdc++-v3/configure.ac
 +  enable_shared=no
 +fi
 +
+ # Libtool setup.
  if test "x${with_newlib}" != "xyes"; then
    AC_LIBTOOL_DLOPEN
- fi
-@@ -107,7 +112,14 @@
+@@ -140,7 +145,14 @@
  # Enable compiler support that doesn't require linking.
  GLIBCXX_ENABLE_SJLJ_EXCEPTIONS
  GLIBCXX_ENABLE_PCH($is_hosted)
@@ -29,7 +29,7 @@ Index: libstdc++-v3/configure.ac
  GLIBCXX_ENABLE_ATOMIC_BUILTINS
  GLIBCXX_ENABLE_DECIMAL_FLOAT
  GLIBCXX_ENABLE_INT128_FLOAT128
-@@ -336,7 +348,10 @@
+@@ -369,7 +381,10 @@
  GLIBCXX_CONFIGURE_TESTSUITE
  
  # For gthread support.  Depends on GLIBCXX_ENABLE_SYMVERS.
@@ -41,19 +41,3 @@ Index: libstdc++-v3/configure.ac
  
  # Define documentation rules conditionally.
  
-@@ -421,11 +436,11 @@
- GLIBCXX_EXPORT_INCLUDES
- GLIBCXX_EXPORT_FLAGS
- 
--if test "$enable_shared" = yes; then
--  PIC_CXXFLAGS="-prefer-pic"
--else
-+#if test "$enable_shared" = yes; then
-+#  PIC_CXXFLAGS="-prefer-pic"
-+#else
-   PIC_CXXFLAGS=
--fi
-+#fi
- AC_SUBST(PIC_CXXFLAGS)
- 
- dnl In autoconf 2.5x, AC_OUTPUT is replaced by four AC_CONFIG_* macros,
