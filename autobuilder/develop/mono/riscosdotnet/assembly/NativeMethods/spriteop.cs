@@ -71,6 +71,15 @@ namespace riscos
 								       int height,
 								       int mode);
 
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_create_sprite")]
+		internal static extern IntPtr OSSpriteOp_CreateSprite (OSSpriteOp.AreaType flags,
+								       IntPtr spriteAreaCB,
+								       string spriteName,
+								       bool createPalette,
+								       int width,
+								       int height,
+								       OS.ModeSelector mode);
+
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_get_sprite_user_coords")]
 		internal static extern IntPtr OSSpriteOp_GetSpriteUserCoords (OSSpriteOp.AreaType flags,
 									      IntPtr spriteAreaCB,
@@ -545,67 +554,67 @@ namespace riscos
 
 		// plot sprite using sprite name
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_scaled")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteScaled (OSSpriteOp.AreaType flags,
-									   IntPtr spriteAreaCB,
-									   string spriteName,
-									   int x,
-									   int y,
-									   OSSpriteOp.PlotAction action,
-									   OS.ScaleFactors factors,
-									   IntPtr transTab);
+		internal static extern IntPtr OSSpriteOp_PutSpriteScaled (OSSpriteOp.AreaType flags,
+									  IntPtr spriteAreaCB,
+									  string spriteName,
+									  int x,
+									  int y,
+									  OSSpriteOp.PlotAction action,
+									  OS.ScaleFactors factors,
+									  IntPtr transTab);
 
 		// plot sprite using sprite address
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_scaled")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteScaled (OSSpriteOp.AreaType flags,
-									   IntPtr spriteAreaCB,
-									   IntPtr spriteAddress,
-									   int x,
-									   int y,
-									   OSSpriteOp.PlotAction action,
-									   OS.ScaleFactors factors,
-									   IntPtr transTab);
+		internal static extern IntPtr OSSpriteOp_PutSpriteScaled (OSSpriteOp.AreaType flags,
+									  IntPtr spriteAreaCB,
+									  IntPtr spriteAddress,
+									  int x,
+									  int y,
+									  OSSpriteOp.PlotAction action,
+									  OS.ScaleFactors factors,
+									  IntPtr transTab);
 
 		// plot sprite using sprite name
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_scaled_mapped")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteScaledMapped (OSSpriteOp.AreaType flags,
-										 IntPtr spriteAreaCB,
-										 string spriteName,
-										 int x,
-										 int y,
-										 OSSpriteOp.PlotAction action,
-										 OS.ScaleFactors factors,
-										 IntPtr mapping);
+		internal static extern IntPtr OSSpriteOp_PutSpriteScaledMapped (OSSpriteOp.AreaType flags,
+										IntPtr spriteAreaCB,
+										string spriteName,
+										int x,
+										int y,
+										OSSpriteOp.PlotAction action,
+										OS.ScaleFactors factors,
+										IntPtr mapping);
 
 		// plot sprite using sprite address
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_scaled_mapped")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteScaledMapped (OSSpriteOp.AreaType flags,
-										 IntPtr spriteAreaCB,
-										 IntPtr spriteAddress,
-										 int x,
-										 int y,
-										 OSSpriteOp.PlotAction action,
-										 OS.ScaleFactors factors,
-										 IntPtr mapping);
+		internal static extern IntPtr OSSpriteOp_PutSpriteScaledMapped (OSSpriteOp.AreaType flags,
+										IntPtr spriteAreaCB,
+										IntPtr spriteAddress,
+										int x,
+										int y,
+										OSSpriteOp.PlotAction action,
+										OS.ScaleFactors factors,
+										IntPtr mapping);
 
 		// plot sprite using sprite name
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_grey_scaled")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteGreyScaled (OSSpriteOp.AreaType flags,
-									       IntPtr spriteAreaCB,
-									       string spriteName,
-									       int x,
-									       int y,
-									       OS.ScaleFactors factors,
-									       IntPtr transTab);
+		internal static extern IntPtr OSSpriteOp_PutSpriteGreyScaled (OSSpriteOp.AreaType flags,
+									      IntPtr spriteAreaCB,
+									      string spriteName,
+									      int x,
+									      int y,
+									      OS.ScaleFactors factors,
+									      IntPtr transTab);
 
 		// plot sprite using sprite address
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_grey_scaled")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteGreyScaled (OSSpriteOp.AreaType flags,
-									       IntPtr spriteAreaCB,
-									       IntPtr spriteAddress,
-									       int x,
-									       int y,
-									       OS.ScaleFactors factors,
-									       IntPtr transTab);
+		internal static extern IntPtr OSSpriteOp_PutSpriteGreyScaled (OSSpriteOp.AreaType flags,
+									      IntPtr spriteAreaCB,
+									      IntPtr spriteAddress,
+									      int x,
+									      int y,
+									      OS.ScaleFactors factors,
+									      IntPtr transTab);
 
 		// Remove lefthand wastage using sprite name
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_remove_left_hand_wastage")]
@@ -626,7 +635,8 @@ namespace riscos
 									      string spriteName,
 									      OSSpriteOp.TransformFlags flags,
 									      OS.Rect source,
-									      OS.Matrix matrix);
+									      [In, MarshalAs(UnmanagedType.Struct)]
+										   ref NativeOS.Matrix matrix);
 
 		// plot mask using sprite address
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_plot_mask_trfm")]
@@ -635,51 +645,80 @@ namespace riscos
 									      IntPtr spriteAddress,
 									      OSSpriteOp.TransformFlags flags,
 									      OS.Rect source,
-									      OS.Matrix matrix);
+									      [In, MarshalAs(UnmanagedType.Struct)]
+										   ref NativeOS.Matrix matrix);
 
-		// plot sprite using sprite name
+		// plot sprite using sprite name and transformation matrix.
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_trfm")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteTransformed (OSSpriteOp.AreaType flags,
-										IntPtr spriteAreaCB,
-										string spriteName,
-										OSSpriteOp.TransformFlags flags,
-										OS.Rect source,
-										OSSpriteOp.PlotAction action,
-										OS.Matrix matrix,
-										IntPtr transTab);
+		internal static extern IntPtr OSSpriteOp_PutSpriteTransformed (OSSpriteOp.AreaType flags,
+									       IntPtr spriteAreaCB,
+									       string spriteName,
+									       OSSpriteOp.TransformFlags transformFlags,
+									       OS.Rect source,
+									       OSSpriteOp.PlotAction action,
+									       [In, MarshalAs(UnmanagedType.Struct)]
+										    ref NativeOS.Matrix matrix,
+									       IntPtr transTab);
 
-		// plot sprite using sprite address
+
+		// plot sprite using sprite name and destination coordinate block.
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_trfm")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteTransformed (OSSpriteOp.AreaType flags,
-										IntPtr spriteAreaCB,
-										IntPtr spriteAddress,
-										OSSpriteOp.TransformFlags flags,
-										OS.Rect source,
-										OSSpriteOp.PlotAction action,
-										OS.Matrix matrix,
-										IntPtr transTab);
+		internal static extern IntPtr OSSpriteOp_PutSpriteTransformed (OSSpriteOp.AreaType flags,
+									       IntPtr spriteAreaCB,
+									       string spriteName,
+									       OSSpriteOp.TransformFlags transformFlags,
+									       OS.Rect source,
+									       OSSpriteOp.PlotAction action,
+									       OSSpriteOp.DestCoordBlock destCoordBlock,
+									       IntPtr transTab);
+
+		// plot sprite using sprite address and transformation matrix.
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_trfm")]
+		internal static extern IntPtr OSSpriteOp_PutSpriteTransformed (OSSpriteOp.AreaType flags,
+									       IntPtr spriteAreaCB,
+									       IntPtr spriteAddress,
+									       OSSpriteOp.TransformFlags flags,
+									       OS.Rect source,
+									       OSSpriteOp.PlotAction action,
+									       [In, MarshalAs(UnmanagedType.Struct)]
+										    ref NativeOS.Matrix matrix,
+									       IntPtr transTab);
+
+
+		// plot sprite using sprite address and destination coordinate block.
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_trfm")]
+		internal static extern IntPtr OSSpriteOp_PutSpriteTransformed (OSSpriteOp.AreaType flags,
+									       IntPtr spriteAreaCB,
+									       IntPtr spriteAddress,
+									       OSSpriteOp.TransformFlags flags,
+									       OS.Rect source,
+									       OSSpriteOp.PlotAction action,
+									       OSSpriteOp.DestCoordBlock destCoordBlock,
+									       IntPtr transTab);
 
 		// plot sprite using sprite name
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_trfm_mapped")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteTransformedMapped (OSSpriteOp.AreaType flags,
-										      IntPtr spriteAreaCB,
-										      string spriteName,
-										      OSSpriteOp.TransformFlags flags,
-										      OS.Rect source,
-										      OSSpriteOp.PlotAction action,
-										      OS.Matrix matrix,
-										      IntPtr mapping);
+		internal static extern IntPtr OSSpriteOp_PutSpriteTransformedMapped (OSSpriteOp.AreaType flags,
+										     IntPtr spriteAreaCB,
+										     string spriteName,
+										     OSSpriteOp.TransformFlags flags,
+										     OS.Rect source,
+										     OSSpriteOp.PlotAction action,
+										     [In, MarshalAs(UnmanagedType.Struct)]
+											  ref NativeOS.Matrix matrix,
+										     IntPtr mapping);
 
 		// plot sprite using sprite address
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_trfm_mapped")]
-		internal static extern IntPtr OSSpriteOp_PlotSpriteTransformedMapped (OSSpriteOp.AreaType flags,
-										      IntPtr spriteAreaCB,
-										      IntPtr spriteAddress,
-										      OSSpriteOp.TransformFlags flags,
-										      OS.Rect source,
-										      OSSpriteOp.PlotAction action,
-										      OS.Matrix matrix,
-										      IntPtr mapping);
+		internal static extern IntPtr OSSpriteOp_PutSpriteTransformedMapped (OSSpriteOp.AreaType flags,
+										     IntPtr spriteAreaCB,
+										     IntPtr spriteAddress,
+										     OSSpriteOp.TransformFlags flags,
+										     OS.Rect source,
+										     OSSpriteOp.PlotAction action,
+										     [In, MarshalAs(UnmanagedType.Struct)]
+											  ref NativeOS.Matrix matrix,
+										     IntPtr mapping);
 
 		// Insert/delete rows using sprite name
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_insert_delete_rows")]

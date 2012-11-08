@@ -535,8 +535,8 @@ namespace riscos
 		/*! \brief An OS heap within a dynamic area.  */
 		public class DynamicAreaHeap : DynamicArea
 		{
-			public DynamicAreaHeap (string name, int maxSize, int initSize) :
-				base (name, maxSize, initSize)
+			public DynamicAreaHeap (string name, int initSize, int maxSize) :
+				base (name, initSize, maxSize)
 			{
 				HeapInitialise (BaseAddress, initSize);
 			}

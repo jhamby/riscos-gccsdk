@@ -47,7 +47,7 @@ build_riscosdotnet() {
 }
 
 ab_make() {
-  $AB_MAKE -j3 install
+#  $AB_MAKE -j3 install
 
   # In a native Linux build, the class libraries, compilers and other tools are
   # built automatically. However here, I suspect the build system detects that
@@ -59,11 +59,11 @@ ab_make() {
     # Parallel building using -j can cause:
     # error CS0006: Metadata file `../../class/lib/net_2_0/Mono.Cecil.dll' could not be found
     # when building mono-api-info.exe
-    $AB_MAKE NO_DIR_CHECK=1 PROFILES='net_2_0 net_3_5 net_4_0' all-profiles install MONO_VERSION=$MONO_VERSION
+#    $AB_MAKE NO_DIR_CHECK=1 PROFILES='net_2_0 net_3_5 net_4_0' all-profiles install MONO_VERSION=$MONO_VERSION
 
     # Make sure profiles 3.5 & 4.0 are installed
-    $AB_MAKE NO_DIR_CHECK=1 PROFILE=net_3_5 install MONO_VERSION=$MONO_VERSION
-    $AB_MAKE NO_DIR_CHECK=1 PROFILE=net_4_0 install MONO_VERSION=$MONO_VERSION
+#    $AB_MAKE NO_DIR_CHECK=1 PROFILE=net_3_5 install MONO_VERSION=$MONO_VERSION
+#    $AB_MAKE NO_DIR_CHECK=1 PROFILE=net_4_0 install MONO_VERSION=$MONO_VERSION
   popd >/dev/null
 
   build_riscosdotnet
@@ -176,6 +176,11 @@ ab_package() {
   svn export $H/riscosdotnet/test/\!MonoTestTB $tests_installdir/\!MonoTestTB
   cp -T $S/libriscosdotnet/build/test/test-toolbox.exe $tests_installdir/\!MonoTestTB/test-toolbox.exe,A7D
   cp -T $S/libriscosdotnet/build/test/test-toolbox.exe.mdb $tests_installdir/\!MonoTestTB/test-toolbox.exe.mdb
+
+  # Copy !TestSprite
+  svn export $H/riscosdotnet/test/\!TestSprite $tests_installdir/\!TestSprite
+  cp -T $S/libriscosdotnet/build/test/test-sprite.exe $tests_installdir/\!TestSprite/test-sprite.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/test-sprite.exe.mdb $tests_installdir/\!TestSprite/test-sprite.exe.mdb
 }
 
 # Regenerate configure from the patched configure.in

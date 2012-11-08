@@ -39,4 +39,50 @@ Finally, the attributes are used to actually create the window:
 var window = new Wimp.Window (attributes);
 \endcode
 
+\section sprites Sprites
+
+\subsection spritearea Creating a sprite area
+
+Care must be taken as to where a sprite area is placed. Although it should be technically possible
+to place in managed memory, the garbage collector is likely to move it invalidating any sprite
+pointers. This means that any sprite operations must be done by sprite name, or the area locked
+down before taking the address of a sprite and performing the required operations.<br>
+A better option is to use unmanaged memory such as a heap in a dynamic area:
+
+\code
+// Create a heap in a dynamic area named "Sprites" with an initial size of 4KB and
+// a maximum size of 10MB.
+var heap = new OS.DynamicAreaHeap ("Sprites", 10 * 1024 * 1024, 4 * 1024 * 1024);
+
+// Allocate a block of memory from the heap for the sprite area.
+var sprite_area_memory = heap.Alloc (1 * 1024 * 1024);
+
+// Create a sprite area in the memory block.
+var sprite_area = new OSSpriteOp.SpriteArea (sprite_area_memory, 1 * 1024 * 1024);
+\endcode
+
+\subsection newsprite Creating a sprite
+
+There are two types of sprite object - SpriteByName and SpriteByPointer.
+
+\code
+var sprite1 = new OSSpriteOp.SpriteByName (sprite_area, "sprite1", false, 50, 50, 28);
+\endcode
+
+Calling methods on sprite1 will perform operations on the sprite via its name.
+
+\code
+var sprite2 = new OSSpriteOp.SpriteByPointer (sprite_area, "sprite2", false, 50, 50, 28);
+\endcode
+
+Calling methods on sprite2 will perform operations on the sprite via its pointer.
+
+*/
+
+/*
+FIXME: Need to verify this:
+----
+ As sprite2 is derived from SpriteByName, it's still possible to access sprite operations
+by sprite name by calling base methods.
+----
 */
