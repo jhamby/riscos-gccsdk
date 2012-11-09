@@ -2,7 +2,7 @@ OSLIB_DIR = $(top_srcdir)/build/oslib
 OSLIB_SRC = $(OSLIB_DIR)/!OSLib/Source
 
 DEFMOD = $(OSLIB_DIR)/\!OSLib/Bin/defmod
-DEFMOD_FLAGS = -asmtype gccelf -fpu soft -s -32bit
+DEFMOD_FLAGS = -asmtype gccelf -float-abi soft -s -32bit
 
 STRIP_OSLIB_SCRIPT = $(top_srcdir)/strip-oslib.pl
 
