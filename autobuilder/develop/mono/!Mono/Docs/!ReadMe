@@ -57,6 +57,13 @@ Some useful command line options that are known to work are:
 --stats
 	When the program exits, output a list of statistics.
 
+--debug
+	When generating a stacktrace, display filenames and source code line
+	numbers.
+	For this to work, the program and libraries must have been compiled with
+	the -debug compiler option and the resulting .mdb files placed along
+	side the components they belong to.
+
 System variables
 ----------------
 Mono$EnvOptions (Linux version: MONO_ENV_OPTIONS)
@@ -104,13 +111,13 @@ Accessing RISC OS
 -----------------
 As mentioned previously a shared library and assembly called "RISC OS Dot Net"
 are provided to allow C# programs to access the RISC OS API. All RISC OS specific
-functions have "riscos" as their root namespace. To use them in your own programs
-you will require the line:
+classes and methods have "riscos" as their root namespace. To use them in your own
+programs you will require the line:
 
 using riscos;
 
 at the top of your source code that references them. Also when compiling, it's
-necessary to tell the compiler where to find the RISC OS API functions by adding:
+necessary to tell the compiler where to find the RISC OS API classes by adding:
 
 -R:riscos
 
@@ -120,8 +127,8 @@ RISC OS Dot Net is still in development and not yet complete, I intend to add
 more of the RISC OS API soon (at least the core functionality such as WIMP,
 Font, Toolbox, etc.). In time I hope this will expand into a class library.
 
-What works and what doesn't
----------------------------
+What works
+----------
 1) SGen GC
 RISC OS Mono includes the SGen garbage collector to automatically dispose
 of unused objects.
@@ -136,14 +143,16 @@ The Global Assembly Cache is supported and comes ready populated with the
 same assemblies as installed in Linux. A utility, gacutil, is provided to
 access it.
 
-4) AOT
+What doesn't work
+-----------------
+1) AOT
 The Ahead Of Time compiler is not currently supported.
 
-5) Although there are many dll assemblies included, a lot depend on external
+2) Although there are many dll assemblies included, a lot depend on external
 C shared libraries in order to function. So, for example, the Cairo dll
 will not work without a port of the Cario shared library.
 
-6) null reference exceptions
+3) null reference exceptions
 Currently, hardware detection of null references works only for saves.
 Detection of loads from address zero may work on future versions of RISC OS
 if zero page becomes protected. In the meantime, the JIT is set to generate
