@@ -845,7 +845,8 @@ fmaf_FIXME_float_arg:
 	DefSCLFnc	isblank
 
 	@ Entry 115
-	MOV	PC, #0	@ FIXME DefSCLFltFnc	strtof
+	@ float strtof (const char * restrict string, char ** restrict endptr);
+	DefSCLFltFnc	strtof
 
 	@ Entry 116
 	DefSCLFnc	copysign

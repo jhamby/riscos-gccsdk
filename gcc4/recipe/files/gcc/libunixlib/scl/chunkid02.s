@@ -255,12 +255,20 @@ _wR4chk = __rt_wR4chk
 	DefSCLFnc	atol
 
 	@ Entry 61
+	@ double strtod (const char * restrict string,
+	@                char ** restrict endptr);
 	DefSCLFnc	strtod
 
 	@ Entry 62
+	@ long int strtol (const char * restrict string,
+	@                  char ** restrict endptr,
+	@                  int base);
 	DefSCLFnc	strtol
 
 	@ Entry 63
+	@ unsigned long int strtoul (const char * restrict string,
+	@                            char ** restrict endptr,
+	@                            int base);
 	DefSCLFnc	strtoul
 
 	@ Entry 64
