@@ -43,6 +43,7 @@
 #include "reloc.h"
 #include "value.h"
 #include "main.h"
+#include "targetcpu.h"
 
 typedef enum
 {
@@ -63,7 +64,10 @@ static unsigned oFPUsageNOFP_LineNum = 0; /**< Place of NOFP (linenumber).  */
 static bool
 CheckFPUsageIsAllowed (void)
 {
-  /* FIXME: check if softfloat is in use.  */
+  /* Check if FPA instructions are allowed.  This corresponds with testing on
+     {TARGET_FPU_SOFTFPA}.  */
+  if ((Target_GetFPUFeatures () & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2 | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == kFPUExt_SoftFPA)
+    error (ErrorError, "SoftFPA configuration doesn't allow FPA instructions");
 
   switch (oFPUsage)
     {

@@ -630,6 +630,12 @@ c_dci (bool doLowerCase)
 static void
 DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 {
+  if (Target_GetFPUFeatures () == kArchFPUExt_None)
+    {
+      error (ErrorError, "No FPU selected");
+      return;
+    }
+
   do
     {
       uint32_t offset = areaCurrentSymbol->area.info->curIdx;

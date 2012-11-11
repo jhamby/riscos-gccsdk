@@ -253,7 +253,9 @@ ASFile_Create (const char *fileName, ASFile *asFileP)
   fileName = asFileP->canonName;
   size_t len = strlen (fileName);
   if (len > sizeof (",xyz")-1 && fileName[len - 4] == ','
-      && isxdigit (fileName[len - 3]) && isxdigit (fileName[len - 2]) && isxdigit (fileName[len - 1]))
+      && isxdigit ((unsigned char)fileName[len - 3])
+      && isxdigit ((unsigned char)fileName[len - 2])
+      && isxdigit ((unsigned char)fileName[len - 1]))
     fileType = (fileName[len - 1] >= '0' && fileName[len - 1] <= '9' ? fileName[len - 1] - '0' : (fileName[len - 1] | 0x20) - 'a' + 10)
                  + ((fileName[len - 2] >= '0' && fileName[len - 2] <= '9' ? fileName[len - 2] - '0' : (fileName[len - 2] | 0x20) - 'a' + 10) << 4)
                  + ((fileName[len - 3] >= '0' && fileName[len - 3] <= '9' ? fileName[len - 3] - '0' : (fileName[len - 3] | 0x20) - 'a' + 10) << 8);

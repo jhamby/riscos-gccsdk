@@ -78,15 +78,15 @@ IsUnop (Operator_e op)
 
 typedef enum
 {
-  LexId,		/* Start with character */
-  LexLocalLabel,	/* Start with digit */
+  LexId,		/* Start with character.  */
+  LexLocalLabel,	/* Start with digit.  */
   LexString,		/* "jsgd" */
   LexInt,		/* Start with digit, & and is not a floating point literal.  And fits into 32-bit.  */
   LexInt64,		/* Like LexInt but can only fit into 64-bit.  */
   LexFloat,		/* Start with digit contains dot */
   LexOperator,		/* + - * % / >> >>> <<  ~ & | ! && || == != <= >= */
-  LexPosition,		/* . representing current position */
-  LexStorage,		/* @ representing current storage counter */
+  LexPosition,		/* . representing current position.  */
+  LexStorage,		/* @ representing current storage counter.  */
   LexDelim,		/* () */
   LexBool,		/* {TRUE} or {FALSE} */
   LexNone
@@ -94,7 +94,7 @@ typedef enum
 
 typedef struct
 {
-  LexTag tag; /* FIXME: change into Tag */
+  LexTag tag;
   union
     {
       struct			/* LexId */
@@ -150,7 +150,7 @@ Lex lexGetPrim (void);
 Lex lexGetBinop (void);
 int lexNextPri (void);
 
-Lex lexTempLabel (const char *str, size_t len);
+Lex Lex_Id (const char *str, size_t strLen);
 
 #ifdef DEBUG
 void lexPrint (const Lex *lex);

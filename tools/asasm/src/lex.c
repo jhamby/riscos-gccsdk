@@ -101,74 +101,71 @@ lexHashStr (const char *s, size_t maxn)
 }
 
 
-/**
- * Parses integer and returns this as LexInt or LexInt64 Lex object.
- * \param base When 16, use base 16.  Any other base value is considered
- * as default base value and can be overruled by "<base>_" (with <base> a
- * digit from 2 to 9 (incl)) or "0x"/"0X" prefix.
- * \param didOverflow Indicates whether an 64-bit integer overflow happened.
- */
 static Lex
-Lex_GetInt (int base, bool *didOverflow)
+Lex_None (void)
 {
-  *didOverflow = false;
+  const Lex result = { .tag = LexNone };
+  return result;
+}
 
-  /* Determine base (when not forced to 16).  */
-  if (base != 16)
-    {
-      char c1, c2;
-      if ((c1 = inputLookN (0)) == '0' && ((c2 = inputLookN (1)) == 'x' || c2 == 'X'))
-	{
-	  inputSkipN (2);
-	  base = 16; /* Overrule default base value.  */
-	}
-      else if (inputLookN (1) == '_')
-	{
-	  inputSkipN (2);
-	  base = c1 - '0'; /* Overrule default base value.  */
-	  if (base < 2 || base > 9)
-	    error (ErrorError, "Illegal base %d", base);
-	}
-    }
 
-  uint64_t res;
-  char c;
-  bool atLeastOneDigit = false;
-  for (res = 0; isxdigit (c = inputLookLower ()); inputSkip ())
+static Lex
+Lex_Bool (bool b)
+{
+  const Lex result =
     {
-      c -= (c >= 'a') ? 'a' - 10 : '0';
-
-      if (c >= base)
-	break;
-
-      atLeastOneDigit = true;
-      
-      uint64_t resNext = res * base + c;
-      if (resNext < res)
-	*didOverflow = true;
-      res = resNext;
-    }
-
-  if (!atLeastOneDigit)
-    {
-      const Lex badInt = { .tag = LexNone };
-      return badInt;
-    }
-  if (res <= UINT32_MAX)
-    {
-      const Lex lexInt32 =
-	{
-	  .tag = LexInt,
-	  .Data.Int = { .value = (int)res }
-	};
-      return lexInt32;
-    }
-  const Lex lexInt64 =
-    {
-      .tag = LexInt64,
-      .Data.Int64 = { .value = res }
+      .tag = LexBool,
+      .Data.Bool.value = b
     };
-  return lexInt64;
+  return result;
+}
+
+
+static Lex
+Lex_Int (int i)
+{
+  const Lex result =
+    {
+      .tag = LexInt,
+      .Data.Int.value = i
+    };
+  return result;
+}
+
+
+static Lex
+Lex_String (const char *str, size_t strLen)
+{
+  const Lex result =
+    {
+      .tag = LexString,
+      .Data.String = { .str = str, .len = strLen }
+    };
+  return result;
+}
+
+
+static Lex
+Lex_Float (double dbl)
+{
+  const Lex result =
+    {
+      .tag = LexFloat,
+      .Data.Float.value = dbl
+    };
+  return result;
+}
+
+
+Lex
+Lex_Id (const char *str, size_t strLen)
+{
+  const Lex result =
+    {
+      .tag = LexId,
+      .Data.Id = { .str = str, .len = strLen, .hash = lexHashStr (str, strLen) }
+    };
+  return result;
 }
 
 
@@ -179,16 +176,9 @@ lexGetIdNoError (void)
 
   skipblanks ();
 
-  Lex result;
-  if ((result.Data.Id.str = Input_Symbol (&result.Data.Id.len)) != NULL)
-    {
-      result.tag = LexId;
-      result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
-    }
-  else
-    result.tag = LexNone;
-
-  return result;
+  size_t idLen;
+  const char *id = Input_Symbol (&idLen);
+  return id ? Lex_Id (id, idLen) : Lex_None ();
 }
 
 
@@ -303,14 +293,9 @@ static Lex
 Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
 			    LocalLabel_eLevel level)
 {
-  Lex result =
-    {
-      .tag = LexNone
-    };
-
   unsigned label = Lex_ReadReferringLocalLabel ();
   if (label == UINT_MAX)
-    return result;
+    return Lex_None ();
 
   Local_Label_t *lblP;
   unsigned macroDepth;
@@ -325,6 +310,7 @@ Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
 	      case eThisLevelOnly:
 		lblP = Local_GetLabel (macroDepth, label);
 		break;
+
 	      case eAllLevels:
 		{
 		  const unsigned macroDepthCopy = macroDepth;
@@ -356,7 +342,7 @@ Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
 	{
 	  const char *levelStr = level == eThisLevelOnly ? "t" : level == eAllLevels ? "a" : ""; 
 	  errorAbort ("Missing local label %%b%s%i", levelStr, label);
-	  return result;
+	  return Lex_None ();
 	}
       Local_CreateSymbolForOutstandingFwdLabelRef (id, sizeof (id),
 						   level, dir, label);
@@ -364,13 +350,10 @@ Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
   else
     Local_CreateSymbol (lblP, macroDepth, false, id, sizeof (id));
 
-  result.tag = LexId;
-  result.Data.Id.str = strdup (id);
-  if (!result.Data.Id.str)
+  const char *lbl = strdup (id); /* FIXME: memory leak.  */
+  if (lbl == NULL)
     errorOutOfMem ();
-  result.Data.Id.len = strlen (id);
-  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
-  return result;
+  return Lex_Id (lbl, strlen (lbl));
 }
 
 
@@ -426,24 +409,17 @@ Lex_DefineLocalLabel (const Lex *lexP)
 
   unsigned labelNum = Lex_ReadDefiningLocalLabel (lexP->Data.LocalLabel.str, lexP->Data.LocalLabel.len);
   if (labelNum == UINT_MAX)
-    {
-      const Lex noLex = { .tag = LexNone };
-      return noLex;
-    }
+    return Lex_None ();
   
   Local_Label_t *lblP = Local_DefineLabel (labelNum);
   char id[256];
   Local_CreateSymbol (lblP, FS_GetMacroDepth (), true, id, sizeof (id));
   lblP->instance++;
 
-  Lex result;
-  result.tag = LexId;
-  result.Data.Id.str = strdup (id);
-  if (!result.Data.Id.str)
+  const char *lbl = strdup (id); /* FIXME: memory leak */
+  if (lbl == NULL)
     errorOutOfMem ();
-  result.Data.Id.len = strlen (id);
-  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
-  return result;
+  return Lex_Id (lbl, strlen (lbl));
 }
 
 
@@ -747,35 +723,25 @@ Lex_GetBinaryOp (Lex *lex)
  * Get built-in variable.
  * Built-in variables can be in uppercase, lowercase, or mixed.
  */
-static void
-Lex_GetBuiltinVariable (Lex *lex)
+static Lex
+Lex_GetBuiltinVariable (void)
 {
-  lex->tag = LexNone;
   const char * const inputMark = Input_GetMark ();
   switch (inputGet () | 0x20)
     {
       case 'a':
 	{
 	  if (Input_MatchStringLower ("sasm_version}")) /* {ASASM_VERSION} */
+	    return Lex_Int (ASASM_VERSION);
+
+	  if (Input_MatchStringLower ("rchitecture}")) /* {ARCHITECTURE} */
 	    {
-	      lex->tag = LexInt;
-	      lex->Data.Int.value = ASASM_VERSION;
-	      return;
+	      const char *arch = Target_GetArch (true);
+	      return Lex_String (arch, strlen (arch));
 	    }
-	  else if (Input_MatchStringLower ("rchitecture}")) /* {ARCHITECTURE} */
-	    {
-	      lex->tag = LexString;
-	      lex->Data.String.str = Target_GetArch (true);
-	      lex->Data.String.len = strlen (lex->Data.String.str);
-	      return;
-	    }
-	  else if (Input_MatchStringLower ("reaname}")) /* {AREANAME} */
-	    {
-	      lex->tag = LexString;
-	      lex->Data.String.str = areaCurrentSymbol->str;
-	      lex->Data.String.len = areaCurrentSymbol->len;
-	      return;
-	    }
+
+	  if (Input_MatchStringLower ("reaname}")) /* {AREANAME} */
+	    return Lex_String (areaCurrentSymbol->str, areaCurrentSymbol->len);
 	  break;
 	}
 
@@ -787,22 +753,16 @@ Lex_GetBuiltinVariable (Lex *lex)
 	      /* {CODESIZE} is documented as synonym for {CONFIG} but {CONFIG}
 	         can be 26 which is really legacy and is a bit odd to have 26
 	         as 'code size'.  Hence, {CODESIZE} can only be 16 or 32.  */
-	      lex->tag = LexInt;
-	      lex->Data.Int.value = State_GetInstrType () == eInstrType_ARM ? 32 : 16;
-	      return;
+	      return Lex_Int (State_GetInstrType () == eInstrType_ARM ? 32 : 16);
 	    }
-	  else if (Input_MatchStringLower ("onfig}")) /* {CONFIG} */
+
+	  if (Input_MatchStringLower ("onfig}")) /* {CONFIG} */
+	    return Lex_Int (State_GetInstrType () == eInstrType_ARM ? ((gOptionAPCS & APCS_OPT_32BIT) ? 32 : 26) : 16);
+
+	  if (Input_MatchStringLower ("pu}")) /* {CPU} */
 	    {
-	      lex->tag = LexInt;
-	      lex->Data.Int.value = State_GetInstrType () == eInstrType_ARM ? ((gOptionAPCS & APCS_OPT_32BIT) ? 32 : 26) : 16;
-	      return;
-	    }
-	  else if (Input_MatchStringLower ("pu}")) /* {CPU} */
-	    {
-	      lex->tag = LexString;
-	      lex->Data.String.str = Target_GetCPU ();
-	      lex->Data.String.len = strlen (lex->Data.String.str);
-	      return;
+	      const char *cpu = Target_GetCPU ();
+	      return Lex_String (cpu, strlen (cpu));
 	    }
 	  break;
 	}
@@ -810,82 +770,51 @@ Lex_GetBuiltinVariable (Lex *lex)
       case 'e':
 	{
 	  if (Input_MatchStringLower ("ndian}")) /* {ENDIAN} */
-	    {
-	      lex->tag = LexString;
-	      lex->Data.String.str = "little";
-	      lex->Data.String.len = sizeof ("little")-1;
-	      return;
-	    }
+	    return Lex_String ("little", sizeof ("little")-1);
 	  break;
 	}
 
       case 'f':
 	{
 	  if (Input_MatchStringLower ("alse}")) /* {FALSE} */
+	    return Lex_Bool (false);
+	  if (Input_MatchStringLower ("pu}")) /* {FPU} */
 	    {
-	      lex->tag = LexBool;
-	      lex->Data.Int.value = false;
-	      return;
-	    }
-	  else if (Input_MatchStringLower ("pu}")) /* {FPU} */
-	    {
-	      lex->tag = LexString;
-	      lex->Data.String.str = Target_GetFPU ();
-	      lex->Data.String.len = strlen (lex->Data.String.str);
-	      return;
+	      const char *fpu = Target_GetFPU ();
+	      return Lex_String (fpu, strlen (fpu));
 	    }
 	  break;
 	}
 
       case 'i':
 	{
-	  if (Input_MatchStringLower ("nputfile}")) /* {INPUTFILE} */
+	  if (Input_MatchStringLower ("nputfile}")) /* {INPUTFILE} */ 
 	    {
-	      lex->tag = LexString;
-	      lex->Data.String.str = FS_GetCurFileName ();
-	      lex->Data.String.len = strlen (lex->Data.String.str);
-	      return;
+	      const char *inputFile = FS_GetCurFileName ();
+	      return Lex_String (inputFile, strlen (inputFile));
 	    }
 	  if (Input_MatchStringLower ("nter}")) /* {INTER} */
-	    {
-	      lex->tag = LexBool;
-	      lex->Data.Bool.value = (gOptionAPCS & APCS_OPT_INTERWORK) != 0;
-	      return;
-	    }
+	    return Lex_Bool ((gOptionAPCS & APCS_OPT_INTERWORK) != 0);
 	  break;
 	}
 
       case 'l':
 	{
 	  if (Input_MatchStringLower ("inenum}")) /* {LINENUM} */
-	    {
-	      lex->tag = LexInt;
-	      lex->Data.Int.value = FS_GetBuiltinVarLineNum ();
-	      return;
-	    }
-	  else if (Input_MatchStringLower ("inenumup}")) /* {LINENUMUP} */
-	    {
-	      lex->tag = LexInt;
-	      lex->Data.Int.value = FS_GetBuiltinVarLineNumUp ();
-	      return;
-	    }
-	  else if (Input_MatchStringLower ("inenumupper}")) /* {LINENUMUPPER} */
-	    {
-	      lex->tag = LexInt;
-	      lex->Data.Int.value = FS_GetBuiltinVarLineNumUpper ();
-	      return;
-	    }
+	    return Lex_Int (FS_GetBuiltinVarLineNum ());
+
+	  if (Input_MatchStringLower ("inenumup}")) /* {LINENUMUP} */
+	    return Lex_Int (FS_GetBuiltinVarLineNumUp ());
+
+	  if (Input_MatchStringLower ("inenumupper}")) /* {LINENUMUPPER} */
+	    return Lex_Int (FS_GetBuiltinVarLineNumUpper ());
 	  break;
 	}
 
       case 'o':
 	{
 	  if (Input_MatchStringLower ("pt}")) /* {OPT} */
-	    {
-	      lex->tag = LexInt;
-	      lex->Data.Int.value = gOpt_DirectiveValue;
-	      return;
-	    }
+	    return Lex_Int (gOpt_DirectiveValue);
 	  break;
 	}
 
@@ -894,8 +823,8 @@ Lex_GetBuiltinVariable (Lex *lex)
 	  /* FIXME: {PCSTOREOFFSET} */
 	  if (Input_MatchStringLower ("c}")) /* {PC} */
 	    {
-	      lex->tag = LexPosition;
-	      return;
+	      const Lex result = { .tag = LexPosition };
+	      return result;
 	    }
 	  break;
 	}
@@ -903,18 +832,11 @@ Lex_GetBuiltinVariable (Lex *lex)
       case 'r':
 	{
 	  if (Input_MatchStringLower ("opi}")) /* {ROPI} */
-	    {
-	      lex->tag = LexBool;
-	      lex->Data.Bool.value = (gOptionAPCS & APCS_OPT_ROPI) != 0;
-	      return;
-	    }
+	    return Lex_Bool ((gOptionAPCS & APCS_OPT_ROPI) != 0);
+
 	  if (Input_MatchStringLower ("eentrant}") /* {REENTRANT} */
 	      || Input_MatchKeywordLower ("wpi}")) /* {RWPI} */
-	    {
-	      lex->tag = LexBool;
-	      lex->Data.Bool.value = (gOptionAPCS & APCS_OPT_REENTRANT) != 0;
-	      return;
-	    }
+	    return Lex_Bool ((gOptionAPCS & APCS_OPT_REENTRANT) != 0);
 	  break;
 	}
 
@@ -927,16 +849,12 @@ Lex_GetBuiltinVariable (Lex *lex)
 		  if (Input_MatchStringLower ("arm}")) /* {TARGET_ARCH_ARM} */
 		    {
 		      /* Number ARM architecture, or 0 if Thumb-only ISA.  */
-		      lex->tag = LexInt;
-		      lex->Data.Int.value = Target_GetARMISAVersion ();
-		      return;
+		      return Lex_Int (Target_GetARMISAVersion ());
 		    }
 		  if (Input_MatchStringLower ("thumb}")) /* {TARGET_ARCH_THUMB} */
 		    {
 		      /* Number Thumb architecture, or 0 if ARM-only ISA.  */
-		      lex->tag = LexInt;
-		      lex->Data.Int.value = Target_GetThumbISAVersion ();
-		      return;
+		      return Lex_Int (Target_GetThumbISAVersion ());
 		    }
 
 		  /* Table mapping the lowercase {TARGET_ARCH_<arch>} suffix
@@ -979,11 +897,7 @@ Lex_GetBuiltinVariable (Lex *lex)
 		  for (size_t i = 0; i != sizeof (oArchs)/sizeof (oArchs[0]); ++i)
 		    {
 		      if (Input_MatchStringLower (oArchs[i].arch_in)) /* {TARGET_ARCH_<architecture>} */
-			{
-			  lex->tag = LexBool;
-			  lex->Data.Bool.value = !strcmp (Target_GetArch (false), oArchs[i].arch_norm);
-			  return;
-			}
+			return Lex_Bool (!strcmp (Target_GetArch (false), oArchs[i].arch_norm));
 		    }
 		}
 	      else if (Input_MatchStringLower ("feature_"))
@@ -992,104 +906,77 @@ Lex_GetBuiltinVariable (Lex *lex)
 		    {
 		      /* True when CLZ is available in Thumb *or* ARM.
 		          So needs at least v5 architecture (ARM) or Thumb v4 (Thumb).  */
-		      lex->tag = LexBool;
-		      lex->Data.Bool.value = Target_GetARMISAVersion () >= 5
-					       || Target_GetThumbISAVersion () >= 4;
-		      return;
+		      return Lex_Bool (Target_GetARMISAVersion () >= 5
+				       || Target_GetThumbISAVersion () >= 4);
 		    }
 		  if (Input_MatchStringLower ("divide}")) /* {TARGET_FEATURE_DIVIDE} */
 		    {
 		      /* True when SDIV/UDIV is available in Thumb *or* ARM.  */
-		      lex->tag = LexBool;
-		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_Div) != 0;
-		      return;
+		      return Lex_Bool ((Target_GetCPUFeatures () & kCPUExt_Div) != 0);
 		    }
 		  if (Input_MatchStringLower ("doubleword}")) /* {TARGET_FEATURE_DOUBLEWORD} */
 		    {
 		      /* True when LDRD/STRD is available (P extension).
 			 So needs at least v5E architecture but not for ARMv6-M.  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetCPUFeatures ();
-		      lex->Data.Bool.value = (features & kCPUExt_v5E) != 0
-					       && ((features & (kCPUExt_v6M | kCPUExt_v7M)) != kCPUExt_v6M); 
-		      return;
+		      return Lex_Bool ((features & kCPUExt_v5E) != 0
+				       && ((features & (kCPUExt_v6M | kCPUExt_v7M)) != kCPUExt_v6M));
 		    }
 		  if (Input_MatchStringLower ("dspmul}")) /* {TARGET_FEATURE_DSPMUL} */
 		    {
 		      /* True when DSP & saturated math is available (E extension).  */
-		      lex->tag = LexBool;
-		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_v5ExP) != 0;
-		      return;
+		      return Lex_Bool ((Target_GetCPUFeatures () & kCPUExt_v5ExP) != 0);
 		    }
 		  if (Input_MatchStringLower ("extension_register_count}")) /* {TARGET_FEATURE_EXTENSION_REGISTER_COUNT} */
-		    {
-		      lex->tag = LexInt;
-		      unsigned features = Target_GetFPUFeatures () ;
-		      if ((features & (kFPUExt_VFPv1 | kFPUExt_VFPv2 | kFPUExt_VFPv3)) != 0)
-			lex->Data.Int.value = (features & kFPUExt_D16D32) ? 32 : 16;
-		      else
-			lex->Data.Int.value = 0;
-		      return;
+		    {		      
+		      unsigned features = Target_GetFPUFeatures ();
+		      return Lex_Int ((features & (kFPUExt_VFPv1 | kFPUExt_VFPv2 | kFPUExt_VFPv3)) != 0 ? ((features & kFPUExt_D16D32) ? 32 : 16) : 0);
 		    }
 		  if (Input_MatchStringLower ("multiply}")) /* {TARGET_FEATURE_MULTIPLY} */
 		    {
 		      /* True when long multiply instructions are available in
 			 Thumb *or* ARM (M extension).  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetCPUFeatures ();
-		      lex->Data.Bool.value = (features & (kCPUExt_v3M | kCPUExt_v7M)) != 0
-					       || features == kArchExt_v7;
-		      return;
+		      return Lex_Bool ((features & (kCPUExt_v3M | kCPUExt_v7M)) != 0
+				       || features == kArchExt_v7);
 		    }
 		  if (Input_MatchStringLower ("multiprocessing}")) /* {TARGET_FEATURE_MULTIPROCESSING} */
 		    {
 		      /* True when multiprocessing extensions are supported.  */
-		      lex->tag = LexBool;
-		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_MP) != 0;
-		      return;
+		      return Lex_Bool ((Target_GetCPUFeatures () & kCPUExt_MP) != 0);
 		    }
 		  if (Input_MatchStringLower ("neon}")) /* {TARGET_FEATURE_NEON} */
 		    {
 		      /* True when there is NEON support.  */
-		      lex->tag = LexBool;
-		      lex->Data.Bool.value = (Target_GetFPUFeatures () & kFPUExt_NEONv1) != 0;
-		      return;
+		      return Lex_Bool ((Target_GetFPUFeatures () & kFPUExt_NEONv1) != 0);
 		    }
 		  if (Input_MatchStringLower ("neon_fp16}")) /* {TARGET_FEATURE_NEON_FP16} */
 		    {
 		      /* True when there is half-precision NEON support.  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value =  (features & (kFPUExt_NEONv1 | kFPUExt_FP16)) == (kFPUExt_NEONv1 | kFPUExt_FP16);
-		      return;
+		      return Lex_Bool ((features & (kFPUExt_NEONv1 | kFPUExt_FP16)) == (kFPUExt_NEONv1 | kFPUExt_FP16));
 		    }
 		  if (Input_MatchStringLower ("neon_fp32}")) /* {TARGET_FEATURE_NEON_FP32} */
 		    {
 		      /* True when there is single-precision NEON support.  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value = (features & kFPUExt_NEONv1) != 0
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0;
-		      return;
+		      return Lex_Bool ((features & kFPUExt_NEONv1) != 0
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0);
 		    }
 		  if (Input_MatchStringLower ("neon_integer}")) /* {TARGET_FEATURE_NEON_INTEGER} */
 		    {
-		      /* True when there is NEON integer-only support (i.e. NEON but no VFP at all).  */ 
-		      lex->tag = LexBool;
+		      /* True when there is NEON integer-only support (i.e. NEON but no VFP at all).  */
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value = (features & kFPUExt_NEONv1) != 0
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == 0;
-		      return;
+		      return Lex_Bool ((features & kFPUExt_NEONv1) != 0
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == 0);
 		    }
 		  if (Input_MatchStringLower ("unaligned}")) /* {TARGET_FEATURE_UNALIGNED} */
 		    {
 		      /* True when unaligned access is supported.
 		         From ARMv6 onwards but not for ARMv6-M.  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetCPUFeatures ();
-		      lex->Data.Bool.value = (features & kCPUExt_v6) != 0
-					       && (features & (kCPUExt_v6M | kCPUExt_v7M)) != kCPUExt_v6M; 
-		      return;
+		      return Lex_Bool ((features & kCPUExt_v6) != 0
+				       && (features & (kCPUExt_v6M | kCPUExt_v7M)) != kCPUExt_v6M);
 		    }
 		}
 	      else if (Input_MatchStringLower ("fpu_"))
@@ -1097,109 +984,85 @@ Lex_GetBuiltinVariable (Lex *lex)
 		  if (Input_MatchStringLower ("fpa}")) /* {TARGET_FPU_FPA} */
 		    {
 		      /* True when FPA FPU is selected.  */
-		      lex->tag = LexBool;
-		      unsigned features = Target_GetFPUFeatures () ;
-		      lex->Data.Bool.value = (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == 0
-					       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0;
-		      return;
+		      unsigned features = Target_GetFPUFeatures ();
+		      return Lex_Bool ((features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == 0
+				       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0);
 		    }
 		  if (Input_MatchStringLower ("softfpa}")) /* {TARGET_FPU_SOFTFPA} */
 		    {
 		      /* True when FPA endian + float-abi == soft.  */
-		      lex->tag = LexBool;
-		      unsigned features = Target_GetFPUFeatures () ;
-		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2 | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == kFPUExt_SoftFPA;  
-		      return;
+		      unsigned features = Target_GetFPUFeatures ();
+		      return Lex_Bool ((features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2 | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == kFPUExt_SoftFPA);  
 		    }
 		  if (Input_MatchStringLower ("softfpa_fpa}")) /* {TARGET_FPU_SOFTFPA_FPA} */
 		    {
 		      /* True when FPA endian + float-abi == softfp (using FPA).  */
-		      lex->tag = LexBool;
-		      unsigned features = Target_GetFPUFeatures () ;
-		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == kFPUExt_SoftFPA
-					       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0;  
-		      return;
+		      unsigned features = Target_GetFPUFeatures ();
+		      return Lex_Bool ((features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == kFPUExt_SoftFPA
+				       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0);
 		    }
 		  if (Input_MatchStringLower ("softfpa_vfp}")) /* {TARGET_FPU_SOFTFPA_VFP} */
 		    {
 		      /* True when FPA endian + float-abi == softfp (using VFP).  */
-		      lex->tag = LexBool;
-		      unsigned features = Target_GetFPUFeatures () ;
-		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2)) == kFPUExt_SoftFPA
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0;  
-		      return;
+		      unsigned features = Target_GetFPUFeatures ();
+		      return Lex_Bool ((features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2)) == kFPUExt_SoftFPA
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0);  
 		    }
 		  if (Input_MatchStringLower ("softvfp}")) /* {TARGET_FPU_SOFTVFP} */
 		    {
 		      /* True when VFP endian + float-abi == soft.  */
-		      lex->tag = LexBool;
-		      unsigned features = Target_GetFPUFeatures () ;
-		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2 | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP);  
-		      return;
+		      unsigned features = Target_GetFPUFeatures ();
+		      return Lex_Bool ((features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2 | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP));  
 		    }
 		  if (Input_MatchStringLower ("softvfp_fpa}")) /* {TARGET_FPU_SOFTVFP_FPA} */
 		    {
 		      /* True when VFP endian + float-abi == softfp (using FPA).  */
-		      lex->tag = LexBool;
-		      unsigned features = Target_GetFPUFeatures () ;
-		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP)
-					       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0;  
-		      return;
+		      unsigned features = Target_GetFPUFeatures ();
+		      return Lex_Bool ((features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP)
+				       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0);  
 		    }
 		  if (Input_MatchStringLower ("softvfp_vfp}")) /* {TARGET_FPU_SOFTVFP_VFP} */
 		    {
 		      /* True when VFP endian + float-abi == softfp (using VFP).  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP)
-			                       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0;  
-		      return;
+		      return Lex_Bool ((features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP)
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0);  
 		    }
 		  if (Input_MatchStringLower ("vfp}")) /* {TARGET_FPU_VFP} */
 		    {
 		      /* True when VFP FPU is selected.  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0;
-		      return;
+		      return Lex_Bool ((features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0);
 		    }
 		  if (Input_MatchStringLower ("vfpv1}")) /* {TARGET_FPU_VFPV1} */
 		    {
 		      /* True when VFPv1 is selected. AsAsm extension.  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_VFP_FMA)) == kFPUExt_VFPv1xD;
-		      return;
+		      return Lex_Bool ((features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_VFP_FMA)) == kFPUExt_VFPv1xD);
 		    }
 		  if (Input_MatchStringLower ("vfpv2}")) /* {TARGET_FPU_VFPV2} */
 		    {
 		      /* True when VFPv2 is selected.  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_VFP_FMA)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2);
-		      return;
+		      return Lex_Bool ((features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_VFP_FMA)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2));
 		    }
 		  if (Input_MatchStringLower ("vfpv3}")) /* {TARGET_FPU_VFPV3} */
 		    {
 		      /* True when VFPv3 is selected.  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA)) != (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA);
-		      return;
+		      return Lex_Bool ((features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA)) != (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA));
 		    }
 		  if (Input_MatchStringLower ("vfpv4}")) /* {TARGET_FPU_VFPV4} */
 		    {
 		      /* True when VFPv4 is selected (i.e. VFPv3 + FP16 + VFP_FMA).  */
-		      lex->tag = LexBool;
 		      unsigned features = Target_GetFPUFeatures ();
-		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
-					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA);
-		      return;
+		      return Lex_Bool ((features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA));
 		    }
 		}
 	      else if (Input_MatchStringLower ("profile_"))
@@ -1207,52 +1070,37 @@ Lex_GetBuiltinVariable (Lex *lex)
 		  if (Input_MatchStringLower ("a}")) /* {TARGET_PROFILE_A} */
 		    {
 		      /* True for ARMv7-A.  */
-		      lex->tag = LexBool;
-		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_v7A) != 0;
-		      return;
+		      return Lex_Bool ((Target_GetCPUFeatures () & kCPUExt_v7A) != 0);
 		    }
 		  if (Input_MatchStringLower ("m}")) /* {TARGET_PROFILE_M} */
 		    {
 		      /* True for ARMv6-M or ARMv7-M.  */
-		      lex->tag = LexBool;
-		      lex->Data.Bool.value = (Target_GetCPUFeatures () & (kCPUExt_v6M | kCPUExt_v7M)) != 0;
-		      return;
+		      return Lex_Bool ((Target_GetCPUFeatures () & (kCPUExt_v6M | kCPUExt_v7M)) != 0);
 		    }
 		  if (Input_MatchStringLower ("r}")) /* {TARGET_PROFILE_R} */
 		    {
 		      /* True for ARMv7-R.  */
-		      lex->tag = LexBool;
-		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_v7R) != 0;
-		      return;
+		      return Lex_Bool ((Target_GetCPUFeatures () & kCPUExt_v7R) != 0);
 		    }
 		}
 	    }
 	  else if (Input_MatchStringLower ("rue}")) /* {TRUE} */
-	    {
-	      lex->tag = LexBool;
-	      lex->Data.Int.value = true;
-	      return;
-	    }
+	    return Lex_Bool (true);
 	  break;
 	}
 
       case 'u':
 	{
 	  if (Input_MatchStringLower ("al}")) /* {UAL} */
-	    {
-	      /* True when we only going to parse UAL.  */
-	      lex->tag = LexBool;
-	      lex->Data.Bool.value = false; /* FIXME: */
-	      return;
-	    }
+	    return Lex_Bool (false); /* FIXME: */
 	  break;
 	}
       case 'v':
 	{
 	  if (Input_MatchStringLower ("ar}")) /* {VAR} */
 	    {
-	      lex->tag = LexStorage;
-	      return;
+	      const Lex result = { .tag = LexStorage };
+	      return result;
 	    }
 	  break;
 	}
@@ -1267,7 +1115,8 @@ Lex_GetBuiltinVariable (Lex *lex)
 	   (int)(lineRest + 1 - inputMark), inputMark);
   else
     error (ErrorError, "Missing closing bracket");
-  lex->tag = LexNone;
+
+  return Lex_None ();
 }
 
 
@@ -1288,24 +1137,126 @@ Lex_Char2Int (size_t len, const char *str)
 
 
 /**
+ * Tries to parse an integer (LexInt or LexInt64) or float (LexFloat) literal.
+ * Any base indication (like "0x", "&", "4_", etc.) has already been parsed.
+ *
+ *   <mantissa> [ "E" | "e" | "P" | "p" [ "+" | "-" | "" <exponent> ] ]
+ */
+static Lex
+Lex_GetIntOrFloat (unsigned base)
+{
+  assert ((base >= 2 && base <= 10) || base == 16);
+
+  const char *mark = Input_GetMark ();
+  bool didOverflow = false;
+
+  uint64_t res;
+  unsigned char c;
+  bool atLeastOneDigit = false;
+  for (res = 0; isxdigit (c = inputLookLower ()); inputSkip ())
+    {
+      unsigned val = c - (c >= 'a' ? 'a' - 10 : '0');
+
+      if (val >= base)
+	break;
+
+      atLeastOneDigit = true;
+      
+      uint64_t resNext = res * base + val;
+      if (resNext < res)
+	didOverflow = true;
+      res = resNext;
+    }
+
+  if (c == '.' || c == 'E' || c == 'e' || c == 'P' || c == 'p')
+    {
+      if (base != 10 && base != 16)
+	{
+	  error (ErrorError, "No base 10 or 16 floating-point literal is not supported"); /* FIXME */
+	  return Lex_None (); 
+	}
+      /* Find end of floating-point literal.  */
+      /* Skip digits after the dot in the mantissa.  */
+      if (c == '.')
+	{
+	  inputSkip ();
+	  while (base == 10 ? isdigit ((unsigned char)inputLook ()) : isxdigit ((unsigned char)inputLook ()))
+	    inputSkip ();
+	  c = inputLook ();
+	}
+      if (c == 'E' || c == 'e' || c == 'P' || c == 'p')
+	{
+	  inputSkip ();
+	  /* Skip optional exponent sign character.  */
+	  if (!Input_Match ('-', false))
+	    Input_Match ('+', false);
+	  /* Skip exponent.  */
+	  while (isdigit ((unsigned char)inputLook ()))
+	    inputSkip ();
+	}
+      const char *markEnd = Input_GetMark ();
+      /* Floating-point literal goes from 'mark' - 'markEnd'.  */
+      size_t sizeNeeded = markEnd - mark + 1;
+      if (base != 10)
+	sizeNeeded += sizeof ("0x")-1;
+      char *fltLiteral = malloc (sizeNeeded);
+      if (fltLiteral == NULL)
+	errorOutOfMem ();
+      sprintf (fltLiteral, "%s%.*s", base == 10 ? "" : "0x", (int)(markEnd - mark), mark);
+      char *markEnd2;
+      double d = strtod (fltLiteral, &markEnd2);
+      free (fltLiteral);
+      if (markEnd2 != fltLiteral + sizeNeeded - 1)
+	{
+	  error (ErrorError, "Failed to read floating point value");
+	  return Lex_None ();
+	}
+
+      return Lex_Float (d);
+    }
+
+  /* Integer.
+     We must have read at least one digit (e.g. "&XX" is not valid).  */
+  if (!atLeastOneDigit)
+    return Lex_None ();
+
+  if (res <= UINT32_MAX)
+    {
+      const Lex lexInt32 =
+	{
+	  .tag = LexInt,
+	  .Data.Int = { .value = (int)res }
+	};
+      return lexInt32;
+    }
+  if (didOverflow)
+    error (ErrorWarning, "64-bit integer overflow");
+
+  const Lex lexInt64 =
+    {
+      .tag = LexInt64,
+      .Data.Int64 = { .value = res }
+    };
+  return lexInt64;
+}
+
+
+/**
  * Parse floating point literal starting with "0f_" + followed by exactly
  * 8 hex digits.
- * The initial '0' is already parsed.  The "f_" are already checked but not
- * yet consumed.
+ * The "0f_" part is already parsed.
  */
-static void
-Lex_GetFloatFloatingPointLiteral (Lex *result)
+static Lex
+Lex_GetFloatFloatingPointLiteral (void)
 {
-  inputSkipN (sizeof ("f_")-1); /* Skip "f_" */
   uint32_t fltAsInt = 0;
-  for (int i = 0; i != 8; inputSkip (), ++i)
+  for (unsigned i = 0; i != 8; inputSkip (), ++i)
     {
-      char c = inputLookLower ();
+      unsigned char c = inputLookLower ();
       if (!isxdigit (c))
 	{
 	  error (ErrorError, "Float floating point literal needs exactly 8 hex digits");
-	  result->tag = LexNone;
-	  return;
+	  return Lex_None ();
 	}
       fltAsInt = 16*fltAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
     }
@@ -1320,48 +1271,62 @@ Lex_GetFloatFloatingPointLiteral (Lex *result)
 	}
     };
 
-  result->tag = LexFloat;
-  result->Data.Float.value = (double)flt.f;
+  return Lex_Float (flt.f);
 }
 
 
 /**
  * Parse floating point literal starting with "0d_" + followed by exactly
  * 16 hex digits.
- * The initial '0' is already parsed.  The "d_" are already checked but not
- * yet consumed.
+ * The "0d_" part is already parsed.
  */
-static void
-Lex_GetDoubleFloatingPointLiteral (Lex *result)
+static Lex
+Lex_GetDoubleFloatingPointLiteral (void)
 {
-  inputSkipN (2); /* Skip "f_" */
-  uint64_t fltAsInt = 0;
-  for (int i = 0; i != 16; inputSkip (), ++i)
+  uint64_t dblAsInt = 0;
+  for (unsigned i = 0; i != 16; inputSkip (), ++i)
     {
-      char c = inputLookLower ();
+      unsigned char c = inputLookLower ();
       if (!isxdigit (c))
 	{
 	  error (ErrorError, "Double floating point literal needs exactly 16 hex digits");
-	  result->tag = LexNone;
-	  return;
+	  return Lex_None ();
 	}
-      fltAsInt = 16*fltAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
+      dblAsInt = 16*dblAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
     }
-  /* FIXME: VFP support missing ! */
-  const union arm_double_fpa armdbl_fpa = { .i = fltAsInt };
-  const union ieee754_double dbl =
+  double d;
+  if ((areaCurrentSymbol->area.info->type & AREA_VFP) != 0)
     {
-      .ieee =
+      const union arm_double_vfp armdbl_vfp = { .i = dblAsInt };
+      const union ieee754_double dbl =
 	{
-	  .mantissa0 = armdbl_fpa.dbl.mantissa0,
-	  .exponent = armdbl_fpa.dbl.exponent,
-	  .negative = armdbl_fpa.dbl.negative,
-	  .mantissa1 = armdbl_fpa.dbl.mantissa1
-	}
-    };
+	  .ieee =
+	    {
+	      .mantissa0 = armdbl_vfp.dbl.mantissa0,
+	      .exponent = armdbl_vfp.dbl.exponent,
+	      .negative = armdbl_vfp.dbl.negative,
+	      .mantissa1 = armdbl_vfp.dbl.mantissa1
+	    }
+	};
+      d = dbl.d;
+    }
+  else
+    {
+      const union arm_double_fpa armdbl_fpa = { .i = dblAsInt };
+      const union ieee754_double dbl =
+	{
+	  .ieee =
+	    {
+	      .mantissa0 = armdbl_fpa.dbl.mantissa0,
+	      .exponent = armdbl_fpa.dbl.exponent,
+	      .negative = armdbl_fpa.dbl.negative,
+	      .mantissa1 = armdbl_fpa.dbl.mantissa1
+	    }
+	};
+      d = dbl.d;
+    }
 
-  result->tag = LexFloat;
-  result->Data.Float.value = dbl.d;
+  return Lex_Float (d);
 }
 
 
@@ -1376,68 +1341,88 @@ lexGetPrim (void)
   switch (c)
     {
       case '+':
-	result.tag = LexOperator;
-	result.Data.Operator.op = eOp_None; /* +XYZ */
-	result.Data.Operator.pri = kPrioOp_Unary;
-	break;
+	{
+	  result.tag = LexOperator;
+	  result.Data.Operator.op = eOp_None; /* +XYZ */
+	  result.Data.Operator.pri = kPrioOp_Unary;
+	  break;
+	}
 
       case '-':
-	result.tag = LexOperator;
-	result.Data.Operator.op = eOp_Neg; /* -XYZ */
-	result.Data.Operator.pri = kPrioOp_Unary;
-	break;
+	{
+	  result.tag = LexOperator;
+	  result.Data.Operator.op = eOp_Neg; /* -XYZ */
+	  result.Data.Operator.pri = kPrioOp_Unary;
+	  break;
+	}
 
       case '!':
-	result.tag = LexOperator;
-	result.Data.Operator.op = eOp_LNot; /* !XYZ */
-	result.Data.Operator.pri = kPrioOp_Unary;
-	break;
+	{
+	  result.tag = LexOperator;
+	  result.Data.Operator.op = eOp_LNot; /* !XYZ */
+	  result.Data.Operator.pri = kPrioOp_Unary;
+	  break;
+	}
 
       case '~':
-	result.tag = LexOperator;
-	result.Data.Operator.op = eOp_Not; /* ~XYZ */
-	result.Data.Operator.pri = kPrioOp_Unary;
-	break;
+	{
+	  result.tag = LexOperator;
+	  result.Data.Operator.op = eOp_Not; /* ~XYZ */
+	  result.Data.Operator.pri = kPrioOp_Unary;
+	  break;
+	}
 
       case '?':
-	result.tag = LexOperator;
-	result.Data.Operator.op = eOp_Size; /* ?<label> */
-	result.Data.Operator.pri = kPrioOp_Unary;
-	break;
+	{
+	  result.tag = LexOperator;
+	  result.Data.Operator.op = eOp_Size; /* ?<label> */
+	  result.Data.Operator.pri = kPrioOp_Unary;
+	  break;
+	}
 
       case '(':
       case ')':
-	result.tag = LexDelim;
-	result.Data.Delim.delim = c;
-	break;
+	{
+	  result.tag = LexDelim;
+	  result.Data.Delim.delim = c;
+	  break;
+	}
 
       case ':':
-	Lex_GetUnaryOp (&result);
-	if (result.tag == LexNone)
-	  inputUnGet (':');
-	break;
+	{
+	  Lex_GetUnaryOp (&result);
+	  if (result.tag == LexNone)
+	    inputUnGet (':');
+	  break;
+	}
 
       case '&':
 	{
-	  bool didOverflow;
-	  result = Lex_GetInt (16, &didOverflow);
-	  if (didOverflow)
-	    error (ErrorWarning, "64-bit integer overflow");
+	  result = Lex_GetIntOrFloat (16);
 	  break;
 	}
 
       case '0':
 	{
-	  /* Floating point literal 0f_... or 0d_... ? */
-	  if (inputLookN (0) == 'f' && inputLookN (1) == '_')
+	  /* Floating point literal 0f_... or 0d_... ?
+	     Or hexademical integer or floating-point literal ? */
+	  char c0 = inputLookN (0);
+	  if (c0 == 'f' && inputLookN (1) == '_')
 	    {
-	      Lex_GetFloatFloatingPointLiteral (&result);
-	      break;
+	      inputSkipN (sizeof ("f_")-1); /* Skip "f_" */
+	      return Lex_GetFloatFloatingPointLiteral ();
 	    }
-	  if (inputLookN (0) == 'd' && inputLookN (1) == '_')
+
+	  if (c0 == 'd' && inputLookN (1) == '_')
 	    {
-	      Lex_GetDoubleFloatingPointLiteral (&result);
-	      break;
+	      inputSkipN (sizeof ("d_")-1); /* Skip "d_" */
+	      return Lex_GetDoubleFloatingPointLiteral ();
+	    }
+
+	  if (c0 == 'x' || c0 == 'X')
+	    {
+	      inputSkip ();
+	      return Lex_GetIntOrFloat (16);
 	    }
 	  /* Fall through.  */
 	}
@@ -1451,30 +1436,32 @@ lexGetPrim (void)
       case '8':
       case '9':
 	{
-	  inputUnGet (c);
-	  const char *mark = Input_GetMark ();
-	  bool didOverflow;
-	  result = Lex_GetInt (10, &didOverflow);
-	  if (Input_Match ('.', false))
+	  int base;
+	  if (Input_Match ('_', false))
 	    {
-	      Input_RollBackToMark (mark);
-	      result.tag = LexFloat;
-	      char *newMark;
-	      result.Data.Float.value = strtod (mark, &newMark);
-	      if (newMark == mark)
-		error (ErrorError, "Failed to read floating point value");
-	      inputSkipN (newMark - mark);
+	      /* base is specified.  */
+	      base = c - '0';
+	      if (base < 2 || base > 9)
+		{
+		  error (ErrorError, "Illegal base %d", base);
+		  result = Lex_None ();
+		}
 	    }
-	  else if (didOverflow)
-	    error (ErrorWarning, "64-bit integer overflow");
+	  else
+	    {
+	      base = 10;
+	      inputUnGet (c);
+	    }
+	  result = Lex_GetIntOrFloat (base);
 	  break;
 	}
 
       case '\'':
 	{
 	  char in[4];
-	  int i, ci;
-	  for (i = 0; (ci = (unsigned char)inputGet ()) != '\''; ++i)
+	  int i;
+	  unsigned char ci;
+	  for (i = 0; (ci = inputGet ()) != '\''; ++i)
 	    {
 	      if (ci == '\\')
 		ci = inputGet ();
@@ -1511,13 +1498,7 @@ lexGetPrim (void)
 	    {
 	      /* Looks like a floating point number.  */
 	      inputUnGet (c);
-	      const char *mark = Input_GetMark ();
-	      result.tag = LexFloat;
-	      char *newMark;
-	      result.Data.Float.value = strtod (mark, &newMark);
-	      if (newMark == mark)
-		error (ErrorError, "Failed to read floating point value");
-	      inputSkipN (newMark - mark);
+	      result = Lex_GetIntOrFloat (10);
 	    }
 	  else
 	    result.tag = LexPosition;
@@ -1571,13 +1552,11 @@ lexGetPrim (void)
 		level = eThisLevelAndHigher;
 		break;
 	    }
-	  result = Lex_MakeReferringLocalLabel (dir, level);
-	  break;
+	  return Lex_MakeReferringLocalLabel (dir, level);
 	}
 
       case '{':
-	Lex_GetBuiltinVariable (&result);
-	break;
+	return Lex_GetBuiltinVariable ();
 
       default:
 	/* Try to read a symbol.  */
@@ -1775,17 +1754,6 @@ lexNextPri (void)
       nextbinopvalid = true;
     }
   return (nextbinop.tag == LexOperator) ? nextbinop.Data.Operator.pri : -1;
-}
-
-Lex
-lexTempLabel (const char *str, size_t len)
-{
-  const Lex var =
-    {
-      .tag = LexId,
-      .Data.Id = { .str = str, .len = len, .hash = lexHashStr (str, len) }
-    };
-  return var;
 }
 
 #ifdef DEBUG

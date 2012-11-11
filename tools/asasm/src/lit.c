@@ -85,7 +85,7 @@ Lit_GetLitOffsetAsSymbol (const LitPool *literal)
   char intSymbol[48];
   int bytesWritten = snprintf (intSymbol, sizeof (intSymbol), kIntLabelPrefix "Lit$%p", (void *)literal);
   assert (bytesWritten >= 0);
-  const Lex lex = lexTempLabel (intSymbol, (size_t)bytesWritten);
+  const Lex lex = Lex_Id (intSymbol, (size_t)bytesWritten);
   return Symbol_Get (&lex);
 }
 

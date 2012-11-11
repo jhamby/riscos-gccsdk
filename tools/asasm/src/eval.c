@@ -88,18 +88,27 @@ GetInt (const Value *val, uint32_t *i)
   switch (val->Tag)
     {
       case ValueInt:
-	*i = (unsigned)val->Data.Int.i;
-	return true;
+	/* A CPU register list is not a meaningful integer value, so exclude
+	   that int type.  */
+	if (val->Data.Int.type != eIntType_CPURList)
+	  {
+	    *i = (unsigned)val->Data.Int.i;
+	    return true;
+	  }
+	break;
+
       case ValueString:
 	if (val->Data.String.len == 1)
 	  {
 	    *i = (uint8_t)val->Data.String.s[0];
 	    return true;
 	  }
-	/* Fall through */
+	break;
+
       default:
 	break;
     }
+
   return false;
 }
 
@@ -173,15 +182,9 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	      lvalue->Data.Symbol.offset *= val;
 	    }
 	  else if (l_isint && r_isint)
-	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = lval * rval;
-	    }
+	    *lvalue = Value_Int (lval * rval, eIntType_PureInt);
 	  else if ((l_isint || lvalue->Tag == ValueFloat) && (r_isint || rvalue->Tag == ValueFloat))
-	    {
-	      lvalue->Tag = ValueFloat;
-	      lvalue->Data.Float.f = (l_isint ? lval : lvalue->Data.Float.f) * (r_isint ? rval : rvalue->Data.Float.f);
-	    }
+	    *lvalue = Value_Float ((l_isint ? lval : lvalue->Data.Float.f) * (r_isint ? rval : rvalue->Data.Float.f));
 	  else
 	    {
 	      if (gPhase != ePassOne)
@@ -211,17 +214,13 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	      return false;
 	    }
 	  if (divident_isint && divisor_isint)
-	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = divident / divisor;
-	    }
+	    *lvalue = Value_Int (divident / divisor, eIntType_PureInt);
 	  else if ((divident_isint || lvalue->Tag == ValueFloat)
 		   && (divisor_isint || rvalue->Tag == ValueFloat))
 	    {
 	      /* Floating point division.  */
 	      double divident_dbl = divident_isint ? (double)(signed)divident : lvalue->Data.Float.f;
-	      lvalue->Tag = ValueFloat;
-	      lvalue->Data.Float.f = divident_dbl / divisor_dbl;
+	      *lvalue = Value_Float (divident_dbl / divisor_dbl);
 	    }
 	  break;
 	}
@@ -238,8 +237,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 		  return false;
 		}
 
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = divident % modulus;
+	      *lvalue = Value_Int (divident % modulus, eIntType_PureInt);
 	    }
 	  else
 	    {
@@ -276,23 +274,21 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	      lvalue->Data.Symbol.factor += rhs.Data.Symbol.factor;
 	      lvalue->Data.Symbol.offset += rhs.Data.Symbol.offset;
 	      if (lvalue->Data.Symbol.factor == 0)
-		{
-		  lvalue->Tag = ValueInt;
-		  lvalue->Data.Int.i = lvalue->Data.Symbol.offset;
-		}
+		*lvalue = Value_Int (lvalue->Data.Symbol.offset, eIntType_PureInt);
 	    }
 	  else if (lvalue->Tag == ValueSymbol && r_isint)
-	    {
-	      lvalue->Data.Symbol.offset += (signed)rval;
-	    }
+	    lvalue->Data.Symbol.offset += (signed)rval;
 	  else if (l_isint && r_isint)
 	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = lval + rval; /* <int> + <int> -> <int> */
+	      /* <int> + <int> -> <int> */
+	      *lvalue = Value_Int (lval + rval, eIntType_PureInt);
 	    }
 	  else if (lvalue->Tag == ValueFloat
 		   && (r_isint || rhs.Tag == ValueFloat))
-	    lvalue->Data.Float.f += (r_isint ? (signed)rval : rhs.Data.Float.f); /* <float>/<signed int> + <float>/<signed/int> -> <float> */
+	    {
+	      /* <float>/<signed int> + <float>/<signed/int> -> <float> */
+	      lvalue->Data.Float.f += (r_isint ? (signed)rval : rhs.Data.Float.f); 
+	    }
 	  else
 	    {
 	      if (gPhase != ePassOne)
@@ -320,8 +316,8 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	    }
 	  else if (l_isint && r_isint)
 	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = lval - rval; /* <int> - <int> -> <int> */
+	      /* <int> - <int> -> <int> */
+	      *lvalue = Value_Int (lval - rval, eIntType_PureInt);
 	    }
 	  else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr)
 	    {
@@ -333,8 +329,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 			   lvalue->Data.Addr.r, rvalue->Data.Addr.r);
 		  return false;
 		}
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = lvalue->Data.Addr.i - rvalue->Data.Addr.i;
+	      *lvalue = Value_Int (lvalue->Data.Addr.i - rvalue->Data.Addr.i, eIntType_PureInt);
 	    }
 	  else if (lvalue->Tag == ValueAddr && r_isint)
 	    {
@@ -393,10 +388,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  if ((lvalue->Tag == ValueAddr && r_isint)
 	      || (l_isint && rvalue->Tag == ValueAddr)
 	      || (l_isint && r_isint))
-	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = (l_isint ? lval : (unsigned)lvalue->Data.Addr.i) & (r_isint ? rval : (unsigned)rvalue->Data.Addr.i);
-	    }
+	    *lvalue = Value_Int ((l_isint ? lval : (unsigned)lvalue->Data.Addr.i) & (r_isint ? rval : (unsigned)rvalue->Data.Addr.i), eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
@@ -412,10 +404,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  bool l_isint = GetInt (lvalue, &lval);
 	  bool r_isint = GetInt (rvalue, &rval);
 	  if (l_isint && r_isint)
-	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = lval | rval;
-	    }
+	    *lvalue = Value_Int (lval | rval, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
@@ -431,10 +420,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  bool l_isint = GetInt (lvalue, &lval);
 	  bool r_isint = GetInt (rvalue, &rval);
 	  if (l_isint && r_isint)
-	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = lval ^ rval;
-	    }
+	    *lvalue = Value_Int (lval ^ rval, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
@@ -450,11 +436,10 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  bool l_isint = GetInt (lvalue, &lval);
 	  if (l_isint && rvalue->Tag == ValueInt)
 	    {
-	      lvalue->Tag = ValueInt;
 	      unsigned numbits = (unsigned)rvalue->Data.Int.i >= 32 ? 1 : 32 - (unsigned)rvalue->Data.Int.i;
 	      unsigned mask = 1U << (numbits - 1);
 	      uint32_t nosign = lval >> (32 - numbits);
-	      lvalue->Data.Int.i = (nosign ^ mask) - mask;
+	      *lvalue = Value_Int ((nosign ^ mask) - mask, eIntType_PureInt);
 	    }
 	  else
 	    {
@@ -470,10 +455,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  uint32_t lval;
 	  bool l_isint = GetInt (lvalue, &lval);
 	  if (l_isint && rvalue->Tag == ValueInt)
-	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = (unsigned)rvalue->Data.Int.i >= 32 ? 0 : lval >> rvalue->Data.Int.i;
-	    }
+	    *lvalue = Value_Int ((unsigned)rvalue->Data.Int.i >= 32 ? 0 : lval >> rvalue->Data.Int.i, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
@@ -488,10 +470,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  uint32_t lval;
 	  bool l_isint = GetInt (lvalue, &lval);
 	  if (l_isint && rvalue->Tag == ValueInt)
-	    {
-	      lvalue->Tag = ValueInt;
-	      lvalue->Data.Int.i = (unsigned)rvalue->Data.Int.i >= 32 ? 0 : lval << rvalue->Data.Int.i;
-	    }
+	    *lvalue = Value_Int ((unsigned)rvalue->Data.Int.i >= 32 ? 0 : lval << rvalue->Data.Int.i, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
@@ -507,9 +486,8 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  bool l_isint = GetInt (lvalue, &lval);
 	  if (l_isint && rvalue->Tag == ValueInt)
 	    {
-	      lvalue->Tag = ValueInt;
 	      unsigned numbits = rvalue->Data.Int.i & 31;
-	      lvalue->Data.Int.i = (lval >> numbits) | (lval << (32 - numbits));
+	      *lvalue = Value_Int ((lval >> numbits) | (lval << (32 - numbits)), eIntType_PureInt);
 	    }
 	  else
 	    {
@@ -526,9 +504,8 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  bool l_isint = GetInt (lvalue, &lval);
 	  if (l_isint && rvalue->Tag == ValueInt)
 	    {
-	      lvalue->Tag = ValueInt;
 	      unsigned numbits = rvalue->Data.Int.i & 31;
-	      lvalue->Data.Int.i = (lval << numbits) | (lval >> (32 - numbits));
+	      *lvalue = Value_Int ((lval << numbits) | (lval >> (32 - numbits)), eIntType_PureInt);
 	    }
 	  else
 	    {
@@ -681,6 +658,7 @@ Eval_NegValue (Value *value)
     {
       case ValueInt:
 	value->Data.Int.i = -value->Data.Int.i;
+	value->Data.Int.type = eIntType_PureInt;
 	break;
 
       case ValueInt64:
@@ -752,16 +730,16 @@ evalUnop (Operator_e op, Value *value)
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
 	    errorOutOfMem();
 
-	  value->Tag = ValueInt;
-
+	  uint32_t i;
 	  ASFile asFile;
 	  if (Include_Find (s, &asFile, true))
 	    {
 	      error (ErrorError, "Cannot access file \"%s\"", s);
-	      value->Data.Int.i = 0;
+	      i = 0;
 	    }
 	  else
-	    value->Data.Int.i = asFile.loadAddress;
+	    i = asFile.loadAddress;
+	  *value = Value_Int (i, eIntType_PureInt);
 	  ASFile_Free (&asFile);
 	  free (s);
 	  break;
@@ -775,16 +753,16 @@ evalUnop (Operator_e op, Value *value)
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
 	    errorOutOfMem();
 
-	  value->Tag = ValueInt;
-
+	  uint32_t i;
 	  ASFile asFile;
 	  if (Include_Find (s, &asFile, true))
 	    {
 	      error (ErrorError, "Cannot access file \"%s\"", s);
-	      value->Data.Int.i = 0;
+	      i = 0;
 	    }
 	  else
-	    value->Data.Int.i = asFile.execAddress;
+	    i = asFile.execAddress;
+	  *value = Value_Int (i, eIntType_PureInt);
 	  ASFile_Free (&asFile);
 	  free (s);
 	  break;
@@ -798,23 +776,24 @@ evalUnop (Operator_e op, Value *value)
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
 	    errorOutOfMem();
 
-	  value->Tag = ValueInt;
-
+	  uint32_t i;
 	  ASFile asFile;
 	  if (Include_Find (s, &asFile, true))
 	    {
 	      error (ErrorError, "Cannot access file \"%s\"", s);
-	      value->Data.Int.i = 0;
+	      i = 0;
 	    }
 	  else
 	    {
 	      if (asFile.size > UINT32_MAX)
 		{
 		  error (ErrorWarning, "File size of \"%s\" is bigger than unsigned 32-bit integer", s);
-		  asFile.size = UINT32_MAX;
+		  i = UINT32_MAX;
 		}
-	      value->Data.Int.i = asFile.size;
+	      else
+		i = asFile.size;
 	    }
+	  *value = Value_Int (i, eIntType_PureInt);
 	  ASFile_Free (&asFile);
 	  free (s);
 	  break;
@@ -828,16 +807,16 @@ evalUnop (Operator_e op, Value *value)
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
 	    errorOutOfMem();
 
-	  value->Tag = ValueInt;
-
+	  uint32_t i;
 	  ASFile asFile;
 	  if (Include_Find (s, &asFile, true))
 	    {
 	      error (ErrorError, "Cannot access file \"%s\"", s);
-	      value->Data.Int.i = 0;
+	      i = 0;
 	    }
 	  else
-	    value->Data.Int.i = asFile.attribs;
+	    i = asFile.attribs;
+	  *value = Value_Int (i, eIntType_PureInt);
 	  ASFile_Free (&asFile);
 	  free (s);
 	  break;
@@ -1028,17 +1007,13 @@ evalUnop (Operator_e op, Value *value)
 	      return false;
 	    }
 	  if (value->Data.Symbol.symbol->type & SYMBOL_DEFINED)
-	    {
-	      value->Tag = ValueInt;
-	      value->Data.Int.i = value->Data.Symbol.symbol->codeSize;
-	    }
+	    *value = Value_Int (value->Data.Symbol.symbol->codeSize, eIntType_PureInt);
 	  else if (value->Data.Symbol.symbol->type & SYMBOL_AREA)
 	    {
-	      value->Tag = ValueInt;
-	      value->Data.Int.i = value->Data.Symbol.symbol->area.info->curIdx;
 	      if (gPhase == ePassTwo
 		  && value->Data.Symbol.symbol->area.info->curIdx != value->Data.Symbol.symbol->area.info->maxIdx)
 		error (ErrorError, "? on area symbol which gets extended later on");
+	      *value = Value_Int (value->Data.Symbol.symbol->area.info->curIdx, eIntType_PureInt);
 	    }
 	  else
 	    {
@@ -1053,12 +1028,9 @@ evalUnop (Operator_e op, Value *value)
 	{
 	  if (value->Tag != ValueString)
 	    return false;
-	  char *str = (char *)value->Data.String.s;
+	  unsigned char *str = (unsigned char *)value->Data.String.s;
 	  for (size_t i = 0; i != value->Data.String.len; ++i)
-	    {
-	      if (isupper ((unsigned)str[i]))
-		str[i] = tolower ((unsigned)str[i]);
-	    }
+	    str[i] = tolower (str[i]);
 	  break;
 	}
 
@@ -1066,12 +1038,9 @@ evalUnop (Operator_e op, Value *value)
 	{
 	  if (value->Tag != ValueString)
 	    return false;
-	  char *str = (char *)value->Data.String.s;
+	  unsigned char *str = (unsigned char *)value->Data.String.s;
 	  for (size_t i = 0; i != value->Data.String.len; ++i)
-	    {
-	      if (islower ((unsigned)str[i]))
-		str[i] = toupper ((unsigned)str[i]);
-	    }
+	    str[i] = toupper (str[i]);
 	  break;
 	}
 

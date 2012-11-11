@@ -205,7 +205,7 @@ Local_DefineLabel (unsigned labelNum)
 	  char fwdSym[256];
 	  int r = snprintf (fwdSym, sizeof (fwdSym), oLocal_IntFwdLabelFormat, fwdLocalP->label, fwdLocalP->counter);
 	  assert (r >= 0 && (size_t)r < sizeof (fwdSym));
-	  const Lex keyLex = lexTempLabel(fwdSym, strlen (fwdSym));
+	  const Lex keyLex = Lex_Id (fwdSym, strlen (fwdSym));
 	  Symbol *keySymbol = Symbol_Get (&keyLex);
 #ifdef DEBUG_LOCAL
 	  const char *levelStr = (fwdLocalP->level == eThisLevelOnly) ? "t" : (fwdLocalP->level == eAllLevels) ? "a" : "";
@@ -216,7 +216,7 @@ Local_DefineLabel (unsigned labelNum)
 
 	  char lblSym[256];
 	  Local_CreateSymbol (lblP, macroDepth, true, lblSym, sizeof (lblSym));
-	  const Lex valueLex = lexTempLabel (lblSym, strlen (lblSym));
+	  const Lex valueLex = Lex_Id (lblSym, strlen (lblSym));
 	  Symbol *valueSymbol = Symbol_Get (&valueLex);
 	  const Value valueValue = Value_Symbol (valueSymbol, 1, 0);
 

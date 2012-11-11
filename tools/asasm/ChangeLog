@@ -1,3 +1,32 @@
+Sun Nov 11 20:57:00 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* lex.c (Lex_None, Lex_Bool, Lex_Int, Lex_Float, Lex_String): Add.
+	Use those.
+	(Lex_Id): Renamed from lexTempLabel.
+	(Lex_GetInt): Rename to Lex_GetIntOrFloat and support more floating
+	point notations.
+	(Lex_GetFloatFloatingPointLiteral, Lex_GetDoubleFloatingPointLiteral):
+	Return result instead of modifying argument.
+	(Lex_GetDoubleFloatingPointLiteral): Support area VFP bit.
+	* area.c, lit.c, local.c, predef_reg.c, variables.c, lex.h: Follow
+	lexTempLabel rename to Lex_Id.
+	* m_fpe.c (CheckFPUsageIsAllowed): Add check on SoftFPA.
+	* eval.c (GetInt): Exclude register list.
+	(evalBinop, evalUnop): Make use of Value_Int, Value_Float.
+	(Eval_NegValue): Set integer type.
+	* os.c (ASFile_Create): Add argument cast to isxdigit.
+	* input.c: Use unsigne char i.s.o. char.
+	* directive_data.c (DefineReal): Add check on FPU None.
+
+	unittests/compare:
+	* core/directive_data_fp.s: Add more floating-point notations.
+	Add AREA VFP case.
+	* bin.s: Rename to...
+	* directive_bin_incbin.s: ...this.
+	* reserve_space.s: Add more FILL tests.  Add test on lablel + FILL
+	and size operator.
+
 Mon Nov  5 23:55:22 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	Add IT support.

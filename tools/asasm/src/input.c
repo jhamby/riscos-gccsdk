@@ -753,7 +753,7 @@ Input_GetString (size_t *len)
 
   while (1)
     {
-      int c = (unsigned char) inputGet ();
+      unsigned char c = inputGet ();
       if (c == '\0')
 	{
 	  /* End of line found without terminating '"', return whatever we
@@ -769,7 +769,7 @@ Input_GetString (size_t *len)
 	}
       if (c == '\\')
 	{
-	  c = (unsigned char) inputGet ();
+	  c = inputGet ();
 	  switch (c)
 	    {
 	      case '0':
@@ -783,12 +783,12 @@ Input_GetString (size_t *len)
 		{
 		  /* Octal.  */
 		  c -= '0';
-		  int i = (unsigned char) inputLook ();
+		  unsigned char i = inputLook ();
 		  if (i >= '0' && i <= '7')
 		    {
 		      c = 8*c + i - '0';
 		      inputSkip ();
-		      i = (unsigned char) inputLook ();
+		      i = inputLook ();
 		      if (i >= '0' && i <= '7')
 			{
 			  c = 8*c + i - '0';
@@ -801,7 +801,7 @@ Input_GetString (size_t *len)
 	      case 'x':
 		{
 		  /* Hex.  */
-		  int i = (unsigned char) inputLook ();
+		  unsigned char i = inputLook ();
 		  if (!isxdigit (i))
 		    {
 		      error (ErrorWarning, "Not a hex escape sequence");
@@ -812,7 +812,7 @@ Input_GetString (size_t *len)
 		      i |= 0x20;
 		      c = i >= 'a' ? i - 'a' + 10 : i - '0';
 		      inputSkip ();
-		      i = (unsigned char) inputLook ();
+		      i = inputLook ();
 		      if (!isxdigit (i))
 			error (ErrorWarning, "Not a hex escape sequence");
 		      else
@@ -893,15 +893,14 @@ inputSymbol (size_t *ilen, char del)
 
   if (del)
     {
-      int c;
-      while ((c = (unsigned char)*p) != 0 && c != del && c != ';')
+      unsigned char c;
+      while ((c = *p) != 0 && c != del && c != ';')
 	p++;
     }
   else
     {
-      int c;
-      while ((c = (unsigned char)*p) != 0
-	     && (isalnum (c) || c == '_'))
+      unsigned char c;
+      while ((c = *p) != 0 && (isalnum (c) || c == '_'))
 	p++;
     }
   *ilen = p - input_pos;

@@ -415,7 +415,7 @@ Area_Ensure (void)
       areaNameSize = sizeof (IMPLICIT_AREA_NAME)-1;
       areaType = AREA_CODE | AREA_ABS | AREA_READONLY | AREA_DEFAULT_ALIGNMENT;
     }
-  const Lex lex = lexTempLabel (areaNameP, areaNameSize);
+  const Lex lex = Lex_Id (areaNameP, areaNameSize);
   Symbol *sym = Symbol_Get (&lex);
   if (SYMBOL_KIND (sym->type))
     error (ErrorError, "Redefinition of label to area %s", sym->str);
@@ -905,7 +905,7 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType typ
 			   areaSymbol->str,
 			   offset);
       assert ((size_t)size + 1 == mappingSymbolSize);
-      const Lex mapSymbolLex = lexTempLabel (mappingSymbol, mappingSymbolSize - 1);
+      const Lex mapSymbolLex = Lex_Id (mappingSymbol, mappingSymbolSize - 1);
       (void) ASM_DefineLabel (&mapSymbolLex, offset, true);
     }
 }

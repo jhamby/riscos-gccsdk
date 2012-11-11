@@ -103,7 +103,7 @@ Var_PredefineVariables (void)
 static Symbol *
 Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
-  const Lex var = lexTempLabel (ptr, len);
+  const Lex var = Lex_Id (ptr, len);
   Symbol *sym = Symbol_Get (&var);
 
   if (sym->type & (SYMBOL_REFERENCE | SYMBOL_STRONG | SYMBOL_KEEP))
@@ -250,7 +250,7 @@ c_lcl (void)
 
   /* Link our local variable into the current macro so we can restore this
      at the end of macro invocation.  */
-  const Lex l = lexTempLabel (ptr, len);
+  const Lex l = Lex_Id (ptr, len);
   Symbol *symbolP = Symbol_Find (&l);
 
   bool doRestore;
@@ -375,7 +375,7 @@ Var_RestoreLocals (const VarPos *p)
 	}
       else
 	{
-	  const Lex l = lexTempLabel (p->name, strlen (p->name));
+	  const Lex l = Lex_Id (p->name, strlen (p->name));
 	  Symbol_Remove (&l);
 	}
 

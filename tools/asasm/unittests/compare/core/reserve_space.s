@@ -4,16 +4,28 @@
 
 	[ :LNOT: REFERENCE
 		% 5
-		FILL 3  , 42 + &300
-		FILL 2
 		SPACE 4
-		FILL 5 ,  0x1234  , 2
+		FILL 2
+		FILL 3  , 42 + &300
+lbl1		FILL 5 ,  0x12345678  , 1
+lbl2		FILL 5 ,  0x12345678  , 2
+lbl4		FILL 5 ,  0x12345678  , 4
+
+		DCB ?lbl1
+		DCB ?lbl2
+		DCB ?lbl4
 	|
 		DCB 0, 0, 0, 0, 0
-		DCB 42, 42, 42
-		DCB 0, 0
 		DCB 0, 0, 0, 0
-		DCW 0x1234, 0x1234, 0x1234, 0x1234, 0x1234 
+		DCB 0, 0
+		DCB 42, 42, 42
+		DCB &78, &78, &78, &78, &78
+		DCWU 0x5678, 0x5678, 0x5678, 0x5678, 0x5678
+		DCDU 0x12345678,0x12345678,0x12345678,0x12345678,0x12345678
+
+		DCB 5*1
+		DCB 5*2
+		DCB 5*4
 	]
 
 	END

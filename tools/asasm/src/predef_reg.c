@@ -62,7 +62,7 @@ static const PreDef_Reg_t oAPCSRegs[] =
 static void
 PreDefReg_One (const char *regname, size_t namelen, int value, IntType_e type)
 {
-  const Lex l = lexTempLabel (regname, namelen);
+  const Lex l = Lex_Id (regname, namelen);
   Symbol *s = Symbol_Get (&l);
   s->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE; /* FIXME: SYMBOL_ABSOLUTE needed ? */
   s->value = Value_Int (value, type);
