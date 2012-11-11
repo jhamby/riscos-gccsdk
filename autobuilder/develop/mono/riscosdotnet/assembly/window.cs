@@ -16,7 +16,7 @@ namespace riscos
 	{
 		public class WindowHandle
 		{
-			public uint Handle { get; protected set; }
+			public readonly uint Handle;
 
 			public WindowHandle (uint handle)
 			{

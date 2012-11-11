@@ -96,8 +96,8 @@ namespace riscos.CSharpBindings.SpriteTest
 								attributes);
 			window.Closed += Close;
 
-			window.Open (new OS.Rect (100, 100, 500, 500),			// Visible area
-				     new OS.Coord (0, 0),				// Scroll offsets
+			window.Open (new OS.Rect (100, 100, 2000, 1500),	// Visible area
+				     new OS.Coord (0, 2000),			// Scroll offsets
 				     Wimp.WindowStackPosition.Top);
 		}
 
@@ -184,19 +184,34 @@ namespace riscos.CSharpBindings.SpriteTest
 						       new OS.ScaleFactors (2, 2, 1, 1),
 						       IntPtr.Zero);
 
-				// Render transformed.
+				// Render transformed using matrix.
 				// Transformed sprites are not plotted at the current graphics position;
 				// the matrix/destination rectangle is used to place the sprite at the
 				// required position.
 				// The translation has to be applied here because we don't know ahead
-				// of time where the screen position is and it is likely to change
-				// as the window is moved.
+				// of time where the screen position is and it will change as the
+				// window is moved.
 				// A copy of the matrix has to be used so that the translation is applied
 				// only once to the original matrix rather than multiple times.
 				var local_matrix = (OS.Matrix)matrix.Clone ();
 				local_matrix.Translate (e.Origin.X + 480, e.Origin.Y + WindowHeight - 170);
 				Sprites[0].PlotTransformed (OSSpriteOp.PlotAction.OverWrite,
 							    local_matrix,
+							    IntPtr.Zero);
+
+				// Render transformed to destination parallelogram
+				var block = new OSSpriteOp.DestCoordBlock();
+
+				block.x0 = OS.ToDrawUnits (e.Origin.X + 600);
+				block.y0 = OS.ToDrawUnits (e.Origin.Y + WindowHeight - 70);
+				block.x1 = OS.ToDrawUnits (e.Origin.X + 800);
+				block.y1 = block.y0;
+				block.x2 = block.x1 + OS.ToDrawUnits (50);
+				block.y2 = OS.ToDrawUnits (e.Origin.Y + WindowHeight - 200);
+				block.x3 = block.x0 + OS.ToDrawUnits (50);
+				block.y3 = block.y2;
+				Sprites[0].PlotTransformed (OSSpriteOp.PlotAction.OverWrite,
+							    block,
 							    IntPtr.Zero);
 			}
 		}
