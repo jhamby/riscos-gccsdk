@@ -165,7 +165,7 @@ else
 
     orig=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4)
     if [ -z "$orig" ] ; then
-      orig=$(grep \.orig\.tar\.xz files | cut -d ' ' -f 4)
+      orig=$((grep \.orig\.tar\.xz files || grep \.tar\.xz files) | cut -d ' ' -f 4)
     fi
     if [ -z "$orig" ] ; then
       orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
@@ -188,7 +188,7 @@ else
         wget -nv $debdir/$deb
       fi
 
-      tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz || tar xfz *.orig.tar.gz
+      tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz || tar xfz *.orig.tar.gz || tar xfJ *.tar.xz
       subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
       if [ ! -z "$deb" ] ; then
         tar xfz $deb -C $subdir || tar xfj $deb -C $subdir || tar xfJ $deb -C $subdir
@@ -225,8 +225,8 @@ else
         tar xfj *.orig.tar.bz2
         targetname=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
       else
-        tar xfJ *.orig.tar.xz
-        targetname=$(grep \.orig\.tar\.xz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+        tar xfJ *.orig.tar.xz || tar xfJ *.tar.xz
+        targetname=$((grep \.orig\.tar\.xz files || grep \.tar\.xz files) | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
       fi
       origname=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut -b 3-)
 
