@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -6,6 +5,11 @@
 #include <list>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <libgen.h>
+#include <cstdio>
+#include <cerrno>
+#include <cstring>
+#include <cstdlib>
 
 #include "libpkg/zipfile.h"
 #include "libpkg/binary_control.h"
@@ -42,7 +46,7 @@ class PackageIndexer
 public:
 	PackageIndexer() {check_file = false;}
 
-    void process_directory(const string &dirname);
+    void process_directory(const string &dirname, bool rename_pkgs);
 	void write_index(const string &filename, int path_ignore, const string &base_url);
 
 	void add_include_contains(const string &text) {include_contains.push_back(lowercase(text));check_file = true;}
@@ -50,7 +54,7 @@ public:
 
 protected:
 	bool include_file(const string &name);
-	void extract_control(const string &filename);
+	void extract_control(const string &filename, bool rename_pkgs);
 
 	class IndexEntry
 	{
@@ -82,6 +86,7 @@ int main(int argc, char *argv[])
 		cout << "Usage: pkgindex <dir_to_index> <index_file>";
 		cout << " [-u <base_url>] [-i <include_contains>]";
 		cout << " [-x <exclude_contains>]";
+		cout << " [-r (rename according to version)]";
 		cout << endl;
 		return -1;
 	}
@@ -91,18 +96,20 @@ int main(int argc, char *argv[])
 
 	int i = 1;
 	char opt;
+	bool rename_pkgs=false;
 
 	while (i < argc)
 	{
 		if (argv[i][0] == '-')
 		{
 			opt = tolower(argv[i][1]);
-			if (++i >= argc)
-			{
-				cout << "error missing argument to " << argv[i-1];
-				cout << " option." << endl;
-				return -1;
-			}
+			if (opt != 'r')
+				if (++i >= argc)
+				{
+					cout << "error missing argument to " << argv[i-1];
+					cout << " option." << endl;
+					return -1;
+				}
 		} else
 			opt = 0;
 
@@ -111,6 +118,7 @@ int main(int argc, char *argv[])
 		case 'u': base_url = argv[i]; break;
 		case 'i': indexer.add_include_contains(argv[i]); break;
 		case 'x': indexer.add_exclude_contains(argv[i]); break;
+		case 'r': rename_pkgs=true; 
 		case 0:
 			if (dirname.empty()) dirname = argv[i];
 			else index_file = argv[i];
@@ -123,7 +131,11 @@ int main(int argc, char *argv[])
 		i++;
 	}
 
-	indexer.process_directory(dirname);
+	// first pass for renames, second pass to compose index
+	if (rename_pkgs)
+		indexer.process_directory(dirname,true);
+	indexer.process_directory(dirname,false);
+	
 
 	indexer.write_index(index_file, dirname.size()+1, base_url);
 
@@ -139,7 +151,7 @@ int main(int argc, char *argv[])
 
 ****************************************************/
 
-void PackageIndexer::process_directory(const string &dirname)
+void PackageIndexer::process_directory(const string &dirname, bool rename_pkgs)
 {
 	vector<string> sub_dirs;
 
@@ -165,7 +177,7 @@ void PackageIndexer::process_directory(const string &dirname)
 				} else
 				{
 					if (!check_file || include_file(entry->d_name))
-						extract_control(name);
+						extract_control(name,rename_pkgs);
 				}
 			}
 		}
@@ -177,7 +189,7 @@ void PackageIndexer::process_directory(const string &dirname)
 		vector<string>::iterator i;
 		for (i = sub_dirs.begin(); i != sub_dirs.end(); ++i)
 		{
-			process_directory(*i);
+			process_directory(*i,rename_pkgs);
 		}
 	}
 }
@@ -190,7 +202,7 @@ void PackageIndexer::process_directory(const string &dirname)
 
 *************************************************************/
 
-void PackageIndexer::extract_control(const string &filename)
+void PackageIndexer::extract_control(const string &filename, bool rename_pkgs)
 {
 	try
 	{
@@ -210,23 +222,45 @@ void PackageIndexer::extract_control(const string &filename)
 		// Key for map is case insensitive
 		string key(lowercase(pkgname));
 
-		map<string, IndexEntry>::iterator found = packages.find(key);
-		if (found == packages.end())
+		if (rename_pkgs)
 		{
-			// new entry
-			packages.insert(pair<string, IndexEntry>(key, IndexEntry(filename,control)));
-		} else
-		{
-			pkg::version stored_version((*found).second.control.version());
-			pkg::version this_version(control.version());
-			if (stored_version < this_version)
+			char *rename_name = strdup(filename.c_str());
+			if (!rename_name)
+				throw("Out of memory");	
+			string newname = dirname(rename_name) + string("/") + control.pkgname() + string("_") + control.version() + string(".zip");
+			if (newname != filename)
 			{
-				(*found).second = IndexEntry(filename, control);
+				cout << "Renaming package " << filename << " to " << newname << endl;
+				// and nothing to do if it fails
+				int r,e;
+				printf("%s -> %s\n",filename.c_str(),newname.c_str());
+				r = rename(filename.c_str(),newname.c_str());
+				e = errno;
+				//cout << r << endl << e << endl;
 			}
-		}
+			free(rename_name);
 
+		}
+		else
+		{
+			map<string, IndexEntry>::iterator found = packages.find(key);
+			if (found == packages.end())
+			{
+				// new entry
+				packages.insert(pair<string, IndexEntry>(key, IndexEntry(filename,control)));
+			} else
+			{
+				pkg::version stored_version((*found).second.control.version());
+				pkg::version this_version(control.version());
+				if (stored_version < this_version)
+				{
+					(*found).second = IndexEntry(filename, control);
+				}
+			}
+		
 		cout << "found package " << control.pkgname();
 		cout << " version " << control.version() << endl;
+		}
 	} catch(runtime_error &e)
 	{
 		cout << "File " << filename << " skipped due to error " << e.what() << endl;
