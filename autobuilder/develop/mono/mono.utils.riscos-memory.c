@@ -155,14 +155,14 @@ mono_riscos_memory_alloc (size_t size)
 	 * area and heap and try again. If it stills fails, then return NULL
 	 * to indicate failure.  */
 	while (TRUE) {
-		_kernel_oserror *err = heap_claim (mono_da.base_addr, size, &block);
+		_kernel_oserror *err = heap_claim (mono_da.base_addr, allocated_size, &block);
 		if (err || block == NULL) {
 			size_t heap_inc;
 
 			if (heap_extended)
 				return NULL;
 
-			heap_inc = (((size * 2) + 0xfff) & ~0xfff);
+			heap_inc = (((allocated_size * 2) + 0xfff) & ~0xfff);
 			if ((err = dynamic_area_extend (mono_da.handle, heap_inc)) != NULL)
 				return NULL;
 
