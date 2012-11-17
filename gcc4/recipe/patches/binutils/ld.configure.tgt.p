@@ -1,6 +1,6 @@
---- ld/configure.tgt.orig	2011-11-21 10:29:37.000000000 +0100
-+++ ld/configure.tgt	2011-11-21 19:52:51.426282193 +0100
-@@ -66,6 +66,7 @@ arm-*-nto*)		targ_emul=armnto ;;
+--- ld/configure.tgt.orig	2012-09-04 14:53:47.000000000 +0200
++++ ld/configure.tgt	2012-11-17 14:55:35.945613478 +0100
+@@ -74,6 +74,7 @@ arm-*-nto*)		targ_emul=armnto ;;
  arm-*-openbsd*)		targ_emul=armnbsd ;;
  arm-*-rtems*)		targ_emul=armelf ;;
  armeb-*-elf)		targ_emul=armelfb ;;

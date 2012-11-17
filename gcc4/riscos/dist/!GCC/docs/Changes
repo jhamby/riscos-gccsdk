@@ -6,8 +6,8 @@ GCCSDK GCC 4.7.3 Release 1 (released xxx)
 ==========================
 
 Major changes:
-  - GCC 4.7.3
-  - Upgraded to Binutils 2.22
+  - Upgraded to GCC 4.7.3.
+  - Upgraded to Binutils 2.23.1.
 
 Bug fixes and other improvements:
   - UnixLib: Avoid reading from NULL when SWI DDEUtils_ReadPrefix is not

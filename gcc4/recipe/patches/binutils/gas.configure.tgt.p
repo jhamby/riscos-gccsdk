@@ -1,6 +1,6 @@
---- gas/configure.tgt.orig	2011-06-20 15:23:21.000000000 +0200
-+++ gas/configure.tgt	2011-11-21 19:42:18.666237063 +0100
-@@ -121,6 +121,7 @@ case ${generic_target} in
+--- gas/configure.tgt.orig	2012-09-04 14:53:45.000000000 +0200
++++ gas/configure.tgt	2012-11-17 14:55:35.909613930 +0100
+@@ -132,6 +132,7 @@ case ${generic_target} in
  					fmt=coff em=wince-pe ;;
    arm-*-pe)				fmt=coff em=pe ;;
    arm-*-riscix*)			fmt=aout em=riscix ;;

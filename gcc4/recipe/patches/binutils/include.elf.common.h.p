@@ -1,6 +1,6 @@
---- include/elf/common.h.orig	2012-03-17 17:58:09.000000000 +0000
-+++ include/elf/common.h	2012-03-17 17:57:17.000000000 +0000
-@@ -728,6 +728,9 @@
+--- include/elf/common.h.orig	2012-09-04 14:53:47.000000000 +0200
++++ include/elf/common.h	2012-11-17 14:55:35.941613528 +0100
+@@ -736,6 +736,9 @@
  #define DT_LOPROC	0x70000000
  #define DT_HIPROC	0x7fffffff
  
