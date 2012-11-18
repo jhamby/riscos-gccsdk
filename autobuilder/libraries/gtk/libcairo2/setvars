@@ -2,5 +2,5 @@
 AB_INSTALL=yes
 
 export FONTCONFIG_LIBS="-lfontconfig -lfreetype -lexpat -lz"
-AB_CONFLAGS="--enable-xlib=no --enable-xcb=no --enable-xcb-shm=no --enable-png=yes --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=yes"
+AB_CONFLAGS="--enable-xlib=yes --enable-xcb=no --enable-xcb-shm=no --enable-png=yes --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=yes"
 
