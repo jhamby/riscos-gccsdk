@@ -8,6 +8,8 @@ AB_INSTALL=yes
 
 ./autogen.sh
 
+AB_CONFLAGS=='--disable-oggtest'
+
 ab_package() {
   ab_create_app Tremor Apps/Library libtremor-dev
 
