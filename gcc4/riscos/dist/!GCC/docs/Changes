@@ -1,6 +1,6 @@
 Noteworthy changes to the RISC OS GCCSDK releases made.
 
-For specific UnixLib changes, see !GCC.docs.UnixLib.Changes too.
+For more details on all UnixLib changes, see !GCC.docs.libunixlib.ChangeLog.
 
 GCCSDK GCC 4.7.3 Release 1 (released xxx)
 ==========================
@@ -10,8 +10,24 @@ Major changes:
   - Upgraded to Binutils 2.23.1.
 
 Bug fixes and other improvements:
+
+GCCSDK GCC 4.1.2 Release 2 (released 1 October 2012)
+==========================
+
+Bug fixes and other improvements:
+  - UnixLib: strftime fix (r5755, bug #226)
+  - UnixLib: getcwd fix (r5758, bug #227)
+  - UnixLib: glob fix (r5766, r5776, bug #229, bug #231)
+  - UnixLib: readdir inode fix (r5767)
+  - UnixLib: support for alias-disabling prefix (r5775, bug #232)
+  - UnixLib: sendto return value fix (r5780, bug #233)
+  - UnixLib: avoid closing RISC OS input/output stream (r5785, bug #236)
+  - UnixLib: support tmpnam/tmpnam_r and __RISCOSIFY_NO_PROCESS combination
+    (r5823, bug #238)
   - UnixLib: Avoid reading from NULL when SWI DDEUtils_ReadPrefix is not
     defined, nor Prefix$Dir is set (r5902, bug #241).
+  - GCC: Disable tail call optimisations when stack checking is enabled to
+    prevent stack corruption (bug #230, #243).
 
 GCCSDK GCC 4.1.2 Release 1 (released 21 April 2012)
 ==========================
