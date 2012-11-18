@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 		case 'u': base_url = argv[i]; break;
 		case 'i': indexer.add_include_contains(argv[i]); break;
 		case 'x': indexer.add_exclude_contains(argv[i]); break;
-		case 'r': rename_pkgs=true; 
+		case 'r': rename_pkgs=true; break;
 		case 0:
 			if (dirname.empty()) dirname = argv[i];
 			else index_file = argv[i];
