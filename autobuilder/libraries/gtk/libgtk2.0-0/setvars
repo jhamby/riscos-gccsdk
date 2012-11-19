@@ -17,6 +17,3 @@ export gio_can_sniff=no
 #chmod +x mkinstalldirs
 
 AB_CONFLAGS="--disable-modules --with-included-loaders=xpm,bmp,gif,ico,jpeg,png --disable-shm --disable-xkb --with-gdktarget=x11 --without-libjasper"
-
-
-
