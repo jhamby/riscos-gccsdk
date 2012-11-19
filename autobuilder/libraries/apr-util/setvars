@@ -1,20 +1,10 @@
 AB_INSTALL=yes
 
 AB_CONFLAGS="--with-apr=$GCCSDK_INSTALL_ENV --disable-util-dso --with-dbm=db46 \
-             --with-berkeley-db --without-gdbm --without-sqlite2"
+             --without-openssl --with-berkeley-db --without-gdbm --without-sqlite2"
 
 AB_MAKE="$AB_MAKE installbuilddir=$GCCSDK_INSTALL_ENV"
 
 export apr_cv_process_shared_works=no
 export ac_cv_file__dev_zero=no
 export apr_cv_tcp_nodelay_with_cork=no
-
-# These two are not strictly true, but it stops configure from complaining
-export ac_cv_func_mmap=yes
-export ac_cv_func_munmap=yes
-
-# Debian oddness
-ln -s ../apr-util-1.2.7/include/apr_md4.h include/
-ln -s ../apr-util-1.2.7/include/apr_md5.h include/
-ln -s ../apr-util-1.2.7/crypto/apr_md4.c crypto/
-ln -s ../apr-util-1.2.7/crypto/apr_md5.c crypto/
