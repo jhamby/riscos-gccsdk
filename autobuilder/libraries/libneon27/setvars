@@ -1,4 +1,4 @@
-AB_CONFLAGS="--with-libs=$GCCSDK_INSTALL_ENV --with-force-zlib --with-ssl"
+AB_CONFLAGS="--with-pic=no --with-libs=$GCCSDK_INSTALL_ENV --with-force-zlib --with-gnutls"
 
 AB_INSTALL=yes
 
