@@ -6,7 +6,7 @@
  CTAGS = ctags
 -DIST_SUBDIRS = polkit polkitbackend polkitagent polkitd nullbackend \
 -	programs examples
-+DIST_SUBDIRS = polkit polkitbackend polkitd nullbackend \
++DIST_SUBDIRS = polkit polkitbackend nullbackend \
 +	#programs examples
  DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
  am__relativize = \
@@ -17,7 +17,7 @@
  top_srcdir = @top_srcdir@
 -SUBDIRS = polkit polkitbackend polkitagent polkitd nullbackend \
 -	programs $(am__append_1)
-+SUBDIRS = polkit polkitbackend polkitd nullbackend \
++SUBDIRS = polkit polkitbackend nullbackend \
 +	$(am__append_1)
  all: all-recursive
  
