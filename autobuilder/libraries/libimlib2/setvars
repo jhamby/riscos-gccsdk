@@ -1,17 +1,16 @@
 
 AB_INSTALL=yes
 
-mkdir debian
-mkdir data
-mkdir data/fonts
-mkdir data/images
+AB_URL=http://sourceforge.net/projects/enlightenment/files/imlib2-src/1.4.5/imlib2-1.4.5.tar.bz2
+
+
 touch data/Makefile.in
 touch data/fonts/Makefile.in
 touch data/images/Makefile.in
 echo "all install:" > data/fonts/Makefile.in
 echo "all install:" > data/Makefile.in
+echo "all install:" > src/bin/Makefile
 
-#echo "all install:" > debian/changelog.in
 
 autoreconf -fi
 
