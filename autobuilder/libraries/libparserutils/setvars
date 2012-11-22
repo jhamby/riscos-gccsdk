@@ -1,6 +1,6 @@
 AB_INSTALL=yes
 
-AB_GIT=git://git.netsurf-browser.org/libsvgtiny.git
+AB_GIT=http://git.netsurf-browser.org/libparserutils.git
 AB_PVERSION=svn-$(date +%Y%m%d)
 
 export PREFIX=$GCCSDK_INSTALL_ENV
