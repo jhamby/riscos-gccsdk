@@ -1,6 +1,8 @@
 AB_INSTALL=yes
 
+AB_GIT=git://git.gnome.org/archive/gtkhtml2.git
+
 # We don't have GAILUTIL.
 AB_CONFLAGS=--disable-accessibility
 
-
+autoreconf -fi
