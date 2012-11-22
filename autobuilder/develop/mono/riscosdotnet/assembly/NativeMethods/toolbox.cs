@@ -152,6 +152,21 @@ namespace riscos
 								       uint objectID,
 								       IntPtr handle);
 
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_set_client_handle")]
+		internal static extern IntPtr Toolbox_SetClientHandle (uint flags,
+								       uint objectID,
+								       int handle);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_client_handle")]
+		internal static extern IntPtr Toolbox_GetClientHandle (uint flags,
+								       uint objectID,
+								       out int handle);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_client_handle")]
+		internal static extern IntPtr Toolbox_GetClientHandle (uint flags,
+								       uint objectID,
+								       out IntPtr handle);
+
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_template_look_up")]
 		internal static extern IntPtr Toolbox_TemplateLookUp (uint flags,
 								      string resName,

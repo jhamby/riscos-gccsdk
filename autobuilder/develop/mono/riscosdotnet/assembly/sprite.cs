@@ -70,7 +70,9 @@ namespace riscos
 			DPi22 = 22
 		}
 
-		/*! \brief The destination coordinate block used by PlotTransformed.  */
+		/*! \brief The destination coordinate block used by PlotTransformed.
+		 * \note Values are in draw units (1/256th OS unit).
+		 * \note Method OS.ToDrawUnits can be used to convert values.  */
 		[StructLayout(LayoutKind.Sequential)]
 		public class DestCoordBlock
 		{
