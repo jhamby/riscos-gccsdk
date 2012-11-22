@@ -2,13 +2,13 @@
 
 AB_INSTALL=yes
 
-AB_CONFLAGS="--without-server --without-docs --without-debug"
+AB_URL=http://mirror.services.wisc.edu/mysql/Downloads/MySQL-5.0/mysql-5.0.96.tar.gz
 
-export mysql_cv_gcc_atomic_builtins=no
+AB_CONFLAGS="--without-server --without-docs --without-debug"
 
 mkdir -p Docs/Images
 
-for dir in Docs Docs/Images debian dbug extra mysql-test; do
+for dir in Docs Docs/Images dbug extra mysql-test; do
   echo -e "all:\ninstall:\n" > $dir/Makefile.in
 done
 
@@ -16,7 +16,6 @@ for dir in libmysql client sql cmd-line-utils/libedit scripts strings regex mysy
   echo -e ".deps/%.Po .deps/%.Plo:\n\t@mkdir -p .deps\n\t@touch \$@" >> $dir/Makefile.in
 done
 
-#autoreconf
 autoconf
 
 ln -s . man/man1
