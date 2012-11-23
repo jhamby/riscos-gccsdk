@@ -11,3 +11,5 @@ AB_INSTALLTARGET="install install-private-headers"
 
 mkdir -p $D/lib/tcl8.5/http1.0/
 
+ln -sf $GCCSDK_INSTALL_ENV/lib/tclConfig.sh $GCCSDK_INSTALL_ENV/lib/tcl8.5/tclConfig.sh
+
