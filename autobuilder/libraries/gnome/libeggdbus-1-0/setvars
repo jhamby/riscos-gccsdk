@@ -1,8 +1,0 @@
-AB_INSTALL=yes
-
-if [ -z "$(which eggdbus-binding-tool 2>/dev/null)" ] ; then
-  echo "Please install native eggdbus-binding-tool (libeggdbus-1-dev)" 1>&2
-  exit 1
-fi
-
-(cd src/eggdbus; ln -sf /usr/bin/eggdbus-binding-tool; ln -sf /usr/bin/eggdbus-glib-genmarshal)
