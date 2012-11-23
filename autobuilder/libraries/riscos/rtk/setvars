@@ -3,3 +3,5 @@ AB_SVN=http://source.riscpkg.org/svn/RTK/trunk
 
 AB_INSTALL=env
 
+AB_MAKE="$AB_MAKE -j1"
+
