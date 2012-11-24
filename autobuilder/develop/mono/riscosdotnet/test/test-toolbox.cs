@@ -339,7 +339,7 @@ public class MyTask : ToolboxTask
 			// Keep track of the position in the data to transfer.
 			public int RamTransBufferIndex;
 
-			public TextFileSaveAs () : base ("SaveAs")
+			public TextFileSaveAs (uint objectID) : base (objectID)
 			{
 			}
 
@@ -405,11 +405,16 @@ public class MyTask : ToolboxTask
 			public Toolbox.ScaleDialogue ScaleDBox;
 			public Toolbox.PrintDialogue PrintDBox;
 
-			public TextFileMenu () : base ("WindowMenu")
+			public TextFileMenu (uint objectID) : base (objectID)
+			{
+				Init ();
+			}
+
+			void Init ()
 			{
 				FileInfoEntry = new Toolbox.MenuEntry (this, Cmp.FileInfo);
 				SaveAsEntry = new Toolbox.MenuEntry (this, Cmp.SaveAs);
-				SaveAsDBox = new TextFileSaveAs ();
+				SaveAsDBox = Toolbox.Object.CreateInstance<TextFileSaveAs> ("SaveAs");
 				SaveAsEntry.SubMenuShow = SaveAsDBox;
 				ColourDBoxEntry = new Toolbox.MenuEntry (this, Cmp.ColourDBox);
 				ColourMenuEntry = new Toolbox.MenuEntry (this, Cmp.ColourMenu);
@@ -418,13 +423,13 @@ public class MyTask : ToolboxTask
 				Toolbox.MenuEntry entry;
 
 				entry = new Toolbox.MenuEntry (this, Cmp.FontMenu);
-				FontMenu = (Toolbox.FontMenu)entry.SubMenuShow;
+				FontMenu = entry.GetSubMenuShow<Toolbox.FontMenu> ();
 
 				entry = new Toolbox.MenuEntry (this, Cmp.ScaleDBox);
-				ScaleDBox = (Toolbox.ScaleDialogue)entry.SubMenuShow;
+				ScaleDBox = entry.GetSubMenuShow<Toolbox.ScaleDialogue> ();
 
 				entry = new Toolbox.MenuEntry (this, Cmp.PrintDBox);
-				PrintDBox = (Toolbox.PrintDialogue)entry.ClickShow.Object;
+				PrintDBox = entry.ClickShow.Object<Toolbox.PrintDialogue>();
 			}
 		}
 
@@ -454,13 +459,13 @@ public class MyTask : ToolboxTask
 
 		public string FileName = null;
 
-		public TextFile (string text) : base ("MainWindow")
+		public TextFile (uint objectID) : base (objectID)
 		{
 			// Set the window title via its Title property.
 			Title = "CSharp Toolbox Window - Scale: " + Scale + "%";
 
-			Text = text;
-			WindowMenu = new TextFileMenu ();
+			Text = "";
+			WindowMenu = Toolbox.Object.CreateInstance<TextFileMenu> ("WindowMenu");
 			// Attach the menu to the window.
 			Menu = WindowMenu;
 
@@ -474,7 +479,7 @@ public class MyTask : ToolboxTask
 			WindowMenu.SaveAsDBox.FillBuffer += fill_buffer;
 
 			Toolbox.FileInfoDialogue file_info_dbox =
-				(Toolbox.FileInfoDialogue)WindowMenu.FileInfoEntry.SubMenuShow;
+				WindowMenu.FileInfoEntry.GetSubMenuShow<Toolbox.FileInfoDialogue> ();
 			file_info_dbox.AboutToBeShown += fileinfo_Show;
 
 			// The AboutToBeShown events for ColourMenu and ColourDialogue don't seem to
@@ -484,15 +489,15 @@ public class MyTask : ToolboxTask
 			WindowMenu.ColourMenuEntry.SubMenu += colourmenu_SubMenuShow;
 
 			Toolbox.ColourDialogue colour_dbox =
-				(Toolbox.ColourDialogue)WindowMenu.ColourDBoxEntry.SubMenuShow;
+				WindowMenu.ColourDBoxEntry.GetSubMenuShow<Toolbox.ColourDialogue> ();
 			colour_dbox.ColourSelected += colourdbox_Selected;
 
 			Toolbox.ColourMenu colour_menu =
-				(Toolbox.ColourMenu)WindowMenu.ColourMenuEntry.SubMenuShow;
+				WindowMenu.ColourMenuEntry.GetSubMenuShow<Toolbox.ColourMenu> ();
 			colour_menu.Selection += colourmenu_Selected;
 
 			Toolbox.FontDialogue font_dbox =
-				(Toolbox.FontDialogue)WindowMenu.FontDBoxEntry.ClickShow.Object;
+				WindowMenu.FontDBoxEntry.ClickShow.Object<Toolbox.FontDialogue>();
 			font_dbox.AboutToBeShown += fontdbox_Show;
 			font_dbox.ApplyFont += fontdbox_ApplyFont;
 
@@ -504,6 +509,13 @@ public class MyTask : ToolboxTask
 
 			WindowMenu.PrintDBox.ClickSave += printdbox_SavePrint;
 			WindowMenu.PrintDBox.ClickPrint += printdbox_SavePrint;
+		}
+
+		public void SetText (string text)
+		{
+			Text = text;
+			if (IsOnScreen ())
+				ForceRedraw (Extent);
 		}
 
 		// For a derived class, it is recommended to override the event notifier rather
@@ -525,6 +537,13 @@ public class MyTask : ToolboxTask
 
 		void printdbox_SavePrint (object sender, Toolbox.PrintDialogue.PrintSaveEventArgs e)
 		{
+			var print_dbox = (Toolbox.PrintDialogue)sender;
+
+			// Print dialogue is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (!this.Equals (print_dbox.GetAncestor<Toolbox.Window>()))
+				return;
+
 			Reporter.WriteLine ("Print Dialogue Save/Print button clicked:");
 			if (e.PageRangeStart == -1)
 				Reporter.WriteLine ("  Print all pages");
@@ -538,14 +557,23 @@ public class MyTask : ToolboxTask
 
 		void scaledbox_Shown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
 		{
-			// The ScaleDialogue is the sender
-			Toolbox.ScaleDialogue scale_dbox = (Toolbox.ScaleDialogue)sender;
+			var scale_dbox = (Toolbox.ScaleDialogue)sender;
 
-			scale_dbox.Value = (int)Scale;
+			// Scale dialogue is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (this.Equals (scale_dbox.GetAncestor<Toolbox.Window>()))
+				scale_dbox.Value = (int)Scale;
 		}
 
 		void scaledbox_ApplyFactor (object sender, Toolbox.ScaleDialogue.ApplyFactorEventArgs args)
 		{
+			var scale_dbox = (Toolbox.ScaleDialogue)sender;
+
+			// Scale dialogue is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (!this.Equals (scale_dbox.GetAncestor<Toolbox.Window>()))
+				return;
+
 			Scale = args.Factor;
 
 			font.Lose ();
@@ -563,14 +591,23 @@ public class MyTask : ToolboxTask
 
 		void fontmenu_Show (object sender, Toolbox.Object.MenuAboutToBeShownEventArgs args)
 		{
-			// The FontMenu is the sender
-			Toolbox.FontMenu font_menu = (Toolbox.FontMenu)sender;
+			var font_menu = (Toolbox.FontMenu)sender;
 
-			font_menu.Font = FontID;
+			// Font menu is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (this.Equals (font_menu.GetAncestor<Toolbox.Window>()))
+				font_menu.Font = FontID;
 		}
 
 		void fontmenu_Selection (object sender, Toolbox.FontMenu.FontSelectionEventArgs args)
 		{
+			var font_menu = (Toolbox.FontMenu)sender;
+
+			// Font menu is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (!this.Equals (font_menu.GetAncestor<Toolbox.Window>()))
+				return;
+
 			font.Lose ();
 
 			// The FontMenu returns a full font ID, i.e., one where the name begins with "\F".
@@ -587,16 +624,27 @@ public class MyTask : ToolboxTask
 
 		void fontdbox_Show (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
 		{
-			// The FontDialogue is the sender
-			Toolbox.FontDialogue font_dbox = (Toolbox.FontDialogue)sender;
+			var font_dbox = (Toolbox.FontDialogue)sender;
 
-			font_dbox.Font = FontID;
-			font_dbox.Height = FontHeight;
-			font_dbox.AspectRatio = FontAspectRatio;
+			// Font dialogue is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (this.Equals (font_dbox.GetAncestor<Toolbox.Window>()))
+			{
+				font_dbox.Font = FontID;
+				font_dbox.Height = FontHeight;
+				font_dbox.AspectRatio = FontAspectRatio;
+			}
 		}
 
 		void fontdbox_ApplyFont (object sender, Toolbox.FontDialogue.ApplyFontEventArgs args)
 		{
+			var font_dbox = (Toolbox.FontDialogue)sender;
+
+			// Font dialogue is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (!this.Equals (font_dbox.GetAncestor<Toolbox.Window>()))
+				return;
+
 			font.Lose ();
 
 			FontID = args.FontID;
@@ -611,9 +659,14 @@ public class MyTask : ToolboxTask
 
 		void colourmenu_SubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)
 		{
-			// The MenuEntry is the sender.
-			Toolbox.MenuEntry menu_entry = (Toolbox.MenuEntry)sender;
-			Toolbox.ColourMenu colour_menu = (Toolbox.ColourMenu)menu_entry.SubMenuShow;
+			var menu_entry = (Toolbox.MenuEntry)sender;
+
+			Toolbox.ColourMenu colour_menu = menu_entry.GetSubMenuShow<Toolbox.ColourMenu> ();
+
+			// The ColourMenu is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (!this.Equals (colour_menu.GetAncestor<Toolbox.Window>()))
+				return;
 
 			// If the ColourDialogue was the last to set the colour then we leave the
 			// menu unselected.
@@ -624,16 +677,26 @@ public class MyTask : ToolboxTask
 
 		void colourmenu_Selected (object sender, Toolbox.ColourMenu.SelectionEventArgs args)
 		{
-			font_wimp_colour = args.Colour;
-			ColourSetBy = ColourSetter.Menu;
-			ForceRedraw (Extent);
+			var colour_menu = (Toolbox.ColourMenu)sender;
+
+			if (this.Equals (colour_menu.GetAncestor<Toolbox.Window>()))
+			{
+				font_wimp_colour = args.Colour;
+				ColourSetBy = ColourSetter.Menu;
+				ForceRedraw (Extent);
+			}
 		}
 
 		void colourdbox_SubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)
 		{
-			// The MenuEntry is the sender.
-			Toolbox.MenuEntry menu_entry = (Toolbox.MenuEntry)sender;
-			Toolbox.ColourDialogue colour_dbox = (Toolbox.ColourDialogue)menu_entry.SubMenuShow;
+			var menu_entry = (Toolbox.MenuEntry)sender;
+
+			Toolbox.ColourDialogue colour_dbox = menu_entry.GetSubMenuShow<Toolbox.ColourDialogue> ();
+
+			// The menu is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (!this.Equals (colour_dbox.GetAncestor<Toolbox.Window>()))
+				return;
 
 			// Create the necessary colour block from the font colour
 			int [] colour_block = Toolbox.ColourDialogue.AllocStandardColourBlock (font_palette_colour, Toolbox.ColourDialogue.ColourModel.RGB);
@@ -644,21 +707,34 @@ public class MyTask : ToolboxTask
 
 		void colourdbox_Selected (object sender, Toolbox.ColourDialogue.ColourSelectedEventArgs args)
 		{
-			// We use the colour regardless of whether 'None' was selected.
-			font_palette_colour = Toolbox.ColourDialogue.ColourFromColourBlock (args.ColourBlock);
-			ColourSetBy = ColourSetter.Dialogue;
-			ForceRedraw (Extent);
+			var colour_dbox = (Toolbox.ColourDialogue)sender;
+
+			// The colour dialogue is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (this.Equals (colour_dbox.GetAncestor<Toolbox.Window>()))
+			{
+				// We use the colour regardless of whether 'None' was selected.
+				font_palette_colour = Toolbox.ColourDialogue.
+								ColourFromColourBlock (args.ColourBlock);
+				ColourSetBy = ColourSetter.Dialogue;
+				ForceRedraw (Extent);
+			}
 		}
 
 		void fileinfo_Show (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
 		{
-			Toolbox.FileInfoDialogue file_info_dbox = (Toolbox.FileInfoDialogue)sender;
+			var file_info_dbox = (Toolbox.FileInfoDialogue)sender;
 
-			file_info_dbox.Date = OS.DateTime.Now;
-			file_info_dbox.FileSize = Text.Length;
-			file_info_dbox.Modified = false;
-			file_info_dbox.FileType = 0xfff;
-			file_info_dbox.FileName = (FileName != null) ? FileName : "<Untitled>";
+			// The FileInfo dialogue is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (this.Equals (file_info_dbox.GetAncestor<Toolbox.Window>()))
+			{
+				file_info_dbox.Date = OS.DateTime.Now;
+				file_info_dbox.FileSize = Text.Length;
+				file_info_dbox.Modified = false;
+				file_info_dbox.FileType = 0xfff;
+				file_info_dbox.FileName = (FileName != null) ? FileName : "<Untitled>";
+			}
 		}
 
 		// For a derived class, it is recommended to override the event notifier rather
@@ -688,10 +764,16 @@ public class MyTask : ToolboxTask
 		{
 			try
 			{
-				TextFileSaveAs saveas = (TextFileSaveAs)sender;
-				FileName = e.Filename;
-				System.IO.File.WriteAllText(e.Filename, Text);
-				saveas.FileSaveCompleted (e.Filename, true);
+				var saveas = (TextFileSaveAs)sender;
+
+				// The SaveAs dialogue is a shared toolbox object, so check that this is the
+				// intended target of the event.
+				if (this.Equals (saveas.GetAncestor<Toolbox.Window>()))
+				{
+					FileName = e.Filename;
+					System.IO.File.WriteAllText(e.Filename, Text);
+					saveas.FileSaveCompleted (e.Filename, true);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -710,7 +792,13 @@ public class MyTask : ToolboxTask
 		// guess it could be a C# issue.
 		void fill_buffer (object sender, Toolbox.SaveAsDialogue.FillBufferEventArgs e)
 		{
-			TextFileSaveAs saveas = (TextFileSaveAs)sender;
+			var saveas = (TextFileSaveAs)sender;
+
+			// The SaveAs dialogue is a shared toolbox object, so check that this is the
+			// intended target of the event.
+			if (!this.Equals (saveas.GetAncestor<Toolbox.Window>()))
+				return;
+
 			if (saveas.RamTransBufferIndex < Text.Length)
 			{
 				ASCIIEncoding ascii = new ASCIIEncoding();
@@ -727,12 +815,10 @@ public class MyTask : ToolboxTask
 	private Toolbox.Iconbar Iconbar;
 	private Dialogue dialogue;
 
-	public TextFile CurrentFile;
-
 	public MainMenu main_menu;
 	public Toolbox.ProgInfoDialogue ProgInfo;
 
-	const string Version = "V1.0 (21st October 2012)";
+	const string Version = "V1.0 (23rd November 2012)";
 
 	// Could use an enum here, but enums require a cast which is ugly.
 	public static class MyEvent
@@ -797,14 +883,10 @@ public class MyTask : ToolboxTask
 		Initialise (350, mess_list, event_list, "<MonoTestTB$Dir>");
 
 		main_menu = new MainMenu (this);
-		// Reading the SubMenuShow property of a menu entry automatically finds the object for us,
-		// or wraps it up in a C# object if it hasn't been seen before.
-		ProgInfo = (Toolbox.ProgInfoDialogue)main_menu.ProgInfoEntry.SubMenuShow;
+		ProgInfo = main_menu.ProgInfoEntry.GetSubMenuShow<Toolbox.ProgInfoDialogue> ();
 		ProgInfo.Version = Version;
 
 		InitIconBar();
-
-		CurrentFile = new TextFile ("The quick brown fox jumped over the lazy dog.");
 
 		dialogue = new Dialogue (this);
 		dialogue.Show ();
@@ -873,7 +955,9 @@ public class MyTask : ToolboxTask
 
 	void iconbar_Select (object sender, Toolbox.ToolboxEventArgs args)
 	{
-		CurrentFile.Show();
+		TextFile file = Toolbox.Object.CreateInstance<TextFile> ("MainWindow");
+		file.SetText ("The quick brown fox jumped over the lazy dog.");
+		file.Show();
 	}
 
 	void iconbar_Adjust (object sender, Toolbox.ToolboxEventArgs args)

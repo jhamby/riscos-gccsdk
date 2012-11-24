@@ -7,10 +7,33 @@
 
 \section toolbox Toolbox
 
-\subsection lookuporwrap Toolbox.Object.LookupOrWrap
-Used to either find an object if it's been seen before or wrap it if not. This
-isn't an ideal solution as new objects have to be manually added to it plus it
-will not work for derived objects. Perhaps requires some kind of factory pattern?
+\subsection objectcreation Creating Objects
+All Toolbox objects derive from the \b Toolbox.Object class and are created using
+one of the CreateInstance methods. These are static methods, so do not require an
+object instance to use them although you will have to use the fully qualified
+name. They use generics whereby the type argument is the type of the Toolbox object
+that you wish to create. For example, to create a Window:
+
+\code
+var window = Toolbox.Object.CreateInstance<Window> ("MainWindow");
+\endcode
+
+In this case, MainWindow is the name of the template in the Resource file.
+
+\subsection sharedobjects Shared Toolbox Objects
+A shared Toolbox object is only created once by the Toolbox. Further attempts to
+create such an object cause the Toolbox to return the same ID and increase a
+reference count.<br>
+For C#, this means that there is only one managed object for this shared Toolbox
+object. If, for example, in a multi document editor, there is a shared Scale
+dialogue object, and each document viewer registers an interest in the AppyScale
+event, then if one document is scaled all documents viewers will receive the event.
+This is unlikely to be the intended effect and infact can be disasterous for certain
+events, for example, those involved with the RAM transfer protocol in the SaveAs
+dialogue. There are two ways to overcome this; either make all objects non-shared,
+or add a check in the event handler to ensure that it is the intended target of the
+event. If the document viewer is set to be an ancestor object, then this can be done
+by testing the scale dialogue's ancestor against the document viewer.
 
 \section wimp Wimp
 

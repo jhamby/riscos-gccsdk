@@ -235,15 +235,7 @@ namespace riscos
 					break;
 				}
 
-				if (tb_obj_id == 0)
-					return null;
-
-				Toolbox.Object tb_obj;
-				if (ToolboxTask.AllObjects.TryGetValue (tb_obj_id, out tb_obj))
-					return (Window)tb_obj;
-
-				// FIXME: Should we create a new window object here?
-				return null;
+				return Object.CreateInstance<Window> (tb_obj_id);
 			}
 
 			/*! \brief The title of the window.  */
@@ -365,14 +357,7 @@ namespace riscos
 				if ((pointer.Buttons & PointerInfo.ButtonState.NotToolboxWindow) != 0)
 					return null;
 
-				Toolbox.Object tb_obj;
-				if (ToolboxTask.AllObjects.TryGetValue (pointer.ObjectID, out tb_obj))
-					return (Toolbox.Window)tb_obj;
-
-				// FIXME: It's a toolbox window, but we're not aware of it,
-				// should we create a new window object here? It may have been
-				// auto created.
-				return null;
+				return Object.CreateInstance<Window> (pointer.ObjectID);
 			}
 
 			/*! \brief Return the Window object and component ID that contains the
@@ -392,10 +377,7 @@ namespace riscos
 										     iconHandle,
 										     out tb_obj_id,
 										     out cmpID));
-				if (tb_obj_id == 0)
-					return null;
-
-				return (Window)LookupOrWrap (tb_obj_id);
+				return Object.CreateInstance<Window> (tb_obj_id);
 			}
 /*
 			TODO:

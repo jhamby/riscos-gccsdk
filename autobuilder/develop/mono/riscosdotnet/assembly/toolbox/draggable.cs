@@ -109,7 +109,7 @@ namespace riscos
 
 					if ((flags & Flags.ToolboxIDs) != 0)
 					{
-						ToolboxWindow = (Window)Object.LookupOrWrap (window_id);
+						ToolboxWindow = Object.CreateInstance<Window> (window_id);
 						ToolboxCmpID = (uint)icon_id;
 						WimpWindowHandle = 0;
 						WimpIconHandle = -1;

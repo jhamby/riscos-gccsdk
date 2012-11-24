@@ -48,7 +48,7 @@ namespace riscos
 				{
 					uint menu_id = (uint)Marshal.ReadInt32 (RawEventData, EventOffset.MenuID);
 
-					Menu = (Menu)Object.LookupOrWrap (menu_id);
+					Menu = Object.CreateInstance<Menu> (menu_id);
 				}
 			}
 
@@ -75,6 +75,7 @@ namespace riscos
 			}
 
 			/*! \brief The Toolbox Menu to show when the button is clicked.  */
+			// FIXME: Is it always a menu? Could it be something else?
 			public Toolbox.Menu Menu
 			{
 				set {
@@ -85,11 +86,7 @@ namespace riscos
 				get {
 					uint menu_id = Object.MiscOp_SetR3GetR0 (0, Method.GetMenu, ComponentID);
 
-					Toolbox.Object tb_obj;
-					if (!ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))
-						throw new UnknownObjectException (menu_id);
-
-					return (Menu)tb_obj;
+					return Object.CreateInstance<Menu> (menu_id);
 				}
 			}
 

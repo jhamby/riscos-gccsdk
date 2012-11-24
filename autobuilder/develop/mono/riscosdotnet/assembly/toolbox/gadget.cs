@@ -255,7 +255,7 @@ namespace riscos
 				}
 				else
 				{
-					tb_obj_id = clickShow.Object.ID;
+					tb_obj_id = clickShow.ObjectID;
 					flags = clickShow.Flags;
 				}
 

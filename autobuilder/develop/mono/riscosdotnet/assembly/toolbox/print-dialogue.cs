@@ -404,10 +404,10 @@ namespace riscos
 					public const int Buffer = 24;
 				}
 
-				/*! \brief The object that is about to be shown.
-				 * \note The \e self id in the id block will be for the Print Dialogue object, not the
+				/*! \brief The Toolbox id of the object that is about to be shown.
+				 * \note The \e self \e id in the id block will be for the Print Dialogue object, not the
 				 * object which will be shown.  */
-				public readonly Toolbox.Object Object;
+				uint ObjectID;
 
 				/*! \brief Gives details of where the object will be displayed.  */
 				public readonly ShowObjectSpec ShowSpec;
@@ -416,8 +416,8 @@ namespace riscos
 				{
 					ShowObjectType show_type = (ShowObjectType)Marshal.ReadInt32 (RawEventData,
 												      EventOffset.ShowType);
-					Object = Toolbox.Object.LookupOrWrap ((uint)Marshal.ReadInt32 (RawEventData,
-												       EventOffset.ObjectID));
+					ObjectID = (uint)Marshal.ReadInt32 (RawEventData,
+									    EventOffset.ObjectID);
 					switch (show_type)
 					{
 					case Toolbox.ShowObjectType.FullSpec:
@@ -448,6 +448,11 @@ namespace riscos
 						ShowSpec = null;
 						break;
 					}
+				}
+
+				public T Object<T> () where T : Toolbox.Object
+				{
+					return Object.CreateInstance<T> (ObjectID);
 				}
 			}
 

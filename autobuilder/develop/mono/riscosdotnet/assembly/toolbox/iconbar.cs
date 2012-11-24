@@ -143,11 +143,6 @@ namespace riscos
 			public Toolbox.Object SelectClickShow
 			{
 				set { SetShow (ButtonFlags.Select, value, null); }
-				get {
-					Toolbox.Object select, adjust;
-					GetShow (ButtonFlags.Select, out select, out adjust);
-					return select;
-				}
 			}
 
 
@@ -157,11 +152,6 @@ namespace riscos
 			public Toolbox.Object AdjustClickShow
 			{
 				set { SetShow (ButtonFlags.Adjust, null, value); }
-				get {
-					Toolbox.Object select, adjust;
-					GetShow (ButtonFlags.Adjust, out select, out adjust);
-					return adjust;
-				}
 			}
 
 			/*! \brief Sets or gets the help message which will be returned when a Help Request message
@@ -271,28 +261,40 @@ namespace riscos
 						(adjustClickShow != null) ? adjustClickShow.ID : 0);
 			}
 
-			/*! \brief Return the toolbox object to be shown when the user clicks Select and/or
-			 * Adjust on the %Iconbar icon.
-			 * \param [in] flags Bits 0 and 1 indicate which buttons to return objects for.
-			 * \param [out] selectClickShow The object to be shown if Select is clicked (if bit 0 set
-			 * in flags - ButtonFlags.Select).
-			 * \param [out] adjustClickShow The object to be shown if Adjust is clicked (if bit 1 set
-			 * in flags - ButtonFlags.Adjust).
-			 * \note Set to \e null if no object is to be shown.
-			 * \note The \e SelectClickShow and \e AdjustClickShow properties can be used for
-			 * the same purpose.  */
-			public void GetShow (ButtonFlags flags, out Toolbox.Object selectClickShow,
-								out Toolbox.Object adjustClickShow)
+			/*! \brief Return the toolbox object to be shown when the user clicks Select
+			 * on the %Iconbar icon.
+			 * \note It's impossible to deduce from just the Toolbox id what kind of object
+			 * is to be returned. It is assumed that the caller will know and provide the
+			 * correct type.  */
+			public T GetSelectClickShow<T> () where T : Toolbox.Object
 			{
 				uint select_id;
 				uint adjust_id;
 
-				MiscOp_GetR0R1 ((uint)flags, Method.GetShow, out select_id, out adjust_id);
+				MiscOp_GetR0R1 ((uint)ButtonFlags.Select,
+						Method.GetShow,
+						out select_id,
+						out adjust_id);
 
-				selectClickShow = ((flags & ButtonFlags.Select) != 0 && select_id != 0) ?
-							LookupOrWrap (select_id) : null;
-				adjustClickShow = ((flags & ButtonFlags.Adjust) != 0 && adjust_id != 0) ?
-							LookupOrWrap (adjust_id) : null;
+				return (select_id != 0) ? Object.CreateInstance<T> (select_id) : null;
+			}
+
+			/*! \brief Return the toolbox object to be shown when the user clicks Adjust
+			 * on the %Iconbar icon.
+			 * \note It's impossible to deduce from just the Toolbox id what kind of object
+			 * is to be returned. It is assumed that the caller will know and provide the
+			 * correct type.  */
+			public T GetAdjustClickShow<T> () where T : Toolbox.Object
+			{
+				uint select_id;
+				uint adjust_id;
+
+				MiscOp_GetR0R1 ((uint)ButtonFlags.Adjust,
+						Method.GetShow,
+						out select_id,
+						out adjust_id);
+
+				return (adjust_id != 0) ? Object.CreateInstance<T> (adjust_id) : null;
 			}
 
 			/*! \brief Set the help message which will be returned when a Help Request
@@ -489,12 +491,16 @@ namespace riscos
 					public const int ObjectID = 16;
 				}
 
-				public Toolbox.Object Object;
+				uint ObjectID;
 
 				public AboutToBeShownEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
 				{
-					int ObjectID = Marshal.ReadInt32 (RawEventData, EventOffset.ObjectID);
-					Object = LookupOrWrap ((uint)ObjectID);
+					ObjectID = (uint)Marshal.ReadInt32 (RawEventData, EventOffset.ObjectID);
+				}
+
+				public T Object<T> () where T : Toolbox.Object
+				{
+					return Object.CreateInstance<T> (ObjectID);
 				}
 			}
 

@@ -145,27 +145,33 @@ namespace riscos
 				}
 			}
 
-			/*! \brief Gets or sets the Toolbox object that will be shown when the user
+			/*! \brief Sets the Toolbox object that will be shown when the user
 			 * moves the pointer over the submenu arrow.
 			 * 
 			 * If set to null, then no object will be shown.  */
 			public Object SubMenuShow
 			{
-				get {
-					uint show_id = Object.MiscOp_SetR3GetR0 (0,
-										 Method.GetSubMenuShow,
-										 ComponentID);
-					if (show_id == 0)
-						return null;
-
-					return Object.LookupOrWrap (show_id);
-				}
 				set {
 					Object.MiscOp_SetR3R4 (0,
 							       Method.SetSubMenuShow,
 							       ComponentID,
 							       (value == null) ? 0 : value.ID);
 				}
+			}
+
+			/*! \brief Gets the Toolbox object that will be shown when the user
+			 * moves the pointer over the submenu arrow.
+			 * 
+			 * If null, then no object is set to be shown.
+			 * \note It's impossible to deduce what the type of the object is from just
+			 * a Toolbox object ID, so the caller must give the required type of the
+			 * object.  */
+			public T GetSubMenuShow<T> () where T : Toolbox.Object
+			{
+				uint obj_id = Object.MiscOp_SetR3GetR0 (0,
+									Method.GetSubMenuShow,
+									ComponentID);
+				return (obj_id == 0) ? null : Object.CreateInstance<T> (obj_id);
 			}
 
 			/*! \brief Gets or sets the Toolbox event that will be raised when the user

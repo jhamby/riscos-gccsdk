@@ -93,8 +93,8 @@ namespace riscos
 			/*! \brief Bit 0 set - Show object transiently.  */
 			public const uint Transient = 1;
 
-			/*! \brief The object to be shown.  */
-			public Toolbox.Object Object;
+			/*! \brief The Toolbox id of the object to be shown.  */
+			public uint ObjectID;
 
 			/*! \brief Flags used to indicate whether a component that can show an object when
 			 * clicked should show the object persistently or transiently.  */
@@ -106,7 +106,7 @@ namespace riscos
 			 * \exception UnknownObjectException Thrown if the class of the given object is not known.  */
 			public ClickShow (uint objID, uint flags)
 			{
-				Object = Object.LookupOrWrap (objID);
+				ObjectID = objID;
 				Flags = flags;
 			}
 
@@ -115,8 +115,14 @@ namespace riscos
 			 * \param [in] flags Set to \e ClickShow.Persistent or \e ClickShow.Transient.  */
 			public ClickShow (Object tbObj, uint flags)
 			{
-				Object = tbObj;
+				ObjectID = tbObj.ID;
 				Flags = flags;
+			}
+
+			/*! \brief Return the Toolbox object that the ClickShow object refers to.  */
+			public T Object<T> () where T : Toolbox.Object
+			{
+				return Object.CreateInstance<T> (ObjectID);
 			}
 		}
 
@@ -204,7 +210,7 @@ namespace riscos
 		public delegate void ToolboxEventHandler (object sender, ToolboxEventArgs args);
 
 		/*! \brief The base object of all Toolbox objects.  */
-		public class Object : IDisposable
+		public class Object : IDisposable, IEquatable<Object>
 		{
 			public uint ID { get; protected set; }
 
@@ -231,7 +237,7 @@ namespace riscos
 			protected Object (uint objectID)
 			{
 				ID = objectID;
-				ToolboxTask.AllObjects.Add (objectID, this);
+				Register ();
 			}
 
 			~Object ()
@@ -253,10 +259,20 @@ namespace riscos
 			{
 				if (!this.disposed)
 				{
-					ToolboxTask.AllObjects.Remove (ID);
 					Delete ();
 					disposed = true;
 				}
+			}
+
+			/*! \brief Return \e true if the Toolbox object given is the same as this
+			 * one.
+			 * \note This method is part of the IEquatable interface,  */
+			public bool Equals (Toolbox.Object other)
+			{
+				if (other == null)
+					return false;
+
+				return (ID == other.ID);
 			}
 
 			/*! \brief Create a toolbox object using the named template.
@@ -264,7 +280,7 @@ namespace riscos
 			protected void Create (string objectName)
 			{
 				ID = Toolbox.CreateObject (objectName);
-				ToolboxTask.AllObjects.Add (ID, this);
+				Register ();
 			}
 
 			/*! \brief Create a toolbox object using the template pointed to.
@@ -272,13 +288,13 @@ namespace riscos
 			protected void Create (IntPtr templateData)
 			{
 				ID = Toolbox.CreateObject (templateData);
-				ToolboxTask.AllObjects.Add (ID, this);
+				Register ();
 			}
 
 			/*! \brief Delete the object.  */
 			private void Delete ()
 			{
-				ToolboxTask.AllObjects.Remove (ID);
+				Deregister ();
 				Toolbox.DeleteObject (0, ID);
 			}
 
@@ -357,6 +373,30 @@ namespace riscos
 				return GetClass (ID);
 			}
 
+			/*! \brief Sets the value of the client handle for this object.  */
+			public void SetClientHandle (int handle)
+			{
+				Toolbox.SetClientHandle (ID, handle);
+			}
+
+			/*! \brief Return the value of the client handle for this object.  */
+			public int GetClientHandle ()
+			{
+				return Toolbox.GetClientHandle (ID);
+			}
+
+			public T GetAncestor<T> () where T : Toolbox.Object
+			{
+				return Object.CreateInstance<T> (Toolbox.GetAncestor (ID));
+			}
+
+			/*! \brief Sets or gets the client handle for this object.  */
+			public int ClientHandle
+			{
+				set { SetClientHandle (value); }
+				get { return GetClientHandle (); }
+			}
+
 			/*! \brief Get the name of the template that this Toolbox object was created from.  */
 			public string TemplateName
 			{
@@ -408,47 +448,79 @@ namespace riscos
 				return class_type;
 			}
 
-			/*! \brief Check if the given Toolbox ID is already known to us and return the
-			 * wrapper for it if so. Otherwise, create a new wrapper based on its
-			 * Toolbox class type.
-			 * \param [in] ObjectID The Toolbox ID of the object.
-			 * \return The Object wrapper.
-			 * \exception UnknownObjectException Thrown when an unrecognised object class is
-			 * found.  */
-			public static Object LookupOrWrap (uint ObjectID)
+			static Dictionary<uint, Toolbox.Object> AllObjects =
+							new Dictionary<uint, Toolbox.Object>();
+
+			public static T CreateInstance<T> (string templateName) where T : Toolbox.Object
 			{
-				Object obj;
+				uint tb_obj_id;
+				Toolbox.Object obj;
 
-				if (ToolboxTask.AllObjects.TryGetValue (ObjectID, out obj))
-					return obj;
-
-				switch (GetClass (ObjectID))
+				tb_obj_id = Toolbox.CreateObject (templateName);
+				if (!AllObjects.TryGetValue (tb_obj_id, out obj))
 				{
-				case Class.Window:
-					return new Window (ObjectID);
-				case Class.Menu:
-					return new Menu (ObjectID);
-				case Class.SaveAs:
-					return new SaveAsDialogue (ObjectID);
-				case Class.ProgInfo:
-					return new ProgInfoDialogue (ObjectID);
-				case Class.FileInfo:
-					return new FileInfoDialogue (ObjectID);
-				case Class.ColourDbox:
-					return new ColourDialogue (ObjectID);
-				case Class.ColourMenu:
-					return new ColourMenu (ObjectID);
-				case Class.FontDbox:
-					return new FontDialogue (ObjectID);
-				case Class.FontMenu:
-					return new FontMenu (ObjectID);
-				case Class.ScaleDbox:
-					return new ScaleDialogue (ObjectID);
-				case Class.PrintDbox:
-					return new PrintDialogue (ObjectID);
-				default:
-					throw new UnknownObjectException (ObjectID);
+					return (T)Activator.CreateInstance (typeof(T), tb_obj_id);
 				}
+				else
+				{
+					Toolbox.DeleteObject (0, tb_obj_id);
+					return (T)obj;
+				}
+			}
+
+			public static T CreateInstance<T> (uint objectID) where T : Toolbox.Object
+			{
+				T obj_ret = null;
+
+				if (objectID != 0)
+				{
+					Toolbox.Object obj;
+
+					obj_ret = (T)(AllObjects.TryGetValue (objectID, out obj) ?
+						      obj :
+						      Activator.CreateInstance (typeof(T), objectID));
+				}
+
+				return obj_ret;
+			}
+
+			public static T CreateInstance<T> (IntPtr templateData) where T : Toolbox.Object
+			{
+				uint tb_obj_id;
+				Toolbox.Object obj;
+
+				tb_obj_id = Toolbox.CreateObject (templateData);
+				if (!AllObjects.TryGetValue (tb_obj_id, out obj))
+				{
+					return (T)Activator.CreateInstance (typeof(T), tb_obj_id);
+				}
+				else
+				{
+					Toolbox.DeleteObject (0, tb_obj_id);
+					return (T)obj;
+				}
+			}
+
+			/*! \brief Add a Toolbox object to the list of known objects.  */
+			void Register ()
+			{
+				AllObjects.Add (ID, this);
+			}
+
+			/*! \brief Remove a Toolbox object from the list of known objects.  */
+			void Deregister ()
+			{
+				AllObjects.Remove (ID);
+			}
+
+			/*! \brief Test the Toolbox object id to see if it has been registered and
+			 * return the corresponding managed object if so.
+			 * \param [in] id The Toolbox object id to test.
+			 * \param [out] obj The managed Toolbox object if the object is known.
+			 * \return \e true if the object was found.  */
+			public static bool TryGetValue (uint id, out Toolbox.Object obj)
+			{
+				return AllObjects.TryGetValue (id, out obj);
 			}
 
 			//
@@ -506,7 +578,7 @@ namespace riscos
 				uint menu_id = MiscOp_GetR0 (0, method);
 
 				Toolbox.Object tb_obj;
-				if (!ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))
+				if (!Object.TryGetValue (menu_id, out tb_obj))
 					throw new UnknownObjectException (menu_id);
 
 				return (Menu)tb_obj;
@@ -855,13 +927,29 @@ namespace riscos
 
 			return GetAncestor (objectID, out ancestor_cmp);
 		}
+
+		/*! \brief Sets the value of the client handle for the object with the given id.  */
+		public static void SetClientHandle (uint objectID, int handle)
+		{
+			OS.ThrowOnError (NativeMethods.Toolbox_SetClientHandle (0, objectID, handle));
+		}
+
+		/*! \brief Return the value of the client handle for the object with the given id.  */
+		public static int GetClientHandle (uint objectID)
+		{
+			int handle;
+
+			OS.ThrowOnError (NativeMethods.Toolbox_GetClientHandle (0, objectID, out handle));
+
+			return handle;
+		}
 	}
 
 	public class ToolboxTask : Task
 	{
-		public static Dictionary<uint, Toolbox.Object> AllObjects = new Dictionary<uint, Toolbox.Object>();
-
 		public IntPtr SpriteArea;
+
+		public static NativeToolbox.IDBlock IDBlock;
 
 		public void Initialise (uint wimp_version,
 					int[] message_list,
@@ -891,10 +979,11 @@ namespace riscos
 
 		public override void Dispatch (Wimp.EventArgs e)
 		{
-			NativeToolbox.IDBlock id_block = GetIDBlock();
 			Toolbox.Object tb_obj;
 
-			if (ToolboxTask.AllObjects.TryGetValue (id_block.SelfID, out tb_obj))
+			IDBlock = GetIDBlock();
+
+			if (Toolbox.Object.TryGetValue (IDBlock.SelfID, out tb_obj))
 			{
 				if (e.Type == Wimp.PollCode.ToolboxEvent)
 				{
