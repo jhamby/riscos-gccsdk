@@ -11,8 +11,8 @@ buildsystem
 libnsbmp
 libnsgif
 libwapcaplet
-libcss
 libparserutils
+libcss
 libhubbub
 libdom
 libsvgtiny
