@@ -49,7 +49,8 @@ namespace riscos
 			RAMTransmit,
 			PreQuit,
 			DataSaved = 13,
-			Shutdown
+			Shutdown,
+			ModeChange = 0x400C1
 		}
 
 		public enum PollMasks :uint

@@ -78,6 +78,21 @@ namespace riscos
 				MsgDataLoad (this, e);
 		}
 
+
+		/*! \brief Raising an event invokes the event handler through a delegate.
+		 *
+		 * The \b OnMsgModeChange method also allows derived classes to handle the
+		 * event without attaching a delegate. This is the preferred technique for
+		 * handling the event in a derived class.
+		 * \note  When overriding \b OnMsgModeChange in a derived class, be sure to
+		 * call the base class's \b OnMsgModeChange method so that registered delegates
+		 * receive the event.  */
+		protected virtual void OnMsgModeChange (Wimp.MessageEventArgs e)
+		{
+			if (MsgModeChange != null)
+				MsgModeChange (this, e);
+		}
+
 		protected virtual void OnMessage (Wimp.MessageEventArgs e)
 		{
 			switch (e.MessageType)
@@ -90,6 +105,9 @@ namespace riscos
 				break;
 			case Wimp.MessageAction.DataLoad:
 				OnMsgDataLoad ((Wimp.DataLoadMessageEventArgs)e);
+				break;
+			case Wimp.MessageAction.ModeChange:
+				OnMsgModeChange (e);
 				break;
 			}
 		}
@@ -113,6 +131,9 @@ namespace riscos
 
 		/*! \brief The event handlers that will be called when a Wimp DataLoad message is received.  */
 		public event Wimp.DataLoadMessageEventHandler MsgDataLoad;
+
+		/*! \brief The event handlers that will be called when a Wimp ModeChange message is received.  */
+		public event Wimp.MessageEventHandler MsgModeChange;
 	}
 
 	public class WimpTask : Task

@@ -19,11 +19,11 @@ namespace riscos.CSharpBindings.SpriteTest
 {
 	public class SpriteTask : WimpTask
 	{
-		OS.DynamicAreaHeap Heap;
+		public static OS.DynamicAreaHeap Heap;
 
 		OSSpriteOp.SpriteArea SpriteArea;
 
-		List<OSSpriteOp.SpriteByPointer>  Sprites = new List<OSSpriteOp.SpriteByPointer> ();
+		List<TestSprite> Sprites = new List<TestSprite> ();
 
 		void CreateSprite ()
 		{
@@ -32,12 +32,12 @@ namespace riscos.CSharpBindings.SpriteTest
 										    OSSpriteOp.SpriteDpi.Dpi90,
 										    OSSpriteOp.SpriteDpi.Dpi90,
 										    false);
-				var sprite = new OSSpriteOp.SpriteByPointer (SpriteArea,
-									     "sprite1",
-									     false,
-									     50,
-									     50,
-									     sprite_type);
+				var sprite = new TestSprite (SpriteArea,
+							     "sprite1",
+							     false,
+							     50,
+							     50,
+							     sprite_type);
 
 				OSSpriteOp.RedirectContext context = sprite.SwitchTo (IntPtr.Zero);
 
@@ -54,6 +54,7 @@ namespace riscos.CSharpBindings.SpriteTest
 					}
 
 					Sprites.Add (sprite);
+					MsgModeChange += sprite.ModeChangeHandler;
 				}
 				catch {
 					throw;
@@ -65,11 +66,6 @@ namespace riscos.CSharpBindings.SpriteTest
 			catch {
 				throw;
 			}
-		}
-
-		void Close (object sender, Wimp.CloseEventArgs e)
-		{
-			Quit = true;
 		}
 
 		void Init ()
@@ -94,7 +90,8 @@ namespace riscos.CSharpBindings.SpriteTest
 
 			SpriteWindow window = new SpriteWindow (Sprites,
 								attributes);
-			window.Closed += Close;
+			// Use a lambda expression for the Quit handler.
+			window.Closed += (sender, e) => Quit = true;
 
 			window.Open (new OS.Rect (100, 100, 2000, 1500),	// Visible area
 				     new OS.Coord (0, 2000),			// Scroll offsets
@@ -152,16 +149,65 @@ namespace riscos.CSharpBindings.SpriteTest
 			}
 		}
 
+		class TestSprite : OSSpriteOp.SpriteByPointer
+		{
+			public IntPtr TransTable = IntPtr.Zero;
+
+			public TestSprite (OSSpriteOp.SpriteArea spriteArea, string name, bool palette,
+						int width, int height, int mode)
+				: base (spriteArea, name, palette, width, height, mode)
+			{
+				int buffer_size = GetTransTableSize (ColourTrans.CurrentMode,
+								     ColourTrans.CurrentPalette,
+								     false);
+				if (buffer_size != 0)
+				{
+					TransTable = SpriteTask.Heap.Alloc (buffer_size);
+					GetTransTable (TransTable,
+						       ColourTrans.CurrentMode,
+						       ColourTrans.CurrentPalette,
+						       false);
+				}
+			}
+
+			~TestSprite ()
+			{
+				if (TransTable != IntPtr.Zero)
+					SpriteTask.Heap.Free (TransTable);
+			}
+
+			public void ModeChangeHandler (object sender, Wimp.MessageEventArgs e)
+			{
+				if (TransTable != IntPtr.Zero)
+				{
+					SpriteTask.Heap.Free (TransTable);
+					TransTable = IntPtr.Zero;
+				}
+
+				int buffer_size = GetTransTableSize (ColourTrans.CurrentMode,
+								     ColourTrans.CurrentPalette,
+								     false);
+				if (buffer_size != 0)
+				{
+					TransTable = SpriteTask.Heap.Alloc (buffer_size);
+					GetTransTable (TransTable,
+						       ColourTrans.CurrentMode,
+						       ColourTrans.CurrentPalette,
+						       false);
+				}
+			}
+		}
+
 		class SpriteWindow : Wimp.Window
 		{
-			List<OSSpriteOp.SpriteByPointer> Sprites;
+			List<TestSprite> Sprites;
 
 			int WindowHeight;
 
 			// Initialise to the identity matrix.
 			OS.Matrix matrix = new OS.Matrix ();
 
-			public SpriteWindow (List<OSSpriteOp.SpriteByPointer> sprites,
+			public SpriteWindow (List<TestSprite> sprites,
 					     Wimp.WindowAttributes attr) : base (attr)
 			{
 				Sprites = sprites;
@@ -173,6 +219,8 @@ namespace riscos.CSharpBindings.SpriteTest
 
 			protected override void OnPaint (Wimp.RedrawEventArgs e)
 			{
+				IntPtr trans_table = Sprites[0].TransTable;
+
 				// Render as is.
 				OS.Move (e.Origin.X + 40, e.Origin.Y + WindowHeight - 170);
 				Sprites[0].Plot (OSSpriteOp.PlotAction.OverWrite);
@@ -182,7 +230,7 @@ namespace riscos.CSharpBindings.SpriteTest
 						       e.Origin.Y + WindowHeight - 220,
 						       OSSpriteOp.PlotAction.OverWrite,
 						       new OS.ScaleFactors (2, 2, 1, 1),
-						       IntPtr.Zero);
+						       trans_table);
 
 				// Render transformed using matrix.
 				// Transformed sprites are not plotted at the current graphics position;
@@ -197,7 +245,7 @@ namespace riscos.CSharpBindings.SpriteTest
 				local_matrix.Translate (e.Origin.X + 480, e.Origin.Y + WindowHeight - 170);
 				Sprites[0].PlotTransformed (OSSpriteOp.PlotAction.OverWrite,
 							    local_matrix,
-							    IntPtr.Zero);
+							    trans_table);
 
 				// Render transformed to destination parallelogram
 				var block = new OSSpriteOp.DestCoordBlock();
@@ -212,7 +260,7 @@ namespace riscos.CSharpBindings.SpriteTest
 				block.y3 = block.y2;
 				Sprites[0].PlotTransformed (OSSpriteOp.PlotAction.OverWrite,
 							    block,
-							    IntPtr.Zero);
+							    trans_table);
 			}
 		}
 	}

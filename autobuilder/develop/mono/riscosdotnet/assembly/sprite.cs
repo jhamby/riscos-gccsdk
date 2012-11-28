@@ -166,8 +166,7 @@ namespace riscos
 
 			protected string Name;
 
-
-			/*! \brief Create a sprite that is referenced by its name rather.
+			/*! \brief Create a sprite that is referenced by its name.
 			 * \param [in] spriteArea The sprite area in which to create the sprite.
 			 * \param [in] name Name of the sprite to create.
 			 * \param [in] palette \e true if the sprite should be created with a palette.
@@ -193,8 +192,7 @@ namespace riscos
 						     mode);
 			}
 
-			/*! \brief Create a sprite that is referenced by a pointer rather than its
-			 * name.
+			/*! \brief Create a sprite that is referenced by its name.
 			 * \param [in] spriteArea The sprite area in which to create the sprite.
 			 * \param [in] name Name of the sprite to create.
 			 * \param [in] palette \e true if the sprite should be created with a palette.
@@ -369,6 +367,49 @@ namespace riscos
 							   context.r2,
 							   context.r3);
 			}
+
+			/*! \brief Return the size of the translation table required for this sprite.
+			 * \param [in] destMode The destination mode.
+			 * \param [in] destPalette The destination palette.
+			 * \param [in] useCurrentPalette \e true to use the current palette if the
+			 * sprite doesn't have one, else use the default.
+			 * \return The size, in bytes, of the required colour translation table.
+			 * \note If the size returned is 0, then a table is not required for this sprite
+			 * and the given mode.  */
+			public virtual int GetTransTableSize (int destMode,
+							      IntPtr destPalette,
+							      bool useCurrentPalette)
+			{
+				return ColourTrans.GenerateTableForSprite (AreaCB.BaseAddress,
+									   Name,
+									   destMode,
+									   destPalette,
+									   IntPtr.Zero,
+									   useCurrentPalette ?
+										ColourTrans.TableFlags.UseCurrentPalette :
+										0);
+			}    
+
+			/*! \brief Set up a colour translation table in the given buffer for this sprite.
+			 * \param [in] destMode The destination mode.
+			 * \param [in] destPalette The destination palette.
+			 * \param [in] useCurrentPalette \e true to use the current palette if the
+			 * sprite doesn't have one, else use the default.
+			 * \return Nothing.  */
+			public virtual void GetTransTable (IntPtr buffer,
+							   int destMode,
+							   IntPtr destPalette,
+							   bool useCurrentPalette)
+			{
+				ColourTrans.GenerateTableForSprite (AreaCB.BaseAddress,
+								    Name,
+								    destMode,
+								    destPalette,
+								    buffer,
+								    useCurrentPalette ?
+									ColourTrans.TableFlags.UseCurrentPalette :
+									0);
+			}    
 		}
 
 		/*! \brief Encapsulate a sprite via its address.
@@ -563,6 +604,49 @@ namespace riscos
 								 out context.r3);
 				return context;
 			}
+
+			/*! \brief Return the size of the translation table required for this sprite.
+			 * \param [in] destMode The destination mode.
+			 * \param [in] destPalette The destination palette.
+			 * \param [in] useCurrentPalette \e true to use the current palette if the
+			 * sprite doesn't have one, else use the default.
+			 * \return The size, in bytes, of the required colour translation table.
+			 * \note If the size returned is 0, then a table is not required for this sprite
+			 * and the given mode.  */
+			public override int GetTransTableSize (int destMode,
+							       IntPtr destPalette,
+							       bool useCurrentPalette)
+			{
+				return ColourTrans.GenerateTableForSprite (AreaCB.BaseAddress,
+									   SpritePointer,
+									   destMode,
+									   destPalette,
+									   IntPtr.Zero,
+									   useCurrentPalette ?
+										ColourTrans.TableFlags.UseCurrentPalette :
+										0);
+			}    
+
+			/*! \brief Set up a colour translation table in the given buffer for this sprite.
+			 * \param [in] destMode The destination mode.
+			 * \param [in] destPalette The destination palette.
+			 * \param [in] useCurrentPalette \e true to use the current palette if the
+			 * sprite doesn't have one, else use the default.
+			 * \return Nothing.  */
+			public override void GetTransTable (IntPtr buffer,
+							    int destMode,
+							    IntPtr destPalette,
+							    bool useCurrentPalette)
+			{
+				ColourTrans.GenerateTableForSprite (AreaCB.BaseAddress,
+								    SpritePointer,
+								    destMode,
+								    destPalette,
+								    buffer,
+								    useCurrentPalette ?
+									ColourTrans.TableFlags.UseCurrentPalette :
+									0);
+			}    
 		}
 
 		/*! \brief Convenience class that can be used to collect the output from

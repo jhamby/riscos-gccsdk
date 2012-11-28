@@ -28,6 +28,27 @@ namespace riscos
 									out uint bgHintOut,
 									out uint fillOut,
 									out int offsetOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xcolourtrans_generate_table_for_sprite")]
+		internal static extern IntPtr ColourTrans_GenerateTableForSprite (IntPtr spriteArea,
+										  IntPtr spritePointer,
+										  int destMode,
+										  IntPtr destPalette,
+										  IntPtr buffer,
+										  ColourTrans.TableFlags flags,
+										  IntPtr workspace,
+										  IntPtr transFunc,
+										  out int size);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xcolourtrans_generate_table_for_sprite")]
+		internal static extern IntPtr ColourTrans_GenerateTableForSprite (IntPtr spriteArea,
+										  string spriteName,
+										  int destMode,
+										  IntPtr destPalette,
+										  IntPtr buffer,
+										  ColourTrans.TableFlags flags,
+										  IntPtr workspace,
+										  IntPtr transFunc,
+										  out int size);
 	}
 }
- 
