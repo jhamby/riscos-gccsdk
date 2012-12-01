@@ -1,6 +1,6 @@
 @ __unixlib_exec_sig, __unixlib_exec_sigstack, __unixlib_exec_sigstack_bsd
 @ Written by Nick Burrett, 1 September 1996.
-@ Copyright (c) 1996-2008 UnixLib Developers
+@ Copyright (c) 1996-2012 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -19,9 +19,9 @@ __unixlib_exec_sig:
 	SUB	fp, ip, #4
 	@ Call the signal handler
 	MOV	ip, a1
-	MOV	a3, a4
-	MOV	a2, a3
 	MOV	a1, a2
+	MOV	a2, a3
+	MOV	a3, a4
 	MOV	lr, pc
 	MOV	pc, ip
 	LDMEA	fp, {v1, v2, v3, v4, v5, v6, fp, sp, pc}
