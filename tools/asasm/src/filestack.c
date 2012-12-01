@@ -220,12 +220,15 @@ FS_PopPObject (bool noCheck)
       case POType_eFile:
 	FS_PopFilePObject (noCheck);
 	break;
+
       case POType_eMacro:
 	Local_FinishMacro (noCheck);
 	FS_PopMacroPObject (noCheck);
 	break;
+
       default:
-	errorAbort ("Internal FS_PopPObject: unknown case");
+	assert (0);
+	break;
     }
 
   if (gCurPObjP == &gPOStack[0])

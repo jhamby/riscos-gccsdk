@@ -1,3 +1,16 @@
+Sat Dec  1 15:45:58 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* directive_data.c (c_dcfh): Add.
+	* directive_data.h (c_dcfh): Likewise.
+	* put.c (FloatToHalf): Add.
+	(Put_FloatDataWithOffset): Add support for size 2.
+	* targetcpu.c (oFPUList): Fix comment.
+	* filestack.c (FS_PopPObject): Use assert i.s.o. errorAbort.
+	* decode.c (oDecodeTable): Add DCFH entry.
+
+	* unittests/compare/core/directive_data_fp2.s: Add.
+
 Sun Nov 11 21:09:34 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/decode.c (oDecodeTable): Fix formatting.

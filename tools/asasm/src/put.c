@@ -139,6 +139,105 @@ Put_Data (unsigned size, ARMWord data)
 
 
 /**
+ * Converts a floating-point value from single-precision to half-precision.
+ *
+ * There are two incompatible representations for half-precision floating-point
+ * values.
+ * When ieee is true : IEEE 754-2008 format, supports normalized values in the
+ * range from 2^-14 to 65504 (i.e. (1 + &3FF / 2^-10) * 2^(30-15)
+ * = 2^15 + &3FF*32 = 65504).
+ * When ieee is false : ARM alternative format.  Does not support infinities
+ * or NaNs.  The range of exponents is extended so it supports normalized
+ * values in the range from 2^-14 to 131008 (i.e. (1 + &3FF / 2^-10) * 2^(31-15)
+ * = 2^16 + &3FF*64 = 131008).
+ *
+ *    b15 = sign
+ * b10-14 = exponent (bias 15)
+ *  b0-13 = mantissa
+ */
+static uint16_t
+FloatToHalf (float flt, bool ieee)
+{
+  const union ieee754_float iflt = { .f = flt };
+  const unsigned neg = iflt.ieee.negative << 15; /* 1 bit.  */
+  int exp = iflt.ieee.exponent; /* 8 bits.  */
+  unsigned mantissa = iflt.ieee.mantissa; /* 23 bits.  */
+
+  /* +/-INF, qNaN or sNaN ? */
+  if (exp == 0xFF)
+    {
+      if (!ieee)
+	{
+	  /* Impossible to represent, go for 0. when qNan/sNan, and for
+	     +/-131008 when +/-INF.  */
+	  error (ErrorWarning, "ARM alternative half-precision format can not represent INF or NaN");
+	  return mantissa ? 0 : neg | 0x7FFF; 
+	}
+      return neg | 0x7C00 | (mantissa >> (23 - 10));
+    }
+
+  /* +/- 0 ? */
+  if (exp == 0 && mantissa == 0)
+    return neg;
+
+  /* Normalized or subnormal value.  */
+  mantissa |= 1<<23; /* Add the implicit significant bit back.  */
+  exp -= 127; /* Undo bias.  */
+  /* value = mantissa * 2^-23 * 2^exp  */
+
+  /* Do even-odd rounding.  */
+  unsigned hp_lsb;
+  if (exp < -14)
+    {
+      /* Half-precision result is going to be denormalised (or due to rounding
+         it can become normalized to 2^-14).  */
+      hp_lsb = 1 << (-exp - 1);
+    }
+  else
+    {
+      /* Half-precision result is going to be guaranteed normalized.  */
+      hp_lsb = 1 << (23 - 10);
+    }
+  unsigned add = hp_lsb >> 1; /* Value to add before truncation.  */
+  /* Test for the case where add-half-then-truncate differs from the even-odd
+     rounding we want to do.  */
+  if ((mantissa & (hp_lsb - 1)) == add)
+    add = mantissa & hp_lsb; /* Even-odd rounding, add what hp_lsb is.  */
+  mantissa += add;
+  if (mantissa >= (1 << 24))
+    {
+      mantissa >>= 1;
+      ++exp;
+    }
+
+  /* Test on overflow.  */
+  if (ieee)
+    {
+      if (exp > 15)
+	return neg | 0x7C00; /* sNaN.  */
+    }
+  else
+    {
+      if (exp > 16)
+	return neg | 0x7FFF; /* Generate maximum value possible.  */
+    }
+
+  /* Test on underflow.  */
+  if (exp < -14 - 10)
+    return neg;
+
+  /* Test on subnormal value.  */
+  if (exp < -14)
+    {
+      mantissa >>= -14 - exp;
+      exp = -14;
+    }
+
+  /* -1 because mantissa is 1<<10 too big.  */
+  return neg | (((exp + 15 - 1) << 10) + (mantissa >> 13));
+}
+
+/**
  * Append single or double float at the end of current area.
  * \entry size Size of the float data to be written, should be 4 (single float) or 8 (double float).
  * \entry data Float value to be written.
@@ -149,10 +248,18 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
   uint64_t toWrite;
   switch (size)
     {
+      case 2:
+	{
+	  if (alignBefore)
+	    offset = Area_AlignTo (offset, 2, "half-precision floating-point value");
+          toWrite = FloatToHalf ((float)data, true); /* FIXME: ieee vs alternative option needed ? */
+	  break;
+	}
+
       case 4:
 	{
 	  if (alignBefore)
-	    offset = Area_AlignTo (offset, 4, "float single");
+	    offset = Area_AlignTo (offset, 4, "single-precision floating-point value");
 
 	  const union ieee754_float flt = { .f = (float)data };
 	  /* float : ARM/FPA and ARM/VFP.  */
@@ -173,7 +280,7 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
       case 8:
 	{
 	  if (alignBefore)
-	    offset = Area_AlignTo (offset, 4 /* yes, 4, not 8 */, "float double");
+	    offset = Area_AlignTo (offset, 4 /* yes, 4, not 8 */, "double-precision floating-point value");
 
 	  const union ieee754_double dbl = { .d = data };
 	  if ((areaCurrentSymbol->area.info->type & AREA_VFP) == 0)
@@ -212,7 +319,7 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
 	}
 
       default:
-	errorAbort ("Internal Put_FloatDataWithOffset: illegal size %u", size);
+	assert (0);
 	break;
     }
 

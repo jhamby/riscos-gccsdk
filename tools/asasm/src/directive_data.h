@@ -37,6 +37,7 @@ bool c_dcw (bool doLowerCase);
 bool c_dcd (bool doLowerCase);
 bool c_dci (bool doLowerCase);
 bool c_dcfd (bool doLowerCase);
+bool c_dcfh (bool doLowerCase);
 bool c_dcfs (bool doLowerCase);
 bool c_dcq (bool doLowerCase);
 bool c_fill (void);

@@ -318,11 +318,11 @@ static const FPU_ListEnty_t oFPUList[] =
   { "VFPv3_FP16", kArchFPUExt_VFPv3 | kFPUExt_FP16 }, /* VFPv3 architecture + half-precision extension.  */
   { "VFPv3_D16", kArchFPUExt_VFPv3D16 }, /* VFPv3-D16 architecture.  */
   { "VFPv3_D16_FP16", kArchFPUExt_VFPv3D16 | kFPUExt_FP16 }, /* VFPv3-D16 architecture + half-precision extension.  */
-  { "VFPv3-SP", kArchFPUExt_VFPv3xD }, /* Single precision variant of the VFPv3 architecture.  */
+  { "VFPv3-SP", kArchFPUExt_VFPv3xD }, /* Single-precision variant of the VFPv3 architecture.  */
   { "VFPv3-SP_FP16", kArchFPUExt_VFPv3xD | kFPUExt_FP16 }, /* Single precision variant of the VFPv3 architecture + half-precision extension.  */
   { "VFPv4", kArchFPUExt_VFPv4 }, /* FPv4 architecture.  */
   { "VFPv4_D16", kArchFPUExt_VFPv4D16 }, /* VFPv4-D16 architecture.  */
-  { "FPv4-SP", kArchFPUExt_VFPv4SPD16 } /* Single precision variant of the FPv4 architecture.  */
+  { "FPv4-SP", kArchFPUExt_VFPv4SPD16 } /* Single-precision variant of the FPv4 architecture.  */
 };
 
 /* Maps SOC devices to ARM cores.  */

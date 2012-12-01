@@ -154,6 +154,7 @@ static const decode_table_t oDecodeTable[] =
   { "DCD", eCB_VoidPMatch, 0, 1, { .vdpm = c_dcd } }, /* DCD / DCDU */
   /* FIXME: DCDO */
   { "DCFD", eCB_VoidPMatch, 0, 1, { .vdpm = c_dcfd } }, /* DCFD / DCFDU */
+  { "DCFH", eCB_VoidPMatch, 0, 1, { .vdpm = c_dcfh } }, /* DCFH / DCFHU */
   { "DCFS", eCB_VoidPMatch, 0, 1, { .vdpm = c_dcfs } }, /* DCFS / DCFSU */
   { "DCI", eCB_VoidPMatch, 0, 1, { .vdpm = c_dci } }, /* DCI */
   { "DCQ", eCB_VoidPMatch, 0, 1, { .vdpm = c_dcq } }, /* DCQ / DCQU */

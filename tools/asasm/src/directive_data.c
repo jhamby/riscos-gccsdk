@@ -663,8 +663,24 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 
 
 /**
- * Implements DCFS / DCFSU (IEEE Single Precision).
- * "Define Constant Float-single precision"
+ * Implements DCFH / DCFHU (IEEE half-precision).
+ * "Define Constant Float Half-precision"
+ */
+bool
+c_dcfh (bool doLowerCase)
+{
+  bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
+  if (!Input_IsEndOfKeyword ())
+    return true;
+  Target_CheckFPUFeature (kFPUExt_FP16, true);
+  DefineReal (2, allowUnaligned, allowUnaligned ? "DCFHU" : "DCFH");
+  return false;
+}
+
+
+/**
+ * Implements DCFS / DCFSU (IEEE single-precision).
+ * "Define Constant Float Single-precision"
  */
 bool
 c_dcfs (bool doLowerCase)
@@ -676,9 +692,10 @@ c_dcfs (bool doLowerCase)
   return false;
 }
 
+
 /**
- * Implements DCFD / DCFDU (IEEE Double Precision).
- * "Define Constant Float-double precision"
+ * Implements DCFD / DCFDU (IEEE double-precision).
+ * "Define Constant Float Double-precision"
  */
 bool
 c_dcfd (bool doLowerCase)
