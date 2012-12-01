@@ -769,7 +769,7 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
       goto error;
     }
 
-  if (__u != NULL && ! __valid_address (&__u[0], &__u[1]))
+  if (! __valid_address (&__u[0], &__u[1]))
     {
       err = "UnixLib process structure is corrupt.";
       goto error;

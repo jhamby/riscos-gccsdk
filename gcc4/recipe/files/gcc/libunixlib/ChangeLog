@@ -1,3 +1,7 @@
+Sat Dec  1 18:57:12 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* signal/post.c (__unixlib_raise_signal): Simplify test.
+
 Sat Dec  1 18:52:54 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* signal/sigexec.s (__unixlib_exec_sig): Fix passing sighandler_t
