@@ -233,8 +233,6 @@ distclean-done: clean-done
 updategcc: $(GCCSDK_INTERNAL_GETENV)
 updategcc-done:
 ifeq "$(GCC_USE_SCM)" "yes"
-	-svn revert -R $(SRCORIGDIR)/gcc-trunk
-	-svn status $(SRCORIGDIR)/gcc-trunk | grep -E "^?" | cut -b 9- | xargs rm -rf
 	cd $(SRCORIGDIR)/gcc-trunk && ./contrib/gcc_update
 endif
 
