@@ -1,6 +1,6 @@
 /* Thread specific keys.
-   Copyright (c) 2002-2010 UnixLib Developers.
-   Written by Alex Waugh.  */
+   Written by Alex Waugh.
+   Copyright (c) 2002-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>

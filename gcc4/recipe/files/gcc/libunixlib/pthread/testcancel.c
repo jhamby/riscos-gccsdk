@@ -1,8 +1,8 @@
 /* pthread_testcancel
-   Separate from cancel.c to avoid pulling in other cancel functions
-   for a non threaded program
-   Copyright (c) 2002-2008 UnixLib Developers
-   Written by Alex Waugh */
+   Separate from cancel.c to avoid pulling in other cancel functions for a non
+   threaded program.
+   Written by Alex Waugh.
+   Copyright (c) 2002-2008 UnixLib Developers.  */
 
 #include <pthread.h>
 

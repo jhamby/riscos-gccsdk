@@ -1,5 +1,5 @@
 /* __ul_seterr
- * Copyright (c) 2010 UnixLib Developers
+ * Copyright (c) 2010-2012 UnixLib Developers
  */
 
 #include <errno.h>
@@ -31,11 +31,9 @@ __ul_seterr (const _kernel_oserror *err, int new_errno)
   _stub_errorNumber.errnum = err->errnum;
   char *dst = _stub_errorNumber.errmess;
 #else
-#  if __UNIXLIB_ERRNO_THREADED
-  __pthread_running_thread->thread_errno = new_errno;
-#  else
+  /* Depending on __UNIXLIB_ERRNO_THREADED, errno is a global variable or an
+     alias for __pthread_running_thread->thread_errno.  */
   errno = new_errno;
-#  endif
 
   __pthread_running_thread->errbuf.errnum = err->errnum;
   char *dst = __pthread_running_thread->errbuf.errmess;

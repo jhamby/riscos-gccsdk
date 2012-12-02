@@ -402,32 +402,26 @@ __h_error:
 	__set_errno	a2, a1
 
 	@ Copy error buffer into thread specific storage
-	LDR	a1, .L6+16	@=__pthread_running_thread
- PICEQ "LDR	a1, [v4, a1]"
-	LDR	a1, [a1]
-	ADD	a1, a1, #__PTHREAD_ERRBUF_OFFSET
+	LDR	v1, .L6+12	@=__pthread_running_thread
+ PICEQ "LDR	v1, [v4, v1]"
+	LDR	v1, [v1]
+	ADD	a1, v1, #__PTHREAD_ERRBUF_OFFSET
 	LDR	a2, .L6+8	@=__ul_errbuf_errblock
  PICEQ "LDR	a2, [v4, a2]"
 	MOV	a3, #__ul_errbuf__size
 	BL	memcpy
 
 	@ Mark the error buffer as valid.
-	LDR	a1, .L6+12	@=__ul_errbuf_valid
- PICEQ "LDR	a1, [v4, a1]"
 	MOV	a2, #1
-	STR	a2, [a1]
-
-	@ Check the error number. Its value will determine the
-	@ appropriate signal to call.
-	LDR	a2, .L6+8	@=__ul_errbuf_errblock
- PICEQ "LDR	a2, [v4, a2]"
-	LDR	a3, [a2, #0]
+	STRB	a2, [v1, #__PTHREAD_ERRBUF_VALID_OFFSET]
 
 	@ Check bit 31 of the error number.  If it is set, then it
 	@ indicates a serious error, usually a hardware exception e.g.
 	@ a page-fault or a floating point exception.
+	LDR	a3, [v1, #0]
 	TST	a3, #0x80000000
 	BNE	unrecoverable_error
+
 	@ Bit 31 was not set so raise a RISC OS error.
 	MOV	a2, #SIGOSERROR
 	MOV	a1, #0
@@ -439,7 +433,6 @@ __h_error:
 	WORD	__ul_global
 	WORD	__ul_callbackfp
 	WORD	__ul_errbuf_errblock
-	WORD	__ul_errbuf_valid
 	WORD	__pthread_running_thread
 #ifndef __SOFTFP__
 	WORD	__ul_fp_registers
@@ -462,7 +455,7 @@ unrecoverable_error:
 	BNE	non_fp_exception
 
 	@ Store FP registers.
-	LDR	a1, .L6+20	@=__ul_fp_registers
+	LDR	a1, .L6+16	@=__ul_fp_registers
  PICEQ "LDR	a1, [v4, a1]"
 
 #  if defined(__VFP_FP__)
@@ -1170,11 +1163,7 @@ __ul_errbuf_errblock:
 	.space	252	@ Error string, zero terminated
 	DECLARE_OBJECT __ul_errbuf
 	DECLARE_OBJECT __ul_errbuf_errblock
-
 .set __ul_errbuf__size, . - __ul_errbuf_errblock
-__ul_errbuf_valid:
-	.word	0	@ Valid flag for errbuf
-	DECLARE_OBJECT __ul_errbuf_valid
 
 #ifndef __SOFTFP__
 	.global	__ul_fp_registers

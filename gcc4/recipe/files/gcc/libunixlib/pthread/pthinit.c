@@ -1,6 +1,6 @@
 /* Pthread initialisation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 UnixLib Developers.
-   Written by Martin Piper and Alex Waugh */
+   Written by Martin Piper and Alex Waugh.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <pthread.h>

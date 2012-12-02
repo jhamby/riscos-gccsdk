@@ -1,5 +1,5 @@
-/* Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
-   Written by Martin Piper and Alex Waugh */
+/* Written by Martin Piper and Alex Waugh.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
 
 #include <pthread.h>
 

@@ -1,6 +1,6 @@
 /* Perform delivery of a signal to a process.
-   Copyright (c) 1996-2010 UnixLib Developers.
-   Written by Nick Burrett.  */
+   Written by Nick Burrett.
+   Copyright (c) 1996-2012 UnixLib Developers.  */
 
 #include <errno.h>
 #include <pthread.h>
@@ -27,7 +27,7 @@
 static inline unsigned int
 __signal_have_saved_regs (int signo)
 {
-  return (signo == SIGSEGV || signo == SIGBUS || signo == SIGILL);
+  return signo == SIGSEGV || signo == SIGBUS || signo == SIGILL;
 }
 
 /* Given an address to the approximate start of a function, try
@@ -463,10 +463,6 @@ post_signal (struct unixlib_sigstate *ss, int signo)
   }
   act;
 
-  /* The error buffer is only valid for this signal and not the next.  */
-  const int errbuf_valid = __ul_errbuf.valid;
-  __ul_errbuf.valid = 0;
-
   /* 0 is the special signo used for posting any pending signals.  */
   if (signo == 0)
     goto post_pending;
@@ -622,7 +618,7 @@ death:
 	    __os_swi (Wimp_CommandWindow, regs);
 	  }
 
-	if (errbuf_valid)
+	if (signo == SIGOSERROR && __pthread_running_thread->errbuf_valid)
 	  fprintf(stderr, "\nError 0x%x: %s\n  pc: %08x\n",
 			  __ul_errbuf.errnum, __ul_errbuf.errmess,
 			  (int)((int *)__ul_errbuf.pc - 1));

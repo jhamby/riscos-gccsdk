@@ -1,6 +1,6 @@
 /* Context switching/scheduling.
-   Copyright (c) 2002-2010 UnixLib Developers.
-   Written by Martin Piper and Alex Waugh */
+   Written by Martin Piper and Alex Waugh.
+   Copyright (c) 2002-2010 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -155,6 +155,7 @@ __pthread_context_switch (void)
   while (__pthread_running_thread->state < STATE_RUNNING);
 
 #if ! __UNIXLIB_ERRNO_THREADED
+  /* For a thread-based 'errno' we don't need this.  */
   errno = __pthread_running_thread->thread_errno;
 #endif
 

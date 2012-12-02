@@ -1,6 +1,6 @@
 /* pthread_equal ()
-   Copyright (c) 2002-2007 UnixLib Developers
-   Written by Martin Piper and Alex Waugh.  */
+   Written by Martin Piper and Alex Waugh.
+   Copyright (c) 2002-2007 UnixLib Developers.  */
 
 #include <pthread.h>
 

@@ -1,6 +1,6 @@
 /* Internal UnixLib pthread.h
- * Written by Alex Waugh
- * Copyright (c) 2002-2010, 2010 UnixLib Developers
+ * Written by Alex Waugh.
+ * Copyright (c) 2002-2012 UnixLib Developers.
  */
 
 #ifdef __TARGET_SCL__
@@ -30,12 +30,12 @@ struct __pthread_thread
 
   _kernel_oserror errbuf; /* Last RISC OS error from error handler */
 
+  char errbuf_valid; /* Non-zero when errbuf field is valid.  */
+
   /* WARNING: Various assembly files refer to this structure, using
      offsets defined in internal/asm_dec.s.
      If you change the ordering of any of the elements above this
      comment then make sure the offsets are kept in sync. */
-
-  char errbuf_valid; /* Non-zero when errbuf field is valid.  */
 
   struct __pthread_thread *next; /* Linked list of all threads */
   enum __pthread_state state; /* Running/blocked/idle/etc. */

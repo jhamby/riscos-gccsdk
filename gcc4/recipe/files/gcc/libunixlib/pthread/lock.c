@@ -1,6 +1,6 @@
 /* Common routines shared by the mutex, rwlock and cond functions.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers
-   Written by Alex Waugh */
+   Written by Alex Waugh.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.  */
 
 /* #define PTHREAD_DEBUG */
 

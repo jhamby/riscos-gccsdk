@@ -1,5 +1,5 @@
 /* Internal UnixLib errno.h
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #ifndef __ERRNO_H
@@ -25,11 +25,9 @@ __BEGIN_DECLS
 /* SharedCLibrary */
 extern int _stub_errorBuffer;
 #  define __set_errno(val) (errno = (val), _stub_errorBuffer = 0, -1)
-#elif __UNIXLIB_ERRNO_THREADED
-/* UnixLib - errno is  threaded */
-#  define __set_errno(val) (__pthread_running_thread->thread_errno = (val), __pthread_running_thread->errbuf_valid = 0, -1)
 #else
-/* UnixLib - errno is global */
+/* Depending on __UNIXLIB_ERRNO_THREADED, errno is a global variable or an
+   alias for __pthread_running_thread->thread_errno.  */
 #  define __set_errno(val) (errno = (val), __pthread_running_thread->errbuf_valid = 0, -1)
 #endif
 
@@ -38,7 +36,6 @@ extern struct
   void *pc;
   int errnum;
   char errmess[252];
-  int valid;
 } __ul_errbuf;
 
 #ifndef __SOFTFP__

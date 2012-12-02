@@ -1,5 +1,5 @@
 @ Global definitions used by all assembler files.
-@ Copyright (c) 2002-2010 UnixLib Developers.
+@ Copyright (c) 2002-2012 UnixLib Developers.
 
 @ Bits that control which bits are compiled into UnixLib. Note, this must be
 @ kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
@@ -9,12 +9,13 @@
 
 #ifndef __TARGET_SCL__
 	@ The offset of various members of the __pthread_thread structure
-	@ This should be kept in sync with pthread.h.
+	@ This should be kept in sync with incl-local/internal/pthread.h.
 .set	__PTHREAD_MAGIC_OFFSET, 0
 .set	__PTHREAD_CONTEXT_OFFSET, 4
 .set	__PTHREAD_ALLOCA_OFFSET, 8
 .set	__PTHREAD_ERRNO_OFFSET, 12
 .set	__PTHREAD_ERRBUF_OFFSET, 16
+.set	__PTHREAD_ERRBUF_VALID_OFFSET, 16+256
 #endif
 
 .set	USR_Mode, 0x0

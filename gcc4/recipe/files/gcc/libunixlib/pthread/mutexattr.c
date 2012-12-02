@@ -1,7 +1,6 @@
 /* Mutex attribute manipulation routines.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
-   Written by Alex Waugh */
-
+   Written by Alex Waugh.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
 
 #include <errno.h>
 #include <pthread.h>
