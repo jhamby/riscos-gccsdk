@@ -155,8 +155,18 @@ ab_package() {
   cp -T $S/libriscosdotnet/Copyright $A/Docs/rdn-Copyright
   cp -R $S/libriscosdotnet/build/doxygen-doc/* $A/Docs/rdn-Manual
 
-  # Create a skeleton !SharedLibs directory and copy shared library
-  so_lib_installdir=$D/$package/$section/mono/Apps/Develop/\!SharedLibs/lib
+  # Create a skeleton !SharedLibs directory and copy shared library.
+  # Determine which ABI is in use and therefor which directory to install
+  # to. We assume that GCC 4.1.1 is obsolete. For GCC 4.1.2, the ABI
+  # directory is "abi-1.0", for newer versions of GCC, it is "abi-2.0".
+  abi_dir=abi-2.0
+  gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
+  if [[ "$gcc_version" == *4.1.2* ]]; then
+    abi_dir=abi-1.0
+  fi
+
+  so_lib_installdir=$D/$package/$section/mono/Apps/Develop/\!SharedLibs/lib/$abi_dir
+
   mkdir -p $so_lib_installdir
   cp -T "$S/libriscosdotnet/build/src/.libs/libriscosdotnet.1.0.0.so" "$so_lib_installdir/libriscosdotnet.1.0.0.so,E1F"
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f libriscosdotnet/1/0/0/so $so_lib_installdir/libriscosdotnet.so.1,1C8
