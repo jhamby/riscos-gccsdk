@@ -1455,7 +1455,7 @@ libm_la_LDFLAGS = -Wc,-nostdlib -version-info 1:0:0
 toolexeclib_LTLIBRARIES = libunixlib.la libm.la
 
 if UNIXLIB_CHUNKED_STACK
-EXTRA_STACK_CFLAGS=-mno-apcs-stack-check
+EXTRA_STACK_CFLAGS=-mno-apcs-stack-check -fno-optimize-sibling-calls
 else
 EXTRA_STACK_CFLAGS=
 endif

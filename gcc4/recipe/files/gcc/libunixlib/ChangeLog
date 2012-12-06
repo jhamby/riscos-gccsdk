@@ -1,3 +1,13 @@
+Thu Dec  6 18:39:21 GMT 2012  Lee Noar <leenoar@sky.com>
+
+	* Makefile.am: Compile files sys/brk.c, sys/stackalloc.c and
+	debug/dvsprintf.c with -fno-optimize-sibling-calls to suppress
+	tail call optimisations. Although the compiler has been altered
+	to prevent such optimisations, this is only when stack checking
+	is enabled. These files must be compiled with stack checking
+	disabled, which means that tail call optimisations are still
+	being applied. Fixes a crash in Mono when compiled with 4.1.2.
+
 Sun Dec  2 02:41:21 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/pthread.h (struct __pthread_thread): Move warning.
