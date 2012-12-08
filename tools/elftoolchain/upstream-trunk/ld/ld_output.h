@@ -35,6 +35,9 @@ enum ld_output_element_type {
 	OET_KEYWORD,
 	OET_OUTPUT_SECTION,
 	OET_OVERLAY,
+	OET_DATA_BUFFER,
+	OET_SYMTAB,
+	OET_STRTAB
 };
 
 struct ld_output_element {
@@ -48,6 +51,14 @@ struct ld_output_element {
 
 STAILQ_HEAD(ld_output_element_head, ld_output_element);
 
+struct ld_output_data_buffer {
+	uint8_t *odb_buf;		/* point to data */
+	uint64_t odb_size;		/* buffer size */
+	uint64_t odb_off;		/* relative offset in output section */
+	uint64_t odb_align;		/* buffer alignment */
+	uint64_t odb_type;		/* buffer data type */
+};
+
 struct ld_output_section {
 	Elf_Scn *os_scn;		/* output section descriptor */
 	char *os_name;			/* output section name */
@@ -58,7 +69,12 @@ struct ld_output_section {
 	uint64_t os_align;		/* output section alignment */
 	uint64_t os_flags;		/* output section flags */
 	uint64_t os_type;		/* output section type */
+	uint64_t os_entsize;		/* output seciton entry size */
+	uint64_t os_info_val;		/* output section info */
+	char *os_link_name;		/* link to other output section */
 	unsigned os_empty;		/* output section is empty */
+	struct ld_output_section *os_link; /* link to other output section */
+	struct ld_output_section *os_info; /* info refer to other section */
 	struct ld_script_sections_output *os_ldso;
 					/* output section descriptor */
 	struct ld_output_element *os_pe;    /* parent element */
@@ -69,6 +85,8 @@ struct ld_output_section {
 
 STAILQ_HEAD(ld_output_section_head, ld_output_section);
 
+struct ld_symver_verneed_head;
+
 struct ld_output {
 	int lo_fd;			 /* output file descriptor */
 	Elf *lo_elf;			 /* output ELF descriptor */
@@ -77,9 +95,35 @@ struct ld_output {
 	int lo_osabi;			 /* output object osabi */
 	unsigned lo_phdr_num;		 /* num of phdrs */
 	unsigned lo_phdr_note;		 /* create PT_NOTE */
+	unsigned lo_dso_needed;		 /* num of DSO referenced */
+	unsigned lo_version_index;	 /* current symver index */
+	unsigned lo_verneed_num;	 /* num of verneed entries */
+	unsigned lo_rel_plt_type;	 /* type of PLT relocation */
+	unsigned lo_rel_dyn_type;	 /* type of dynamic relocation */
+	UT_array *lo_dso_nameindex;	 /* array of DSO name indices */
+	struct ld_symver_verneed_head *lo_vnlist; /* Verneed list */
 	struct ld_output_element_head lo_oelist; /* output element list */
 	struct ld_output_section_head lo_oslist; /* output section list */
 	struct ld_output_section *lo_ostbl; /* output section hash table */
+	struct ld_output_section *lo_interp; /* .interp section. */
+	struct ld_output_section *lo_init; /* .init section */
+	struct ld_output_section *lo_fini; /* .fini section */
+	struct ld_output_section *lo_dynamic; /* .dynamic section. */
+	struct ld_output_section *lo_dynsym; /* .dynsym section. */
+	struct ld_output_section *lo_dynstr; /* .dynstr section. */
+	struct ld_output_section *lo_hash; /* .hash section. */
+	struct ld_output_section *lo_verdef; /* .gnu.version.d section */
+	struct ld_output_section *lo_verneed; /* .gnu.version.r section */
+	struct ld_output_section *lo_versym; /* .gnu.version section */
+	struct ld_output_section *lo_got; /* GOT section */
+	struct ld_output_section *lo_plt; /* PLT section */
+	struct ld_output_section *lo_rel_plt; /* PLT relocation section */
+	struct ld_output_section *lo_rel_dyn;  /* Dynamic relocation section */
+	struct ld_output_data_buffer *lo_dynamic_odb; /* .dynamic buffer */
+	struct ld_output_data_buffer *lo_got_odb; /* GOT section data */
+	struct ld_output_data_buffer *lo_plt_odb; /* PLT section data */
+	struct ld_output_data_buffer *lo_rel_plt_odb; /* PLT reloc data */
+	struct ld_output_data_buffer *lo_rel_dyn_odb; /* dynamic reloc data */
 };
 
 struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,

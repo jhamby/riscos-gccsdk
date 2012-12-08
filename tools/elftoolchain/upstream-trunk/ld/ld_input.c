@@ -38,6 +38,54 @@ ELFTC_VCSID("$Id: ld_input.c 2566 2012-09-02 14:02:54Z kaiwang27 $");
 static off_t _offset_sort(struct ld_archive_member *a,
     struct ld_archive_member *b);
 
+#define _MAX_INTERNAL_SECTIONS	8
+
+void
+ld_input_init(struct ld *ld)
+{
+	struct ld_input *li;
+
+	assert(STAILQ_EMPTY(&ld->ld_lilist));
+
+	/*
+	 * Create an internal pseudo input object to hold internal
+	 * input sections.
+	 */
+
+	li = ld_input_alloc(ld, NULL, NULL);
+
+	li->li_is = calloc(_MAX_INTERNAL_SECTIONS,
+	    sizeof(struct ld_input_section));
+	if (li->li_is == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
+}
+
+struct ld_input_section *
+ld_input_add_internal_section(struct ld *ld, const char *name)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+
+	li = STAILQ_FIRST(&ld->ld_lilist);
+	assert(li != NULL);
+
+	if (li->li_shnum >= _MAX_INTERNAL_SECTIONS)
+		ld_fatal(ld, "Internal: not enough space for internal "
+		    "sections");
+
+	is = &li->li_is[li->li_shnum];
+	if ((is->is_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "calloc");
+	is->is_input = li;
+	is->is_index = li->li_shnum;
+
+	li->li_shnum++;
+
+	return (is);
+}
+
 void
 ld_input_cleanup(struct ld *ld)
 {
@@ -46,6 +94,10 @@ ld_input_cleanup(struct ld *ld)
 
 	STAILQ_FOREACH_SAFE(li, &ld->ld_lilist, li_next, _li) {
 		STAILQ_REMOVE(&ld->ld_lilist, li, ld_input, li_next);
+		if (li->li_symindex)
+			free(li->li_symindex);
+		if (li->li_local)
+			free(li->li_local);
 		if (li->li_versym)
 			free(li->li_versym);
 		if (li->li_vername) {
@@ -54,10 +106,38 @@ ld_input_cleanup(struct ld *ld)
 					free(li->li_vername[i]);
 			free(li->li_vername);
 		}
+		if (li->li_is)
+			free(li->li_is);
 		if (li->li_fullname)
 			free(li->li_fullname);
-		free(li->li_name);
+		if (li->li_name)
+			free(li->li_name);
 		free(li);
+	}
+}
+
+void
+ld_input_add_symbol(struct ld *ld, struct ld_input *li, struct ld_symbol *lsb)
+{
+
+	if (li->li_symindex == NULL) {
+		assert(li->li_symnum != 0);
+		li->li_symindex = calloc(li->li_symnum,
+		    sizeof(*li->li_symindex));
+		if (li->li_symindex == NULL)
+			ld_fatal_std(ld, "calloc");
+	}
+
+	li->li_symindex[lsb->lsb_index] = lsb;
+
+	if (lsb->lsb_bind == STB_LOCAL) {
+		if (li->li_local == NULL) {
+			li->li_local = calloc(1, sizeof(*li->li_local));
+			if (li->li_local == NULL)
+				ld_fatal_std(ld, "calloc");
+			STAILQ_INIT(li->li_local);
+		}
+		STAILQ_INSERT_TAIL(li->li_local, lsb, lsb_next);
 	}
 }
 
@@ -69,25 +149,28 @@ ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
 	if ((li = calloc(1, sizeof(*li))) == NULL)
 		ld_fatal_std(ld, "calloc");
 
-	if ((li->li_name = strdup(name)) == NULL)
+	if (name != NULL && (li->li_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
 	li->li_file = lf;
 
-	switch (lf->lf_type) {
-	case LFT_ARCHIVE:
-	case LFT_RELOCATABLE:
+	if (lf != NULL) {
+		switch (lf->lf_type) {
+		case LFT_ARCHIVE:
+		case LFT_RELOCATABLE:
+			li->li_type = LIT_RELOCATABLE;
+			break;
+		case LFT_DSO:
+			li->li_type = LIT_DSO;
+			break;
+		case LFT_BINARY:
+		case LFT_UNKNOWN:
+		default:
+			li->li_type = LIT_UNKNOWN;
+			break;
+		}
+	} else
 		li->li_type = LIT_RELOCATABLE;
-		break;
-	case LFT_DSO:
-		li->li_type = LIT_DSO;
-		break;
-	case LFT_BINARY:
-	case LFT_UNKNOWN:
-	default:
-		li->li_type = LIT_UNKNOWN;
-		break;
-	}
 
 	return (li);
 }
@@ -182,6 +265,9 @@ ld_input_load(struct ld *ld, struct ld_input *li)
 	struct ld_file *lf;
 	struct ld_archive_member *lam;
 
+	if (li->li_file == NULL)
+		return;
+
 	assert(li->li_elf == NULL);
 	ls = &ld->ld_state;
 	if (li->li_file != ls->ls_file) {
@@ -210,6 +296,10 @@ ld_input_unload(struct ld *ld, struct ld_input *li)
 	struct ld_file *lf;
 
 	(void) ld;
+
+	if (li->li_file == NULL)
+		return;
+
 	assert(li->li_elf != NULL);
 	lf = li->li_file;
 	if (lf->lf_ar != NULL)
@@ -218,19 +308,15 @@ ld_input_unload(struct ld *ld, struct ld_input *li)
 }
 
 void
-ld_input_init_sections(struct ld *ld, struct ld_input *li)
+ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	struct ld_input_section *is;
-	struct ld_symbol *lsb, *tmp;
-	Elf *e;
 	Elf_Scn *scn;
 	const char *name;
 	GElf_Shdr sh;
 	size_t shstrndx, ndx;
 	int elferr;
 
-	ld_input_load(ld, li);
-	e = li->li_elf;
 	if (elf_getshdrnum(e, &li->li_shnum) < 0)
 		ld_fatal(ld, "%s: elf_getshdrnum: %s", li->li_name,
 		    elf_errmsg(-1));
@@ -279,7 +365,6 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 		is->is_info = sh.sh_info;
 		is->is_index = elf_ndxscn(scn);
 		is->is_input = li;
-		is->is_orphan = 1;
 
 		/*
 		 * Check for informational sections which should not
@@ -298,6 +383,16 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 	if (elferr != 0)
 		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
 		    elf_errmsg(elferr));
+}
+
+void
+ld_input_init_common_section(struct ld *ld, struct ld_input *li)
+{
+	struct ld_input_section *is;
+	struct ld_symbol *lsb, *tmp;
+
+	if (li->li_file == NULL)
+		return;
 
 	/*
 	 * Create a pseudo section named COMMON to keep track of common symbols.
@@ -319,7 +414,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 	is->is_info = 0;
 	is->is_index = SHN_COMMON;
 	is->is_input = li;
-	is->is_orphan = 1;
+
 	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
 		if (lsb->lsb_input != li)
 			continue;
@@ -332,8 +427,6 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 		lsb->lsb_value = is->is_size;
 		is->is_size += lsb->lsb_size;
 	}
-
-	ld_input_unload(ld, li);
 }
 
 static off_t

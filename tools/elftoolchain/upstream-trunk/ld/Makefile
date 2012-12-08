@@ -10,9 +10,11 @@ SRCS=	amd64.c			\
 	i386.c			\
 	i386_script.c		\
 	ld_arch.c		\
+	ld_dynamic.c		\
 	ld_error.c 		\
 	ld_exp.c		\
 	ld_file.c		\
+	ld_hash.c		\
 	ld_input.c		\
 	ld_layout.c		\
 	ld_main.c 		\
@@ -25,6 +27,7 @@ SRCS=	amd64.c			\
 	ld_script_parser.y	\
 	ld_strtab.c		\
 	ld_symbols.c		\
+	ld_symver.c		\
 	y.tab.h
 
 .SUFFIXES:	.ld .c

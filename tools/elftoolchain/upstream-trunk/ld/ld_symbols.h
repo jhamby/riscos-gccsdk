@@ -26,13 +26,18 @@
  * $Id: ld_symbols.h 2566 2012-09-02 14:02:54Z kaiwang27 $
  */
 
+struct ld_symver_verdef;
+
 struct ld_symbol {
 	char *lsb_name;			/* symbol name */
+	uint64_t lsb_nameindex;		/* symbol name index */
 	char *lsb_ver;			/* symbol version */
 	char *lsb_longname;		/* symbol name+version (as hash key)*/
 	uint64_t lsb_size;		/* symbol size */
 	uint64_t lsb_value;		/* symbol value */
-	uint16_t lsb_shndx;		/* symbol index */
+	uint16_t lsb_shndx;		/* symbol section index */
+	uint64_t lsb_index;		/* symbol index */
+	uint64_t lsb_dyn_index;		/* dynamic symbol index */
 	struct ld_script_variable *lsb_var; /* associated ldscript variable */
 	unsigned char lsb_bind;		/* symbol binding */
 	unsigned char lsb_type;		/* symbol type */
@@ -40,11 +45,20 @@ struct ld_symbol {
 	unsigned char lsb_default;	/* symbol is default/only version */
 	unsigned char lsb_provide;	/* provide symbol */
 	unsigned char lsb_provide_refed; /* provide symbol is referenced */
-	struct ld_symbol *lsb_ref;	/* resolved symbol reference */
+	unsigned char lsb_import;	/* symbol is a import symbol */
+	unsigned char lsb_ref_dso;	/* symbol appeared in a DSO */
+	unsigned char lsb_ref_ndso;	/* symbol appeared in elsewhere */
+	unsigned char lsb_copy_reloc;	/* symbol need copy reloc */
+	struct ld_symver_verdef *lsb_vd; /* version definition */
+	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
+	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
 	struct ld_input *lsb_input;	/* containing input object */
+	struct ld_output_section *lsb_preset_os; /* Preset output section */
 	UT_hash_handle hh;		/* hash handle */
-	UT_hash_handle hhi;		/* hash handle (input object) */
+	UT_hash_handle hhimp;		/* hash handle (import) */
+	UT_hash_handle hhexp;		/* hash handle (export) */
 	STAILQ_ENTRY(ld_symbol) lsb_next; /* next symbol */
+	STAILQ_ENTRY(ld_symbol) lsb_dyn;  /* next dynamic symbol */
 };
 
 STAILQ_HEAD(ld_symbol_head, ld_symbol);
@@ -54,16 +68,26 @@ struct ld_symbol_table {
 	size_t sy_cap;
 	size_t sy_size;
 	size_t sy_first_nonlocal;
+	size_t sy_write_pos;
+};
+
+struct ld_symbol_defver {
+	char *dv_name;
+	char *dv_longname;
+	char *dv_ver;
+	UT_hash_handle hh;
 };
 
 void	ld_symbols_add_extern(struct ld *, char *);
 void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
     unsigned, unsigned);
+void	ld_symbols_add_internal(struct ld *, const char *, uint64_t, uint64_t,
+    uint16_t, unsigned char, unsigned char, unsigned char,
+    struct ld_output_section *);
 void	ld_symbols_build_symtab(struct ld *);
 void	ld_symbols_cleanup(struct ld *);
+void	ld_symbols_create_dynsym(struct ld *);
+void	ld_symbols_finalize_dynsym(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
-int	ld_symbols_get_value_from_input(struct ld_input *, char *, uint64_t *);
-int	ld_symbols_get_value_from_input_local(struct ld_input *, char *,
-    uint64_t *);
 void	ld_symbols_resolve(struct ld *);
 void	ld_symbols_update(struct ld *);

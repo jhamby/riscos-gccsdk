@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,15 +22,10 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Id$
  */
 
-#include "_libdwarf.h"
-
-ELFTC_VCSID("$Id: dwarf_types.m4 2075 2011-10-27 03:47:28Z jkoshy $");
-
-/* WARNING: GENERATED FROM __file__. */
-
-divert(-1)
-include(SRCDIR`/dwarf_nametbl.m4')
-divert(0)
-MAKE_NAMETBL_API(type,Type,type,typenames)
+void	ld_dynamic_create(struct ld *);
+void	ld_dynamic_finalize(struct ld *);
+void	ld_dynamic_create_copy_reloc(struct ld *);
