@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,4 +26,8 @@
  * $Id: ld_layout.h 2340 2011-12-17 20:38:38Z kaiwang27 $
  */
 
+void	ld_layout_sections(struct ld *);
 off_t	ld_layout_calc_header_size(struct ld *);
+struct ld_output_section *ld_layout_insert_output_section(struct ld *,
+    const char *, uint64_t);
+void	ld_layout_print_linkmap(struct ld *);

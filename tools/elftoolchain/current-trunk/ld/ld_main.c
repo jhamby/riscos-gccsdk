@@ -29,6 +29,7 @@
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_options.h"
+#include "ld_reloc.h"
 #include "ld_script.h"
 #include "ld_file.h"
 #include "ld_input.h"
@@ -92,6 +93,8 @@ restart:
 	ls->ls_arch_conflict = 0;
 	ls->ls_first_elf_object = 1;
 
+	ld_input_init(ld);
+
 	ld_symbols_resolve(ld);
 
 	if (ls->ls_arch_conflict) {
@@ -99,6 +102,8 @@ restart:
 		ls->ls_rerun = 1;
 		goto restart;
 	}
+
+	ld_reloc_load(ld);
 
 	ld_output_init(ld);
 

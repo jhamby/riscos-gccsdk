@@ -39,7 +39,7 @@ ELFTC_VCSID("$Id: ld_options.c 2520 2012-06-17 00:21:36Z kaiwang27 $");
  */
 
 static const char *ld_short_opts =
-    "b:c:e:Ef:Fgh:iIl:L:m:MnNo:O::qrR:sStT:xXyY:u:v()";
+    "b:c:e:Ef:Fgh:iI:l:L:m:MnNo:O::qrR:sStT:xXyY:u:vV()";
 
 static struct ld_option ld_opts[] = {
 	{"aarchive", KEY_STATIC, ONE_DASH, NO_ARG},
@@ -64,7 +64,7 @@ static struct ld_option ld_opts[] = {
 	{"discard-locals", 'X', ANY_DASH, NO_ARG},
 	{"dn", KEY_STATIC, ONE_DASH, NO_ARG},
 	{"dy", KEY_DYNAMIC, ONE_DASH, NO_ARG},
-	{"dynamic-linker", 'I', ANY_DASH, NO_ARG},
+	{"dynamic-linker", 'I', ANY_DASH, REQ_ARG},
 	{"end-group", ')', ANY_DASH, NO_ARG},
 	{"entry", 'e', ANY_DASH, REQ_ARG},
 	{"error-unresolved-symbols", KEY_ERR_UNRESOLVE_SYM, ANY_DASH, NO_ARG},
@@ -185,9 +185,10 @@ static struct ld_option ld_opts_z[] = {
 	{"systemlibrary", KEY_Z_SYSTEM_LIBRARY, ONE_DASH, NO_ARG},
 };
 
-static void	ld_options_process(struct ld *ld, int key, char *arg);
-static int	ld_options_parse_long(struct ld *, struct ld_option *, int,
-		    int, char **, char *, enum ld_dash);
+static void _process_options(struct ld *ld, int key, char *arg);
+static int _parse_long_options(struct ld *, struct ld_option *, int,
+    int, char **, char *, enum ld_dash);
+static void _print_version(void);
 
 void
 ld_options_parse(struct ld* ld, int argc, char **argv)
@@ -201,7 +202,7 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 	while (ac < argc) {
 		p = argv[ac];
 		if (*p != '-' || p[1] == '\0') {
-			ld_options_process(ld, KEY_FILE, p);
+			_process_options(ld, KEY_FILE, p);
 			ac++;
 			continue;
 		}
@@ -219,7 +220,7 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 				ac0 = ac;
 				if (*(p0 = p + 1) == '\0')
 					p0 = argv[++ac0];
-				ac = ld_options_parse_long(ld,
+				ac = _parse_long_options(ld,
 				    *p == 'B' ? ld_opts_B : ld_opts_z,
 				    ac0, argc, argv, p0, d);
 				if (ac > 0)
@@ -229,7 +230,7 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 			}
 		}
 
-		ac0 = ld_options_parse_long(ld, ld_opts, ac, argc, argv, p, d);
+		ac0 = _parse_long_options(ld, ld_opts, ac, argc, argv, p, d);
 		if (ac0 > 0) {
 			ac = ac0;
 			continue;
@@ -245,16 +246,16 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 			if ((oli = strchr(ld_short_opts, *p)) == NULL)
 				ld_fatal(ld, "unrecognized option -%c", *p);
 			if (*++oli != ':') {
-				ld_options_process(ld, *p++, NULL);
+				_process_options(ld, *p++, NULL);
 				continue;
 			}
 			if (p[1] != '\0')
-				ld_options_process(ld, *p, &p[1]);
+				_process_options(ld, *p, &p[1]);
 			else if (oli[1] != ':') {
 				if (++ac >= argc)
 					ld_fatal(ld, "require arg for"
 					    " option -%c", *p);
-				ld_options_process(ld, *p, argv[ac]);
+				_process_options(ld, *p, argv[ac]);
 			}
 			break;
 		}
@@ -264,7 +265,7 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 }
 
 static int
-ld_options_parse_long(struct ld *ld, struct ld_option *opts, int ac,
+_parse_long_options(struct ld *ld, struct ld_option *opts, int ac,
     int argc, char **argv, char *opt, enum ld_dash dash)
 {
 	char *equal;
@@ -295,23 +296,23 @@ ld_options_parse_long(struct ld *ld, struct ld_option *opts, int ac,
 	switch (opts[i].lo_arg) {
 	case NO_ARG:
 		if (equal != NULL) {
-			ld_fatal(ld, "option %s requires argument",
+			ld_fatal(ld, "option %s does not accept argument",
 			    opts[i].lo_long);
 		}
-		ld_options_process(ld, opts[i].lo_key, NULL);
+		_process_options(ld, opts[i].lo_key, NULL);
 		break;
 	case REQ_ARG:
 		if (equal != NULL)
-			ld_options_process(ld, opts[i].lo_key, equal);
+			_process_options(ld, opts[i].lo_key, equal);
 		else {
 			if (++ac >= argc)
 				ld_fatal(ld, "require arg for option %s",
 				    opts[i].lo_long);
-			ld_options_process(ld, opts[i].lo_key, argv[ac]);
+			_process_options(ld, opts[i].lo_key, argv[ac]);
 		}
 		break;
 	case OPT_ARG:
-		ld_options_process(ld, opts[i].lo_key, equal);
+		_process_options(ld, opts[i].lo_key, equal);
 		break;
 	default:
 		assert(0);
@@ -322,7 +323,7 @@ ld_options_parse_long(struct ld *ld, struct ld_option *opts, int ac,
 }
 
 static void
-ld_options_process(struct ld *ld, int key, char *arg)
+_process_options(struct ld *ld, int key, char *arg)
 {
 	struct ld_state *ls;
 
@@ -342,6 +343,12 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		if (ld->ld_entry != NULL)
 			free(ld->ld_entry);
 		if ((ld->ld_entry = strdup(arg)) == NULL)
+			ld_fatal_std(ld, "strdup");
+		break;
+	case 'I':
+		if (ld->ld_interp != NULL)
+			free(ld->ld_interp);
+		if ((ld->ld_interp = strdup(arg)) == NULL)
 			ld_fatal_std(ld, "strdup");
 		break;
 	case 'l':
@@ -365,6 +372,10 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		break;
 	case 'u':
 		ld_symbols_add_extern(ld, arg);
+		break;
+	case 'v':
+	case 'V':
+		_print_version();
 		break;
 	case '(':
 		ls->ls_group_level++;
@@ -413,6 +424,13 @@ ld_options_process(struct ld *ld, int key, char *arg)
 	default:
 		break;
 	}
+}
+
+static void
+_print_version(void)
+{
+
+	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
 }
 
 struct ld_wildcard *

@@ -26,6 +26,8 @@
  * $Id: ld.h 2520 2012-06-17 00:21:36Z kaiwang27 $
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 #include <sys/mman.h>
 #include <sys/param.h>
@@ -48,13 +50,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#define oom() ld_fatal(ld, "out of memory")
+#include "utarray.h"
+#define uthash_fatal(msg) ld_fatal(ld, msg)
 #include "uthash.h"
-#include "_elftc.h"
 
 struct ld_file;
 struct ld_path;
 struct ld_symbol;
 struct ld_symbol_head;
+struct ld_output_data_buffer;
+struct ld_wildcard_match;
 
 #define	LD_MAX_NESTED_GROUP	16
 
@@ -91,6 +97,7 @@ struct ld {
 	char *ld_output_file;		/* output file name */
 	char *ld_entry;			/* entry point set by -e */
 	char *ld_scp_entry;		/* entry point set by linker script */
+	char *ld_interp;		/* dynamic linker */
 	struct ld_script *ld_scp;	/* linker script */
 	struct ld_state ld_state;	/* linker state */
 	struct ld_strtab *ld_shstrtab;	/* section name table */
@@ -99,8 +106,18 @@ struct ld {
 	struct ld_symbol *ld_symtab_def;/* hash for defined symbols */
 	struct ld_symbol *ld_symtab_undef; /* hash for undefined symbols */
 	struct ld_symbol *ld_symtab_common; /* hash for common symbols */
+	struct ld_symbol *ld_symtab_import; /* hash for import symbols */
+	struct ld_symbol *ld_symtab_export; /* hash for export symbols */
+	struct ld_symbol_defver *ld_defver; /* default version table */
 	struct ld_symbol_table *ld_symtab; /* .symtab symbol table */
 	struct ld_strtab *ld_strtab;	/* .strtab string table */
+	struct ld_symbol_table *ld_dynsym; /* .dynsym symbol table */
+	struct ld_strtab *ld_dynstr;	/* .dynstr string table */
+	struct ld_symbol_head *ld_dyn_symbols; /* dynamic symbol list */
+	struct ld_wildcard_match *ld_wm; /* wildcard hash table */
+	struct ld_input_section *ld_dynbss; /* .dynbss section */
+	unsigned ld_num_import_func;	/* number of import functions */
+	unsigned ld_num_copy_reloc;	/* number of copy relocation */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	unsigned ld_emit_reloc;		/* emit relocations */
@@ -115,5 +132,4 @@ struct ld {
 void	ld_err(struct ld *, const char *, ...);
 void	ld_fatal(struct ld *, const char *, ...);
 void	ld_fatal_std(struct ld *, const char *, ...);
-void	ld_layout_sections(struct ld *);
 void	ld_warn(struct ld *, const char *, ...);

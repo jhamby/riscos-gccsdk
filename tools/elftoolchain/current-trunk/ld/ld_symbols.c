@@ -25,10 +25,12 @@
  */
 
 #include "ld.h"
+#include "ld_dynamic.h"
 #include "ld_file.h"
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_symbols.h"
+#include "ld_symver.h"
 #include "ld_script.h"
 #include "ld_strtab.h"
 
@@ -42,8 +44,9 @@ static void _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e);
 static void _unload_symbols(struct ld_input *li);
 static void _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e,
     GElf_Sym *sym, size_t strndx, int i);
-static void _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
-    struct ld_strtab *strtab, struct ld_symbol *lsb);
+static void _add_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb);
+static void _write_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb);
+static void _add_to_symbol_table(struct ld *ld, struct ld_symbol *lsb);
 static void _free_symbol_table(struct ld_symbol_table *symtab);
 struct ld_symbol_table *_alloc_symbol_table(struct ld *ld);
 static int _archive_member_extracted(struct ld_archive *la, off_t off);
@@ -52,29 +55,43 @@ static struct ld_archive_member * _extract_archive_member(struct ld *ld,
 static void _print_extracted_member(struct ld *ld,
     struct ld_archive_member *lam, struct ld_symbol *lsb);
 static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
-static void _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
+static int _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
     struct ld_symbol *_lsb);
 static struct ld_symbol *_alloc_symbol(struct ld *ld);
 static void _free_symbol(struct ld_symbol *lsb);
 static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
-static struct ld_symbol *_find_symbol_from_input(struct ld_symbol *tbl,
-    char *name);
-static void _update_symbol(struct ld *ld, struct ld_symbol *lsb);
-static void _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
-    const char *name);
-static void _load_verdef(struct ld *ld, struct ld_input *li, Elf *e,
-    Elf_Scn *verdef);
-static void _load_verneed(struct ld *ld, struct ld_input *li, Elf *e,
-    Elf_Scn *verneed);
-static void _load_symbol_version_info(struct ld *ld, struct ld_input *li,
-    Elf *e, Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef);
+static struct ld_symbol *_find_symbol_from_import(struct ld *ld, char *name);
+static struct ld_symbol *_find_symbol_from_export(struct ld *ld, char *name);
+static void _add_to_import(struct ld *ld, struct ld_symbol *lsb);
+static void _remove_from_import(struct ld *ld, struct ld_symbol *lsb);
+static void _add_to_export(struct ld *ld, struct ld_symbol *lsb);
+static void _remove_from_export(struct ld *ld, struct ld_symbol *lsb);
+static void _update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
+    struct ld_symbol *lsb);
+static void _update_export(struct ld *ld, struct ld_symbol *lsb, int add);
+static void _update_symbol(struct ld_symbol *lsb);
 
-#define	_add_symbol(tbl, s) \
-	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_longname, \
-	    strlen((s)->lsb_longname), (s))
-#define _add_symbol_to_input(tbl, s) \
-	HASH_ADD_KEYPTR(hhi, (tbl), (s)->lsb_name, strlen((s)->lsb_name), (s))
-#define _remove_symbol(tbl, s) HASH_DEL((tbl), (s))
+#define	_add_symbol(tbl, s) do {				\
+	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_longname,		\
+	    strlen((s)->lsb_longname), (s));			\
+	_update_export(ld, (s), 1);				\
+	} while (0)
+#define _remove_symbol(tbl, s) do {				\
+	HASH_DEL((tbl), (s));					\
+	_update_export(ld, (s), 0);				\
+	} while (0)
+#define _resolve_symbol(_s, s) do {				\
+	assert((_s) != (s));					\
+	(s)->lsb_ref_dso |= (_s)->lsb_ref_dso;			\
+	(s)->lsb_ref_ndso |= (_s)->lsb_ref_ndso;		\
+	if ((s)->lsb_prev != NULL) {				\
+		(s)->lsb_prev->lsb_ref = (_s);			\
+		(_s)->lsb_prev = (s)->lsb_prev;			\
+	}							\
+	(s)->lsb_prev = (_s);					\
+	(_s)->lsb_ref = (s);					\
+	_update_import_and_export(ld, _s, s);			\
+	} while (0)
 
 void
 ld_symbols_cleanup(struct ld *ld)
@@ -108,6 +125,11 @@ ld_symbols_cleanup(struct ld *ld)
 		}
 		free(ld->ld_var_symbols);
 		ld->ld_var_symbols = NULL;
+	}
+
+	if (ld->ld_dyn_symbols != NULL) {
+		free(ld->ld_dyn_symbols);
+		ld->ld_dyn_symbols = NULL;
 	}
 
 	if (ld->ld_symtab != NULL) {
@@ -163,6 +185,7 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 	lsb->lsb_provide = provide;
 	if (hidden)
 		lsb->lsb_other = STV_HIDDEN;
+	lsb->lsb_ref_ndso = 1;
 
 	if (ld->ld_var_symbols == NULL) {
 		ld->ld_var_symbols = malloc(sizeof(*ld->ld_var_symbols));
@@ -171,6 +194,30 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 		STAILQ_INIT(ld->ld_var_symbols);
 	}
 	STAILQ_INSERT_TAIL(ld->ld_var_symbols, lsb, lsb_next);
+
+	_resolve_and_add_symbol(ld, lsb);
+}
+
+void
+ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
+    uint64_t value, uint16_t shndx, unsigned char bind, unsigned char type,
+    unsigned char other, struct ld_output_section *preset_os)
+{
+	struct ld_symbol *lsb;
+
+	lsb = _alloc_symbol(ld);
+	if ((lsb->lsb_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	if ((lsb->lsb_longname = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	lsb->lsb_size = size;
+	lsb->lsb_value = value;
+	lsb->lsb_shndx = shndx;
+	lsb->lsb_bind = bind;
+	lsb->lsb_type = type;
+	lsb->lsb_other = other;
+	lsb->lsb_preset_os = preset_os;
+	lsb->lsb_ref_ndso = 1;
 
 	_resolve_and_add_symbol(ld, lsb);
 }
@@ -188,35 +235,6 @@ ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
 		return (-1);
 
 	return (0);
-}
-
-int
-ld_symbols_get_value_from_input(struct ld_input *li, char *name, uint64_t *val)
-{
-	struct ld_symbol *lsb;
-
-	if ((lsb = _find_symbol_from_input(li->li_nonlocal, name)) != NULL) {
-		while (lsb->lsb_ref != NULL)
-			lsb = lsb->lsb_ref;
-		*val = lsb->lsb_value;
-		return (0);
-	}
-
-	return (-1);
-}
-
-int
-ld_symbols_get_value_from_input_local(struct ld_input *li, char *name,
-    uint64_t *val)
-{
-	struct ld_symbol *lsb;
-
-	if ((lsb = _find_symbol_from_input(li->li_local, name)) != NULL) {
-		*val = lsb->lsb_value;
-		return (0);
-	}
-
-	return (-1);
 }
 
 void
@@ -275,6 +293,9 @@ ld_symbols_resolve(struct ld *ld)
 				ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
 		}
 	}
+
+	/* Create copy relocations for import symbols, if need. */
+	ld_dynamic_create_copy_reloc(ld);
 }
 
 void
@@ -284,16 +305,23 @@ ld_symbols_update(struct ld *ld)
 	struct ld_symbol *lsb, *_lsb;
 
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		HASH_ITER(hhi, li->li_local, lsb, _lsb)
-			_update_symbol(ld, lsb);
-	}	
+		if (li->li_local == NULL)
+			continue;
+		STAILQ_FOREACH(lsb, li->li_local, lsb_next)
+			_update_symbol(lsb);
+	}
 
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
-		_update_symbol(ld, lsb);
+		/* Skip defined symbols from DSOs. */
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO)
+			continue;
+
+		_update_symbol(lsb);
 	}
 
 	HASH_ITER(hh, ld->ld_symtab_common, lsb, _lsb) {
-		_update_symbol(ld, lsb);
+		_update_symbol(lsb);
 	}
 }
 
@@ -306,17 +334,14 @@ ld_symbols_build_symtab(struct ld *ld)
 #if 0
 	struct ld_input_section *is;
 #endif
-	struct ld_symbol *lsb, *tmp, _lsb;
+	struct ld_symbol *lsb, *lsb0, *tmp, _lsb;
 
 	lo = ld->ld_output;
 
 	ld->ld_symtab = _alloc_symbol_table(ld);
 	ld->ld_strtab = ld_strtab_alloc(ld);
 
-	/*
-	 * Always create the special symbol at the beginning of the
-	 * symbol table.
-	 */
+	/* Create an initial symbol at the beginning of symbol table. */
 	_lsb.lsb_name = NULL;
 	_lsb.lsb_size = 0;
 	_lsb.lsb_value = 0;
@@ -324,7 +349,7 @@ ld_symbols_build_symtab(struct ld *ld)
 	_lsb.lsb_bind = STB_LOCAL;
 	_lsb.lsb_type = STT_NOTYPE;
 	_lsb.lsb_other = 0;
-	_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, &_lsb);
+	_add_to_symbol_table(ld, &_lsb);
 
 	/* Create STT_SECTION symbols. */
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
@@ -337,12 +362,14 @@ ld_symbols_build_symtab(struct ld *ld)
 		_lsb.lsb_bind = STB_LOCAL;
 		_lsb.lsb_type = STT_SECTION;
 		_lsb.lsb_other = 0;
-		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, &_lsb);
+		_add_to_symbol_table(ld, &_lsb);
 	}
 
 	/* Copy local symbols from each input object. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		HASH_ITER(hhi, li->li_local, lsb, tmp) {
+		if (li->li_local == NULL)
+			continue;
+		STAILQ_FOREACH(lsb, li->li_local, lsb_next) {
 #if 0
 			li = lsb->lsb_input;
 			is = &li->li_is[lsb->lsb_shndx];
@@ -351,24 +378,101 @@ ld_symbols_build_symtab(struct ld *ld)
 				continue;
 			}
 #endif
-			_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab,
-			    lsb);
+			if (lsb->lsb_type != STT_SECTION &&
+			    lsb->lsb_index != 0)
+				_add_to_symbol_table(ld, lsb);
 		}
 	}
 
 	/* Copy resolved global symbols from hash table. */
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, tmp) {
-		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO) {
+			lsb0 = _find_symbol_from_import(ld, lsb->lsb_longname);
+			if (lsb0 == NULL)
+				continue;
+			memcpy(&_lsb, lsb0, sizeof(_lsb));
+			_lsb.lsb_value = 0;
+			_lsb.lsb_shndx = SHN_UNDEF;
+			_add_to_symbol_table(ld, &_lsb);
+		} else
+			_add_to_symbol_table(ld, lsb);
 	}
 
 	/* Copy undefined weak symbols. */
 	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
-		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
+		/* Skip weak undefined symbols from DSO. */
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO)
+			continue;
+		_add_to_symbol_table(ld, lsb);
 	}
 
 	/* Copy common symbols. */
 	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
-		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
+		_add_to_symbol_table(ld, lsb);
+	}
+}
+
+void
+ld_symbols_create_dynsym(struct ld *ld)
+{
+	struct ld_symbol *lsb, *tmp;
+
+	ld->ld_dynsym = _alloc_symbol_table(ld);
+	if (ld->ld_dynstr == NULL)
+		ld->ld_dynstr = ld_strtab_alloc(ld);
+
+	/* Reserve space for the initial symbol. */
+	ld->ld_dynsym->sy_size++;
+
+	/* undefined weak symbols. */
+	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
+		/* Skip weak undefined symbols from DSO. */
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO)
+			continue;
+		_add_to_dynsym_table(ld, lsb);
+	}
+
+	/* import symbols. */
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+		lsb->lsb_import = 1;
+		_add_to_dynsym_table(ld, lsb);
+	}
+
+	/* export symbols. */
+	HASH_ITER(hhexp, ld->ld_symtab_export, lsb, tmp) {
+		_add_to_dynsym_table(ld, lsb);
+	}
+}
+
+void
+ld_symbols_finalize_dynsym(struct ld *ld)
+{
+	struct ld_symbol *lsb, _lsb;
+
+	/* Create an initial symbol at the beginning of symbol table. */
+	_lsb.lsb_name = NULL;
+	_lsb.lsb_nameindex = 0;
+	_lsb.lsb_size = 0;
+	_lsb.lsb_value = 0;
+	_lsb.lsb_shndx = SHN_UNDEF;
+	_lsb.lsb_bind = STB_LOCAL;
+	_lsb.lsb_type = STT_NOTYPE;
+	_lsb.lsb_other = 0;
+	_write_to_dynsym_table(ld, &_lsb);
+
+	assert(ld->ld_dyn_symbols != NULL);
+
+	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
+		if (lsb->lsb_import && lsb->lsb_type == STT_FUNC) {
+			memcpy(&_lsb, lsb, sizeof(_lsb));
+			_lsb.lsb_value = 0;
+			_lsb.lsb_shndx = SHN_UNDEF;
+			_write_to_dynsym_table(ld, &_lsb);
+		} else
+			_write_to_dynsym_table(ld, lsb);
 	}
 }
 
@@ -393,15 +497,146 @@ _find_symbol(struct ld_symbol *tbl, char *name)
 }
 
 static struct ld_symbol *
-_find_symbol_from_input(struct ld_symbol *tbl, char *name)
+_find_symbol_from_import(struct ld *ld, char *name)
 {
 	struct ld_symbol *s;
 
-	HASH_FIND(hhi, tbl, name, strlen(name), s);
+	HASH_FIND(hhimp, ld->ld_symtab_import, name, strlen(name), s);
+	return (s);
+}
+
+static struct ld_symbol *
+_find_symbol_from_export(struct ld *ld, char *name)
+{
+	struct ld_symbol *s;
+
+	HASH_FIND(hhexp, ld->ld_symtab_export, name, strlen(name), s);
 	return (s);
 }
 
 static void
+_add_to_import(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol *_lsb;
+
+	_lsb = _find_symbol_from_import(ld, lsb->lsb_longname);
+	if (_lsb != NULL)
+		return;
+	HASH_ADD_KEYPTR(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
+	    strlen(lsb->lsb_longname), lsb);
+	lsb->lsb_input->li_dso_refcnt++;
+	ld_symver_increase_verdef_refcnt(ld, lsb);
+
+	if (lsb->lsb_type == STT_FUNC)
+		ld->ld_num_import_func++;
+}
+
+static void
+_remove_from_import(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol *_lsb;
+
+	_lsb = _find_symbol_from_import(ld, lsb->lsb_longname);
+	if (_lsb == NULL)
+		return;
+	HASH_DELETE(hhimp, ld->ld_symtab_import, _lsb);
+	_lsb->lsb_input->li_dso_refcnt--;
+	ld_symver_decrease_verdef_refcnt(ld, lsb);
+
+	if (lsb->lsb_type == STT_FUNC) {
+		assert(ld->ld_num_import_func > 0);
+		ld->ld_num_import_func--;
+	}
+}
+
+static void
+_add_to_export(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol *_lsb;
+
+	if (lsb->lsb_other == STV_HIDDEN)
+		return;
+
+	_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
+	if (_lsb != NULL)
+		return;
+	HASH_ADD_KEYPTR(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
+	    strlen(lsb->lsb_longname), lsb);
+}
+
+static void
+_remove_from_export(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol *_lsb;
+
+	if (lsb->lsb_other == STV_HIDDEN)
+		return;
+
+	_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
+	if (_lsb == NULL)
+		return;
+	HASH_DELETE(hhexp, ld->ld_symtab_export, _lsb);
+}
+
+static void
+_update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
+    struct ld_symbol *lsb)
+{
+
+	/*
+	 * If a DSO symbol is resolved by a defined symbol, the latter should
+	 * be added to the export list if it is *not* defined in a DSO and
+	 * if it doesn't yet exist there.
+	 *
+	 * If a defined DSO symbol is resolved by another symbol, the DSO
+	 * symbol should be removed from the import symbol table, if it exists
+	 * there.
+	 */
+	if (_lsb->lsb_input != NULL && _lsb->lsb_input->li_type == LIT_DSO) {
+		if (_lsb->lsb_shndx != SHN_UNDEF)
+			_remove_from_import(ld, _lsb);
+		if (lsb->lsb_shndx != SHN_UNDEF && (lsb->lsb_input == NULL ||
+		    lsb->lsb_input->li_type == LIT_RELOCATABLE))
+			_add_to_export(ld, lsb);
+	}
+
+
+	/*
+	 * If some symbol resolved to a defined DSO symbol, and the former
+	 * once appeared in a place other than a DSO, the DSO symbol
+	 * should be added to import symbol table, if it doesn't yet exist
+	 * there.
+	 */
+	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO &&
+	    lsb->lsb_shndx != SHN_UNDEF && lsb->lsb_ref_ndso)
+		_add_to_import(ld, lsb);
+}
+
+static void
+_update_export(struct ld *ld, struct ld_symbol *lsb, int add)
+{
+
+	if (lsb->lsb_shndx == SHN_UNDEF)
+		return;
+
+	/* TODO: handle DSO. */
+	if (lsb->lsb_input != NULL &&
+	    lsb->lsb_input->li_type != LIT_RELOCATABLE)
+		return;
+
+	/*
+	 * Update the export table if the symbol has appeared in
+	 * a DSO before.
+	 */
+	if (lsb->lsb_ref_dso) {
+		if (add)
+			_add_to_export(ld, lsb);
+		else
+			_remove_from_export(ld, lsb);
+	}
+}
+
+static int
 _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
     struct ld_symbol *_lsb)
 {
@@ -410,20 +645,24 @@ _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
 		_remove_symbol(ld->ld_symtab_def, _lsb);
 	else if (lsb->lsb_input != NULL &&
 	    lsb->lsb_input->li_type == LIT_DSO) {
-		lsb->lsb_ref = _lsb;
+		_resolve_symbol(lsb, _lsb);
+		return (-1);
 	} else if (_lsb->lsb_input != NULL &&
 	    _lsb->lsb_input->li_type == LIT_DSO) {
-		_lsb->lsb_ref = lsb;
+		_resolve_symbol(_lsb, lsb);
 		_remove_symbol(ld->ld_symtab_def, _lsb);
 	} else
 		ld_fatal(ld, "multiple definition of symbol "
 		    "%s", lsb->lsb_longname);
+
+	return (0);
 }
 
 static void
 _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_symbol *_lsb;
+	struct ld_symbol_defver *dv;
 	char *name, *sn;
 
 	name = lsb->lsb_longname;
@@ -438,8 +677,23 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		    (_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL ||
 		    (_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
 		    NULL) {
-			lsb->lsb_ref = _lsb;
+			_resolve_symbol(lsb, _lsb);
 			return;
+		}
+
+		/*
+		 * If the symbol version is not specified, also search the
+		 * default-versioned defined symbol table.
+		 */
+		if (!strcmp(name, sn)){
+			HASH_FIND_STR(ld->ld_defver, name, dv);
+			if (dv != NULL) {
+				if ((_lsb = _find_symbol(ld->ld_symtab_def,
+				    dv->dv_longname)) != NULL) {
+					_resolve_symbol(lsb, _lsb);
+					return;
+				}
+			}
 		}
 
 		/*
@@ -455,8 +709,23 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 * found.
 		 */
 		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
-			lsb->lsb_ref = _lsb;
+			_resolve_symbol(lsb, _lsb);
 			return;
+		}
+
+		/*
+		 * If the symbol version is not specified, also search the
+		 * default-versioned defined symbol table.
+		 */
+		if (!strcmp(name, sn)){
+			HASH_FIND_STR(ld->ld_defver, name, dv);
+			if (dv != NULL) {
+				if ((_lsb = _find_symbol(ld->ld_symtab_def,
+				    dv->dv_longname)) != NULL) {
+					_resolve_symbol(lsb, _lsb);
+					return;
+				}
+			}
 		}
 
 		/*
@@ -465,7 +734,7 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 * symbol.
 		 */
 		if ((_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_undef, _lsb);
 		}
 
@@ -477,10 +746,10 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		if ((_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
 		    NULL) {
 			if (lsb->lsb_size > _lsb->lsb_size) {
-				_lsb->lsb_ref = lsb;
+				_resolve_symbol(_lsb, lsb);
 				_remove_symbol(ld->ld_symtab_common, _lsb);
 			} else {
-				lsb->lsb_ref = _lsb;
+				_resolve_symbol(lsb, _lsb);
 				return;
 			}
 		}
@@ -497,11 +766,15 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 * defined symbol hash table for unversioned symbol with the
 		 * same "short name".
 		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL)
-			_resolve_multidef_symbol(ld, lsb, _lsb);
+		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
+			if (_resolve_multidef_symbol(ld, lsb, _lsb) < 0)
+				return;
+		}
 		if (lsb->lsb_default &&
-		    (_lsb = _find_symbol(ld->ld_symtab_def, sn)) != NULL)
-			_resolve_multidef_symbol(ld, lsb, _lsb);
+		    (_lsb = _find_symbol(ld->ld_symtab_def, sn)) != NULL) {
+			if (_resolve_multidef_symbol(ld, lsb, _lsb) < 0)
+				return;
+		}
 
 		/*
 		 * Search in the undefined symbol hash table for the symbol
@@ -512,12 +785,12 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 * "short name".
 		 */
 		if ((_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_undef, _lsb);
 		}
 		if (lsb->lsb_default &&
 		    (_lsb = _find_symbol(ld->ld_symtab_undef, sn)) != NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_undef, _lsb);
 		}
 
@@ -530,12 +803,12 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 */
 		if ((_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
 		    NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_common, _lsb);
 		}
 		if (lsb->lsb_default &&
 		    (_lsb = _find_symbol(ld->ld_symtab_common, sn)) != NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_common, _lsb);
 		}
 
@@ -549,6 +822,7 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
     size_t strndx, int i)
 {
 	struct ld_symbol *lsb;
+	struct ld_symbol_defver *dv;
 	char *name;
 	int j, len, ndx;
 
@@ -565,18 +839,27 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	lsb->lsb_type = GELF_ST_TYPE(sym->st_info);
 	lsb->lsb_other = sym->st_other;
 	lsb->lsb_shndx = sym->st_shndx;
+	lsb->lsb_index = i;
 	lsb->lsb_input = li;
 	lsb->lsb_ver = NULL;
 
+	if (li->li_type == LIT_DSO)
+		lsb->lsb_ref_dso = 1;
+	else
+		lsb->lsb_ref_ndso = 1;
+
 	/* Find out symbol version info. */
+	j = 0;
 	if (li->li_file->lf_type == LFT_DSO && li->li_vername != NULL &&
 	    li->li_versym != NULL && (size_t) i < li->li_versym_sz) {
 		j = li->li_versym[i];
 		ndx = j & ~0x8000;
 		if ((size_t) ndx < li->li_vername_sz) {
 			lsb->lsb_ver = li->li_vername[ndx];
+#if 0
 			printf("symbol: %s ver: %s\n", lsb->lsb_name,
 			    lsb->lsb_ver);
+#endif
 			if (j >= 2 && (j & 0x8000) == 0 &&
 			    lsb->lsb_shndx != SHN_UNDEF)
 				lsb->lsb_default = 1;
@@ -596,19 +879,24 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 		    lsb->lsb_ver);
 	}
 
+	/* Keep track of default versions. */
+	if (lsb->lsb_default) {
+		if ((dv = calloc(1, sizeof(*dv))) == NULL)
+			ld_fatal(ld, "calloc");
+		dv->dv_name = lsb->lsb_name;
+		dv->dv_longname = lsb->lsb_longname;
+		dv->dv_ver = lsb->lsb_ver;
+		HASH_ADD_KEYPTR(hh, ld->ld_defver, dv->dv_name,
+		    strlen(dv->dv_name), dv);
+	}
+
 	/*
 	 * Insert symbol to input object internal symbol list and
 	 * perform symbol resolving.
 	 */
-	if (lsb->lsb_bind == STB_LOCAL) {
-		if (lsb->lsb_type != STT_SECTION &&
-		    (lsb->lsb_type != STT_NOTYPE ||
-		    lsb->lsb_shndx != SHN_UNDEF))
-			_add_symbol_to_input(li->li_local, lsb);
-	} else {
-		_add_symbol_to_input(li->li_nonlocal, lsb);
+	ld_input_add_symbol(ld, li, lsb);
+	if (lsb->lsb_bind != STB_LOCAL)
 		_resolve_and_add_symbol(ld, lsb);
-	}
 }
 
 static int
@@ -681,7 +969,7 @@ _print_extracted_member(struct ld *ld, struct ld_archive_member *lam,
 	char *c1, *c2;
 
 	ls = &ld->ld_state;
-	
+
 	if (!ls->ls_archive_mb_header) {
 		printf("Extracted archive members:\n\n");
 		ls->ls_archive_mb_header = 1;
@@ -739,37 +1027,38 @@ _load_archive_symbols(struct ld *ld, struct ld_file *lf)
 static void
 _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 {
+	struct ld_input_section *is;
 	Elf_Scn *scn, *scn_sym;
 	Elf_Scn *scn_versym, *scn_verneed, *scn_verdef;
 	Elf_Data *d;
-	GElf_Shdr shdr;
 	GElf_Sym sym;
+	GElf_Shdr shdr;
 	size_t strndx;
-	int elferr, len, i;
+	int elferr, i;
+
+	/* Load section list from input object. */
+	ld_input_init_sections(ld, li, e);
 
 	strndx = SHN_UNDEF;
 	scn = scn_sym = scn_versym = scn_verneed = scn_verdef = NULL;
-	(void) elf_errno();
-	while ((scn = elf_nextscn(e, scn)) != NULL) {
-		if (gelf_getshdr(scn, &shdr) != &shdr)
-			ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
-			    elf_errmsg(-1));
-		if (li->li_file->lf_type == LFT_DSO) {
-			if (shdr.sh_type == SHT_DYNSYM) {
-				scn_sym = scn;
-				strndx = shdr.sh_link;
+
+	for (i = 0; (uint64_t) i < li->li_shnum - 1; i++) {
+		is = &li->li_is[i];
+		if (li->li_type == LIT_DSO) {
+			if (is->is_type == SHT_DYNSYM) {
+				scn_sym = elf_getscn(e, is->is_index);
+				strndx = is->is_link;
 			}
-			if (shdr.sh_type == SHT_SUNW_versym)
-				scn_versym = scn;
-			if (shdr.sh_type == SHT_SUNW_verneed)
-				scn_verneed = scn;
-			if (shdr.sh_type == SHT_SUNW_verdef)
-				scn_verdef = scn;
+			if (is->is_type == SHT_SUNW_versym)
+				scn_versym = elf_getscn(e, is->is_index);
+			if (is->is_type == SHT_SUNW_verneed)
+				scn_verneed = elf_getscn(e, is->is_index);
+			if (is->is_type == SHT_SUNW_verdef)
+				scn_verdef = elf_getscn(e, is->is_index);
 		} else {
-			if (shdr.sh_type == SHT_SYMTAB) {
-				scn_sym = scn;
-				strndx = shdr.sh_link;
-				break;
+			if (is->is_type == SHT_SYMTAB) {
+				scn_sym = elf_getscn(e, is->is_index);
+				strndx = is->is_link;
 			}
 		}
 	}
@@ -777,7 +1066,8 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 	if (scn_sym == NULL || strndx == SHN_UNDEF)
 		return;
 
-	_load_symbol_version_info(ld, li, e, scn_versym, scn_verneed, scn_verdef);
+	ld_symver_load_symbol_version_info(ld, li, e, scn_versym, scn_verneed,
+	    scn_verdef);
 
 	if (gelf_getshdr(scn_sym, &shdr) != &shdr)
 		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
@@ -793,8 +1083,8 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 		return;
 	}
 
-	len = d->d_size / shdr.sh_entsize;
-	for (i = 0; i < len; i++) {
+	li->li_symnum = d->d_size / shdr.sh_entsize;
+	for (i = 0; (uint64_t) i < li->li_symnum; i++) {
 		if (gelf_getsym(d, i, &sym) != &sym)
 			ld_fatal(ld, "%s: gelf_getsym failed: %s", li->li_name,
 			    elf_errmsg(-1));
@@ -817,17 +1107,13 @@ _load_symbols(struct ld *ld, struct ld_file *lf)
 static void
 _unload_symbols(struct ld_input *li)
 {
-	struct ld_symbol *lsb, *_lsb;
+	int i;
 
-	HASH_ITER(hhi, li->li_local, lsb, _lsb) {
-		HASH_DELETE(hhi, li->li_local, lsb);
-		_free_symbol(lsb);
-	}
+	if (li->li_symindex == NULL)
+		return;
 
-	HASH_ITER(hhi, li->li_nonlocal, lsb, _lsb) {
-		HASH_DELETE(hhi, li->li_nonlocal, lsb);
-		_free_symbol(lsb);
-	}
+	for (i = 0; (uint64_t) i < li->li_symnum; i++)
+		_free_symbol(li->li_symindex[i]);
 }
 
 static void
@@ -840,32 +1126,32 @@ _free_symbol(struct ld_symbol *lsb)
 }
 
 static void
-_update_symbol(struct ld *ld, struct ld_symbol *lsb)
+_update_symbol(struct ld_symbol *lsb)
 {
 	struct ld_input *li;
 	struct ld_input_section *is;
-	struct ld_output *lo;
 	struct ld_output_section *os;
+
+	if (lsb->lsb_preset_os != NULL) {
+		lsb->lsb_value = lsb->lsb_preset_os->os_addr;
+		lsb->lsb_shndx = elf_ndxscn(lsb->lsb_preset_os->os_scn);
+		return;
+	}
 
 	if (lsb->lsb_shndx == SHN_ABS)
 		return;
 
-	lo = ld->ld_output;
-	assert(lo != NULL);
-
-	li = lsb->lsb_input;
-	if (lsb->lsb_shndx == SHN_COMMON)
-		is = &li->li_is[li->li_shnum - 1];
-	else
-		is = &li->li_is[lsb->lsb_shndx];
-	if ((os = is->is_output) == NULL)
-		return;
-	lsb->lsb_value += os->os_addr + is->is_reloff;
-	lsb->lsb_shndx = elf_ndxscn(os->os_scn);
-#if 0
-	printf("symbol %s: %#jx\n", lsb->lsb_name,
-	    (uintmax_t) lsb->lsb_value);
-#endif
+	if (lsb->lsb_input != NULL) {
+		li = lsb->lsb_input;
+		if (lsb->lsb_shndx == SHN_COMMON)
+			is = &li->li_is[li->li_shnum - 1];
+		else
+			is = &li->li_is[lsb->lsb_shndx];
+		if ((os = is->is_output) == NULL)
+			return;
+		lsb->lsb_value += os->os_addr + is->is_reloff;
+		lsb->lsb_shndx = elf_ndxscn(os->os_scn);
+	}
 }
 
 struct ld_symbol_table *
@@ -880,24 +1166,97 @@ _alloc_symbol_table(struct ld *ld)
 }
 
 static void
-_add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
-    struct ld_strtab *strtab, struct ld_symbol *lsb)
+_add_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	assert(ld->ld_dynsym != NULL && ld->ld_dynstr != NULL);
+
+	if (ld->ld_dyn_symbols == NULL) {
+		ld->ld_dyn_symbols = malloc(sizeof(*ld->ld_dyn_symbols));
+		if (ld->ld_dyn_symbols == NULL)
+			ld_fatal_std(ld, "malloc");
+		STAILQ_INIT(ld->ld_dyn_symbols);
+	}
+	STAILQ_INSERT_TAIL(ld->ld_dyn_symbols, lsb, lsb_dyn);
+
+	lsb->lsb_nameindex = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+	    lsb->lsb_name);
+
+	lsb->lsb_dyn_index = ld->ld_dynsym->sy_size++;
+}
+
+static void
+_write_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_output *lo;
+	struct ld_symbol_table *symtab;
 	Elf32_Sym *s32;
 	Elf64_Sym *s64;
 	size_t es;
 
-	assert(symtab != NULL && lsb != NULL);
+	assert(lsb != NULL);
+	assert(ld->ld_dynsym != NULL && ld->ld_dynstr != NULL);
+	symtab = ld->ld_dynsym;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
 	es = (lo->lo_ec == ELFCLASS32) ? sizeof(Elf32_Sym) : sizeof(Elf64_Sym);
 
-	/*
-	 * Allocate/Reallocate buffer for the symbol table.
-	 */
+	/* Allocate buffer for the dynsym table. */
+	if (symtab->sy_buf == NULL) {
+		symtab->sy_buf = malloc(symtab->sy_size * es);
+		symtab->sy_write_pos = 0;
+	}
+
+	if (lo->lo_ec == ELFCLASS32) {
+		s32 = symtab->sy_buf;
+		s32 += symtab->sy_write_pos;
+		s32->st_name = lsb->lsb_nameindex;
+		s32->st_info = ELF32_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
+		s32->st_other = lsb->lsb_other;
+		s32->st_shndx = lsb->lsb_shndx;
+		s32->st_value = lsb->lsb_value;
+		s32->st_size = lsb->lsb_size;
+	} else {
+		s64 = symtab->sy_buf;
+		s64 += symtab->sy_write_pos;
+		s64->st_name = lsb->lsb_nameindex;
+		s64->st_info = ELF64_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
+		s64->st_other = lsb->lsb_other;
+		s64->st_shndx = lsb->lsb_shndx;
+		s64->st_value = lsb->lsb_value;
+		s64->st_size = lsb->lsb_size;
+	}
+
+	/* Remember the index for the first non-local symbol. */
+	if (symtab->sy_first_nonlocal == 0 && lsb->lsb_bind != STB_LOCAL)
+		symtab->sy_first_nonlocal = symtab->sy_write_pos;
+
+	symtab->sy_write_pos++;
+}
+
+static void
+_add_to_symbol_table(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_output *lo;
+	struct ld_symbol_table *symtab;
+	struct ld_strtab *strtab;
+	Elf32_Sym *s32;
+	Elf64_Sym *s64;
+	size_t es;
+
+	assert(lsb != NULL);
+	assert(ld->ld_symtab != NULL && ld->ld_strtab != NULL);
+	symtab = ld->ld_symtab;
+	strtab = ld->ld_strtab;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	es = (lo->lo_ec == ELFCLASS32) ? sizeof(Elf32_Sym) : sizeof(Elf64_Sym);
+
+	/* Allocate/Reallocate buffer for the symbol table. */
 	if (symtab->sy_buf == NULL) {
 		symtab->sy_size = 0;
 		symtab->sy_cap = _INIT_SYMTAB_SIZE;
@@ -915,11 +1274,12 @@ _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
 	 * Insert the symbol into the symbol table and the symbol name to
 	 * the assoicated name string table.
 	 */
+	lsb->lsb_nameindex = ld_strtab_insert_no_suffix(ld, strtab,
+	    lsb->lsb_name);
 	if (lo->lo_ec == ELFCLASS32) {
 		s32 = symtab->sy_buf;
 		s32 += symtab->sy_size;
-		s32->st_name = ld_strtab_insert_no_suffix(ld, strtab,
-		    lsb->lsb_name);
+		s32->st_name = lsb->lsb_nameindex;
 		s32->st_info = ELF32_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
 		s32->st_other = lsb->lsb_other;
 		s32->st_shndx = lsb->lsb_shndx;
@@ -928,8 +1288,7 @@ _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
 	} else {
 		s64 = symtab->sy_buf;
 		s64 += symtab->sy_size;
-		s64->st_name = ld_strtab_insert_no_suffix(ld, strtab,
-		    lsb->lsb_name);
+		s64->st_name = lsb->lsb_nameindex;
 		s64->st_info = ELF64_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
 		s64->st_other = lsb->lsb_other;
 		s64->st_shndx = lsb->lsb_shndx;
@@ -954,179 +1313,3 @@ _free_symbol_table(struct ld_symbol_table *symtab)
 	free(symtab->sy_buf);
 	free(symtab);
 }
-
-/*
- * Symbol versioning sections are the same for 32bit and 64bit
- * ELF objects.
- */
-#define Elf_Verdef	Elf32_Verdef
-#define	Elf_Verdaux	Elf32_Verdaux
-#define	Elf_Verneed	Elf32_Verneed
-#define	Elf_Vernaux	Elf32_Vernaux
-
-static void
-_add_version_name(struct ld *ld, struct ld_input *li, int ndx,
-    const char *name)
-{
-	int i;
-
-	assert(name != NULL);
-
-	if (ndx <= 1)
-		return;
-
-	if (li->li_vername == NULL) {
-		li->li_vername_sz = 10;
-		li->li_vername = calloc(li->li_vername_sz,
-		    sizeof(*li->li_vername));
-		if (li->li_vername == NULL)
-			ld_fatal_std(ld, "calloc");
-	}
-
-	if ((size_t) ndx >= li->li_vername_sz) {
-		li->li_vername = realloc(li->li_vername,
-		    sizeof(*li->li_vername) * li->li_vername_sz * 2);
-		if (li->li_vername == NULL)
-			ld_fatal_std(ld, "realloc");
-		for (i = li->li_vername_sz; (size_t) i < li->li_vername_sz * 2;
-		     i++)
-			li->li_vername[i] = NULL;
-		li->li_vername_sz *= 2;
-	}
-
-	if (li->li_vername[ndx] == NULL) {
-		li->li_vername[ndx] = strdup(name);
-		if (li->li_vername[ndx] == NULL)
-			ld_fatal_std(ld, "strdup");
-	}
-}
-
-static void
-_load_verneed(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verneed)
-{
-	Elf_Data *d_vn;
-	Elf_Verneed *vn;
-	Elf_Vernaux *vna;
-	GElf_Shdr sh_vn;
-	uint8_t *buf, *end, *buf2;
-	char *name;
-	int elferr, i;
-
-	if (gelf_getshdr(verneed, &sh_vn) != &sh_vn)
-		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
-		    elf_errmsg(-1));
-
-	(void) elf_errno();
-	if ((d_vn = elf_getdata(verneed, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
-			    elf_errmsg(elferr));
-		return;
-	}
-	if (d_vn->d_size == 0)
-		return;
-
-	buf = d_vn->d_buf;
-	end = buf + d_vn->d_size;
-	while (buf + sizeof(Elf_Verneed) <= end) {
-		vn = (Elf_Verneed *) (uintptr_t) buf;
-		buf2 = buf + vn->vn_aux;
-		i = 0;
-		while (buf2 + sizeof(Elf_Vernaux) <= end && i < vn->vn_cnt) {
-			vna = (Elf32_Vernaux *) (uintptr_t) buf2;
-			name = elf_strptr(e, sh_vn.sh_link,
-			    vna->vna_name);
-			if (name != NULL)
-				_add_version_name(ld, li, (int) vna->vna_other,
-				    name);
-			buf2 += vna->vna_next;
-			i++;
-		}
-		if (vn->vn_next == 0)
-			break;
-		buf += vn->vn_next;
-	}
-}
-
-static void
-_load_verdef(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef)
-{
-	Elf_Data *d_vd;
-	Elf_Verdef *vd;
-	Elf_Verdaux *vda;
-	GElf_Shdr sh_vd;
-	uint8_t *buf, *end, *buf2;
-	char *name;
-	int elferr;
-
-	if (gelf_getshdr(verdef, &sh_vd) != &sh_vd)
-		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
-		    elf_errmsg(-1));
-
-	(void) elf_errno();
-	if ((d_vd = elf_getdata(verdef, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
-			    elf_errmsg(elferr));
-		return;
-	}
-	if (d_vd->d_size == 0)
-		return;
-
-	buf = d_vd->d_buf;
-	end = buf + d_vd->d_size;
-	while (buf + sizeof(Elf_Verdef) <= end) {
-		vd = (Elf_Verdef *) (uintptr_t) buf;
-		buf2 = buf + vd->vd_aux;
-		vda = (Elf_Verdaux *) (uintptr_t) buf2;
-		name = elf_strptr(e, sh_vd.sh_link, vda->vda_name);
-		if (name != NULL)
-			_add_version_name(ld, li, (int) vd->vd_ndx, name);
-		if (vd->vd_next == 0)
-			break;
-		buf += vd->vd_next;
-	}		
-}
-
-static void
-_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf *e,
-    Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef)
-{
-	Elf_Data *d_vs;
-	int elferr;
-
-	if (versym == NULL)
-		return;
-
-	(void) elf_errno();
-	if ((d_vs = elf_getdata(versym, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
-			    elf_errmsg(elferr));
-		return;
-	}
-	if (d_vs->d_size == 0)
-		return;
-
-	if ((li->li_versym = malloc(d_vs->d_size)) == NULL)
-		ld_fatal_std(ld, "malloc");
-	memcpy(li->li_versym, d_vs->d_buf, d_vs->d_size);
-	li->li_versym_sz = d_vs->d_size / sizeof(uint16_t);
-
-	_add_version_name(ld, li, 0, "*local*");
-	_add_version_name(ld, li, 1, "*global*");
-
-	if (verneed != NULL)
-		_load_verneed(ld, li, e, verneed);
-
-	if (verdef != NULL)
-		_load_verdef(ld, li, e, verdef);
-}
-
-#undef	Elf_Verdef
-#undef	Elf_Verdaux
-#undef	Elf_Verneed
-#undef	Elf_Vernaux

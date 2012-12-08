@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "ld_dynamic.h"
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_layout.h"
@@ -38,6 +39,13 @@ ELFTC_VCSID("$Id: ld_output.c 2573 2012-09-09 10:44:49Z kaiwang27 $");
 
 static void _alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
     struct ld_input_section *is);
+static void _alloc_section_data_from_buffer(struct ld *ld, Elf_Scn *scn,
+    struct ld_output_data_buffer *odb);
+static void _alloc_section_data_for_symtab(struct ld *ld,
+    struct ld_output_section *os, Elf_Scn *scn,
+    struct ld_symbol_table *symtab);
+static void _alloc_section_data_for_strtab(struct ld *ld, Elf_Scn *scn,
+    struct ld_strtab *strtab);
 static void _add_to_shstrtab(struct ld *ld, const char *name);
 static void _copy_and_reloc_input_sections(struct ld *ld);
 static Elf_Scn *_create_elf_scn(struct ld *ld, struct ld_output *lo,
@@ -50,7 +58,7 @@ static void _create_string_table_section(struct ld *ld, const char *name,
 static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
 static uint64_t _insert_shdr(struct ld *ld);
-static void _set_section_name(struct ld *ld);
+static void _update_section_header(struct ld *ld);
 
 void
 ld_output_init(struct ld *ld)
@@ -180,6 +188,11 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 				scn = _create_elf_scn(ld, lo, os);
 			/* TODO */
 			break;
+		case OET_DATA_BUFFER:
+			if (scn == NULL)
+				scn = _create_elf_scn(ld, lo, os);
+			_alloc_section_data_from_buffer(ld, scn, oe->oe_entry);
+			break;
 		case OET_INPUT_SECTION_LIST:
 			islist = oe->oe_islist;
 			STAILQ_FOREACH(is, islist, is_next) {
@@ -193,6 +206,17 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 			if (scn == NULL)
 				scn = _create_elf_scn(ld, lo, os);
 			/* TODO */
+			break;
+		case OET_SYMTAB:
+			/* TODO: Check symtab size. */
+			if (scn == NULL)
+				scn = _create_elf_scn(ld, lo, os);
+			break;
+		case OET_STRTAB:
+			/* TODO: Check strtab size. */
+			if (scn == NULL)
+				scn = _create_elf_scn(ld, lo, os);
+			_alloc_section_data_for_strtab(ld, scn, oe->oe_entry);
 			break;
 		default:
 			break;
@@ -223,6 +247,8 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 	sh.sh_offset = os->os_off;
 	sh.sh_size = os->os_size;
 	sh.sh_type = os->os_type;
+	sh.sh_entsize = os->os_entsize;
+	sh.sh_info = os->os_info_val;
 
 	_add_to_shstrtab(ld, os->os_name);
 
@@ -243,6 +269,63 @@ _alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
 		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
 
 	is->is_data = d;
+}
+
+static void
+_alloc_section_data_from_buffer(struct ld *ld, Elf_Scn *scn,
+    struct ld_output_data_buffer *odb)
+{
+	Elf_Data *d;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = odb->odb_align;
+	d->d_off = odb->odb_off;
+	d->d_type = odb->odb_type;
+	d->d_size = odb->odb_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = odb->odb_buf;
+}
+
+static void
+_alloc_section_data_for_symtab(struct ld *ld, struct ld_output_section *os,
+    Elf_Scn *scn, struct ld_symbol_table *symtab)
+{
+	Elf_Data *d;
+
+	if (symtab->sy_buf == NULL || symtab->sy_size == 0)
+		return;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = os->os_align;
+	d->d_off = 0;
+	d->d_type = ELF_T_SYM;
+	d->d_size = os->os_entsize * symtab->sy_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = symtab->sy_buf;
+}
+
+static void
+_alloc_section_data_for_strtab(struct ld *ld, Elf_Scn *scn,
+    struct ld_strtab *strtab)
+{
+	Elf_Data *d;
+
+	if (strtab->st_buf == NULL || strtab->st_size == 0)
+		return;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = 1;
+	d->d_off = 0;
+	d->d_type = ELF_T_BYTE;
+	d->d_size = strtab->st_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = strtab->st_buf;
 }
 
 static void
@@ -335,9 +418,9 @@ _create_phdr(struct ld *ld)
 	Elf32_Phdr *p32;
 	Elf64_Phdr *p64;
 	void *phdrs;
-	uint64_t addr, off, align, flags, filesz, memsz;
+	uint64_t addr, off, align, flags, filesz, memsz, phdr_addr;
 	unsigned w;
-	int i, new;
+	int i, new, first;
 
 	/* TODO: support segments created by linker script command PHDR. */
 
@@ -379,20 +462,45 @@ _create_phdr(struct ld *ld)
 	else
 		p64 = phdrs;
 
-	/* Create PT_LOAD segments. */
+	i = -1;
+
+	/* Calculate the start vma of output object. */
+	os = STAILQ_FIRST(&lo->lo_oslist);
+	addr = os->os_addr - os->os_off;
+
+	/* Create PT_PHDR segment for dynamically linked output object */
+	if (lo->lo_dso_needed > 0) {
+		i++;
+		off = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
+		phdr_addr = addr + off;
+		filesz = memsz = gelf_fsize(lo->lo_elf, ELF_T_PHDR,
+		    lo->lo_phdr_num, EV_CURRENT);
+		align = lo->lo_ec == ELFCLASS32 ? 4 : 8;
+		flags = PF_R | PF_X;
+		_WRITE_PHDR(PT_PHDR, off, phdr_addr, filesz, memsz, flags,
+		    align);
+	}
+
+	/* Create PT_INTERP segment for dynamically linked output object */
+	if (lo->lo_interp != NULL) {
+		i++;
+		os = lo->lo_interp;
+		_WRITE_PHDR(PT_INTERP, os->os_off, os->os_addr, os->os_size,
+		    os->os_size, PF_R, 1);
+	}
+
+	/*
+	 * Create PT_LOAD segments. 
+	 */
 
 	align = ld->ld_arch->get_max_page_size(ld);
 	new = 1;
-	i = -1;
 	w = 0;
 	filesz = 0;
 	memsz = 0;
 	flags = PF_R;
 	off = 0;
-
-	/* Calculate the start vma of output object. */
-	os = STAILQ_FIRST(&lo->lo_oslist);
-	addr = os->os_addr - os->os_off;
+	first = 1;
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_empty)
@@ -407,7 +515,7 @@ _create_phdr(struct ld *ld)
 			new = 0;
 			w = os->os_flags & SHF_WRITE;
 
-			if (i >= 0)
+			if (!first)
 				_WRITE_PHDR(PT_LOAD, off, addr, filesz, memsz,
 				    flags, align);
 
@@ -415,10 +523,11 @@ _create_phdr(struct ld *ld)
 			if ((unsigned) i >= lo->lo_phdr_num)
 				ld_fatal(ld, "not enough room for program"
 				    " headers");
-			if (i > 0) {
+			if (!first) {
 				addr = os->os_addr;
 				off = os->os_off;
 			}
+			first = 0;
 			flags = PF_R;
 			filesz = 0;
 			memsz = 0;
@@ -436,6 +545,16 @@ _create_phdr(struct ld *ld)
 	}
 	if (i >= 0)
 		_WRITE_PHDR(PT_LOAD, off, addr, filesz, memsz, flags, align);
+
+	/*
+	 * Create PT_DYNAMIC segment.
+	 */
+	if (lo->lo_dynamic != NULL) {
+		i++;
+		os = lo->lo_dynamic;
+		_WRITE_PHDR(PT_DYNAMIC, os->os_off, os->os_addr, os->os_size,
+		    os->os_size, PF_R | PF_W, lo->lo_ec == ELFCLASS32 ? 4 : 8);
+	}
 
 	/*
 	 * Create PT_NOTE segment.
@@ -519,11 +638,15 @@ ld_output_create(struct ld *ld)
 	if (eh.e_phoff == 0)
 		ld_fatal(ld, "gelf_fsize failed: %s", elf_errmsg(-1));
 
-	/* Read relocation information from input sections. */
-	ld_reloc_read(ld);
-
 	/* Create output ELF sections. */
 	_create_elf_sections(ld);
+
+	/* Calculate symbol values and indices of the output object. */
+	ld_symbols_update(ld);
+
+	/* Print out link map if requested. */
+	if (ld->ld_print_linkmap)
+		ld_layout_print_linkmap(ld);
 
 	/* Insert section headers table and point e_shoff to it. */
 	eh.e_shoff = _insert_shdr(ld);
@@ -535,8 +658,18 @@ ld_output_create(struct ld *ld)
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
 
+	/* Finalize sections for dynamically linked output object. */
+	ld_dynamic_finalize(ld);
+
 	/* Copy and relocate input section data to output section. */
 	_copy_and_reloc_input_sections(ld);
+
+	/* Finalize dynamic symbol section. */
+	if (lo->lo_dynsym != NULL) {
+		ld_symbols_finalize_dynsym(ld);
+		_alloc_section_data_for_symtab(ld, lo->lo_dynsym,
+		    lo->lo_dynsym->os_scn, ld->ld_dynsym);
+	}
 
 	/* Generate section name string table section (.shstrtab). */
 	_create_string_table_section(ld, ".shstrtab", ld->ld_shstrtab, NULL);
@@ -544,8 +677,11 @@ ld_output_create(struct ld *ld)
 	/* Generate symbol table. */
 	_create_symbol_table(ld);
 
-	/* Update "sh_name" fields of each section headers. */
-	_set_section_name(ld);
+	/*
+	 * Update "sh_name", "sh_link" and "sh_info" fields of each section
+	 * headers, wherever applicable.
+	 */
+	_update_section_header(ld);
 
 	/* Finally write out the output ELF object. */
 	if (elf_update(lo->lo_elf, ELF_C_WRITE) < 0)
@@ -598,21 +734,16 @@ _add_to_shstrtab(struct ld *ld, const char *name)
 }
 
 static void
-_set_section_name(struct ld *ld)
+_update_section_header(struct ld *ld)
 {
 	struct ld_strtab *st;
 	struct ld_output *lo;
-	struct ld_output_section *os;
+	struct ld_output_section *os, *_os;
 	GElf_Shdr sh;
 	
 	lo = ld->ld_output;
 	st = ld->ld_shstrtab;
 	assert(st != NULL && st->st_buf != NULL);
-
-	/*
-	 * Set "sh_name" fields of each section headers to point
-	 * to the string table.
-	 */
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_scn == NULL)
@@ -622,7 +753,25 @@ _set_section_name(struct ld *ld)
 			ld_fatal(ld, "gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 
+		/*
+		 * Set "sh_name" fields of each section headers to point
+		 * to the string table.
+		 */
 		sh.sh_name = ld_strtab_lookup(st, os->os_name);
+
+		/* Update "sh_link" field. */
+		if (os->os_link_name != NULL) {
+			HASH_FIND_STR(lo->lo_ostbl, os->os_link_name, _os);
+			if (_os == NULL)
+				ld_fatal(ld, "Internal: can not find link"
+				    " section %s", os->os_link_name);
+			sh.sh_link = elf_ndxscn(_os->os_scn);
+		} else if (os->os_link != NULL)
+			sh.sh_link = elf_ndxscn(os->os_link->os_scn);
+
+		/* Update "sh_info" field. */
+		if (os->os_info != NULL)
+			sh.sh_info = elf_ndxscn(os->os_info->os_scn);
 
 #if 0
 		printf("name=%s, shname=%#jx, offset=%#jx, size=%#jx, type=%#jx\n",

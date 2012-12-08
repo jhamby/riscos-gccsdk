@@ -6,9 +6,11 @@ ld_SOURCES = \
 	amd64.c			\
 	i386.c			\
 	ld_arch.c		\
+	ld_dynamic.c		\
 	ld_error.c 		\
 	ld_exp.c		\
 	ld_file.c		\
+	ld_hash.c		\
 	ld_input.c		\
 	ld_layout.c		\
 	ld_main.c 		\
@@ -21,6 +23,7 @@ ld_SOURCES = \
 	ld_script_parser.y	\
 	ld_strtab.c		\
 	ld_symbols.c		\
+	ld_symver.c		\
 	${GENSRCS}
 
 ld_CFLAGS = -I${top_srcdir}/common \

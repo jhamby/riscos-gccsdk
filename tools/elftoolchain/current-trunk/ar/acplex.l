@@ -25,14 +25,14 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: acplex.l 2130 2011-11-10 06:56:46Z jkoshy $");
 

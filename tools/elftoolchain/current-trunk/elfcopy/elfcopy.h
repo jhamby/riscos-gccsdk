@@ -26,11 +26,11 @@
  * $Id: elfcopy.h 2540 2012-08-11 15:15:25Z kaiwang27 $
  */
 
+#include "_elftc.h"
+
 #include <sys/queue.h>
 #include <gelf.h>
 #include <libelftc.h>
-
-#include "_elftc.h"
 
 /*
  * User specified symbol operation (strip, keep, localize, globalize,

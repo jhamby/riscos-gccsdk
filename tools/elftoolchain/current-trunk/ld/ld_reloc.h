@@ -26,8 +26,10 @@
  * $Id: ld_reloc.h 2463 2012-03-17 16:42:22Z kaiwang27 $
  */
 
+struct ld_symbol;
+
 struct ld_reloc_entry {
-	uint64_t lre_sym;		/* reloc symbol */
+	struct ld_symbol *lre_sym;	/* reloc symbol */
 	uint64_t lre_type;		/* reloc type */
 	uint64_t lre_offset;		/* reloc offset */
 	uint64_t lre_addend;		/* reloc addend */
@@ -36,6 +38,6 @@ struct ld_reloc_entry {
 
 STAILQ_HEAD(ld_reloc_entry_head, ld_reloc_entry);
 
-void	ld_reloc_read(struct ld *);
+void	ld_reloc_load(struct ld *);
 void	ld_reloc_process_input_section(struct ld *, struct ld_input_section *,
     void *);

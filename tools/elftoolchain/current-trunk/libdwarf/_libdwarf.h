@@ -30,6 +30,8 @@
 #ifndef	__LIBDWARF_H_
 #define	__LIBDWARF_H_
 
+#include "_elftc.h"
+
 #include <sys/param.h>
 #include <sys/queue.h>
 #include <assert.h>
@@ -41,8 +43,6 @@
 #include "dwarf.h"
 #include "libdwarf.h"
 #include "uthash.h"
-
-#include "_elftc.h"
 
 #define DWARF_DIE_HASH_SIZE		8191
 
