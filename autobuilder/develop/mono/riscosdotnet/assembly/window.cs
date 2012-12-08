@@ -14,6 +14,8 @@ namespace riscos
 {
 	public static partial class Wimp
 	{
+		/*! \brief Encapsulate the data and methods shared by both a Toolbox Window
+		 * and a plain Wimp window.  */
 		public class WindowHandle
 		{
 			public readonly uint Handle;
@@ -23,20 +25,24 @@ namespace riscos
 				this.Handle = handle;
 			}
 
+			/*! \brief Return a summary of this window's state
+			 * \param [in,out] block Reference to a native type to receive the window state.
+			 * \return Nothing.  */
 			public void GetState (ref NativeWimp.WindowStateBlock block)
 			{
 				block.WindowHandle = Handle;
-				OS.ThrowOnError (NativeMethods.Wimp_GetWindowState (ref block));
+				Wimp.GetWindowState (ref block);
 			}
 
-			public void GetNestedState (ref NativeWimp.WindowStateBlock block,
-						    out uint parent,
-						    out uint nested)
+			/*! \brief Returns a summary of the given window's state and window nesting.
+			 * \param [in,out] block Reference to a native type to receive the window state.
+			 * \param [out] linkage Defines how the window is nested in the parent.
+			 * \return The Wimp window handle of the parent.  */
+			public uint GetNestedState (ref NativeWimp.WindowStateBlock block,
+						    out uint linkage)
 			{
 				block.WindowHandle = Handle;
-				OS.ThrowOnError (NativeMethods.Wimp_GetWindowStateAndNesting (ref block,
-											      out parent,
-											      out nested));
+				return Wimp.GetNestedWindowState (ref block, out linkage);
 			}
 
 			/*! \brief Find the origin of the window when its state is already known. */
@@ -177,11 +183,12 @@ namespace riscos
 				}
 			}
 
+			/*! \brief Set the work area size of the window.  */
 			public void SetExtent (OS.Rect extent)
 			{
 				this.Extent = extent;
-				NativeOS.Rect native_extent = new NativeOS.Rect (extent);
-				OS.ThrowOnError (NativeMethods.Wimp_SetExtent (WimpWindow.Handle, ref native_extent));
+				var native_extent = new NativeOS.Rect (extent);
+				Wimp.SetExtent (WimpWindow.Handle, ref native_extent);
 			}
 
 			/*! \brief Set the title of the window.  */
@@ -197,13 +204,12 @@ namespace riscos
 					  OS.Coord scroll,
 					  uint behind)
 			{
-				NativeWimp.WindowStateBlock block = 
-					new NativeWimp.WindowStateBlock (WimpWindow.Handle,
-									 visible,
-									 scroll,
-									 behind,
-									 0); // Flags are ignored on a normal window open
-				OS.ThrowOnError (NativeMethods.Wimp_OpenWindow (ref block));
+				var block = new NativeWimp.WindowStateBlock (WimpWindow.Handle,
+									     visible,
+									     scroll,
+									     behind,
+									     0); // Flags are ignored on a normal window open
+				Wimp.OpenWindow (ref block);
 			}
 
 			/*! \brief Open nested window. */
@@ -224,15 +230,12 @@ namespace riscos
 				else
 					nestedFlags |= 1;
 
-				NativeWimp.WindowStateBlock block =
-					new NativeWimp.WindowStateBlock(WimpWindow.Handle,
-									visible,
-									scroll,
-									behindWindow,
-									windowFlags);
-				OS.ThrowOnError (NativeMethods.Wimp_OpenWindowNested (ref block,
-										      parentWindow,
-										      nestedFlags));
+				var block = new NativeWimp.WindowStateBlock(WimpWindow.Handle,
+									    visible,
+									    scroll,
+									    behindWindow,
+									    windowFlags);
+				Wimp.OpenWindowNested (ref block, parentWindow, nestedFlags);
 			}
 
 			/*! \brief Open nested window using the window flags it already has. */
@@ -267,7 +270,7 @@ namespace riscos
 			{
 				if (Opening != null)
 					Opening (this, e);
-				OS.ThrowOnError (NativeMethods.Wimp_OpenWindow (ref e.OpenWimpBlock));
+				Wimp.OpenWindow (ref e.OpenWimpBlock);
 			}
 
 			/*! \brief Close window in response to an event. */
@@ -275,8 +278,9 @@ namespace riscos
 			{
 				if (Closing != null)
 					Closing (this, e);
-				OS.ThrowOnError (NativeMethods.
-						 Wimp_CloseWindow (e.CloseWimpBlock.WindowHandle));
+
+				Wimp.CloseWindow (e.CloseWimpBlock.WindowHandle);
+
 				if (Closed != null)
 					Closed (this, e);
 			}
@@ -331,11 +335,9 @@ namespace riscos
 
 			protected virtual void OnRedraw (RedrawEventArgs e)
 			{
-				int more;
-
 				// Start the redraw. Given the window handle, the OS fills in RedrawWimpBlock
 				// with details of what needs redrawing.
-				NativeMethods.Wimp_RedrawWindow (ref e.RedrawWimpBlock, out more);
+				int more = Wimp.RedrawWindow (ref e.RedrawWimpBlock);
 
 				// The origin of the window only needs to be calculated once before entering
 				// the redraw loop.
@@ -344,7 +346,7 @@ namespace riscos
 				while (more != 0)
 				{
 					OnPaint (e);
-					NativeMethods.Wimp_GetRectangle (ref e.RedrawWimpBlock, out more);
+					more = Wimp.GetRectangle (ref e.RedrawWimpBlock);
 				}
 			}
 

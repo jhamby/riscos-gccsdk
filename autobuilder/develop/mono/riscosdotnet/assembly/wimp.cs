@@ -554,6 +554,36 @@ namespace riscos
 			return handle;
 		}
 
+		/*! \brief Updates the list of active windows (ones that are to be displayed).
+		 * \param [in] block Reference to a native window state block.
+		 * \return Nothing.  */
+		public static void OpenWindow (ref NativeWimp.WindowStateBlock block)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_OpenWindow (ref block));
+		}
+
+		/*! \brief Updates the list of active windows (ones that are to be displayed).
+		 * \param [in] block Reference to a native window state block.
+		 * \param [in] parentWindow The Wimp handle of the window to use as the parent.
+		 * \param [in] nestedFlags Flags to determine how the window will be nested.
+		 * \return Nothing.  */
+		public static void OpenWindowNested (ref NativeWimp.WindowStateBlock block,
+						     uint parentWindow,
+						     uint nestedFlags)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_OpenWindowNested (ref block,
+									      parentWindow,
+									      nestedFlags));
+		}
+
+		/*! \brief Removes the specified window from the active list.
+		 * \param [in] handle The Wimp handle of the window to close.
+		 * \return Nothing.  */
+		public static void CloseWindow (uint handle)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_CloseWindow (handle));
+		}
+
 		/*! \brief Sets the anti-aliased font colours from the two Wimp colours specified.
 		 * \param [in] bg The Wimp colour to use for the font background (0-15).
 		 * \param [in] fg The Wimp colour to use for the font foreground (0-15).
@@ -602,6 +632,82 @@ namespace riscos
 							name,
 							out result);
 			return result;
+		}
+
+		/*! \brief Starts a redraw of the parts of a window that are not up to date.
+		 * \param [in] block A reference to a redraw window block. This is a native type
+		 * that can be passed straight from a redraw event.
+		 * \return 0 for no more to do, non-zero for update according to returned block.  */
+		public static int RedrawWindow (ref NativeWimp.RedrawWindowBlock block)
+		{
+			int more;
+
+			// Should an exception be thrown here?
+			OS.ThrowOnError (NativeMethods.Wimp_RedrawWindow (ref block, out more));
+
+			return more;
+		}
+
+		/*! \brief Starts a redraw of the parts of a window that are not up to date.
+		 * \param [in] block A reference to a redraw window block.
+		 * \return 0 for no more to do, non-zero for update according to returned block.  */
+		public static int UpdateWindow (ref NativeWimp.RedrawWindowBlock block)
+		{
+			int more;
+
+			// Should an exception be thrown here?
+			OS.ThrowOnError (NativeMethods.Wimp_UpdateWindow (ref block, out more));
+
+			return more;
+		}
+
+		/*! \brief Returns the details of the next rectangle on the work area to be drawn.
+		 * \param [in] block A reference to a redraw window block.
+		 * \return 0 for no more to do, non-zero for update according to returned block.  */
+		public static int GetRectangle (ref NativeWimp.RedrawWindowBlock block)
+		{
+			int more;
+
+			// Should an exception be thrown here?
+			OS.ThrowOnError (NativeMethods.Wimp_GetRectangle (ref block, out more));
+
+			return more;
+		}
+
+		/*! \brief Set the work area extent of the specified window.
+		 * \param [in] handle The Wimp handle of the window.
+		 * \param [in] extent A rectangle giving the size of the new extent.
+		 * \return Nothing.  */
+		public static void SetExtent (uint handle, ref NativeOS.Rect extent)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_SetExtent (handle, ref extent));
+		}
+
+		/*! \brief Returns a summary of the given window's state.
+		 * \param [in,out] block Reference to a native type to receive the window state.
+		 * \return Nothing.
+		 * \note The \e WindowHandle field of the block must be set to the handle of the
+		 * window before calling this method.  */
+		public static void GetWindowState (ref NativeWimp.WindowStateBlock block)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_GetWindowState (ref block));
+		}
+
+		/*! \brief Returns a summary of the given window's state and window nesting.
+		 * \param [in,out] block Reference to a native type to receive the window state.
+		 * \param [out] linkage Defines how the window is nested in the parent.
+		 * \return The Wimp window handle of the parent.
+		 * \note The \e WindowHandle field of the block must be set to the handle of the
+		 * window before calling this method.  */
+		public static uint GetNestedWindowState (ref NativeWimp.WindowStateBlock block,
+							 out uint linkage)
+		{
+			uint parent;
+
+			OS.ThrowOnError (NativeMethods.Wimp_GetWindowStateAndNesting (ref block,
+										      out parent,
+										      out linkage));
+			return parent;
 		}
 
 		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */

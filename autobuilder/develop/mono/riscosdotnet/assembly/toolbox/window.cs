@@ -394,11 +394,9 @@ namespace riscos
 
 			protected virtual void OnRedraw (Wimp.RedrawEventArgs e)
 			{
-				int more;
-
 				// Start the redraw. Given the window handle, the OS fills in RedrawWimpBlock
 				// with details of what needs redrawing.
-				NativeMethods.Wimp_RedrawWindow (ref e.RedrawWimpBlock, out more);
+				int more = Wimp.RedrawWindow (ref e.RedrawWimpBlock);
 
 				// The origin of the window only needs to be calculated once before entering
 				// the redraw loop.
@@ -407,7 +405,7 @@ namespace riscos
 				while (more != 0)
 				{
 					OnPaint (e);
-					NativeMethods.Wimp_GetRectangle (ref e.RedrawWimpBlock, out more);
+					more = Wimp.GetRectangle (ref e.RedrawWimpBlock);
 				}
 			}
 
