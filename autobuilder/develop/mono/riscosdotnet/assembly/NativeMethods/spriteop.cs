@@ -10,7 +10,7 @@ using System.Text;
 
 namespace riscos
 {
-	static partial class NativeMethods
+	internal static partial class NativeMethods
 	{
 		// OSSpriteOp SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_screen_save")]

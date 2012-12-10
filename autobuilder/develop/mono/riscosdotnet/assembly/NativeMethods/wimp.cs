@@ -337,7 +337,7 @@ namespace riscos
 		}
 	}
 
-	static partial class NativeMethods
+	internal static partial class NativeMethods
 	{
 		// Wimp SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_initialise")]

@@ -81,7 +81,7 @@ namespace riscos
 		}
 	}
 
-	static partial class NativeMethods
+	internal static partial class NativeMethods
 	{
 		// Toolbox SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_Initialise")]

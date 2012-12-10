@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace riscos
 {
-	static partial class NativeMethods
+	internal static partial class NativeMethods
 	{
 		// ColourTrans SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xcolourtrans_set_gcol")]

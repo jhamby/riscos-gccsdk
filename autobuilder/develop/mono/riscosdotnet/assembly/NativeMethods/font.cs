@@ -45,7 +45,7 @@ namespace riscos
 		}
 	}
 
-	static partial class NativeMethods
+	internal static partial class NativeMethods
 	{
 		// Font SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_cache_addr")]

@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace riscos
 {
-	static partial class NativeMethods
+	internal static partial class NativeMethods
 	{
 		// Reporter SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xreport_text0")]

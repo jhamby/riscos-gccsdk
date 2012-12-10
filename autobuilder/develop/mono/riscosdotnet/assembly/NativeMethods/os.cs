@@ -87,7 +87,7 @@ namespace riscos
 		}
 	}
 
-	public static partial class NativeMethods
+	internal static partial class NativeMethods
 	{
 		// OS SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xos_plot")]
