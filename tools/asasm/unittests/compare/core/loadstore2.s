@@ -1,6 +1,6 @@
 ; -RUNOPT: -CPU=7-A
 
-		AREA |C$$code|, CODE, READONLY
+		AREA |C$$code|, CODE, READONLY, HALFWORD
 
 		; Addressing Mode 2 - Load/Store Word or Unsigned Byte
 		; Loads

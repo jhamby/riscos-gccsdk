@@ -334,7 +334,13 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    }
 	}
     }
-    
+
+  if ((ir & 0x0e000000) == 0 /* Address mode 3.  */
+      && (ir & (1<<5)) != 0 /* Half-word.  */
+      && (areaCurrentSymbol->area.info->type & AREA_HALFWORD) == 0
+      && option_aof)
+    error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
+
   Put_Ins (4, ir);
 
   return false;
@@ -460,6 +466,12 @@ LdrStrEx (bool isLoad, bool doLowerCase)
       error (ErrorError, "Missing ]");
       return false;
     }
+
+  if (type == htype
+      && (areaCurrentSymbol->area.info->type & AREA_HALFWORD) == 0
+      && option_aof)
+    error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
+
   if (isLoad)
     Put_Ins (4, cc | 0x00100F9F | type | (regN<<16) | (regT<<12));
   else

@@ -1,7 +1,7 @@
 ; Tests UAL parsing of LDR/STR
 ; RUNOPT: -CPU 7-A
 
-	AREA	Code, CODE
+	AREA	Code, CODE, HALFWORD
 
 	[ :LNOT: REFERENCE
 	; <LDR|STR> <type>

@@ -1,6 +1,6 @@
 ; -RUNOPT: -CPU=7-A
 
-		AREA |C$$code|, CODE, READONLY
+		AREA |C$$code|, CODE, READONLY, HALFWORD
 
 	[ :LNOT: REFERENCE
 		LDR	R0, [R1]

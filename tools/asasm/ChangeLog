@@ -1,3 +1,17 @@
+Mon Dec 10 23:26:25 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cpumem.c (dstmem): Add HALFWORD attribute suggestion.
+	(LdrStrEx): Likewise.
+	* area.h (AREA_*): Update comments.
+
+	unittests/compare/core:
+	* instr_clrex_ldrex_strex.s: Add HALFWORD area attribute.
+	* load_literal_basic.s: Likewise.
+	* loadstore_ual.s: Likewise.
+	* loadstore.s: Likewise.
+	* loadstore2.s: Likewise.
+
 Sat Dec  1 15:45:58 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

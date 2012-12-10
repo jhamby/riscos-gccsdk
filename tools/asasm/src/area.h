@@ -42,13 +42,13 @@
 #define AREA_READONLY		0x00002000
 #define AREA_PIC		0x00004000
 #define AREA_DEBUG		0x00008000
-#define AREA_32BITAPCS		0x00010000 /* Code area only */
-#define AREA_REENTRANT		0x00020000 /* Code area only */
-#define AREA_EXTFPSET		0x00040000 /* Code area only */
-#define AREA_NOSWSTACKCHECK	0x00080000 /* Code area only */
-#define AREA_THUMB		0x00100000 /* Code area only, same value as AREA_BASED.  */
-#define AREA_HALFWORD		0x00200000 /* Code area only, same value as AREA_STUBDATA.  */
-#define AREA_INTERWORK		0x00400000 /* Code area only */
+#define AREA_32BITAPCS		0x00010000 /* Code area only, complies with the 32-bit APCS */
+#define AREA_REENTRANT		0x00020000 /* Code area only, complies with a reentrant variant of the APCS */
+#define AREA_EXTFPSET		0x00040000 /* Code area only, uses extended FP instruction set.  */
+#define AREA_NOSWSTACKCHECK	0x00080000 /* Code area only, no software stack checking.  */
+#define AREA_THUMB		0x00100000 /* Code area only, all relocations are of Thumb code, same value as AREA_BASED.  */
+#define AREA_HALFWORD		0x00200000 /* Code area only, area may contain ARM halfword instructions, same value as AREA_STUBDATA.  */
+#define AREA_INTERWORK		0x00400000 /* Code area only, area suitable for ARM/Thumb interworking.  */
 #define AREA_BASED		0x00100000 /* Data area only, same value as AREA_THUMB.  */
 #define AREA_STUBDATA		0x00200000 /* Data area only, same value as AREA_HALFWORD.  */
 #define AREA_RESERVED23		0x00800000

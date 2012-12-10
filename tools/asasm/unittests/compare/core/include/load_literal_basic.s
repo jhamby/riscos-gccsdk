@@ -6,7 +6,7 @@ MOVW_ALLOWED SETL {ARCHITECTURE} = "6T2" :LOR: ({ARCHITECTURE}:LEFT:1 = "7")
 	MACRO
 	LiteralTest $areaName, $areaOrg
 
-	AREA	$areaName, CODE, READONLY
+	AREA	$areaName, CODE, READONLY, HALFWORD
 	$areaOrg
 
 	; Basic tests:
