@@ -4,6 +4,21 @@
 	AREA	Code, CODE, HALFWORD
 
 	[ :LNOT: REFERENCE
+	MACRO
+	Invoke $base, $addr
+	LCLS	instr
+	LCLA	cnt
+cnt	SETA	0
+	WHILE	cnt < 17
+	; 17 condition codes to be tested:
+	;   - Condition code NV is left out from this test.
+	;   - HS and LO are equivalents for CS and CC.
+instr	SETS	"$base" :CC: (("EQNECSHSCCLOMIPLVSVCHILSGELTGTLEAL" :RIGHT: (34 - 2*cnt)) :LEFT: 2)
+	$instr	$addr
+cnt	SETA	cnt + 1
+	WEND
+	$base	$addr
+	MEND
 
 	LDREX	r2, [r4]
 	LDREXB	r2, [r4]
@@ -15,176 +30,28 @@
 	STREXH	r1, r2, [r4]
 	STREXD	r1, r2, r3, [r4]
 
-	; We don't test NV condition.
-	LDREXEQ	r4, [r6]
-	LDREXNE	r4, [r6]
-	LDREXCS	r4, [r6]
-	LDREXHS	r4, [r6]
-	LDREXCC	r4, [r6]
-	LDREXLO	r4, [r6]
-	LDREXMI	r4, [r6]
-	LDREXPL	r4, [r6]
-	LDREXVS	r4, [r6]
-	LDREXVC	r4, [r6]
-	LDREXHI	r4, [r6]
-	LDREXLS	r4, [r6]
-	LDREXGE	r4, [r6]
-	LDREXLT	r4, [r6]
-	LDREXGT	r4, [r6]
-	LDREXLE	r4, [r6]
-	LDREXAL	r4, [r6]
-	LDREX	r4, [r6]
+	Invoke	LDREX, "r4, [r6]"
+	Invoke	LDREXB, "r4, [r6]"
+	Invoke	LDREXH, "r4, [r6]"
+	Invoke	LDREXD, "r4, r5, [r6]"
 
-	; We don't test NV condition.
-	LDREXBEQ	r4, [r6]
-	LDREXBNE	r4, [r6]
-	LDREXBCS	r4, [r6]
-	LDREXBHS	r4, [r6]
-	LDREXBCC	r4, [r6]
-	LDREXBLO	r4, [r6]
-	LDREXBMI	r4, [r6]
-	LDREXBPL	r4, [r6]
-	LDREXBVS	r4, [r6]
-	LDREXBVC	r4, [r6]
-	LDREXBHI	r4, [r6]
-	LDREXBLS	r4, [r6]
-	LDREXBGE	r4, [r6]
-	LDREXBLT	r4, [r6]
-	LDREXBGT	r4, [r6]
-	LDREXBLE	r4, [r6]
-	LDREXBAL	r4, [r6]
-	LDREXB		r4, [r6]
-
-	; We don't test NV condition.
-	LDREXHEQ	r4, [r6]
-	LDREXHNE	r4, [r6]
-	LDREXHCS	r4, [r6]
-	LDREXHHS	r4, [r6]
-	LDREXHCC	r4, [r6]
-	LDREXHLO	r4, [r6]
-	LDREXHMI	r4, [r6]
-	LDREXHPL	r4, [r6]
-	LDREXHVS	r4, [r6]
-	LDREXHVC	r4, [r6]
-	LDREXHHI	r4, [r6]
-	LDREXHLS	r4, [r6]
-	LDREXHGE	r4, [r6]
-	LDREXHLT	r4, [r6]
-	LDREXHGT	r4, [r6]
-	LDREXHLE	r4, [r6]
-	LDREXHAL	r4, [r6]
-	LDREXH		r4, [r6]
-
-	; We don't test NV condition.
-	LDREXDEQ	r4, r5, [r6]
-	LDREXDNE	r4, r5, [r6]
-	LDREXDCS	r4, r5, [r6]
-	LDREXDHS	r4, r5, [r6]
-	LDREXDCC	r4, r5, [r6]
-	LDREXDLO	r4, r5, [r6]
-	LDREXDMI	r4, r5, [r6]
-	LDREXDPL	r4, r5, [r6]
-	LDREXDVS	r4, r5, [r6]
-	LDREXDVC	r4, r5, [r6]
-	LDREXDHI	r4, r5, [r6]
-	LDREXDLS	r4, r5, [r6]
-	LDREXDGE	r4, r5, [r6]
-	LDREXDLT	r4, r5, [r6]
-	LDREXDGT	r4, r5, [r6]
-	LDREXDLE	r4, r5, [r6]
-	LDREXDAL	r4, r5, [r6]
-	LDREXD		r4, r5, [r6]
-
-	; We don't test NV condition.
-	STREXEQ	r1, r4, [r6]
-	STREXNE	r1, r4, [r6]
-	STREXCS	r1, r4, [r6]
-	STREXHS	r1, r4, [r6]
-	STREXCC	r1, r4, [r6]
-	STREXLO	r1, r4, [r6]
-	STREXMI	r1, r4, [r6]
-	STREXPL	r1, r4, [r6]
-	STREXVS	r1, r4, [r6]
-	STREXVC	r1, r4, [r6]
-	STREXHI	r1, r4, [r6]
-	STREXLS	r1, r4, [r6]
-	STREXGE	r1, r4, [r6]
-	STREXLT	r1, r4, [r6]
-	STREXGT	r1, r4, [r6]
-	STREXLE	r1, r4, [r6]
-	STREXAL	r1, r4, [r6]
-	STREX	r1, r4, [r6]
-
-	; We don't test NV condition.
-	STREXBEQ	r1, r4, [r6]
-	STREXBNE	r1, r4, [r6]
-	STREXBCS	r1, r4, [r6]
-	STREXBHS	r1, r4, [r6]
-	STREXBCC	r1, r4, [r6]
-	STREXBLO	r1, r4, [r6]
-	STREXBMI	r1, r4, [r6]
-	STREXBPL	r1, r4, [r6]
-	STREXBVS	r1, r4, [r6]
-	STREXBVC	r1, r4, [r6]
-	STREXBHI	r1, r4, [r6]
-	STREXBLS	r1, r4, [r6]
-	STREXBGE	r1, r4, [r6]
-	STREXBLT	r1, r4, [r6]
-	STREXBGT	r1, r4, [r6]
-	STREXBLE	r1, r4, [r6]
-	STREXBAL	r1, r4, [r6]
-	STREXB		r1, r4, [r6]
-
-	; We don't test NV condition.
-	STREXHEQ	r1, r4, [r6]
-	STREXHNE	r1, r4, [r6]
-	STREXHCS	r1, r4, [r6]
-	STREXHHS	r1, r4, [r6]
-	STREXHCC	r1, r4, [r6]
-	STREXHLO	r1, r4, [r6]
-	STREXHMI	r1, r4, [r6]
-	STREXHPL	r1, r4, [r6]
-	STREXHVS	r1, r4, [r6]
-	STREXHVC	r1, r4, [r6]
-	STREXHHI	r1, r4, [r6]
-	STREXHLS	r1, r4, [r6]
-	STREXHGE	r1, r4, [r6]
-	STREXHLT	r1, r4, [r6]
-	STREXHGT	r1, r4, [r6]
-	STREXHLE	r1, r4, [r6]
-	STREXHAL	r1, r4, [r6]
-	STREXH		r1, r4, [r6]
-
-	; We don't test NV condition.
-	STREXDEQ	r1, r4, r5, [r6]
-	STREXDNE	r1, r4, r5, [r6]
-	STREXDCS	r1, r4, r5, [r6]
-	STREXDHS	r1, r4, r5, [r6]
-	STREXDCC	r1, r4, r5, [r6]
-	STREXDLO	r1, r4, r5, [r6]
-	STREXDMI	r1, r4, r5, [r6]
-	STREXDPL	r1, r4, r5, [r6]
-	STREXDVS	r1, r4, r5, [r6]
-	STREXDVC	r1, r4, r5, [r6]
-	STREXDHI	r1, r4, r5, [r6]
-	STREXDLS	r1, r4, r5, [r6]
-	STREXDGE	r1, r4, r5, [r6]
-	STREXDLT	r1, r4, r5, [r6]
-	STREXDGT	r1, r4, r5, [r6]
-	STREXDLE	r1, r4, r5, [r6]
-	STREXDAL	r1, r4, r5, [r6]
-	STREXD		r1, r4, r5, [r6]
+	Invoke	STREX, "r1, r4, [r6]"
+	Invoke	STREXB, "r1, r4, [r6]"
+	Invoke	STREXH, "r1, r4, [r6]"
+	Invoke	STREXD, "r1, r4, r5, [r6]"
 
 	|
 
-	DCI &e1942f9f 	; ldrex	r2, [r4]
+	DCI &e1942f9f 	; ldrex		r2, [r4]
 	DCI &e1d42f9f 	; ldrexb	r2, [r4]
 	DCI &e1f42f9f 	; ldrexh	r2, [r4]
 	DCI &e1b42f9f 	; ldrexd	r2, [r4]
-	DCI &e1841f92 	; strex	r1, r2, [r4]
+
+	DCI &e1841f92 	; strex		r1, r2, [r4]
 	DCI &e1c41f92 	; strexb	r1, r2, [r4]
 	DCI &e1e41f92 	; strexh	r1, r2, [r4]
 	DCI &e1a41f92 	; strexd	r1, r2, [r4]
+
 	DCI &01964f9f 	; ldrexeq	r4, [r6]
 	DCI &11964f9f 	; ldrexne	r4, [r6]
 	DCI &21964f9f 	; ldrexcs	r4, [r6]
@@ -201,8 +68,9 @@
 	DCI &b1964f9f 	; ldrexlt	r4, [r6]
 	DCI &c1964f9f 	; ldrexgt	r4, [r6]
 	DCI &d1964f9f 	; ldrexle	r4, [r6]
-	DCI &e1964f9f 	; ldrex	r4, [r6]
-	DCI &e1964f9f 	; ldrex	r4, [r6]
+	DCI &e1964f9f 	; ldrex		r4, [r6]
+	DCI &e1964f9f 	; ldrex		r4, [r6]
+
 	DCI &01d64f9f 	; ldrexbeq	r4, [r6]
 	DCI &11d64f9f 	; ldrexbne	r4, [r6]
 	DCI &21d64f9f 	; ldrexbcs	r4, [r6]
@@ -221,6 +89,7 @@
 	DCI &d1d64f9f 	; ldrexble	r4, [r6]
 	DCI &e1d64f9f 	; ldrexb	r4, [r6]
 	DCI &e1d64f9f 	; ldrexb	r4, [r6]
+
 	DCI &01f64f9f 	; ldrexheq	r4, [r6]
 	DCI &11f64f9f 	; ldrexhne	r4, [r6]
 	DCI &21f64f9f 	; ldrexhcs	r4, [r6]
@@ -239,6 +108,7 @@
 	DCI &d1f64f9f 	; ldrexhle	r4, [r6]
 	DCI &e1f64f9f 	; ldrexh	r4, [r6]
 	DCI &e1f64f9f 	; ldrexh	r4, [r6]
+
 	DCI &01b64f9f 	; ldrexdeq	r4, [r6]
 	DCI &11b64f9f 	; ldrexdne	r4, [r6]
 	DCI &21b64f9f 	; ldrexdcs	r4, [r6]
@@ -257,6 +127,7 @@
 	DCI &d1b64f9f 	; ldrexdle	r4, [r6]
 	DCI &e1b64f9f 	; ldrexd	r4, [r6]
 	DCI &e1b64f9f 	; ldrexd	r4, [r6]
+
 	DCI &01861f94 	; strexeq	r1, r4, [r6]
 	DCI &11861f94 	; strexne	r1, r4, [r6]
 	DCI &21861f94 	; strexcs	r1, r4, [r6]
@@ -273,8 +144,9 @@
 	DCI &b1861f94 	; strexlt	r1, r4, [r6]
 	DCI &c1861f94 	; strexgt	r1, r4, [r6]
 	DCI &d1861f94 	; strexle	r1, r4, [r6]
-	DCI &e1861f94 	; strex	r1, r4, [r6]
-	DCI &e1861f94 	; strex	r1, r4, [r6]
+	DCI &e1861f94 	; strex		r1, r4, [r6]
+	DCI &e1861f94 	; strex		r1, r4, [r6]
+
 	DCI &01c61f94 	; strexbeq	r1, r4, [r6]
 	DCI &11c61f94 	; strexbne	r1, r4, [r6]
 	DCI &21c61f94 	; strexbcs	r1, r4, [r6]
@@ -293,6 +165,7 @@
 	DCI &d1c61f94 	; strexble	r1, r4, [r6]
 	DCI &e1c61f94 	; strexb	r1, r4, [r6]
 	DCI &e1c61f94 	; strexb	r1, r4, [r6]
+
 	DCI &01e61f94 	; strexheq	r1, r4, [r6]
 	DCI &11e61f94 	; strexhne	r1, r4, [r6]
 	DCI &21e61f94 	; strexhcs	r1, r4, [r6]
@@ -311,6 +184,7 @@
 	DCI &d1e61f94 	; strexhle	r1, r4, [r6]
 	DCI &e1e61f94 	; strexh	r1, r4, [r6]
 	DCI &e1e61f94 	; strexh	r1, r4, [r6]
+
 	DCI &01a61f94 	; strexdeq	r1, r4, [r6]
 	DCI &11a61f94 	; strexdne	r1, r4, [r6]
 	DCI &21a61f94 	; strexdcs	r1, r4, [r6]

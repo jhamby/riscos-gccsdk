@@ -1,3 +1,8 @@
+Mon Dec 10 23:53:47 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/compare/core/instr_clrex_ldrex_strex.s: Simplify.
+	* unittests/compare/core/loadstore_ual.s: Fix EOL.
+
 Mon Dec 10 23:26:25 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
@@ -7,7 +12,7 @@ Mon Dec 10 23:26:25 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	unittests/compare/core:
 	* instr_clrex_ldrex_strex.s: Add HALFWORD area attribute.
-	* load_literal_basic.s: Likewise.
+	* include/load_literal_basic.s: Likewise.
 	* loadstore_ual.s: Likewise.
 	* loadstore.s: Likewise.
 	* loadstore2.s: Likewise.
