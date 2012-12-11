@@ -176,6 +176,7 @@ namespace riscos
 				{
 					MyIcons.Clear ();
 					WimpTask.AllWindows.Remove (WimpWindow.Handle);
+					Wimp.DeleteWindow (WimpWindow.Handle);
 					Title.Text.Clear ();
 					Title.Validation.Clear ();
 					Title = null;

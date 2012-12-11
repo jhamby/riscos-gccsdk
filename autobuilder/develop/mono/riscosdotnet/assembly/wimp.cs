@@ -710,6 +710,16 @@ namespace riscos
 			return parent;
 		}
 
+		/*! \brief Closes the specified window if it is still open, and then removes its
+		 * definition.  */
+		public static void DeleteWindow (uint handle)
+		{
+			var block = new NativeWimp.WindowHandleBlock ();
+
+			block.WindowHandle = handle;
+			OS.ThrowOnError (NativeMethods.Wimp_DeleteWindow (ref block));
+		}
+
 		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */
 		public class WindowAttributes
 		{
