@@ -266,6 +266,13 @@ namespace riscos
 				return icon;
 			}
 
+			/*! \brief Returns complete details of this window's state.
+			 * \note This method does \b not return details of any icons.  */
+			public NativeWimp.WindowInfoBlock GetInfo ()
+			{
+				return Wimp.GetWindowInfo (WimpWindow.Handle);
+			}
+
 			/*! \brief Open window in response to an event. */
 			protected virtual void OnOpen (OpenEventArgs e)
 			{

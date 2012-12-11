@@ -720,6 +720,18 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_DeleteWindow (ref block));
 		}
 
+		/*! \brief Returns complete details of the given window's state.
+		 * \note This method does \b not return details of any icons.  */
+		public static NativeWimp.WindowInfoBlock GetWindowInfo (uint handle)
+		{
+			var block = new NativeWimp.WindowInfoBlock ();
+
+			block.WindowHandle = handle;
+			OS.ThrowOnError (NativeMethods.Wimp_GetWindowInfoHeaderOnly (ref block));
+
+			return block;
+		}
+
 		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */
 		public class WindowAttributes
 		{
