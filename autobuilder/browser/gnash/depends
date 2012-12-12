@@ -1,6 +1,6 @@
 oslib
 agg
 boost
-libjpeg62
+libjpeg8
 zlib1g
 libxml2

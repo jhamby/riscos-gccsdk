@@ -2,7 +2,7 @@ zlib1g
 libcares
 libssl0.9.8
 libcurl3
-libjpeg62
+libjpeg8
 libpng12-0
 libmng1
 libexpat1

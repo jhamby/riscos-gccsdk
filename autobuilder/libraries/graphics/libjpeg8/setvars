@@ -3,13 +3,15 @@ AB_INSTALLTARGET=install
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
+AB_MAKE="$AB_MAKE makefile.ansi"
+
 ab_package() {
   # Package programs
   ab_create_command_app JPEGProgs Apps/Graphics libjpeg-progs
   ab_add_commands $S/*$AB_EXEEXT
 
-  cp $S/usage.doc $A/\!Help
-  cp $S/usage.doc wizard.doc $A/
+  cp $S/usage.txt $A/\!Help
+  cp $S/usage.txt $S/wizard.txt $A/
   cp $S/README $A/
 
   mv $D/*,faf $A/
@@ -17,7 +19,7 @@ ab_package() {
   $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib -section Graphics
 
   # Package libraries
-  ab_create_app LibJPEG Apps/Library libjpeg62-dev
+  ab_create_app LibJPEG Apps/Library libjpeg8-dev
 
   HERE=`pwd`
   cd $A
@@ -35,10 +37,10 @@ ab_package() {
   # Add some documentation
   mkdir -p $A/doc/c
   cp $S/example.c $A/doc/c/example
-  cp $S/libjpeg.doc $A/\!Help
-  cp $S/libjpeg.doc $S/README $A/doc
+  cp $S/libjpeg.txt $A/\!Help
+  cp $S/libjpeg.txt $S/README $S/structure.txt $A/doc
 
-  $AB_HOME/add-riscpkg -package libjpeg62-dev -name LibJPEG62-Dev -section Library -unixlib
+  $AB_HOME/add-riscpkg -package libjpeg8-dev -name LibJPEG8-Dev -section Library -unixlib
 
   cd $HERE
 }
