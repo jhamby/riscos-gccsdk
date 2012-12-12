@@ -267,10 +267,11 @@ namespace riscos
 			}
 
 			/*! \brief Returns complete details of this window's state.
+			 * \param [in,out] block Reference to a native type to receive window details.
 			 * \note This method does \b not return details of any icons.  */
-			public NativeWimp.WindowInfoBlock GetInfo ()
+			public void GetInfo (ref NativeWimp.WindowInfoBlock block)
 			{
-				return Wimp.GetWindowInfo (WimpWindow.Handle);
+				Wimp.GetWindowInfo (WimpWindow.Handle, ref block);
 			}
 
 			/*! \brief Open window in response to an event. */

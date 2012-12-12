@@ -468,8 +468,8 @@ namespace riscos
 								 uint clearBits);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_get_pointer_info")]
-		internal static extern IntPtr Wimp_GetPointerInfo ([In, MarshalAs(UnmanagedType.Struct)]
-									ref NativeWimp.PointerBlock block);
+		internal static extern IntPtr Wimp_GetPointerInfo ([Out, MarshalAs(UnmanagedType.Struct)]
+									out NativeWimp.PointerBlock block);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_drag_box")]
 		internal static extern IntPtr Wimp_DragBox ([In, MarshalAs(UnmanagedType.Struct)]

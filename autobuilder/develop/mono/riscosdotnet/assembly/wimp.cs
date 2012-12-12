@@ -721,15 +721,22 @@ namespace riscos
 		}
 
 		/*! \brief Returns complete details of the given window's state.
+		 * \param [in] handle The Wimp handle of the window.
+		 * \param [in,out] block Reference to a native type to receive the window state.
+		 * \return Nothing.
 		 * \note This method does \b not return details of any icons.  */
-		public static NativeWimp.WindowInfoBlock GetWindowInfo (uint handle)
+		public static void GetWindowInfo (uint handle, ref NativeWimp.WindowInfoBlock block)
 		{
-			var block = new NativeWimp.WindowInfoBlock ();
-
 			block.WindowHandle = handle;
 			OS.ThrowOnError (NativeMethods.Wimp_GetWindowInfoHeaderOnly (ref block));
+		}
 
-			return block;
+		/*! \brief Returns the position of the pointer and the state of the mouse buttons.
+		 * \param [out] block Reference to a native type to receive the pointer state.
+		 * \return Nothing.  */
+		public static void GetPointerInfo (out NativeWimp.PointerBlock block)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_GetPointerInfo (out block));
 		}
 
 		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */
