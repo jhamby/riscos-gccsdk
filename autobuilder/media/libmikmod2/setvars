@@ -27,5 +27,5 @@ ab_package() {
   # Copy HTML documentation
   cp -av $S/docs/mikmod.html $A/doc
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound
+  $AB_HOME/add-riscpkg -package libmikmod-dev -name LibMikMod-Dev -unixlib -unixsound
 }

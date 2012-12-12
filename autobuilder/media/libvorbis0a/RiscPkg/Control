@@ -1,0 +1,7 @@
+Licemse: Free
+Description: The Vorbis General Audio Compression Codec (Decoder library) 
+ Ogg Vorbis is a fully open, non-proprietary, patent-and-royalty-free,
+ general-purpose compressed audio format for audio and music at fixed
+ and variable bitrates from 16 to 128 kbps/channel.
+ .
+ The Vorbis library is the primary Ogg Vorbis library.

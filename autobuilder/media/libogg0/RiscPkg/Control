@@ -1,0 +1,4 @@
+License: Free
+Description: Ogg bitstream library 
+ Libogg is a library for manipulating ogg bitstreams.  It handles
+ both making ogg bitstreams and getting packets from ogg bitstreams.

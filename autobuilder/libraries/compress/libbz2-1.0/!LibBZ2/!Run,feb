@@ -1,0 +1,6 @@
+| Run file for LibBZ2
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibBZ2$Dir <Obey$Dir>
+Set LibBZ2$Path <Obey$Dir>.

@@ -1,0 +1,6 @@
+| Boot file for LibBZ2
+|
+If "<LibBZ2$Dir>" = "" Then Set LibBZ2$Dir <Obey$Dir>
+If "<LibBZ2$Path>" = "" Then Set LibBZ2$Path <Obey$Dir>.
+
+IconSprites <LibBZ2$Dir>.!Sprites

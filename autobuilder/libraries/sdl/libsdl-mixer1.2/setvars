@@ -28,7 +28,8 @@ ab_package() {
   cp $S/playwave.c $A/doc
   cp $S/playmus.c $A/doc
 
-  $AB_HOME/add-riscpkg -unixlib -name LibSDLMixer1.2-Dev \
-    -depends "Tremor-Dev" -depends "libSDL1.2-Dev"
+  $AB_HOME/add-riscpkg -package libsdl-mixer1.2-dev -unixlib -name LibSDLMixer1.2-Dev -copyrightfile $S/COPYING \
+    -depends "Tremor-Dev" -depends "libSDL1.2-Dev" -depends "libMikMod-Dev"
 }
 
+export LIBS='-logg'
