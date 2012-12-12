@@ -42,5 +42,12 @@ ab_package() {
 
   $AB_HOME/add-riscpkg -package libjpeg8-dev -name LibJPEG8-Dev -section Library -unixlib
 
+  mkdir -p $D/libjpeg8-dev/RiscPkg
+  echo "Desciption: Development files for the IJG JPEG library" >> $D/libjpeg8-dev/RiscPkg/Control,fff
+  echo " The Independent JPEG Group's JPEG library is a library for handling" >> $D/libjpeg8-dev/RiscPkg/Control,fff
+  echo " JPEG files." >> $D/libjpeg8-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libjpeg8-dev/RiscPkg/Control,fff
+  echo " This package contains the static library, headers and documentation." >> $D/libjpeg8-dev/RiscPkg/Control,fff
+
   cd $HERE
 }
