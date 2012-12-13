@@ -3,7 +3,7 @@ AB_INSTALL=yes
 ./autogen.sh
 
 ab_package() {
-  ab_create_app SDLTTD Apps/Library libsdl-ttf2.0-dev
+  ab_create_app SDLTTF Apps/Library libsdl-ttf2.0-dev
 
   HERE=`pwd`
   cd $A
