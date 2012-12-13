@@ -5,7 +5,7 @@ ab_package() {
   ab_create_app SDLGFX Apps/Library libsdl-gfx1.2-dev
 
   HERE=`pwd`
-  cd $A/..
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
