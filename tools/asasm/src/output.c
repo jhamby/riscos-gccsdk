@@ -185,17 +185,17 @@ Output_AOF (void)
   size_t totalAreaSize = 0;
   uint32_t numAreas = 0;
   /* avoid problems with no areas.  */
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
 
-      ap->area.info->number = numAreas++;
-      ap->area.info->numRelocs = relocFix (ap);
-      if (!Area_IsNoInit (ap->area.info))
-	totalAreaSize += FIX (ap->area.info->maxIdx)
-			   + ap->area.info->numRelocs * sizeof (AofReloc);
+      ap->area->number = numAreas++;
+      ap->area->numRelocs = relocFix (ap);
+      if (!Area_IsNoInit (ap->area))
+	totalAreaSize += FIX (ap->area->maxIdx)
+			   + ap->area->numRelocs * sizeof (AofReloc);
     }
 
   SymbolOut_t symOut = Symbol_CreateSymbolOut ();
@@ -206,7 +206,7 @@ Output_AOF (void)
       .Version = armword (310),
       .noAreas = armword (numAreas),
       .noSymbols = armword (symOut.numAllSymbols),
-      .EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->area.info->number + 1 : 0),
+      .EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->area->number + 1 : 0),
       .EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0)
     };
 
@@ -243,7 +243,7 @@ Output_AOF (void)
 
   /* Chunk 0 Header (OBJ_HEAD).  */
   fwrite (&aof_head, 1, sizeof (aof_head), objfile);
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
@@ -252,12 +252,12 @@ Output_AOF (void)
       const AofEntry aof_entry =
 	{
 	  .Name = armword (ap->offset + 4), /* +4 because of extra length entry */
-          .Type = armword (ap->area.info->type & AREA_INT_AOFMASK),
-          .Size = armword (FIX (ap->area.info->maxIdx)),
-          .noRelocations = armword (ap->area.info->numRelocs),
-          .BaseAddr = armword ((ap->area.info->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
+          .Type = armword (ap->area->type & AREA_INT_AOFMASK),
+          .Size = armword (FIX (ap->area->maxIdx)),
+          .noRelocations = armword (ap->area->numRelocs),
+          .BaseAddr = armword ((ap->area->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
 	};
-      if (aof_entry.noRelocations != 0 && Area_IsNoInit (ap->area.info))
+      if (aof_entry.noRelocations != 0 && Area_IsNoInit (ap->area))
 	errorAbortLine (NULL, 0, "Internal Output_AOF: relocations in uninitialised area");
       fwrite (&aof_entry, 1, sizeof (aof_entry), objfile);
     }
@@ -284,19 +284,19 @@ Output_AOF (void)
   Symbol_OutputForAOF (objfile, &symOut);
 
   /* Chunk 4 Area (OBJ_AREA).  */
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
-      if (!Area_IsNoInit (ap->area.info))
+      if (!Area_IsNoInit (ap->area))
 	{
-	  if (fwrite (ap->area.info->image, 1, ap->area.info->maxIdx, objfile)
-	      != ap->area.info->maxIdx)
+	  if (fwrite (ap->area->image, 1, ap->area->maxIdx, objfile)
+	      != ap->area->maxIdx)
 	    errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing %s image", ap->str);
 	  /* Word align the written area.  */
-	  for (unsigned pad = EXTRA (ap->area.info->maxIdx); pad; --pad)
+	  for (unsigned pad = EXTRA (ap->area->maxIdx); pad; --pad)
 	    fputc (0, objfile);
 	  relocAOFOutput (objfile, ap);
 	}
@@ -341,7 +341,7 @@ Output_ELF (void)
   uint32_t numAreas = 0;
   uint32_t numRelocs = 0;
   uint32_t areaSectionID = 3;
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
@@ -349,9 +349,9 @@ Output_ELF (void)
 
       ++numAreas;
 
-      ap->area.info->number = areaSectionID++;
-      ap->area.info->numRelocs = relocFix (ap);
-      if (ap->area.info->numRelocs)
+      ap->area->number = areaSectionID++;
+      ap->area->numRelocs = relocFix (ap);
+      if (ap->area->numRelocs)
 	{
 	  ++areaSectionID;
 	  ++numRelocs;
@@ -429,39 +429,39 @@ Output_ELF (void)
 
   /* Area headers - index 3 */
   int elfIndex = 3;
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
       int areaFlags = 0;
-      if (ap->area.info->type & AREA_CODE)
+      if (ap->area->type & AREA_CODE)
         areaFlags |= SHF_EXECINSTR;
-      if (!(ap->area.info->type & AREA_READONLY))
+      if (!(ap->area->type & AREA_READONLY))
         areaFlags |= SHF_WRITE;
-      if (ap->area.info->type & AREA_COMMONDEF)
+      if (ap->area->type & AREA_COMMONDEF)
         areaFlags |= SHF_COMDEF;
       if (ap == areaEntrySymbol)
         areaFlags |= SHF_ENTRYSECT;
       areaFlags |= SHF_ALLOC;
-      unsigned int sectionSize = FIX (ap->area.info->maxIdx);
-      unsigned int sectionType = !Area_IsNoInit (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
+      unsigned int sectionSize = FIX (ap->area->maxIdx);
+      unsigned int sectionType = !Area_IsNoInit (ap->area) ? SHT_PROGBITS : SHT_NOBITS;
       writeElfSH (shstrsize, sectionType, areaFlags,
 		  ap->value.Data.Int.i,
 		  sectionSize,
                   0,
 		  0,
-		  1 << (ap->area.info->type & AREA_ALIGN_MASK),
+		  1 << (ap->area->type & AREA_ALIGN_MASK),
 		  0,
 		  &offset);
       shstrsize += ap->len + 1;
 
-      if (ap->area.info->numRelocs)
+      if (ap->area->numRelocs)
         {
           /* Relocations.  */
           writeElfSH (shstrsize, SHT_REL, 0, 0,
-	              ap->area.info->numRelocs * sizeof(Elf32_Rel),
+	              ap->area->numRelocs * sizeof(Elf32_Rel),
 	              1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
           shstrsize += sizeof (".rel.")-1 + (ap->str[0] == '.' ? -1 : 0) + ap->len + 1;
           elfIndex++;
@@ -483,24 +483,24 @@ Output_ELF (void)
     fputc (0, objfile);
 
   /* Areas */
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
-      if (!Area_IsNoInit (ap->area.info))
+      if (!Area_IsNoInit (ap->area))
         {
-          if (fwrite (ap->area.info->image, 1, ap->area.info->maxIdx, objfile)
-	      != ap->area.info->maxIdx)
+          if (fwrite (ap->area->image, 1, ap->area->maxIdx, objfile)
+	      != ap->area->maxIdx)
             {
               errorAbortLine (NULL, 0, "Internal Output_ELF: error when writing %s image", ap->str);
               return;
             }
 	  /* Word align the written area.  */
-	  for (unsigned pad = EXTRA (ap->area.info->curIdx); pad; --pad)
+	  for (unsigned pad = EXTRA (ap->area->curIdx); pad; --pad)
 	    fputc (0, objfile);
-          if (ap->area.info->numRelocs)
+          if (ap->area->numRelocs)
             relocELFOutput (objfile, ap);
         }
     }
@@ -509,14 +509,14 @@ Output_ELF (void)
   fputc (0, objfile);
   fwrite (".symtab", 1, sizeof(".symtab"), objfile);
   fwrite (".strtab", 1, sizeof(".strtab"), objfile);
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
       fwrite (ap->str, 1, ap->len + 1, objfile);
-      if (ap->area.info->numRelocs)
+      if (ap->area->numRelocs)
         {
           fwrite (".rel.", 1, sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0), objfile);
           fwrite (ap->str, 1, ap->len + 1, objfile);

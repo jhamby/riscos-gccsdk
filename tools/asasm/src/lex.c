@@ -1295,7 +1295,7 @@ Lex_GetDoubleFloatingPointLiteral (void)
       dblAsInt = 16*dblAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
     }
   double d;
-  if ((areaCurrentSymbol->area.info->type & AREA_VFP) != 0)
+  if ((areaCurrentSymbol->area->type & AREA_VFP) != 0)
     {
       const union arm_double_vfp armdbl_vfp = { .i = dblAsInt };
       const union ieee754_double dbl =

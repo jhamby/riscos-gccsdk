@@ -1,3 +1,26 @@
+Fri Dec 14 19:05:46 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* asm.c (ASM_DefineLabel): Always have a ValueSymbol as value for
+	the label.
+	* symbol.c (SymbolCompare): Simplify after ASM_DefineLabel changes.
+	(Symbol_OutputForAOF): Likewise.
+	(Symbol_OutputForELF): Likewise.
+	(symbolPrint): Follow Symbol changes.
+	* symbol.h (Symbol): Change union area by Area pointer.
+	* value.c (Value_ResolveSymbol): Resolve ValueSymbol when symbol
+	is an area symbol with AREA_BASED or AREA_ABS set.
+	* m_cpuctrl.c, help_cop.c, m_cpumem.c, directive_data.c,
+	variables.c, area.c, area.h, expr.c, output.c, reloc.c, eval.c,
+	lex.c, lit.c, put.c, code.c, it.c, decode.c: Follow changes.
+
+	unittests/compare/reloc:
+	* include/keep_all.s: Add.
+	* keep_all_after.s: Use include/keep_all.s.
+	* keep_all_before.s: Likewise.
+	* ref/keep_all_after_elf.txt, ref/keep_all_before_elf.txt,
+	ref/keep_all_after_aof.txt, ref/keep_all_before_aof.txt: Update.
+
 Mon Dec 10 23:53:47 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/compare/core/instr_clrex_ldrex_strex.s: Simplify.

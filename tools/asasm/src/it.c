@@ -42,9 +42,9 @@ IT_PrepareForPhase (Phase_e phase)
     {
       case ePassTwo:
 	{
-	  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+	  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
 	    {
-	      IT_State_t *itStateP = &ap->area.info->it;
+	      IT_State_t *itStateP = &ap->area->it;
 	      if (itStateP->curIdx != itStateP->maxIdx)
 		{
 		  /* We have a pending IT block.  */
@@ -52,7 +52,7 @@ IT_PrepareForPhase (Phase_e phase)
 		  errorLine (itStateP->fileName, itStateP->lineNum, ErrorError, "note: Pending IT block started here");
 		}
 	      /* Reset any implicit IT block.  */
-	      IT_InitializeState (&ap->area.info->it);
+	      IT_InitializeState (&ap->area->it);
 	    }
 	  break;
 	}
@@ -98,7 +98,7 @@ m_it (bool doLowerCase)
       .curIdx = 0,
       .implicitIT = false,
       /* .cc = ..., */
-      .areaCurIdx = areaCurrentSymbol->area.info->curIdx,
+      .areaCurIdx = areaCurrentSymbol->area->curIdx,
       .fileName = FS_GetCurFileName(),
       .lineNum = FS_GetCurLineNumber()
     };
@@ -135,7 +135,7 @@ m_it (bool doLowerCase)
       return false;
     }
 
-  Area *curAreaP = areaCurrentSymbol->area.info;
+  Area *curAreaP = areaCurrentSymbol->area;
   if (curAreaP->it.curIdx != curAreaP->it.maxIdx)
     {
       /* We have a pending IT block.  */
@@ -176,7 +176,7 @@ IT_StartImplicitIT (IT_State_t *itStateP, uint32_t cc)
       .curIdx = 1,
       .implicitIT = true,
       .cc = cc,
-      .areaCurIdx = areaCurrentSymbol->area.info->curIdx,
+      .areaCurIdx = areaCurrentSymbol->area->curIdx,
       .fileName = FS_GetCurFileName(),
       .lineNum = FS_GetCurLineNumber()
     };
@@ -195,7 +195,7 @@ IT_StartImplicitIT (IT_State_t *itStateP, uint32_t cc)
 void
 IT_ApplyCond (uint32_t cc, bool isThumb)
 {
-  IT_State_t *itStateP = &areaCurrentSymbol->area.info->it;
+  IT_State_t *itStateP = &areaCurrentSymbol->area->it;
   if (itStateP->curIdx != itStateP->maxIdx)
     {
       /* Pending IT block.  */

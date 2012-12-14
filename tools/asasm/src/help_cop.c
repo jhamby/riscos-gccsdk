@@ -74,7 +74,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
       return;
     }
 
-  const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
+  const ARMWord offset = areaCurrentSymbol->area->curIdx;
   Value value;
   const Value *valP = NULL;
   switch (inputLook ())
@@ -254,7 +254,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	      /* This can only happen when the current area is absolute.
 	         The value represents an absolute address.  We translate this
 	         into PC relative one for the current instruction.  */
-	      assert (areaCurrentSymbol->area.info->type & AREA_ABS);
+	      assert (areaCurrentSymbol->area->type & AREA_ABS);
 	      ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
 	      ir |= LHS_OP (15);
 	      ir = Fix_CopOffset (NULL, 0, ir, newOffset);

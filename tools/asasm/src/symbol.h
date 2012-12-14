@@ -90,13 +90,9 @@ typedef struct Symbol
   struct Symbol *next;  /** Linked symbols all having the same hash value.  */
 
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
-  Value value; /** Symbol value.  For ABS area symbol, this is its base address (ValueInt).  For non-ABS area symbol, this is unused.  */
+  Value value; /** Symbol value.  */
   uint32_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
-  union
-    {
-      struct Symbol *rel; /* FIXME: we need to support this better, i.e. this symbol (with ValueInt, ValueAddr) is relative to 'rel' symbol, i.e. only relevant when SYMBOL_ABSOLUTE is *not* set.  */
-      struct AREA *info; /** When SYMBOL_AREA is set.  */
-    } area;
+  struct AREA *area; /** When SYMBOL_AREA is set.  */
   struct Symbol *areaDef; /** Area where this symbol is defined in.  When SYMBOL_AREA is set, this is NULL.  */
 
   /* For output: */

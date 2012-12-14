@@ -93,7 +93,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	}
     }
   
-  const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
+  const ARMWord offset = areaCurrentSymbol->area->curIdx;
   Value value;
   const Value *valP = NULL;
   bool movOptAllowed = false; /* true when MOV/MVN/MOVW optimisation is allowed.  */
@@ -288,7 +288,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 		assert (0);
 	      valP = NULL;
 	    }
-	  else if ((areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
+	  else if ((areaCurrentSymbol->area->type & AREA_ABS) != 0)
 	    {
 	      /* FIXME: MOV/MVN/MOVW would be an option too.  */
 	      value = Value_Addr (15, valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8));
@@ -337,7 +337,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 
   if ((ir & 0x0e000000) == 0 /* Address mode 3.  */
       && (ir & (1<<5)) != 0 /* Half-word.  */
-      && (areaCurrentSymbol->area.info->type & AREA_HALFWORD) == 0
+      && (areaCurrentSymbol->area->type & AREA_HALFWORD) == 0
       && option_aof)
     error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
 
@@ -468,7 +468,7 @@ LdrStrEx (bool isLoad, bool doLowerCase)
     }
 
   if (type == htype
-      && (areaCurrentSymbol->area.info->type & AREA_HALFWORD) == 0
+      && (areaCurrentSymbol->area->type & AREA_HALFWORD) == 0
       && option_aof)
     error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
 

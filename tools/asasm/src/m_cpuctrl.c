@@ -62,8 +62,8 @@ branch_shared (ARMWord cc, bool isBLX)
   /* At this point the current area index can be unaligned for ARM/Thumb
      instructions, upfront correct this index.  */
   const uint32_t instrAlign = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
-  const uint32_t offset = (areaCurrentSymbol->area.info->curIdx + instrAlign-1) & -instrAlign;
-  const uint32_t areaOffset = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+  const uint32_t offset = (areaCurrentSymbol->area->curIdx + instrAlign-1) & -instrAlign;
+  const uint32_t areaOffset = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
 
   exprBuild ();
 
@@ -317,14 +317,14 @@ static void
 ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
 		      bool isADRL, bool canSwitch)
 {
-  uint32_t offset = areaCurrentSymbol->area.info->curIdx;
-  uint32_t areaOffset = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+  uint32_t offset = areaCurrentSymbol->area->curIdx;
+  uint32_t areaOffset = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
 
   /* When we don't have a base register, use PC as base register but only
      for an ABS area.  */
   bool baseRegUnspecified = baseReg < 0;
   if (baseRegUnspecified
-      && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
+      && (areaCurrentSymbol->area->type & AREA_ABS) != 0)
     {
       /* Make constant relative to {PC} + 8.  */
       constant -= areaOffset + offset + 8;
@@ -347,7 +347,7 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
   else
     split[1].num = split[0].num = INT_MAX;
   if (baseRegUnspecified
-      || (baseReg == 15 && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0))
+      || (baseReg == 15 && (areaCurrentSymbol->area->type & AREA_ABS) != 0))
     {
       /* MOV/MVN Rx, #... [ + ADD/SUB Rx, Rx, #... ]  */
       uint32_t absConstant = baseRegUnspecified ? constant : constant + (areaOffset + offset + 8);
@@ -359,7 +359,7 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
   /* MOVW or MOV32 */
   if (Target_CheckCPUFeature (kCPUExt_v6T2, false)
       && (baseRegUnspecified
-          || (baseReg == 15 && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0)))
+          || (baseReg == 15 && (areaCurrentSymbol->area->type & AREA_ABS) != 0)))
     {
       uint32_t absConstant = baseRegUnspecified ? constant : constant + (areaOffset + offset + 8);
       split[4].num = absConstant < 0x10000 ? 1 : INT_MAX; /* MOVW.  */
@@ -389,7 +389,7 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
     sprintf (toEncode, "[r%d, #&%x]", baseReg, constant);
   if (bestScore >= 3 || (bestScore == 2 && !isADRL))
     {
-      if ((areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
+      if ((areaCurrentSymbol->area->type & AREA_ABS) != 0)
 	error (ErrorError, "%s at area offset 0x%x with base address 0x%x can not be used to encode %s",
 	       (isADRL) ? "ADRL" : "ADR", offset, areaOffset, toEncode);
       else
@@ -402,7 +402,7 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
     {
       if (canSwitch)
 	{
-	  if (areaCurrentSymbol->area.info->type & AREA_ABS)
+	  if (areaCurrentSymbol->area->type & AREA_ABS)
 	    error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x with base address 0x%x to encode %s",
 		   offset, areaOffset, toEncode);
 	  else
@@ -411,7 +411,7 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
 	}
       else
 	{
-	  if (areaCurrentSymbol->area.info->type & AREA_ABS)
+	  if (areaCurrentSymbol->area->type & AREA_ABS)
 	    error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x with base address 0x%x to encode %s",
 		   offset, areaOffset, toEncode);
 	  else
@@ -424,7 +424,7 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
   else if (bestScore == 2 && !isADRL && canSwitch)
     {
       /* We switch from ADR to ADRL because there is no other option.  */
-      if (areaCurrentSymbol->area.info->type & AREA_ABS)
+      if (areaCurrentSymbol->area->type & AREA_ABS)
 	error (ErrorWarning, "Using ADRL instead of ADR at area offset 0x%x with base address 0x%x to encode %s",
 	       offset, areaOffset, toEncode);
       else
@@ -522,8 +522,8 @@ m_adr (bool doLowerCase)
       return false;
     }
 
-  uint32_t offset = areaCurrentSymbol->area.info->curIdx;
-  uint32_t areaOffset = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+  uint32_t offset = areaCurrentSymbol->area->curIdx;
+  uint32_t areaOffset = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
   /* If we come here during PassOne, we're at liberty to change ADR into ADRL
    * and/or ADRL into ADR.  When we come here at PassTwo, it might be that this
    * is the first time (as during PassOne we were unable to resolve the ADR(L)

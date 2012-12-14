@@ -1011,9 +1011,9 @@ evalUnop (Operator_e op, Value *value)
 	  else if (value->Data.Symbol.symbol->type & SYMBOL_AREA)
 	    {
 	      if (gPhase == ePassTwo
-		  && value->Data.Symbol.symbol->area.info->curIdx != value->Data.Symbol.symbol->area.info->maxIdx)
+		  && value->Data.Symbol.symbol->area->curIdx != value->Data.Symbol.symbol->area->maxIdx)
 		error (ErrorError, "? on area symbol which gets extended later on");
-	      *value = Value_Int (value->Data.Symbol.symbol->area.info->curIdx, eIntType_PureInt);
+	      *value = Value_Int (value->Data.Symbol.symbol->area->curIdx, eIntType_PureInt);
 	    }
 	  else
 	    {

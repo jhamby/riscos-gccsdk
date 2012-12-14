@@ -62,13 +62,13 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
   Reloc *newReloc;
   if ((newReloc = malloc (sizeof (Reloc))) == NULL)
     errorOutOfMem ();
-  newReloc->next = areaCurrentSymbol->area.info->relocs;
+  newReloc->next = areaCurrentSymbol->area->relocs;
   newReloc->reloc.Offset = offset;
   newReloc->reloc.How = how;
   newReloc->value.Tag = ValueIllegal;
   Value_Assign (&newReloc->value, value);
 
-  areaCurrentSymbol->area.info->relocs = newReloc;
+  areaCurrentSymbol->area->relocs = newReloc;
 
   /* Mark we want this symbol in our output.  */
   if ((newReloc->value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
@@ -87,7 +87,7 @@ relocFix (const Symbol *area)
   /* Calculate the number of relocations, i.e. per Reloc object, count all
      ValueSymbols.  */
   int norelocs = 0;
-  for (const Reloc *relocs = area->area.info->relocs;
+  for (const Reloc *relocs = area->area->relocs;
        relocs != NULL;
        relocs = relocs->next)
     {
@@ -115,7 +115,7 @@ assert (0); /* FIXME: this code can be removed.  */
 void
 relocAOFOutput (FILE *outfile, const Symbol *area)
 {
-  for (const Reloc *relocs = area->area.info->relocs; relocs != NULL; relocs = relocs->next)
+  for (const Reloc *relocs = area->area->relocs; relocs != NULL; relocs = relocs->next)
     {
       AofReloc areloc =
 	{
@@ -169,7 +169,7 @@ assert (0); /* FIXME: this code can be removed.  */
 void
 relocELFOutput (FILE *outfile, const Symbol *area)
 {
-  for (const Reloc *relocs = area->area.info->relocs; relocs != NULL; relocs = relocs->next)
+  for (const Reloc *relocs = area->area->relocs; relocs != NULL; relocs = relocs->next)
     {
       Elf32_Rel areloc =
 	{

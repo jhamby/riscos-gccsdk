@@ -133,7 +133,7 @@ Area_GetBaseReg (const Area *area)
 static inline uint32_t
 Area_GetBaseAddress (const Symbol *symP)
 {
-  assert ((symP->type & SYMBOL_AREA) != 0 && (symP->area.info->type & AREA_ABS) != 0);
+  assert ((symP->type & SYMBOL_AREA) != 0 && (symP->area->type & AREA_ABS) != 0);
   assert (symP->value.Tag == ValueInt);
   return symP->value.Data.Int.i;
 }

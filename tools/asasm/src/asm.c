@@ -96,7 +96,7 @@ ASM_DoPass (const char *asmFile)
 	  size_t len = strlen (fileName);
 	  if (len > 12)
 	    fileName += len - 12;
-	  printf("%.*s : %u : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area.info->curIdx, inputLine ());
+	  printf("%.*s : %u : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area->curIdx, inputLine ());
 #endif
 	  /* Read label (in case there is one).  */
 	  Lex label;
@@ -168,42 +168,21 @@ ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping)
       label = &localLabel;
     }
 
-  Value value;
-  unsigned symbolType;
-  if (areaCurrentSymbol->area.info->type & AREA_BASED)
-    {
-      /* Define label as "ValueAddr AreaBaseReg, #<given area offset>".  */
-      value = Value_Addr (Area_GetBaseReg (areaCurrentSymbol->area.info), offset);
-      symbolType = 0;
-    }
-  else if ((areaCurrentSymbol->area.info->type & AREA_ABS) != 0
-           && !isMapping)
-    {
-      value = Value_Int (Area_GetBaseAddress (areaCurrentSymbol) + offset, eIntType_PureInt);
-      symbolType = SYMBOL_ABSOLUTE;
-    }
-  else
-    {
-      /* Define label as "ValueSymbol(current AREA) + <given area offset>".  */
-      value = Value_Symbol (areaCurrentSymbol, 1, offset);
-      symbolType = 0;
-    }
+  /* Define label as "ValueSymbol(current AREA) + <given area offset>".  */
+  const Value value = Value_Symbol (areaCurrentSymbol, 1, offset);
+  unsigned symbolType = !isMapping && (areaCurrentSymbol->area->type & AREA_ABS) != 0 ? SYMBOL_ABSOLUTE : 0;
 
   /* All Data symbols in code areas need SYMBOL_DATUM bit set.
      Note Area_GetCurrentEntryType() can return eInvalid when we're going
      to define a label at the start of an area which haven't processed
      yet any data or ARM/Thumb instruction.  */
-  if ((areaCurrentSymbol->area.info->type & AREA_CODE) != 0
+  if ((areaCurrentSymbol->area->type & AREA_CODE) != 0
       && Area_GetCurrentEntryType () == eData)
     symbolType |= SYMBOL_DATUM;
 
   Symbol *symbol = Symbol_Get (label);
   if (Symbol_Define (symbol, symbolType, &value))
     return NULL;
-
-  if ((areaCurrentSymbol->area.info->type & AREA_ABS) == 0
-      || isMapping)
-    symbol->area.rel = areaCurrentSymbol;
 
   return symbol;
 }

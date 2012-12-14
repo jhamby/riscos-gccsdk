@@ -88,7 +88,7 @@ static void
 Var_PredefineVariables (void)
 {
   Symbol *sym = Var_Define ("asasm$version", sizeof ("asasm$version")-1,
-			     ValueInt, false);
+			    ValueInt, false);
   if (sym != NULL)
     sym->value.Data.Int.i = ASASM_VERSION;
 }

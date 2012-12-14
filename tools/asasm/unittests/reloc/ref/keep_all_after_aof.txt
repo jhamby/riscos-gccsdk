@@ -2,24 +2,67 @@
 ** AOF Header: Relocatable object format:
 
 AOF version: 310
-1 area
-4 symbols
+4 areas
+21 symbols
 
-** Area (0x000000) "Data", aligned at 4 bytes, [data] 
+** Area (0x000000) "AreaData", aligned at 4 bytes, [data] 
    Size 12 bytes, 0 relocations
 
 000000: 00000000 00000001 00000002
 
+** Area (0x000102) "AreaCode", aligned at 4 bytes, [code] [32bit] 
+   Size 12 bytes, 0 relocations
+
+000000: e3a00000 00000001 00000002
+
+** Area (0x061000) "AreaBased", aligned at 4 bytes, [data] [based r6] 
+   Size 16 bytes, 0 relocations
+
+000000: 00000001 e3a02000 e3a03000 00000005
+
+** Area (0x000103) "AreaABS", aligned at 4 bytes, [code] [abs] [32bit] 
+   Base address 0x0
+   Size 16 bytes, 0 relocations
+
+000000: 00000001 e3a02000 e3a03000 00000005
+
 ** Symbol table:
 
-Data             (01) local at "Data" + 0x000000
-Sym1             (01) local at "Data" + 0x000004
-Sym2             (01) local at "Data" + 0x000008
-$d               (01) local at "Data" + 0x000000
+AreaABS          (05) local, absolute = 0x00000000
+AreaABS1         (05) local, absolute = 0x00000008
+AreaABS2         (105) local, absolute, cadatum = 0x0000000c
+AreaBased        (01) local at "AreaBased" + 0x000000
+AreaBased1       (01) local at "AreaBased" + 0x000008
+AreaBased2       (01) local at "AreaBased" + 0x00000c
+AreaCode         (01) local at "AreaCode" + 0x000000
+AreaCode1        (101) local, cadatum at "AreaCode" + 0x000004
+AreaCode2        (101) local, cadatum at "AreaCode" + 0x000008
+AreaData         (01) local at "AreaData" + 0x000000
+AreaData1        (01) local at "AreaData" + 0x000004
+AreaData2        (01) local at "AreaData" + 0x000008
+$d               (101) local, cadatum at "AreaABS" + 0x000000
+$a               (01) local at "AreaABS" + 0x000004
+$d               (101) local, cadatum at "AreaABS" + 0x00000c
+$d               (01) local at "AreaBased" + 0x000000
+$a               (01) local at "AreaBased" + 0x000004
+$d               (01) local at "AreaBased" + 0x00000c
+$a               (01) local at "AreaCode" + 0x000000
+$d               (101) local, cadatum at "AreaCode" + 0x000004
+$d               (01) local at "AreaData" + 0x000000
 
 ** String table:
 
-000004: Data
-000009: Sym1
-00000e: Sym2
-000013: $d
+000004: AreaABS
+00000c: AreaABS1
+000015: AreaABS2
+00001e: AreaBased
+000028: AreaBased1
+000033: AreaBased2
+00003e: AreaCode
+000047: AreaCode1
+000051: AreaCode2
+00005b: AreaData
+000064: AreaData1
+00006e: AreaData2
+000078: $d
+00007b: $a

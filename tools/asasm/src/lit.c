@@ -159,7 +159,7 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
 
   /* Add new literal at the end of the literal pool.  */
   assert (offsetof (LitPool, next) == 0);
-  LitPool *prevLitP = (LitPool *)&areaCurrentSymbol->area.info->litPool;
+  LitPool *prevLitP = (LitPool *)&areaCurrentSymbol->area->litPool;
   for (/* */; prevLitP->next != NULL; prevLitP = prevLitP->next)
     /* */;
   prevLitP->next = litP;
@@ -179,7 +179,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
   assert (valueP->Tag == ValueInt || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
 
 #ifdef DEBUG_LIT
-  printf ("Lit_RegisterInt(): area offset 0x%x : type %d : ", areaCurrentSymbol->area.info->curIdx, size);
+  printf ("Lit_RegisterInt(): area offset 0x%x : type %d : ", areaCurrentSymbol->area->curIdx, size);
   valuePrint (valueP);
   printf ("\n");
 #endif
@@ -253,7 +253,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
   
   /* Check if we already have the literal assembled in an range of up to
      4095 (address mode 2) or 255 (address mode 3) bytes ago.  */
-  for (const LitPool *litPoolP = areaCurrentSymbol->area.info->litPool;
+  for (const LitPool *litPoolP = areaCurrentSymbol->area->litPool;
        litPoolP != NULL;
        litPoolP = litPoolP->next)
     {
@@ -334,15 +334,15 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 	  if ((symP->type & SYMBOL_DEFINED) != 0)
 	    {
 	      assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol);
-	      assert (gPhase == ePassTwo || areaCurrentSymbol->area.info->curIdx >= litPoolP->offset);
-	      if (areaCurrentSymbol->area.info->curIdx + 8 > litPoolP->offset + offset + ((isAddrMode3) ? 255 : 4095))
+	      assert (gPhase == ePassTwo || areaCurrentSymbol->area->curIdx >= litPoolP->offset);
+	      if (areaCurrentSymbol->area->curIdx + 8 > litPoolP->offset + offset + ((isAddrMode3) ? 255 : 4095))
 		continue;
 
 	      valueFree (&truncValue);
 
 	      /* A literal with the same value got already assembled and is in
 	         our range to refer to.  */
-	      return Value_Addr (15, litPoolP->offset + offset - (areaCurrentSymbol->area.info->curIdx + 8));
+	      return Value_Addr (15, litPoolP->offset + offset - (areaCurrentSymbol->area->curIdx + 8));
 	    }
 	  else
 	    {
@@ -372,7 +372,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
   assert ((size == eLitFloat || size == eLitDouble) && "Incorrect literal size for this routine");
 
 #ifdef DEBUG_LIT
-  printf ("Lit_RegisterFloat(): area offset 0x%x, type %d : ", areaCurrentSymbol->area.info->curIdx, size);
+  printf ("Lit_RegisterFloat(): area offset 0x%x, type %d : ", areaCurrentSymbol->area->curIdx, size);
   valuePrint (valueP);
   printf ("\n");
 #endif
@@ -392,7 +392,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 
   /* Check if we already have the literal assembled in an range of up to
      1020 bytes ago.  */
-  for (const LitPool *litPoolP = areaCurrentSymbol->area.info->litPool;
+  for (const LitPool *litPoolP = areaCurrentSymbol->area->litPool;
        litPoolP != NULL;
        litPoolP = litPoolP->next)
     {
@@ -411,12 +411,12 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 	  if ((symP->type & SYMBOL_DEFINED) != 0)
 	    {
 	      assert (symP->value.Tag == ValueFloat || symP->value.Tag == ValueSymbol);
-	      assert (gPhase == ePassTwo || areaCurrentSymbol->area.info->curIdx >= litPoolP->offset);
-	      if (areaCurrentSymbol->area.info->curIdx + 8 > litPoolP->offset + 1020)
+	      assert (gPhase == ePassTwo || areaCurrentSymbol->area->curIdx >= litPoolP->offset);
+	      if (areaCurrentSymbol->area->curIdx + 8 > litPoolP->offset + 1020)
 		continue;
 	      /* A literal with the same value got already assembled and is in
 	         our range to refer to.  */
-	      return Value_Addr (15, litPoolP->offset - (areaCurrentSymbol->area.info->curIdx + 8));
+	      return Value_Addr (15, litPoolP->offset - (areaCurrentSymbol->area->curIdx + 8));
 	    }
 	  else
 	    {
@@ -438,18 +438,18 @@ void
 Lit_DumpPool (void)
 {
 #ifdef DEBUG_LIT
-  printf ("Lit_DumpPool(), area offset 0x%x\n", areaCurrentSymbol->area.info->curIdx);
+  printf ("Lit_DumpPool(), area offset 0x%x\n", areaCurrentSymbol->area->curIdx);
 #endif
 
   Status_e statusToLeaveAlone = (gPhase == ePassOne) ? eAssembledPassOne : eAssembledPassTwo;
-  for (LitPool *litP = areaCurrentSymbol->area.info->litPool; litP != NULL; litP = litP->next)
+  for (LitPool *litP = areaCurrentSymbol->area->litPool; litP != NULL; litP = litP->next)
     {
       if (litP->status == statusToLeaveAlone || litP->status == eNoNeedToAssemble)
 	continue;
       assert ((gPhase == ePassOne && litP->status == eNotYetAssembled) || (gPhase == ePassTwo && litP->status == eAssembledPassOne));
 
       const size_t alignValue = Lit_GetAlignment (litP);
-      if (gPhase == ePassTwo && litP->offset > ((areaCurrentSymbol->area.info->curIdx + alignValue-1) & -alignValue))
+      if (gPhase == ePassTwo && litP->offset > ((areaCurrentSymbol->area->curIdx + alignValue-1) & -alignValue))
 	break;
 
       litP->status = gPhase == ePassOne ? eAssembledPassOne : eAssembledPassTwo;
@@ -473,7 +473,6 @@ Lit_DumpPool (void)
 
       Symbol *symP = Lit_GetLitOffsetAsSymbol (litP);
       symP->type |= SYMBOL_DEFINED;
-      symP->area.rel = areaCurrentSymbol;
 
       /* Check if it is a fixed integer/float which fits an immediate
          representation.  */
@@ -557,7 +556,7 @@ Lit_DumpPool (void)
 
 	  case ValueFloat:
 	    {
-	      /* Value representable using MVF or MNF ? */
+	      /* Value representable using MVF or MNF ? */ /* FIXME: do this only when FPA is selected. */
 	      ARMFloat constant = litP->value.Data.Float.f;
 	      if (FPE_ConvertImmediate (constant) != (ARMWord)-1
 		  || FPE_ConvertImmediate (-constant) != (ARMWord)-1)
@@ -591,7 +590,7 @@ Lit_DumpPool (void)
 
       /* At this point we're sure we're going to write data in the current
          area.  Mark it as such.  */
-      Area_MarkStartAs (areaCurrentSymbol, areaCurrentSymbol->area.info->curIdx, eData);
+      Area_MarkStartAs (areaCurrentSymbol, areaCurrentSymbol->area->curIdx, eData);
       
       /* Ensure alignment.  */
       switch (litP->size)
@@ -616,11 +615,11 @@ Lit_DumpPool (void)
 	 + ValueInt(offset where literal gets assembled).
 	 The ValueSymbol will be translated to a ValueAddr(pc) at a later
 	 stage.  */
-      Value newSymValue = Value_Symbol (areaCurrentSymbol, 1, areaCurrentSymbol->area.info->curIdx);
+      Value newSymValue = Value_Symbol (areaCurrentSymbol, 1, areaCurrentSymbol->area->curIdx);
       Value_Assign (&symP->value, &newSymValue);
 
-      assert ((gPhase == ePassOne && litP->offset == 0) || (gPhase == ePassTwo && litP->offset == areaCurrentSymbol->area.info->curIdx));
-      litP->offset = areaCurrentSymbol->area.info->curIdx;
+      assert ((gPhase == ePassOne && litP->offset == 0) || (gPhase == ePassTwo && litP->offset == areaCurrentSymbol->area->curIdx));
+      litP->offset = areaCurrentSymbol->area->curIdx;
 
       switch (litP->size)
 	{

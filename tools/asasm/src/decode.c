@@ -431,7 +431,7 @@ decode (const Lex *label)
   /* Deal with empty line quickly.  */
   if (Input_IsEolOrCommentStart ())
     {
-      (void) ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx, false);
+      (void) ASM_DefineLabel (label, areaCurrentSymbol->area->curIdx, false);
       return;
     }
   
@@ -553,7 +553,7 @@ decode (const Lex *label)
       if (!IsPartiallyMatched (&oDecodeTable[indexFound]))
         skipblanks ();
 
-      uint32_t startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area.info->curIdx;
+      uint32_t startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area->curIdx;
       Symbol * const startAreaSymbol = areaCurrentSymbol;
       Value startStorage =
 	{
@@ -675,7 +675,7 @@ decode (const Lex *label)
 	      /* Give warning when ARM/Thumb instructions are being used in
 	         DATA areas.  */
 	      if ((entryType == eARM || entryType == eThumb)
-	          && !(areaCurrentSymbol->area.info->type & AREA_CODE))
+	          && !(areaCurrentSymbol->area->type & AREA_CODE))
 		error (ErrorWarning, "Code generated in data area");
 
 	      /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
@@ -701,7 +701,7 @@ decode (const Lex *label)
 	  if (startAreaSymbol != areaCurrentSymbol)
 	    {
 	      assert (!strcmp (oDecodeTable[indexFound].mnemonic, "AREA"));
-	      startOffset = areaCurrentSymbol->area.info->curIdx;
+	      startOffset = areaCurrentSymbol->area->curIdx;
 	    }
 
 	  /* Determine the code size associated with the label on this line
@@ -712,8 +712,8 @@ decode (const Lex *label)
 	      /* Either we have an increase in code/data in our current area,
 	         either we have an increase in storage map, either non of the
 	         previous (like with "<lbl> * <value>" input).  */
-	      if (areaCurrentSymbol->area.info->curIdx - startOffset != 0)
-		codeSize = areaCurrentSymbol->area.info->curIdx - startOffset;
+	      if (areaCurrentSymbol->area->curIdx - startOffset != 0)
+		codeSize = areaCurrentSymbol->area->curIdx - startOffset;
 	      else
 		{
 		  codeInit ();

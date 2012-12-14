@@ -68,7 +68,7 @@ Symbol_New (const char *str, size_t len)
   result->type = result->offset = 0;
   result->value.Tag = ValueIllegal;
   result->codeSize = 0;
-  result->area.rel /* = result->area.info */ = NULL;
+  result->area = NULL;
   result->areaDef = areaCurrentSymbol;
   result->used = -1;
   result->len = len;
@@ -310,68 +310,32 @@ NeedToOutputSymbol (const Symbol *sym)
 
 
 static int
-SymbolCompare (const void *symPP1, const void *symPP2)
+SymbolCompare (const void *sym1PP, const void *sym2PP)
 {
-  const Symbol *symP1 = *(const Symbol **)symPP1;
-  const Symbol *symP2 = *(const Symbol **)symPP2;
+  const Symbol *sym1P = *(const Symbol **)sym1PP;
+  const Symbol *sym2P = *(const Symbol **)sym2PP;
 
   /* Not sure how the mapping symbols for AOF output needs to be sorted.  */
-  bool isMappingSym1 = Area_IsMappingSymbol (symP1->str) != eInvalid;
-  bool isMappingSym2 = Area_IsMappingSymbol (symP2->str) != eInvalid;
+  bool isMappingSym1 = Area_IsMappingSymbol (sym1P->str) != eInvalid;
+  bool isMappingSym2 = Area_IsMappingSymbol (sym2P->str) != eInvalid;
   if (!option_aof || (!isMappingSym1 && !isMappingSym2)) 
-    return strcasecmp (symP1->str, symP2->str);
+    return strcasecmp (sym1P->str, sym2P->str);
 
   /* AOF: mapping symbols at the end of symbol table.  */
   if (isMappingSym1 != isMappingSym2)
     return isMappingSym1 ? 1 : -1;
   
-  /* AOF: mapping symbols first sorted according to their area name.  */
-  if (symP1->areaDef != symP2->areaDef)
-    return strcasecmp (symP1->areaDef->str, symP2->areaDef->str);
+  /* AOF: mapping symbols first sorted according to their area name, then
+     by their offset in the same area.  */
+  assert (sym1P->value.Tag == ValueSymbol && sym2P->value.Tag == ValueSymbol);
+  assert (sym1P->value.Data.Symbol.factor == 1 && sym2P->value.Data.Symbol.factor == 1); 
+  const Symbol *areaSym1P = sym1P->value.Data.Symbol.symbol;
+  const Symbol *areaSym2P = sym2P->value.Data.Symbol.symbol;
+  if (areaSym1P != areaSym2P)
+    return strcasecmp (areaSym1P->str, areaSym2P->str);
 
-  /* AOF: then sort according to their area offset value (don't sort based
-     on mapping symbol type).  */
-  int v1;
-  switch (symP1->value.Tag)
-    {
-      case ValueAddr:
-	v1 = symP1->value.Data.Addr.i;
-	break;
-
-      case ValueInt:
-	v1 = symP1->value.Data.Int.i;
-	break;
-
-      case ValueSymbol:
-	v1 = symP1->value.Data.Symbol.offset;
-	break;
-
-      default:
-	v1 = 0;
-	assert (0);
-	break;
-    }
-  int v2;
-  switch (symP2->value.Tag)
-    {
-      case ValueAddr:
-	v2 = symP2->value.Data.Addr.i;
-	break;
-
-      case ValueInt:
-	v2 = symP2->value.Data.Int.i;
-	break;
-
-      case ValueSymbol:
-	v2 = symP2->value.Data.Symbol.offset;
-	break;
-
-      default:
-	v2 = 0;
-	assert (0);
-	break;
-    }
-  return v1 - v2;
+  /* AOF: then sort according to their area offset value.  */
+  return sym1P->value.Data.Symbol.offset - sym2P->value.Data.Symbol.offset;
 }
 
 
@@ -486,6 +450,9 @@ Symbol_CreateSymbolOut (void)
 	  int mappingSymbolindex;
 	  switch (type)
 	    {
+	      default:
+		assert (0);
+		/* Fall through.  */
 	      case eARM:
 		mappingSymbolindex = 0;
 		break;
@@ -528,7 +495,7 @@ Symbol_CreateSymbolOut (void)
 	          symbols also have an entry in the symbol table as
 	          STT_SECTION).  */
       if (option_aof)
-	sym->used = (sym->type & SYMBOL_AREA) ? sym->area.info->number : symbolIndex;
+	sym->used = (sym->type & SYMBOL_AREA) ? sym->area->number : symbolIndex;
       else
 	sym->used = symbolIndex + 1;
     }
@@ -595,12 +562,12 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 
       if (sym->type & SYMBOL_AREA)
 	{
-	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area.info->type & AREA_ABS) != 0));
+	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area->type & AREA_ABS) != 0));
 	  const AofSymbol asym =
 	    {
 	      .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
 	      .Type = armword (SYMBOL_LOCAL | (sym->type & SYMBOL_ABSOLUTE)),
-	      .Value = armword ((sym->area.info->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0),
+	      .Value = armword ((sym->area->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0),
 	      .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
 	    };
 	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
@@ -611,36 +578,50 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	  if (sym->type & SYMBOL_DEFINED)
 	    {
 	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
-	      const Value *value;
+	      const Value *valueP;
 	      if (sym->value.Tag == ValueCode)
 		{
 		  codeInit ();
-		  value = codeEvalLow (ValueAll, sym->value.Data.Code.len,
-				       sym->value.Data.Code.c, NULL);
+		  valueP = codeEvalLow (ValueAll, sym->value.Data.Code.len,
+					sym->value.Data.Code.c, NULL);
 		}
 	      else
-		value = &sym->value;
+		valueP = &sym->value;
 
-	      /* We can only have Addr, Int and Symbol here.
-		 Addr is possible for an area mapping symbol when base
-		 register is specified.  */
+	      /* We can only have Int and Symbol here.  */
 	      int v;
-	      switch (value->Tag)
+	      const Symbol *relToAreaSymP;
+	      switch (valueP->Tag)
 		{
-		  case ValueAddr:
-		    v = value->Data.Addr.i;
-		    break;
-
-		  case ValueInt:
-		    v = value->Data.Int.i;
+		  case ValueInt: /* FIXME: can this still happen ? */
+		    v = valueP->Data.Int.i;
+		    relToAreaSymP = NULL;
 		    break;
 
                   case ValueSymbol:
-		    v = value->Data.Symbol.offset;
-		    break;
+		    {
+		      v = valueP->Data.Symbol.offset;
+		      relToAreaSymP = valueP->Data.Symbol.symbol;
+		      /* Resolve absolute area labels (but not for mapping
+		         labels).  */
+		      if ((relToAreaSymP->type & SYMBOL_AREA) != 0
+			  && (relToAreaSymP->area->type & AREA_ABS) != 0
+		          && !Area_IsMappingSymbol (sym->str))
+			{
+			  v += valueP->Data.Symbol.factor * Area_GetBaseAddress (relToAreaSymP);
+			  relToAreaSymP = NULL;
+			}
+		      else if (valueP->Data.Symbol.factor != 1)
+			{
+			  error (ErrorError, "Unable to export symbol %s", sym->str);
+			  continue;
+			}
+		      break;
+		    }
 
 		  default:
 		    assert (!"Wrong value tag selection");
+		    relToAreaSymP = NULL;
 		    v = 0;
 		    break;
 		}
@@ -653,7 +634,9 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	      asym.Value = armword (v);
 	      /* When it is a non-absolute symbol, we need to specify the
 	         area name to which this symbol is relative to.  */
-	      asym.AreaName = armword ((sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->area.rel->offset + 4);
+	      assert (((sym->type & SYMBOL_ABSOLUTE) == 0) == (relToAreaSymP != NULL)); 
+	      assert (relToAreaSymP == NULL || (relToAreaSymP->type & SYMBOL_AREA) != 0);
+	      asym.AreaName = armword (relToAreaSymP != NULL ? relToAreaSymP->offset + 4 : 0);
 	    }
 	  else
 	    {
@@ -691,12 +674,12 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 
       if (sym->type & SYMBOL_AREA)
 	{
-	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area.info->type & AREA_ABS) != 0));
+	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area->type & AREA_ABS) != 0));
 	  assert (SYMBOL_KIND (sym->type) == 0);
           asym.st_name = 0;
-	  asym.st_value = (sym->area.info->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0;
+	  asym.st_value = (sym->area->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0;
 	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
-	  asym.st_shndx = sym->area.info->number;
+	  asym.st_shndx = sym->area->number;
 	  assert (asym.st_shndx >= 3);
 	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
@@ -706,41 +689,57 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	  if (sym->type & SYMBOL_DEFINED)
 	    {
 	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
-	      const Value *value;
+	      const Value *valueP;
 	      if (sym->value.Tag == ValueCode)
 		{
 		  codeInit ();
-		  value = codeEvalLow (ValueAll, sym->value.Data.Code.len,
-				       sym->value.Data.Code.c, NULL);
+		  valueP = codeEvalLow (ValueAll, sym->value.Data.Code.len,
+					sym->value.Data.Code.c, NULL);
 		}
 	      else
-		value = &sym->value;
+		valueP = &sym->value;
 
-	      /* We can only have Addr, Int and Symbol here.
-		 Addr is possible for an area mapping symbol when base
-		 register is specified.  */
+	      /* We can only have Int and Symbol here.  */
 	      int v;
-	      switch (value->Tag)
+	      const Symbol *relToAreaSymP;
+	      switch (valueP->Tag)
 		{
-		  case ValueAddr:
-		    v = value->Data.Addr.i;
-		    break;
-
-		  case ValueInt:
-		    v = value->Data.Int.i;
+		  case ValueInt: /* FIXME: can this still happen ? */
+		    v = valueP->Data.Int.i;
+		    relToAreaSymP = NULL;
 		    break;
 
                   case ValueSymbol:
-		    v = value->Data.Symbol.offset;
-		    break;
+		    {
+		      v = valueP->Data.Symbol.offset;
+		      relToAreaSymP = valueP->Data.Symbol.symbol;
+		      /* Resolve absolute area labels (but not for mapping
+		         labels).  */
+		      if ((relToAreaSymP->type & SYMBOL_AREA) != 0
+			  && (relToAreaSymP->area->type & AREA_ABS) != 0
+		          && !Area_IsMappingSymbol (sym->str))
+			{
+			  v += valueP->Data.Symbol.factor * Area_GetBaseAddress (relToAreaSymP);
+			  relToAreaSymP = NULL;
+			}
+		      else if (valueP->Data.Symbol.factor != 1)
+			{
+			  error (ErrorError, "Unable to export symbol %s", sym->str);
+			  continue;
+			}
+		      break;
+		    }
 
 		  default:
 		    assert (!"Wrong value tag selection");
+		    relToAreaSymP = NULL;
 		    v = 0;
 		    break;
 		}
 	      asym.st_value = v;
-	      asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) && !Area_IsMappingSymbol (sym->str) ? SHN_ABS : sym->areaDef->area.info->number;
+	      assert (((sym->type & SYMBOL_ABSOLUTE) == 0) == (relToAreaSymP != NULL));
+	      assert (relToAreaSymP == NULL || (relToAreaSymP->type & SYMBOL_AREA) != 0);
+	      asym.st_shndx = relToAreaSymP != NULL ? relToAreaSymP->area->number : SHN_ABS;
 	    }
 	  else
 	    {
@@ -1233,48 +1232,40 @@ c_import (void)
 void
 symbolPrint (const Symbol *sym)
 {
-  static const char *symkind[4] = { "UNKNOWN", "LOCAL", "REFERENCE", "GLOBAL" };
-  printf ("\"%s\": %s /",
+  static const char * const symkind[4] = { "unknown", "local", "reference", "global" };
+  printf ("\"%s\": %s",
           sym->str, symkind[SYMBOL_KIND (sym->type)]);
   assert (strlen (sym->str) == (size_t)sym->len);
-  /* The Symbol::area.info (or Symbol::area.rel) is non-NULL iff the symbol is
-     an area name symbol or we have a relative symbol.  */
-  assert (!(sym->type & SYMBOL_DEFINED) || ((sym->type & SYMBOL_AREA) || !(sym->type & SYMBOL_ABSOLUTE)) == (sym->area.info != NULL));
+  assert (sym->area == NULL || ((sym->type & SYMBOL_DEFINED) != 0 && (sym->type & SYMBOL_AREA) != 0 && sym->area != NULL));
 
   /* Dump the symbol attributes:  */
-  if (!(sym->type & SYMBOL_AREA))
-    {
-      if (sym->type & SYMBOL_ABSOLUTE)
-	printf ("absolute/");
-      else if (sym->type & SYMBOL_DEFINED)
-	printf ("relative to %s/", sym->area.rel ? sym->area.rel->str : "NULL ???");
-    }
+  if (sym->type & SYMBOL_ABSOLUTE)
+    printf (", absolute");
   if (sym->type & SYMBOL_NOCASE)
-    printf ("caseinsensitive/");
+    printf (", caseinsensitive");
   if (sym->type & SYMBOL_WEAK)
-    printf ("weak/");
+    printf (", weak");
   if (sym->type & SYMBOL_STRONG)
-    printf ("strong/");
+    printf (", strong");
   if (sym->type & SYMBOL_COMMON)
-    printf ("common/");
+    printf (", common");
   if (sym->type & SYMBOL_DATUM)
-    printf ("datum/");
+    printf (", datum");
   if (sym->type & SYMBOL_FPREGARGS)
-    printf ("fp args in regs/");
+    printf (", fp args in regs");
   if (sym->type & SYMBOL_LEAF)
-    printf ("leaf/");
+    printf (", leaf");
   if (sym->type & SYMBOL_THUMB)
-    printf ("thumb/");
+    printf (", thumb");
   /* Internal attributes: */
-  printf (" * /");
   if (sym->type & SYMBOL_MACRO_LOCAL)
-    printf ("local macro/");
+    printf (", local macro");
   if (sym->type & SYMBOL_RW)
-    printf ("rw/");
+    printf (", rw");
   if (sym->type & SYMBOL_KEEP)
-    printf ("keep/");
+    printf (", keep");
   if (sym->type & SYMBOL_AREA)
-    printf ("area %p/", (void *)sym->area.info);
+    printf (", area %p", (void *)sym->area);
 
   printf (", def area \"%s\", size %" PRIu32 ", offset 0x%x, used %d : ",
           sym->areaDef ? sym->areaDef->str : "<NULL>",

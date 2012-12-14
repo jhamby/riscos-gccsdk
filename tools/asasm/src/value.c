@@ -31,6 +31,7 @@
 #  include <inttypes.h>
 #endif
 
+#include "area.h"
 #include "code.h"
 #include "error.h"
 #include "expr.h"
@@ -132,11 +133,28 @@ Value_ResolveSymbol (Value *valueP)
   /* FIXME: this can probably loop forever: label1 -> label2 -> label1 */
   while (valueP->Tag == ValueSymbol /* Only replace symbols... */
          && ((valueP->Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0
-             || ((valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0
-		 && (valueP->Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) != 0)))
+             || (valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0)) /* FIXME: make all SYMBOL_AREA -> SYMBOL_LOCAL so we can drop this test ? */
     {
       int offset = valueP->Data.Symbol.offset;
       int factor = valueP->Data.Symbol.factor;
+
+      if ((valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0)
+	{
+	  /* Label symbol.  */
+	  struct AREA *areaP = valueP->Data.Symbol.symbol->area; 
+	  if ((areaP->type & AREA_BASED) != 0)
+	    {
+	      if (factor != 1)
+		return true;
+
+	      /* Define label as "ValueAddr AreaBaseReg, #<given area offset>".  */
+	      *valueP = Value_Addr (Area_GetBaseReg (areaP), offset);
+	    }
+	  else if ((areaP->type & AREA_ABS) != 0)
+	    *valueP = Value_Int (factor * Area_GetBaseAddress (valueP->Data.Symbol.symbol) + offset, eIntType_PureInt);
+	  break;
+	}
+
       const Value *newValueP = &valueP->Data.Symbol.symbol->value;
       switch (newValueP->Tag)
 	{
@@ -148,6 +166,7 @@ Value_ResolveSymbol (Value *valueP)
 	      *valueP = *newValueP;
 	      break;
 	    }
+
 	  case ValueInt:
 	    if (newValueP->Data.Int.type == eIntType_PureInt)
 	      *valueP = Value_Int (factor * newValueP->Data.Int.i + offset, eIntType_PureInt);
@@ -156,12 +175,15 @@ Value_ResolveSymbol (Value *valueP)
 	    else
 	      return true;
 	    break;
+
 	  case ValueInt64:
 	    *valueP = Value_Int64 (factor * newValueP->Data.Int.i + offset);
 	    break;
+
 	  case ValueFloat:
 	    *valueP = Value_Float (factor * newValueP->Data.Float.f + offset);
 	    break;
+
 	  case ValueAddr:
 	    {
 	      if (factor != 1)
@@ -169,13 +191,16 @@ Value_ResolveSymbol (Value *valueP)
 	      *valueP = Value_Addr (newValueP->Data.Addr.r, newValueP->Data.Addr.i + offset);
 	      break;
 	    }
+
 	  case ValueSymbol:
 	    *valueP = Value_Symbol (newValueP->Data.Symbol.symbol, factor * newValueP->Data.Symbol.factor, factor * newValueP->Data.Symbol.offset + offset);
 	    break;
+
 	  default:
 	    return true;
 	}
     }
+
   return false;
 }
 

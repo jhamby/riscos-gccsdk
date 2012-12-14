@@ -95,7 +95,7 @@ codeSymbol (Symbol *symbol, int offset)
 void
 codePosition (Symbol *area, int offset)
 {
-  if (area->area.info->type & AREA_ABS)
+  if (area->area->type & AREA_ABS)
     codeInt (Area_GetBaseAddress (area) + offset);
   else
     codeSymbol (area, offset);
