@@ -21,6 +21,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -63,9 +64,10 @@ static void
 PreDefReg_One (const char *regname, size_t namelen, int value, IntType_e type)
 {
   const Lex l = Lex_Id (regname, namelen);
-  Symbol *s = Symbol_Get (&l);
-  s->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE; /* FIXME: SYMBOL_ABSOLUTE needed ? */
-  s->value = Value_Int (value, type);
+  Symbol *symP = Symbol_Get (&l);
+  const Value val = Value_Int (value, type);
+  bool result = Symbol_Define (symP, SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, &val);
+  assert (!result);
 }
 
 /**

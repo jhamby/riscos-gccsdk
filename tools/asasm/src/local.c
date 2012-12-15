@@ -220,7 +220,7 @@ Local_DefineLabel (unsigned labelNum)
 	  Symbol *valueSymbol = Symbol_Get (&valueLex);
 	  const Value valueValue = Value_Symbol (valueSymbol, 1, 0);
 
-          bool err = Symbol_Define (keySymbol, SYMBOL_DEFINED | SYMBOL_ABSOLUTE, &valueValue);
+          bool err = Symbol_Define (keySymbol, SYMBOL_NO_EXPORT, &valueValue);
 	  assert (!err);
 	  
 	  prevFwdLocalP->nextP = fwdLocalP->nextP;

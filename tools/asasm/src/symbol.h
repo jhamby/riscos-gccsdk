@@ -73,10 +73,12 @@
 /* The following are 'asasm' internal SYMBOL attribute values only and should
    not be output in the AOF output file.  */
 
-#define SYMBOL_READONLY		0x08000000 /* Imported symbol from a READONLY
+#define SYMBOL_READONLY		0x04000000 /* Imported symbol from a READONLY
   area.  */
-#define SYMBOL_MACRO_LOCAL	0x10000000 /** Set when symbol is only known as
+#define SYMBOL_MACRO_LOCAL	0x08000000 /** Set when symbol is only known as
   a local macro variable.  */
+#define SYMBOL_NO_EXPORT	0x10000000 /** Do not export this symbol, even
+  with SYMBOL_KEEP.  */
 #define SYMBOL_RW		0x20000000 /** GBLL, GBLA, GBLS, LBLL, LBLA or LBLS, i.e. a read-write symbol.  */
 #define SYMBOL_KEEP		0x40000000 /* Symbol needs to come in output,
   even if it is local.  Not when its value does not allow it.  */
@@ -90,11 +92,15 @@ typedef struct Symbol
   struct Symbol *next;  /** Linked symbols all having the same hash value.  */
 
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
-  Value value; /** Symbol value.  */
+  Value value; /** Symbol value.  For symbol labels, this is always a ValueSymbol
+    with symbol an area symbol.  */
   uint32_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
-  struct AREA *area; /** When SYMBOL_AREA is set.  */
-  struct Symbol *areaDef; /** Area where this symbol is defined in.  When SYMBOL_AREA is set, this is NULL.  */
+  struct AREA *area; /** Area when SYMBOL_AREA is set, otherwise NULL.  */
 
+  /* First reference, or definition.  */
+  const char *fileName;
+  unsigned lineNumber;
+  
   /* For output: */
   uint32_t offset; /** In Symbol_CreateSymbolOut() (called from Output_AOF()
     and Output_ELF()): symbol's offset position in symbol table (for AOF,

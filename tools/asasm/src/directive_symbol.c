@@ -74,7 +74,16 @@ Define (const char *msg, Symbol *sym, ValueTag legal, IntType_e intType)
 	    }
 
 	  if (!failed)
-	    failed = Symbol_Define (sym, SYMBOL_ABSOLUTE, &valueDef);
+	    {
+	      /* We allow export for pure integers, i.e. for the "Foo EQU 42"
+	         case.  */
+	      unsigned symbolType;
+	      if (valueDef.Tag == ValueInt && valueDef.Data.Int.type == eIntType_PureInt)
+		symbolType = SYMBOL_ABSOLUTE;
+	      else
+		symbolType = SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT;
+	      failed = Symbol_Define (sym, symbolType, &valueDef);
+	    }
 	}
     }
 
@@ -121,10 +130,14 @@ c_cp (Symbol *symbol)
 
 /**
  * Implements EQU and *.
+ *   <symbol> EQU <expression>, <attribute>
  */
 bool
 c_equ (Symbol *symbol)
 {
+  /* FIXME: <attribute> parsing.  */
+  /* FIXME: ObjAsm limits EQU to ValueInt | ValueAddr | ValueSymbol, should
+     we do the same ? */
   Define ("* or EQU", symbol, ValueAll, 0);
   return false;
 }
@@ -179,6 +192,6 @@ c_rlist (Symbol *symbol)
       return false;
     }
   const Value rlistValue = Value_Int (Get_CPURList (), eIntType_CPURList);
-  Symbol_Define (symbol, SYMBOL_ABSOLUTE, &rlistValue);
+  Symbol_Define (symbol, SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, &rlistValue);
   return false;
 }

@@ -1,3 +1,31 @@
+Sat Dec 15 15:31:54 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* local.c (Local_DefineLabel): Use SYMBOL_NO_EXPORT i.s.o.
+	SYMBOL_DEFINED | SYMBOL_ABSOLUTE for Symbol_Define.
+	* directive_symbol.c (Define): Use SYMBOL_NO_EXPORT for non-pure
+	integer values for Symbol_Define.
+	(c_equ): Use SYMBOL_NO_EXPORT for Symbol_Define.
+	* directive_storagemap.c (StorageMap_Value): Tighten assert.
+	(c_alloc); Use SYMBOL_NO_EXPORT for Symbol_Define.
+	* predef_reg.c (PreDefReg_One): Use Symbol_Define.
+	* symbol.h (Symbol): Remove areaDef, add fileName and lineNumber.
+	(SYMBOL_NO_EXPORT): Add.
+	* symbol.c (Symbol_New): Follow Symbol changes.
+	(Symbol_Define): Remove already-defined subtest. Follow Symbol changes.
+	(NeedToOutputSymbol): Simplify by using SYMBOL_NO_EXPORT.
+	(Symbol_CreateSymbolOut): Remove filename and linenumber of unused
+	IMPORT or EXPORT statement.
+	(Symbol_OutputForAOF): Add asserts.
+	(Symbol_OutputForELF): Likewise.
+	(symbolPrint): Add SYMBOL_NO_EXPORT support.
+	* variables.c (c_lcl): Follow Symbol::areaDef removal.
+
+	unittests/compare/reloc:
+	* src/include/keep_all.s: Enhance.
+	* ref/keep_all_before_elf.txt, ref/keep_all_before_aof.txt,
+	ref/keep_all_after_elf.txt, ref/keep_all_after_aof.txt: Update.
+
 Fri Dec 14 19:05:46 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

@@ -47,7 +47,7 @@ static Value oStorageMapValue =
 const Value *
 StorageMap_Value (void)
 {
-  assert (oStorageMapValue.Tag == ValueInt || oStorageMapValue.Tag == ValueAddr || oStorageMapValue.Tag == ValueSymbol || oStorageMapValue.Tag == ValueCode);
+  assert ((oStorageMapValue.Tag == ValueInt && oStorageMapValue.Data.Int.type == eIntType_PureInt) || oStorageMapValue.Tag == ValueAddr || oStorageMapValue.Tag == ValueSymbol || oStorageMapValue.Tag == ValueCode);
   return &oStorageMapValue;
 }
 
@@ -93,21 +93,20 @@ c_alloc (const Lex *lex)
 {
   switch (lex->tag)
     {
+      default:
+	assert (0);
+	/* Fall through.  */
       case LexNone:
 	break;
 
       case LexId:
-	if (Symbol_Define (Symbol_Get (lex), SYMBOL_ABSOLUTE, StorageMap_Value ()))
+	if (Symbol_Define (Symbol_Get (lex), SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, StorageMap_Value ()))
 	  return false;
 	break;
 
       case LexLocalLabel:
 	error (ErrorError, "Local label is not allowed here");
 	return false;
-
-      default:
-	assert (0);
-	break;
     }
 
   /* Determine how much we should allocate.  */

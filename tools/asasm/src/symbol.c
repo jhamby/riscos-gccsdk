@@ -41,6 +41,7 @@
 #include "elf.h"
 #include "error.h"
 #include "expr.h"
+#include "filestack.h"
 #include "get.h"
 #include "global.h"
 #include "input.h"
@@ -69,7 +70,8 @@ Symbol_New (const char *str, size_t len)
   result->value.Tag = ValueIllegal;
   result->codeSize = 0;
   result->area = NULL;
-  result->areaDef = areaCurrentSymbol;
+  result->fileName = FS_GetCurFileName ();
+  result->lineNumber = FS_GetCurLineNumber ();
   result->used = -1;
   result->len = len;
   memcpy (result->str, str, len);
@@ -162,13 +164,8 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
   Value newValueCopy = { .Tag = ValueIllegal };
   if (symbol->type & SYMBOL_DEFINED)
     {
-      if (symbol->areaDef
-          && symbol->areaDef != areaCurrentSymbol
-          && (symbol->type & SYMBOL_ABSOLUTE) == 0)
-        {
-          error (ErrorError, "Symbol %s is already defined in area %s", symbol->str, symbol->areaDef->str);
-          return true;
-        }
+      /* When a symbol is already defined, we can only overrule its value when
+         that value was ValueIllegal, or when the value is exactly the same.  */
       if (symbol->value.Tag != ValueIllegal)
 	{
 	  bool diffValue;
@@ -224,7 +221,6 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 	}
     }
   symbol->type |= newSymbolType | SYMBOL_DEFINED;
-  symbol->areaDef = areaCurrentSymbol;
   Value_Assign (&symbol->value, newValue);
 
   if (newValue == &newValueCopy)
@@ -299,12 +295,10 @@ NeedToOutputSymbol (const Symbol *sym)
 	errorLine (NULL, 0, ErrorWarning, "Symbol %s is marked with KEEP but has unsuitable value for export", sym->str);
     }
 
-  bool doOutput = (((SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
+  bool doOutput = ((SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
 		    || (SYMBOL_KIND(sym->type) == SYMBOL_LOCAL && (oKeepAllSymbols || (sym->type & SYMBOL_KEEP) != 0 || oExportAllSymbols)))
-		   && ((sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt) || sym->value.Tag == ValueAddr || sym->value.Tag == ValueSymbol))
-                  || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used == 0))
-		  && (sym->type & SYMBOL_RW) == 0
-		  && !Local_IsLocalLabel (sym->str);
+                   || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used == 0))
+		  && (sym->type & (SYMBOL_RW | SYMBOL_NO_EXPORT)) == 0;
   return doOutput;
 }
 
@@ -369,12 +363,7 @@ Symbol_CreateSymbolOut (void)
 		{
 		  /* Check for undefined exported and unused imported symbols.  */
 		  if (SYMBOL_KIND (sym->type) == SYMBOL_REFERENCE)
-		    {
-		      if (Area_IsImplicit (sym->areaDef))
-			errorLine (NULL, 0, ErrorWarning, "Symbol %s is imported but not used, or exported but not defined", sym->str);
-		      else
-			errorLine (NULL, 0, ErrorWarning, "In area %s, symbol %s is imported but not used, or exported but not defined", sym->areaDef->str, sym->str);
-		    }
+		    errorLine (sym->fileName, sym->lineNumber, ErrorWarning, "Symbol %s is imported but not used, or exported but not defined", sym->str);
 		}
 	      else if (SYMBOL_KIND (sym->type) == 0)
 		{
@@ -578,6 +567,7 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	  if (sym->type & SYMBOL_DEFINED)
 	    {
 	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
+assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: is codeEvalLow still needed ? */
 	      const Value *valueP;
 	      if (sym->value.Tag == ValueCode)
 		{
@@ -593,7 +583,9 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	      const Symbol *relToAreaSymP;
 	      switch (valueP->Tag)
 		{
-		  case ValueInt: /* FIXME: can this still happen ? */
+		  case ValueInt:
+		    /* Typically use of EQU or * on pure integers.  */
+		    assert (valueP->Data.Int.type == eIntType_PureInt);
 		    v = valueP->Data.Int.i;
 		    relToAreaSymP = NULL;
 		    break;
@@ -689,6 +681,7 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	  if (sym->type & SYMBOL_DEFINED)
 	    {
 	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
+assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: is codeEvalLow still needed ? */
 	      const Value *valueP;
 	      if (sym->value.Tag == ValueCode)
 		{
@@ -704,7 +697,9 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	      const Symbol *relToAreaSymP;
 	      switch (valueP->Tag)
 		{
-		  case ValueInt: /* FIXME: can this still happen ? */
+		  case ValueInt:
+		    /* Typically use of EQU or * on pure integers.  */
+		    assert (valueP->Data.Int.type == eIntType_PureInt);
 		    v = valueP->Data.Int.i;
 		    relToAreaSymP = NULL;
 		    break;
@@ -1260,6 +1255,8 @@ symbolPrint (const Symbol *sym)
   /* Internal attributes: */
   if (sym->type & SYMBOL_MACRO_LOCAL)
     printf (", local macro");
+  if (sym->type & SYMBOL_NO_EXPORT)
+    printf (", no export");
   if (sym->type & SYMBOL_RW)
     printf (", rw");
   if (sym->type & SYMBOL_KEEP)
@@ -1267,8 +1264,7 @@ symbolPrint (const Symbol *sym)
   if (sym->type & SYMBOL_AREA)
     printf (", area %p", (void *)sym->area);
 
-  printf (", def area \"%s\", size %" PRIu32 ", offset 0x%x, used %d : ",
-          sym->areaDef ? sym->areaDef->str : "<NULL>",
+  printf (", size %" PRIu32 ", offset 0x%x, used %d : ",
           sym->codeSize, sym->offset, sym->used);
   valuePrint (&sym->value);
 }

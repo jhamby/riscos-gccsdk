@@ -279,7 +279,6 @@ c_lcl (void)
 	  p->symbol = *symbolP;
 	  /* Reset Symbol parts which won't get touched by Var_Define().  */
 	  symbolP->codeSize = 0;
-	  symbolP->areaDef = areaCurrentSymbol;
 	}
       gCurPObjP->d.macro.varListP = p;
     }
