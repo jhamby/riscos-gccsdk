@@ -72,6 +72,8 @@ Symbol_New (const char *str, size_t len)
   result->area = NULL;
   result->fileName = FS_GetCurFileName ();
   result->lineNumber = FS_GetCurLineNumber ();
+  result->aligned = 0;
+  result->visibility = 0;
   result->used = -1;
   result->len = len;
   memcpy (result->str, str, len);
@@ -670,7 +672,9 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	  assert (SYMBOL_KIND (sym->type) == 0);
           asym.st_name = 0;
 	  asym.st_value = (sym->area->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0;
+	  asym.st_size = 0; /* No the area size.  */
 	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
+	  asym.st_other = sym->visibility;
 	  asym.st_shndx = sym->area->number;
 	  assert (asym.st_shndx >= 3);
 	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
@@ -739,10 +743,11 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 	  else
 	    {
 	      /* SYMBOL_REFERENCE */
-	      asym.st_value = 0;
-	      asym.st_shndx = SHN_UNDEF;
+	      asym.st_value = (sym->type & SYMBOL_COMMON) ? sym->aligned : 0;
+	      asym.st_shndx = (sym->type & SYMBOL_COMMON) ? SHN_COMMON : SHN_UNDEF;
 	    }
-	  /* FIXME: support for SYMBOL_COMMON ? */
+	  asym.st_size = sym->codeSize;
+	  asym.st_other = sym->visibility;
 
 	  int bind;
 	  if (((sym->type & SYMBOL_WEAK) != 0 || oAllExportSymbolsAreWeak) && !Area_IsMappingSymbol (sym->str))
@@ -759,14 +764,12 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 		    bind = STB_LOCAL;
 		    break;
 		  case SYMBOL_REFERENCE:
-		    bind = STB_GLOBAL;
-		    break;
 		  case SYMBOL_GLOBAL:
 		    bind = STB_GLOBAL;
 		    break;
 		}
 	    }
-	  asym.st_info = ELF32_ST_INFO (bind, STT_NOTYPE);
+	  asym.st_info = ELF32_ST_INFO (bind, (sym->type & SYMBOL_COMMON) ? STT_OBJECT : STT_NOTYPE);
 	  if (asym.st_shndx == (Elf32_Half)-1)
 	    errorAbort ("Internal symbolSymbolELFOutput: unable to find section id for symbol %s", sym->str);
 	  else
@@ -808,6 +811,107 @@ ParseSymbolAndAdjustFlag (unsigned int flags, const char *err)
   else
     sym->type |= flags;
   return sym;
+}
+
+
+/**
+ * Implements COMMON
+ *   COMMON symbol{,size{,alignment}} {[attr]}
+ * with attr DYNAMIC, PROTECTED, HIDDEN or INTERNAL.
+ */
+bool
+c_common (void)
+{
+  Symbol *commonSym = ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE | SYMBOL_COMMON, "marked as COMMON");
+  if (commonSym == NULL)
+    {
+      error (ErrorError, "Missing symbol");
+      return false;
+    }
+
+  skipblanks ();
+  uint32_t commonSize = 0;
+  uint32_t commonAlignment = 4;
+  unsigned commonVisibility = STV_DEFAULT;
+  if (!Input_IsEolOrCommentStart ())
+    {
+      if (!Input_Match (',', true))
+	{
+	  error (ErrorError, "Missing ,");
+	  return false;
+	}
+      const Value *valueSizeP = exprBuildAndEval (ValueInt);
+      switch (valueSizeP->Tag)
+	{
+	  case ValueInt:
+	    if (valueSizeP->Data.Int.type == eIntType_PureInt)
+	      break;
+	    /* Fall through.  */
+
+	  default:
+	    error (ErrorError, "Illegal COMMON size expression");
+	    return true;
+	}
+      commonSize = valueSizeP->Data.Int.i;
+
+      skipblanks ();
+      if (!Input_IsEolOrCommentStart ())
+	{
+	  if (!Input_Match (',', true))
+	    {
+	      error (ErrorError, "Missing ,");
+	      return false;
+	    }
+	  const Value *valueAlignmentP = exprBuildAndEval (ValueInt);
+	  switch (valueAlignmentP->Tag)
+	    {
+	      case ValueInt:
+		if (valueAlignmentP->Data.Int.type == eIntType_PureInt)
+		  break;
+		/* Fall through.  */
+
+	      default:
+		error (ErrorError, "Illegal COMMON size expression");
+		return true;
+	    }
+	  commonAlignment = valueAlignmentP->Data.Int.i;
+	  if (commonAlignment == 0 || (commonAlignment & (commonAlignment - 1)) != 0)
+	    {
+	      error (ErrorError, "Alignment value needs to be a power of 2");
+	      commonAlignment = 4;
+	    }
+
+          skipblanks ();
+	  if (!Input_IsEndOfKeyword ())
+	    {
+	      const Lex attribute = lexGetIdNoError ();
+	      const char * const attrs[] =
+		{
+		  /* Same order as STV_* values.  */
+		  "DYNAMIC", "INTERNAL", "HIDDEN", "PROTECTED"
+		};
+	      size_t i;
+	      for (i = 0; i != sizeof (attrs) / sizeof (attrs[0]); ++i)
+		{
+		  if (attribute.tag == LexId
+		      && !strcmp (attribute.Data.Id.str, attrs[i]))
+		    break;
+		}
+	      if (i == sizeof (attrs) / sizeof (attrs[0]))
+		{
+		  error (ErrorError, "Missing or wrong type of attribute");
+		  return true;
+		}
+	      commonVisibility = (unsigned)i;
+	    }
+	}
+    }
+  commonSym->value = Value_Int (commonSize, eIntType_PureInt);
+  commonSym->codeSize = commonSize;
+  commonSym->aligned = commonAlignment;
+  commonSym->visibility = commonVisibility;
+
+  return false;
 }
 
 
@@ -1066,7 +1170,7 @@ c_export (void)
 	  do
 	    {
 	      if (ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE, "exported") == NULL)
-		error (ErrorError, "Missing symbol to export");
+		error (ErrorError, "Missing symbol");
 	      skipblanks ();
 	    } while (Input_Match (',', true));
 	}
@@ -1103,7 +1207,7 @@ c_strong (void)
     return true;
 
   if (ParseSymbolAndAdjustFlag (SYMBOL_STRONG, "marked as STRONG") == NULL)
-    error (ErrorError, "Missing symbol to mark as STRONG");
+    error (ErrorError, "Missing symbol");
   return false;
 }
 
@@ -1135,7 +1239,7 @@ c_leaf (void)
     return true;
 
   if (ParseSymbolAndAdjustFlag (SYMBOL_LEAF, "marked as LEAF") == NULL)
-    error (ErrorError, "Missing symbol to mark as LEAF");
+    error (ErrorError, "Missing symbol");
   return false;
 }
 
@@ -1144,6 +1248,7 @@ c_leaf (void)
  *   IMPORT <symbol> { "[" <qualifier list> "]" } { ", WEAK" }
  *   IMPORT <symbol> { ", FPREGARGS" } { ", WEAK" }
  * FIXME: support ELF attributes
+ * FIXME: there is a difference betweein IMPORT and EXTERN
  */
 bool
 c_import (void)
@@ -1209,6 +1314,7 @@ c_import (void)
 	{
 	  const Value value = Value_Int(result.commonSize, eIntType_PureInt);
 	  Value_Assign (&sym->value, &value);
+	  sym->codeSize = result.commonSize;
 	}
       else if (result.basedRegNum != -1)
 	{

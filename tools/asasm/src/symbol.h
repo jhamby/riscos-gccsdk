@@ -49,7 +49,7 @@
   resolve to the non-strong definition.  */
 #define SYMBOL_COMMON    0x0040 /* Only if SYMBOL_REFERENCE.  If set, the
   symbol is a reference to a common area with the symbol's name. The length of
-  the common area is given by the symbol's <Value> field (see above).  */
+  the common area is given by the symbol's <Value> field.  */
 
 #define SYMBOL_DATUM     0x0100	/* Set for data symbol defined in code area.  */
 #define SYMBOL_FPREGARGS 0x0200	/* FP args in FP regs attribute, for code symbols only.  */
@@ -93,13 +93,19 @@ typedef struct Symbol
 
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
   Value value; /** Symbol value.  For symbol labels, this is always a ValueSymbol
-    with symbol an area symbol.  */
-  uint32_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
+    with symbol an area symbol.
+    For SYMBOL_COMMON symbols, this is the size of the common block it represents.  */
+  uint32_t codeSize; /** Size of the code associated with this symbol label
+    (for AREA symbol, this is unused).
+    For SYMBOL_COMMON symbols, this is also its size.  */
   struct AREA *area; /** Area when SYMBOL_AREA is set, otherwise NULL.  */
 
   /* First reference, or definition.  */
   const char *fileName;
   unsigned lineNumber;
+
+  unsigned aligned; /** ELF alignment value.  Not supported in AOF.  */
+  unsigned visibility:2; /** ELF symbol visibility.  Not supported in AOF.  */
   
   /* For output: */
   uint32_t offset; /** In Symbol_CreateSymbolOut() (called from Output_AOF()
@@ -149,6 +155,7 @@ void Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP);
 void Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP);
 void Symbol_FreeSymbolOut (SymbolOut_t *symOutP);
 
+bool c_common (void);
 bool c_export (void);
 bool c_import (void);
 bool c_keep (void);

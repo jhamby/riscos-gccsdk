@@ -144,7 +144,7 @@ static const decode_table_t oDecodeTable[] =
   { "CNF", eCB_VoidPMatch, 1, 1, { .vdpm = m_cnf } }, /* CNF CC or CNFE CC */
   { "CODE16", eCB_NoLex, 0, 0, { .nolex = c_code16 } }, /* CODE16 */
   { "CODE32", eCB_NoLex, 0, 0, { .nolex = c_code32 } }, /* ARM/CODE32 */
-  /* FIXME: COMMON */
+  { "COMMON", eCB_NoLex, 0, 0, { .nolex = c_common } }, /* COMMON */
   { "COS", eCB_VoidPMatch, 1, 1, { .vdpm = m_cos } }, /* COS CC P R */
   { "CP", eCB_Symbol, 0, 0, { .sym = c_cp } }, /* CP */
   { "CPS", eCB_VoidPMatch, 1, 1, { .vdpm = m_cps } }, /* CPS */

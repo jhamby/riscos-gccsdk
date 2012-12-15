@@ -110,6 +110,9 @@ Area_Create (Symbol *sym, uint32_t type)
   newAreaP->maxIdx = 0;
 
   newAreaP->entryType = eInvalid;
+
+  newAreaP->fileName = FS_GetCurFileName ();
+  newAreaP->lineNumber = FS_GetCurLineNumber ();
   
   newAreaP->relocs = NULL;
 
@@ -241,16 +244,18 @@ Area_PrepareForPhase (Phase_e phase)
 	      /* Skip suggestion when:
 	          - READONLY area, as NOINIT can not be combined with READONLY.
 	          - zero size area
+	          - any relocs FIXME:
 	          - non-zero data is in area.
 	       */
 	      if ((areaP->type & (AREA_READONLY | AREA_UDATA)) == 0
+	          && areaP->relocs == NULL
 	          && areaP->maxIdx != 0)
 		{
 		  uint32_t i;
 		  for (i = 0; i != areaP->maxIdx && areaP->image[i] == 0; ++i)
 		    /* */;
 		  if (i == areaP->maxIdx)
-		    error (ErrorInfo, "Area %s only contains zero bytes, use NOINIT area attribute ?", areaSymP->str);
+		    errorLine (areaP->fileName, areaP->lineNumber, ErrorInfo, "Area %s only contains zero bytes, use NOINIT area attribute ?", areaSymP->str);
 		}
 	    }
 	  

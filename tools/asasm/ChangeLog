@@ -1,3 +1,37 @@
+Sat Dec 15 20:39:32 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* area.h (Area): Add fileName, lineNumber fields.
+	* area.c (Area_Create): Initialise Area::fileName, Area::lineNumber.
+	(Area_PrepareForPhase): Add check number of relocs before suggesting
+	NOINIT.
+	* symbol.h (Symbol): Add aligned, visibility fields.
+	* symbol.c (Symbol_New): Initialise Symbol::aligned, Symbol::visibility.
+	(Symbol_OutputForELF): Add support for SYMBOL_COMMON.
+	(c_common): Add.
+	(c_import): Update Symbol::codeSize for SYMBOL_COMMON imported symbols.
+	* decode.c (oDecodeTable): Add COMMON entry.
+	* elf.h (STV_*, ELF32_ST_VISIBILITY): Add.
+	* eval.c (evalUnop): Support eOp_Size for common symbols.
+
+	unittests/compare/reloc:
+	* src/common.s: Add.
+	* src/import_qualifiers.template: Move to...
+	* src/include/import_qualifiers.template: ...here.
+	* src/export_qualifiers.template: Move to...
+	* src/include/export_qualifiers.template: ...here.
+	* src/area_apcs_softfp.s: Follow import_qualifiers.template,
+	export_qualifiers.template move.
+	* src/area_apcs_hardfp.s, src/area_apcs_fpa.s,
+	src/export_qualifiers.s, src/area_apcs_vfp.s: Likewise.
+	* src/import_qualifiers.s: Follow import_qualifiers.template move.
+	Enhance test.
+	* ref/symbol_datum_attribute_elf.txt: Update reference.
+	* ref/import_qualifiers_elf.txt, ref/export_all_elf.txt,
+	ref/keep_one_symbol_elf.txt, ref/export_weak_all_elf.txt,
+	ref/export_label_elf.txt, ref/keep_all_after_elf.txt,
+	ref/keep_all_before_elf.txt: Likewise.
+
 Sat Dec 15 15:31:54 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

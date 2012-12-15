@@ -140,6 +140,13 @@ typedef __s64	Elf64_Sxword;
 #define ELF32_ST_TYPE(x) (((unsigned int) x) & 0xf)
 #define ELF32_ST_INFO(b, t) (((b)<<4)+((t)&0xf))
 
+#define STV_DEFAULT   0
+#define STV_INTERNAL  1
+#define STV_HIDDEN    2
+#define STV_PROTECTED 3 
+
+#define ELF32_ST_VISIBILITY(o)       ((o)&0x3)
+
 /* Symbolic values for the entries in the auxiliary table
    put on the initial stack */
 #define AT_NULL   0	/* end of vector */

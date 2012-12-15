@@ -1,4 +1,4 @@
-	GET import_qualifiers.template
+	GET include/import_qualifiers.template
 
 	DoImport FPREGARGS
 	DoImport NOFPREGARGS
@@ -18,6 +18,7 @@
 
 	IMPORT	ImpCOMMON [ COMMON =  3*4  ]
 	DCD	ImpCOMMON
+	ASSERT	?ImpCOMMON = 12
 
 	; Empty qualifier list:
 	IMPORT ImpEmptyList []

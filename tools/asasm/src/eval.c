@@ -1006,7 +1006,7 @@ evalUnop (Operator_e op, Value *value)
 	      error (ErrorError, "Bad operand type for %s", "? operator");
 	      return false;
 	    }
-	  if (value->Data.Symbol.symbol->type & SYMBOL_DEFINED)
+	  if ((value->Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_COMMON)) != 0)
 	    *value = Value_Int (value->Data.Symbol.symbol->codeSize, eIntType_PureInt);
 	  else if (value->Data.Symbol.symbol->type & SYMBOL_AREA)
 	    {
@@ -1018,7 +1018,7 @@ evalUnop (Operator_e op, Value *value)
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "? is not supported for non defined labels");
+		error (ErrorError, "Undefined symbol");
 	      return false;
 	    }
 	  break;

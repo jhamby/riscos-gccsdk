@@ -106,6 +106,9 @@ typedef struct AREA
   uint32_t maxIdx;
 
   Area_eEntryType entryType;
+
+  const char *fileName;
+  unsigned lineNumber;
   
   struct RELOC *relocs;
 
