@@ -452,35 +452,32 @@ namespace riscos
 				}
 			}
 
-			new public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
-			public delegate void ClickEventHandler (object sender, ClickEventArgs e);
-
 			/*! \brief The event handlers that will be called just before the Select clicked object
 			 * is shown.  */
-			public event AboutToBeShownEventHandler SelectClickAboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> SelectClickAboutToBeShown;
 
 			/*! \brief The event handlers that will be called just before the Adjust clicked object
 			 * is shown.  */
-			public event AboutToBeShownEventHandler AdjustClickAboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AdjustClickAboutToBeShown;
 
 			/*! \brief The event handlers that will be called when Select is clicked on the %Iconbar
 			 * icon.
 			 * 
 			 * The SelectClickEvent property must be set in order for this event to be raised.  */
-			public event ToolboxEventHandler SelectClick;
+			public event EventHandler<ToolboxEventArgs> SelectClick;
 
 			/*! \brief The event handlers that will be called when Adjust is clicked on the %Iconbar
 			 * icon.
 			 * 
 			 * The AdjustClickEvent property must be set in order for this event to be raised.  */
-			public event ToolboxEventHandler AdjustClick;
+			public event EventHandler<ToolboxEventArgs> AdjustClick;
 
 			/*! \brief The event handlers that will be called when any button is clicked on the %Iconbar
 			 * icon.
 			 * 
 			 * This is the handler for the default event which is raised when the SelectClickEvent and
 			 * AdjustClickEvent properties are not set.  */
-			public event ClickEventHandler Click;
+			public event EventHandler<ClickEventArgs> Click;
 
 			/*! \class AboutToBeShownEventArgs
 			 * \brief An object that encapsulates the arguments for an AboutTobeShown event.  */

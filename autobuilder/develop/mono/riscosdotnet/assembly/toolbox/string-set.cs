@@ -65,9 +65,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a ValueChange event handler.  */
-			public delegate void ValueChangeEventHandler (object sender, ValueChangeEventArgs e);
-
 			/*! \brief The event handlers that will be called when the value of this %StringSet
 			 * changes.
 			 *
@@ -79,23 +76,20 @@ namespace riscos
 			 * \code
 			 * StringSetObject.ValueChange += handler_name;
 			 * \endcode  */
-			public event ValueChangeEventHandler ValueChange;
-
-			/*! \brief The signature of an AboutToBeShown event handler.  */
-			public delegate void AboutToBeShownEventHandler (object sender, ToolboxEventArgs e);
+			public event EventHandler<ValueChangeEventArgs> ValueChange;
 
 			/*! \brief The event handlers that will be called when the %StringSet menu is about
 			 * to be shown.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ValueChangeEventArgs e);
+			 * void handler_name (object sender, ToolboxEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * StringSetObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<ToolboxEventArgs> AboutToBeShown;
 
 			/*! \brief Wrap an existing string set, e.g., from a Resource file created
 			 * Window.  */

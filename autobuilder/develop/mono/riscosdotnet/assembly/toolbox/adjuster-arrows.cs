@@ -55,9 +55,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a Click event handler.  */
-			public delegate void ClickEventHandler (object sender, ClickEventArgs e);
-
 			/*! \brief The event handlers that will be called when this %AdjusterArrow is clicked.
 			 *
 			 * Handlers should have the signature:
@@ -68,7 +65,7 @@ namespace riscos
 			 * \code
 			 * AdjusterArrowObject.Click += handler_name;
 			 * \endcode  */
-			public event ClickEventHandler Click;
+			public event EventHandler<ClickEventArgs> Click;
 
 			/*! \brief Wrap an existing %AdjusterArrow, e.g., from a Resource file created
 			 * Window.  */

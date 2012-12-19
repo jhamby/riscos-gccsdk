@@ -155,9 +155,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a DialogueCompleted event handler.  */
-			public delegate void DialogueCompletedEventHandler (object sender, ToolboxEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this Quit Dialogue is shown.
 			 *
 			 * Handlers should have the signature:
@@ -168,7 +165,7 @@ namespace riscos
 			 * \code
 			 * QuitDialogueObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -180,7 +177,7 @@ namespace riscos
 			 * \code
 			 * QuitDialogueObject.DialogueCompleted += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler DialogueCompleted;
+			public event EventHandler<ToolboxEventArgs> DialogueCompleted;
 
 			/*! \brief The event handlers that will be called when a Quit event is raised.
 			 *
@@ -192,7 +189,7 @@ namespace riscos
 			 * \code
 			 * QuitDialogueObject.ClickQuit += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler ClickQuit;
+			public event EventHandler<ToolboxEventArgs> ClickQuit;
 
 			/*! \brief The event handlers that will be called when a Cancel event is raised.
 			 *
@@ -204,7 +201,7 @@ namespace riscos
 			 * \code
 			 * QuitDialogueObject.ClickCancel += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler ClickCancel;
+			public event EventHandler<ToolboxEventArgs> ClickCancel;
 		}
 	}
 }

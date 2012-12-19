@@ -323,7 +323,7 @@ namespace riscos
 			 * \code
 			 * PrintDialogueObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -335,7 +335,7 @@ namespace riscos
 			 * \code
 			 * PrintDialogueObject.DialogueCompleted += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler DialogueCompleted;
+			public event EventHandler<ToolboxEventArgs> DialogueCompleted;
 
 			/*! \brief The event handlers that will be called just before the Print module is going
 			 * to show its underlying Window object.
@@ -348,20 +348,22 @@ namespace riscos
 			 * \code
 			 * PrintDialogueObject.SetUpAboutToBeShown += handler_name;
 			 * \endcode  */
-			public event SetUpAboutToBeShownEventHandler SetUpAboutToBeShown;
+			public event EventHandler<SetUpAboutToBeShownEventArgs> SetUpAboutToBeShown;
 
 			/*! \brief The event handlers that will be called when the user clicks on the \b Save
 			 * button.
+			 * The client should save any options associated with this Print Dialogue (usually
+			 * in a document which is being edited.
 			 * 
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, PrintDialogue.SaveClickEventArgs e);
+			 * void handler_name (object sender, PrintDialogue.PrintSaveEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * PrintDialogueObject.ClickSave += handler_name;
 			 * \endcode  */
-			public event PrintSaveEventHandler ClickSave;
+			public event EventHandler<PrintSaveEventArgs> ClickSave;
 
 			/*! \brief The event handlers that will be called when the user clicks on the \b Set \b Up
 			 * button.
@@ -374,23 +376,20 @@ namespace riscos
 			 * \code
 			 * PrintDialogueObject.ClickSetUp += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler ClickSetUp;
+			public event EventHandler<ToolboxEventArgs> ClickSetUp;
 
 			/*! \brief The event handlers that will be called when the user clicks on the \b Print
 			 * button or presses Return.
 			 * 
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, PrintDialogue.PrintClickEventArgs e);
+			 * void handler_name (object sender, PrintDialogue.PrintSaveEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * PrintDialogueObject.ClickPrint += handler_name;
 			 * \endcode  */
-			public event PrintSaveEventHandler ClickPrint;
-
-			public delegate void PrintSaveEventHandler (object sender, PrintSaveEventArgs e);
-			public delegate void SetUpAboutToBeShownEventHandler (object sender, SetUpAboutToBeShownEventArgs e);
+			public event EventHandler<PrintSaveEventArgs> ClickPrint;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * just before the SetUp object is shown on screen.  */
@@ -456,10 +455,8 @@ namespace riscos
 				}
 			}
 
-			/*! \brief This event is raised when the user clicks on the \b Save button.
-			 *
-			 * The client should save any options associated with this Print Dialogue (usually
-			 * in a document which is being edited.  */
+			/*! \brief An object that encapsulates the arguments for the event that is raised
+			 * when the user clicks on either the Print or Save buttons.  */
 			public class PrintSaveEventArgs : ToolboxEventArgs
 			{
 				/*! \brief Constants defining event specific data offsets after the header.  */

@@ -215,7 +215,7 @@ namespace riscos
 			 * \code
 			 * DCSDialogueObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -227,7 +227,7 @@ namespace riscos
 			 * \code
 			 * DCSObject.DialogueCompleted += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler DialogueCompleted;
+			public event EventHandler<ToolboxEventArgs> DialogueCompleted;
 
 			/*! \brief The event handlers that will be called when the user clicks on the
 			 * \b Discard button.
@@ -240,7 +240,7 @@ namespace riscos
 			 * \code
 			 * DCSObject.ClickDiscard += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler ClickDiscard;
+			public event EventHandler<ToolboxEventArgs> ClickDiscard;
 
 			/*! \brief The event handlers that will be called when the user clicks on the
 			 * \b Save button.
@@ -253,7 +253,7 @@ namespace riscos
 			 * \code
 			 * DCSObject.ClickSave += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler ClickSave;
+			public event EventHandler<ToolboxEventArgs> ClickSave;
 
 			/*! \brief The event handlers that will be called when the user clicks on the
 			 * \b Cancel button.
@@ -266,7 +266,7 @@ namespace riscos
 			 * \code
 			 * DCSObject.ClickCancel += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler ClickCancel;
+			public event EventHandler<ToolboxEventArgs> ClickCancel;
 		}
 	}
 }

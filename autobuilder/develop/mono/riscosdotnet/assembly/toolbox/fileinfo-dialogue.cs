@@ -264,20 +264,17 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a DialoguedCompleted event handler.  */
-			public delegate void DialogueCompletedEventHandler (object sender, ToolboxEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this FileInfo Dialogue is shown.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
+			 * void handler_name (object sender, Object.AboutToBeShownEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * FileInfoDialogueObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -289,7 +286,7 @@ namespace riscos
 			 * \code
 			 * FileInfoDialogueObject.DialogueCompleted += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler DialogueCompleted;
+			public event EventHandler<ToolboxEventArgs> DialogueCompleted;
 		}
 	}
 }

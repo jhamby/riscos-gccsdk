@@ -128,9 +128,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a DragStart event handler.  */
-			public delegate void DragStartEventHandler (object sender, DragStartEventArgs e);
-
 			/*! \brief The event handlers that will be called when a drag is initiated on this
 			 * %Draggable.
 			 *
@@ -142,10 +139,7 @@ namespace riscos
 			 * \code
 			 * DraggableObject.DragStart += handler_name;
 			 * \endcode  */
-			public event DragStartEventHandler DragStart;
-
-			/*! \brief The signature of a DragEnd event handler.  */
-			public delegate void DragEndEventHandler (object sender, DragEndEventArgs e);
+			public event EventHandler<DragStartEventArgs> DragStart;
 
 			/*! \brief The event handlers that will be called when a drag from this
 			 * %Draggable is ended.
@@ -158,7 +152,7 @@ namespace riscos
 			 * \code
 			 * DraggableObject.DragEnd += handler_name;
 			 * \endcode  */
-			public event DragEndEventHandler DragEnd;
+			public event EventHandler<DragEndEventArgs> DragEnd;
 
 			/*! \brief Wrap an existing draggable, e.g., from a Resource file created
 			 * Window.  */

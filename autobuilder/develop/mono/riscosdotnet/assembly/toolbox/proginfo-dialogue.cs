@@ -195,10 +195,7 @@ namespace riscos
 			 * \code
 			 * ProgInfoObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The signature of a DialogueCompleted event handler.  */
-			public delegate void DialogueCompletedEventHandler (object sender, ToolboxEventArgs e);
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -210,7 +207,7 @@ namespace riscos
 			 * \code
 			 * ProgInfoObject.DialogueCompleted += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler DialogueCompleted;
+			public event EventHandler<ToolboxEventArgs> DialogueCompleted;
 		}
 	}
 }

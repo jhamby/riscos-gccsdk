@@ -70,9 +70,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a Click event handler.  */
-			public delegate void ClickEventHandler(object sender, ClickEventArgs e);
-
 			/*! \brief The event handlers that will be called when this ActionButton is selected.
 			 *
 			 * \note Although the event name is \b Click the event can be raised as the result of,
@@ -86,7 +83,7 @@ namespace riscos
 			 * \code
 			 * ActionButtonObject.Click += handler_name;
 			 * \endcode  */
-			public event ClickEventHandler Click;
+			public event EventHandler<ClickEventArgs> Click;
 
 			/*! \brief Wrap an existing action button, e.g., from a Resource file created
 			 * Window.  */

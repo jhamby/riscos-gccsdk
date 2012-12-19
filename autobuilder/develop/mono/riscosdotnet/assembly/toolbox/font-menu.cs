@@ -139,8 +139,6 @@ namespace riscos
 				}
 			}
 
-			public delegate void FontSelectionEventHandler (object sender, FontSelectionEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this %FontMenu is shown.
 			 *
 			 * Handlers should have the signature:
@@ -151,32 +149,32 @@ namespace riscos
 			 * \code
 			 * FontMenuObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event MenuAboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<MenuAboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this %FontMenu has been hidden.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * void handler_name (object sender, ToolboxEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * FontMenuObject.HasBeenHidden += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler HasBeenHidden;
+			public event EventHandler<ToolboxEventArgs> HasBeenHidden;
 
 			/*! \brief The event handlers that will be called when the user has clicked on one of the
 			 * font entries in the %FontMenu.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, FontMenu.FontSelectionEventHandler e);
+			 * void handler_name (object sender, FontMenu.FontSelectionEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * FontMenuObject.Selection += handler_name;
 			 * \endcode  */
-			public event FontSelectionEventHandler FontSelection;
+			public event EventHandler<FontSelectionEventArgs> FontSelection;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * when a font selection is made by the user.  */

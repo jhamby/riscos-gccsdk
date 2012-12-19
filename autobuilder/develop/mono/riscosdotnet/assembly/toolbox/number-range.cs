@@ -50,9 +50,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a ValueChange event handler.  */
-			public delegate void ValueChangeEventHandler (object sender, ValueChangeEventArgs e);
-
 			/*! \brief The event handlers that will be called when the value of this NumberRange
 			 * changes.
 			 *
@@ -64,7 +61,7 @@ namespace riscos
 			 * \code
 			 * NumberRangeObject.ValueChange += handler_name;
 			 * \endcode  */
-			public event ValueChangeEventHandler ValueChange;
+			public event EventHandler<ValueChangeEventArgs> ValueChange;
 
 			/*! \brief Wrap an existing number range, e.g., from a Resource file created
 			 * Window.  */

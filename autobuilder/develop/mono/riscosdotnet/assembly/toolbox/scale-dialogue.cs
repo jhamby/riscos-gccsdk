@@ -305,9 +305,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a ApplyFactor event handler.  */
-			public delegate void ApplyFactorEventHandler (object sender, ApplyFactorEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this Scale Dialogue is shown.
 			 *
 			 * Handlers should have the signature:
@@ -318,7 +315,7 @@ namespace riscos
 			 * \code
 			 * ScaleDialogueObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -330,7 +327,7 @@ namespace riscos
 			 * \code
 			 * ScaleDialogueObject.DialogueCompleted += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler DialogueCompleted;
+			public event EventHandler<ToolboxEventArgs> DialogueCompleted;
 
 			/*! \brief The event handlers that will be called when the use clicks \e OK in the
 			 * dialogue box.
@@ -343,7 +340,7 @@ namespace riscos
 			 * \code
 			 * ScaleDialogueObject.ApplyFactor += handler_name;
 			 * \endcode  */
-			public event ApplyFactorEventHandler ApplyFactor;
+			public event EventHandler<ApplyFactorEventArgs> ApplyFactor;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * when the user clicks on the \b Scale button or the \b Scale \b To \b Fit button

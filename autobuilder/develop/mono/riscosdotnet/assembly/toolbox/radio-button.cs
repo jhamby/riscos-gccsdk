@@ -88,9 +88,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a StateChange event handler.  */
-			public delegate void StateChangeEventHandler (object sender, StateChangeEventArgs e);
-
 			/*! \brief The event handlers that will be called when the state
 			 * of this RadioButton changes.
 			 *
@@ -102,7 +99,7 @@ namespace riscos
 			 * \code
 			 * RadioButtonObject.StateChange += handler_name;
 			 * \endcode  */
-			public event StateChangeEventHandler StateChange;
+			public event EventHandler<StateChangeEventArgs> StateChange;
 
 			/*! \brief Wrap an existing radio button, e.g., from a Resource file created
 			 * Window.  */

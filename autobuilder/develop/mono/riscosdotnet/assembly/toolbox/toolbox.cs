@@ -205,10 +205,6 @@ namespace riscos
 			}
 		}
 
-		/*! \brief The signature of a Toolbox Event handler that does not contain any data
-		 * other than the event header.  */
-		public delegate void ToolboxEventHandler (object sender, ToolboxEventArgs args);
-
 		/*! \brief The base object of all Toolbox objects.  */
 		public class Object : IDisposable, IEquatable<Object>
 		{
@@ -710,13 +706,6 @@ namespace riscos
 												    out r1,
 												    out r2));
 			}
-
-			/*! \brief The signature of an AboutToBeShown event handler for a Window based object.  */
-			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
-
-
-			/*! \brief The signature of an AboutToBeShown event handler for a Menu based object.  */
-			public delegate void MenuAboutToBeShownEventHandler (object sender, MenuAboutToBeShownEventArgs e);
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * just before an object is shown on screen.  */

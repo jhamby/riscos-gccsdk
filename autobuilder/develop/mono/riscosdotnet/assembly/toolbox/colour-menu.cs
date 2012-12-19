@@ -216,8 +216,6 @@ namespace riscos
 				}
 			}
 
-			public delegate void SelectionEventHandler (object sender, SelectionEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this %ColourMenu is shown.
 			 *
 			 * Handlers should have the signature:
@@ -228,32 +226,32 @@ namespace riscos
 			 * \code
 			 * ColourMenuObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event MenuAboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<MenuAboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this %ColourMenu has been hidden.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * void handler_name (object sender, ToolboxEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * ColourMenuObject.HasBeenHidden += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler HasBeenHidden;
+			public event EventHandler<ToolboxEventArgs> HasBeenHidden;
 
 			/*! \brief The event handlers that will be called when the user has clicked on one of the
 			 * colour entries in the %ColourMenu.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * void handler_name (object sender, ColourMenu.SelectionEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * ColourMenuObject.Selection += handler_name;
 			 * \endcode  */
-			public event SelectionEventHandler Selection;
+			public event EventHandler<SelectionEventArgs> Selection;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * when a colour selection is made by the user.  */

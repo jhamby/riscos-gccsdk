@@ -271,9 +271,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a ApplyFont event handler.  */
-			public delegate void ApplyFontEventHandler (object sender, ApplyFontEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this Font Dialogue is shown.
 			 *
 			 * Handlers should have the signature:
@@ -284,7 +281,7 @@ namespace riscos
 			 * \code
 			 * FontDialogueObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -296,7 +293,7 @@ namespace riscos
 			 * \code
 			 * FontDialogueObject.DialogueCompleted += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler DialogueCompleted;
+			public event EventHandler<ToolboxEventArgs> DialogueCompleted;
 
 			/*! \brief The event handlers that will be called when a selection has been made
 			 * in the Font Dialogue.
@@ -309,7 +306,7 @@ namespace riscos
 			 * \code
 			 * FontDialogueObject.ApplyFont += handler_name;
 			 * \endcode  */
-			public event ApplyFontEventHandler ApplyFont;
+			public event EventHandler<ApplyFontEventArgs> ApplyFont;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * when a Font Dialogue box selection has been made.  */

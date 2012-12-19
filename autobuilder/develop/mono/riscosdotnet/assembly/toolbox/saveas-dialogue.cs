@@ -281,15 +281,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a DialogueCompleted event handler.  */
-			public delegate void DialogueCompletedEventHandler (object sender, DialogueCompletedEventArgs e);
-
-			/*! \brief The signature of a SaveToFile event handler.  */
-			public delegate void SaveToFileEventHandler (object sender, SaveToFileEventArgs e);
-
-			/*! \brief The signature of a FillBuffer event handler.  */
-			public delegate void FillBufferEventHandler (object sender, FillBufferEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this %SaveAs is shown.
 			 *
 			 * Handlers should have the signature:
@@ -300,7 +291,7 @@ namespace riscos
 			 * \code
 			 * SaveAsObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -312,7 +303,7 @@ namespace riscos
 			 * \code
 			 * SaveAsObject.DialogueComplete += handler_name;
 			 * \endcode  */
-			public event DialogueCompletedEventHandler DialogueCompleted;
+			public event EventHandler<DialogueCompletedEventArgs> DialogueCompleted;
 
 			/*! \brief The event handlers that will be called when the client is required to
 			 * save its data to a file.
@@ -325,7 +316,7 @@ namespace riscos
 			 * \code
 			 * SaveAsObject.SaveToFile += handler_name;
 			 * \endcode  */
-			public event SaveToFileEventHandler SaveToFile;
+			public event EventHandler<SaveToFileEventArgs> SaveToFile;
 
 			/*! \brief The event handlers that will be called when the client is required to
 			 * fill the given buffer.
@@ -338,7 +329,7 @@ namespace riscos
 			 * \code
 			 * SaveAsObject.FillBuffer += handler_name;
 			 * \endcode  */
-			public event FillBufferEventHandler FillBuffer;
+			public event EventHandler<FillBufferEventArgs> FillBuffer;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * after the SaveAs dialogue has been hidden.  */

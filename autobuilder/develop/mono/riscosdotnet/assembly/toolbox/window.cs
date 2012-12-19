@@ -518,19 +518,19 @@ namespace riscos
 			 * \code
 			 * WindowObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this window has been hidden.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * void handler_name (object sender, ToolboxEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * WindowObject.HasBeenHidden += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler HasBeenHidden;
+			public event EventHandler<ToolboxEventArgs> HasBeenHidden;
 
 			/*! \brief The event handlers that will be called when a Wimp Data Load message is
 			 * received for this Wimp window.  */

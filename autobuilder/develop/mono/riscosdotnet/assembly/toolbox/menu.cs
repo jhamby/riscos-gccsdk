@@ -302,9 +302,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a SubMenu event handler.  */
-			public delegate void SubMenuEventHandler (object sender, SubMenuEventArgs e);
-
 			/*! \brief The event handlers that will be called when the pointer if moved.
 			 * over the submenu arrow of the menu entry.
 			 * 
@@ -316,7 +313,7 @@ namespace riscos
 			 * \code
 			 * MenuEntryObject.SubMenu += handler_name;
 			 * \endcode  */
-			public event SubMenuEventHandler SubMenu;
+			public event EventHandler<SubMenuEventArgs> SubMenu;
 
 			/*! \brief The event handlers that will be called when this menu entry is selected.
 			 *
@@ -328,7 +325,7 @@ namespace riscos
 			 * \code
 			 * MenuEntryObject.Selection += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler Selection;
+			public event EventHandler<ToolboxEventArgs> Selection;
 		}
 
 		/*! \class Menu
@@ -562,19 +559,19 @@ namespace riscos
 			 * \code
 			 * MenuObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event MenuAboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<MenuAboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this %Menu has been hidden.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * void handler_name (object sender, ToolboxEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * MenuObject.HasBeenHidden += handler_name;
 			 * \endcode  */
-			public event ToolboxEventHandler HasBeenHidden;
+			public event EventHandler<ToolboxEventArgs> HasBeenHidden;
 		}
 	}
 }

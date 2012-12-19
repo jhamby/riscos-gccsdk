@@ -52,9 +52,6 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of an AboutToBeShown event handler.  */
-			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
-
 			/*! \brief The event handlers that will be called when the menu for this %PopupMenu
 			 * is about to be shown.
 			 *
@@ -66,7 +63,7 @@ namespace riscos
 			 * \code
 			 * PopupMenuObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief Wrap an existing popup menu button, e.g., from a Resource file created
 			 * Window.  */

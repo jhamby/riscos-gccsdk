@@ -359,23 +359,17 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a DialogueCompleted event handler.  */
-			public delegate void DialogueCompletedEventHandler (object sender, DialogueCompletedEventArgs e);
-
-			/*! \brief The signature of a ColourSelected event handler.  */
-			public delegate void ColourSelectedEventHandler (object sender, ColourSelectedEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this Colour Dialogue is shown.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ColourDialogue.AboutToBeShownEventArgs e);
+			 * void handler_name (object sender, Object.AboutToBeShownEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * ColourDialogueObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event EventHandler<AboutToBeShownEventArgs> AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this dialogue is hidden.
 			 *
@@ -387,7 +381,7 @@ namespace riscos
 			 * \code
 			 * ColourDialogueObject.DialogueCompleted += handler_name;
 			 * \endcode  */
-			public event DialogueCompletedEventHandler DialogueCompleted;
+			public event EventHandler<DialogueCompletedEventArgs> DialogueCompleted;
 
 			/*! \brief The event handlers that will be called when the use clicks \e OK in the
 			 * dialogue box.
@@ -400,7 +394,7 @@ namespace riscos
 			 * \code
 			 * ColourDialogueObject.ColourSelected += handler_name;
 			 * \endcode  */
-			public event ColourSelectedEventHandler ColourSelected;
+			public event EventHandler<ColourSelectedEventArgs> ColourSelected;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * after the Colour Dialogue has been hidden.  */
