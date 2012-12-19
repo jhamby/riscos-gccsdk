@@ -45,5 +45,5 @@ ab_package() {
   cd $HERE
 
   $AB_HOME/add-riscpkg -package libfreetype6-dev -name LibFreeType6-Dev -unixlib \
-    -depends "zlib1g-dev" -depends "libbz2-dev" -copyrightfile $S/docs/GPLv2.TXT
+    -depends "ZLib1g-Dev" -depends "LibBZ2-Dev" -copyrightfile $S/docs/GPLv2.TXT
 }

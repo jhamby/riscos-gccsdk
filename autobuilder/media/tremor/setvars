@@ -3,6 +3,7 @@ TREMOR_VERSION=1.0.2
 
 # Fake version as SVN version seems to be stable
 AB_PVERSION=$TREMOR_VERSION
+AB_ROVERSION=2
 
 AB_INSTALL=yes
 
@@ -35,5 +36,5 @@ ab_package() {
   cp $S/doc/* $A/doc
   cp $S/ivorbisfile_example.c $A/doc
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -name Tremor-Dev -unixlib
 }

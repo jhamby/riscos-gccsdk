@@ -29,6 +29,6 @@ ab_package() {
   cp $S/showimage$AB_EXEEXT $A
 
   $AB_HOME/add-riscpkg -unixlib -name LibSDLImage1.2-Dev \
-    -depends "LibJPEG62-Dev" -depends "LibPNG12-Dev" \
+    -depends "LibJPEG8-Dev" -depends "LibPNG12-Dev" \
     -depends "LibTIFF4-dev" -depends "LibSDL1.2-Dev"
 }

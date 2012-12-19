@@ -8,7 +8,7 @@ ab_package() {
   cp -av AUTHORS ChangeLog COPYING INSTALL NEWS README TODO $A/doc
 
   $AB_HOME/add-riscpkg -unixlib  \
-     -depends fillets-ng-data
+     -depends Fillets-Ng-Data
 }
 
 AB_CONFLAGS="--without-x"
