@@ -94,6 +94,25 @@ public class MyTask : WimpTask
 		if ((e.MouseClickWimpBlock.Buttons & 2) != 0)
 			main_menu.Show (e.MouseClickWimpBlock.Pos.X - 64,
 					e.MouseClickWimpBlock.Pos.Y);
+		else if (e.MouseClickWimpBlock.Buttons == 64)
+		{
+			var window = (Wimp.Window)sender;
+			var drag = new NativeWimp.DragStartBlock (e.MouseClickWimpBlock.WindowHandle,
+								  Wimp.DragType.Rubber,
+								  new OS.Rect (e.MouseClickWimpBlock.Pos.X,
+									       e.MouseClickWimpBlock.Pos.Y,
+									       e.MouseClickWimpBlock.Pos.X,
+									       e.MouseClickWimpBlock.Pos.Y),
+								  window.WimpWindow.VisibleArea);
+			Wimp.DragBox (ref drag);
+		}
+	}
+
+	public void drag_end (object sender, Wimp.UserDragEventArgs e)
+	{
+		Reporter.WriteLine ("User drag ended.");
+		Reporter.WriteLine ("  Resulting box was minx: {0}, miny: {1}, maxx: {2}, maxy: {3}",
+				    e.Box.MinX, e.Box.MinY, e.Box.MaxX, e.Box.MaxY);
 	}
 
 	// Because we're a derived object, override the method in the WimpTask base class
@@ -188,6 +207,7 @@ public class Test
 
 			attributes.WorkArea = new OS.Rect (0, 0, 2000, 2000);
 			attributes.UserRedrawn = true;
+			attributes.ButtonType = Wimp.WindowButtonType.ClickDrag;
 
 			var window = new Wimp.Window (attributes);
 
@@ -196,6 +216,8 @@ public class Test
 			window.Closed += task.close_main_window;
 			window.MouseClick += task.mouse_click;
 			window.MsgDataLoad += task.window_DataLoad;
+
+			task.UserDragEnd += task.drag_end;
 
 			window.CreateIcon (new OS.Rect (150, 150, 350, 350),
 					   0x2700313fU,					// Iconflags

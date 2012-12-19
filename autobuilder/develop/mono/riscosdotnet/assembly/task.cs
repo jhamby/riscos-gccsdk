@@ -78,7 +78,6 @@ namespace riscos
 				MsgDataLoad (this, e);
 		}
 
-
 		/*! \brief Raising an event invokes the event handler through a delegate.
 		 *
 		 * The \b OnMsgModeChange method also allows derived classes to handle the
@@ -93,6 +92,21 @@ namespace riscos
 				MsgModeChange (this, e);
 		}
 
+		/*! \brief Raising an event invokes the event handler through a delegate.
+		 *
+		 * The \b OnUserDragEnd method also allows derived classes to handle the
+		 * event without attaching a delegate. This is the preferred technique for
+		 * handling the event in a derived class.
+		 * \note  When overriding \b OnUserDragEnd in a derived class, be sure to
+		 * call the base class's \b OnUserDragEnd method so that registered delegates
+		 * receive the event.  */
+		protected virtual void OnUserDragEnd (Wimp.UserDragEventArgs e)
+		{
+			if (UserDragEnd != null)
+				UserDragEnd (this, e);
+		}
+
+		/*! \brief Dispatch Wimp messages to both types of task.  */
 		protected virtual void OnMessage (Wimp.MessageEventArgs e)
 		{
 			switch (e.MessageType)
@@ -112,10 +126,14 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Dispatch any Wimp events that may be of interest to both Wimp and Toolbox tasks.  */
 		public virtual void Dispatch (Wimp.EventArgs e)
 		{
 			switch (e.Type)
 			{
+			case Wimp.PollCode.UserDragBox:
+				OnUserDragEnd ((Wimp.UserDragEventArgs)e);
+				break;
 			case Wimp.PollCode.UserMessage:
 			case Wimp.PollCode.UserMessageRecorded:
 				OnMessage ((Wimp.MessageEventArgs)e);
@@ -124,16 +142,20 @@ namespace riscos
 		}
 
 		/*! \brief The event handlers that will be called when a Wimp Quit message is received.  */
-		public event Wimp.MessageEventHandler MsgQuit;
+		public event EventHandler<Wimp.MessageEventArgs> MsgQuit;
 
 		/*! \brief The event handlers that will be called when a Wimp PreQuit message is received.  */
-		public event Wimp.MessageEventHandler MsgPreQuit;
+		public event EventHandler<Wimp.MessageEventArgs> MsgPreQuit;
 
 		/*! \brief The event handlers that will be called when a Wimp DataLoad message is received.  */
-		public event Wimp.DataLoadMessageEventHandler MsgDataLoad;
+		public event EventHandler<Wimp.DataLoadMessageEventArgs> MsgDataLoad;
 
 		/*! \brief The event handlers that will be called when a Wimp ModeChange message is received.  */
-		public event Wimp.MessageEventHandler MsgModeChange;
+		public event EventHandler<Wimp.MessageEventArgs> MsgModeChange;
+
+		/*! \brief The event handlers that will be called when a user drag ends due to the release
+		 * of the mouse buttons.  */
+		public event EventHandler<Wimp.UserDragEventArgs> UserDragEnd;
 	}
 
 	public class WimpTask : Task
@@ -193,6 +215,6 @@ namespace riscos
 		}
 
 		/*! \brief The event handlers that will be called when a menu selection is made.  */
-		public event Wimp.MenuSelectionEventHandler MenuSelection;
+		public event EventHandler<Wimp.MenuSelectionEventArgs> MenuSelection;
 	}
 }

@@ -534,14 +534,14 @@ namespace riscos
 
 			/*! \brief The event handlers that will be called when a Wimp Data Load message is
 			 * received for this Wimp window.  */
-			public event Wimp.DataLoadMessageEventHandler MsgDataLoad;
+			public event EventHandler<Wimp.DataLoadMessageEventArgs> MsgDataLoad;
 
 			/*! \brief The event handlers that will be called to redraw this window.
 			 *
 			 * The necessary WIMP calls will be made for you, these handlers are called
 			 * from within a redraw loop. The origin of the window in OS units is passed
 			 * in the event's arguments.  */
-			public event Wimp.RedrawEventHandler Paint;
+			public event EventHandler<Wimp.RedrawEventArgs> Paint;
 
 			/*! \class PointerShape
 			 * \brief Used to set/read the Pointer property of the Window.  */

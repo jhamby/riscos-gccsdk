@@ -216,7 +216,7 @@ namespace riscos
 				WorkArea.MaxX = attr.WorkArea.MaxX;
 				WorkArea.MaxY = attr.WorkArea.MaxY;
 				TitleFlags = (uint)attr.TitleFlags;
-				WorkAreaButtonFlags = (uint)attr.ButtonType;
+				WorkAreaButtonFlags = (uint)attr.ButtonType << 12;
 				SpriteArea = attr.SpriteArea;
 				MinWidth = (short)attr.MinimumWidth;
 				MinHeight = (short)attr.MinimumHeight;
@@ -311,6 +311,27 @@ namespace riscos
 			public NativeOS.Coord Pos;
 			public int height;
 			public int index;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct DragStartBlock
+		{
+			public uint WindowHandle;
+			public Wimp.DragType DragType;
+			public NativeOS.Rect InitialBox;
+			public NativeOS.Rect ParentBox;
+			// Drag types 8-11 not supported.
+
+			public DragStartBlock (uint handle,
+					       Wimp.DragType type,
+					       OS.Rect initial,
+					       OS.Rect parent)
+			{
+				WindowHandle = handle;
+				DragType = type;
+				InitialBox = new NativeOS.Rect (initial);
+				ParentBox = new NativeOS.Rect (parent);
+			}
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -473,13 +494,13 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_drag_box")]
 		internal static extern IntPtr Wimp_DragBox ([In, MarshalAs(UnmanagedType.Struct)]
-								 ref NativeOS.Rect dragRect);
+								 ref NativeWimp.DragStartBlock block);
 
 		// RISC OS 4+
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_drag_box_with_flags")]
 		internal static extern IntPtr Wimp_DragBox ([In, MarshalAs(UnmanagedType.Struct)]
-								 ref NativeOS.Rect dragRect,
-							    uint flags);
+								 ref NativeWimp.DragStartBlock block,
+							    Wimp.DragFlags flags);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_force_redraw")]
 		internal static extern IntPtr Wimp_ForceRedraw (uint windowHandle,

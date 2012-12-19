@@ -62,71 +62,107 @@ namespace riscos
 			}
 
 			/*! \brief Convert a coordinate from screen to window when the window's origin
-			 * is already known. */
-			public void PointToWorkArea (OS.Coord point, OS.Coord origin)
+			 * is already known.
+			 * \param [in] point The coordinate to convert in screen coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted coordinate in window coordinates.
+			 * \note The original coordinate is left unchanged. */
+			public OS.Coord PointToWorkArea (OS.Coord point, OS.Coord origin)
 			{
-				point.X -= origin.X;
-				point.Y -= origin.Y;
+				return new OS.Coord (point.X - origin.X,
+						     point.Y - origin.Y);
 			}
 
 			/*! \brief Convert a coordinate from screen to window when the window's origin
-			 * is unknown. */
-			public void PointToWorkArea (OS.Coord point)
+			 * is unknown.
+			 * \param [in] point The coordinate to convert in screen coordinates.
+			 * \return The converted coordinate in window coordinates.
+			 * \note The original coordinate is left unchanged. */
+			public OS.Coord PointToWorkArea (OS.Coord point)
 			{
-				OS.Coord origin = GetOrigin ();
-				PointToWorkArea (point, origin);
+				return PointToWorkArea (point, GetOrigin ());
 			}
 
 			/*! \brief Convert a coordinate from window to screen when the window's origin
-			 * is already known. */
-			public void PointToScreen (OS.Coord point, OS.Coord origin)
+			 * is already known.
+			 * \param [in] point The coordinate to convert in window coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted coordinate in screen coordinates.
+			 * \note The original coordinate is left unchanged. */
+			public OS.Coord PointToScreen (OS.Coord point, OS.Coord origin)
 			{
-				point.X += origin.X;
-				point.Y += origin.Y;
+				return new OS.Coord (point.X + origin.X,
+						     point.Y + origin.Y);
 			}
 
 			/*! \brief Convert a coordinate from window to screen when the window's origin
-			 * is unknown. */
-			public void PointToScreen (OS.Coord point)
+			 * is unknown.
+			 * \param [in] point The coordinate to convert in window coordinates.
+			 * \return The converted coordinate in screen coordinates.
+			 * \note The original coordinate is left unchanged. */
+			public OS.Coord PointToScreen (OS.Coord point)
 			{
-				OS.Coord origin = GetOrigin ();
-				PointToScreen (point, origin);
+				return PointToScreen (point, GetOrigin ());
 			}
 
 			/*! \brief Convert a rectangle from screen to window when the window's origin
-			 * is already known. */
-			public void RectangleToWorkArea (OS.Rect rect, OS.Coord origin)
+			 * is already known.
+			 * \param [in] rect The rectangle to convert in screen coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted rectangle in window coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Rect RectangleToWorkArea (OS.Rect rect, OS.Coord origin)
 			{
-				rect.MinX -= origin.X;
-				rect.MinY -= origin.Y;
-				rect.MaxX -= origin.X;
-				rect.MaxY -= origin.Y;
+				return new OS.Rect (rect.MinX - origin.X,
+						    rect.MinY - origin.Y,
+						    rect.MaxX - origin.X,
+						    rect.MaxY - origin.Y);
 			}
 
 			/*! \brief Convert a rectangle from screen to window when the window's origin
-			 * is unknown. */
-			public void RectangleToWorkArea (OS.Rect rect)
+			 * is unknown.
+			 * \param [in] rect The rectangle to convert in screen coordinates.
+			 * \return The converted rectangle in window coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Rect RectangleToWorkArea (OS.Rect rect)
 			{
-				OS.Coord origin = GetOrigin ();
-				RectangleToWorkArea (rect, origin);
+				return RectangleToWorkArea (rect, GetOrigin ());
 			}
 
 			/*! \brief Convert a rectangle from window to screen when the window's origin
-			 * is already known. */
-			public void RectangleToScreen (OS.Rect rect, OS.Coord origin)
+			 * is already known.
+			 * \param [in] rect The rectangle to convert in window coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted rectangle in screen coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Rect RectangleToScreen (OS.Rect rect, OS.Coord origin)
 			{
-				rect.MinX += origin.X;
-				rect.MinY += origin.Y;
-				rect.MaxX += origin.X;
-				rect.MaxY += origin.Y;
+				return new OS.Rect (rect.MinX + origin.X,
+						    rect.MinY + origin.Y,
+						    rect.MaxX + origin.X,
+						    rect.MaxY + origin.Y);
 			}
 
 			/*! \brief Convert a rectangle from window to screen when the window's origin
-			 * is unknown. */
-			public void RectangleToScreen (OS.Rect rect)
+			 * is unknown. 
+			 * \param [in] rect The rectangle to convert in window coordinates.
+			 * \return The converted rectangle in screen coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Rect RectangleToScreen (OS.Rect rect)
 			{
-				OS.Coord origin = GetOrigin ();
-				RectangleToScreen (rect, origin);
+				return RectangleToScreen (rect, GetOrigin ());
+			}
+
+			/*! \brief Gets the visible area of this window in screen coordinates.  */
+			public OS.Rect VisibleArea
+			{
+				get {
+					var state = new NativeWimp.WindowStateBlock ();
+
+					GetState (ref state);
+
+					return new OS.Rect (state.Visible);
+				}
 			}
 		}
 
@@ -139,10 +175,6 @@ namespace riscos
 			public IconData Title;
 
 			bool disposed = false;
-
-			// Cache the window extent, the WIMP never changes this unless the
-			// user explicitly requests it.
-			public OS.Rect Extent;
 
 			public Hashtable MyIcons;
 
@@ -187,7 +219,6 @@ namespace riscos
 			/*! \brief Set the work area size of the window.  */
 			public void SetExtent (OS.Rect extent)
 			{
-				this.Extent = extent;
 				var native_extent = new NativeOS.Rect (extent);
 				Wimp.SetExtent (WimpWindow.Handle, ref native_extent);
 			}
@@ -272,6 +303,21 @@ namespace riscos
 			public void GetInfo (ref NativeWimp.WindowInfoBlock block)
 			{
 				Wimp.GetWindowInfo (WimpWindow.Handle, ref block);
+			}
+
+			/*! \brief Sets or gets the work area extent of this window.  */
+			public OS.Rect Extent
+			{
+				set {
+					SetExtent (value);
+				}
+				get {
+					var info = new NativeWimp.WindowInfoBlock ();
+
+					GetInfo (ref info);
+
+					return new OS.Rect (info.WindowInfo.WorkArea);
+				}
 			}
 
 			/*! \brief Open window in response to an event. */
@@ -424,21 +470,53 @@ namespace riscos
 				}
 			}
 
-			public event RedrawEventHandler Paint;
-			public event OpenEventHandler Opening;
-			public event CloseEventHandler Closing;
-			public event CloseEventHandler Closed;
-			public event PointerLeaveEventHandler PointerLeave;
-			public event PointerEnterEventHandler PointerEnter;
-			public event MouseClickEventHandler MouseClick;
-			public event KeyPressEventHandler KeyPress;
-			public event ScrollRequestEventHandler ScrollRequest;
-			public event LoseCaretEventHandler LoseCaret;
-			public event GainCaretEventHandler GainCaret;
+			/*! \brief The event handlers that will be called when the window contents
+			 * require updating.  */
+			public event EventHandler<RedrawEventArgs> Paint;
 
-			/*! \brief The event handlers that will be called when a Wimp Data Load message is received.
-			 * for this Wimp window.  */
-			public event DataLoadMessageEventHandler MsgDataLoad;
+			/*! \brief The event handlers that will be called when the window size
+			 * and/or position is changed.  */
+			public event EventHandler<OpenEventArgs> Opening;
+
+			/*! \brief The event handlers that will be called when a window is about to
+			 * be closed.  */
+			public event EventHandler<CloseEventArgs> Closing;
+
+			/*! \brief The event handlers that will be called after a window has been
+			 * closed.  */
+			public event EventHandler<CloseEventArgs> Closed;
+
+			/*! \brief The event handlers that will be called when the pointer leaves
+			 * the window.  */
+			public event EventHandler<PointerLeaveEventArgs> PointerLeave;
+
+			/*! \brief The event handlers that will be called when the pointer enters
+			 * the window.  */
+			public event EventHandler<PointerEnterEventArgs> PointerEnter;
+
+			/*! \brief The event handlers that will be called when a mouse button is
+			 * clicked within the window.  */
+			public event EventHandler<MouseClickEventArgs> MouseClick;
+
+			/*! \brief The event handlers that will be called when a key is pressed
+			 * while the window has the input focus.  */
+			public event EventHandler<KeyPressEventArgs> KeyPress;
+
+			/*! \brief The event handlers that will be called when a user scroll request
+			 * is received for this window.  */
+			public event EventHandler<ScrollRequestEventArgs> ScrollRequest;
+
+			/*! \brief The event handlers that will be called when the caret is moved
+			 * away from this window.  */
+			public event EventHandler<LoseCaretEventArgs> LoseCaret;
+
+			/*! \brief The event handlers that will be called when the caret is moved
+			 * to this window.  */
+			public event EventHandler<GainCaretEventArgs> GainCaret;
+
+			/*! \brief The event handlers that will be called when a Wimp Data Load message
+			 * is received for this Wimp window.  */
+			public event EventHandler<DataLoadMessageEventArgs> MsgDataLoad;
 		}
 	}
 }

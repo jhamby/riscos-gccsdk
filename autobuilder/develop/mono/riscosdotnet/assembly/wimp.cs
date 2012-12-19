@@ -212,6 +212,42 @@ namespace riscos
 			GainInputFocus = 15
 		}
 
+		/*! \brief Define the flags that can be used when calling method Wimp.DragBox.  */
+		public enum DragFlags
+		{
+			KeepInline = (1 << 0),
+			Clip = (1 << 1)
+		}
+
+		/*! \brief Define the drag types.  */
+		public enum DragType
+		{
+			/*! \brief Drag window position.  */
+			WindowPosition = 1,
+			/*! \brief Drag window size.  */
+			WindowSize,
+			/*! \brief Drag horizontal scroll bar.  */
+			HorizontalScroll,
+			/*! \brief Drag vertical scroll bar.  */
+			VerticalScroll,
+			/*! \brief Drag fixed size 'rotating dash' box.  */
+			Fixed,
+			/*! \brief Drag rubber 'rotating dash' box.  */
+			Rubber,
+			/*! \brief Drag point (no Wimp-drawn dragged object).  */
+			Point,
+			/*! \brief Drag fixed size user-drawn box.  */
+			FixedUser,
+			/*! \brief Drag rubber user-drawn box.  */
+			RubberUser,
+			/*! \brief Drag fixed size user-drawn box but don't cancel when buttons are released.  */
+			FixedUserNoCancel,
+			/*! \brief Drag rubber user-drawn box but don't cancel when buttons are released.  */
+			RubberUserNoCancel,
+			/*! \brief Drag horizontal and vertical scroll bars.  */
+			HorizontalAndVerticalScroll
+		}
+
 		/*! \brief Provides data for the event raised when a window's contents need updating.  */
 		public class RedrawEventArgs : Wimp.EventArgs
 		{
@@ -318,6 +354,20 @@ namespace riscos
 			public override uint GetWindowHandle ()
 			{
 				return (uint)Marshal.ReadInt32 (RawEventData, 12);
+			}
+		}
+
+		/*! \brief Provides data for the event raised when a user drag finishes.  */
+		public class UserDragEventArgs : Wimp.EventArgs
+		{
+			public OS.Rect Box;
+
+			public UserDragEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+			{
+				Box = new OS.Rect (Marshal.ReadInt32 (RawEventData, 0),
+						   Marshal.ReadInt32 (RawEventData, 4),
+						   Marshal.ReadInt32 (RawEventData, 8),
+						   Marshal.ReadInt32 (RawEventData, 12));
 			}
 		}
 
@@ -451,24 +501,6 @@ namespace riscos
 			}
 		}
 
-		public delegate void RedrawEventHandler (object sender, RedrawEventArgs e);
-		public delegate void OpenEventHandler (object sender, OpenEventArgs e);
-		public delegate void CloseEventHandler (object sender, CloseEventArgs e);
-		public delegate void PointerLeaveEventHandler (object sender, PointerLeaveEventArgs e);
-		public delegate void PointerEnterEventHandler (object sender, PointerEnterEventArgs e);
-		public delegate void MouseClickEventHandler (object sender, MouseClickEventArgs e);
-		public delegate void KeyPressEventHandler (object sender, KeyPressEventArgs e);
-		public delegate void ScrollRequestEventHandler (object sender, ScrollRequestEventArgs e);
-		public delegate void LoseCaretEventHandler (object sender, LoseCaretEventArgs e);
-		public delegate void GainCaretEventHandler (object sender, GainCaretEventArgs e);
-		public delegate void MenuSelectionEventHandler (object sender, MenuSelectionEventArgs e);
-
-		/*! \brief The signature of a DataLoad Message event handler.  */
-		public delegate void DataLoadMessageEventHandler (object sender, DataLoadMessageEventArgs e);
-
-		/*! \brief The signature of any Wimp Message where only the message header is present.  */
-		public delegate void MessageEventHandler (object sender, MessageEventArgs e);
-
 		public class EventArgs : System.EventArgs
 		{
 			public PollCode Type;
@@ -506,6 +538,8 @@ namespace riscos
 						return new PointerEnterEventArgs (event_ptr);
 					case PollCode.MouseClick:
 						return new MouseClickEventArgs (event_ptr);
+					case PollCode.UserDragBox:
+						return new UserDragEventArgs (event_ptr);
 					case PollCode.KeyPressed:
 						return new KeyPressEventArgs (event_ptr);
 					case PollCode.ScrollRequest:
@@ -737,6 +771,33 @@ namespace riscos
 		public static void GetPointerInfo (out NativeWimp.PointerBlock block)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_GetPointerInfo (out block));
+		}
+
+		/*! \brief Initiates a dragging operation.
+		 * \param [in] block Reference to a native type used to specify the characteristics
+		 * of the drag operation.
+		 * \return Nothing.
+		 * \note Drag types 8-11 are not currently supported.  */
+		public static void DragBox (ref NativeWimp.DragStartBlock block)
+		{
+			if ((int)block.DragType >= 8 && (int)block.DragType <= 11)
+				throw new NotSupportedException ("Drag types 8-11 are not supported.");
+
+			OS.ThrowOnError (NativeMethods.Wimp_DragBox (ref block));
+		}
+
+		/*! \brief Initiates a dragging operation.
+		 * \param [in] block Reference to a native type used to specify the characteristics
+		 * of the drag operation.
+		 * \param [in] flags Additional control flags.
+		 * \return Nothing.
+		 * \note Drag types 8-11 are not currently supported.  */
+		public static void DragBox (ref NativeWimp.DragStartBlock block, DragFlags flags)
+		{
+			if ((int)block.DragType >= 8 && (int)block.DragType <= 11)
+				throw new NotSupportedException ("Drag types 8-11 are not supported.");
+
+			OS.ThrowOnError (NativeMethods.Wimp_DragBox (ref block, flags));
 		}
 
 		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */
