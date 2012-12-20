@@ -800,6 +800,33 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_DragBox (ref block, flags));
 		}
 
+		/*! \brief Forces an area of a window or the screen to be redrawn later.
+		 * \param [in] handle Wimp window handle to force a redraw of.
+		 * \param [in] minX Minimum X coordinate of rectangle to redraw.
+		 * \param [in] minY Minimum Y coordinate of rectangle to redraw.
+		 * \param [in] maxX Maximum X coordinate of rectangle to redraw.
+		 * \param [in] maxY Maximum Y coordinate of rectangle to redraw.
+		 * \return Nothing.
+		 * \note if \e handle is 0xffffffff (-1) the coordinates refer to the screen and
+		 * are absolute. Otherwise, the coordinates are relative to the window origin.
+		 * A \e handle of 0xfffffffe (-2) refers to the icon bar.  */
+		public static void ForceRedraw (uint handle, int minX, int minY, int maxX, int maxY)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_ForceRedraw (handle, minX, minY, maxX, maxY));
+		}
+
+		/*! \brief Force the title of the given window to be redrawn.  */
+		public static void ForceRedrawTitle (uint handle)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_ForceRedrawTitle (handle));
+		}
+
+		/*! \brief Force the given item of window furniture of the given window to be redrawn.  */
+		public static void ForceRedrawFurniture (uint handle, Furniture item)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_ForceRedrawFurniture (handle, item));
+		}
+
 		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */
 		public class WindowAttributes
 		{

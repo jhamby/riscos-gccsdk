@@ -153,6 +153,23 @@ namespace riscos
 				return RectangleToScreen (rect, GetOrigin ());
 			}
 
+			/*! \brief Forces an area of this window to be redrawn later.
+			 * \param [in] minX Minimum X coordinate of rectangle to redraw.
+			 * \param [in] minY Minimum Y coordinate of rectangle to redraw.
+			 * \param [in] maxX Maximum X coordinate of rectangle to redraw.
+			 * \param [in] maxY Maximum Y coordinate of rectangle to redraw.
+			 * \return Nothing.  */
+			public void ForceRedraw (int minX, int minY, int maxX, int maxY)
+			{
+				Wimp.ForceRedraw (Handle, minX, minY, maxX, maxY);
+			}
+
+			/*! \brief Force the given item of window furniture to be redrawn.  */
+			public void ForceRedrawFurniture (Furniture item)
+			{
+				Wimp.ForceRedrawFurniture (Handle, item);
+			}
+
 			/*! \brief Gets the visible area of this window in screen coordinates.  */
 			public OS.Rect VisibleArea
 			{
@@ -227,8 +244,7 @@ namespace riscos
 			public void SetTitle (string title)
 			{
 				Title.Text.Set (title);
-
-				// TODO: Redraw title bar.
+				ForceRedrawTitle ();
 			}
 
 			/*! \brief Open a normal window (no nesting) */
@@ -303,6 +319,15 @@ namespace riscos
 			public void GetInfo (ref NativeWimp.WindowInfoBlock block)
 			{
 				Wimp.GetWindowInfo (WimpWindow.Handle, ref block);
+			}
+
+			// The Toolbox already redraws the title bar automatically when it is updated,
+			// so this is left as a plain Wimp window only method rather than including it
+			//  in the WindowHandle class where Toolbox.Window would have access too.
+			/*! \brief Force the title of this window to be redrawn.  */
+			public void ForceRedrawTitle ()
+			{
+				Wimp.ForceRedrawTitle (WimpWindow.Handle);
 			}
 
 			/*! \brief Sets or gets the work area extent of this window.  */
