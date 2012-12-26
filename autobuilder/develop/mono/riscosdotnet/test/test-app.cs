@@ -160,6 +160,67 @@ public class MyTask : WimpTask
 		Reporter.WriteLine ("");
 	}
 
+	public void Init ()
+	{
+		int[] mess_list = { 0 };
+
+		Initialise (350, "Test App", mess_list);
+
+		main_font = new Font.Instance ("Trinity.Bold", 24 << 4, 24 << 4);
+
+		var win_attr = new Wimp.WindowAttributes ("CSharp Window");
+
+		win_attr.WorkArea = new OS.Rect (0, 0, 2000, 2000);
+		win_attr.UserRedrawn = true;
+		win_attr.ButtonType = Wimp.WindowButtonType.ClickDrag;
+
+		var window = new Wimp.Window (win_attr);
+
+		// Register the event handlers for the window.
+		window.Paint += redraw_main_window;
+		window.Closed += close_main_window;
+		window.MouseClick += mouse_click;
+		window.MsgDataLoad += window_DataLoad;
+
+		UserDragEnd += drag_end;
+
+		// Create an icon in the window.
+		var icon_attr = new Wimp.IconAttributes ("C# Button", "R5,3");
+
+		icon_attr.BoundingBox = new OS.Rect (150, 150, 350, 350);
+		icon_attr.ButtonType = Wimp.IconButtonType.Click;
+		window.CreateIcon (icon_attr);
+
+		window.Open (new OS.Rect (100, 100, 500, 500),		// Visible area
+			     new OS.Coord (0, 0),			// Scroll offsets
+			     Wimp.WindowStackPosition.Top);
+
+		rename_menu = new Wimp.Menu ("New name:");
+		// Rename writable menu item is created with "Default" as its initial
+		// text and a buffer size of 30 characters. The validation string is
+		// set to the command to accept digits and upper/lower case letters of
+		// the alphabet.
+		rename_menuitem = rename_menu.AddItem ("Default", 30, "A0-9a-zA-Z");
+		rename_menuitem.Writable = true;
+
+		file_menu = new Wimp.Menu ("File");
+		save_menuitem = file_menu.AddItem ("Save");
+
+		edit_menu = new Wimp.Menu ("Edit");
+		edit_menu.AddItem ("Rename").SubMenu = rename_menu;
+
+		main_menu = new Wimp.Menu ("CSharp Menu");
+		main_menu.AddItem ("File").SubMenu = file_menu;
+		Wimp.MenuItem item = main_menu.AddItem ("Edit");
+		item.SubMenu = edit_menu;
+		item.DottedLine = true;
+		main_menu.AddItem ("Quit");
+
+		// Push the text 100 OS units up a 45 degree angle.
+		matrix.Translate (100, 0);
+		matrix.Rotate (45);
+	}
+
 	public void Run ()
 	{
 		while (Quit == false)
@@ -191,69 +252,13 @@ public class Test
 {
 	public static void Main(string[] args)
 	{
-		int[] mess_list = { 0 };
-
 		MyTask task = new MyTask();
 
 		// Most methods that call a SWI throw an OS.ErrorException if the
 		// SWI returns an error.
 		try
 		{
-			task.Initialise (350, "Test App", mess_list);
-
-			task.main_font = new Font.Instance ("Trinity.Bold", 24 << 4, 24 << 4);
-
-			var win_attr = new Wimp.WindowAttributes ("CSharp Window");
-
-			win_attr.WorkArea = new OS.Rect (0, 0, 2000, 2000);
-			win_attr.UserRedrawn = true;
-			win_attr.ButtonType = Wimp.WindowButtonType.ClickDrag;
-
-			var window = new Wimp.Window (win_attr);
-
-			// Register the event handlers for the window.
-			window.Paint += task.redraw_main_window;
-			window.Closed += task.close_main_window;
-			window.MouseClick += task.mouse_click;
-			window.MsgDataLoad += task.window_DataLoad;
-
-			task.UserDragEnd += task.drag_end;
-
-			// Create an icon in the window.
-			var icon_attr = new Wimp.IconAttributes ("C# Button", "R5,3");
-			icon_attr.BoundingBox = new OS.Rect (150, 150, 350, 350);
-			icon_attr.ButtonType = Wimp.IconButtonType.Click;
-			window.CreateIcon (icon_attr);
-
-			window.Open (new OS.Rect (100, 100, 500, 500),			// Visible area
-				     new OS.Coord (0, 0),				// Scroll offsets
-				     Wimp.WindowStackPosition.Top);
-
-			task.rename_menu = new Wimp.Menu ("New name:");
-			// Rename writable menu item is created with "Default" as its initial
-			// text and a buffer size of 30 characters. The validation string is
-			// set to the command to accept digits and upper/lower case letters of
-			// the alphabet.
-			task.rename_menuitem = task.rename_menu.AddItem ("Default", 30, "A0-9a-zA-Z");
-			task.rename_menuitem.Writable = true;
-
-			task.file_menu = new Wimp.Menu ("File");
-			task.save_menuitem = task.file_menu.AddItem ("Save");
-
-			task.edit_menu = new Wimp.Menu ("Edit");
-			task.edit_menu.AddItem ("Rename").SubMenu = task.rename_menu;
-
-			task.main_menu = new Wimp.Menu ("CSharp Menu");
-			task.main_menu.AddItem ("File").SubMenu = task.file_menu;
-			Wimp.MenuItem item = task.main_menu.AddItem ("Edit");
-			item.SubMenu = task.edit_menu;
-			item.DottedLine = true;
-			task.main_menu.AddItem ("Quit");
-
-			// Push the text 100 OS units up a 45 degree angle.
-			task.matrix.Translate (100, 0);
-			task.matrix.Rotate (45);
-
+			task.Init ();
 			task.Run ();
 		}
 		catch (OS.ErrorException ex)

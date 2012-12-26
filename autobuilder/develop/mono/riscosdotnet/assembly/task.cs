@@ -126,11 +126,28 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Raising an event invokes the event handler through a delegate.
+		 *
+		 * The \b OnNullEvent method also allows derived classes to handle the
+		 * event without attaching a delegate. This is the preferred technique for
+		 * handling the event in a derived class.
+		 * \note  When overriding \b OnNullEvent in a derived class, be sure to
+		 * call the base class's \b OnNullEvent method so that registered delegates
+		 * receive the event.  */
+		public virtual void OnNullEvent (Wimp.EventArgs e)
+		{
+			if (NullEvent != null)
+				NullEvent (this, e);
+		}
+
 		/*! \brief Dispatch any Wimp events that may be of interest to both Wimp and Toolbox tasks.  */
 		public virtual void Dispatch (Wimp.EventArgs e)
 		{
 			switch (e.Type)
 			{
+			case Wimp.PollCode.Null:
+				OnNullEvent (e);
+				break;
 			case Wimp.PollCode.UserDragBox:
 				OnUserDragEnd ((Wimp.UserDragEventArgs)e);
 				break;
@@ -156,6 +173,9 @@ namespace riscos
 		/*! \brief The event handlers that will be called when a user drag ends due to the release
 		 * of the mouse buttons.  */
 		public event EventHandler<Wimp.UserDragEventArgs> UserDragEnd;
+
+		/*! \brief The event handlers that will be called when a Null event is received.  */
+		public event EventHandler<Wimp.EventArgs> NullEvent;
 	}
 
 	public class WimpTask : Task
@@ -184,7 +204,7 @@ namespace riscos
 		{
 			uint window_handle = e.GetWindowHandle ();
 
-			if (window_handle <= 0)
+			if ((int)window_handle <= 0)
 			{
 				switch (e.Type)
 				{
