@@ -160,13 +160,9 @@ namespace riscos
 
 	public class WimpTask : Task
 	{
-		public static Hashtable AllWindows;
-
 		public void Initialise (int version, string desc, int[] mess_list)
 		{
 			uint handle;
-
-			AllWindows = new Hashtable ();
 
 			OS.ThrowOnError (NativeMethods.Wimp_Initialise (version, desc, mess_list, out WimpVersion, out handle));
 
@@ -204,7 +200,7 @@ namespace riscos
 			}
 			else
 			{
-				Wimp.Window window = (Wimp.Window)WimpTask.AllWindows [window_handle];
+				Wimp.Window window = Wimp.Window.GetInstance (window_handle);
 				window.Dispatch (e);
 			}
 		}

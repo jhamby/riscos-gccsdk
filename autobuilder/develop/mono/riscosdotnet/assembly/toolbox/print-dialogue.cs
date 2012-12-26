@@ -424,8 +424,8 @@ namespace riscos
 							var ev = (NativeToolbox.ShowObjectFullSpecEvent)
 									Marshal.PtrToStructure (RawEventData,
 												typeof (NativeToolbox.ShowObjectFullSpecEvent));
-							ShowSpec = new ShowObjectFull (new OS.Rect (ev.Spec.Visible),
-										       new OS.Coord (ev.Spec.Scroll),
+							ShowSpec = new ShowObjectFull (new OS.Rect (ref ev.Spec.Visible),
+										       new OS.Coord (ref ev.Spec.Scroll),
 										       ev.Spec.BehindWindow,
 										       0, 0, 0);
 							break;
@@ -435,7 +435,7 @@ namespace riscos
 							var ev = (NativeToolbox.ShowObjectTopLeftEvent)
 									Marshal.PtrToStructure (RawEventData,
 												typeof (NativeToolbox.ShowObjectTopLeftEvent));
-							ShowSpec = new ShowObjectTopLeft (new OS.Coord (ev.Spec.TopLeft));
+							ShowSpec = new ShowObjectTopLeft (new OS.Coord (ref ev.Spec.TopLeft));
 							break;
 						}
 					case Toolbox.ShowObjectType.Default:

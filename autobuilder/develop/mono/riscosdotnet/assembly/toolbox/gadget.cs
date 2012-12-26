@@ -124,7 +124,7 @@ namespace riscos
 										       Method.GetBBox,
 										       ComponentID,
 										       out extent));
-					return new OS.Rect (extent);
+					return new OS.Rect (ref extent);
 				}
 				virtual set
 				{

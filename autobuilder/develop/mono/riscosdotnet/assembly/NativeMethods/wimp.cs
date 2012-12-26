@@ -99,12 +99,7 @@ namespace riscos
 		[StructLayout(LayoutKind.Sequential)]
 		public struct KeyPressBlock
 		{
-			public uint WindowHandle;
-			public int IconHandle;
-			public int XOffset;
-			public int YOffset;
-			public int CaretHeight;
-			public int CaretIndex;
+			public CaretBlock Caret;
 			public int CharCode;
 		}
 
@@ -131,28 +126,6 @@ namespace riscos
 			public uint BehindWindow;
 			public int ScrollXDir;
 			public int ScrollYDir;
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct LoseCaretBlock
-		{
-			public uint WindowHandle;
-			public int IconHandle;
-			public int XOffset;
-			public int YOffset;
-			public int CaretHeight;
-			public int CaretIndex;
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct GainCaretBlock
-		{
-			public uint WindowHandle;
-			public int IconHandle;
-			public int XOffset;
-			public int YOffset;
-			public int CaretHeight;
-			public int CaretIndex;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -264,19 +237,14 @@ namespace riscos
 			public IconBlock Block;
 		
 			public IconCreateBlock (uint windowHandle,
-						OS.Rect boundingBox,
-						uint flags,
-						Wimp.IconData data)
+						Wimp.IconAttributes attr)
 			{
 				WindowHandle = windowHandle;
-				Block.BoundingBox.MinX = boundingBox.MinX;
-				Block.BoundingBox.MinY = boundingBox.MinY;
-				Block.BoundingBox.MaxX = boundingBox.MaxX;
-				Block.BoundingBox.MaxY = boundingBox.MaxY;
-				Block.Flags = flags;
-				Block.TextBuffer = data.Text.Buffer;
-				Block.ValidationString = data.Validation.Buffer;
-				Block.TextBufferLength = data.Text.BufferSize;
+				Block.BoundingBox = new NativeOS.Rect (attr.BoundingBox);
+				Block.Flags = attr.Flags;
+				Block.TextBuffer = attr.Data.Text.Buffer;
+				Block.ValidationString = attr.Data.Validation.Buffer;
+				Block.TextBufferLength = attr.Data.Text.BufferSize;
 			}
 		}
 
@@ -284,7 +252,7 @@ namespace riscos
 		public struct IconDeleteBlock
 		{
 			public uint WindowHandle;
-			public uint IconHandle;
+			public int IconHandle;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -300,14 +268,14 @@ namespace riscos
 			public NativeOS.Coord Pos;
 			public uint Buttons;
 			public uint WindowHandle;
-			public uint IconHandle;
+			public int IconHandle;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
 		public struct CaretBlock
 		{
 			public uint WindowHandle;
-			public uint IconHandle;
+			public int IconHandle;
 			public NativeOS.Coord Pos;
 			public int height;
 			public int index;
@@ -450,25 +418,25 @@ namespace riscos
 		internal static extern IntPtr Wimp_CreateIcon (
 				[In, MarshalAs(UnmanagedType.Struct)]
 					ref NativeWimp.IconCreateBlock block,
-				out uint iconHandle);
+				out int iconHandle);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_create_icon_relative")]
 		internal static extern IntPtr Wimp_CreateIconRelative (
 				int neighbour,
 				[In, MarshalAs(UnmanagedType.Struct)]
 					ref NativeWimp.IconCreateBlock block,
-				out uint iconHandle);
+				out int iconHandle);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_create_icon_prioritised")]
 		internal static extern IntPtr Wimp_CreateIconPrioritised (
 				int priority,
 				[In, MarshalAs(UnmanagedType.Struct)]
 					ref NativeWimp.IconCreateBlock block,
-				out uint iconHandle);
+				out int iconHandle);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_delete_icon")]
 		internal static extern IntPtr Wimp_DeleteIcon (uint windowHandle,
-							       uint iconHandle);
+							       int iconHandle);
 
 		/* Includes icons - difficult to use due to variable size of returned data?  */
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_get_window_info")]

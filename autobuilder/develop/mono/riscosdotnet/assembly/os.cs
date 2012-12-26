@@ -183,7 +183,7 @@ namespace riscos
 				this.MaxY = MaxY;
 			}
 
-			public Rect (NativeOS.Rect rect)
+			public Rect (ref NativeOS.Rect rect)
 			{
 				MinX = rect.MinX;
 				MinY = rect.MinY;
@@ -208,7 +208,7 @@ namespace riscos
 				this.Y = Y;
 			}
 
-			public Coord (NativeOS.Coord coord)
+			public Coord (ref NativeOS.Coord coord)
 			{
 				X = coord.X;
 				Y = coord.Y;

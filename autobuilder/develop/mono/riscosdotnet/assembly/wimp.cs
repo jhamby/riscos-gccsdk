@@ -176,7 +176,7 @@ namespace riscos
 			RightJustified = (1 << 9)
 		}
 
-		/*! \brief The button type of the work area.  */
+		/*! \brief The possible button types for a window work area.  */
 		public enum WindowButtonType
 		{
 			/*! \brief Ignore all mouse clicks.  */
@@ -197,18 +197,70 @@ namespace riscos
 			ReleaseDrag,
 			/*! \brief As \e Double \e Click but can also drag (returns button state * 16).  */
 			DoubleClickDrag,
-			/*! \brief Same as \e Click above,  */
-			// I'm not sure how this differs from Click above
-			Click9,
+			/*! \brief Click returns button state * 256.<br>
+			 *	   Double Click returns button state * 16.<br>
+			 *	   Drag returns button state * 1.  */
+			ClickDoubleClickDrag = 10,
+			/*! \brief Mouse clicks cause window to gain input focus.  */
+			GainInputFocus = 15
+		}
+
+		/*! \brief The flags used when creating a icon.  */
+		public enum IconFlags
+		{
+			Text = (1 << 0),
+			Sprite = (1 << 1),
+			Border = (1 << 2),
+			HCentred = (1 << 3),
+			VCentred = (1 << 4),
+			FilledBackground = (1 << 5),
+			AntiAliased = (1 << 6),
+			RedrawnByTask = (1 << 7),
+			Indirected = (1 << 8),
+			RightJustified = (1 << 9),
+			DontCancelSameESG = (1 << 10),
+			HalfSizeSprite = (1 << 11),
+			Selected = (1 << 21),
+			Shaded = (1 << 22),
+			Deleted = (1 << 23)
+		}
+
+		/*! \brief The possible button types of an icon.  */
+		public enum IconButtonType
+		{
+			/*! \brief Ignore all mouse clicks.  */
+			IgnoreAllClicks,
+			/*! \brief Notify task continually while pointer is over the work area.  */
+			NotifyContinually,
+			/*! \brief Click notifies task (auto-repeat).  */
+			ClickAutoRepeat,
+			/*! \brief Click notifies task (once only).  */
+			Click,
+			/*! \brief Release over the work area notifies task.  */
+			Release,
+			/*! \brief Double click notifies task.  */
+			DoubleClick,
+			/*! \brief As \e Click but can also drag (returns button state * 16).  */
+			ClickDrag,
+			/*! \brief As \e Release but can also drag (returns button state * 16).  */
+			ReleaseDrag,
+			/*! \brief As \e Double \e Click but can also drag (returns button state * 16).  */
+			DoubleClickDrag,
+			/*! \brief Pointer over icon selects; moving away from icon deselects; click over
+			 * icon notifies task ('menu' icon).  */
+			PointerSelects,
 			/*! \brief Click returns button state * 256.<br>
 			 *	   Double Click returns button state * 16.<br>
 			 *	   Drag returns button state * 1.  */
 			ClickDoubleClickDrag,
-			/*! \brief Click returns button state.<br>
+			/*! \brief Click selects icon and returns button state.<br>
 			 *	   Drag returns button state * 16.  */
-			// I'm not sure how this differs from ClickDrag above
-			ClickDrag11,
-			/*! \brief Mouse clicks cause window to gain input focus.  */
+			ClickSelectDrag,
+			/*! \brief Click causes the icon to gain caret and its parent window to become the
+			 * input focus and can also drag (writable icon).  */
+			GainInputFocusDrag = 14,
+			/*! \brief Click causes the icon to gain caret and its parent window to become the
+			 * input focus (writable icon).  */
 			GainInputFocus = 15
 		}
 
@@ -408,12 +460,12 @@ namespace riscos
 		/*! \brief Provides data for the event raised when a window loses the caret (input focus).  */
 		public class LoseCaretEventArgs : Wimp.EventArgs
 		{
-			public NativeWimp.LoseCaretBlock LoseCaretWimpBlock;
+			public NativeWimp.CaretBlock CaretWimpBlock;
 
 			public LoseCaretEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
-				LoseCaretWimpBlock = (NativeWimp.LoseCaretBlock)Marshal.PtrToStructure (
-							unmanagedEventBlock, typeof(NativeWimp.LoseCaretBlock));
+				CaretWimpBlock = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
+							unmanagedEventBlock, typeof(NativeWimp.CaretBlock));
 			}
 
 			public override uint GetWindowHandle ()
@@ -425,12 +477,12 @@ namespace riscos
 		/*! \brief Provides data for the event raised when a window gain the caret (input focus).  */
 		public class GainCaretEventArgs : Wimp.EventArgs
 		{
-			public NativeWimp.GainCaretBlock GainCaretWimpBlock;
+			public NativeWimp.CaretBlock CaretWimpBlock;
 
 			public GainCaretEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
-				GainCaretWimpBlock = (NativeWimp.GainCaretBlock)Marshal.PtrToStructure (
-							unmanagedEventBlock, typeof(NativeWimp.GainCaretBlock));
+				CaretWimpBlock = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
+							unmanagedEventBlock, typeof(NativeWimp.CaretBlock));
 			}
 
 			public override uint GetWindowHandle ()
@@ -577,15 +629,36 @@ namespace riscos
 		}
 
 		/*! \brief Create a Wimp window using the given attributes.
+		 * \param [in] attr Reference to a window attributes object.
 		 * \return The Wimp handle of the window.  */
 		public static uint CreateWindow (WindowAttributes attr)
 		{
 			uint handle;
-			NativeWimp.WindowBlock block = new NativeWimp.WindowBlock (attr);
+			var block = new NativeWimp.WindowBlock (attr);
 
 			OS.ThrowOnError (NativeMethods.Wimp_CreateWindow (ref block, out handle));
 
 			return handle;
+		}
+
+		/*! \brief Create a Wimp icon using the given attributes.
+		 * \param [in] attr Reference to an icon attributes object.
+		 * \return The Wimp handle of the icon.  */
+		public static int CreateIcon (uint windowHandle, IconAttributes attr)
+		{
+			int handle;
+			var icon_block = new NativeWimp.IconCreateBlock (windowHandle, attr);
+
+			OS.ThrowOnError (NativeMethods.Wimp_CreateIcon (ref icon_block,
+									out handle));
+			return handle;
+		}
+
+		/*! \brief Delete the given icon from the given window.
+		 * \return Nothing.  */
+		public static void DeleteIcon (uint windowHandle, int iconHandle)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_DeleteIcon (windowHandle, iconHandle));
 		}
 
 		/*! \brief Updates the list of active windows (ones that are to be displayed).

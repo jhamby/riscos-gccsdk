@@ -14,7 +14,7 @@ namespace riscos
 	{
 		/*! \class Window
 		 * \brief Encapsulates a Toolbox window.  */
-		public class Window : Object
+		public class Window : Object, Wimp.IWimpWindow
 		{
 			static class Method
 			{
@@ -99,7 +99,7 @@ namespace riscos
 			public const uint DefaultFocusWindow = 0xfffffffe;
 
 			/*! \brief The WIMP handle for this toolbox window.  */
-			public Wimp.WindowHandle WimpWindow;
+			Wimp.WindowHandle WimpWindow;
 
 			private int AboutToBeShownEventCode = 0;
 			private int HasBeenHiddenEventCode = 0;
@@ -133,16 +133,153 @@ namespace riscos
 				RetrieveEventCodes (template);
 			}
 
+			/*! \brief Return a summary of this window's state
+			 * \param [in,out] block Reference to a native type to receive the window state.
+			 * \return Nothing.  */
+			public void GetState (ref NativeWimp.WindowStateBlock block)
+			{
+				WimpWindow.GetState (ref block);
+			}
+
+			/*! \brief Returns a summary of the given window's state and window nesting.
+			 * \param [in,out] block Reference to a native type to receive the window state.
+			 * \param [out] linkage Defines how the window is nested in the parent.
+			 * \return The Wimp window handle of the parent.  */
+			public uint GetNestedState (ref NativeWimp.WindowStateBlock block,
+						    out uint linkage)
+			{
+				return WimpWindow.GetNestedState (ref block, out linkage);
+			}
+
+			/*! \brief Find the origin of the window when its state is already known. */
+			public OS.Coord GetOrigin (ref NativeOS.Rect visible,
+						   ref NativeOS.Coord scroll)
+			{
+				return WimpWindow.GetOrigin (ref visible, ref scroll);
+			}
+
+			/*! \brief Convert a coordinate from screen to window when the window's origin
+			 * is already known.
+			 * \param [in] point The coordinate to convert in screen coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted coordinate in window coordinates.
+			 * \note The original coordinate is left unchanged. */
+			public OS.Coord GetOrigin ()
+			{
+				return WimpWindow.GetOrigin ();
+			}
+
+			/*! \brief Convert a coordinate from screen to window when the window's origin
+			 * is already known.
+			 * \param [in] point The coordinate to convert in screen coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted coordinate in window coordinates.
+			 * \note The original coordinate is left unchanged. */
+			public OS.Coord PointToWorkArea (OS.Coord point, OS.Coord origin)
+			{
+				return PointToWorkArea (point, origin);
+			}
+
+			/*! \brief Convert a rectangle from screen to window when the window's origin
+			 * is unknown.
+			 * \param [in] rect The rectangle to convert in screen coordinates.
+			 * \return The converted rectangle in window coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Coord PointToWorkArea (OS.Coord point)
+			{
+				return PointToWorkArea (point);
+			}
+
+			/*! \brief Convert a coordinate from window to screen when the window's origin
+			 * is already known.
+			 * \param [in] point The coordinate to convert in window coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted coordinate in screen coordinates.
+			 * \note The original coordinate is left unchanged. */
+			public OS.Coord PointToScreen (OS.Coord point, OS.Coord origin)
+			{
+				return WimpWindow.PointToScreen (point, origin);
+			}
+
+			/*! \brief Convert a coordinate from window to screen when the window's origin
+			 * is unknown.
+			 * \param [in] point The coordinate to convert in window coordinates.
+			 * \return The converted coordinate in screen coordinates.
+			 * \note The original coordinate is left unchanged. */
+			public OS.Coord PointToScreen (OS.Coord point)
+			{
+				return WimpWindow.PointToScreen (point);
+			}
+
+			/*! \brief Convert a rectangle from screen to window when the window's origin
+			 * is already known.
+			 * \param [in] rect The rectangle to convert in screen coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted rectangle in window coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Rect RectangleToWorkArea (OS.Rect rect, OS.Coord origin)
+			{
+				return WimpWindow.RectangleToWorkArea (rect, origin);
+			}
+
+			/*! \brief Convert a rectangle from screen to window when the window's origin
+			 * is unknown.
+			 * \param [in] rect The rectangle to convert in screen coordinates.
+			 * \return The converted rectangle in window coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Rect RectangleToWorkArea (OS.Rect rect)
+			{
+				return WimpWindow.RectangleToWorkArea (rect);
+			}
+
+			/*! \brief Convert a rectangle from window to screen when the window's origin
+			 * is already known.
+			 * \param [in] rect The rectangle to convert in window coordinates.
+			 * \param [in] origin The origin of the window in screen coordinates.
+			 * \return The converted rectangle in screen coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Rect RectangleToScreen (OS.Rect rect, OS.Coord origin)
+			{
+				return WimpWindow.RectangleToScreen (rect, origin);
+			}
+
+			/*! \brief Convert a rectangle from window to screen when the window's origin
+			 * is unknown. 
+			 * \param [in] rect The rectangle to convert in window coordinates.
+			 * \return The converted rectangle in screen coordinates.
+			 * \note The original rectangle is left unchanged. */
+			public OS.Rect RectangleToScreen (OS.Rect rect)
+			{
+				return WimpWindow.RectangleToScreen (rect);
+			}
+
+			/*! \brief Forces an area of this window to be redrawn later.
+			 * \param [in] minX Minimum X coordinate of rectangle to redraw.
+			 * \param [in] minY Minimum Y coordinate of rectangle to redraw.
+			 * \param [in] maxX Maximum X coordinate of rectangle to redraw.
+			 * \param [in] maxY Maximum Y coordinate of rectangle to redraw.
+			 * \return Nothing.  */
+			public void ForceRedraw (int minX, int minY, int maxX, int maxY)
+			{
+				ForceRedraw (new OS.Rect (minX, minY, maxX, maxY));
+			}
+
 			/*! \brief Force a redraw on the area of the window given.
 			 * \param [in] area The rectangular area of the window to redraw.
 			 * \return Nothing.  */
 			public void ForceRedraw (OS.Rect area)
 			{
-				NativeOS.Rect rect = new NativeOS.Rect (area);
+				var rect = new NativeOS.Rect (area);
 				OS.ThrowOnError (NativeMethods.Window_ForceRedraw (0,
 										   ID,
 										   Method.ForceRedraw,
 										   ref rect));
+			}
+
+			/*! \brief Force the given item of window furniture to be redrawn.  */
+			public void ForceRedrawFurniture (Wimp.Furniture item)
+			{
+				WimpWindow.ForceRedrawFurniture (item);
 			}
 
 			/*! \brief Attach toolbars to this Window object. If the object is showing then
@@ -321,24 +458,30 @@ namespace riscos
 				get { return MiscOp_GetR0 (0, Method.GetDefaultFocus); }
 			}
 
-			/*! \brief The extent of the underlying WIMP Window.  */
+			/*! \brief Gets or sets the extent of the underlying WIMP Window.  */
 			public OS.Rect Extent
 			{
-				set
-				{
+				set {
 					OS.ThrowOnError (NativeMethods.Window_SetExtent (0,
 											 ID,
 											 Method.SetExtent,
 											 new NativeOS.Rect (value)));
 				}
-				get
-				{
+				get {
 					NativeOS.Rect extent = new NativeOS.Rect ();
 					OS.ThrowOnError (NativeMethods.Window_GetExtent (0,
 											 ID,
 											 Method.GetExtent,
 											 out extent));
-					return new OS.Rect (extent);
+					return new OS.Rect (ref extent);
+				}
+			}
+
+			/*! \brief Gets the visible area of the window.  */
+			public OS.Rect VisibleArea
+			{
+				get {
+					return WimpWindow.GetVisibleArea ();
 				}
 			}
 

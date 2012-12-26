@@ -48,7 +48,8 @@ riscos_dll_sources = \
 	reporter.cs \
 	font.cs \
 	menu.cs \
-	sprite.cs
+	sprite.cs \
+	window-common.cs
 
 riscos_dll_build_sources = $(addprefix $(srcdir)/, $(riscos_dll_sources))
 

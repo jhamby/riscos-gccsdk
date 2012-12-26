@@ -103,7 +103,7 @@ public class MyTask : WimpTask
 									       e.MouseClickWimpBlock.Pos.Y,
 									       e.MouseClickWimpBlock.Pos.X,
 									       e.MouseClickWimpBlock.Pos.Y),
-								  window.WimpWindow.VisibleArea);
+								  window.VisibleArea);
 			Wimp.DragBox (ref drag);
 		}
 	}
@@ -203,13 +203,13 @@ public class Test
 
 			task.main_font = new Font.Instance ("Trinity.Bold", 24 << 4, 24 << 4);
 
-			var attributes = new Wimp.WindowAttributes ("CSharp Window");
+			var win_attr = new Wimp.WindowAttributes ("CSharp Window");
 
-			attributes.WorkArea = new OS.Rect (0, 0, 2000, 2000);
-			attributes.UserRedrawn = true;
-			attributes.ButtonType = Wimp.WindowButtonType.ClickDrag;
+			win_attr.WorkArea = new OS.Rect (0, 0, 2000, 2000);
+			win_attr.UserRedrawn = true;
+			win_attr.ButtonType = Wimp.WindowButtonType.ClickDrag;
 
-			var window = new Wimp.Window (attributes);
+			var window = new Wimp.Window (win_attr);
 
 			// Register the event handlers for the window.
 			window.Paint += task.redraw_main_window;
@@ -219,11 +219,12 @@ public class Test
 
 			task.UserDragEnd += task.drag_end;
 
-			window.CreateIcon (new OS.Rect (150, 150, 350, 350),
-					   0x2700313fU,					// Iconflags
-					   new Wimp.IconData (new Wimp.IconBuffer ("C# Button"),
-							      new Wimp.IconBuffer ("R5,3")),
-					   0);
+			// Create an icon in the window.
+			var icon_attr = new Wimp.IconAttributes ("C# Button", "R5,3");
+			icon_attr.BoundingBox = new OS.Rect (150, 150, 350, 350);
+			icon_attr.ButtonType = Wimp.IconButtonType.Click;
+			window.CreateIcon (icon_attr);
+
 			window.Open (new OS.Rect (100, 100, 500, 500),			// Visible area
 				     new OS.Coord (0, 0),				// Scroll offsets
 				     Wimp.WindowStackPosition.Top);
