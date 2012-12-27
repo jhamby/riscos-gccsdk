@@ -326,6 +326,12 @@ namespace riscos
 				Wimp.ForceRedrawTitle (WimpWindow.Handle);
 			}
 
+			/*! \brief Move the caret to the given position in this window.  */
+			public void SetCaretPosition (OS.Coord Pos, int height, int index)
+			{
+				WimpWindow.SetCaretPosition (Pos, height, index);
+			}
+
 			/*! \brief Sets or gets the work area extent of this window.  */
 			public OS.Rect Extent
 			{
@@ -555,6 +561,78 @@ namespace riscos
 				Window window;
 
 				return AllWindows.TryGetValue (handle, out window) ? window : null;
+			}
+
+			/*! \brief Encapsulate data defining the state of the caret.  */
+			public class CaretState
+			{
+				/*! \brief The window containing the caret (null if none).  */
+				public Wimp.Window Window;
+				/*! \brief The icon containing the caret (null if none).  */
+				public Wimp.Icon Icon;
+				/*! \brief The offset  of the caret relative to the window origin.  */
+				public OS.Coord Offset;
+				/*! \brief The height of the caret in OS units (-1 if not displayed).  */
+				public int Height;
+				/*! \brief The index of the caret into the string (if in a writable icon).  */
+				public int Index;
+
+				/*! \brief \e true if a vdu 5-type caret used, else anti-aliased caret.  */
+				public bool Vdu5Type;
+				/*! \brief \e true if caret is invisible.  */
+				public bool Invisible;
+				/*! \brief \e true if caret colour is returned, otherwise Wimp colour 11 assumed.  */
+				public bool ColourGiven;
+				/*! \brief \e true if the returned colour is untranslated, otherwise Wimp colour assumed.  */
+				public bool ColourUntranslated;
+				/*! \brief The colour of the caret (depending on whether the other bits are true.  */
+				public int Colour;
+
+				/*! \brief Create a new object containing the current state of the caret.  */
+				public CaretState ()
+				{
+					Offset = new OS.Coord ();
+					Update ();
+				}
+
+				/*! \brief Update this object with the current state of the caret.  */
+				public void Update ()
+				{
+					var block = new NativeWimp.CaretBlock ();
+
+					Wimp.GetCaretPosition (out block);
+
+					Offset.X = block.Offset.X;
+					Offset.Y = block.Offset.Y;
+					Index = block.Index;
+
+					int height = block.Height;
+
+					if (height == -1)
+					{
+						Height = -1;
+					}
+					else
+					{
+						Height = height & 0xffff;
+						Vdu5Type = (height & Flags.Vdu5Type) != 0;
+						Invisible = (height & Flags.Invisible) != 0;
+						ColourGiven = (height & Flags.ColourGiven) != 0;
+						ColourUntranslated = (height & Flags.Untranslated) != 0;
+						Colour = (height >> 16) & 0xff;
+					}
+
+					Window = GetInstance (block.WindowHandle);
+					Icon = (Window != null) ? Window.GetIcon (block.IconHandle) : null;
+				}
+
+				static class Flags
+				{
+					public const int Vdu5Type = (1 << 24);
+					public const int Invisible = (1 << 25);
+					public const int ColourGiven = (1 << 26);
+					public const int Untranslated = (1 << 27);
+				}
 			}
 
 			/*! \brief Retrieve information about the pointer using method Wimp.GetPointerInfo.  */

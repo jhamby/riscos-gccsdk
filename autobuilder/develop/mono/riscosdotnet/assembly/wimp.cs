@@ -900,6 +900,40 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_ForceRedrawFurniture (handle, item));
 		}
 
+		/*! \brief Sets up the data for a new caret position and draws it there.
+		 * \param [in] window 0xffffffff (-1) to turn off and disown the caret.
+		 * \param [in] icon -1 if none.
+		 * \param [in] x X offset of caret relative to work area origin.
+		 * \param [in] y Y offset of caret relative to work area origin.
+		 * \param [in] height Height of caret (if -1, then x, y and height are calculated
+		 * from window, icon and index. 
+		 * \param [in] index Index into string (if -1, then height and index are calculated
+		 * from window, icon, x and y
+		 * \return Nothing.  */
+		public static void SetCaretPosition (uint window, int icon,
+						     int x, int y,
+						     int height, int index)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_SetCaretPosition (window,
+									      icon,
+									      x,
+									      y,
+									      height,
+									      index));
+		}
+
+		/*! \brief Turn off and disown the caret.  */
+		public static void DisownCaret ()
+		{
+			SetCaretPosition (0xffffffff, -1, 0, 0, 0, 0);
+		}
+
+		/*! \brief Return details of the caret's state.  */
+		public static void GetCaretPosition (out NativeWimp.CaretBlock block)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_GetCaretPosition (out block));
+		}
+
 		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */
 		public class WindowAttributes
 		{

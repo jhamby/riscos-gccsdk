@@ -44,6 +44,8 @@ namespace riscos
 
 			void ForceRedrawFurniture (Furniture item);
 
+			void SetCaretPosition (OS.Coord Pos, int height, int index);
+
 			OS.Rect VisibleArea { get; }
 
 			OS.Rect Extent { set; get; }
@@ -212,6 +214,12 @@ namespace riscos
 			public void ForceRedrawFurniture (Furniture item)
 			{
 				Wimp.ForceRedrawFurniture (Handle, item);
+			}
+
+			/*! \brief Move the caret to the given position in this window.  */
+			public void SetCaretPosition (OS.Coord Pos, int height, int index)
+			{
+				Wimp.SetCaretPosition (Handle, -1, Pos.X, Pos.Y, height, index);
 			}
 
 			/*! \brief Gets the visible area of this window in screen coordinates.  */

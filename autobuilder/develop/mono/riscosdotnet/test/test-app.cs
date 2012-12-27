@@ -24,6 +24,9 @@ public class MyTask : WimpTask
 
 	public OS.Matrix matrix;
 
+	public Wimp.Icon WritableField;
+	public Wimp.Icon Button;
+
 	enum MainMenu
 	{
 		Root
@@ -187,13 +190,22 @@ public class MyTask : WimpTask
 		// Create an icon in the window.
 		var icon_attr = new Wimp.IconAttributes ("C# Button", "R5,3");
 
-		icon_attr.BoundingBox = new OS.Rect (150, 150, 350, 350);
+		icon_attr.BoundingBox = new OS.Rect (150, 12, 350, 60);
 		icon_attr.ButtonType = Wimp.IconButtonType.Click;
-		window.CreateIcon (icon_attr);
+		Button = window.CreateIcon (icon_attr);
 
-		window.Open (new OS.Rect (100, 100, 500, 500),		// Visible area
+		icon_attr = new Wimp.IconAttributes ("", 30);
+		icon_attr.BoundingBox = new OS.Rect (400, 12, 700, 60);
+		icon_attr.ButtonType = Wimp.IconButtonType.GainInputFocus;
+		icon_attr.BGColour = OS.DesktopColour.White;
+		WritableField = window.CreateIcon (icon_attr);
+
+		window.Open (new OS.Rect (100, 100, 1000, 1000),	// Visible area
 			     new OS.Coord (0, 0),			// Scroll offsets
 			     Wimp.WindowStackPosition.Top);
+
+		WritableField.SetText (DateTime.Now.ToString ());
+		WritableField.SetCaretPosition (3);
 
 		rename_menu = new Wimp.Menu ("New name:");
 		// Rename writable menu item is created with "Default" as its initial

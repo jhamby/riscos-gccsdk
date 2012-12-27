@@ -276,9 +276,9 @@ namespace riscos
 		{
 			public uint WindowHandle;
 			public int IconHandle;
-			public NativeOS.Coord Pos;
-			public int height;
-			public int index;
+			public NativeOS.Coord Offset;
+			public int Height;
+			public int Index;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -488,7 +488,7 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_set_caret_position")]
 		internal static extern IntPtr Wimp_SetCaretPosition (uint windowHandle,
-								     uint iconHandle,
+								     int iconHandle,
 								     int x,
 								     int y,
 								     int height,
@@ -497,8 +497,8 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_get_caret_position")]
 		internal static extern IntPtr Wimp_GetCaretPosition (
-				[In, MarshalAs(UnmanagedType.Struct)]
-					ref NativeWimp.CaretBlock block);
+				[Out, MarshalAs(UnmanagedType.Struct)]
+					out NativeWimp.CaretBlock block);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_create_menu")]
 		internal static extern IntPtr Wimp_CreateMenu (IntPtr menu,

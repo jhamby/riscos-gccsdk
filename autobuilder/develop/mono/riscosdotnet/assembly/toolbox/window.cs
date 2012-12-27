@@ -282,6 +282,12 @@ namespace riscos
 				WimpWindow.ForceRedrawFurniture (item);
 			}
 
+			/*! \brief Move the caret to the given position in this window.  */
+			public void SetCaretPosition (OS.Coord Pos, int height, int index)
+			{
+				WimpWindow.SetCaretPosition (Pos, height, index);
+			}
+
 			/*! \brief Attach toolbars to this Window object. If the object is showing then
 			 * the new toolbars will be shown.
 			 * \param [in] intBottomLeft Internal Bottom Left toolbar.
