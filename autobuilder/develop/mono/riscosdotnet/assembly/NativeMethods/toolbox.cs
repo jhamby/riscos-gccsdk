@@ -261,8 +261,8 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_wimp_to_toolbox")]
 		internal static extern IntPtr Window_WimpToToolbox (uint flags,
-								    uint wimpHandle,
-								    uint wimpIcon,
+								    uint wimpWindow,
+								    int wimpIcon,
 								    out uint objectID,
 								    out uint cmpID);
 

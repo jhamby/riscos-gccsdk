@@ -6,7 +6,7 @@
  * RISC OS Dot Net (the C# binding) is still evolving, so
  * this test app probably will too.
  *
- * In this case, I've used plain WIMP only - no toolbox yet.
+ * In this case, I've used plain WIMP only - no toolbox.
  *
  * Author:
  *	Lee Noar <leenoar@sky.com>
@@ -163,6 +163,17 @@ public class MyTask : WimpTask
 		Reporter.WriteLine ("");
 	}
 
+	public void gain_caret (object sender, Wimp.CaretEventArgs e)
+	{
+		var caret = (Wimp.Window.CaretState) e.CaretState;
+		Reporter.WriteLine ("caret window: {0:X8}", caret.Window.WimpHandle);
+		Reporter.WriteLine ("caret icon: {0}", caret.Icon.Handle);
+		Reporter.WriteLine ("caret pos: {0},{1}", caret.Offset.X, caret.Offset.Y);
+		Reporter.WriteLine ("caret index: {0}", caret.Index);
+		Reporter.WriteLine ("caret invisible: {0}", caret.Invisible);
+		Reporter.WriteLine ("");
+	}
+
 	public void Init ()
 	{
 		int[] mess_list = { 0 };
@@ -184,6 +195,7 @@ public class MyTask : WimpTask
 		window.Closed += close_main_window;
 		window.MouseClick += mouse_click;
 		window.MsgDataLoad += window_DataLoad;
+		window.GainCaret += gain_caret;
 
 		UserDragEnd += drag_end;
 

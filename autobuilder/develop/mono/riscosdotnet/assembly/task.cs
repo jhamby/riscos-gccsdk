@@ -1,9 +1,16 @@
+//
+// task.cs - a binding of the RISC OS API to C#.
+//
+// Author: Lee Noar (leenoar@sky.com)
+//
+
 using System;
 using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
-	public class Task
+	public abstract class Task
 	{
 		public uint Handle { get; protected set; }
 		public bool Quit { get; set; }
@@ -21,7 +28,8 @@ namespace riscos
 		 * \return Nothing.  */
 		public void Poll ()
 		{
-			Dispatch (Wimp.Poll (PollMask, out PollWord));
+			Wimp.Poll (PollMask, out PollWord);
+			Dispatch (GetEvent ());
 		}
 
 		// I could overload Poll() above, but PollIdle is probably a better indication of
@@ -32,7 +40,8 @@ namespace riscos
 		 * \return Nothing.  */
 		public void PollIdle (uint time)
 		{
-			Dispatch (Wimp.PollIdle (PollMask, time, out PollWord));
+			Wimp.PollIdle (PollMask, time, out PollWord);
+			Dispatch (GetEvent ());
 		}
 
 		/*! \brief Raising an event invokes the event handler through a delegate.
@@ -158,6 +167,66 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Retrieve the current Wimp event from the unmanaged buffer.  */
+		private Wimp.EventArgs GetEvent ()
+		{
+			Wimp.PollCode type = NativeMethods.wimp_get_event_type ();
+			IntPtr event_ptr = NativeMethods.wimp_get_event ();
+
+			switch (type)
+			{
+			case Wimp.PollCode.RedrawWindow:
+				return new Wimp.RedrawEventArgs (event_ptr);
+			case Wimp.PollCode.OpenWindow:
+				return new Wimp.OpenEventArgs (event_ptr);
+			case Wimp.PollCode.CloseWindow:
+				return new Wimp.CloseEventArgs (event_ptr);
+			case Wimp.PollCode.PointerLeaveWindow:
+				return new Wimp.PointerLeaveEventArgs (event_ptr);
+			case Wimp.PollCode.PointerEnterWindow:
+				return new Wimp.PointerEnterEventArgs (event_ptr);
+			case Wimp.PollCode.MouseClick:
+				return new Wimp.MouseClickEventArgs (event_ptr);
+			case Wimp.PollCode.UserDragBox:
+				return new Wimp.UserDragEventArgs (event_ptr);
+			case Wimp.PollCode.KeyPressed:
+				return new Wimp.KeyPressEventArgs (event_ptr);
+			case Wimp.PollCode.ScrollRequest:
+				return new Wimp.ScrollRequestEventArgs (event_ptr);
+			case Wimp.PollCode.LoseCaret:
+				return CreateCaretEventArgs (event_ptr);
+			case Wimp.PollCode.GainCaret:
+				return CreateCaretEventArgs (event_ptr);
+			case Wimp.PollCode.MenuSelection:
+				return new Wimp.MenuSelectionEventArgs (event_ptr);
+			case Wimp.PollCode.UserMessage:
+			case Wimp.PollCode.UserMessageRecorded:
+				return GetMessage (event_ptr);
+			case Wimp.PollCode.ToolboxEvent:
+				return new Toolbox.ToolboxEventArgs (event_ptr);
+			case Wimp.PollCode.Null:
+			default:
+				return new Wimp.EventArgs (event_ptr);
+			}
+		}
+
+		/*! \brief Retrieve the current Wimp message from the unmanaged buffer.  */
+		private Wimp.EventArgs GetMessage (IntPtr unmanagedEventBlock)
+		{
+			var type = (Wimp.MessageAction)Marshal.
+					ReadInt32 (unmanagedEventBlock,
+						   Wimp.MessageEventArgs.EventHeaderOffset.MessageType);
+			switch (type)
+			{
+			case Wimp.MessageAction.DataLoad:
+				return new Wimp.DataLoadMessageEventArgs (unmanagedEventBlock);
+			default:
+				return new Wimp.MessageEventArgs (unmanagedEventBlock);
+			}
+		}
+
+		protected abstract Wimp.CaretEventArgs CreateCaretEventArgs (IntPtr rawEventData);
+
 		/*! \brief The event handlers that will be called when a Wimp Quit message is received.  */
 		public event EventHandler<Wimp.MessageEventArgs> MsgQuit;
 
@@ -228,6 +297,12 @@ namespace riscos
 		public override void KeyPress (int charCode)
 		{
 			Wimp.ProcessKey (charCode);
+		}
+
+		//! \brief Create a GainCaretEventArgs object specific to plain Wimp window/icons.
+		protected override Wimp.CaretEventArgs CreateCaretEventArgs (IntPtr rawEventData)
+		{
+			return new Wimp.Window.CaretEventArgs (rawEventData);
 		}
 
 		/*! \brief The event handlers that will be called when a menu selection is made.  */

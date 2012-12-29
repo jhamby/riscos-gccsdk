@@ -130,6 +130,7 @@ namespace riscos.CSharpBindings.GadgetTest
 		public Dialogue (uint objID) : base (objID)
 		{
 			Title = "C# Dialogue Box";
+			GainCaret += gain_caret;
 
 			OKButton = new Toolbox.ActionButton (this, CmpID.OKButton);
 			OKButton.Text = "OK";
@@ -325,6 +326,20 @@ namespace riscos.CSharpBindings.GadgetTest
 		{
 			Reporter.WriteLine ("AdjusterArrow returned Click event");
 			Reporter.WriteLine ("Arrow direction is {0}",e.Direction);
+			Reporter.WriteLine ("");
+		}
+
+		void gain_caret (object sender, Wimp.CaretEventArgs e)
+		{
+			var caret = (Toolbox.Window.CaretState) e.CaretState;
+			Reporter.WriteLine ("caret window: {0:X8}", caret.Window.ID);
+			if (caret.Gadget == null)
+				Reporter.WriteLine ("Gadget is composite; icon handle: {0}", caret.IconHandle);
+			else
+				Reporter.WriteLine ("caret gadget: {0}", caret.Gadget.ComponentID);
+			Reporter.WriteLine ("caret pos: {0},{1}", caret.Offset.X, caret.Offset.Y);
+			Reporter.WriteLine ("caret index: {0}", caret.Index);
+			Reporter.WriteLine ("caret invisible: {0}", caret.Invisible);
 			Reporter.WriteLine ("");
 		}
 	}

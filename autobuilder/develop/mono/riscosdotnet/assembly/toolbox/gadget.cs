@@ -57,7 +57,7 @@ namespace riscos
 			/*! \brief The window/menu containing this gadget.  */
 			public Toolbox.Object Object { get; private set; }
 			/*! \brief The Toolbox ID of this gadget.  */
-			protected uint ComponentID;
+			public readonly uint ComponentID;
 
 			/*! \brief Wrap an existing gagdet.  */
 			public Gadget (Object tbObj, uint cmpID)
@@ -149,7 +149,7 @@ namespace riscos
 			 * this gadget.
 			 * 
 			 * If the gadget is composite (i.e. made up of other gadgets), then \e null is returned.
-			 * \return A mananaged integer array containing the icon numbers or null for a
+			 * \return A managed integer array containing the icon numbers or null for a
 			 * composite gadget.  */
 			public int [] GetIconList()
 			{

@@ -421,14 +421,23 @@ namespace riscos
 
 			public virtual void Dispatch (ToolboxEventArgs e)
 			{
-				NativeToolbox.IDBlock id_block = ToolboxTask.GetIDBlock();
-				Toolbox.Gadget tb_cmp;
+				var id_block = ToolboxTask.GetIDBlock();
+				var gadget = GetGadget (id_block.SelfCmp);
 
-				if (id_block.SelfCmp != 0xffffffff &&
-					Gadgets.TryGetValue (id_block.SelfCmp, out tb_cmp))
-				{
-					tb_cmp.Dispatch (e);
-				}
+				if (gadget == null)
+					return;
+
+				gadget.Dispatch (e);
+			}
+
+			public Toolbox.Gadget GetGadget (uint id)
+			{
+				if (id == 0xffffffff)
+					return null;
+
+				Gadget gadget;
+
+				return Gadgets.TryGetValue (id, out gadget) ? gadget : null;
 			}
 
 			/*! \brief Query the Toolbox to find the class type of the Toolbox object
@@ -996,7 +1005,7 @@ namespace riscos
 					uint cmp_id;
 
 					tb_obj = Toolbox.Window.WimpToToolbox (e.GetWindowHandle (),
-									       0xffffffff,
+									       -1,
 									       out cmp_id);
 					if (tb_obj != null)
 						tb_obj.Dispatch (e);
@@ -1015,6 +1024,11 @@ namespace riscos
 					base.Dispatch (e);
 				}
 			}
+		}
+
+		protected override Wimp.CaretEventArgs CreateCaretEventArgs (IntPtr rawEventData)
+		{
+			return new Toolbox.Window.CaretEventArgs (rawEventData);
 		}
 	}
 }

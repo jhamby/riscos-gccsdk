@@ -457,32 +457,13 @@ namespace riscos
 			}
 		}
 
-		/*! \brief Provides data for the event raised when a window loses the caret (input focus).  */
-		public class LoseCaretEventArgs : Wimp.EventArgs
+		/*! \brief Provides data for the event raised when a window gains or loses the caret (input focus).  */
+		public class CaretEventArgs : Wimp.EventArgs
 		{
-			public NativeWimp.CaretBlock CaretWimpBlock;
+			public Wimp.CaretState CaretState;
 
-			public LoseCaretEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+			public CaretEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
 			{
-				CaretWimpBlock = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
-							unmanagedEventBlock, typeof(NativeWimp.CaretBlock));
-			}
-
-			public override uint GetWindowHandle ()
-			{
-				return (uint)Marshal.ReadInt32 (RawEventData, 0);
-			}
-		}
-
-		/*! \brief Provides data for the event raised when a window gain the caret (input focus).  */
-		public class GainCaretEventArgs : Wimp.EventArgs
-		{
-			public NativeWimp.CaretBlock CaretWimpBlock;
-
-			public GainCaretEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
-			{
-				CaretWimpBlock = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
-							unmanagedEventBlock, typeof(NativeWimp.CaretBlock));
 			}
 
 			public override uint GetWindowHandle ()
@@ -570,62 +551,6 @@ namespace riscos
 			{
 				return 0;
 			}
-
-			public static Wimp.EventArgs GetEvent ()
-			{
-				PollCode type = NativeMethods.wimp_get_event_type ();
-				IntPtr event_ptr = NativeMethods.wimp_get_event ();
-
-				switch (type)
-				{
-					case PollCode.RedrawWindow:
-						return new RedrawEventArgs (event_ptr);
-					case PollCode.OpenWindow:
-						return new OpenEventArgs (event_ptr);
-					case PollCode.CloseWindow:
-						return new CloseEventArgs (event_ptr);
-					case PollCode.PointerLeaveWindow:
-						return new PointerLeaveEventArgs (event_ptr);
-					case PollCode.PointerEnterWindow:
-						return new PointerEnterEventArgs (event_ptr);
-					case PollCode.MouseClick:
-						return new MouseClickEventArgs (event_ptr);
-					case PollCode.UserDragBox:
-						return new UserDragEventArgs (event_ptr);
-					case PollCode.KeyPressed:
-						return new KeyPressEventArgs (event_ptr);
-					case PollCode.ScrollRequest:
-						return new ScrollRequestEventArgs (event_ptr);
-					case PollCode.LoseCaret:
-						return new LoseCaretEventArgs (event_ptr);
-					case PollCode.GainCaret:
-						return new GainCaretEventArgs (event_ptr);
-					case PollCode.MenuSelection:
-						return new MenuSelectionEventArgs (event_ptr);
-					case PollCode.UserMessage:
-					case PollCode.UserMessageRecorded:
-						return GetMessage (event_ptr);
-					case PollCode.ToolboxEvent:
-						return new Toolbox.ToolboxEventArgs (event_ptr);
-					case PollCode.Null:
-					default:
-						return new Wimp.EventArgs (event_ptr);
-				}
-			}
-
-			static Wimp.EventArgs GetMessage (IntPtr unmanagedEventBlock)
-			{
-				MessageAction type = (MessageAction)Marshal.
-							ReadInt32 (unmanagedEventBlock,
-								   MessageEventArgs.EventHeaderOffset.MessageType);
-				switch (type)
-				{
-				case MessageAction.DataLoad:
-					return new DataLoadMessageEventArgs (unmanagedEventBlock);
-				default:
-					return new MessageEventArgs (unmanagedEventBlock);
-				}
-			}
 		}
 
 		/*! \brief Create a Wimp window using the given attributes.
@@ -709,10 +634,9 @@ namespace riscos
 		 * \param [in] pollMask Bit-mask indicating which events should not be returned.
 		 * \param [out] pollWord Pollword associated with Wimp event 13.
 		 * \return The current event returned by SWI Wimp_Poll.  */
-		public static Wimp.EventArgs Poll (uint pollMask, out uint pollWord)
+		public static void Poll (uint pollMask, out uint pollWord)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_Poll (pollMask, out pollWord));
-			return EventArgs.GetEvent ();
 		}
 
 		/*! \brief Poll the Wimp, sleeping for the specified time unless certain events
@@ -721,10 +645,9 @@ namespace riscos
 		 * \param [in] time The number of centi-seconds to sleep for.
 		 * \param [out] pollWord Pollword associated with Wimp event 13.
 		 * \return The current event returned by SWI Wimp_PollIdle.  */
-		public static Wimp.EventArgs PollIdle (uint pollMask, uint time, out uint pollWord)
+		public static void PollIdle (uint pollMask, uint time, out uint pollWord)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_PollIdle (pollMask, time, out pollWord));
-			return EventArgs.GetEvent ();
 		}
 
 		public static int ReportError (ErrorBoxFlags flags, string name, int errno, string message)
@@ -1260,6 +1183,83 @@ namespace riscos
 					ExtraFlags = value ? ExtraFlags |  WindowExtraFlags.ReturnShadedIcons :
 							     ExtraFlags & ~WindowExtraFlags.ReturnShadedIcons;
 				}
+			}
+		}
+
+		//! \brief Encapsulates data defining the state of the caret.
+		public abstract class CaretState
+		{
+			//! \brief The underlying Wimp handle of the window.
+			public uint WindowHandle;
+			//! \brief The underlying Wimp handle of the icon.
+			public int IconHandle;
+			//! \brief The offset  of the caret relative to the window origin.
+			public OS.Coord Offset;
+			//! \brief The height of the caret in OS units (-1 if not displayed).
+			public int Height;
+			//! \brief The index of the caret into the string (if in a writable icon).
+			public int Index;
+
+			//! \brief \e true if a vdu 5-type caret used, else anti-aliased caret.
+			public bool Vdu5Type;
+			//! \brief \e true if caret is invisible.  */
+			public bool Invisible;
+			//! \brief \e true if caret colour is returned, otherwise Wimp colour 11 assumed.
+			public bool ColourGiven;
+			//! \brief \e true if the returned colour is untranslated, otherwise Wimp colour assumed.
+			public bool ColourUntranslated;
+			//! \brief The colour of the caret (depending on whether the other bits are true.
+			public int Colour;
+
+			//! \brief Create a new object containing the current state of the caret.
+			public CaretState ()
+			{
+				Offset = new OS.Coord ();
+				Update ();
+			}
+
+			//! \brief Update this object with the current state of the caret.
+			protected void Update (ref NativeWimp.CaretBlock block)
+			{
+				WindowHandle = block.WindowHandle;
+				IconHandle = block.IconHandle;
+				Offset.X = block.Offset.X;
+				Offset.Y = block.Offset.Y;
+				Index = block.Index;
+
+				int height = block.Height;
+
+				if (height == -1)
+				{
+					Height = -1;
+				}
+				else
+				{
+					Height = height & 0xffff;
+					Vdu5Type = (height & Flags.Vdu5Type) != 0;
+					Invisible = (height & Flags.Invisible) != 0;
+					ColourGiven = (height & Flags.ColourGiven) != 0;
+					ColourUntranslated = (height & Flags.Untranslated) != 0;
+					Colour = (height >> 16) & 0xff;
+				}
+			}
+
+			//! \brief Update this object with the current state of the caret.
+			public virtual void Update ()
+			{
+				var block = new NativeWimp.CaretBlock ();
+
+				Wimp.GetCaretPosition (out block);
+
+				Update (ref block);
+			}
+
+			protected static class Flags
+			{
+				public const int Vdu5Type = (1 << 24);
+				public const int Invisible = (1 << 25);
+				public const int ColourGiven = (1 << 26);
+				public const int Untranslated = (1 << 27);
 			}
 		}
 	}

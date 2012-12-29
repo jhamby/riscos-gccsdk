@@ -516,7 +516,7 @@ namespace riscos
 			 * \param [out] cmpID The Toolbox ID of the component that contains the icon.
 			 * \return The Window object that contains the icon or null if unknown.  */ 
 			static public Window WimpToToolbox (uint windowHandle,
-							    uint iconHandle,
+							    int iconHandle,
 							    out uint cmpID)
 			{
 				uint tb_obj_id;
@@ -535,6 +535,19 @@ namespace riscos
 			void RemoveKeyboardShortcuts();
 			void ExtractGadgetInfo();
 */
+
+			protected virtual void OnLoseCaret (Wimp.CaretEventArgs e)
+			{
+				if (LoseCaret != null)
+					LoseCaret (this, e);
+			}
+
+			protected virtual void OnGainCaret (Wimp.CaretEventArgs e)
+			{
+				if (GainCaret != null)
+					GainCaret (this, e);
+			}
+
 			protected virtual void OnPaint (Wimp.RedrawEventArgs e)
 			{
 				if (Paint != null)
@@ -588,6 +601,12 @@ namespace riscos
 				{
 				case Wimp.PollCode.RedrawWindow:
 					OnRedraw ((Wimp.RedrawEventArgs)e);
+					break;
+				case Wimp.PollCode.LoseCaret:
+					OnLoseCaret ((Wimp.CaretEventArgs) e);
+					break;
+				case Wimp.PollCode.GainCaret:
+					OnGainCaret ((Wimp.CaretEventArgs) e);
 					break;
 				case Wimp.PollCode.UserMessage:
 				case Wimp.PollCode.UserMessageRecorded:
@@ -692,6 +711,14 @@ namespace riscos
 			 * in the event's arguments.  */
 			public event EventHandler<Wimp.RedrawEventArgs> Paint;
 
+			/*! \brief The event handlers that will be called when the caret is moved
+			 * away from this window.  */
+			public event EventHandler<Wimp.CaretEventArgs> LoseCaret;
+
+			/*! \brief The event handlers that will be called when the caret is moved
+			 * to this window.  */
+			public event EventHandler<Wimp.CaretEventArgs> GainCaret;
+
 			/*! \class PointerShape
 			 * \brief Used to set/read the Pointer property of the Window.  */
 			public class PointerShape
@@ -708,6 +735,50 @@ namespace riscos
 					SpriteName = spriteName;
 					xHotSpot = x;
 					yHotSpot = y;
+				}
+			}
+
+			/*! \brief Encapsulate data defining the state of the caret.
+			 * The data is specific to Toolbox windows and gadgets.  */
+			public class CaretState : Wimp.CaretState
+			{
+				/*! \brief The window containing the caret (null if none).  */
+				public Toolbox.Window Window;
+				/*! \brief The icon containing the caret (null if none).  */
+				public Toolbox.Gadget Gadget;
+
+				/*! \brief Create a new object containing the current state of the caret.  */
+				public CaretState ()
+				{
+					Update ();
+				}
+
+				/*! \brief Create a new object from the result of an event.  */
+				public CaretState (ref NativeWimp.CaretBlock block)
+				{
+					Update (ref block);
+				}
+
+				/*! \brief Update this object with the current state of the caret.  */
+				public override void Update ()
+				{
+					base.Update ();
+					uint cmp_id;
+
+					Window = WimpToToolbox (WindowHandle,
+								IconHandle,
+								out cmp_id);
+					Gadget = (Window != null) ? Window.GetGadget (cmp_id) : null;
+				}
+			}
+
+			public class CaretEventArgs : Wimp.CaretEventArgs
+			{
+				public CaretEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				{
+					var block = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
+							unmanagedEventData, typeof(NativeWimp.CaretBlock));
+					CaretState = new Window.CaretState (ref block);
 				}
 			}
 

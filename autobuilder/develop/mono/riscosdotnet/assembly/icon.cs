@@ -366,7 +366,7 @@ namespace riscos
 			/*! \brief Sets or gets the button type of the icon.  */
 			public IconButtonType ButtonType {
 				set {
-					// Clear all the button types first.
+					// Clear all the button type bits first.
 					_Flags &= (IconFlags)~(0xf << 12);
 					// Now insert the required button type.
 					_Flags |= (IconFlags)(((int)value & 0xf) << 12);

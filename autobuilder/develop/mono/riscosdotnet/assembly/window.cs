@@ -399,13 +399,13 @@ namespace riscos
 					KeyPress (this, e);
 			}
 
-			protected virtual void OnLoseCaret (LoseCaretEventArgs e)
+			protected virtual void OnLoseCaret (Wimp.CaretEventArgs e)
 			{
 				if (LoseCaret != null)
 					LoseCaret (this, e);
 			}
 
-			protected virtual void OnGainCaret (GainCaretEventArgs e)
+			protected virtual void OnGainCaret (Wimp.CaretEventArgs e)
 			{
 				if (GainCaret != null)
 					GainCaret (this, e);
@@ -493,10 +493,10 @@ namespace riscos
 					OnScrollRequest ((ScrollRequestEventArgs) e);
 					break;
 				case PollCode.LoseCaret:
-					OnLoseCaret ((LoseCaretEventArgs) e);
+					OnLoseCaret ((Wimp.CaretEventArgs) e);
 					break;
 				case PollCode.GainCaret:
-					OnGainCaret ((GainCaretEventArgs) e);
+					OnGainCaret ((Wimp.CaretEventArgs) e);
 					break;
 				case PollCode.UserMessage:
 				case PollCode.UserMessageRecorded:
@@ -543,11 +543,11 @@ namespace riscos
 
 			/*! \brief The event handlers that will be called when the caret is moved
 			 * away from this window.  */
-			public event EventHandler<LoseCaretEventArgs> LoseCaret;
+			public event EventHandler<Wimp.CaretEventArgs> LoseCaret;
 
 			/*! \brief The event handlers that will be called when the caret is moved
 			 * to this window.  */
-			public event EventHandler<GainCaretEventArgs> GainCaret;
+			public event EventHandler<Wimp.CaretEventArgs> GainCaret;
 
 			/*! \brief The event handlers that will be called when a Wimp Data Load message
 			 * is received for this Wimp window.  */
@@ -564,74 +564,42 @@ namespace riscos
 			}
 
 			/*! \brief Encapsulate data defining the state of the caret.  */
-			public class CaretState
+			public class CaretState : Wimp.CaretState
 			{
 				/*! \brief The window containing the caret (null if none).  */
 				public Wimp.Window Window;
 				/*! \brief The icon containing the caret (null if none).  */
 				public Wimp.Icon Icon;
-				/*! \brief The offset  of the caret relative to the window origin.  */
-				public OS.Coord Offset;
-				/*! \brief The height of the caret in OS units (-1 if not displayed).  */
-				public int Height;
-				/*! \brief The index of the caret into the string (if in a writable icon).  */
-				public int Index;
-
-				/*! \brief \e true if a vdu 5-type caret used, else anti-aliased caret.  */
-				public bool Vdu5Type;
-				/*! \brief \e true if caret is invisible.  */
-				public bool Invisible;
-				/*! \brief \e true if caret colour is returned, otherwise Wimp colour 11 assumed.  */
-				public bool ColourGiven;
-				/*! \brief \e true if the returned colour is untranslated, otherwise Wimp colour assumed.  */
-				public bool ColourUntranslated;
-				/*! \brief The colour of the caret (depending on whether the other bits are true.  */
-				public int Colour;
 
 				/*! \brief Create a new object containing the current state of the caret.  */
 				public CaretState ()
 				{
-					Offset = new OS.Coord ();
 					Update ();
 				}
 
-				/*! \brief Update this object with the current state of the caret.  */
-				public void Update ()
+				/*! \brief Create a new object from the result of an event.  */
+				public CaretState (ref NativeWimp.CaretBlock block)
 				{
-					var block = new NativeWimp.CaretBlock ();
-
-					Wimp.GetCaretPosition (out block);
-
-					Offset.X = block.Offset.X;
-					Offset.Y = block.Offset.Y;
-					Index = block.Index;
-
-					int height = block.Height;
-
-					if (height == -1)
-					{
-						Height = -1;
-					}
-					else
-					{
-						Height = height & 0xffff;
-						Vdu5Type = (height & Flags.Vdu5Type) != 0;
-						Invisible = (height & Flags.Invisible) != 0;
-						ColourGiven = (height & Flags.ColourGiven) != 0;
-						ColourUntranslated = (height & Flags.Untranslated) != 0;
-						Colour = (height >> 16) & 0xff;
-					}
-
-					Window = GetInstance (block.WindowHandle);
-					Icon = (Window != null) ? Window.GetIcon (block.IconHandle) : null;
+					Update (ref block);
 				}
 
-				static class Flags
+				/*! \brief Update this object with the current state of the caret.  */
+				public override void Update ()
 				{
-					public const int Vdu5Type = (1 << 24);
-					public const int Invisible = (1 << 25);
-					public const int ColourGiven = (1 << 26);
-					public const int Untranslated = (1 << 27);
+					base.Update ();
+
+					Window = GetInstance (WindowHandle);
+					Icon = (Window != null) ? Window.GetIcon (IconHandle) : null;
+				}
+			}
+
+			public class CaretEventArgs : Wimp.CaretEventArgs
+			{
+				public CaretEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				{
+					var block = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
+							unmanagedEventData, typeof(NativeWimp.CaretBlock));
+					CaretState = new Window.CaretState (ref block);
 				}
 			}
 

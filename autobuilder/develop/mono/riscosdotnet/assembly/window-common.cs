@@ -4,6 +4,8 @@
 // Author: Lee Noar (leenoar@sky.com)
 //
 
+using System;
+
 namespace riscos
 {
 	public static partial class Wimp
@@ -49,6 +51,11 @@ namespace riscos
 			OS.Rect VisibleArea { get; }
 
 			OS.Rect Extent { set; get; }
+
+			event EventHandler<CaretEventArgs> LoseCaret;
+
+			event EventHandler<CaretEventArgs> GainCaret;
+
 		}
 
 		/*! \brief Encapsulate the data and methods shared by both a Toolbox Window
