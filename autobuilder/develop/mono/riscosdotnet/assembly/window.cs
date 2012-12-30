@@ -603,36 +603,61 @@ namespace riscos
 				}
 			}
 
-			/*! \brief Retrieve information about the pointer using method Wimp.GetPointerInfo.  */
+			/*! \brief Encapsulate the data that defines the state of the pointer for a plain
+			 * Wimp window.  */
 			public class PointerInfo
 			{
 				/*! \brief Current position of the mouse pointer in OS units.  */
 				public OS.Coord Pos;
-				/*! \brief Current state of the mouse buttons. See \e PointerInfo.ButtonState. */
-				public uint Buttons;
 				/*! \brief Wimp window.  */
 				public Wimp.Window Window;
 				/*! \brief Wimp icon.  */
-				public Wimp.Icon Icon = null;
+				public Wimp.Icon Icon;
 
 				public uint WindowHandle;
 				public int IconHandle;
 
-				/*! \class ButtonState
-				 * \brief Possible bit states for \e PointerInfo.Buttons  */
-				public class ButtonState
+				/*! \brief Current state of the mouse buttons. See \e PointerInfo.ButtonState. */
+				private ButtonState Buttons;
+
+				//! \brief Possible bit states for \e PointerInfo.Buttons.
+				enum ButtonState
 				{
-					public const uint Adjust = (1 << 0);
-					public const uint Menu = (1 << 1);
-					public const uint Select = (1 << 2);
+					Adjust = (1 << 0),
+					Menu = (1 << 1),
+					Select = (1 << 2)
 				}
 
+				/*! \brief Create an object that holds details of the current state of
+				 * the pointer.  */
 				public PointerInfo ()
 				{
 					Pos = new OS.Coord ();
 					Update ();
 				}
 
+				//! \brief \e true if the Adjust mouse button was clicked.
+				public bool Adjust {
+					get {
+						return (Buttons & ButtonState.Adjust) != 0;
+					}
+				}
+
+				//! \brief \e true if the Select mouse button was clicked.
+				public bool Select {
+					get {
+						return (Buttons & ButtonState.Select) != 0;
+					}
+				}
+
+				//! \brief \e true if the Menu mouse button was clicked.
+				public bool Menu {
+					get {
+						return (Buttons & ButtonState.Menu) != 0;
+					}
+				}
+
+				//! \brief Update this object with the current state of the pointer.
 				public void Update ()
 				{
 					var block = new NativeWimp.PointerBlock ();
@@ -641,15 +666,12 @@ namespace riscos
 
 					Pos.X = block.Pos.X;
 					Pos.Y = block.Pos.Y;
-					Buttons = block.Buttons;
+					Buttons = (ButtonState)block.Buttons;
 					WindowHandle = block.WindowHandle;
 					IconHandle = block.IconHandle;
 
 					Window = GetInstance (WindowHandle);
-					if (Window != null)
-					{
-						Icon = Window.GetIcon (IconHandle);
-					}
+					Icon = Window != null ? Window.GetIcon (IconHandle) : null;
 				}
 			}
 		}

@@ -492,21 +492,27 @@ namespace riscos
 			}
 
 			/*! \brief Return information about the state of the pointer.
-			 * \param [out] pointer Object used to return pointer information.
-			 * \return The Toolbox Window object currently under the pointer or
-			 * null if not over a known toolbox window.  */
-			public static Window GetPointerInfo (PointerInfo pointer)
+			 * \param [out] x The current X coordinate of the pointer.
+			 * \param [out] y The current Y coordinate of the pointer.
+			 * \param [out] buttons The current state of the mouse buttons.
+			 * \param [out] cmpID The Toolbox ID of the component currently under the
+			 * pointer, or icon handle if bit of \e buttons is set.
+			 * \return The Toolbox ID of the Window object currently under the pointer or
+			 * Wimp window handle if bit 8 of \e buttons is set.  */
+			public static uint GetPointerInfo (out int x,
+							   out int y,
+							   out uint buttons,
+							   out uint cmpID)
 			{
-				OS.ThrowOnError (NativeMethods.Window_GetPointerInfo (0,
-										      out pointer.Pos.X,
-										      out pointer.Pos.Y,
-										      out pointer.Buttons,
-										      out pointer.ObjectID,
-										      out pointer.CmpID));
-				if ((pointer.Buttons & PointerInfo.ButtonState.NotToolboxWindow) != 0)
-					return null;
+				uint object_id;
 
-				return Object.CreateInstance<Window> (pointer.ObjectID);
+				OS.ThrowOnError (NativeMethods.Window_GetPointerInfo (0,
+										      out x,
+										      out y,
+										      out buttons,
+										      out object_id,
+										      out cmpID));
+				return object_id;
 			}
 
 			/*! \brief Return the Window object and component ID that contains the
@@ -782,30 +788,99 @@ namespace riscos
 				}
 			}
 
-			/*! \class PointerInfo
-			 * \brief Used as a buffer to retrieve information about the pointer using
-			 * method Window.GetPointerInfo.  */
+			/*! \brief Encapsulate the data that defines the state of the pointer for a Toolbox
+			 * window.  */
 			public class PointerInfo
 			{
 				/*! \brief Current position of the mouse pointer in OS units.  */
 				public OS.Coord Pos;
-				/*! \brief Current state of the mouse buttons. See \e PointerInfo.ButtonState. */
-				public uint Buttons;
-				/*! \brief Window ID, or WIMP window handle if \e Buttons
-				 * bit \e NotToolboxWindow is set.  */
-				public uint ObjectID;
-				/*! \brief Component ID, or WIMP icon handle if \e Buttons
-				 * bit \e NotToolboxWindow is set.  */
-				public uint CmpID;
+				/*! \brief Window ID, or \e null if the window does not belong to the Toolbox
+				 * in which case \e WindowHandle gives the Wimp handle.  */
+				public Toolbox.Window Window;
+				/*! \brief Component ID, or \e null if the window does not belong to the Toolbox,
+				 * in which case \e IconHandle gives the Wimp handle.  */
+				public Toolbox.Gadget Gadget;
 
-				/*! \class ButtonState
-				 * \brief Possible bit states for \e PointerInfo.Buttons  */
-				public class ButtonState
+				/*! \brief The Wimp handle of the window under the pointer; <b> only meaningful
+				 * if the window does not belong to the Toolbox.</b>  */
+				public uint WindowHandle;
+				/*! \brief The Wimp handle of the icon under the pointer; <b> only meaningful
+				 * if the window does not belong to the Toolbox.</b>  */
+				public int IconHandle;
+
+				//! \brief Current state of the mouse buttons. See \e PointerInfo.ButtonState.
+				private ButtonState Buttons;
+
+				//! \brief Possible bit states for \e PointerInfo.Buttons.
+				enum ButtonState
 				{
-					public const uint Adjust = (1 << 0);
-					public const uint Menu = (1 << 1);
-					public const uint Select = (1 << 2);
-					public const uint NotToolboxWindow = (1 << 8);
+					Adjust = (1 << 0),
+					Menu = (1 << 1),
+					Select = (1 << 2),
+					NotToolboxWindow = (1 << 8)
+				}
+
+				/*! \brief Create an object that holds details of the current state of
+				 * the pointer.  */
+				public PointerInfo ()
+				{
+					Pos = new OS.Coord ();
+					Update ();
+				}
+
+				//! \brief \e true if the Adjust mouse button was clicked.
+				public bool Adjust {
+					get {
+						return (Buttons & ButtonState.Adjust) != 0;
+					}
+				}
+
+				//! \brief \e true if the Select mouse button was clicked.
+				public bool Select {
+					get {
+						return (Buttons & ButtonState.Select) != 0;
+					}
+				}
+
+				//! \brief \e true if the Menu mouse button was clicked.
+				public bool Menu {
+					get {
+						return (Buttons & ButtonState.Menu) != 0;
+					}
+				}
+
+				//! \brief \e true if the returned window belongs to the Toolbox.
+				public bool ToolboxWindow {
+					get {
+						return (Buttons & ButtonState.NotToolboxWindow) == 0;
+					}
+				}
+
+				//! \brief Update this object with the current state of the pointer.
+				public void Update ()
+				{
+					uint buttons;
+					uint object_id;
+					uint cmp_id;
+
+					object_id = GetPointerInfo (out Pos.X, out Pos.Y, out buttons, out cmp_id);
+
+					Buttons = (ButtonState)buttons;
+
+					if (ToolboxWindow)
+					{
+						Window = CreateInstance<Window> (object_id);
+						Gadget = Window != null ? Window.GetGadget (cmp_id) : null;
+						WindowHandle = 0;
+						IconHandle = -1;
+					}
+					else
+					{
+						Window = null;
+						Gadget = null;
+						WindowHandle = object_id;
+						IconHandle = (int)cmp_id;
+					}
 				}
 			}
 		}
