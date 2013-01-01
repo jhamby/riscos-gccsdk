@@ -375,13 +375,13 @@ namespace riscos
 					Closed (this, e);
 			}
 
-			protected virtual void OnPointerLeave (PointerLeaveEventArgs e)
+			protected virtual void OnPointerLeave (PointerEventArgs e)
 			{
 				if (PointerLeave != null)
 					PointerLeave (this, e);
 			}
 
-			protected virtual void OnPointerEnter (PointerEnterEventArgs e)
+			protected virtual void OnPointerEnter (PointerEventArgs e)
 			{
 				if (PointerEnter != null)
 					PointerEnter (this, e);
@@ -478,10 +478,10 @@ namespace riscos
 					OnClose ((CloseEventArgs) e);
 					break;
 				case PollCode.PointerLeaveWindow:
-					OnPointerLeave ((PointerLeaveEventArgs) e);
+					OnPointerLeave ((PointerEventArgs) e);
 					break;
 				case PollCode.PointerEnterWindow:
-					OnPointerEnter ((PointerEnterEventArgs) e);
+					OnPointerEnter ((PointerEventArgs) e);
 					break;
 				case PollCode.MouseClick:
 					OnClick ((MouseClickEventArgs) e);
@@ -523,11 +523,11 @@ namespace riscos
 
 			/*! \brief The event handlers that will be called when the pointer leaves
 			 * the window.  */
-			public event EventHandler<PointerLeaveEventArgs> PointerLeave;
+			public event EventHandler<Wimp.PointerEventArgs> PointerLeave;
 
 			/*! \brief The event handlers that will be called when the pointer enters
 			 * the window.  */
-			public event EventHandler<PointerEnterEventArgs> PointerEnter;
+			public event EventHandler<Wimp.PointerEventArgs> PointerEnter;
 
 			/*! \brief The event handlers that will be called when a mouse button is
 			 * clicked within the window.  */
@@ -600,6 +600,16 @@ namespace riscos
 					var block = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
 							unmanagedEventData, typeof(NativeWimp.CaretBlock));
 					CaretState = new Window.CaretState (ref block);
+				}
+			}
+
+			public class PointerEventArgs : Wimp.PointerEventArgs
+			{
+				public readonly Wimp.Window Window;
+
+				public PointerEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				{
+					Window = GetInstance (WindowHandle);
 				}
 			}
 

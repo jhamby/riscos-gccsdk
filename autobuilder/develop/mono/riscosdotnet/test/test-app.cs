@@ -174,6 +174,28 @@ public class MyTask : WimpTask
 		Reporter.WriteLine ("");
 	}
 
+	public void pointer_enter (object sender, Wimp.PointerEventArgs e)
+	{
+		// Note that the window handle is provided in the base class 'e' so
+		// we don't really need to go through the window object to find it.
+		// However, this demonstrates that a higher level object exists containing
+		// a reference to the Window object if required.
+		var enter = (Wimp.Window.PointerEventArgs) e;
+
+		Reporter.WriteLine ("Pointer entered window with handle: {0:X8}", enter.Window.WimpHandle);
+	}
+
+	public void pointer_leave (object sender, Wimp.PointerEventArgs e)
+	{
+		// Note that the window handle is provided in the base class 'e' so
+		// we don't really need to go through the window object to find it.
+		// However, this demonstrates that a higher level object exists containing
+		// a reference to the Window object if required.
+		var leave = (Wimp.Window.PointerEventArgs) e;
+
+		Reporter.WriteLine ("Pointer left window with handle: {0:X8}", leave.Window.WimpHandle);
+	}
+
 	public void Init ()
 	{
 		int[] mess_list = { 0 };
@@ -196,6 +218,8 @@ public class MyTask : WimpTask
 		window.MouseClick += mouse_click;
 		window.MsgDataLoad += window_DataLoad;
 		window.GainCaret += gain_caret;
+		window.PointerEnter += pointer_enter;
+		window.PointerLeave += pointer_leave;
 
 		UserDragEnd += drag_end;
 

@@ -56,6 +56,9 @@ namespace riscos
 
 			event EventHandler<CaretEventArgs> GainCaret;
 
+			event EventHandler<PointerEventArgs> PointerEnter;
+
+			event EventHandler<PointerEventArgs> PointerLeave;
 		}
 
 		/*! \brief Encapsulate the data and methods shared by both a Toolbox Window

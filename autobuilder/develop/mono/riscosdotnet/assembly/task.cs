@@ -182,9 +182,9 @@ namespace riscos
 			case Wimp.PollCode.CloseWindow:
 				return new Wimp.CloseEventArgs (event_ptr);
 			case Wimp.PollCode.PointerLeaveWindow:
-				return new Wimp.PointerLeaveEventArgs (event_ptr);
+				return CreatePointerEventArgs (event_ptr);
 			case Wimp.PollCode.PointerEnterWindow:
-				return new Wimp.PointerEnterEventArgs (event_ptr);
+				return CreatePointerEventArgs (event_ptr);
 			case Wimp.PollCode.MouseClick:
 				return new Wimp.MouseClickEventArgs (event_ptr);
 			case Wimp.PollCode.UserDragBox:
@@ -226,6 +226,7 @@ namespace riscos
 		}
 
 		protected abstract Wimp.CaretEventArgs CreateCaretEventArgs (IntPtr rawEventData);
+		protected abstract Wimp.PointerEventArgs CreatePointerEventArgs (IntPtr rawEventData);
 
 		/*! \brief The event handlers that will be called when a Wimp Quit message is received.  */
 		public event EventHandler<Wimp.MessageEventArgs> MsgQuit;
@@ -303,6 +304,12 @@ namespace riscos
 		protected override Wimp.CaretEventArgs CreateCaretEventArgs (IntPtr rawEventData)
 		{
 			return new Wimp.Window.CaretEventArgs (rawEventData);
+		}
+
+		//! \brief Create a PointerEventArgs object specific to plain Wimp window/icons.
+		protected override Wimp.PointerEventArgs CreatePointerEventArgs (IntPtr rawEventData)
+		{
+			return new Wimp.Window.PointerEventArgs (rawEventData);
 		}
 
 		/*! \brief The event handlers that will be called when a menu selection is made.  */

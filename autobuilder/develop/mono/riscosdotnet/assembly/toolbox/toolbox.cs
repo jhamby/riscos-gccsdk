@@ -1026,9 +1026,16 @@ namespace riscos
 			}
 		}
 
+		//! \brief Create a CaretEventArgs object specific to Toolbox windows and gadgets.
 		protected override Wimp.CaretEventArgs CreateCaretEventArgs (IntPtr rawEventData)
 		{
 			return new Toolbox.Window.CaretEventArgs (rawEventData);
+		}
+
+		//! \brief Create a PointerEventArgs object specific to Toolbox windows and gadgets.
+		protected override Wimp.PointerEventArgs CreatePointerEventArgs (IntPtr rawEventData)
+		{
+			return new Toolbox.Window.PointerEventArgs (rawEventData);
 		}
 	}
 }

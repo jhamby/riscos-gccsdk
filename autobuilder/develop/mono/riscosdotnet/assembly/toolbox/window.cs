@@ -725,6 +725,14 @@ namespace riscos
 			 * to this window.  */
 			public event EventHandler<Wimp.CaretEventArgs> GainCaret;
 
+			/*! \brief The event handlers that will be called when the pointer leaves
+			 * the window.  */
+			public event EventHandler<Wimp.PointerEventArgs> PointerLeave;
+
+			/*! \brief The event handlers that will be called when the pointer enters
+			 * the window.  */
+			public event EventHandler<Wimp.PointerEventArgs> PointerEnter;
+
 			/*! \class PointerShape
 			 * \brief Used to set/read the Pointer property of the Window.  */
 			public class PointerShape
@@ -785,6 +793,16 @@ namespace riscos
 					var block = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
 							unmanagedEventData, typeof(NativeWimp.CaretBlock));
 					CaretState = new Window.CaretState (ref block);
+				}
+			}
+
+			public class PointerEventArgs : Wimp.PointerEventArgs
+			{
+				public readonly Toolbox.Window Window;
+
+				public PointerEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				{
+					Window = CreateInstance<Window> (WindowHandle);
 				}
 			}
 

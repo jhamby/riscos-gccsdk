@@ -356,34 +356,15 @@ namespace riscos
 			}
 		}
 
-		/*! \brief Provides data for the event raised when the pointer is moved out of the work area
-		 * of a window.  */
-		public class PointerLeaveEventArgs : Wimp.EventArgs
+		/*! \brief Provides data for the event raised when the pointer is moved in or out
+		 * of the work area of a window.  */
+		public class PointerEventArgs : Wimp.EventArgs
 		{
-			public NativeWimp.WindowHandleBlock PointerLeaveWimpBlock;
+			public readonly uint WindowHandle;
 
-			public PointerLeaveEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+			public PointerEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
-				PointerLeaveWimpBlock = (NativeWimp.WindowHandleBlock)Marshal.PtrToStructure (
-							unmanagedEventBlock, typeof(NativeWimp.WindowHandleBlock));
-			}
-
-			public override uint GetWindowHandle ()
-			{
-				return (uint)Marshal.ReadInt32 (RawEventData, 0);
-			}
-		}
-
-		/*! \brief Provides data for the event raised when the pointer is moved into the work area
-		 * of a window.  */
-		public class PointerEnterEventArgs : Wimp.EventArgs
-		{
-			public NativeWimp.WindowHandleBlock PointerEnterWimpBlock;
-
-			public PointerEnterEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
-			{
-				PointerEnterWimpBlock = (NativeWimp.WindowHandleBlock)Marshal.PtrToStructure (
-							unmanagedEventBlock, typeof(NativeWimp.WindowHandleBlock));
+				WindowHandle = (uint)Marshal.ReadInt32 (unmanagedEventBlock);
 			}
 
 			public override uint GetWindowHandle ()
