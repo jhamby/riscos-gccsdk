@@ -566,21 +566,15 @@ namespace riscos
 			/*! \brief Encapsulate data defining the state of the caret.  */
 			public class CaretState : Wimp.CaretState
 			{
-				/*! \brief The window containing the caret (null if none).  */
+				//! \brief The Wimp window containing the caret (null if none).
 				public Wimp.Window Window;
-				/*! \brief The icon containing the caret (null if none).  */
+				//! \brief The Wimp icon containing the caret (null if none).
 				public Wimp.Icon Icon;
 
 				/*! \brief Create a new object containing the current state of the caret.  */
 				public CaretState ()
 				{
 					Update ();
-				}
-
-				/*! \brief Create a new object from the result of an event.  */
-				public CaretState (ref NativeWimp.CaretBlock block)
-				{
-					Update (ref block);
 				}
 
 				/*! \brief Update this object with the current state of the caret.  */
@@ -595,11 +589,15 @@ namespace riscos
 
 			public class CaretEventArgs : Wimp.CaretEventArgs
 			{
+				//! \brief The Wimp window containing the caret (null if none).
+				public readonly Wimp.Window Window;
+				//! \brief The Wimp icon containing the caret (null if none).
+				public readonly Wimp.Icon Icon;
+
 				public CaretEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
 				{
-					var block = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
-							unmanagedEventData, typeof(NativeWimp.CaretBlock));
-					CaretState = new Window.CaretState (ref block);
+					Window = GetInstance (WindowHandle);
+					Icon = (Window != null) ? Window.GetIcon (IconHandle) : null;
 				}
 			}
 

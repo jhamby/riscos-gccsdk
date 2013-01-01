@@ -165,7 +165,7 @@ public class MyTask : WimpTask
 
 	public void gain_caret (object sender, Wimp.CaretEventArgs e)
 	{
-		var caret = (Wimp.Window.CaretState) e.CaretState;
+		var caret = (Wimp.Window.CaretEventArgs) e;
 		Reporter.WriteLine ("caret window: {0:X8}", caret.Window.WimpHandle);
 		Reporter.WriteLine ("caret icon: {0}", caret.Icon.Handle);
 		Reporter.WriteLine ("caret pos: {0},{1}", caret.Offset.X, caret.Offset.Y);

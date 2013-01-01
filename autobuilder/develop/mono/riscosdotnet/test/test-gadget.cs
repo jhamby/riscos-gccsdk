@@ -23,7 +23,7 @@ namespace riscos.CSharpBindings.GadgetTest
 	public class GadgetTask : ToolboxTask
 	{
 		Dialogue dialogue;
-		const string Version = "V1.0 (24th November 2012)";
+		const string Version = "V1.0 (1st January 2013)";
 
 		public void Init ()
 		{
@@ -331,7 +331,7 @@ namespace riscos.CSharpBindings.GadgetTest
 
 		void gain_caret (object sender, Wimp.CaretEventArgs e)
 		{
-			var caret = (Toolbox.Window.CaretState) e.CaretState;
+			var caret = (Toolbox.Window.CaretEventArgs) e;
 			Reporter.WriteLine ("caret window: {0:X8}", caret.Window.ID);
 			if (caret.Gadget == null)
 				Reporter.WriteLine ("Gadget is composite; icon handle: {0}", caret.IconHandle);

@@ -756,21 +756,15 @@ namespace riscos
 			 * The data is specific to Toolbox windows and gadgets.  */
 			public class CaretState : Wimp.CaretState
 			{
-				/*! \brief The window containing the caret (null if none).  */
+				//! \brief The Toolbox window containing the caret (null if none).
 				public Toolbox.Window Window;
-				/*! \brief The icon containing the caret (null if none).  */
+				//! \brief The Toolbox gadget containing the caret (null if none).
 				public Toolbox.Gadget Gadget;
 
 				/*! \brief Create a new object containing the current state of the caret.  */
 				public CaretState ()
 				{
 					Update ();
-				}
-
-				/*! \brief Create a new object from the result of an event.  */
-				public CaretState (ref NativeWimp.CaretBlock block)
-				{
-					Update (ref block);
 				}
 
 				/*! \brief Update this object with the current state of the caret.  */
@@ -788,11 +782,19 @@ namespace riscos
 
 			public class CaretEventArgs : Wimp.CaretEventArgs
 			{
+				//! \brief The Toolbox window containing the caret (null if none).
+				public readonly Toolbox.Window Window;
+				//! \brief The Toolbox gadget containing the caret (null if none).
+				public readonly Toolbox.Gadget Gadget;
+
 				public CaretEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
 				{
-					var block = (NativeWimp.CaretBlock)Marshal.PtrToStructure (
-							unmanagedEventData, typeof(NativeWimp.CaretBlock));
-					CaretState = new Window.CaretState (ref block);
+					uint cmp_id;
+
+					Window = WimpToToolbox (WindowHandle,
+								IconHandle,
+								out cmp_id);
+					Gadget = (Window != null) ? Window.GetGadget (cmp_id) : null;
 				}
 			}
 
@@ -802,7 +804,11 @@ namespace riscos
 
 				public PointerEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
 				{
-					Window = CreateInstance<Window> (WindowHandle);
+					uint cmp_id_not_required;
+
+					Window = WimpToToolbox (WindowHandle,
+								-1,
+								out cmp_id_not_required);
 				}
 			}
 

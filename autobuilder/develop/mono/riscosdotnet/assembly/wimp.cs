@@ -441,15 +441,100 @@ namespace riscos
 		/*! \brief Provides data for the event raised when a window gains or loses the caret (input focus).  */
 		public class CaretEventArgs : Wimp.EventArgs
 		{
-			public Wimp.CaretState CaretState;
+			//! \brief The underlying Wimp handle of the window.
+			public readonly uint WindowHandle;
+			//! \brief The underlying Wimp handle of the icon.
+			public readonly int IconHandle;
+			//! \brief The offset  of the caret relative to the window origin.
+			public readonly OS.Coord Offset;
+			//! \brief The index of the caret into the string (if in a writable icon).
+			public readonly int Index;
+
+			private int _Height;
 
 			public CaretEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
 			{
+				int x, y;
+
+				WindowHandle = (uint)Marshal.ReadInt32 (RawEventData, EventOffset.WindowHandle);
+				IconHandle = Marshal.ReadInt32 (RawEventData, EventOffset.IconHandle);
+				x = Marshal.ReadInt32 (RawEventData, EventOffset.OffsetX);
+				y = Marshal.ReadInt32 (RawEventData, EventOffset.OffsetY);
+				Offset = new OS.Coord (x, y);
+				_Height = Marshal.ReadInt32 (RawEventData, EventOffset.Height);
+				Index = Marshal.ReadInt32 (RawEventData, EventOffset.Index);
+			}
+
+			//! \brief \e true if the caret is being displayed.
+			public bool Displayed {
+				get {
+					return _Height != -1;
+				}
+			}
+
+			//! \brief The height of the caret in OS units (-1 if not displayed).
+			public int Height {
+				get {
+					return _Height & 0xffff;
+				}
+			}
+
+			//! \brief \e true if a vdu 5-type caret used, else anti-aliased caret.
+			public bool Vdu5Type {
+				get {
+					return (_Height & Flags.Vdu5Type) != 0;
+				}
+			}
+
+			//! \brief \e true if caret is invisible.  */
+			public bool Invisible {
+				get {
+					return (_Height & Flags.Invisible) != 0;
+				}
+			}
+
+			//! \brief \e true if caret colour is stored, otherwise Wimp colour 11 assumed.
+			public bool ColourGiven {
+				get {
+					return (_Height & Flags.ColourGiven) != 0;
+				}
+			}
+
+			//! \brief \e true if the returned colour is untranslated, otherwise Wimp colour assumed.
+			public bool ColourUntranslated {
+				get {
+					return (_Height & Flags.ColourUntranslated) != 0;
+				}
+			}
+
+			//! \brief The colour of the caret (depending on whether the other properties are true).
+			public int Colour {
+				get {
+					return (_Height >> 16) & 0xff;
+				}
 			}
 
 			public override uint GetWindowHandle ()
 			{
 				return (uint)Marshal.ReadInt32 (RawEventData, 0);
+			}
+
+			public static class EventOffset
+			{
+				public const int WindowHandle = 0;
+				public const int IconHandle = 4;
+				public const int OffsetX = 8;
+				public const int OffsetY = 12;
+				public const int Height = 16;
+				public const int Index = 20;
+			}
+
+			public static class Flags
+			{
+				public const int Vdu5Type = (1 << 24);
+				public const int Invisible = (1 << 25);
+				public const int ColourGiven = (1 << 26);
+				public const int ColourUntranslated = (1 << 27);
 			}
 		}
 
@@ -1176,21 +1261,10 @@ namespace riscos
 			public int IconHandle;
 			//! \brief The offset  of the caret relative to the window origin.
 			public OS.Coord Offset;
-			//! \brief The height of the caret in OS units (-1 if not displayed).
-			public int Height;
 			//! \brief The index of the caret into the string (if in a writable icon).
 			public int Index;
 
-			//! \brief \e true if a vdu 5-type caret used, else anti-aliased caret.
-			public bool Vdu5Type;
-			//! \brief \e true if caret is invisible.  */
-			public bool Invisible;
-			//! \brief \e true if caret colour is returned, otherwise Wimp colour 11 assumed.
-			public bool ColourGiven;
-			//! \brief \e true if the returned colour is untranslated, otherwise Wimp colour assumed.
-			public bool ColourUntranslated;
-			//! \brief The colour of the caret (depending on whether the other bits are true.
-			public int Colour;
+			private int _Height;
 
 			//! \brief Create a new object containing the current state of the caret.
 			public CaretState ()
@@ -1200,47 +1274,75 @@ namespace riscos
 			}
 
 			//! \brief Update this object with the current state of the caret.
-			protected void Update (ref NativeWimp.CaretBlock block)
-			{
-				WindowHandle = block.WindowHandle;
-				IconHandle = block.IconHandle;
-				Offset.X = block.Offset.X;
-				Offset.Y = block.Offset.Y;
-				Index = block.Index;
-
-				int height = block.Height;
-
-				if (height == -1)
-				{
-					Height = -1;
-				}
-				else
-				{
-					Height = height & 0xffff;
-					Vdu5Type = (height & Flags.Vdu5Type) != 0;
-					Invisible = (height & Flags.Invisible) != 0;
-					ColourGiven = (height & Flags.ColourGiven) != 0;
-					ColourUntranslated = (height & Flags.Untranslated) != 0;
-					Colour = (height >> 16) & 0xff;
-				}
-			}
-
-			//! \brief Update this object with the current state of the caret.
 			public virtual void Update ()
 			{
 				var block = new NativeWimp.CaretBlock ();
 
 				Wimp.GetCaretPosition (out block);
 
-				Update (ref block);
+				WindowHandle = block.WindowHandle;
+				IconHandle = block.IconHandle;
+				Offset.X = block.Offset.X;
+				Offset.Y = block.Offset.Y;
+				_Height = block.Height;
+				Index = block.Index;
 			}
 
-			protected static class Flags
+			//! \brief \e true if the caret is being displayed.
+			public bool Displayed {
+				get {
+					return _Height != -1;
+				}
+			}
+
+			//! \brief The height of the caret in OS units (-1 if not displayed).
+			public int Height {
+				get {
+					return _Height & 0xffff;
+				}
+			}
+
+			//! \brief \e true if a vdu 5-type caret used, else anti-aliased caret.
+			public bool Vdu5Type {
+				get {
+					return (_Height & Flags.Vdu5Type) != 0;
+				}
+			}
+
+			//! \brief \e true if caret is invisible.  */
+			public bool Invisible {
+				get {
+					return (_Height & Flags.Invisible) != 0;
+				}
+			}
+
+			//! \brief \e true if caret colour is stored, otherwise Wimp colour 11 assumed.
+			public bool ColourGiven {
+				get {
+					return (_Height & Flags.ColourGiven) != 0;
+				}
+			}
+
+			//! \brief \e true if the returned colour is untranslated, otherwise Wimp colour assumed.
+			public bool ColourUntranslated {
+				get {
+					return (_Height & Flags.ColourUntranslated) != 0;
+				}
+			}
+
+			//! \brief The colour of the caret (depending on whether the other properties are true).
+			public int Colour {
+				get {
+					return (_Height >> 16) & 0xff;
+				}
+			}
+
+			public static class Flags
 			{
 				public const int Vdu5Type = (1 << 24);
 				public const int Invisible = (1 << 25);
 				public const int ColourGiven = (1 << 26);
-				public const int Untranslated = (1 << 27);
+				public const int ColourUntranslated = (1 << 27);
 			}
 		}
 	}
