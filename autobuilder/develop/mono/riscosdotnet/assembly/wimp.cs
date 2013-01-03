@@ -719,11 +719,23 @@ namespace riscos
 		public static int ReportError (ErrorBoxFlags flags, string name, int errno, string message)
 		{
 			int result;
-			NativeOS.Error err = new NativeOS.Error (errno, message);
 
 			// Don't throw an exception if Wimp_ReportError fails. The exception
 			// handler may also call Wimp_ReportError.
-			NativeMethods.Wimp_ReportError (ref err,
+			NativeMethods.Wimp_ReportError (new OS.Error (errno, message),
+							flags,
+							name,
+							out result);
+			return result;
+		}
+
+		public static int ReportError (ErrorBoxFlags flags, string name, OS.Error error)
+		{
+			int result;
+
+			// Don't throw an exception if Wimp_ReportError fails. The exception
+			// handler may also call Wimp_ReportError.
+			NativeMethods.Wimp_ReportError (error,
 							flags,
 							name,
 							out result);

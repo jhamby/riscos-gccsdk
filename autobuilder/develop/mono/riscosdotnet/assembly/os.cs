@@ -12,8 +12,7 @@ namespace riscos
 {
 	public static class OS
 	{
-		/*! \enum GCOLAction
-		 * \brief Graphics colour actions for use with the OS plotting routines. */
+		//! \brief Graphics colour actions for use with the OS plotting routines.
 		public enum GCOLAction
 		{
 			Replace_FG,
@@ -34,6 +33,7 @@ namespace riscos
 			ORNOT_BG
 		}
 
+		//! \brief The sixteen standard desktop colours
 		public enum DesktopColour
 		{
 			White,
@@ -54,8 +54,7 @@ namespace riscos
 			Cyan
 		}
 
-		/*! \class PlotType
-		 * Defines graphics primitives to be used with \e OS.Plot. */
+		//! \brief Defines graphics primitives to be used with \e OS.Plot.
 		public static class PlotType
 		{
 			public const int SolidLine = 0;
@@ -89,8 +88,7 @@ namespace riscos
 			public const int SpritePlot = 232;
 		}
 
-		/*! \class PlotModifier
-		 * Modifies how the graphics primitives are to be drawn by \e OS.Plot. */
+		//! \brief Modifies how the graphics primitives are to be drawn by \e OS.Plot.
 		public static class PlotModifier
 		{
 			public const int MoveRelative = 0;
@@ -103,7 +101,7 @@ namespace riscos
 			public const int PlotAbsoluteBG = 7;
 		}
 
-		/*! \brief The flags that can be used when creating a dynamic area.  */
+		//! \brief The flags that can be used when creating a dynamic area.
 		public enum DynamicAreaFlags
 		{
 			AccessAllRW = 0,
@@ -130,13 +128,31 @@ namespace riscos
 			BPP24
 		}
 
+		//! \brief The standard %OS error structure
+		[StructLayout(LayoutKind.Sequential)]
+		public class Error
+		{
+			public int Number;
+
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=252)]
+			public string Message;
+
+			public Error (int errNum, string errMess)
+			{
+				Number = errNum;
+				Message = errMess;
+			}
+		}
+
+		/*! \brief The exception that is raised by virtually all methods that call a RISC %OS
+		 * SWI when it returns an error.  */
 		public class ErrorException : System.Exception
 		{
-			public NativeOS.Error OSError;
+			public OS.Error OSError;
 
-			public ErrorException(IntPtr error_ptr) : base ()
+			public ErrorException(IntPtr error_ptr)
 			{
-				OSError = (NativeOS.Error)Marshal.PtrToStructure (error_ptr, typeof(NativeOS.Error));
+				OSError = (OS.Error)Marshal.PtrToStructure (error_ptr, typeof (OS.Error));
 			}
 		}
 
@@ -163,6 +179,7 @@ namespace riscos
 			}
 		}
 
+		//! \brief A rectangle class used throughout the library.
 		public class Rect
 		{
 			public int MinX { get; set; }
@@ -192,6 +209,7 @@ namespace riscos
 			}
 		}
 
+		//! \brief A coordinate/point class used throughout the library.
 		public class Coord
 		{
 			public int X;
@@ -216,8 +234,8 @@ namespace riscos
 		}
 
 		/*! \class Matrix
-		 * \brief Used by \e Font.Instance.ScanString and \e Font.Instance.Paint
-		 * to transform, scale and rotate text. */
+		 * \brief Used by \e Font.Instance.ScanString, \e Font.Instance.Paint and
+		 * OSSpriteOp to transform, scale and rotate text and sprites. */
 		public class Matrix : ICloneable
 		{
 			public int [,] m;
@@ -378,6 +396,10 @@ namespace riscos
 			}
 		}
 
+		/*! \brief A date and time type that is used when a standard RISC %OS 5 byte
+		 * array is required.
+		 * \note The System.DateTime type can still be used if only a string is required
+		 * or it otherwise does what is required.  */
 		public class DateTime
 		{
 			public byte [] Utc = new byte [5];

@@ -109,8 +109,8 @@ namespace riscos.CSharpBindings.SpriteTest
 				{
 					Wimp.ReportError (Wimp.ErrorBoxFlags.OKIcon,
 							  "MonoTestApp",
-							  ex.OSError.ErrNum,
-							  ex.OSError.ErrMess);
+							  ex.OSError.Number,
+							  ex.OSError.Message);
 				}
 				catch (Exception ex)
 				{
@@ -136,7 +136,7 @@ namespace riscos.CSharpBindings.SpriteTest
 			catch (OS.ErrorException ex)
 			{
 				Reporter.WriteLine (ex.Message);
-				Reporter.WriteLine (ex.OSError.ErrMess);
+				Reporter.WriteLine (ex.OSError.Message);
 				// Split the stacktrace into individual lines and feed each one to
 				// Reporter.
 				string[] lines = ex.StackTrace.Split (new char[]{'\n'});

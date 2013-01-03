@@ -16,22 +16,6 @@ namespace riscos
 	// than the object itself.
 	public static class NativeOS
 	{
-		// The standard os_error structure
-		[StructLayout(LayoutKind.Sequential)]
-		public struct Error
-		{
-			public int ErrNum;
-
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=252)]
-			public string ErrMess;
-
-			public Error (int errNum, string errMess)
-			{
-				ErrNum = errNum;
-				ErrMess = errMess;
-			}
-		}
-
 		[StructLayout(LayoutKind.Sequential)]
 		public struct Rect
 		{

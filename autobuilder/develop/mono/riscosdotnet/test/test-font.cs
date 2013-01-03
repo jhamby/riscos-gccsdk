@@ -28,8 +28,8 @@ public class FontTest
 		{
 			Console.WriteLine ("Test passed. Exception was thrown, error details are:");
 			Console.WriteLine ("error number = {0}, error string = {1}\n",
-					   ex.OSError.ErrNum,
-					   ex.OSError.ErrMess);
+					   ex.OSError.Number,
+					   ex.OSError.Message);
 		}
 
 		return myfont;
@@ -209,8 +209,8 @@ public class FontTest
 		catch (OS.ErrorException ex)
 		{
 			Console.WriteLine ("error number = {0}, error string = {1}",
-					   ex.OSError.ErrNum,
-					   ex.OSError.ErrMess);
+					   ex.OSError.Number,
+					   ex.OSError.Message);
 		}
 
 	}

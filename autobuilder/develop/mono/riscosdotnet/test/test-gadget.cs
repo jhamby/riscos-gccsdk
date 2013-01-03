@@ -54,8 +54,8 @@ namespace riscos.CSharpBindings.GadgetTest
 				{
 					Wimp.ReportError (Wimp.ErrorBoxFlags.OKIcon,
 							  "MonoTestGadget",
-							  ex.OSError.ErrNum,
-							  ex.OSError.ErrMess);
+							  ex.OSError.Number,
+							  ex.OSError.Message);
 				}
 				catch (Exception ex)
 				{
@@ -80,7 +80,9 @@ namespace riscos.CSharpBindings.GadgetTest
 			}
 			catch (OS.ErrorException ex)
 			{
-				Reporter.WriteLine ("error number = {0:X8}, error string = {1}",ex.OSError.ErrNum,ex.OSError.ErrMess);
+				Reporter.WriteLine ("error number = {0:X8}, error string = {1}",
+						    ex.OSError.Number,
+						    ex.OSError.Message);
 				Reporter.WriteLine ("StackTrace: {0}", Environment.StackTrace);
 			}
 			finally

@@ -280,8 +280,8 @@ public class MyTask : WimpTask
 			{
 				Wimp.ReportError (Wimp.ErrorBoxFlags.OKIcon,
 						  "MonoTestApp",
-						  ex.OSError.ErrNum,
-						  ex.OSError.ErrMess);
+						  ex.OSError.Number,
+						  ex.OSError.Message);
 			}
 			catch (Exception ex)
 			{
@@ -311,8 +311,10 @@ public class Test
 		}
 		catch (OS.ErrorException ex)
 		{
-			Reporter.WriteLine (ex.OSError.ErrMess);
-			Console.WriteLine ("error number = {0}, error string = {1}", ex.OSError.ErrNum, ex.OSError.ErrMess);
+			Reporter.WriteLine (ex.OSError.Message);
+			Console.WriteLine ("error number = {0}, error string = {1}",
+					   ex.OSError.Number,
+					   ex.OSError.Message);
 		}
 		finally
 		{

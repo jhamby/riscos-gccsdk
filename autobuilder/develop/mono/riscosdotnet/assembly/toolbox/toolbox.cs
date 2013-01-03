@@ -853,6 +853,26 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provide data for the event that is raised when the Toolbox returns an error
+		 * indirectly to the task.  */
+		public class ErrorEventArgs : ToolboxEventArgs
+		{
+			public OS.Error Error;
+
+			public ErrorEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+			{
+				IntPtr error_ptr = new IntPtr (unmanagedEventData.ToInt32 () + EventOffset.OSError);
+				Error = (OS.Error)Marshal.PtrToStructure (error_ptr, typeof (OS.Error));
+			}
+
+			public static class EventOffset
+			{
+				public const int OSError = 16;
+				public const int ErrorNumber = 16;
+				public const int ErrorMessage = 20;
+			}
+		}
+
 		/*! \brief Create the named Toolbox object.
 		 * \param resName The name of the template in the Resource file.
 		 * \return The Toolbox id of the created object.  */
@@ -1067,6 +1087,9 @@ namespace riscos
 				case Toolbox.EventCode.ObjectAutoCreated:
 					OnObjectAutoCreated (new Toolbox.ObjectAutoCreatedEventArgs (e.RawEventData));
 					break;
+				case Toolbox.EventCode.Error:
+					OnError (new Toolbox.ErrorEventArgs (e.RawEventData));
+					break;
 				}
 			}
 		}
@@ -1097,8 +1120,26 @@ namespace riscos
 				ObjectAutoCreated (this, e);
 		}
 
+		/*! \brief Raising an event invokes the event handler through a delegate.
+		 *
+		 * The \b OnError method also allows derived classes to handle the
+		 * event without attaching a delegate. This is the preferred technique for
+		 * handling the event in a derived class.
+		 * \note  When overriding \b OnError in a derived class, be sure to
+		 * call the base class's \b OnError method so that registered delegates
+		 * receive the event.  */
+		protected virtual void OnError (Toolbox.ErrorEventArgs e)
+		{
+			if (Error != null)
+				Error (this, e);
+		}
+
 		/*! \brief The event handlers that will be called when a Toolbox object is automatically
 		 * created.  */
 		public event EventHandler<Toolbox.ObjectAutoCreatedEventArgs> ObjectAutoCreated;
+
+		/*! \brief The event handlers that will be called when the Toolbox indirectly returns
+		 * an error to the task.  */
+		public event EventHandler<Toolbox.ErrorEventArgs> Error;
 	}
 }
