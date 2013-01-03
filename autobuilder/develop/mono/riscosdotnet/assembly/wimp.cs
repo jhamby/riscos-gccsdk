@@ -935,6 +935,17 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_GetCaretPosition (out block));
 		}
 
+		//! \brief Returns the bounding box of the given window including border and scroll bars.
+		public static OS.Rect GetWindowOutline (uint windowHandle)
+		{
+			var block = new NativeWimp.WindowOutline ();
+
+			block.WindowHandle = windowHandle;
+			OS.ThrowOnError (NativeMethods.Wimp_GetWindowOutline (ref block));
+
+			return new OS.Rect (ref block.Outline);
+		}
+
 		/*! \brief Used to describe the attributes of a Wimp window before it is created.  */
 		public class WindowAttributes
 		{

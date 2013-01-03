@@ -303,6 +303,13 @@ namespace riscos
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
+		public struct WindowOutline
+		{
+			public uint WindowHandle;
+			public NativeOS.Rect Outline;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
 		public struct MessageHeader
 		{
 			public int Size;
@@ -541,6 +548,10 @@ namespace riscos
 		// Note that the OSLib veneer has fg and bg the wrong way around
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_set_font_colours")]
 		internal static extern IntPtr Wimp_SetFontColours (int bg, int fg);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_get_window_outline")]
+		internal static extern IntPtr Wimp_GetWindowOutline (ref NativeWimp.WindowOutline outline);
+
 
 		// WIMP Support
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Wimp_GetEventType")]

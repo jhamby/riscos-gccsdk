@@ -52,6 +52,8 @@ namespace riscos
 
 			OS.Rect Extent { set; get; }
 
+			OS.Rect Outline { get; }
+
 			event EventHandler<CaretEventArgs> LoseCaret;
 
 			event EventHandler<CaretEventArgs> GainCaret;
@@ -240,6 +242,12 @@ namespace riscos
 				GetState (ref state);
 
 				return new OS.Rect (ref state.Visible);
+			}
+
+			//! \brief Returns the bounding box of this window.
+			public OS.Rect GetOutline ()
+			{
+				return Wimp.GetWindowOutline (Handle);
 			}
 		}
 	}

@@ -3,7 +3,7 @@
 
 // This will be a place to jot down any thoughts or explanations on the code in RISCOS.net.
 
-/*! \page notes Notes
+/*! \mainpage RISCOS.Net
 
 \section toolbox Toolbox
 

@@ -389,6 +389,17 @@ namespace riscos
 				return Toolbox.GetClientHandle (ID);
 			}
 
+			/*! \brief Return the Toolbox parent object of this object. It is assumed
+			 * that the caller knows what its type should be and will supply it accordingly.
+			 * \note It is preferable that the parent C# object has already been created.  */
+			public T GetParent<T> () where T : Toolbox.Object
+			{
+				return Object.CreateInstance<T> (Toolbox.GetParent (ID));
+			}
+
+			/*! \brief Return the ancestor object of this object. It is assumed that the
+			 * caller knows what its type should be and will supply it accordingly.
+			 * \note It is preferable that the ancestor C# object has already been created.  */
 			public T GetAncestor<T> () where T : Toolbox.Object
 			{
 				return Object.CreateInstance<T> (Toolbox.GetAncestor (ID));

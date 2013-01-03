@@ -347,11 +347,18 @@ namespace riscos
 				}
 			}
 
-			/*! \brief Gets the visible area of the window.  */
+			//! \brief Gets the visible area of the window, ie, excluding border and scroll bars.
 			public OS.Rect VisibleArea
 			{
 				get {
 					return WimpWindow.GetVisibleArea ();
+				}
+			}
+
+			//! \brief Returns the outline of the window including border and scroll bars.
+			public OS.Rect Outline {
+				get {
+					return WimpWindow.GetOutline ();
 				}
 			}
 
