@@ -26,7 +26,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 	{
 		public MainMenu main_menu;
 
-		const string Version = "V1.0 (25th November 2012)";
+		const string Version = "V1.0 (2nd January 2013)";
 
 		// Could use an enum here, but enums require a cast which is ugly.
 		public static class MyEvent
@@ -46,7 +46,6 @@ namespace riscos.CSharpBindings.ToolboxTest
 			Initialise (350, mess_list, event_list, "<MonoTestTB$Dir>");
 
 			main_menu = new MainMenu (this);
-			main_menu.ProgInfo.Version = Version;
 
 			InitIconBar();
 		}
@@ -142,6 +141,20 @@ namespace riscos.CSharpBindings.ToolboxTest
 			base.OnMsgDataLoad (e);
 		}
 
+		protected override void OnObjectAutoCreated (Toolbox.ObjectAutoCreatedEventArgs e)
+		{
+			Reporter.WriteLine ("Object {0:X8} was auto-created from template '{1}'",
+					    e.ObjectID, e.TemplateName);
+
+			if (e.TemplateName.Equals ("ProgInfo"))
+			{
+				var ProgInfo = new Toolbox.ProgInfoDialogue (e.ObjectID);
+				ProgInfo.Version = Version;
+			}
+
+			base.OnObjectAutoCreated (e);
+		}
+
 		void quitdbox_Quit (object sender, Toolbox.ToolboxEventArgs args)
 		{
 			Reporter.WriteLine ("Quit handler called - Exiting...");
@@ -205,8 +218,6 @@ namespace riscos.CSharpBindings.ToolboxTest
 				public const uint GCMemory = 4;
 			}
 
-			public Toolbox.ProgInfoDialogue ProgInfo;
-
 			public MainMenu (MyTask task) : base ("MainMenu")
 			{
 				Title = "MonoTestTB";
@@ -228,9 +239,6 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				entry = new Toolbox.MenuEntry (this, Cmp.GCMemory);
 				entry.Selection += DumpGCStats;
-
-				entry = new Toolbox.MenuEntry (this, Cmp.ProgInfo);
-				ProgInfo = entry.GetSubMenuShow<Toolbox.ProgInfoDialogue> ();
 			}
 
 			public void DumpGCStats (object sender, Toolbox.ToolboxEventArgs args)

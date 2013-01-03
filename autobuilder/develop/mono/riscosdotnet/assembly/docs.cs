@@ -35,6 +35,15 @@ or add a check in the event handler to ensure that it is the intended target of 
 event. If the document viewer is set to be an ancestor object, then this can be done
 by testing the scale dialogue's ancestor against the document viewer.
 
+\subsection autoobjects Automatically created objects
+If an object is flagged in !ResEd to be automatically created then the toolbox will
+create the object as soon as required and send a Toolbox event to the task, containing
+the ID of the object plus the name of the template that it was created from. The task
+can then create a C# object as a result of this event.<br>
+If, however, the task has already created the object thereby placing it in the list of
+known objects, then this will not work as the library will attempt to dispatch the event
+to the object.
+
 \section wimp Wimp
 
 \subsection windows Creating windows

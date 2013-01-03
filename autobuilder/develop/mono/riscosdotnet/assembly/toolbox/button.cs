@@ -10,8 +10,7 @@ namespace riscos
 {
 	public static partial class Toolbox
 	{
-		/*! \class Button
-		 * Similar to a WIMP icon, but always indirected and not all icon flags are settable. */
+		/*! \brief Similar to a WIMP icon, but always indirected and not all icon flags are settable. */
 		public class Button : Gadget
 		{
 			static class Method

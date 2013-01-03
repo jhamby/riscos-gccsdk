@@ -70,6 +70,14 @@ namespace riscos
 			public const int BodySize = 32;
 		}
 
+		//! \brief The numbers of the possible events that the Toolbox can raise.
+		public static class EventCode
+		{
+			public const int Error = 0x44ec0;
+			public const int ObjectAutoCreated = 0x44ec1;
+			public const int ObjectDeleted = 0x44ec2;
+		}
+
 		/*! \exception UnknownObjectException
 		 * \brief Exception thrown by a Toolbox application when an object
 		 * with an ID that is unknown to the application is encountered.  */
@@ -819,6 +827,32 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provide data for the event that is raised when a Toolbox object is
+		 * automatically created.  */
+		public class ObjectAutoCreatedEventArgs : ToolboxEventArgs
+		{
+			//! \brief Name of template from which the object was created.
+			public readonly string TemplateName;
+
+			//! \brief Toolbox id of the object that was created.
+			public readonly uint ObjectID;
+
+			/*! \brief Create the arguments for the event raised when a Toolbox object is
+			 * automatically created.  */
+			public ObjectAutoCreatedEventArgs (IntPtr unmanagedEventData) :
+								base (unmanagedEventData)
+			{
+				TemplateName = Marshal.PtrToStringAnsi (new IntPtr (RawEventData.ToInt32() +
+										    EventOffset.TemplateName));
+				ObjectID = ToolboxTask.IDBlock.SelfID;
+			}
+
+			public static class EventOffset
+			{
+				public const int TemplateName = 16;
+			}
+		}
+
 		/*! \brief Create the named Toolbox object.
 		 * \param resName The name of the template in the Resource file.
 		 * \return The Toolbox id of the created object.  */
@@ -1024,6 +1058,17 @@ namespace riscos
 					base.Dispatch (e);
 				}
 			}
+			else
+			{
+				var toolbox_event = (Toolbox.ToolboxEventArgs) e;
+
+				switch (toolbox_event.Header.EventCode)
+				{
+				case Toolbox.EventCode.ObjectAutoCreated:
+					OnObjectAutoCreated (new Toolbox.ObjectAutoCreatedEventArgs (e.RawEventData));
+					break;
+				}
+			}
 		}
 
 		//! \brief Create a CaretEventArgs object specific to Toolbox windows and gadgets.
@@ -1037,5 +1082,23 @@ namespace riscos
 		{
 			return new Toolbox.Window.PointerEventArgs (rawEventData);
 		}
+
+		/*! \brief Raising an event invokes the event handler through a delegate.
+		 *
+		 * The \b OnObjectAutoCreated method also allows derived classes to handle the
+		 * event without attaching a delegate. This is the preferred technique for
+		 * handling the event in a derived class.
+		 * \note  When overriding \b OnObjectAutoCreated in a derived class, be sure to
+		 * call the base class's \b OnObjectAutoCreated method so that registered delegates
+		 * receive the event.  */
+		protected virtual void OnObjectAutoCreated (Toolbox.ObjectAutoCreatedEventArgs e)
+		{
+			if (ObjectAutoCreated != null)
+				ObjectAutoCreated (this, e);
+		}
+
+		/*! \brief The event handlers that will be called when a Toolbox object is automatically
+		 * created.  */
+		public event EventHandler<Toolbox.ObjectAutoCreatedEventArgs> ObjectAutoCreated;
 	}
 }
