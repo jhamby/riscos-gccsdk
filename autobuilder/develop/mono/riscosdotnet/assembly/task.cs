@@ -12,14 +12,30 @@ namespace riscos
 {
 	public abstract class Task
 	{
-		public uint Handle { get; protected set; }
+		//! \brief The Wimp handle of the task.
+		protected uint _Handle;
+
+		//! \brief Gets the Wimp handle of the task.
+		public uint Handle {
+			get {
+				return _Handle;
+			}
+		}
+
 		public bool Quit { get; set; }
 		public uint PollWord;
 
 		public uint PollMask { get; set; }
 
-		// The actual version number of the WIMP that Wimp_Initialise returned to us.
-		public int WimpVersion;
+		//! \brief The actual version number of the Wimp that Wimp_Initialise returned to us.
+		protected int _WimpVersion;
+
+		//! \brief Return the actual version number of the Wimp
+		public int WimpVersion {
+			get {
+				return _WimpVersion;
+			}
+		}
 
 		public virtual void KeyPress (int charCode) { }
 
@@ -246,73 +262,5 @@ namespace riscos
 
 		/*! \brief The event handlers that will be called when a Null event is received.  */
 		public event EventHandler<Wimp.EventArgs> NullEvent;
-	}
-
-	public class WimpTask : Task
-	{
-		public void Initialise (int version, string desc, int[] mess_list)
-		{
-			uint handle;
-
-			OS.ThrowOnError (NativeMethods.Wimp_Initialise (version, desc, mess_list, out WimpVersion, out handle));
-
-			Handle = handle;
-		}
-
-		public void CloseDown ()
-		{
-			OS.ThrowOnError (NativeMethods.Wimp_CloseDown (Handle));
-		}
-
-		protected virtual void OnMenuSelection (Wimp.MenuSelectionEventArgs e)
-		{
-			if (MenuSelection != null)
-				MenuSelection (this, e);
-		}
-
-		public override void Dispatch (Wimp.EventArgs e)
-		{
-			uint window_handle = e.GetWindowHandle ();
-
-			if ((int)window_handle <= 0)
-			{
-				switch (e.Type)
-				{
-				case Wimp.PollCode.MenuSelection:
-					OnMenuSelection ((Wimp.MenuSelectionEventArgs) e);
-					break;
-				default:
-					// A Wimp event that is not specific to a window, so let Task.Dispatch
-					// deal with it.
-					base.Dispatch (e);
-					break;
-				}
-			}
-			else
-			{
-				Wimp.Window window = Wimp.Window.GetInstance (window_handle);
-				window.Dispatch (e);
-			}
-		}
-
-		public override void KeyPress (int charCode)
-		{
-			Wimp.ProcessKey (charCode);
-		}
-
-		//! \brief Create a GainCaretEventArgs object specific to plain Wimp window/icons.
-		protected override Wimp.CaretEventArgs CreateCaretEventArgs (IntPtr rawEventData)
-		{
-			return new Wimp.Window.CaretEventArgs (rawEventData);
-		}
-
-		//! \brief Create a PointerEventArgs object specific to plain Wimp window/icons.
-		protected override Wimp.PointerEventArgs CreatePointerEventArgs (IntPtr rawEventData)
-		{
-			return new Wimp.Window.PointerEventArgs (rawEventData);
-		}
-
-		/*! \brief The event handlers that will be called when a menu selection is made.  */
-		public event EventHandler<Wimp.MenuSelectionEventArgs> MenuSelection;
 	}
 }

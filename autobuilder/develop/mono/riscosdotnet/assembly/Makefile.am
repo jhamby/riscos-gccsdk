@@ -39,6 +39,7 @@ riscos_dll_sources = \
 	toolbox/scale-dialogue.cs \
 	toolbox/print-dialogue.cs \
 	toolbox/dcs-dialogue.cs \
+	toolbox/toolbox-task.cs \
 	wimp.cs \
 	icon.cs \
 	task.cs \
@@ -49,7 +50,8 @@ riscos_dll_sources = \
 	font.cs \
 	menu.cs \
 	sprite.cs \
-	window-common.cs
+	window-common.cs \
+	wimp-task.cs
 
 riscos_dll_build_sources = $(addprefix $(srcdir)/, $(riscos_dll_sources))
 
