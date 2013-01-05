@@ -5,6 +5,7 @@
 //
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
@@ -54,12 +55,22 @@ namespace riscos
 			ReturnPaletteTable = (1 << 24)
 		}
 
-		/*! \brief Sets the closest GCOL for a palette entry.
-		 * \param [in] gcolAction The GCOL action.
+		//! \brief Returns the closest GCOL for the given palette entry (in the form 0xBBGGRR00).
+		public static int ReturnGCOL (uint paletteEntry)
+		{
+			int gcol;
+
+			NativeMethods.ColourTrans_ReturnGCOL (paletteEntry, out gcol);
+
+			return gcol;
+		}
+
+		/*! \brief Sets and returns the closest GCOL for a palette entry.
 		 * \param [in] paletteEntry A palette entry in the form 0xBBGGRR00.
-		 * \return Nothing.  */
-		public static void SetGCOL (OS.GCOLAction gcolAction,
-					    uint paletteEntry)
+		 * \param [in] gcolAction The GCOL action.
+		 * \return The closest GCOL that was set.  */
+		public static int SetGCOL (uint paletteEntry,
+					   OS.GCOLAction gcolAction)
 		{
 			int gcol, log2bpp;
 
@@ -68,45 +79,555 @@ namespace riscos
 							   gcolAction,
 							   out gcol,
 							   out log2bpp);
+			return gcol;
+		}
+
+		//! \brief Return the closest colour for the given palette entry.
+		public static int ReturnColourNumber (uint paletteEntry)
+		{
+			int colour;
+
+			NativeMethods.ColourTrans_ReturnColourNumber (paletteEntry, out colour);
+
+			return colour;
+		}
+
+		/*! \brief Returns the closest GCOL for a palette entry.
+		 * \param [in] paletteEntry A palette entry in the form 0xBBGGRR00.
+		 * \param [in] destMode Destination mode, or -1 for current mode.
+		 * \param [in] destPalette Destination palette, or -1 for current palette,
+		 * or 0 for default for the mode.
+		 * \return The closest GCOL.  */
+		public static int ReturnGCOLForMode (uint paletteEntry,
+						     int destMode,
+						     IntPtr destPalette)
+		{
+			int gcol;
+
+			NativeMethods.ColourTrans_ReturnGCOLForMode (paletteEntry,
+								     destMode,
+								     destPalette,
+								     out gcol);
+			return gcol;
+		}
+
+		/*! \brief Returns the closest GCOL for a palette entry.
+		 * \param [in] paletteEntry A palette entry in the form 0xBBGGRR00.
+		 * \param [in] destMode Destination mode, or -1 for current mode.
+		 * \param [in] destPalette Destination palette, or -1 for current palette,
+		 * or 0 for default for the mode.
+		 * \return The closest colour number.  */
+		public static int ReturnColourNumberForMode (uint paletteEntry,
+							     int destMode,
+							     IntPtr destPalette)
+		{
+			int colour;
+
+			NativeMethods.ColourTrans_ReturnColourNumberForMode (paletteEntry,
+									     destMode,
+									     destPalette,
+									     out colour);
+			return colour;
+		}
+
+		//! \brief Returns the furthest GCOL for the given palette entry (in the form 0xBBGGRR00).
+		public static int ReturnOppGCOL (uint paletteEntry)
+		{
+			int gcol;
+
+			NativeMethods.ColourTrans_ReturnOppGCOL (paletteEntry, out gcol);
+
+			return gcol;
+		}
+
+		/*! \brief Sets and returns the furthest GCOL for a palette entry.
+		 * \param [in] paletteEntry The GCOL action.
+		 * \param [in] gcolAction A palette entry in the form 0xBBGGRR00.
+		 * \return The furthest GCOL that was set.  */
+		public static int SetOppGCOL (uint paletteEntry,
+					      OS.GCOLAction gcolAction)
+		{
+			int gcol, log2bpp;
+
+			NativeMethods.ColourTrans_SetOppGCOL (paletteEntry,
+							      0,
+							      gcolAction,
+							      out gcol,
+							      out log2bpp);
+			return gcol;
+		}
+
+		//! \brief Return the closest colour for the given palette entry.
+		public static int ReturnOppColourNumber (uint paletteEntry)
+		{
+			int colour;
+
+			NativeMethods.ColourTrans_ReturnOppColourNumber (paletteEntry, out colour);
+
+			return colour;
+		}
+
+		/*! \brief Returns the furthest GCOL for a palette entry.
+		 * \param [in] paletteEntry A palette entry in the form 0xBBGGRR00.
+		 * \param [in] destMode Destination mode, or -1 for current mode.
+		 * \param [in] destPalette Destination palette, or -1 for current palette,
+		 * or 0 for default for the mode.
+		 * \return The furthest GCOL.  */
+		public static int ReturnOppGCOLForMode (uint paletteEntry,
+							int destMode,
+							IntPtr destPalette)
+		{
+			int gcol;
+
+			NativeMethods.ColourTrans_ReturnOppGCOLForMode (paletteEntry,
+									destMode,
+									destPalette,
+									out gcol);
+			return gcol;
+		}
+
+		/*! \brief Returns the furthest GCOL for a palette entry.
+		 * \param [in] paletteEntry A palette entry in the form 0xBBGGRR00.
+		 * \param [in] destMode Destination mode, or -1 for current mode.
+		 * \param [in] destPalette Destination palette, or -1 for current palette,
+		 * or 0 for default for the mode.
+		 * \return The furthest colour number.  */
+		public static int ReturnOppColourNumberForMode (uint paletteEntry,
+								int destMode,
+								IntPtr destPalette)
+		{
+			int colour;
+
+			NativeMethods.ColourTrans_ReturnOppColourNumberForMode (paletteEntry,
+										destMode,
+										destPalette,
+										out colour);
+			return colour;
+		}
+
+		//! \brief Translate a GCOL to a colour number.
+		public static int GCOLToColourNumber (int gcol)
+		{
+			int colour;
+
+			NativeMethods.ColourTrans_GCOLToColourNumber (gcol, out colour);
+
+			return colour;
+		}
+
+		//! \brief Translate a colour number to a GCOL.
+		public static int ColourNumberToGCOL (int colour)
+		{
+			int gcol;
+
+			NativeMethods.ColourTrans_ColourNumberToGCOL (colour, out gcol);
+
+			return gcol;
+		}
+
+		/*! \brief Finds the best range of anti-alias colours to match a pair of palette entries.
+		 * \param [in] fontHandle Font handle, or 0 for the current font.
+		 * \param [in] bgPaletteEntry Background palette entry.
+		 * \param [in] fgPaletteEntry Foreground palette entry.
+		 * \param [in] maxOffset Maximum foreground colour offset (0 - 14).
+		 * \param [out] bgLogicalColourOut The logical background colour.
+		 * \param [out] fgLogicalColourOut The logical foreground colour.
+		 * \param [out] maxOffsetOut The maximum sensible colour offset (up to maxOffset on entry).
+		 * \return Nothing.  */
+		public static void ReturnFontColours (IntPtr fontHandle,
+						      uint bgPaletteEntry,
+						      uint fgPaletteEntry,
+						      int maxOffset,
+						      out uint bgLogicalColourOut,
+						      out uint fgLogicalColourOut,
+						      out int maxOffsetOut)
+		{
+			NativeMethods.ColourTrans_ReturnFontColours (fontHandle,
+								     bgPaletteEntry,
+								     fgPaletteEntry,
+								     maxOffset,
+								     out bgLogicalColourOut,
+								     out fgLogicalColourOut,
+								     out maxOffsetOut);
+		}
+
+		/*! \brief Finds the best range of anti-alias colours to match a pair of palette entries
+		 * using the current font.
+		 * \param [in] bgPaletteEntry Background palette entry.
+		 * \param [in] fgPaletteEntry Foreground palette entry.
+		 * \param [in] maxOffset Maximum foreground colour offset (0 - 14).
+		 * \param [out] bgLogicalColourOut The logical background colour.
+		 * \param [out] fgLogicalColourOut The logical foreground colour.
+		 * \param [out] maxOffsetOut The maximum sensible colour offset (up to maxOffset on entry).
+		 * \return Nothing.  */
+		public static void ReturnFontColours (uint bgPaletteEntry,
+						      uint fgPaletteEntry,
+						      int maxOffset,
+						      out uint bgLogicalColourOut,
+						      out uint fgLogicalColourOut,
+						      out int maxOffsetOut)
+		{
+			ReturnFontColours (IntPtr.Zero,
+					   bgPaletteEntry,
+					   fgPaletteEntry,
+					   maxOffset,
+					   out bgLogicalColourOut,
+					   out fgLogicalColourOut,
+					   out maxOffsetOut);
 		}
 
 		/*! \brief Sets the best range of anti-alias colours to match a pair of palette entries.
-		 * \param [in] bgHint Background palette entry.
-		 * \param [in] fill Foreground palette entry.
-		 * \param [in] offset Maximum foreground colour offset (0 - 14)
+		 * \param [in] fontHandle Font handle, or 0 for the current font.
+		 * \param [in] bgPaletteEntry Background palette entry.
+		 * \param [in] fgPaletteEntry Foreground palette entry.
+		 * \param [in] maxOffset Maximum foreground colour offset (0 - 14).
+		 * \param [out] bgLogicalColourOut The logical background colour.
+		 * \param [out] fgLogicalColourOut The logical foreground colour.
+		 * \param [out] maxOffsetOut The maximum sensible colour offset (up to maxOffset on entry).
 		 * \return Nothing.  */
-		public static void SetFontColours (uint bgHint, uint fill, int offset)
+		public static void SetFontColours (IntPtr fontHandle,
+						   uint bgPaletteEntry,
+						   uint fgPaletteEntry,
+						   int maxOffset,
+						   out uint bgLogicalColourOut,
+						   out uint fgLogicalColourOut,
+						   out int maxOffsetOut)
 		{
-			uint bg_hint_out, fill_out;
-			int offset_out;
-
 			NativeMethods.ColourTrans_SetFontColours (IntPtr.Zero,
-								  bgHint,
-								  fill,
-								  offset,
-								  out bg_hint_out,
-								  out fill_out,
-								  out offset_out);
+								  bgPaletteEntry,
+								  fgPaletteEntry,
+								  maxOffset,
+								  out bgLogicalColourOut,
+								  out fgLogicalColourOut,
+								  out maxOffsetOut);
 		}
 
 		/*! \brief Sets the best range of anti-alias colours to match a pair of palette entries.
-		 * \param [in] font Font handle, or 0 for the current font.
-		 * \param [in] bgHint Background palette entry.
-		 * \param [in] fill Foreground palette entry.
+		 * \param [in] fontHandle Font handle, or 0 for the current font.
+		 * \param [in] bgPaletteEntry Background palette entry.
+		 * \param [in] fgPaletteEntry Foreground palette entry.
 		 * \param [in] offset Maximum foreground colour offset (0 - 14)
 		 * \return Nothing.  */
-		public static void SetFontColours (IntPtr font, uint bgHint, uint fill, int offset)
+		public static void SetFontColours (IntPtr fontHandle,
+						   uint bgPaletteEntry,
+						   uint fgPaletteEntry,
+						   int maxOffset)
 		{
-			uint bg_hint_out, fill_out;
+			uint bg_out, fg_out;
 			int offset_out;
 
-			NativeMethods.ColourTrans_SetFontColours (font,
-								  bgHint,
-								  fill,
-								  offset,
-								  out bg_hint_out,
-								  out fill_out,
-								  out offset_out);
+			SetFontColours (fontHandle, bgPaletteEntry, fgPaletteEntry, maxOffset,
+					out bg_out, out fg_out, out offset_out);
+		}
+
+		/*! \brief Sets the best range of anti-alias colours to match a pair of palette entries
+		 * using the current font.
+		 * \param [in] bgPaletteEntry Background palette entry.
+		 * \param [in] fgPaletteEntry Foreground palette entry.
+		 * \param [in] maxOffset Maximum foreground colour offset (0 - 14)
+		 * \return Nothing.  */
+		public static void SetFontColours (uint bgPaletteEntry,
+						   uint fgPaletteEntry,
+						   int maxOffset)
+		{
+			uint bg_out, fg_out;
+			int offset_out;
+
+			SetFontColours (IntPtr.Zero, bgPaletteEntry, fgPaletteEntry, maxOffset,
+					out bg_out, out fg_out, out offset_out);
+		}
+
+		//! \brief Informs ColourTrans that the palette has been changed by some other means.
+		public static void InvalidateCache ()
+		{
+			NativeMethods.ColourTrans_InvalidateCache ();
+		}
+
+		//! \brief Sets the calibration table for the screen.
+		public static void SetCalibration (int [] calibrationTable)
+		{
+			GCHandle pinned_table;
+			try {
+				pinned_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
+				OS.ThrowOnError (NativeMethods.
+						 ColourTrans_SetCalibration (pinned_table.
+									       AddrOfPinnedObject ()));
+			}
+			catch {
+				// Rethrow any exceptions for the caller to deal with.
+				throw;
+			}
+			finally {
+				pinned_table.Free ();
+			}
+		}
+
+		//! \brief Reads the calibration table for the screen.
+		public static int [] ReadCalibration ()
+		{
+			int buffer_size;
+			IntPtr buffer;
+
+			try {
+				OS.ThrowOnError (NativeMethods.ColourTrans_ReadCalibration (IntPtr.Zero,
+											    out buffer_size));
+				buffer = Marshal.AllocHGlobal (buffer_size);
+				OS.ThrowOnError (NativeMethods.ColourTrans_ReadCalibration (buffer,
+											    out buffer_size));
+				int [] table = new int [buffer_size >> 2];
+				Marshal.Copy (buffer, table, 0, buffer_size >> 2);
+				return table;
+			}
+			catch {
+				// Rethrow any exceptions for the caller to deal with.
+				throw;
+			}
+			finally {
+				Marshal.FreeHGlobal (buffer);
+			}
+		}
+
+		/*! \brief Converts a device colour to a standard colour
+		 * \param [in] colour A 24-bit device colour.
+		 * \param [in] calibrationTable 0 to use the current screen calibration, or an
+		 * array containing a calibration table.
+		 * \return A 24-bit standard colour (0xBBGGRR00).  */
+		public static uint ConvertDeviceColour (uint colour, int [] calibrationTable)
+		{
+			GCHandle pinned_table;
+			uint colour_result;
+			try {
+				pinned_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
+				OS.ThrowOnError (NativeMethods.
+						 ColourTrans_ConvertDeviceColour (colour,
+										  pinned_table.
+										    AddrOfPinnedObject (),
+										  out colour_result));
+				return colour_result;
+			}
+			catch {
+				// Rethrow any exceptions for the caller to deal with.
+				throw;
+			}
+			finally {
+				pinned_table.Free ();
+			}
+		}
+
+		/*! \brief Converts a device palette to standard colours.
+		 * \param [in] deviceColourTable An array of 24-bit device colours.
+		 * \param [in] calibrationTable 0 to use the current screen calibration, or an
+		 * array containing a calibration table.
+		 * \return An array containing the converted palette.
+		 * \note The number of colour to convert is taken from the number of elements
+		 * in the deviceColourTable array.  */
+		public static int [] ConvertDevicePalette (uint [] deviceColourTable,
+							   int [] calibrationTable)
+		{
+			GCHandle pinned_calibration_table;
+			GCHandle pinned_buffer;
+			GCHandle pinned_device_table;
+			try {
+				int colourCount = deviceColourTable.Length;
+				int [] buffer = new int [colourCount];
+
+				pinned_calibration_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
+				pinned_buffer = GCHandle.Alloc (buffer, GCHandleType.Pinned);
+				pinned_device_table = GCHandle.Alloc (deviceColourTable, GCHandleType.Pinned);
+
+				OS.ThrowOnError (NativeMethods.
+						 ColourTrans_ConvertDevicePalette (colourCount,
+										   pinned_device_table.
+										     AddrOfPinnedObject (),
+										   pinned_buffer.
+										     AddrOfPinnedObject (),
+										   pinned_calibration_table.
+										     AddrOfPinnedObject ()));
+				return buffer;
+			}
+			catch {
+				throw;
+			}
+			finally {
+				pinned_calibration_table.Free ();
+				pinned_buffer.Free ();
+				pinned_device_table.Free ();
+			}
+		}
+
+		/*! \brief Converts RISC %OS RGB colours to industry standard CIE colours.
+		 * \param [in] r Red component.
+		 * \param [in] g Green component.
+		 * \param [in] b Blue component.
+		 * \param [out] x CIE X tristimulus value.
+		 * \param [out] y CIE Y tristimulus value.
+		 * \param [out] z CIE Z tristimulus value.
+		 * \return Nothing.
+		 * \note All parameters are passed as fixed point 32 bit numbers, with 16 bits below
+		 * the point and 16 bits above the point. It is suggested that numbers in the range
+		 * 0 - 1 are used for compatibility with other conversion methods.  */
+		public static void ConvertRGBToCIE (uint r, uint g, uint b,
+						    out uint x, out uint y, out uint z)
+		{
+			NativeMethods.ColourTrans_ConvertRGBToCIE (r, g, b, out x, out y, out z);
+		}
+
+		/*! \brief Converts RISC %OS RGB colours to industry standard CIE colours.
+		 * \param [in] x CIE X tristimulus value.
+		 * \param [in] y CIE Y tristimulus value.
+		 * \param [in] z CIE Z tristimulus value.
+		 * \param [out] r Red component.
+		 * \param [out] g Green component.
+		 * \param [out] b Blue component.
+		 * \return Nothing.
+		 * \note All parameters are passed as fixed point 32 bit numbers, with 16 bits below
+		 * the point and 16 bits above the point. It is suggested that numbers in the range
+		 * 0 - 1 are used for compatibility with other conversion methods.  */
+		public static void ConvertCIEToRGB (uint x, uint y, uint z,
+						    out uint r, out uint g, out uint b)
+		{
+			NativeMethods.ColourTrans_ConvertCIEToRGB (x, y, z, out r, out g, out b);
+		}
+
+		/*! \brief Save the current calibration to a file.
+		 * \param [in] fileHandle Handle of file to save to.
+		 * \param [in] alwaysSave \e true if the calibration should be saved even if it is the
+		 * default calibration.
+		 * \return Nothing.  */ 
+		public static void WriteCalibrationToFile (IntPtr fileHandle, bool alwaysSave)
+		{
+			OS.ThrowOnError (NativeMethods.ColourTrans_WriteCalibrationToFile (alwaysSave ? 1 : 0,
+											   fileHandle));
+		}
+
+		/*! \brief Converts RISC %OS RGB colours into corresponding hue, saturation and value.
+		 * \param [in] r Red component.
+		 * \param [in] g Green component.
+		 * \param [in] b Blue component.
+		 * \param [out] h Hue.
+		 * \param [out] s Saturation.
+		 * \param [out] v Value.
+		 * \return Nothing.
+		 * \note All parameters are passed as fixed point 32 bit numbers, with 16 bits below
+		 * the point and 16 bits above the point. Hue ranges from 0 - 360 with no fractional
+		 * element, whilst the remaining parameters are in the range 0 - 1 and may have
+		 * fractional elements.  */
+		public static void ConvertRGBToHSV (uint r, uint g, uint b,
+						    out uint h, out uint s, out uint v)
+		{
+			NativeMethods.ColourTrans_ConvertRGBToHSV (r, g, b, out h, out s, out v);
+		}
+
+		/*! \brief Converts hue, saturation and value into corresponding RISC %OS RGB colours.
+		 * \param [in] h Hue.
+		 * \param [in] s Saturation.
+		 * \param [in] v Value.
+		 * \param [out] r Red component.
+		 * \param [out] g Green component.
+		 * \param [out] b Blue component.
+		 * \return Nothing.
+		 * \note All parameters are passed as fixed point 32 bit numbers, with 16 bits below
+		 * the point and 16 bits above the point. Hue ranges from 0 - 360 with no fractional
+		 * element, whilst the remaining parameters are in the range 0 - 1 and may have
+		 * fractional elements.
+		 * \throw OS.ErrorException Thrown if hue and saturation are both 0.  */
+		public static void ConvertHSVToRSB (uint h, uint s, uint v,
+						    out uint r, out uint g, out uint b)
+		{
+			OS.ThrowOnError (NativeMethods.ColourTrans_ConvertHSVToRGB (h, s, v, out r, out g, out b));
+		}
+
+		/*! \brief Converts RISC %OS RGB colours into the CMYK model.
+		 * \param [in] r Red component.
+		 * \param [in] g Green component.
+		 * \param [in] b Blue component.
+		 * \param [out] c Cyan component.
+		 * \param [out] m Magenta component.
+		 * \param [out] y Yellow component.
+		 * \param [out] k Key (black) component.
+		 * \return Nothing.
+		 * \note All parameters are passed as fixed point 32 bit numbers in the range 0 - 1,
+		 * with 16 bits below the point and 16 bits above the point.  */
+		public static void ConvertRGBToCMYK (uint r, uint g, uint b,
+						     out uint c, out uint m, out uint y, out uint k)
+		{
+			NativeMethods.ColourTrans_ConvertRGBToCMYK (r, g, b, out c, out m, out y, out k);
+		}
+
+		/*! \brief Converts the CMYK model into RISC %OS RGB colours.
+		 * \param [out] c Cyan component.
+		 * \param [out] m Magenta component.
+		 * \param [out] y Yellow component.
+		 * \param [out] k Key (black) component.
+		 * \param [in] r Red component.
+		 * \param [in] g Green component.
+		 * \param [in] b Blue component.
+		 * \return Nothing.
+		 * \note All parameters are passed as fixed point 32 bit numbers in the range 0 - 1,
+		 * with 16 bits below the point and 16 bits above the point.  */
+		public static void ConvertCMYKToRGB (uint c, uint m, uint y, uint k,
+						     out uint r, out uint g, out uint b)
+		{
+			NativeMethods.ColourTrans_ConvertCMYKToRGB (c, m, y, k, out r, out g, out b);
+		}
+
+		/*! \brief Changes the foreground or background colour to a GCOL number.
+		 * \param [in] gcol GCOL number.
+		 * \param [in] gcolAction GCOL action.
+		 * \param [in] background \e true to set the background colour instead of the foreground.
+		 * \param [in] text \e true to set the text colour instead of the graphics colour.
+		 * \return Nothing.  */
+		public static void SetColour (int gcol,
+					      OS.GCOLAction gcolAction,
+					      bool background,
+					      bool text)
+		{
+			int flags = 0;
+
+			if (background)
+				flags |= (1 << 7);
+			if (text)
+				flags |= (1 << 9);
+			NativeMethods.ColourTrans_SetColour (gcol, flags, gcolAction);
+		}
+
+		/*! \brief Changes the foreground colour to a GCOL number.
+		 * \param [in] gcol GCOL number.
+		 * \param [in] gcolAction GCOL action.
+		 * \return Nothing.  */
+		public static void SetColour (int gcol, OS.GCOLAction gcolAction)
+		{
+			SetColour (gcol, gcolAction, false, false);
+		}
+
+		/*! \brief Changes the text foreground or background colour to a GCOL number.
+		 * \param [in] paletteEntry A palette entry in the form 0xBBGGRR00.
+		 * \param [in] background \e true if the background colour should be set instead of
+		 * the foreground.
+		 * \return The GCOL that was found to be nearest to the palette entry given and set.  */
+		public static int SetTextColour (uint paletteEntry, bool background)
+		{
+			int flags = background ? (1 << 7) : 0;
+			int gcol;
+
+			NativeMethods.ColourTrans_SetTextColour (paletteEntry, flags, out gcol);
+
+			return gcol;
+		}
+
+		/*! \brief Changes the text foreground or background colour to a GCOL number.
+		 * \param [in] paletteEntry A palette entry in the form 0xBBGGRR00.
+		 * \param [in] background \e true if the background colour should be set instead of
+		 * the foreground.
+		 * \return The GCOL that was found to be furthest to the palette entry given and set.  */
+		public static int SetOppTextColour (uint paletteEntry, bool background)
+		{
+			int flags = background ? (1 << 7) : 0;
+			int gcol;
+
+			NativeMethods.ColourTrans_SetOppTextColour (paletteEntry, flags, out gcol);
+
+			return gcol;
 		}
 
 		/*! \brief Sets up a translation table in a buffer for the given sprite.

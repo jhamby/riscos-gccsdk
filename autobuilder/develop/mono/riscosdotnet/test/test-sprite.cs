@@ -48,8 +48,8 @@ namespace riscos.CSharpBindings.SpriteTest
 					{
 						uint red = (uint)((256 * x) / 256) + 30;
 
-						ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG,
-								     red << ColourTrans.RedShift);
+						ColourTrans.SetGCOL (red << ColourTrans.RedShift,
+								     OS.GCOLAction.Replace_FG);
 						OS.PlotLine (x, 0, x, 100);
 					}
 

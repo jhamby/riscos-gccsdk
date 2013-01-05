@@ -63,11 +63,11 @@ public class MyTask : WimpTask
 	// These are C# 'event' handlers.
 	public void redraw_main_window (object sender, Wimp.RedrawEventArgs e)
 	{
-		ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG, ColourTrans.FullRed);
+		ColourTrans.SetGCOL (ColourTrans.FullRed, OS.GCOLAction.Replace_FG);
 		OS.PlotCircleFill (e.Origin.X + 1000, e.Origin.Y + 1000, 400);
-		ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG, ColourTrans.FullGreen);
+		ColourTrans.SetGCOL (ColourTrans.FullGreen, OS.GCOLAction.Replace_FG);
 		OS.PlotLine (e.Origin.X, e.Origin.Y, e.Origin.X + 2000, e.Origin.Y + 2000);
-		ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG, ColourTrans.FullBlue);
+		ColourTrans.SetGCOL (ColourTrans.FullBlue, OS.GCOLAction.Replace_FG);
 		OS.PlotLine (e.Origin.X, e.Origin.Y + 2000, e.Origin.X + 2000, e.Origin.Y);
 
 		ColourTrans.SetFontColours (ColourTrans.White, ColourTrans.FullBlue, 7);
