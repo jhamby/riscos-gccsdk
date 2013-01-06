@@ -1,3 +1,11 @@
+Sun Jan  6 19:54:37 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/macros.c (c_macro): Turn warning into error so that it appears
+	during pass one.
+	* src/variables.c (c_set): ValueTag determination and end-of-keyword
+	check needs to happen before label presence test.
+	* unittests/compare/core/variables.s: Add test case.
+
 Sun Jan  6 19:16:03 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

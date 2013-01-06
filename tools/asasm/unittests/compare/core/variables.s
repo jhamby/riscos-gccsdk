@@ -1,4 +1,5 @@
 ; Tests local & global variables for regressions.
+; GBLA, GBLL, GBLS, SETA, SETL, SETS, LCLA, LCLL, LCLS.
 
 		AREA Data1, DATA, READONLY
 
@@ -463,6 +464,55 @@ ResA	SETS	"Int" :CC: :STR: IterA
 	= "IntFirst\n"
 	= "IntSecond\n"
 
+	]
+
+	; Tests if GBLX, GBLSX, SETX, SETSX, LCLX and LCLSX can be used as
+	; macro.
+	AREA	Data5, DATA
+	[ :LNOT: REFERENCE
+	MACRO
+	GBLX
+	= "GBLX ok\n"
+	MEND
+
+	MACRO
+	GBLSX
+	= "GBLSX ok\n"
+	MEND
+
+	MACRO
+	SETX
+	= "SETX ok\n"
+	MEND
+
+	MACRO
+	SETSX
+	= "SETSX ok\n"
+	MEND
+
+	MACRO
+	LCLX
+	= "LCLX ok\n"
+	MEND
+
+	MACRO
+	LCLSX
+	= "LCLSX ok\n"
+	MEND
+
+	GBLX
+	GBLSX
+	SETX
+	SETSX
+	LCLX
+	LCLSX
+	|
+	= "GBLX ok\n"
+	= "GBLSX ok\n"
+	= "SETX ok\n"
+	= "SETSX ok\n"
+	= "LCLX ok\n"
+	= "LCLSX ok\n"
 	]
 
 	END

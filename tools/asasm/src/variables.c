@@ -295,6 +295,20 @@ c_lcl (void)
 bool
 c_set (const Lex *label)
 {
+  ValueTag type;
+  const char c  = inputLook ();
+  if (c == 'L')
+    type = ValueBool;
+  else if (c == 'A')
+    type = ValueInt;
+  else if (c == 'S')
+    type = ValueString;
+  else
+    return true;
+  inputSkip ();
+  if (!Input_IsEndOfKeyword ())
+    return true;
+
   switch (label->tag)
     {
       case LexNone:
@@ -312,20 +326,6 @@ c_set (const Lex *label)
 	assert (0);
 	break;
     }
-
-  ValueTag type;
-  const char c  = inputLook ();
-  if (c == 'L')
-    type = ValueBool;
-  else if (c == 'A')
-    type = ValueInt;
-  else if (c == 'S')
-    type = ValueString;
-  else
-    return true;
-  inputSkip ();
-  if (!Input_IsEndOfKeyword ())
-    return true;
 
   Symbol *sym = Symbol_Find (label);
   if (sym == NULL)

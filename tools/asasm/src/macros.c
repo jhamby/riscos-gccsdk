@@ -366,7 +366,7 @@ c_macro (void)
 
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
-    error (ErrorWarning, "Skipping characters following MACRO");
+    error (ErrorError, "Spurious characters following MACRO");
 
   /* Process macro prototype statement (= optional label, macro name,
      optionally a suffix and followed by zero or more macro parameters
