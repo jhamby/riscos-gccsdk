@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -289,14 +289,17 @@ Macro_Find (const char *name, size_t len, bool addSfxWildcard)
 {
   for (const Macro *m = macroList; m != NULL; m = m->next)
     {
-      if ((len < m->nameLen && !addSfxWildcard)
-          || (len > m->nameLen && !m->suffixArg))
-	continue;
-
-      size_t charsToMatch = len < m->nameLen ? len : m->nameLen;
-      if (!memcmp (name, m->name, charsToMatch))
-	return m;
+      /* Check length requirement first.  */
+      if (m->nameLen == len
+	  || (m->nameLen < len && m->suffixArg)
+	  || (m->nameLen > len && addSfxWildcard))
+	{
+	  size_t charsToMatch = len < m->nameLen ? len : m->nameLen;
+	  if (!memcmp (name, m->name, charsToMatch))
+	    return m;
+	}
     }
+
   return NULL;
 }
 
@@ -409,31 +412,35 @@ c_macro (void)
     }
   else
     m.suffixArg = false;
-  const Macro *prevDefMacro = Macro_Find (macroName, macroNameLen, true);
+  const Macro *prevDefMacro = Macro_Find (macroName, macroNameLen, m.suffixArg);
   if (prevDefMacro != NULL)
     {
+      assert ((!m.suffixArg && ((prevDefMacro->nameLen == macroNameLen && !prevDefMacro->suffixArg) || (prevDefMacro->nameLen <= macroNameLen && prevDefMacro->suffixArg)))
+              || (m.suffixArg && ((prevDefMacro->nameLen >= macroNameLen && !prevDefMacro->suffixArg) || prevDefMacro->suffixArg)));
       /* Macro definition is matching an already given macro definition
          (possibly via a macro suffix).  */
-      if (prevDefMacro->suffixArg && !m.suffixArg)
-	{
-	  error (ErrorError, "Macro '%.*s' is eclipsed by macro '%s' with suffix",
-		 (int)macroNameLen, macroName, prevDefMacro->name);
-	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
-		     "note: Macro '%s' definition was here", prevDefMacro->name);
-	}
-      else if (!prevDefMacro->suffixArg && m.suffixArg)
-	{
-	  error (ErrorError, "Macro '%.*s' with suffix can become eclipsed by macro '%s'",
-		 (int)macroNameLen, macroName, prevDefMacro->name);
-	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
-		     "note: Macro '%s' definition was here", prevDefMacro->name);
-	}
-      else
+      if (prevDefMacro->nameLen == macroNameLen && prevDefMacro->suffixArg == m.suffixArg)
 	{
 	  error (ErrorError, "Macro '%.*s' is already defined", (int)macroNameLen, macroName);
 	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
-		     "note: Previous macro '%s' definition was here", prevDefMacro->name);
+		     "note: Previous macro definition '%s' was here", prevDefMacro->name);
 	}
+      else if (prevDefMacro->nameLen <= macroNameLen && prevDefMacro->suffixArg)
+	{
+	  error (ErrorError, "Macro definition '%.*s' is eclipsed by macro definition '%s' with suffix $%s",
+		 (int)macroNameLen, macroName, prevDefMacro->name, prevDefMacro->args[prevDefMacro->labelArg ? 1 : 0]);
+	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+		     "note: Macro definition '%s' was here", prevDefMacro->name);
+	}
+      else if (macroNameLen <= prevDefMacro->nameLen && m.suffixArg)
+	{
+	  error (ErrorError, "Macro definition '%.*s' with suffix $%s eclipses macro definition '%s'",
+		 (int)macroNameLen, macroName, m.args[m.labelArg ? 1 : 0], prevDefMacro->name);
+	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+		     "note: Macro definition '%s' was here", prevDefMacro->name);
+	}
+      else
+	assert (0);
       goto lookforMEND;
     }
   if ((m.name = strndup (macroName, macroNameLen)) == NULL)

@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -599,11 +599,13 @@ c_dci (bool doLowerCase)
   InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
   if (instrWidth == eInstrWidth_Unrecognized)
     return true;
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (areaCurrentSymbol->area->it.cc, instrState != eInstrType_ARM); 
+
   unsigned alignValue;
   int instructionSize;
   bool swapHalfwords;
-  InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (areaCurrentSymbol->area->it.cc, instrState != eInstrType_ARM); 
   if (instrState == eInstrType_ARM)
     {
       alignValue = 4;

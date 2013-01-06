@@ -136,7 +136,7 @@ Test3_Foo_Val2	*	2 :SHL: 0
 	]
 
 	; Test macro label and suffix argument
-	AREA	LblSfxData, DATA
+	AREA	LblSfxData1, DATA
 	[ :LNOT: REFERENCE
 	MACRO
 	LSTest1$sfx
@@ -147,7 +147,7 @@ Test3_Foo_Val2	*	2 :SHL: 0
 $lbl	LSTest2$sfx
 $lbl	= "LSTest2, sfx is '$sfx', lbl is '$lbl'"
 	[ "$lbl" <> ""
-	= " (", :STR:($lbl - LblSfxData), ")"
+	= " (", :STR:($lbl - LblSfxData1), ")"
 	]
 	= "\n"
 	MEND
@@ -156,7 +156,7 @@ $lbl	= "LSTest2, sfx is '$sfx', lbl is '$lbl'"
 $lbl	LSTest3$sfx $arg1, $arg2
 $lbl	= "LSTest3, sfx is '$sfx', lbl is '$lbl'"
 	[ "$lbl" <> ""
-	= " (", :STR:($lbl - LblSfxData), ")"
+	= " (", :STR:($lbl - LblSfxData1), ")"
 	]
 	= ", arg1 is '$arg1', arg2 is '$arg2'\n"
 	MEND
@@ -182,6 +182,41 @@ lbl3	LSTest3SFX2 ARG1, ARG2
 	= "LSTest3, sfx is '', lbl is '', arg1 is 'ARG1', arg2 is 'ARG2'\n"
 	= "LSTest3, sfx is 'SFX1', lbl is '', arg1 is 'ARG1', arg2 is 'ARG2'\n"
 	= "LSTest3, sfx is 'SFX2', lbl is 'lbl3' (00000132), arg1 is 'ARG1', arg2 is 'ARG2'\n"
+	]
+
+	; Test macro suffix support doesn't get triggered for macros without
+	; suffix.
+	AREA	LblSfxData2, DATA
+	[ :LNOT: REFERENCE
+	MACRO
+	LblSfxTest1
+	= "LblSfxTest1\n"
+	MEND
+
+	MACRO
+	LblSfxTest1Sfx
+	= "LblSfxTest1Sfx\n"
+	MEND
+
+	MACRO
+	LblSfxTest2Sfx
+	= "LblSfxTest2Sfx\n"
+	MEND
+
+	MACRO
+	LblSfxTest2
+	= "LblSfxTest2\n"
+	MEND
+
+	LblSfxTest1
+	LblSfxTest1Sfx
+	LblSfxTest2Sfx
+	LblSfxTest2
+	|
+	= "LblSfxTest1\n"
+	= "LblSfxTest1Sfx\n"
+	= "LblSfxTest2Sfx\n"
+	= "LblSfxTest2\n"
 	]
 
 	END

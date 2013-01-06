@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,12 +78,7 @@ m_nop (bool doLowerCase)
       IT_ApplyCond (cc, instrState != eInstrType_ARM); 
 
       if (instrState == eInstrType_ARM)
-	{
-	  if (instrWidth == eInstrWidth_Enforce16bit)
-	    error (ErrorError, ".N width specifier can't be used in ARM mode");
-
-	  Put_Ins (4, 0x0320F000 | cc);
-	}
+	Put_Ins (4, 0x0320F000 | cc);
       else
 	{
 	  if (instrWidth == eInstrWidth_Enforce32bit)
@@ -124,6 +119,7 @@ m_und (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
+
   InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
   if (instrWidth == eInstrWidth_Unrecognized)
     return true;
