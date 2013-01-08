@@ -162,13 +162,19 @@ ab_create_command_app() {
 
 ab_add_commands() {
   for program in $@; do
-    # We don't just strip AB_EXEEXT but any RISC OS filetype extension.
-    # ObeyFiles can be a program, or we can have Absolute files (e.g.
-    # using SCL) in an ELF build, etc.
-    name=$(basename $program | sed -e s#,[a-f\|0-9][a-f\|0-9][a-f\|0-9]##)
     # Call elf2aif only for statically linked ELF binaries.
     file $program | grep -q -e ELF -e statically && $GCCSDK_INSTALL_ENV/ro-path elf2aif $program
-    echo "Set Alias\$$name WimpSlot -min `$GCCSDK_INSTALL_ENV/bin/makerun $program`k |M Run <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
+
+    # Determine minimal WimpSlot size for binaries (will be empty for ObeyFiles)
+    # We don't just strip AB_EXEEXT but any RISC OS filetype extension
+    # as we can have ObeyFiles, Absolute (e.g. when using SCL), etc. files here.
+    local name=$(basename $program | sed -e s#,[a-f\|0-9][a-f\|0-9][a-f\|0-9]##)
+    local slotsize=`$GCCSDK_INSTALL_ENV/bin/makerun $program 2>/dev/null`
+    if [ -z "$slotsize" ] ; then
+      echo "Set Alias\$$name Run <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
+    else
+      echo "Set Alias\$$name WimpSlot -min `echo $slotsize`k|MRun <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
+    fi
     /bin/cp -av $program $A
   done
 }
