@@ -166,9 +166,9 @@ ab_add_commands() {
     # ObeyFiles can be a program, or we can have Absolute files (e.g.
     # using SCL) in an ELF build, etc.
     name=$(basename $program | sed -e s#,[a-f\|0-9][a-f\|0-9][a-f\|0-9]##)
-    $GCCSDK_INSTALL_ENV/ro-path elf2aif $program $program.tmp 2>/dev/null
-    echo "Set Alias\$$name WimpSlot -min `$GCCSDK_INSTALL_ENV/bin/makerun $program.tmp`k |M Run <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
-    rm $program.tmp
+    # Call elf2aif only for statically linked ELF binaries.
+    file $program | grep -q -e ELF -e statically && $GCCSDK_INSTALL_ENV/ro-path elf2aif $program
+    echo "Set Alias\$$name WimpSlot -min `$GCCSDK_INSTALL_ENV/bin/makerun $program`k |M Run <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
     /bin/cp -av $program $A
   done
 }
