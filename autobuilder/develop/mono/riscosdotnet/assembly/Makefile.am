@@ -51,7 +51,10 @@ riscos_dll_sources = \
 	menu.cs \
 	sprite.cs \
 	window-common.cs \
-	wimp-task.cs
+	wimp-task.cs \
+	osfind.cs \
+	osargs.cs \
+	osgbpb.cs
 
 riscos_dll_build_sources = $(addprefix $(srcdir)/, $(riscos_dll_sources))
 

@@ -936,6 +936,37 @@ namespace riscos
 
 			return size;
 		}
+
+		/*! \brief Read a byte from a file.
+		 * \param [in] fileHandle RISC %OS handle of file to read from.
+		 * \param [out] carryFlag The state of the carry flag after the read - can indicate EOF.
+		 * \return The byte that was read if not EOF.  */
+		public static int BGet (IntPtr fileHandle, out bool carryFlag)
+		{
+			int value;
+
+			ThrowOnError (NativeMethods.OS_BGet (fileHandle, out value, out carryFlag));
+
+			return value;
+		}
+
+		/*! \brief Read a byte from a file.
+		 * \param [in] fileHandle RISC %OS handle of file to read from.
+		 * \return The byte that was read if not EOF.  */
+		public static int BGet (IntPtr fileHandle)
+		{
+			bool carry_flag;
+
+			return BGet (fileHandle, out carry_flag);
+		}
+
+		/*! \brief Write a byte to a file.
+		 * \param [in] fileHandle RISC %OS handle of file to write to.
+		 * \return Nothing.  */
+		public static void BPut (byte value, IntPtr fileHandle)
+		{
+			ThrowOnError (NativeMethods.OS_BPut ((int)value, fileHandle));
+		}
 	}
 }
 

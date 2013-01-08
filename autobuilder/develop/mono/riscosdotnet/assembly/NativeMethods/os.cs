@@ -156,5 +156,107 @@ namespace riscos
 		internal static extern IntPtr OS_HeapReadSize (IntPtr heap,
 							       IntPtr block,
 							       out int size);
+
+		// OS_Find
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosfind_openinw")]
+		internal static extern IntPtr OSFind_Openin (OSFind.Flags flags,
+							     string filename,
+							     string path,
+							     out IntPtr handleOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosfind_openoutw")]
+		internal static extern IntPtr OSFind_Openout (OSFind.Flags flags,
+							      string filename,
+							      string path,
+							      out IntPtr handleOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosfind_openupw")]
+		internal static extern IntPtr OSFind_Openup (OSFind.Flags flags,
+							     string filename,
+							     string path,
+							     out IntPtr handleOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosfind_closew")]
+		internal static extern IntPtr OSFind_Close (IntPtr fileHandle);
+
+		// OS_Args
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_read_ptrw")]
+		internal static extern IntPtr OSArgs_ReadFilePtr (IntPtr fileHandle,
+								  out int filePtrOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_set_ptrw")]
+		internal static extern IntPtr OSArgs_SetFilePtr (IntPtr fileHandle,
+								 int filePtr);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_read_extw")]
+		internal static extern IntPtr OSArgs_ReadFileExt (IntPtr fileHandle,
+								  out int fileExtOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_set_extw")]
+		internal static extern IntPtr OSArgs_SetFileExt (IntPtr fileHandle,
+								 int fileExt);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_read_allocationw")]
+		internal static extern IntPtr OSArgs_ReadFileAllocation (IntPtr fileHandle,
+									 out int fileAllocationOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_read_eof_statusw")]
+		internal static extern IntPtr OSArgs_ReadFileEOF (IntPtr fileHandle,
+								  out int EOF);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_set_allocationw")]
+		internal static extern IntPtr OSArgs_SetFileAllocation (IntPtr fileHandle,
+									int fileAllocation,
+									out int fileAllocationOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_read_pathw")]
+		internal static extern IntPtr OSArgs_ReadFilename (IntPtr fileHandle,
+								   System.Text.StringBuilder buffer,
+								   int bufferSize,
+								   out int spareOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_read_infow")]
+		internal static extern IntPtr OSArgs_ReadInfo (IntPtr fileHandle,
+							       out int streamStatus,
+							       out int infoWord);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosargs_ensurew")]
+		internal static extern IntPtr OSArgs_EnsureData (IntPtr fileHandle);
+
+		// OS_GBPB
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosgbpb_write_atw")]
+		internal static extern IntPtr OSGBPB_WriteAt (IntPtr fileHandle,
+							      IntPtr data,
+							      int size,
+							      int filePtr,
+							      out int unwritten);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosgbpb_writew")]
+		internal static extern IntPtr OSGBPB_Write (IntPtr fileHandle,
+							    IntPtr data,
+							    int size,
+							    out int unwritten);
+
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosgbpb_read_atw")]
+		internal static extern IntPtr OSGBPB_ReadAt (IntPtr fileHandle,
+							     IntPtr data,
+							     int size,
+							     int filePtr,
+							     out int unread);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xosgbpb_readw")]
+		internal static extern IntPtr OSGBPB_Read (IntPtr fileHandle,
+							    IntPtr data,
+							    int size,
+							    out int unread);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_OS_BPut")]
+		internal static extern IntPtr OS_BPut (int value, IntPtr fileHandle);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_OS_BGet")]
+		internal static extern IntPtr OS_BGet (IntPtr fileHandle,
+						       out int value,
+						       out bool carry_flag);
 	}
 }

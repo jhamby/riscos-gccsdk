@@ -16,7 +16,10 @@ BUILT_SOURCES = \
 	tb-window.s \
 	osword.s \
 	osspriteop.s \
-	osheap.s
+	osheap.s \
+	osfind.s \
+	osargs.s \
+	osgbpb.s
 
 AM_CCASFLAGS = -xassembler-with-cpp -DASM
 
@@ -29,6 +32,7 @@ libriscosdotnet_la_SOURCES = \
 	font-support.s \
 	toolbox-support.c \
 	toolbox-support-asm.s \
+	os-support.c \
 	copyright.s
 
 $(OSLIB_DIR):
@@ -85,4 +89,19 @@ $(top_srcdir)/src/osspriteop.s: $(DEFMOD) $(OSLIB_SRC)/Core/oslib/OSSpriteOp.swi
 $(top_srcdir)/src/osheap.s: $(DEFMOD) $(OSLIB_SRC)/Core/oslib/OSHeap.swi
 	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Core/oslib/OSHeap.swi > temp.s
 	$(STRIP_OSLIB_SCRIPT) temp.s $@ osheap
+	rm -f temp.s
+
+$(top_srcdir)/src/osfind.s: $(DEFMOD) $(OSLIB_SRC)/Computer/oslib/OSFind.swi
+	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Computer/oslib/OSFind.swi > temp.s
+	$(STRIP_OSLIB_SCRIPT) temp.s $@ osfind
+	rm -f temp.s
+
+$(top_srcdir)/src/osargs.s: $(DEFMOD) $(OSLIB_SRC)/Computer/oslib/OSArgs.swi
+	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Computer/oslib/OSArgs.swi > temp.s
+	$(STRIP_OSLIB_SCRIPT) temp.s $@ osargs
+	rm -f temp.s
+
+$(top_srcdir)/src/osgbpb.s: $(DEFMOD) $(OSLIB_SRC)/Computer/oslib/OSGBPB.swi
+	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Computer/oslib/OSGBPB.swi > temp.s
+	$(STRIP_OSLIB_SCRIPT) temp.s $@ osgbpb
 	rm -f temp.s
