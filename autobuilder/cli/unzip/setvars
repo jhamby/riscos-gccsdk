@@ -1,3 +1,4 @@
+AB_PVERSION=`grep -m1 UZ_VER_STRING unzvers.h | cut -d\" -f2`
 AB_PRECONF=:
 
 # We're using SCL so extension is always ,ff8.
