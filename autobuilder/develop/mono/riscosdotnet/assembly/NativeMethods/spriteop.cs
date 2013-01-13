@@ -260,7 +260,7 @@ namespace riscos
 									  uint flags,
 									  int activeX,
 									  int activeY,
-									  OS.ScaleFactors factors,
+									  [In] OS.ScaleFactors factors,
 									  IntPtr transTable);
 
 		// Set pointer shape using sprite address
@@ -271,7 +271,7 @@ namespace riscos
 									  uint flags,
 									  int activeX,
 									  int activeY,
-									  OS.ScaleFactors factors,
+									  [In] OS.ScaleFactors factors,
 									  IntPtr transTable);
 
 		// Read palette using sprite name
@@ -544,13 +544,13 @@ namespace riscos
 									 IntPtr spriteAddress,
 									 int x,
 									 int y,
-									 OS.ScaleFactors factors);
+									 [In] OS.ScaleFactors factors);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_paint_char_scaled")]
 		internal static extern IntPtr OSSpriteOp_PaintCharScaled (int c,
 									  int x,
 									  int y,
-									  OS.ScaleFactors factors);
+									  [In] OS.ScaleFactors factors);
 
 		// plot sprite using sprite name
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_scaled")]
@@ -560,7 +560,7 @@ namespace riscos
 									  int x,
 									  int y,
 									  OSSpriteOp.PlotAction action,
-									  OS.ScaleFactors factors,
+									  [In] OS.ScaleFactors factors,
 									  IntPtr transTab);
 
 		// plot sprite using sprite address
@@ -571,7 +571,7 @@ namespace riscos
 									  int x,
 									  int y,
 									  OSSpriteOp.PlotAction action,
-									  OS.ScaleFactors factors,
+									  [In] OS.ScaleFactors factors,
 									  IntPtr transTab);
 
 		// plot sprite using sprite name
@@ -582,7 +582,7 @@ namespace riscos
 										int x,
 										int y,
 										OSSpriteOp.PlotAction action,
-										OS.ScaleFactors factors,
+										[In] OS.ScaleFactors factors,
 										IntPtr mapping);
 
 		// plot sprite using sprite address
@@ -593,7 +593,7 @@ namespace riscos
 										int x,
 										int y,
 										OSSpriteOp.PlotAction action,
-										OS.ScaleFactors factors,
+										[In] OS.ScaleFactors factors,
 										IntPtr mapping);
 
 		// plot sprite using sprite name
@@ -603,7 +603,7 @@ namespace riscos
 									      string spriteName,
 									      int x,
 									      int y,
-									      OS.ScaleFactors factors,
+									      [In] OS.ScaleFactors factors,
 									      IntPtr transTab);
 
 		// plot sprite using sprite address
@@ -613,7 +613,7 @@ namespace riscos
 									      IntPtr spriteAddress,
 									      int x,
 									      int y,
-									      OS.ScaleFactors factors,
+									      [In] OS.ScaleFactors factors,
 									      IntPtr transTab);
 
 		// Remove lefthand wastage using sprite name
@@ -634,9 +634,8 @@ namespace riscos
 									      IntPtr spriteAreaCB,
 									      string spriteName,
 									      OSSpriteOp.TransformFlags flags,
-									      OS.Rect source,
-									      [In, MarshalAs(UnmanagedType.Struct)]
-										   ref NativeOS.Matrix matrix);
+									      [In] OS.Rect source,
+									      [In] OS.Matrix matrix);
 
 		// plot mask using sprite address
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_plot_mask_trfm")]
@@ -644,9 +643,8 @@ namespace riscos
 									      IntPtr spriteAreaCB,
 									      IntPtr spriteAddress,
 									      OSSpriteOp.TransformFlags flags,
-									      OS.Rect source,
-									      [In, MarshalAs(UnmanagedType.Struct)]
-										   ref NativeOS.Matrix matrix);
+									      [In] OS.Rect source,
+									      [In] OS.Matrix matrix);
 
 		// plot sprite using sprite name and transformation matrix.
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xosspriteop_put_sprite_trfm")]
@@ -654,10 +652,9 @@ namespace riscos
 									       IntPtr spriteAreaCB,
 									       string spriteName,
 									       OSSpriteOp.TransformFlags transformFlags,
-									       OS.Rect source,
+									       [In] OS.Rect source,
 									       OSSpriteOp.PlotAction action,
-									       [In, MarshalAs(UnmanagedType.Struct)]
-										    ref NativeOS.Matrix matrix,
+									       [In] OS.Matrix matrix,
 									       IntPtr transTab);
 
 
@@ -667,9 +664,9 @@ namespace riscos
 									       IntPtr spriteAreaCB,
 									       string spriteName,
 									       OSSpriteOp.TransformFlags transformFlags,
-									       OS.Rect source,
+									       [In] OS.Rect source,
 									       OSSpriteOp.PlotAction action,
-									       OSSpriteOp.DestCoordBlock destCoordBlock,
+									       [In] OSSpriteOp.DestCoordBlock destCoordBlock,
 									       IntPtr transTab);
 
 		// plot sprite using sprite address and transformation matrix.
@@ -678,10 +675,9 @@ namespace riscos
 									       IntPtr spriteAreaCB,
 									       IntPtr spriteAddress,
 									       OSSpriteOp.TransformFlags flags,
-									       OS.Rect source,
+									       [In] OS.Rect source,
 									       OSSpriteOp.PlotAction action,
-									       [In, MarshalAs(UnmanagedType.Struct)]
-										    ref NativeOS.Matrix matrix,
+									       [In] OS.Matrix matrix,
 									       IntPtr transTab);
 
 
@@ -691,9 +687,9 @@ namespace riscos
 									       IntPtr spriteAreaCB,
 									       IntPtr spriteAddress,
 									       OSSpriteOp.TransformFlags flags,
-									       OS.Rect source,
+									       [In] OS.Rect source,
 									       OSSpriteOp.PlotAction action,
-									       OSSpriteOp.DestCoordBlock destCoordBlock,
+									       [In] OSSpriteOp.DestCoordBlock destCoordBlock,
 									       IntPtr transTab);
 
 		// plot sprite using sprite name
@@ -702,10 +698,9 @@ namespace riscos
 										     IntPtr spriteAreaCB,
 										     string spriteName,
 										     OSSpriteOp.TransformFlags flags,
-										     OS.Rect source,
+										     [In] OS.Rect source,
 										     OSSpriteOp.PlotAction action,
-										     [In, MarshalAs(UnmanagedType.Struct)]
-											  ref NativeOS.Matrix matrix,
+										     [In] OS.Matrix matrix,
 										     IntPtr mapping);
 
 		// plot sprite using sprite address
@@ -714,10 +709,9 @@ namespace riscos
 										     IntPtr spriteAreaCB,
 										     IntPtr spriteAddress,
 										     OSSpriteOp.TransformFlags flags,
-										     OS.Rect source,
+										     [In] OS.Rect source,
 										     OSSpriteOp.PlotAction action,
-										     [In, MarshalAs(UnmanagedType.Struct)]
-											  ref NativeOS.Matrix matrix,
+										     [In] OS.Matrix matrix,
 										     IntPtr mapping);
 
 		// Insert/delete rows using sprite name

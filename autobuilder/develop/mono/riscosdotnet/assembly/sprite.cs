@@ -934,15 +934,13 @@ namespace riscos
 							 OS.Matrix matrix,
 							 IntPtr transTab)
 		{
-			var native_matrix = new NativeOS.Matrix (matrix);
-
 			OS.ThrowOnError (NativeMethods.OSSpriteOp_PutSpriteTransformed (flags,
 											spriteAreaCB,
 											spriteAddress,
 											transformFlags,
 											source,
 											action,
-											ref native_matrix,
+											matrix,
 											transTab));
 		}
 
@@ -966,15 +964,13 @@ namespace riscos
 							 OS.Matrix matrix,
 							 IntPtr transTab)
 		{
-			var native_matrix = new NativeOS.Matrix (matrix);
-
 			OS.ThrowOnError (NativeMethods.OSSpriteOp_PutSpriteTransformed (flags,
 											spriteAreaCB,
 											spriteName,
 											transformFlags,
 											source,
 											action,
-											ref native_matrix,
+											matrix,
 											transTab));
 		}
 
