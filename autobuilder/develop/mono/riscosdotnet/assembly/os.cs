@@ -180,12 +180,13 @@ namespace riscos
 		}
 
 		//! \brief A rectangle class used throughout the library.
+		[StructLayout(LayoutKind.Sequential)]
 		public class Rect
 		{
-			public int MinX { get; set; }
-			public int MinY { get; set; }
-			public int MaxX { get; set; }
-			public int MaxY { get; set; }
+			public int MinX;
+			public int MinY;
+			public int MaxX;
+			public int MaxY;
 
 			public Rect ()
 			{
@@ -206,6 +207,14 @@ namespace riscos
 				MinY = rect.MinY;
 				MaxX = rect.MaxX;
 				MaxY = rect.MaxY;
+			}
+
+			public override string ToString ()
+			{
+				return MinX.ToString () + ", " +
+				       MinY.ToString () + ", " +
+				       MaxX.ToString () + ", " +
+				       MaxY.ToString ();
 			}
 		}
 
@@ -234,22 +243,37 @@ namespace riscos
 		}
 
 		/*! \class Matrix
-		 * \brief Used by \e Font.Instance.ScanString, \e Font.Instance.Paint and
-		 * OSSpriteOp to transform, scale and rotate text and sprites. */
+		 * \brief Used by \e Font.Instance.ScanString, \e Font.Instance.Paint, OSSpriteOp
+		 * and Draw to transform, scale and rotate text, sprites and Draw files. */
+		[StructLayout(LayoutKind.Sequential)]
 		public class Matrix : ICloneable
 		{
-			public int [,] m;
+			// Although a 3x3 array is easier to manipulate than a series of ints,
+			// especially when multiplying, it's impossible to marshal. This forces
+			// conversion to a native type making the code more complex and harder
+			// to read.
+			int cell_00;
+			int cell_01;
+			int cell_10;
+			int cell_11;
+			int cell_20;
+			int cell_21;
+			int cell_02;
+			int cell_12;
+			int cell_22;
+
+			public int Cell00 { get { return cell_00; } }
+			public int Cell01 { get { return cell_01; } }
+			public int Cell10 { get { return cell_10; } }
+			public int Cell11 { get { return cell_11; } }
+			public int Cell20 { get { return cell_20; } }
+			public int Cell21 { get { return cell_21; } }
 
 			/*! \brief Create the identity matrix. */
 			public Matrix ()
 			{
-				int x, y;
-
-				m = new int [3, 3];
-
-				for (y = 0; y < 3; y++)
-					for (x = 0; x < 3; x++)
-						m[x,y] = (x == y) ? ToTransformUnits(1.0) : 0;
+				cell_00 = cell_11 = cell_22 = ToTransformUnits(1.0);
+				cell_01 = cell_10 = cell_20 = cell_21 = cell_02 = cell_12 = 0;
 			}
 
 			/*! \brief Create matrix with rotate, scale and translation elements.
@@ -266,8 +290,6 @@ namespace riscos
 			 * Values are used as is, no conversion is performed. */
 			public Matrix (int m00, int m01, int m10, int m11, int m20, int m21)
 			{
-				m = new int [3, 3];
-
 				Set (m00, m01, m10, m11, m20, m21);
 			}
 
@@ -283,8 +305,6 @@ namespace riscos
 			 * Values are used as is, no conversion is performed. */
 			public Matrix (int m00, int m01, int m10, int m11)
 			{
-				m = new int [3, 3];
-
 				Set (m00, m01, m10, m11, 0, 0);
 			}
 
@@ -298,21 +318,26 @@ namespace riscos
 			 * Values are used as is, no conversion is performed. */
 			public Matrix (int m20, int m21)
 			{
-				m = new int [3, 3];
-
 				Set (ToTransformUnits (1.0), 0, 0, ToTransformUnits (1.0), m20, m21);
 			}
 
-			/*! \brief Create matrix from existing 3x3 array. */
-			public Matrix (int [,] matrix_array)
+			public Matrix (Matrix other)
 			{
-				m = (int [,])matrix_array.Clone();
+				cell_00 = other.cell_00;
+				cell_01 = other.cell_01;
+				cell_10 = other.cell_10;
+				cell_11 = other.cell_11;
+				cell_20 = other.cell_20;
+				cell_21 = other.cell_21;
+				cell_02 = other.cell_02;
+				cell_12 = other.cell_12;
+				cell_22 = other.cell_22;
 			}
 
 			/*! \brief Copy a matrix. */
 			public Object Clone()
 			{
-				return new Matrix (m);
+				return new Matrix (this);
 			}
 
 			/*! \brief Set the individual elements of an existing matrix.
@@ -329,12 +354,15 @@ namespace riscos
 			 * Values are used as is, no conversion is performed. */
 			public void Set (int m00, int m01, int m10, int m11, int m20, int m21)
 			{
-				m[0,0] = m00;
-				m[0,1] = m01;
-				m[1,0] = m10;
-				m[1,1] = m11;
-				m[2,0] = m20;
-				m[2,1] = m21;
+				cell_00 = m00;
+				cell_01 = m01;
+				cell_10 = m10;
+				cell_11 = m11;
+				cell_20 = m20;
+				cell_21 = m21;
+				cell_02 = 0;
+				cell_12 = 0;
+				cell_22 = ToTransformUnits(1.0);
 			}
 
 			/*! \brief Multiply the matrix by another one supplied.
@@ -343,8 +371,48 @@ namespace riscos
 			public void Multiply (Matrix m2)
 			{
 				Matrix m1 = (Matrix)Clone ();
-				int sum = 0, i, j, k;
 
+				int sum = (int)(Math.BigMul(m1.cell_00, m2.cell_00) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_01, m2.cell_10) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_02, m2.cell_20) >> 16);
+				cell_00 = sum;
+				sum = (int)(Math.BigMul(m1.cell_00, m2.cell_01) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_01, m2.cell_11) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_02, m2.cell_21) >> 16);
+				cell_01 = sum;
+				sum = (int)(Math.BigMul(m1.cell_00, m2.cell_02) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_01, m2.cell_12) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_02, m2.cell_22) >> 16);
+				cell_02 = sum;
+				sum = (int)(Math.BigMul(m1.cell_10, m2.cell_00) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_11, m2.cell_10) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_12, m2.cell_20) >> 16);
+				cell_10 = sum;
+				sum = (int)(Math.BigMul(m1.cell_10, m2.cell_01) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_11, m2.cell_11) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_12, m2.cell_21) >> 16);
+				cell_11 = sum;
+				sum = (int)(Math.BigMul(m1.cell_10, m2.cell_02) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_11, m2.cell_12) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_12, m2.cell_22) >> 16);
+				cell_12 = sum;
+				sum = (int)(Math.BigMul(m1.cell_20, m2.cell_00) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_21, m2.cell_10) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_22, m2.cell_20) >> 16);
+				cell_20 = sum;
+				sum = (int)(Math.BigMul(m1.cell_20, m2.cell_01) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_21, m2.cell_11) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_22, m2.cell_21) >> 16);
+				cell_21 = sum;
+				sum = (int)(Math.BigMul(m1.cell_20, m2.cell_02) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_21, m2.cell_12) >> 16);
+				sum += (int)(Math.BigMul(m1.cell_22, m2.cell_22) >> 16);
+				cell_22 = sum;
+
+#if false
+				// The original implementation of matrix multiplication.
+				// A 3x3 array can't be marshalled, so changed to a series of ints
+				// instead.
 				for (i = 0; i < 3; i++) {
 					for (j = 0; j < 3; j++) {
 						for (k = 0; k < 3; k++) {
@@ -354,6 +422,7 @@ namespace riscos
 						sum = 0;
 					}
 				}
+#endif
 			}
 
 			/*! \brief Add a translation to the matrix.
@@ -365,8 +434,8 @@ namespace riscos
 			 * Parameters are converted into internal Draw units. */
 			public void Translate (int x, int y)
 			{
-				m[2, 0] += ToDrawUnits (x);
-				m[2, 1] += ToDrawUnits (y);
+				cell_20 += ToDrawUnits (x);
+				cell_21 += ToDrawUnits (y);
 			}
 
 			/*! \brief Add a scale to the matrix.
@@ -378,8 +447,8 @@ namespace riscos
 			 * Parameters are converted into transform units. */
 			public void Scale (double x, double y)
 			{
-				m[0, 0] += ToTransformUnits (x);
-				m[1, 1] += ToTransformUnits (y);
+				cell_00 += ToTransformUnits (x);
+				cell_11 += ToTransformUnits (y);
 			}
 
 			/*! \brief Rotate the matrix.
@@ -961,6 +1030,7 @@ namespace riscos
 		}
 
 		/*! \brief Write a byte to a file.
+		 * \param [in] value 8 bit value to write to file.
 		 * \param [in] fileHandle RISC %OS handle of file to write to.
 		 * \return Nothing.  */
 		public static void BPut (byte value, IntPtr fileHandle)

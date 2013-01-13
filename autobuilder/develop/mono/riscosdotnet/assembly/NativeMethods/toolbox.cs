@@ -221,13 +221,13 @@ namespace riscos
 		internal static extern IntPtr Window_SetExtent (uint flags,
 								uint WindowID,
 								int method,
-								NativeOS.Rect extent);
+								OS.Rect extent);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_ObjectMiscOp_SetR3")]
 		internal static extern IntPtr Window_GetExtent (uint flags,
 								uint WindowID,
 								int method,
-								out NativeOS.Rect extent);
+								OS.Rect extent);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_ObjectMiscOp_SetR3")]
 		internal static extern IntPtr Window_ForceRedraw (uint flags,

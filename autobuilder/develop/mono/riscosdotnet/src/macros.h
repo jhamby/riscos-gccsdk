@@ -81,6 +81,24 @@
 	LDMFD	sp!, {r0-r3}
 	.endm
 
+	.macro	REPORT_DEC int
+	STMFD	sp!, {r0-r3}
+
+	MOV	r0,\int
+	B	89f
+88:
+	.word	0,0,0
+89:
+	ADR	r1,88b
+	MOV	r2,#12
+	SWI	0xdc
+	MOV	r2,#0
+	STRB	r2,[r1,#0]
+	SWI	0x74c80
+
+	LDMFD	sp!, {r0-r3}
+	.endm
+
 	.macro REPORT_TEXT string
 
 	SWI	0x74c81

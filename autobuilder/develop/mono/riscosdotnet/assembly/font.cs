@@ -253,8 +253,6 @@ namespace riscos
 			{
 				NativeFont.PaintCoordBlock coordBlockNative =
 						new NativeFont.PaintCoordBlock (coordBlock);
-				NativeOS.Matrix matrixNative =
-						new NativeOS.Matrix (matrix);
 
 				flags |= PlotType.GivenBlock |
 					 PlotType.GivenMatrix |
@@ -267,7 +265,7 @@ namespace riscos
 									   xPos,
 									   yPos,
 									   ref coordBlockNative,
-									   ref matrixNative,
+									   matrix,
 									   length));
 			}
 
@@ -294,9 +292,6 @@ namespace riscos
 					   OS.Matrix matrix,
 					   int length)
 			{
-				NativeOS.Matrix matrixNative =
-						new NativeOS.Matrix (matrix);
-
 				flags |= PlotType.GivenMatrix | PlotType.GivenFont;
 				flags &= ~(PlotType.GivenBlock | PlotType.OSUnits);
 
@@ -306,7 +301,7 @@ namespace riscos
 									   xPos,
 									   yPos,
 									   IntPtr.Zero,
-									   ref matrixNative,
+									   matrix,
 									   length));
 			}
 
@@ -348,7 +343,7 @@ namespace riscos
 									   xPos,
 									   yPos,
 									   ref coordBlockNative,
-									   IntPtr.Zero,
+									   null,
 									   length));
 			}
 
@@ -381,7 +376,7 @@ namespace riscos
 									   xPos,
 									   yPos,
 									   IntPtr.Zero,
-									   IntPtr.Zero,
+									   null,
 									   length));
 			}
 
@@ -521,8 +516,6 @@ namespace riscos
 
 				NativeFont.ScanCoordBlock coordBlockNative =
 						new NativeFont.ScanCoordBlock (coordBlock);
-				NativeOS.Matrix matrixNative =
-						new NativeOS.Matrix (matrix);
 
 				flags |= PlotType.GivenBlock |
 					 PlotType.GivenMatrix |
@@ -534,7 +527,7 @@ namespace riscos
 										offset.X,
 										offset.Y,
 										ref coordBlockNative,
-										ref matrixNative,
+										matrix,
 										length,
 										out result_index,
 										out offsetReturn.X,
@@ -547,16 +540,6 @@ namespace riscos
 					coordBlock.BoundingBox.MinY = coordBlockNative.BoundingBox.MinY;
 					coordBlock.BoundingBox.MaxX = coordBlockNative.BoundingBox.MaxX;
 					coordBlock.BoundingBox.MaxY = coordBlockNative.BoundingBox.MaxY;
-				}
-
-				if ((flags & PlotType.ReturnMatrix) != 0)
-				{
-					matrix.m[0,0] = matrixNative.a;
-					matrix.m[0,1] = matrixNative.b;
-					matrix.m[1,0] = matrixNative.c;
-					matrix.m[1,1] = matrixNative.d;
-					matrix.m[2,0] = matrixNative.e;
-					matrix.m[2,1] = matrixNative.f;
 				}
 
 				return result_index;
@@ -592,8 +575,6 @@ namespace riscos
 					       OS.Coord offsetReturn,
 					       out int splitCount)
 			{
-				NativeOS.Matrix matrixNative =
-						new NativeOS.Matrix (matrix);
 				int result_index;
 
 				flags |= PlotType.GivenMatrix | PlotType.GivenFont;
@@ -605,22 +586,12 @@ namespace riscos
 										offset.X,
 										offset.Y,
 										IntPtr.Zero,
-										ref matrixNative,
+										matrix,
 										length,
 										out result_index,
 										out offsetReturn.X,
 										out offsetReturn.Y,
 										out splitCount));
-				if ((flags & PlotType.ReturnMatrix) != 0)
-				{
-					matrix.m[0,0] = matrixNative.a;
-					matrix.m[0,1] = matrixNative.b;
-					matrix.m[1,0] = matrixNative.c;
-					matrix.m[1,1] = matrixNative.d;
-					matrix.m[2,0] = matrixNative.e;
-					matrix.m[2,1] = matrixNative.f;
-				}
-
 				return result_index;
 			}
 
@@ -667,7 +638,7 @@ namespace riscos
 										offset.X,
 										offset.Y,
 										ref coordBlockNative,
-										IntPtr.Zero,
+										null,
 										length,
 										out result_index,
 										out offsetReturn.X,
@@ -727,7 +698,7 @@ namespace riscos
 										offset.X,
 										offset.Y,
 										IntPtr.Zero,
-										IntPtr.Zero,
+										null,
 										length,
 										out result_index,
 										out offsetReturn.X,

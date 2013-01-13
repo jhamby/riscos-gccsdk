@@ -471,15 +471,15 @@ namespace riscos
 					OS.ThrowOnError (NativeMethods.Window_SetExtent (0,
 											 ID,
 											 Method.SetExtent,
-											 new NativeOS.Rect (value)));
+											 value));
 				}
 				get {
-					NativeOS.Rect extent = new NativeOS.Rect ();
+					var extent = new OS.Rect ();
 					OS.ThrowOnError (NativeMethods.Window_GetExtent (0,
 											 ID,
 											 Method.GetExtent,
-											 out extent));
-					return new OS.Rect (ref extent);
+											 extent));
+					return extent;
 				}
 			}
 

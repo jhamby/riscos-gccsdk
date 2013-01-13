@@ -19,7 +19,8 @@ BUILT_SOURCES = \
 	osheap.s \
 	osfind.s \
 	osargs.s \
-	osgbpb.s
+	osgbpb.s \
+	drawfile.s
 
 AM_CCASFLAGS = -xassembler-with-cpp -DASM
 
@@ -104,4 +105,9 @@ $(top_srcdir)/src/osargs.s: $(DEFMOD) $(OSLIB_SRC)/Computer/oslib/OSArgs.swi
 $(top_srcdir)/src/osgbpb.s: $(DEFMOD) $(OSLIB_SRC)/Computer/oslib/OSGBPB.swi
 	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Computer/oslib/OSGBPB.swi > temp.s
 	$(STRIP_OSLIB_SCRIPT) temp.s $@ osgbpb
+	rm -f temp.s
+
+$(top_srcdir)/src/drawfile.s: $(DEFMOD) $(OSLIB_SRC)/User/oslib/DrawFile.swi
+	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/User/oslib/DrawFile.swi > temp.s
+	$(STRIP_OSLIB_SCRIPT) temp.s $@ drawfile
 	rm -f temp.s

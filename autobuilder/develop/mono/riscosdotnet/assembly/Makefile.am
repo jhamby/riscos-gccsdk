@@ -9,6 +9,7 @@ riscos_dll_sources = \
 	NativeMethods/colourtrans.cs \
 	NativeMethods/font.cs \
 	NativeMethods/spriteop.cs \
+	NativeMethods/draw.cs \
 	toolbox/toolbox.cs \
 	toolbox/window.cs \
 	toolbox/iconbar.cs \
@@ -54,7 +55,8 @@ riscos_dll_sources = \
 	wimp-task.cs \
 	osfind.cs \
 	osargs.cs \
-	osgbpb.cs
+	osgbpb.cs \
+	draw-file.cs
 
 riscos_dll_build_sources = $(addprefix $(srcdir)/, $(riscos_dll_sources))
 

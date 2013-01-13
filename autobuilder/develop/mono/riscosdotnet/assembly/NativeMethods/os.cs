@@ -61,12 +61,12 @@ namespace riscos
 			// Construct a native transformation matrix from a managed one
 			public Matrix (OS.Matrix matrix)
 			{
-				a = matrix.m[0,0];
-				b = matrix.m[0,1];
-				c = matrix.m[1,0];
-				d = matrix.m[1,1];
-				e = matrix.m[2,0];
-				f = matrix.m[2,1];
+				a = matrix.Cell00;
+				b = matrix.Cell01;
+				c = matrix.Cell10;
+				d = matrix.Cell11;
+				e = matrix.Cell20;
+				f = matrix.Cell21;
 			}
 		}
 	}

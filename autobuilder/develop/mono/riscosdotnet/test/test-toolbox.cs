@@ -19,6 +19,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.IO;
 
 namespace riscos.CSharpBindings.ToolboxTest
 {
@@ -139,6 +140,12 @@ namespace riscos.CSharpBindings.ToolboxTest
 			Reporter.WriteLine ("  Filename: {0}",e.DataLoad.FileName);
 			Reporter.WriteLine ("");
 
+			if (e.DataLoad.FileType == 0xAFF)
+			{
+				DrawDocument doc = new DrawDocument (e.DataLoad.FileName);
+				doc.Show();
+			}
+
 			// Make sure that other subscribers receive the event (not that there are any).
 			base.OnMsgDataLoad (e);
 		}
@@ -196,7 +203,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 		void iconbar_Select (object sender, Toolbox.ToolboxEventArgs args)
 		{
-			Document doc = Toolbox.Object.CreateInstance<Document> ("MainWindow");
+			TextDocument doc = Toolbox.Object.CreateInstance<TextDocument> ("MainWindow");
 			doc.SetText ("The quick brown fox jumped over the lazy dog.");
 			doc.Show();
 		}
@@ -259,7 +266,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 		}
 
 		// A sample data type that might be used to represent a file in an editor.
-		public class Document : Toolbox.Window
+		public class TextDocument : Toolbox.Window
 		{
 			// We derive a new object from the SaveAs dialogue so that we can add some extra
 			// data that is to be associated with it.
@@ -399,7 +406,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 			public string FileName = null;
 
-			public Document (uint objectID) : base (objectID)
+			public TextDocument (uint objectID) : base (objectID)
 			{
 				// Set the window title via its Title property.
 				Title = "CSharp Toolbox Window - Scale: " + Scale + "%";
@@ -476,7 +483,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// Print dialogue is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (!this.Equals (print_dbox.GetAncestor<Document>()))
+				if (!this.Equals (print_dbox.GetAncestor<TextDocument>()))
 					return;
 
 				Reporter.WriteLine ("Print Dialogue Save/Print button clicked:");
@@ -496,7 +503,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// Scale dialogue is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (this.Equals (scale_dbox.GetAncestor<Document>()))
+				if (this.Equals (scale_dbox.GetAncestor<TextDocument>()))
 					scale_dbox.Value = (int)Scale;
 			}
 
@@ -506,7 +513,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// Scale dialogue is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (!this.Equals (scale_dbox.GetAncestor<Document>()))
+				if (!this.Equals (scale_dbox.GetAncestor<TextDocument>()))
 					return;
 
 				Scale = args.Factor;
@@ -530,7 +537,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// Font menu is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (this.Equals (font_menu.GetAncestor<Document>()))
+				if (this.Equals (font_menu.GetAncestor<TextDocument>()))
 					font_menu.Font = FontID;
 			}
 
@@ -540,7 +547,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// Font menu is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (!this.Equals (font_menu.GetAncestor<Document>()))
+				if (!this.Equals (font_menu.GetAncestor<TextDocument>()))
 					return;
 
 				font.Lose ();
@@ -563,7 +570,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// Font dialogue is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (this.Equals (font_dbox.GetAncestor<Document>()))
+				if (this.Equals (font_dbox.GetAncestor<TextDocument>()))
 				{
 					font_dbox.Font = FontID;
 					font_dbox.Height = FontHeight;
@@ -577,7 +584,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// Font dialogue is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (!this.Equals (font_dbox.GetAncestor<Document>()))
+				if (!this.Equals (font_dbox.GetAncestor<TextDocument>()))
 					return;
 
 				font.Lose ();
@@ -600,7 +607,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// The ColourMenu is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (!this.Equals (colour_menu.GetAncestor<Document>()))
+				if (!this.Equals (colour_menu.GetAncestor<TextDocument>()))
 					return;
 
 				// If the ColourDialogue was the last to set the colour then we leave the
@@ -614,7 +621,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 			{
 				var colour_menu = (Toolbox.ColourMenu)sender;
 
-				if (this.Equals (colour_menu.GetAncestor<Document>()))
+				if (this.Equals (colour_menu.GetAncestor<TextDocument>()))
 				{
 					font_wimp_colour = args.Colour;
 					ColourSetBy = ColourSetter.Menu;
@@ -630,7 +637,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// The menu is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (!this.Equals (colour_dbox.GetAncestor<Document>()))
+				if (!this.Equals (colour_dbox.GetAncestor<TextDocument>()))
 					return;
 
 				// Create the necessary colour block from the font colour
@@ -646,7 +653,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// The colour dialogue is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (this.Equals (colour_dbox.GetAncestor<Document>()))
+				if (this.Equals (colour_dbox.GetAncestor<TextDocument>()))
 				{
 					// We use the colour regardless of whether 'None' was selected.
 					font_palette_colour = Toolbox.ColourDialogue.
@@ -662,7 +669,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// The FileInfo dialogue is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (this.Equals (file_info_dbox.GetAncestor<Document>()))
+				if (this.Equals (file_info_dbox.GetAncestor<TextDocument>()))
 				{
 					file_info_dbox.Date = OS.DateTime.Now;
 					file_info_dbox.FileSize = Text.Length;
@@ -703,7 +710,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 					// The SaveAs dialogue is a shared toolbox object, so check that this is the
 					// intended target of the event.
-					if (this.Equals (saveas.GetAncestor<Document>()))
+					if (this.Equals (saveas.GetAncestor<TextDocument>()))
 					{
 						FileName = e.Filename;
 						System.IO.File.WriteAllText(e.Filename, Text);
@@ -731,7 +738,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 
 				// The SaveAs dialogue is a shared toolbox object, so check that this is the
 				// intended target of the event.
-				if (!this.Equals (saveas.GetAncestor<Document>()))
+				if (!this.Equals (saveas.GetAncestor<TextDocument>()))
 					return;
 
 				if (saveas.RamTransBufferIndex < Text.Length)
@@ -744,6 +751,55 @@ namespace riscos.CSharpBindings.ToolboxTest
 					IntPtr address = saveas.RamTransBufferHandle.AddrOfPinnedObject ();
 					saveas.BufferFilled (address, amount_to_transfer);
 				}
+			}
+		}
+
+		public class DrawDocument : Toolbox.Window
+		{
+			byte [] draw_file;
+
+			// Start with the identity matrix.
+			OS.Matrix matrix = new OS.Matrix ();
+
+			public DrawDocument (string name) : base ("MainWindow")
+			{
+				using (var file = new BinaryReader (File.Open (name, FileMode.Open)))
+				{
+					draw_file = new byte [file.BaseStream.Length];
+					file.Read (draw_file, 0, (int)file.BaseStream.Length);
+					// File is close automatically at the end of the using scope.
+				}
+
+				OS.Rect bbox = Drawfile.GetBounds (0, draw_file, null);
+
+				// Convert the bounding box from Draw units to OS units
+				bbox.MinX >>= 8;
+				bbox.MinY >>= 8;
+				bbox.MaxX >>= 8;
+				bbox.MaxY >>= 8;
+
+				// Set the window extent to the size of the draw file.
+				Extent = new OS.Rect (0, 0, bbox.MinX + bbox.MaxX, bbox.MinX + bbox.MaxY);
+
+				Title = name;
+			}
+
+			// For a derived class, it is recommended to override the event notifier rather
+			// than subscribe to the event.
+			protected override void OnPaint (Wimp.RedrawEventArgs e)
+			{
+				var local_matrix = (OS.Matrix)matrix.Clone ();
+
+				// Matrix translation is used to position the drawfile on screen within
+				// the window.
+				local_matrix.Translate (e.Origin.X, e.Origin.Y);
+				Drawfile.Render (0, draw_file, local_matrix, null, 0);
+
+				// Technically, we should call the base method to ensure that event subscribers
+				// are also notified of this event, but I don't think that's necessary in this
+				// case.
+
+				// base.OnPaint (e);
 			}
 		}
 	}
