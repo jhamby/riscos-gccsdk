@@ -219,6 +219,7 @@ namespace riscos
 		}
 
 		//! \brief A coordinate/point class used throughout the library.
+		[StructLayout(LayoutKind.Sequential)]
 		public class Coord
 		{
 			public int X;
@@ -239,6 +240,11 @@ namespace riscos
 			{
 				X = coord.X;
 				Y = coord.Y;
+			}
+
+			public override string ToString ()
+			{
+				return X.ToString () + ", " + Y.ToString ();
 			}
 		}
 

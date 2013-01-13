@@ -6,6 +6,7 @@
 
 using System;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
@@ -74,6 +75,7 @@ namespace riscos
 		/*! \class PaintCoordBlock
 		 * \brief Used by \e Font.Instance.Paint for coordinate block and
 		 * rubout box. */
+		[StructLayout(LayoutKind.Sequential)]
 		public class PaintCoordBlock
 		{
 			/*! \brief Additional x,y offset on space. */
@@ -97,6 +99,7 @@ namespace riscos
 		/*! \class ScanCoordBlock
 		 * \brief Used by \e Font.Instance.ScanString for coordinate block and
 		 * split character on input and optionally to return a string's bounding box. */
+		[StructLayout(LayoutKind.Sequential)]
 		public class ScanCoordBlock
 		{
 			/*! \brief Additional x,y offset on space. */
@@ -251,22 +254,13 @@ namespace riscos
 					   OS.Matrix matrix,
 					   int length)
 			{
-				NativeFont.PaintCoordBlock coordBlockNative =
-						new NativeFont.PaintCoordBlock (coordBlock);
-
 				flags |= PlotType.GivenBlock |
 					 PlotType.GivenMatrix |
 					 PlotType.GivenFont;
 				flags &= ~(PlotType.OSUnits | PlotType.Justify);
 
-				OS.ThrowOnError (NativeMethods.Font_Paint (Handle,
-									   str,
-									   flags,
-									   xPos,
-									   yPos,
-									   ref coordBlockNative,
-									   matrix,
-									   length));
+				Font.Paint (Handle, str, flags, xPos, yPos,
+					    coordBlock, matrix, length);
 			}
 
 			/*! \brief Write a string to the screen.
@@ -295,14 +289,8 @@ namespace riscos
 				flags |= PlotType.GivenMatrix | PlotType.GivenFont;
 				flags &= ~(PlotType.GivenBlock | PlotType.OSUnits);
 
-				OS.ThrowOnError (NativeMethods.Font_Paint (Handle,
-									   str,
-									   flags,
-									   xPos,
-									   yPos,
-									   IntPtr.Zero,
-									   matrix,
-									   length));
+				Font.Paint (Handle, str, flags, xPos, yPos,
+					    null, matrix, length);
 			}
 
 			/*! \brief Write a string to the screen.
@@ -329,22 +317,13 @@ namespace riscos
 					   Font.PaintCoordBlock coordBlock,
 					   int length)
 			{
-				NativeFont.PaintCoordBlock coordBlockNative =
-						new NativeFont.PaintCoordBlock (coordBlock);
-
 				flags |= PlotType.GivenBlock | PlotType.GivenFont;
 				flags &= ~(PlotType.GivenMatrix |
 					   PlotType.OSUnits |
 					   PlotType.Justify);
 
-				OS.ThrowOnError (NativeMethods.Font_Paint (Handle,
-									   str,
-									   flags,
-									   xPos,
-									   yPos,
-									   ref coordBlockNative,
-									   null,
-									   length));
+				Font.Paint (Handle, str, flags, xPos, yPos,
+					    coordBlock, null, length);
 			}
 
 			/*! \brief Write a string to the screen.
@@ -370,14 +349,8 @@ namespace riscos
 				flags |= PlotType.GivenFont;
 				flags &= ~(PlotType.GivenBlock | PlotType.GivenMatrix);
 
-				OS.ThrowOnError (NativeMethods.Font_Paint (Handle,
-									   str,
-									   flags,
-									   xPos,
-									   yPos,
-									   IntPtr.Zero,
-									   null,
-									   length));
+				Font.Paint (Handle, str, flags, xPos, yPos,
+					    null, null, length);
 			}
 
 			/*! \brief Read details about a font.
@@ -486,13 +459,13 @@ namespace riscos
 			 * \param[in] offset Offset of mouse click
 			 * \param[in,out] coordBlock Coordinate block
 			 * \param[in,out] matrix Transformation matrix
-			 * \param[in] length Length of string to scan - if \e PlotType.GivenLength (bit 7) of flags set
+			 * \param[in] length Length of string to scan - if \b PlotType.GivenLength (bit 7) of flags set
 			 * \param[out] offsetReturn x,y coordinate offset to caret position -
-			 * if \e PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
+			 * if \b PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
 			 * or end of string if splitting not required
 			 * \param[out] splitCount Number of split characters encountered -
-			 * if \e PlotType.ReturnSplitCount (bit 20) of flags set
-			 * \return Index of point in string of caret position - if \e PlotType.ReturnCaretPos
+			 * if \b PlotType.ReturnSplitCount (bit 20) of flags set
+			 * \return Index of point in string of caret position - if \b PlotType.ReturnCaretPos
 			 * (bit 17) of flags is set; else of split point, or of end of string if splitting
 			 * not required.
 			 * 
@@ -512,37 +485,19 @@ namespace riscos
 					       OS.Coord offsetReturn,
 					       out int splitCount)
 			{
-				int result_index;
-
-				NativeFont.ScanCoordBlock coordBlockNative =
-						new NativeFont.ScanCoordBlock (coordBlock);
-
 				flags |= PlotType.GivenBlock |
 					 PlotType.GivenMatrix |
 					 PlotType.GivenFont;
 
-				OS.ThrowOnError (NativeMethods.Font_ScanString (Handle,
-										str,
-										flags,
-										offset.X,
-										offset.Y,
-										ref coordBlockNative,
-										matrix,
-										length,
-										out result_index,
-										out offsetReturn.X,
-										out offsetReturn.Y,
-										out splitCount));
-				if ((flags & PlotType.ReturnBBox) != 0)
-				{
-					// Copy bounding box results back to coordBlock
-					coordBlock.BoundingBox.MinX = coordBlockNative.BoundingBox.MinX;
-					coordBlock.BoundingBox.MinY = coordBlockNative.BoundingBox.MinY;
-					coordBlock.BoundingBox.MaxX = coordBlockNative.BoundingBox.MaxX;
-					coordBlock.BoundingBox.MaxY = coordBlockNative.BoundingBox.MaxY;
-				}
-
-				return result_index;
+				return Font.ScanString (Handle,
+							str,
+							flags,
+							offset,
+							coordBlock,
+							matrix,
+							length,
+							offsetReturn,
+							out splitCount);
 			}
 
 			/*! \brief Return information on a string.
@@ -550,13 +505,13 @@ namespace riscos
 			 * \param[in] flags Plot type
 			 * \param[in] offset Offset of mouse click
 			 * \param[in,out] matrix Transformation matrix
-			 * \param[in] length Length of string to scan - if \e PlotType.GivenLength (bit 7) of flags set
+			 * \param[in] length Length of string to scan - if \b PlotType.GivenLength (bit 7) of flags set
 			 * \param[out] offsetReturn x,y coordinate offset to caret position -
-			 * if \e PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
+			 * if \b PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
 			 * or end of string if splitting not required
 			 * \param[out] splitCount Number of split characters encountered -
-			 * if \e PlotType.ReturnSplitCount (bit 20) of flags set
-			 * \return Index of point in string of caret position - if \e PlotType.ReturnCaretPos
+			 * if \b PlotType.ReturnSplitCount (bit 20) of flags set
+			 * \return Index of point in string of caret position - if \b PlotType.ReturnCaretPos
 			 * (bit 17) of flags is set; else of split point, or of end of string if splitting
 			 * not required.
 			 * 
@@ -575,24 +530,18 @@ namespace riscos
 					       OS.Coord offsetReturn,
 					       out int splitCount)
 			{
-				int result_index;
-
 				flags |= PlotType.GivenMatrix | PlotType.GivenFont;
 				flags &= ~(PlotType.GivenBlock | PlotType.ReturnBBox);
 
-				OS.ThrowOnError (NativeMethods.Font_ScanString (Handle,
-										str,
-										flags,
-										offset.X,
-										offset.Y,
-										IntPtr.Zero,
-										matrix,
-										length,
-										out result_index,
-										out offsetReturn.X,
-										out offsetReturn.Y,
-										out splitCount));
-				return result_index;
+				return Font.ScanString (Handle,
+							str,
+							flags,
+							offset,
+							null,
+							matrix,
+							length,
+							offsetReturn,
+							out splitCount);
 			}
 
 			/*! \brief Return information on a string.
@@ -600,13 +549,13 @@ namespace riscos
 			 * \param[in] flags Plot type
 			 * \param[in] offset Offset of mouse click
 			 * \param[in,out] coordBlock Coordinate block
-			 * \param[in] length Length of string to scan - if \e PlotType.GivenLength (bit 7) of flags set
+			 * \param[in] length Length of string to scan - if \b PlotType.GivenLength (bit 7) of flags set
 			 * \param[out] offsetReturn x,y coordinate offset to caret position -
-			 * if \e PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
+			 * if \b PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
 			 * or end of string if splitting not required
 			 * \param[out] splitCount Number of split characters encountered -
-			 * if \e PlotType.ReturnSplitCount (bit 20) of flags set
-			 * \return Index of point in string of caret position - if \e PlotType.ReturnCaretPos
+			 * if \b PlotType.ReturnSplitCount (bit 20) of flags set
+			 * \return Index of point in string of caret position - if \b PlotType.ReturnCaretPos
 			 * (bit 17) of flags is set; else of split point, or of end of string if splitting
 			 * not required.
 			 * 
@@ -625,55 +574,38 @@ namespace riscos
 					       OS.Coord offsetReturn,
 					       out int splitCount)
 			{
-				NativeFont.ScanCoordBlock coordBlockNative =
-						new NativeFont.ScanCoordBlock (coordBlock);
-				int result_index;
-
 				flags |= PlotType.GivenBlock | PlotType.GivenFont;
 				flags &= ~(PlotType.GivenMatrix | PlotType.ReturnMatrix);
 
-				OS.ThrowOnError (NativeMethods.Font_ScanString (Handle,
-										str,
-										flags,
-										offset.X,
-										offset.Y,
-										ref coordBlockNative,
-										null,
-										length,
-										out result_index,
-										out offsetReturn.X,
-										out offsetReturn.Y,
-										out splitCount));
-				if ((flags & PlotType.ReturnBBox) != 0)
-				{
-					// Copy bounding box results back to coordBlock
-					coordBlock.BoundingBox.MinX = coordBlockNative.BoundingBox.MinX;
-					coordBlock.BoundingBox.MinY = coordBlockNative.BoundingBox.MinY;
-					coordBlock.BoundingBox.MaxX = coordBlockNative.BoundingBox.MaxX;
-					coordBlock.BoundingBox.MaxY = coordBlockNative.BoundingBox.MaxY;
-				}
-
-				return result_index;
+				return Font.ScanString (Handle,
+							str,
+							flags,
+							offset,
+							coordBlock,
+							null,
+							length,
+							offsetReturn,
+							out splitCount);
 			}
 
 			/*! \brief Return information on a string.
 			 * \param[in] str String to scan
 			 * \param[in] flags Plot type
 			 * \param[in,out] offset Offset of mouse click
-			 * \param[in] length Length of string to scan - if \e PlotType.GivenLength (bit 7) of flags set
+			 * \param[in] length Length of string to scan - if \b PlotType.GivenLength (bit 7) of flags set
 			 * \param[out] offsetReturn x,y coordinate offset to caret position -
-			 * if \e PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
+			 * if \b PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
 			 * or end of string if splitting not required
 			 * \param[out] splitCount Number of split characters encountered -
-			 * if \e PlotType.ReturnSplitCount (bit 20) of flags set
-			 * \return Index of point in string of caret position - if \e PlotType.ReturnCaretPos
+			 * if \b PlotType.ReturnSplitCount (bit 20) of flags set
+			 * \return Index of point in string of caret position - if \b PlotType.ReturnCaretPos
 			 * (bit 17) of flags is set; else of split point, or of end of string if splitting
 			 * not required.
 			 * 
 			 * \note
 			 * Automatically:
 			 * \li Sets flag bit 8 to indicate font handle in use.
-			 * \li Clears flag bit 5 & 18 to indicate coordinate block not in use.
+			 * \li Clears flag bits 5 & 18 to indicate coordinate block not in use.
 			 * \li Clears flag bits 6 & 19 to indicate matrix not in use.
 			 *
 			 * All coordinates must be in millipoints. */
@@ -684,35 +616,106 @@ namespace riscos
 					       OS.Coord offsetReturn,
 					       out int splitCount)
 			{
-				int result_index;
-
 				flags |= PlotType.GivenFont;
 				flags &= ~(PlotType.GivenBlock |
 					   PlotType.ReturnBBox |
 					   PlotType.GivenMatrix |
 					   PlotType.ReturnMatrix);
 
-				OS.ThrowOnError (NativeMethods.Font_ScanString (Handle,
-										str,
-										flags,
-										offset.X,
-										offset.Y,
-										IntPtr.Zero,
-										null,
-										length,
-										out result_index,
-										out offsetReturn.X,
-										out offsetReturn.Y,
-										out splitCount));
-				return result_index;
+				return Font.ScanString (Handle,
+							str,
+							flags,
+							offset,
+							null,
+							null,
+							length,
+							offsetReturn,
+							out splitCount);
 			}
 		}
 
-		// Returns the version as a double
+		/*! \brief Write a string to the screen.
+		 * \param [in] fontHandle Handle of font to use (0 for current handle) if
+		 * \b PlotType.GivenFont (bit 8) of flags set.
+		 * \param [in] str String to write.
+		 * \param [in] flags Plot type.
+		 * \param [in] xPos Start x coordinate.
+		 * \param [in] yPos Start y coordinate.
+		 * \param [in] coordBlock Coordinate block if \b Font.PlotType.GivenBlock (bit 5) of
+		 * flags set, otherwise \b null.
+		 * \param [in] matrix Transformation matrix if \b PlotType.GivenMatrix (bit 6) of
+		 * flags set, otherwise \b null.
+		 * \param [in] length Length of string to write if \b PlotType.GivenLength (bit 7) of flags set.
+		 * \return Nothing.  */
+		public static void Paint (IntPtr fontHandle,
+					  string str,
+					  PlotType flags,
+					  int xPos,
+					  int yPos,
+					  Font.PaintCoordBlock coordBlock,
+					  OS.Matrix matrix,
+					  int length)
+		{
+			OS.ThrowOnError (NativeMethods.Font_Paint (fontHandle,
+								   str,
+								   flags,
+								   xPos,
+								   yPos,
+								   coordBlock,
+								   matrix,
+								   length));
+		}
+
+		/*! \brief Return information on a string.
+		 * \param [in] fontHandle Handle of font to use (0 for current handle) if
+		 * \b PlotType.GivenFont (bit 8) of flags set.
+		 * \param [in] str String to scan
+		 * \param [in] flags Plot type
+		 * \param [in] offset Offset of mouse click
+		 * \param [in,out] coordBlock Coordinate block for input if \b Font.PlotType.GivenBlock (bit 5)
+		 * of flags set and output if \b PlotType.ReturnBBox (bit 18) set, otherwise \b null.
+		 * \param [in,out] matrix Transformation matrix for input if \b PlotType.GivenMatrix (bit 6)
+		 * of flags set and output if \b PlotType.ReturnMatrix (bit 19) set, otherwise \b null.
+		 * \param [in] length Length of string to scan - if \b PlotType.GivenLength (bit 7) of flags set
+		 * \param [out] offsetReturn x,y coordinate offset to caret position -
+		 * if \b PlotType.ReturnCaretPos (bit 17) of flags set; else to split point,
+		 * or end of string if splitting not required
+		 * \param [out] splitCount Number of split characters encountered -
+		 * if \b PlotType.ReturnSplitCount (bit 20) of flags set
+		 * \return Index of point in string of caret position - if \b PlotType.ReturnCaretPos
+		 * (bit 17) of flags is set; else of split point, or of end of string if splitting
+		 * not required.  */
+		public static int ScanString (IntPtr fontHandle,
+					      string str,
+					      PlotType flags,
+					      OS.Coord offset,
+					      Font.ScanCoordBlock coordBlock,
+					      OS.Matrix matrix,
+					      int length,
+					      OS.Coord offsetReturn,
+					      out int splitCount)
+		{
+			int result_index;
+
+			OS.ThrowOnError (NativeMethods.Font_ScanString (fontHandle,
+									str,
+									flags,
+									offset.X,
+									offset.Y,
+									coordBlock,
+									matrix,
+									length,
+									out result_index,
+									out offsetReturn.X,
+									out offsetReturn.Y,
+									out splitCount));
+			return result_index;
+		}
+
 		/*! \brief Get the version number, font cache size and amount used.
 		 * \param[out] cacheSize Total size of font cache in bytes
 		 * \param[out] cacheUsed Amount of font cache used in bytes
-		 * \returns Version number */
+		 * \returns Version number as a double */
 		public static double ReadCacheAddr (out int cacheSize, out int cacheUsed)
 		{
 			int version;

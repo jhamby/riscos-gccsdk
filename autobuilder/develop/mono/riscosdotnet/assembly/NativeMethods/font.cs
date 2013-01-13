@@ -10,41 +10,6 @@ using System.Text;
 
 namespace riscos
 {
-	public static class NativeFont
-	{
-		[StructLayout(LayoutKind.Sequential)]
-		public struct ScanCoordBlock
-		{
-			public NativeOS.Coord Space;
-			public NativeOS.Coord Letter;
-			public int SplitChar;
-			public NativeOS.Rect BoundingBox;
-
-			public ScanCoordBlock (Font.ScanCoordBlock block)
-			{
-				Space = new NativeOS.Coord (block.Space);
-				Letter = new NativeOS.Coord (block.Letter);
-				SplitChar = block.SplitChar;
-				BoundingBox = new NativeOS.Rect (block.BoundingBox);
-			}
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct PaintCoordBlock
-		{
-			public NativeOS.Coord Space;
-			public NativeOS.Coord Letter;
-			public NativeOS.Rect RubOut;
-
-			public PaintCoordBlock (Font.PaintCoordBlock block)
-			{
-				Space = new NativeOS.Coord (block.Space);
-				Letter = new NativeOS.Coord (block.Letter);
-				RubOut = new NativeOS.Rect (block.RubOut);
-			}
-		}
-	}
-
 	internal static partial class NativeMethods
 	{
 		// Font SWIs
@@ -104,26 +69,13 @@ namespace riscos
 								out int lengthOut,
 								out int indexOut);
 
-		// SWI "XFont_Paint" with coord block and transformation matrix
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_paint")]
 		internal static extern IntPtr Font_Paint (IntPtr font,
 							  string s,
 							  Font.PlotType flags,
 							  int xPos,
 							  int yPos,
-							  [In, MarshalAs(UnmanagedType.Struct)]
-							       ref NativeFont.PaintCoordBlock CoordBlock,
-							  [In] OS.Matrix matrix,
-							  int length);
-
-		// SWI "XFont_Paint" with transformation matrix, no coord block
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_paint")]
-		internal static extern IntPtr Font_Paint (IntPtr font,
-							  string s,
-							  Font.PlotType flags,
-							  int xPos,
-							  int yPos,
-							  IntPtr CoordBlock,
+							  [In] Font.PaintCoordBlock CoordBlock,
 							  [In] OS.Matrix matrix,
 							  int length);
 
@@ -296,30 +248,13 @@ namespace riscos
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_switch_output_to_buffer_flags")]
 		internal static extern IntPtr Font_SwitchOutputToBufferFlags (out uint flags);
 
-		// SWI "XFont_ScanString" with coordinate block and transformation matrix
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Font_ScanString")]
 		internal static extern IntPtr Font_ScanString (IntPtr font,
 							       string s,
 							       Font.PlotType flags,
 							       int x,
 							       int y,
-							       [In,Out, MarshalAs(UnmanagedType.Struct)]
-								    ref NativeFont.ScanCoordBlock coordBlock,
-							       [In,Out] OS.Matrix matrix,
-							       int length,
-							       out int splitIndexOut,
-							       out int xOut,
-							       out int yOut,
-							       out int splitCountOut);
-
-		// SWI "XFont_ScanString" with transformation matrix, but no coordinate block
-		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Font_ScanString")]
-		internal static extern IntPtr Font_ScanString (IntPtr font,
-							       string s,
-							       Font.PlotType flags,
-							       int x,
-							       int y,
-							       IntPtr coordBlock,
+							       [In,Out] Font.ScanCoordBlock coordBlock,
 							       [In,Out] OS.Matrix matrix,
 							       int length,
 							       out int splitIndexOut,
