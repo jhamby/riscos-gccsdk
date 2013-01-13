@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,15 +42,15 @@ Define (const char *msg, Symbol *sym, ValueTag legal, IntType_e intType)
   bool failed = false;
   if (sym == NULL)
     {
-      error (ErrorError, "Missing label before %s", msg);
+      Error (ErrorError, "Missing label before %s", msg);
       failed = true;
     }
   else
     {
-      const Value *value = exprBuildAndEval (legal);
+      const Value *value = Expr_BuildAndEval (legal);
       if (value->Tag == ValueIllegal)
 	{
-	  error (ErrorError, "Illegal %s", msg);
+	  Error (ErrorError, "Illegal %s", msg);
 	  failed = true;
 	}
       else
@@ -68,7 +68,7 @@ Define (const char *msg, Symbol *sym, ValueTag legal, IntType_e intType)
 		valueDef.Data.Int.type = intType;
 	      else if (valueDef.Data.Int.type != intType)
 		{
-		  error (ErrorError, "Not a %s", msg);
+		  Error (ErrorError, "Not a %s", msg);
 		  failed = true;
 		}
 	    }
@@ -103,7 +103,7 @@ c_cn (Symbol *symbol)
       if (no < 0 || no > 15)
 	{
 	  symbol->value.Data.Int.i = 0;
-	  error (ErrorError, "Illegal %s register %d (using 0)", "coprocessor", no);
+	  Error (ErrorError, "Illegal %s register %d (using 0)", "coprocessor", no);
 	}
     }
   return false;
@@ -122,7 +122,7 @@ c_cp (Symbol *symbol)
       if (no < 0 || no > 15)
 	{
 	  symbol->value.Data.Int.i = 0;
-	  error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
+	  Error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
 	}
     }
   return false;
@@ -155,7 +155,7 @@ c_fn (Symbol *symbol)
       if (no < 0 || no > 7)
 	{
 	  symbol->value.Data.Int.i = 0;
-	  error (ErrorError, "Illegal %s register %d (using 0)", "FPU", no);
+	  Error (ErrorError, "Illegal %s register %d (using 0)", "FPU", no);
 	}
     }
   return false;
@@ -174,7 +174,7 @@ c_rn (Symbol *symbol)
       if (no < 0 || no > 15)
 	{
 	  symbol->value.Data.Int.i = 0;
-	  error (ErrorError, "Illegal %s register %d (using 0)", "CPU", no);
+	  Error (ErrorError, "Illegal %s register %d (using 0)", "CPU", no);
 	}
     }
   return false;
@@ -188,7 +188,7 @@ c_rlist (Symbol *symbol)
 {
   if (symbol == NULL)
     {
-      error (ErrorError, "Missing label before %s", "register list");
+      Error (ErrorError, "Missing label before %s", "register list");
       return false;
     }
   const Value rlistValue = Value_Int (Get_CPURList (), eIntType_CPURList);

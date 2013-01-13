@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2012 GCCSDK Developers
+ * Copyright (c) 2012-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -83,10 +83,10 @@ Opt_PrepareForPhase (Phase_e phase)
 bool
 c_opt (void)
 {
-  const Value *value = exprBuildAndEval (ValueInt);
+  const Value *value = Expr_BuildAndEval (ValueInt);
   if (value->Tag != ValueInt)
     {
-      error (ErrorError, "OPT expression must be an integer");
+      Error (ErrorError, "OPT expression must be an integer");
       return false;
     }
   unsigned opt = (unsigned)value->Data.Int.i;

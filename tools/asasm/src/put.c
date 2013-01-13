@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,7 +44,7 @@ static void
 ReportOverflow (unsigned dataSize, uint32_t dataValue)
 {
   if (Fix_CheckForOverflow (dataSize, dataValue))
-    error (ErrorWarning, "Size value %" PRId32 " (= 0x%" PRIx32 ") exceeds %d byte%s",
+    Error (ErrorWarning, "Size value %" PRId32 " (= 0x%" PRIx32 ") exceeds %d byte%s",
            (int32_t)dataValue, (int32_t)dataValue, dataSize, dataSize == 1 ? "" : "s");
 }
 
@@ -101,7 +101,7 @@ Put_DataWithOffset (uint32_t offset, unsigned dataSize, uint64_t dataValue,
 	}
     }
   else if (dataValue)
-    error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
+    Error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
 
   /* Update current AREA index when necessary.  */
   if (newOffset > areaCurrentSymbol->area->curIdx)
@@ -170,7 +170,7 @@ FloatToHalf (float flt, bool ieee)
 	{
 	  /* Impossible to represent, go for 0. when qNan/sNan, and for
 	     +/-131008 when +/-INF.  */
-	  error (ErrorWarning, "ARM alternative half-precision format can not represent INF or NaN");
+	  Error (ErrorWarning, "ARM alternative half-precision format can not represent INF or NaN");
 	  return mantissa ? 0 : neg | 0x7FFF; 
 	}
       return neg | 0x7C00 | (mantissa >> (23 - 10));
@@ -365,7 +365,7 @@ Put_Ins_MOVW_MOVT (uint32_t cc, uint32_t destReg, uint32_t value, bool isMOVT)
 
 
 ARMWord
-GetWord (uint32_t offset)
+Put_GetWord (uint32_t offset)
 {
   assert (offset <= areaCurrentSymbol->area->imagesize - 4);
   const uint8_t *p = &areaCurrentSymbol->area->image[offset];

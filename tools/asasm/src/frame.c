@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2011 GCCSDK Developers
+ * Copyright (c) 2011-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ bool
 c_function (void)
 {
   /* FIXME: not yet supported.  */
-  error (ErrorWarning, "FUNCTION/PROC is not yet supported.");
+  Error (ErrorWarning, "FUNCTION/PROC is not yet supported.");
   Input_Rest ();
   return false;
 }
@@ -43,7 +43,7 @@ bool
 c_endfunc (void)
 {
   /* FIXME: not yet supported.  */
-  error (ErrorWarning, "ENDFUNC/ENDP is not yet supported.");
+  Error (ErrorWarning, "ENDFUNC/ENDP is not yet supported.");
   Input_Rest ();
   return false;
 }
@@ -55,7 +55,7 @@ bool
 c_frame (void)
 {
   /* FIXME: not yet supported.  */
-  error (ErrorWarning, "FRAME is not yet supported.");
+  Error (ErrorWarning, "FRAME is not yet supported.");
   Input_Rest ();
   return false;
 }

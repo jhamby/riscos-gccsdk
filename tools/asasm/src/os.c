@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2012 GCCSDK Developers
+ * Copyright (c) 2001-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@
 #ifdef __riscos__
 /* RISC OS version.  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -76,7 +77,7 @@ static const char *oThrowbackErrorFile;
  * \return SWI number or -1 when the conversion can't be done.
  */
 int
-switonum (const char *swiname)
+OS_SWINameToNum (const char *swiname)
 {
   _kernel_swi_regs regs;
   regs.r[1] = (int) swiname;
@@ -84,14 +85,14 @@ switonum (const char *swiname)
 }
 
 _kernel_oserror *
-ThrowbackStart (void)
+OS_ThrowbackStart (void)
 {
   _kernel_swi_regs regs;
   return _kernel_swi (DDEUtils_ThrowbackStart, &regs, &regs);
 }
 
 _kernel_oserror *
-ThrowbackSendStart (const char *fileName)
+OS_ThrowbackSendStart (const char *fileName)
 {
   oThrowbackErrorFile = fileName;
   _kernel_swi_regs regs;
@@ -105,7 +106,7 @@ ThrowbackSendStart (const char *fileName)
  * \param errstr nul terminated description of error
  */
 _kernel_oserror *
-ThrowbackSendError (int level, unsigned lineNum, const char *errstr)
+OS_ThrowbackSendError (int level, unsigned lineNum, const char *errstr)
 {
   _kernel_swi_regs regs;
   regs.r[0] = level == ThrowbackInfo ? THROWBACK_REASON_INFO_DETAILS : THROWBACK_REASON_ERROR_DETAILS;
@@ -118,7 +119,7 @@ ThrowbackSendError (int level, unsigned lineNum, const char *errstr)
 }
 
 _kernel_oserror *
-ThrowbackEnd (void)
+OS_ThrowbackEnd (void)
 {
   oThrowbackErrorFile = NULL;
   _kernel_swi_regs regs;
@@ -153,12 +154,9 @@ CanonicalisePath (const char *path)
   int size = 1 - OSCanonicalisePath (path, 0, 0, 0, 0);
   char *buffer;
   if ((buffer = malloc (size)) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   size = OSCanonicalisePath (path, buffer, size, 0, 0);
-  if (size != 1)
-    errorAbort ("Internal error in CanonicalisePath");
-  if (buffer == NULL)
-    errorOutOfMem ();
+  assert (size == 1);
   return buffer;
 }
 
@@ -177,7 +175,7 @@ CanonicalisePath (const char *path)
 {
   const char *rsltP;
   if ((rsltP = strdup (path)) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   return rsltP;
 }
 
@@ -222,7 +220,7 @@ ASFile_Create (const char *fileName, ASFile *asFileP)
 
       char *extFileName = malloc (len + 4 + 1);
       if (!extFileName)
-	errorOutOfMem ();
+	Error_OutOfMem ();
       memcpy (extFileName, fileName, len);
       memcpy (extFileName + len, ",???", sizeof (",???"));
 

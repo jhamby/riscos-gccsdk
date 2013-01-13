@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -306,7 +306,7 @@ atexit_handler (void)
   /* Only remove the output file when there was an error and we actually
      started doing the assembling (i.e. don't remove the output file
      when there was an option error).  */
-  if (returnExitStatus () != EXIT_SUCCESS
+  if (Error_GetExitStatus () != EXIT_SUCCESS
       && gPhase >= ePassOne)
     Output_Remove ();
 }
@@ -730,7 +730,7 @@ main (int argc, char **argv)
 	  ASM_Assemble (SourceFileName, false);
 
 	  /* Don't try to output anything when we have assemble errors.  */
-	  if (returnExitStatus () == EXIT_SUCCESS)
+	  if (Error_GetExitStatus () == EXIT_SUCCESS)
 	    {
 	      if (setjmp (asmContinue))
 		fprintf (stderr, PACKAGE_NAME ": Error when writing object file '%s'.\n", ObjFileName);
@@ -739,7 +739,7 @@ main (int argc, char **argv)
 		  asmContinueValid = true;
 		  /* Write the ELF/AOF output.  */
 		  Phase_PrepareFor (eOutput);
-		  if (returnExitStatus () == EXIT_SUCCESS)
+		  if (Error_GetExitStatus () == EXIT_SUCCESS)
 		    {
 #ifndef NO_ELF_SUPPORT
 		      if (!option_aof)
@@ -754,6 +754,6 @@ main (int argc, char **argv)
 	}
     }
   Output_Finish ();
-  errorFinish ();
-  return returnExitStatus ();
+  Error_Finish ();
+  return Error_GetExitStatus ();
 }

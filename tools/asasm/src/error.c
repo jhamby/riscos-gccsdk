@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2012 GCCSDK Developers
+ * Copyright (c) 2002-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -65,14 +65,14 @@ static char errbuf[2048];
 
 
 void
-errorFinish (void)
+Error_Finish (void)
 {
 #ifdef __riscos__
   if (oThrowbackStarted == eTB_SuccessfullyStarted)
     {
       _kernel_oserror *err;
-      if ((err = ThrowbackEnd ()) != NULL && option_verbose > 1)
-        fprintf (stderr, "ThrowbackEnd error: %s\n", err->errmess);
+      if ((err = OS_ThrowbackEnd ()) != NULL && option_verbose > 1)
+        fprintf (stderr, "OS_ThrowbackEnd error: %s\n", err->errmess);
     }
 #endif
 }
@@ -86,22 +86,22 @@ DoThrowback (int level, unsigned lineNum, const char *errstr, const char *fileNa
     return;
 
   if (oThrowbackStarted == eTB_NotStarted)
-    oThrowbackStarted = ThrowbackStart () ? eTB_NotStartedBecauseOfError : eTB_SuccessfullyStarted;
+    oThrowbackStarted = OS_ThrowbackStart () ? eTB_NotStartedBecauseOfError : eTB_SuccessfullyStarted;
 
   if (oThrowbackStarted == eTB_SuccessfullyStarted)
     {
       _kernel_oserror *err;
-      if ((err = ThrowbackSendStart (fileName)) != NULL && option_verbose > 1)
-        fprintf (stderr, "ThrowbackSendStart error: %s\n", err->errmess);
-      if ((err = ThrowbackSendError (level, lineNum, errstr)) != NULL && option_verbose > 1)
-        fprintf (stderr, "ThrowbackSendError error: %s\n", err->errmess);
+      if ((err = OS_ThrowbackSendStart (fileName)) != NULL && option_verbose > 1)
+        fprintf (stderr, "OS_ThrowbackSendStart error: %s\n", err->errmess);
+      if ((err = OS_ThrowbackSendError (level, lineNum, errstr)) != NULL && option_verbose > 1)
+        fprintf (stderr, "OS_ThrowbackSendError error: %s\n", err->errmess);
     }
 }
 #endif
 
 
 int
-returnExitStatus (void)
+Error_GetExitStatus (void)
 {
   return oNumErrors ? EXIT_FAILURE : EXIT_SUCCESS;
 }
@@ -254,7 +254,7 @@ errorCore (ErrorTag e, const char *format, va_list ap)
  * ErrorError will consume the rest of the line.
  */
 void
-error (ErrorTag e, const char *format, ...)
+Error (ErrorTag e, const char *format, ...)
 {
   if (Error_SuppressMsg (e))
     return;
@@ -278,7 +278,7 @@ error (ErrorTag e, const char *format, ...)
  * Gives fatal error and does not return.
  */
 void
-errorAbort (const char *format, ...)
+Error_Abort (const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
@@ -295,9 +295,9 @@ errorAbort (const char *format, ...)
  * Gives fatal out-of-memory error and does not return.
  */
 void
-errorOutOfMem (void)
+Error_OutOfMem (void)
 {
-  errorAbort ("Out of memory");
+  Error_Abort ("Out of memory");
 }
 
 
@@ -366,7 +366,7 @@ errorCoreLine (const char *fileName, unsigned lineNum, ErrorTag e,
  * An ErrorAbort or too many ErrorError's won't make this function return.
  */
 void
-errorLine (const char *fileName, unsigned lineNum, ErrorTag e, const char *format, ...)
+Error_Line (const char *fileName, unsigned lineNum, ErrorTag e, const char *format, ...)
 {
   if (Error_SuppressMsg (e))
     return;
@@ -387,7 +387,7 @@ errorLine (const char *fileName, unsigned lineNum, ErrorTag e, const char *forma
  * To be used after the input parsing (e.g. during output time).
  */
 void
-errorAbortLine (const char *fileName, unsigned lineNum, const char *format, ...)
+Error_AbortLine (const char *fileName, unsigned lineNum, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);

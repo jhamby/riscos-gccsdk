@@ -1,3 +1,18 @@
+Sun Jan 13 18:23:06 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* area.c, area.h, asm.c, code.c, code.h, decode.c, decode.h, depend.c,
+	depend.h, directive_data.c, directive_file.c, directive_misc.c,
+	directive_storagemap.c, directive_symbol.c, error.c, error.h, eval.c,
+	eval.h, expr.c, expr.h, filename.c, filestack.c, fix.c, fix.h, frame.c,
+	get.c, get.h, help_cop.c, help_cop.h, help_cpu.c, help_cpu.h,
+	include.c, input.c, input.h, it.c, lex.c, lex.h, lit.c, local.c,
+	macros.c, main.c, m_cop.c, m_copmem.c, m_cpu.c, m_cpuctrl.c,
+	m_cpumem.c, m_fpe.c, opt.c, option.c, option.h, os.c, os.h, output.c,
+	put.c, put.h, reloc.c, reloc.h, symbol.c, symbol.h, targetcpu.c,
+	value.c, value.h, variables.c, whileif.c: Consistent casing of public
+	routines.
+
 Sun Jan  6 19:54:37 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/macros.c (c_macro): Turn warning into error so that it appears

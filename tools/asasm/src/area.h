@@ -127,7 +127,7 @@ Area_IsNoInit (const Area *area)
   return (area->type & AREA_UDATA) != 0;
 }
 
-static inline int
+static inline unsigned
 Area_GetBaseReg (const Area *area)
 {
   return (area->type & AREA_MASKBASEREG) >> 24;

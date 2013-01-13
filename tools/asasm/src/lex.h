@@ -71,7 +71,7 @@ const char *Lex_OperatorAsStr (Operator_e op);
 #endif
 
 static inline bool
-IsUnop (Operator_e op)
+Lex_IsUnop (Operator_e op)
 {
   return op <= eOp_RConst;
 }
@@ -144,16 +144,16 @@ typedef struct
 Lex Lex_GetDefiningLabel (void);
 bool Lex_SkipDefiningLabel (void);
 Lex Lex_DefineLocalLabel (const Lex *lexP);
-Lex lexGetId (void);
-Lex lexGetIdNoError (void);
-Lex lexGetPrim (void);
-Lex lexGetBinop (void);
-int lexNextPri (void);
+Lex Lex_GetID (void);
+Lex Lex_GetIDNoError (void);
+Lex Lex_GetPrim (void);
+Lex Lex_GetBinop (void);
+int Lex_NextPri (void);
 
 Lex Lex_Id (const char *str, size_t strLen);
 
 #ifdef DEBUG
-void lexPrint (const Lex *lex);
+void Lex_Print (const Lex *lex);
 #endif
 
 #endif

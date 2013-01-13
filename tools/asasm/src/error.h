@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2012 GCCSDK Developers
+ * Copyright (c) 2002-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,23 +34,23 @@ typedef enum
 
 extern const char InsertCommaAfter[];
 
-void errorFinish (void);
+void Error_Finish (void);
 
-void errorLine (const char *fileName, unsigned lineNum,
-		ErrorTag e, const char *format, ...)
+void Error_Line (const char *fileName, unsigned lineNum,
+		 ErrorTag e, const char *format, ...)
   __attribute__ ((__format__ (__printf__, 4, 5)));
-void error (ErrorTag e, const char *format, ...)
+void Error (ErrorTag e, const char *format, ...)
   __attribute__ ((__format__ (__printf__, 2, 3)));
 
-void errorAbortLine (const char *fileName, unsigned lineNum, const char *format, ...)
+void Error_AbortLine (const char *fileName, unsigned lineNum, const char *format, ...)
   __attribute__ ((noreturn))
   __attribute__ ((__format__ (__printf__, 3, 4)));
-void errorAbort (const char *format, ...)
+void Error_Abort (const char *format, ...)
   __attribute__ ((noreturn))
   __attribute__ ((__format__ (__printf__, 1, 2)));
 
-void errorOutOfMem (void) __attribute__ ((noreturn));
+void Error_OutOfMem (void) __attribute__ ((noreturn));
 
-int returnExitStatus (void);
+int Error_GetExitStatus (void);
 
 #endif

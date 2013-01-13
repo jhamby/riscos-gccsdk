@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #ifdef HAVE_STDINT_H
 #  include <stdint.h>
 #elif HAVE_INTTYPES_H
@@ -41,59 +42,59 @@ static void expr (int pri);
 static void
 prim (void)
 {
-  Lex lex = lexGetPrim ();
+  Lex lex = Lex_GetPrim ();
 
   switch (lex.tag)
     {
       case LexId:
-	codeSymbol (Symbol_Get (&lex), 0);
+	Code_Symbol (Symbol_Get (&lex), 0);
         break;
       case LexInt:
-        codeInt (lex.Data.Int.value);
+        Code_Int (lex.Data.Int.value);
         break;
       case LexInt64:
 	{
 	  const Value valInt64 = Value_Int64 (lex.Data.Int64.value);
-	  codeValue (&valInt64, false);
+	  Code_Value (&valInt64, false);
 	  break;
 	}
       case LexString:
-        codeString (lex.Data.String.str, lex.Data.String.len);
+        Code_String (lex.Data.String.str, lex.Data.String.len);
         break;
       case LexFloat:
-        codeFloat (lex.Data.Float.value);
+        Code_Float (lex.Data.Float.value);
         break;
       case LexStorage:
-        codeStorage ();
+        Code_Storage ();
         break;
       case LexPosition:
-        codePosition (areaCurrentSymbol, areaCurrentSymbol->area->curIdx);
+        Code_Position (areaCurrentSymbol, areaCurrentSymbol->area->curIdx);
         break;
       case LexOperator:
         prim ();
-        if (IsUnop (lex.Data.Operator.op))
-	  codeOperator (lex.Data.Operator.op);
+        if (Lex_IsUnop (lex.Data.Operator.op))
+	  Code_Operator (lex.Data.Operator.op);
         else
-	  error (ErrorAbort, "Illegal unary operator");
+	  Error (ErrorAbort, "Illegal unary operator");
         break;
       case LexDelim:
         if (lex.Data.Delim.delim == '(')
 	  {
 	    expr (1);
-	    lex = lexGetPrim ();
+	    lex = Lex_GetPrim ();
 	    if (lex.tag != LexDelim || lex.Data.Delim.delim != ')')
-	      error (ErrorError, "Missing ')'");
+	      Error (ErrorError, "Missing ')'");
 	  }
         else if (lex.Data.Delim.delim == ')')
-	  error (ErrorError, "Missing '('");
+	  Error (ErrorError, "Missing '('");
         else
-	  error (ErrorError, "Illegal delimiter '%c'", lex.Data.Delim.delim);
+	  Error (ErrorError, "Illegal delimiter '%c'", lex.Data.Delim.delim);
         break;
       case LexBool:
-        codeBool (lex.Data.Bool.value);
+        Code_Bool (lex.Data.Bool.value);
         break;
       default:
-        error (ErrorAbort, "Illegal expression");
+        assert (0);
         break;
     }
 }
@@ -107,14 +108,14 @@ expr (int pri)
   else
     expr (pri + 1);
 
-  while (lexNextPri () == pri)
+  while (Lex_NextPri () == pri)
     {
-      Lex op = lexGetBinop ();
+      Lex op = Lex_GetBinop ();
       if (pri == kPrioOp_Max)
 	prim ();
       else
 	expr (pri + 1);
-      codeOperator (op.Data.Operator.op);
+      Code_Operator (op.Data.Operator.op);
     }
 }
 
@@ -124,9 +125,9 @@ expr (int pri)
  * (code) expression stream.
  */
 void
-exprBuild (void)
+Expr_Build (void)
 {
-  codeInit ();
+  Code_Init ();
   expr (kPrioOp_Min);
 }
 
@@ -138,9 +139,9 @@ exprBuild (void)
  * copy of it.
  */
 const Value *
-exprEval (ValueTag legal)
+Expr_Eval (ValueTag legal)
 {
-  return codeEval (legal, NULL);
+  return Code_Eval (legal, NULL);
 }
 
 
@@ -149,8 +150,8 @@ exprEval (ValueTag legal)
  * Use Value_Assign() to keep a non-temporary copy of it.
  */
 const Value *
-exprBuildAndEval (ValueTag legal)
+Expr_BuildAndEval (ValueTag legal)
 {
-  exprBuild ();
-  return exprEval (legal);
+  Expr_Build ();
+  return Expr_Eval (legal);
 }

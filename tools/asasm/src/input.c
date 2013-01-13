@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
 
 #include "config.h"
 
-#include <alloca.h>
 #include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -82,14 +81,14 @@ Input_AddPredefine (const char *preDef)
 
 
 char
-inputLook (void)
+Input_Look (void)
 {
   return *input_pos;
 }
 
 
 char
-inputLookLower (void)
+Input_LookLower (void)
 {
   return tolower ((unsigned char)*input_pos);
 }
@@ -106,27 +105,27 @@ Input_IsEolOrCommentStart (void)
 
 
 char
-inputLookN (int n)		/* Unsafe */
+Input_LookN (int n)		/* Unsafe */
 {
   return input_pos[n];
 }
 
 
 char
-inputLookNLower (int n)		/* Unsafe */
+Input_LookNLower (int n)		/* Unsafe */
 {
   return tolower ((unsigned char)input_pos[n]);
 }
 
 char
-inputGet (void)
+Input_GetC (void)
 {
   return (*input_pos) ? *input_pos++ : *input_pos;
 }
 
 
 char
-inputGetLower (void)
+Input_GetCLower (void)
 {
   char c = *input_pos ? *input_pos++ : *input_pos;
   return tolower ((unsigned char)c);
@@ -137,17 +136,17 @@ inputGetLower (void)
  * Undo the last character got from input buffer.
  */
 void
-inputUnGet (char c)
+Input_UnGetC (char c)
 {
   if (input_pos > input_buff && input_pos[-1] == c)
     input_pos--;
-  else if (*input_pos || c)
-    errorAbort ("Internal inputUnGet: illegal character");
+  else
+    assert (*input_pos == '\0' && c == '\0' && "illegal character");
 }
 
 
 void
-inputSkip (void)
+Input_Skip (void)
 {
   if (*input_pos)
     input_pos++;
@@ -155,12 +154,11 @@ inputSkip (void)
 
 
 void
-inputSkipN (int n)
+Input_SkipN (size_t n)
 {
   while (*input_pos && n--)
     input_pos++;
-  if (n > (*input_pos ? -1 : 0))	/* Fix to allow skip to end of string */
-    errorAbort ("Internal inputSkipN: trying to skip more characters than are available");
+  assert (*input_pos || n == 0);
 }
 
 
@@ -179,7 +177,7 @@ Input_Rest (void)
 
 #if DEBUG
 const char *
-inputLine (void)
+Input_Line (void)
 {
   return input_buff;
 }
@@ -187,7 +185,7 @@ inputLine (void)
 
 
 void
-skipblanks (void)
+Input_SkipWS (void)
 {
   const char *p = input_pos;
   while (*p && isspace ((unsigned char)*p))
@@ -250,13 +248,13 @@ Input_NextLineCore (void)
 	      int len = snprintf (workBuff, sizeof (workBuff), "\tGBL%c %.*s", type[4], (int)(type - predefine), predefine);
 	      if ((size_t)len >= sizeof (workBuff))
 		{
-		  error (ErrorError, "Failed to set predefine '%s'", predefine);
+		  Error (ErrorError, "Failed to set predefine '%s'", predefine);
 		  *workBuff = '\0';
 		}
 	    }
 	  else
 	    {
-	      error (ErrorError, "Invalid predefine '%s'", predefine);
+	      Error (ErrorError, "Invalid predefine '%s'", predefine);
 	      *workBuff = '\0';
 	    }
 	}
@@ -363,16 +361,16 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
   /* Replace symbol by its definition.  */
   assert (input_pos == NULL);
   input_pos = inP;
-  Lex label = lexGetIdNoError ();
+  Lex label = Lex_GetIDNoError ();
   input_pos = NULL;
   if (label.tag != LexId)
     {
       if (warnOnVarSubFail)
 	{
 	  if (!inString)
-	    error (ErrorWarning, "Non-ID in $ expansion");
+	    Error (ErrorWarning, "Non-ID in $ expansion");
 	  else if (option_pedantic)
-	    error (ErrorWarning, "No $ expansion - did you perhaps mean $$");
+	    Error (ErrorWarning, "No $ expansion - did you perhaps mean $$");
 	}
     }
   else
@@ -425,10 +423,10 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
       if (warnOnVarSubFail)
 	{
 	  if (!inString)
-	    error (ErrorWarning, "Unknown variable '%.*s' for $ expansion, you want to use vertical bars ?",
+	    Error (ErrorWarning, "Unknown variable '%.*s' for $ expansion, you want to use vertical bars ?",
 		   (int)label.Data.Id.len, label.Data.Id.str);
 	  else if (option_pedantic)
-	    error (ErrorWarning, "No $ expansion as variable '%.*s' is not defined, you want to use double $ ?",
+	    Error (ErrorWarning, "No $ expansion as variable '%.*s' is not defined, you want to use double $ ?",
 		   (int)label.Data.Id.len, label.Data.Id.str);
 	}
     }
@@ -525,7 +523,7 @@ Input_ArgSub (bool warnOnVarSubFail)
 		  else
 		    {
 		      /* Would overflow workBuff.  */
-		      errorAbort ("Line expansion resulted in overflow - line ignored");
+		      Error_Abort ("Line expansion resulted in overflow - line ignored");
 		      input_buff[0] = 0;
 		      return false;
 		    }
@@ -541,7 +539,7 @@ Input_ArgSub (bool warnOnVarSubFail)
   if (*inP)
     {
       /* There are still unprocessed characters, so we overflowed.  */
-      errorAbort ("Line expansion resulted in overflow - line ignored");
+      Error_Abort ("Line expansion resulted in overflow - line ignored");
       input_buff[0] = 0;
       return false;
     }
@@ -696,7 +694,7 @@ Input_Symbol (size_t *ilen)
 	/* */;
       if (input_pos[len] == '\0')
 	{
-	  error (ErrorError, "Failed to read symbol (forgot second '%s' ?)", isDbl ? "||" : "|");
+	  Error (ErrorError, "Failed to read symbol (forgot second '%s' ?)", isDbl ? "||" : "|");
 	  *ilen = 0;
 	  return NULL;
 	}
@@ -749,27 +747,27 @@ Input_GetString (size_t *len)
   size_t maxLen = 8;
   char *result = malloc (maxLen);
   if (result == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
 
   while (1)
     {
-      unsigned char c = inputGet ();
+      unsigned char c = Input_GetC ();
       if (c == '\0')
 	{
 	  /* End of line found without terminating '"', return whatever we
 	     have right now.  */
-	  error (ErrorError, "String continues over newline");
+	  Error (ErrorError, "String continues over newline");
 	  break;
 	}
       if (c == '"')
 	{
-	  if (inputLook () != '"')
+	  if (Input_Look () != '"')
 	    break; /* End of string found.  */
-	  inputSkip ();
+	  Input_Skip ();
 	}
       if (c == '\\')
 	{
-	  c = inputGet ();
+	  c = Input_GetC ();
 	  switch (c)
 	    {
 	      case '0':
@@ -783,16 +781,16 @@ Input_GetString (size_t *len)
 		{
 		  /* Octal.  */
 		  c -= '0';
-		  unsigned char i = inputLook ();
+		  unsigned char i = Input_Look ();
 		  if (i >= '0' && i <= '7')
 		    {
 		      c = 8*c + i - '0';
-		      inputSkip ();
-		      i = inputLook ();
+		      Input_Skip ();
+		      i = Input_Look ();
 		      if (i >= '0' && i <= '7')
 			{
 			  c = 8*c + i - '0';
-			  inputSkip ();
+			  Input_Skip ();
 			}
 		    }
 		  break;
@@ -801,25 +799,25 @@ Input_GetString (size_t *len)
 	      case 'x':
 		{
 		  /* Hex.  */
-		  unsigned char i = inputLook ();
+		  unsigned char i = Input_Look ();
 		  if (!isxdigit (i))
 		    {
-		      error (ErrorWarning, "Not a hex escape sequence");
-		      inputUnGet ('x');
+		      Error (ErrorWarning, "Not a hex escape sequence");
+		      Input_UnGetC ('x');
 		    }
 		  else
 		    {
 		      i |= 0x20;
 		      c = i >= 'a' ? i - 'a' + 10 : i - '0';
-		      inputSkip ();
-		      i = inputLook ();
+		      Input_Skip ();
+		      i = Input_Look ();
 		      if (!isxdigit (i))
-			error (ErrorWarning, "Not a hex escape sequence");
+			Error (ErrorWarning, "Not a hex escape sequence");
 		      else
 			{
 			  i |= 0x20;
 			  c = 16*c + (i >= 'a' ? i - 'a' + 10 : i - '0');
-			  inputSkip ();
+			  Input_Skip ();
 			}
 		    }
 		  break;
@@ -862,7 +860,7 @@ Input_GetString (size_t *len)
 		break;
 
 	      default:
-		error (ErrorWarning, "Unknown escape sequence");
+		Error (ErrorWarning, "Unknown escape sequence");
 		break;
 	    }
 	}
@@ -875,7 +873,7 @@ Input_GetString (size_t *len)
 	  maxLen *= 2;
 	  result = realloc (result, maxLen);
 	  if (result == NULL)
-	    errorOutOfMem ();
+	    Error_OutOfMem ();
 	}
       result[curLen++] = c;
     }
@@ -887,7 +885,7 @@ Input_GetString (size_t *len)
 
 
 const char *
-inputSymbol (size_t *ilen, char del)
+Input_Symbol2 (size_t *ilen, char del)
 {
   const char *p = input_pos;
 

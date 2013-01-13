@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2012 GCCSDK Developers
+ * Copyright (c) 2001-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,27 +50,27 @@ typedef enum
 
 bool Input_NextLine (Level_e level);
 
-void skipblanks (void);
+void Input_SkipWS (void);
 
 bool Input_IsEolOrCommentStart (void);
-char inputLook (void);
-char inputLookLower (void);
-char inputLookN (int n);
-char inputLookNLower (int n);
-char inputGet (void);
-char inputGetLower (void);
-void inputUnGet (char c);
+char Input_Look (void);
+char Input_LookLower (void);
+char Input_LookN (int n);
+char Input_LookNLower (int n);
+char Input_GetC (void);
+char Input_GetCLower (void);
+void Input_UnGetC (char c);
 const char *Input_Rest (void);
 #if DEBUG
-const char *inputLine (void);
+const char *Input_Line (void);
 #endif
-void inputSkip (void);
-void inputSkipN (int n);
+void Input_Skip (void);
+void Input_SkipN (size_t n);
 
 char *Input_GetString (size_t *len);
 
 const char *Input_Symbol (size_t *ilen);
-const char *inputSymbol (size_t *ilen, char del);
+const char *Input_Symbol2 (size_t *ilen, char del);
 
 const char *Input_GetMark (void);
 void Input_RollBackToMark (const char *mark);

@@ -1,7 +1,7 @@
 /* 
  * AS an assembler for ARM
  * Copyright (c) 1998 Nick Burrett
- * Copyright (c) 2001-2012 GCCSDK Developers
+ * Copyright (c) 2001-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,12 +46,12 @@ void ASFile_Free (ASFile *asFileP);
 
 #include <kernel.h>
 
-int switonum (const char *swi);
+int OS_SWINameToNum (const char *swi);
 
-_kernel_oserror *ThrowbackStart (void);
-_kernel_oserror *ThrowbackSendStart (const char *fileName);
-_kernel_oserror *ThrowbackSendError (int level, unsigned lineNum, const char *error);
-_kernel_oserror *ThrowbackEnd (void);
+_kernel_oserror *OS_ThrowbackStart (void);
+_kernel_oserror *OS_ThrowbackSendStart (const char *fileName);
+_kernel_oserror *OS_ThrowbackSendError (int level, unsigned lineNum, const char *error);
+_kernel_oserror *OS_ThrowbackEnd (void);
 
 #define Throwback_ReasonProcessing	0
 #define Throwback_ReasonErrorDetails	1

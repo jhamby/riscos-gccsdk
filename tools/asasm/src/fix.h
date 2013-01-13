@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,17 +24,15 @@
 #define fix_header_included
 
 #include <stdbool.h>
+
 #include "global.h"
 
-ARMWord fixImm8s4 (unsigned lineNum, ARMWord ir, int im);
-ARMWord fixSwi (unsigned lineNum, int im);
-ARMWord fixMask (unsigned lineNum, int mask);
+ARMWord Fix_Imm8s4 (ARMWord ir, int im);
 
-ARMWord Fix_ShiftImm (const char *fileName, unsigned lineNum, ARMWord shiftop, int shift);
-ARMWord Fix_Int (const char *fileName, unsigned lineNum, int size, int value);
-ARMWord Fix_CopOffset (const char *fileName, unsigned lineNum, ARMWord ir, int offset);
-ARMWord Fix_CPUOffset (const char *fileName, unsigned lineNum, ARMWord ir, int offset);
-ARMWord Fix_MOV (const char *fileName, unsigned lineNum, ARMWord ir, int im);
+ARMWord Fix_ShiftImm (ARMWord shiftop, int shift);
+ARMWord Fix_Int (int size, int value);
+ARMWord Fix_CopOffset (ARMWord ir, int offset);
+ARMWord Fix_CPUOffset (ARMWord ir, int offset);
 
 bool Fix_CheckForOverflow (unsigned dataSize, uint32_t dataValue);
 

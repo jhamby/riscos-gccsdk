@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -108,7 +108,7 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 
   if (sym->type & (SYMBOL_REFERENCE | SYMBOL_STRONG | SYMBOL_KEEP))
     {
-      error (ErrorError, "'%.*s' is already in use as symbol and can not be used as %s variable",
+      Error (ErrorError, "'%.*s' is already in use as symbol and can not be used as %s variable",
 	     (int)len, ptr, localMacro ? "local" : "global");
       return NULL;
     }
@@ -117,7 +117,7 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
     {
       if (sym->type & SYMBOL_AREA)
 	{
-	  error (ErrorError, "'%.*s' is already defined as an area",
+	  Error (ErrorError, "'%.*s' is already defined as an area",
 		 (int)len, ptr);
 	  return NULL;
 	}
@@ -132,15 +132,15 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
           && (!localMacro || (sym->type & SYMBOL_MACRO_LOCAL) != 0))
 	{
 	  if (sym->value.Tag == ValueIllegal)
-	    error (ErrorError, "'%.*s' is already defined", (int)len, ptr);
+	    Error (ErrorError, "'%.*s' is already defined", (int)len, ptr);
 	  else
-	    error (ErrorError, "'%.*s' is already defined as a %s",
-		   (int)len, ptr, valueTagAsString (sym->value.Tag));
+	    Error (ErrorError, "'%.*s' is already defined as a %s",
+		   (int)len, ptr, Value_TagAsString (sym->value.Tag));
 	  return NULL;
 	}
       if (option_pedantic)
-	error (ErrorWarning, "Redefinition of %s variable '%.*s'",
-	       valueTagAsString (sym->value.Tag),
+	Error (ErrorWarning, "Redefinition of %s variable '%.*s'",
+	       Value_TagAsString (sym->value.Tag),
 	       (int)var.Data.Id.len, var.Data.Id.str);
 
       /* When symbol is already known as global, it remains a global variable
@@ -152,23 +152,22 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
   if (localMacro)
     sym->type |= SYMBOL_MACRO_LOCAL;
 
-  sym->value.Tag = type;
   switch (type)
     {
       case ValueInt:
-	sym->value.Data.Int.i = 0;
-	sym->value.Data.Int.type = eIntType_PureInt;
+	sym->value = Value_Int (0, eIntType_PureInt);
 	break;
 
       case ValueBool:
-	sym->value.Data.Bool.b = false;
+	sym->value = Value_Bool (false);
 	break;
 
       case ValueString:
+	sym->value.Tag = type;
 	sym->value.Data.String.len = 0;
 	/* We don't do malloc(0) as this can on some systems return NULL.  */
 	if ((sym->value.Data.String.s = malloc (1)) == NULL)
-	  errorOutOfMem ();
+	  Error_OutOfMem ();
 	break;
 
       default:
@@ -188,7 +187,7 @@ bool
 c_gbl (void)
 {
   ValueTag type;
-  const char c  = inputLook ();
+  const char c  = Input_Look ();
   if (c == 'L')
     type = ValueBool;
   else if (c == 'A')
@@ -197,15 +196,15 @@ c_gbl (void)
     type = ValueString;
   else
     return true;
-  inputSkip ();
+  Input_Skip ();
   if (!Input_IsEndOfKeyword ())
     return true;
 
-  skipblanks ();
+  Input_SkipWS ();
   const char *ptr;
   size_t len;
   if ((ptr = Input_Symbol (&len)) == NULL)
-    error (ErrorError, "Missing variable name");
+    Error (ErrorError, "Missing variable name");
   else
     Var_Define (ptr, len, type, false);
   return false;
@@ -220,7 +219,7 @@ bool
 c_lcl (void)
 {
   ValueTag type;
-  const char c  = inputLook ();
+  const char c  = Input_Look ();
   if (c == 'L')
     type = ValueBool;
   else if (c == 'A')
@@ -229,22 +228,22 @@ c_lcl (void)
     type = ValueString;
   else
     return true;
-  inputSkip ();
+  Input_Skip ();
   if (!Input_IsEndOfKeyword ())
     return true;
 
   if (gCurPObjP->type != POType_eMacro)
     {
-      error (ErrorError, "Local variables not allowed outside macros");
+      Error (ErrorError, "Local variables not allowed outside macros");
       return false;
     }
 
-  skipblanks ();
+  Input_SkipWS ();
   const char *ptr;
   size_t len;
   if ((ptr = Input_Symbol (&len)) == NULL)
     {
-      error (ErrorError, "Missing variable name");
+      Error (ErrorError, "Missing variable name");
       return false;
     }
 
@@ -271,7 +270,7 @@ c_lcl (void)
     {
       VarPos *p;
       if ((p = malloc (sizeof (VarPos) + len + 1)) == NULL)
-	errorOutOfMem ();
+	Error_OutOfMem ();
       memcpy (p->name, ptr, len); p->name[len] = '\0';
       p->next = gCurPObjP->d.macro.varListP;
       if ((p->symbolP = symbolP) != NULL)
@@ -296,7 +295,7 @@ bool
 c_set (const Lex *label)
 {
   ValueTag type;
-  const char c  = inputLook ();
+  const char c  = Input_Look ();
   if (c == 'L')
     type = ValueBool;
   else if (c == 'A')
@@ -305,21 +304,21 @@ c_set (const Lex *label)
     type = ValueString;
   else
     return true;
-  inputSkip ();
+  Input_Skip ();
   if (!Input_IsEndOfKeyword ())
     return true;
 
   switch (label->tag)
     {
       case LexNone:
-	error (ErrorError, "Label missing");
+	Error (ErrorError, "Label missing");
 	return false;
 
       case LexId:
 	break;
 
       case LexLocalLabel:
-	error (ErrorError, "Local label is not allowed here");
+	Error (ErrorError, "Local label is not allowed here");
         return false;
 
       default:
@@ -330,21 +329,21 @@ c_set (const Lex *label)
   Symbol *sym = Symbol_Find (label);
   if (sym == NULL)
     {
-      error (ErrorError, "'%.*s' is undefined",
+      Error (ErrorError, "'%.*s' is undefined",
 	     (int)label->Data.Id.len, label->Data.Id.str);
       return false;
     }
   if (type != sym->value.Tag)
     {
-      error (ErrorError, "Wrong type for symbol '%.*s'",
+      Error (ErrorError, "Wrong type for symbol '%.*s'",
 	     (int)label->Data.Id.len, label->Data.Id.str);
       return false;
     }
-  const Value *value = exprBuildAndEval (sym->value.Tag);
+  const Value *value = Expr_BuildAndEval (sym->value.Tag);
   switch (value->Tag)
     {
       case ValueIllegal:
-	error (ErrorError, "Wrong variable type for '%.*s'", (int)label->Data.Id.len, label->Data.Id.str);
+	Error (ErrorError, "Wrong variable type for '%.*s'", (int)label->Data.Id.len, label->Data.Id.str);
 	break;
 
       default:
@@ -369,7 +368,7 @@ Var_RestoreLocals (const VarPos *p)
 	{
 	  /* Variable existed before we (temporarily) overruled it, so
 	     restore it to its original value.  */
-	  valueFree (&p->symbolP->value);
+	  Value_Free (&p->symbolP->value);
 	  *p->symbolP = p->symbol;
 	}
       else

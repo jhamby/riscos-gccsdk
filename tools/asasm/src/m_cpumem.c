@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,7 +54,7 @@
 /**
  * Parses Address mode 2 and 3.
  *
- * Similar to help_copAddr() @ help_cop.c.
+ * Similar to HelpCop_Addr() @ help_cop.c.
  */
 static bool
 dstmem (ARMWord ir, const char *mnemonic)
@@ -67,11 +67,11 @@ dstmem (ARMWord ir, const char *mnemonic)
     }
   else
     isAddrMode3 = false;
-  ARMWord dst = getCpuReg ();
+  unsigned dst = Get_CPUReg ();
   ir |= DST_OP (dst);
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%sdst", InsertCommaAfter);
+    Error (ErrorError, "%sdst", InsertCommaAfter);
 
   const bool doubleReg = (ir & (L_FLAG | S_FLAG)) == S_FLAG;
   const bool translate = (ir & W_FLAG) != 0; /* We have "T" specified in our mnemonic.  */
@@ -79,17 +79,17 @@ dstmem (ARMWord ir, const char *mnemonic)
   if (doubleReg)
     {
       if (dst & 1)
-	error (ErrorWarning, "Uneven first transfer register is UNPREDICTABLE");
+	Error (ErrorWarning, "Uneven first transfer register is UNPREDICTABLE");
       /* Try to parse "<reg>, " and check this register is dst + 1.
          If we can't parse this, assume pre-UAL syntax and move on.  */
       ARMWord dstPlusOne = Get_CPURegNoError ();
       if (dstPlusOne != INVALID_REG)
 	{
 	  if (dstPlusOne != dst + 1)
-	    error (ErrorError, "Second transfer register is not %d but %d", dst + 1, dstPlusOne);
-	  skipblanks ();
+	    Error (ErrorError, "Second transfer register is not %d but %d", dst + 1, dstPlusOne);
+	  Input_SkipWS ();
 	  if (!Input_Match (',', true))
-	    error (ErrorError, "%sdst", InsertCommaAfter);
+	    Error (ErrorError, "%sdst", InsertCommaAfter);
 	}
     }
   
@@ -97,13 +97,13 @@ dstmem (ARMWord ir, const char *mnemonic)
   Value value;
   const Value *valP = NULL;
   bool movOptAllowed = false; /* true when MOV/MVN/MOVW optimisation is allowed.  */
-  switch (inputLook ())
+  switch (Input_Look ())
     {
       case '[':	/* <reg>, [ */
 	{
-	  inputSkip ();
-	  const ARMWord baseReg = getCpuReg (); /* Base register */
-	  skipblanks ();
+	  Input_Skip ();
+	  const unsigned baseReg = Get_CPUReg (); /* Base register */
+	  Input_SkipWS ();
 	  bool pre = !Input_Match (']', true);
 	  bool forcePreIndex;
 	  if (Input_Match (',', true))
@@ -114,7 +114,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 		  if (isAddrMode3)
 		    ir |= B_FLAG;  /* Immediate mode for addr. mode 3.  */
 		  
-		  const Value *valueP = exprBuildAndEval (ValueInt);
+		  const Value *valueP = Expr_BuildAndEval (ValueInt);
 		  if (gPhase != ePassOne)
 		    {
 		      switch (valueP->Tag)
@@ -124,7 +124,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 			    valP = &value;
 			    break;
 			  default:
-			    error (ErrorError, "Illegal offset expression");
+			    Error (ErrorError, "Illegal offset expression");
 			    break;
 			}
 		    }
@@ -144,13 +144,13 @@ dstmem (ARMWord ir, const char *mnemonic)
 		    }
 		  if (Input_Match ('#', false))
 		    {
-		      /* We're about to call getRhs() and that supports "#<immediate>"
+		      /* We're about to call Get_RHS() and that supports "#<immediate>"
 			 which isn't possible for our case here.  Hence, check
 			 on this.  */
-		      error (ErrorError, "Unknown register definition in offset field");
+		      Error (ErrorError, "Unknown register definition in offset field");
 		    }
 		  ir |= isAddrMode3 ? 0 : REG_FLAG;
-		  ir = getRhs (false, !isAddrMode3, ir);
+		  ir = Get_RHS (false, !isAddrMode3, ir);
 		}
 	      forcePreIndex = false;
 	    }
@@ -162,7 +162,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	      if (isAddrMode3)
 		ir |= B_FLAG; /* Immediate mode for addr. mode 3.  */
 	      if (pre)
-		error (ErrorError, "Illegal character");
+		Error (ErrorError, "Illegal character");
 	      /* Pre-index nicer than post-index but don't this when 'T' is
 	         specified as pre-index is not supported (FIXME: ARM only).  */
 	      forcePreIndex = !translate;
@@ -171,7 +171,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  if (pre)
 	    {
 	      if (!Input_Match (']', true))
-		error (ErrorError, "Inserting missing ] after address");
+		Error (ErrorError, "Inserting missing ] after address");
 	    }
 	  else
 	    {
@@ -183,36 +183,36 @@ dstmem (ARMWord ir, const char *mnemonic)
 	      if (pre)
 	        ir |= W_FLAG;
 	      else
-	        error (ErrorError, "Writeback not allowed with post-index");
+	        Error (ErrorError, "Writeback not allowed with post-index");
 	    }
 	  if (pre)
 	    {
 	      /* Pre-index.  */
 	      ir |= P_FLAG;
 	      if (translate)
-	        error (ErrorError, "Translate not allowed with pre-index");
+	        Error (ErrorError, "Translate not allowed with pre-index");
 	    }
 	  else
 	    {
 	      /* Post-index.  */
 	      if (dst == baseReg)
-	        error (ErrorError, "Post increment is not sane where base and destination register are the same");
+	        Error (ErrorError, "Post increment is not sane where base and destination register are the same");
 	    }
 	  break;
 	}
 
       case '=': /* <reg>, =<expression> */
 	{
-	  inputSkip ();
+	  Input_Skip ();
 	  /* Is LDRD ? */
 	  if ((ir & 0x0E1000D0) == 0xD0)
-	    errorAbort ("No support for LDRD and literal");
+	    Error_Abort ("No support for LDRD and literal");
 	  /* This is only allowed for LDR.  */
 	  else if ((ir & L_FLAG) == 0)
-	    errorAbort ("You can't store into a constant");
+	    Error_Abort ("You can't store into a constant");
 
           if (translate)
-	    error (ErrorError, "Translate not allowed with literal");
+	    Error (ErrorError, "Translate not allowed with literal");
 	  
 	  /* This is always pre-increment.  */
 	  ir |= P_FLAG;
@@ -233,9 +233,9 @@ dstmem (ARMWord ir, const char *mnemonic)
 
 	  /* The ValueInt | ValueSymbol | ValueCode tags are what we support
 	     as constants from user point of view.  */
-	  const Value *literalP = exprBuildAndEval (ValueInt | ValueSymbol | ValueCode);
+	  const Value *literalP = Expr_BuildAndEval (ValueInt | ValueSymbol | ValueCode);
 	  if (literalP->Tag == ValueIllegal)
-	    error (ErrorError, "Wrong literal type");
+	    Error (ErrorError, "Wrong literal type");
 	  else
 	    {
 	      value = Lit_RegisterInt (literalP, litSize);
@@ -255,12 +255,12 @@ dstmem (ARMWord ir, const char *mnemonic)
 	   */
 
 	  if (translate)
-	    error (ErrorError, "Translate not allowed with label");
+	    Error (ErrorError, "Translate not allowed with label");
 
 	  /* Whatever happens, this must be a pre-increment.  */
 	  ir |= P_FLAG;
 
-	  valP = exprBuildAndEval (ValueInt | ValueAddr | ValueSymbol);
+	  valP = Expr_BuildAndEval (ValueInt | ValueAddr | ValueSymbol);
 	  break;
 	}
     }
@@ -278,9 +278,9 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    {
 	      ir = (ir & NV) | DST_OP (GET_DST_OP (ir));
 	      uint32_t im;
-	      if ((im = Help_CPUImm8s4 (valP->Data.Int.i)) != UINT32_MAX)
+	      if ((im = HelpCPU_Imm8s4 (valP->Data.Int.i)) != UINT32_MAX)
 		ir |= M_MOV | IMM_RHS | im; /* Optimize to MOV.  */
-	      else if ((im = Help_CPUImm8s4 (~valP->Data.Int.i)) != UINT32_MAX)
+	      else if ((im = HelpCPU_Imm8s4 (~valP->Data.Int.i)) != UINT32_MAX)
 		ir |= M_MVN | IMM_RHS | im; /* Optimize to MVN.  */
 	      else if (CPUMem_ConstantInMOVW (valP->Data.Int.i))
 		ir |= 0x03000000 | ((valP->Data.Int.i & 0xF000) << 4) | (valP->Data.Int.i & 0x0FFF); /* Optimize to MOVW.  */
@@ -311,7 +311,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 		    {
 		      assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
 		      if (Reloc_Create (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP) == NULL)
-			error (ErrorError, "Relocation failed");
+			Error (ErrorError, "Relocation failed");
 		      break;
 		    }
 		  value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));
@@ -324,12 +324,12 @@ dstmem (ARMWord ir, const char *mnemonic)
 		  ir |= LHS_OP (valP->Data.Addr.r);
 		  if (isAddrMode3)
 		    ir |= B_FLAG;
-		  ir = Fix_CPUOffset (NULL, 0, ir, valP->Data.Addr.i);
+		  ir = Fix_CPUOffset (ir, valP->Data.Addr.i);
 		  break;
 		}
 
 	      default:
-		error (ErrorError, "Illegal %s expression", mnemonic);
+		Error (ErrorError, "Illegal %s expression", mnemonic);
 		break;
 	    }
 	}
@@ -339,7 +339,7 @@ dstmem (ARMWord ir, const char *mnemonic)
       && (ir & (1<<5)) != 0 /* Half-word.  */
       && (areaCurrentSymbol->area->type & AREA_HALFWORD) == 0
       && option_aof)
-    error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
+    Error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
 
   Put_Ins (4, ir);
 
@@ -385,14 +385,14 @@ LdrStrEx (bool isLoad, bool doLowerCase)
     type = btype;
   else if (Input_Match (doLowerCase ? 'd' : 'D', false))
     type = dtype;
-  else if (inputLook () == (doLowerCase ? 'h' : 'H'))
+  else if (Input_Look () == (doLowerCase ? 'h' : 'H'))
     {
       /* Small hack needed : 'H' can also be the first condition character
 	 of 'HS' or 'HI'.  */
-      if (inputLookN (1) != (doLowerCase ? 'i' : 'I')
-          && inputLookN (1) != (doLowerCase ? 's' : 'S'))
+      if (Input_LookN (1) != (doLowerCase ? 'i' : 'I')
+          && Input_LookN (1) != (doLowerCase ? 's' : 'S'))
 	{
-	  inputSkip ();
+	  Input_Skip ();
 	  type = htype;
 	}
       else
@@ -401,7 +401,7 @@ LdrStrEx (bool isLoad, bool doLowerCase)
   else
     type = wtype;
 
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -411,66 +411,66 @@ LdrStrEx (bool isLoad, bool doLowerCase)
     Target_CheckCPUFeature (kCPUExt_v6K, true);
   
   /* The STREX* versions have an extra Rd register.  */
-  ARMWord regD;
+  unsigned regD;
   if (!isLoad)
     {
-      regD = getCpuReg ();
+      regD = Get_CPUReg ();
       if (regD == INVALID_REG)
 	return false;
-      skipblanks ();
+      Input_SkipWS ();
       if (!Input_Match (',', true))
 	{
-	  error (ErrorError, "Missing ,");
+	  Error (ErrorError, "Missing ,");
 	  return false;
 	}
     }
 
-  ARMWord regT = getCpuReg ();
+  unsigned regT = Get_CPUReg ();
   if (regT == INVALID_REG)
     return false;
   if (type == dtype && (regT & 1))
-    error (ErrorError, "Register needs to be even");
-  skipblanks ();
+    Error (ErrorError, "Register needs to be even");
+  Input_SkipWS ();
   if (!Input_Match (',', true))
     {
-      error (ErrorError, "Missing ,");
+      Error (ErrorError, "Missing ,");
       return false;
     }
 
   if (type == dtype)
     {
-      ARMWord regT2 = getCpuReg ();
+      unsigned regT2 = Get_CPUReg ();
       if (regT2 == INVALID_REG)
 	return false;
       if (regT2 != regT + 1)
-	error (ErrorError, "Registers are not consecutive");
-      skipblanks ();
+	Error (ErrorError, "Registers are not consecutive");
+      Input_SkipWS ();
       if (!Input_Match (',', true))
 	{
-	  error (ErrorError, "Missing ,");
+	  Error (ErrorError, "Missing ,");
 	  return false;
 	}
     }
   
   if (!Input_Match ('[', true))
     {
-      error (ErrorError, "Missing [");
+      Error (ErrorError, "Missing [");
       return false;
     }
-  ARMWord regN = getCpuReg ();
+  unsigned regN = Get_CPUReg ();
   if (regN == INVALID_REG)
     return false;
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (']', false))
     {
-      error (ErrorError, "Missing ]");
+      Error (ErrorError, "Missing ]");
       return false;
     }
 
   if (type == htype
       && (areaCurrentSymbol->area->type & AREA_HALFWORD) == 0
       && option_aof)
-    error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
+    Error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
 
   if (isLoad)
     Put_Ins (4, cc | 0x00100F9F | type | (regN<<16) | (regT<<12));
@@ -581,15 +581,15 @@ m_pl (bool doLowerCase)
      enabled.  */
   Target_CheckCPUFeature (type == isPLD ? kCPUExt_v5E : kArchExt_v7, true);
 
-  skipblanks();
+  Input_SkipWS ();
 
   if (!Input_Match ('[', true))
-    error (ErrorError, "Expected '[' after PLD instruction");
+    Error (ErrorError, "Expected '[' after PLD instruction");
 
   ARMWord ir = 0xf450f000 | P_FLAG;
-  int op = getCpuReg (); /* Base register */
+  unsigned op = Get_CPUReg (); /* Base register */
   ir |= LHS_OP (op);
-  skipblanks();
+  Input_SkipWS ();
 
   if (Input_Match (']', true))
     {			/* [base] */
@@ -597,21 +597,21 @@ m_pl (bool doLowerCase)
     }
   else
     {
-      skipblanks();
+      Input_SkipWS ();
       if (!Input_Match (',', true))
-	error (ErrorError, "Expected ',' or ']' in PLD instruction");
+	Error (ErrorError, "Expected ',' or ']' in PLD instruction");
 
       if (Input_Match ('#', false))
 	{
-	  const Value *offset = exprBuildAndEval (ValueInt);
+	  const Value *offset = Expr_BuildAndEval (ValueInt);
 	  switch (offset->Tag)
 	    {
 	      case ValueInt:
-		ir = Fix_CPUOffset (NULL, 0, ir, offset->Data.Int.i);
+		ir = Fix_CPUOffset (ir, offset->Data.Int.i);
 		break;
 
 	      default:
-		error (ErrorError, "Illegal offset expression");
+		Error (ErrorError, "Illegal offset expression");
 		break;
 	    }
 
@@ -627,13 +627,13 @@ m_pl (bool doLowerCase)
 	  if (Input_Match ('#', false))
 	    {
 	      /* Edge case - #XX */
-	      error (ErrorError, "Unknown register definition in offset field");
+	      Error (ErrorError, "Unknown register definition in offset field");
 	    }
-	  ir = getRhs (false, true, ir) | REG_FLAG;
+	  ir = Get_RHS (false, true, ir) | REG_FLAG;
 	}
 
       if (!Input_Match (']', true))
-	error (ErrorError, "Expected closing ]");
+	Error (ErrorError, "Expected closing ]");
     }
   Put_Ins (4, ir);
   return false;
@@ -647,28 +647,28 @@ dstreglist (ARMWord ir, bool isPushPop)
     {
       ir |= BASE_MULTI (13);
       ir |= W_FLAG;
-      skipblanks ();
+      Input_SkipWS ();
     }
   else
     {
-      ir |= BASE_MULTI (getCpuReg ());
-      skipblanks ();
+      ir |= BASE_MULTI (Get_CPUReg ());
+      Input_SkipWS ();
       if (Input_Match ('!', true))
 	ir |= W_FLAG;
       if (!Input_Match (',', true))
-	error (ErrorError, "Inserting missing comma before reglist");
+	Error (ErrorError, "Inserting missing comma before reglist");
     }
 
   /* Parse register list.  */
   ARMWord regList;
-  if (inputLook () == '{')
+  if (Input_Look () == '{')
     regList = Get_CPURList ();
   else
     {
-      const Value *rlistValue = exprBuildAndEval (ValueInt);
+      const Value *rlistValue = Expr_BuildAndEval (ValueInt);
       if (rlistValue->Tag != ValueInt || rlistValue->Data.Int.type != eIntType_CPURList)
 	{
-	  error (ErrorError, "Not a register list");
+	  Error (ErrorError, "Not a register list");
 	  regList = 0;
 	}
       else
@@ -678,11 +678,11 @@ dstreglist (ARMWord ir, bool isPushPop)
 	}
     }
 
-  skipblanks ();
+  Input_SkipWS ();
   if (Input_Match ('^', true))
     {
       if ((ir & W_FLAG) && !(regList & (1 << 15)))
-	error (ErrorInfo, "Writeback together with force user");
+	Error (ErrorInfo, "Writeback together with force user");
       ir |= FORCE_FLAG;
     }
 
@@ -698,17 +698,17 @@ dstreglist (ARMWord ir, bool isPushPop)
       if (numRegs & 1)
 	{
 	  if (gArea_Preserve8 == ePreserve8_Yes)
-	    error (ErrorWarning, "Stack pointer update potentially breaks 8 byte stack alignment");
+	    Error (ErrorWarning, "Stack pointer update potentially breaks 8 byte stack alignment");
 	  else if (gArea_Preserve8 == ePreserve8_Guess)
 	    gArea_Preserve8Guessed = false;
 	}
     }
   if (GET_BASE_MULTI (ir) == 15)
-    error (ErrorWarning, "Use of PC as Rn is UNPREDICTABLE");
+    Error (ErrorWarning, "Use of PC as Rn is UNPREDICTABLE");
   if (numRegs == 0)
-    error (ErrorWarning, "Specifying no registers to %s is UNPREDICTABLE", ir & L_FLAG ? "load" : "save");
+    Error (ErrorWarning, "Specifying no registers to %s is UNPREDICTABLE", ir & L_FLAG ? "load" : "save");
   if ((ir & W_FLAG) && numRegs == 1 && Target_CheckCPUFeature (kArchExt_v7, false))
-    error (ErrorWarning, "%s one register with writeback is UNPREDICTABLE for ARMv7 onwards, use %s instead",
+    Error (ErrorWarning, "%s one register with writeback is UNPREDICTABLE for ARMv7 onwards, use %s instead",
            (ir & L_FLAG) ? "Loading" : "Saving",
            (ir & L_FLAG) ? "POP" : "PUSH");
   if (isPushPop && numRegs == 1)
@@ -719,7 +719,7 @@ dstreglist (ARMWord ir, bool isPushPop)
       assert (regList == (1U << rt));
       ir = (ir & NV) | (isLoad ? 0x049D0004 : 0x052D0004) | (rt << 12);
       if (rt == 13)
-	error (ErrorWarning, "%s r13 is UNPREDICTABLE", isLoad ? "Loading" : "Saving");
+	Error (ErrorWarning, "%s r13 is UNPREDICTABLE", isLoad ? "Loading" : "Saving");
     }
   else
     {
@@ -734,11 +734,11 @@ dstreglist (ARMWord ir, bool isPushPop)
 	     Use of such instructions is obsolete in ARMv7.  */
 	  const char *what = isPushPop ? "multi-register POP" : "LDM";
 	  if (!Target_CheckCPUFeature (kArchExt_v7, false))
-	    error (ErrorWarning,
+	    Error (ErrorWarning,
 	           "Deprecated before ARMv7 : %s with writeback and base register in register list",
 	           what);
 	  else
-	    error (ErrorWarning,
+	    Error (ErrorWarning,
 	           "Obsoleted from ARMv7 onwards : %s with writeback and base register in register list",
 	           what);
 	}
@@ -746,7 +746,7 @@ dstreglist (ARMWord ir, bool isPushPop)
     }
   if (option_pedantic && (ir & L_FLAG) && (1 << 15)
       && Target_CheckCPUFeature (kCPUExt_v4T, false) && !Target_CheckCPUFeature (kCPUExt_v5T, false))
-    error (ErrorWarning, "ARMv4T does not switch ARM/Thumb state when LDM/POP specifies PC (use BX instead)");
+    Error (ErrorWarning, "ARMv4T does not switch ARM/Thumb state when LDM/POP specifies PC (use BX instead)");
   Put_Ins (4, ir);
 }
 
@@ -757,7 +757,7 @@ dstreglist (ARMWord ir, bool isPushPop)
 bool
 m_ldm (bool doLowerCase)
 {
-  ARMWord cc = optionCondLdmStm (true, doLowerCase);
+  ARMWord cc = Option_CondLdmStm (true, doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   dstreglist (cc | 0x08100000, false);
@@ -774,7 +774,7 @@ m_ldm (bool doLowerCase)
 bool
 m_pop (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   dstreglist (cc | STACKMODE_IA | 0x08100000, true);
@@ -788,7 +788,7 @@ m_pop (bool doLowerCase)
 bool
 m_stm (bool doLowerCase)
 {
-  ARMWord cc = optionCondLdmStm (false, doLowerCase);
+  ARMWord cc = Option_CondLdmStm (false, doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   dstreglist (cc | 0x08000000, false);
@@ -805,7 +805,7 @@ m_stm (bool doLowerCase)
 bool
 m_push (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   dstreglist (cc | STACKMODE_DB | 0x08000000, true);
@@ -829,33 +829,33 @@ m_swp (bool doLowerCase)
 
   Target_CheckCPUFeature (kCPUExt_v2a, true);
   if (option_pedantic && Target_CheckCPUFeature (kCPUExt_v6, false))
-    error (ErrorWarning, "The use of SWP/SWPB is deprecated from ARMv6 onwards");
+    Error (ErrorWarning, "The use of SWP/SWPB is deprecated from ARMv6 onwards");
 
   IT_ApplyCond (cc_b & NV, false);
 
   int ir = cc_b | 0x01000090;
-  ARMWord rt = getCpuReg ();
+  unsigned rt = Get_CPUReg ();
   ir |= DST_OP (rt);
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%sdst", InsertCommaAfter);
-  ARMWord rt2 = getCpuReg ();
+    Error (ErrorError, "%sdst", InsertCommaAfter);
+  unsigned rt2 = Get_CPUReg ();
   ir |= RHS_OP (rt2);	/* Note wrong order swp dst,rhs,[lsh] */
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%slhs", InsertCommaAfter);
+    Error (ErrorError, "%slhs", InsertCommaAfter);
   if (!Input_Match ('[', true))
-    error (ErrorError, "Inserting missing '['");
-  ARMWord rn = getCpuReg ();
+    Error (ErrorError, "Inserting missing '['");
+  unsigned rn = Get_CPUReg ();
   ir |= DST_MUL (rn);
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (']', true))
-    error (ErrorError, "Inserting missing ']'");
+    Error (ErrorError, "Inserting missing ']'");
 
   if (rt == 15 || rt2 == 15 || rn == 15)
-    error (ErrorError, "SWP(B) registers can not be r15");
+    Error (ErrorError, "SWP(B) registers can not be r15");
   if (rn == rt || rn == rt2)
-    error (ErrorError, "SWP(B) address register can not be the same as one of the swap registers");
+    Error (ErrorError, "SWP(B) address register can not be the same as one of the swap registers");
 
   Put_Ins (4, ir);
   return false;
@@ -880,7 +880,7 @@ typedef enum
 static Barrier_eType
 GetBarrierType (void)
 {
-  skipblanks ();
+  Input_SkipWS ();
 
   Barrier_eType result;
   if (Input_IsEolOrCommentStart ())
@@ -900,13 +900,13 @@ GetBarrierType (void)
   else if (Input_MatchKeywordLower ("sh"))
     {
       if (option_pedantic)
-	error (ErrorWarning, "Use barrier type %s instead of %s", "ISH", "SH");
+	Error (ErrorWarning, "Use barrier type %s instead of %s", "ISH", "SH");
       result = BL_eSH;
     }
   else if (Input_MatchKeywordLower ("shst"))
     {
       if (option_pedantic)
-	error (ErrorWarning, "Use barrier type %s instead of %s", "ISHST", "SHST");
+	Error (ErrorWarning, "Use barrier type %s instead of %s", "ISHST", "SHST");
       result = BL_eSHST;
     }
   else if (Input_MatchKeywordLower ("sy"))
@@ -916,18 +916,18 @@ GetBarrierType (void)
   else if (Input_MatchKeywordLower ("un"))
     {
       if (option_pedantic)
-	error (ErrorWarning, "Use barrier type %s instead of %s", "NSH", "UN");
+	Error (ErrorWarning, "Use barrier type %s instead of %s", "NSH", "UN");
       result = BL_eUN;
     }
   else if (Input_MatchKeywordLower ("unst"))
     {
       if (option_pedantic)
-	error (ErrorWarning, "Use barrier type %s instead of %s", "NSHST", "UNST");
+	Error (ErrorWarning, "Use barrier type %s instead of %s", "NSHST", "UNST");
       result = BL_eUNST;
     }
   else
     {
-      error (ErrorError, "Unknown barrier type");
+      Error (ErrorError, "Unknown barrier type");
       result = BL_eSY;
     }
 
@@ -972,7 +972,7 @@ m_isb (void)
   Target_CheckCPUFeature (kCPUExt_BARRIER, true);
   Barrier_eType bl = GetBarrierType ();
   if (option_pedantic && bl != BL_eSY)
-    error (ErrorWarning, "Using reserved barrier type");
+    Error (ErrorWarning, "Using reserved barrier type");
   Put_Ins (4, 0xF57FF060 | bl);
   return false;
 }
@@ -991,13 +991,13 @@ m_rfe (bool doLowerCase)
 
   Target_CheckCPUFeature (kCPUExt_v6, true);
 
-  ARMWord regN = getCpuReg ();
+  unsigned regN = Get_CPUReg ();
   if (regN == INVALID_REG)
     return false;
   if (regN == 15)
-    error (ErrorError, "Using PC as base register is unpredictable");
+    Error (ErrorError, "Using PC as base register is unpredictable");
 
-  skipblanks ();
+  Input_SkipWS ();
   bool updateStack = Input_Match ('!', false);
 
   if (updateStack)
@@ -1021,51 +1021,51 @@ m_srs (bool doLowerCase)
 
   Target_CheckCPUFeature (kCPUExt_v6, true);
 
-  skipblanks ();
+  Input_SkipWS ();
   bool isUALSyntax, updateStack;
   if (!Input_Match ('#', false))
     {
       isUALSyntax = true;
-      ARMWord sp = getCpuReg ();
+      unsigned sp = Get_CPUReg ();
       if (sp == INVALID_REG)
 	return false;
       if (sp != 13)
 	{
-	  error (ErrorError, "SRS can only be used with stack register 13 (sp)");
+	  Error (ErrorError, "SRS can only be used with stack register 13 (sp)");
 	  return false;
 	}
-      skipblanks ();
+      Input_SkipWS ();
       updateStack = Input_Match ('!', true);
       if (!Input_Match (',', true))
 	{
-	  error (ErrorError, "Missing ,");
+	  Error (ErrorError, "Missing ,");
 	  return false;
 	}
       if (!Input_Match ('#', false))
 	{
-	  error (ErrorError, "%s needs a mode specified", "SRS");
+	  Error (ErrorError, "%s needs a mode specified", "SRS");
 	  return false;
 	}
     }
   else
     isUALSyntax = false;
 
-  const Value *im = exprBuildAndEval (ValueInt);
+  const Value *im = Expr_BuildAndEval (ValueInt);
   if (im->Tag != ValueInt)
     {
-      error (ErrorError, "Illegal immediate expression");
+      Error (ErrorError, "Illegal immediate expression");
       return false;
     }
   int mode = im->Data.Int.i;
   if (!Option_IsValidARMMode (mode))
     {
-      error (ErrorWarning, "Mode 0x%x is not a valid ARM mode", mode);
+      Error (ErrorWarning, "Mode 0x%x is not a valid ARM mode", mode);
       mode &= 0x1F;
     }
 
   if (!isUALSyntax)
     {
-      skipblanks ();
+      Input_SkipWS ();
       updateStack = Input_Match ('!', false);
     }
 

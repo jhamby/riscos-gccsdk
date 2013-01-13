@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,13 +40,8 @@
 #include "expr.h"
 #include "eval.h"
 #include "filestack.h"
-#include "fix.h"
-#include "get.h"
 #include "global.h"
-#include "input.h"
-#include "lex.h"
 #include "main.h"
-#include "option.h"
 #include "output.h"
 #include "phase.h"
 #include "reloc.h"
@@ -61,7 +56,7 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
 
   Reloc *newReloc;
   if ((newReloc = malloc (sizeof (Reloc))) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   newReloc->next = areaCurrentSymbol->area->relocs;
   newReloc->reloc.Offset = offset;
   newReloc->reloc.How = how;
@@ -81,12 +76,12 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
 /**
  * \return The number of relocations associated with given area.
  */
-int
-relocFix (const Symbol *area)
+unsigned
+Reloc_GetNumberRelocs (const Symbol *area)
 {
   /* Calculate the number of relocations, i.e. per Reloc object, count all
      ValueSymbols.  */
-  int norelocs = 0;
+  unsigned norelocs = 0;
   for (const Reloc *relocs = area->area->relocs;
        relocs != NULL;
        relocs = relocs->next)
@@ -113,7 +108,7 @@ assert (0); /* FIXME: this code can be removed.  */
 
 
 void
-relocAOFOutput (FILE *outfile, const Symbol *area)
+Reloc_AOFOutput (FILE *outfile, const Symbol *area)
 {
   for (const Reloc *relocs = area->area->relocs; relocs != NULL; relocs = relocs->next)
     {
@@ -167,7 +162,7 @@ assert (0); /* FIXME: this code can be removed.  */
 
 #ifndef NO_ELF_SUPPORT
 void
-relocELFOutput (FILE *outfile, const Symbol *area)
+Reloc_ELFOutput (FILE *outfile, const Symbol *area)
 {
   for (const Reloc *relocs = area->area->relocs; relocs != NULL; relocs = relocs->next)
     {

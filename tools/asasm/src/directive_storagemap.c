@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -57,12 +57,12 @@ StorageMap_Value (void)
 bool
 c_record (void)
 {
-  const Value *value = exprBuildAndEval (ValueInt | ValueAddr | ValueSymbol | ValueCode);
+  const Value *value = Expr_BuildAndEval (ValueInt | ValueAddr | ValueSymbol | ValueCode);
   switch (value->Tag)
     {
       case ValueInt:
 	{
-	  const Value src = Input_Match (',', true) ? Value_Addr ((int)getCpuReg (), value->Data.Int.i) : Value_Int (value->Data.Int.i, eIntType_PureInt); 
+	  const Value src = Input_Match (',', true) ? Value_Addr (Get_CPUReg (), value->Data.Int.i) : Value_Int (value->Data.Int.i, eIntType_PureInt); 
 	  Value_Assign (&oStorageMapValue, &src);
 	  break;
 	}
@@ -77,7 +77,7 @@ c_record (void)
 	{
 	  const Value src = Value_Int (0, eIntType_PureInt);
 	  Value_Assign (&oStorageMapValue, &src);
-	  error (ErrorError, "^ cannot evaluate its offset expression");
+	  Error (ErrorError, "^ cannot evaluate its offset expression");
 	  break;
 	}
     }
@@ -105,20 +105,20 @@ c_alloc (const Lex *lex)
 	break;
 
       case LexLocalLabel:
-	error (ErrorError, "Local label is not allowed here");
+	Error (ErrorError, "Local label is not allowed here");
 	return false;
     }
 
   /* Determine how much we should allocate.  */
-  const Value *value = exprBuildAndEval (ValueInt);
+  const Value *value = Expr_BuildAndEval (ValueInt);
   switch (value->Tag)
     {
       case ValueInt:
-	codeInit ();
-	codeValue (StorageMap_Value (), true);
-	codeValue (value, true);
-	codeOperator (eOp_Add);
-        value = codeEval (ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL);
+	Code_Init ();
+	Code_Value (StorageMap_Value (), true);
+	Code_Value (value, true);
+	Code_Operator (eOp_Add);
+        value = Code_Eval (ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL);
 	if (value->Tag != ValueIllegal)
 	  {
 	    Value_Assign (&oStorageMapValue, value);
@@ -127,7 +127,7 @@ c_alloc (const Lex *lex)
 	/* Fall through.  */
 	
       default:
-        error (ErrorError, "Illegal expression after # or FIELD");
+        Error (ErrorError, "Illegal expression after # or FIELD");
         break;
     }
 

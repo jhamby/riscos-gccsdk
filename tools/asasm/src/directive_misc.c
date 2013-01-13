@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ c_idfn (void)
 {
   free ((void *)idfn_text);
   if ((idfn_text = strdup (Input_Rest ())) == NULL)
-    errorOutOfMem();
+    Error_OutOfMem ();
   return false;
 }
 
@@ -57,18 +57,18 @@ c_assert (void)
      only check its result in the second pass.  During the first pass we can
      have local forward references which need to be solved at the end of the
      first pass.  */
-  const Value *value = exprBuildAndEval (ValueBool);
+  const Value *value = Expr_BuildAndEval (ValueBool);
   if (gPhase != ePassOne)
     {
       switch (value->Tag)
 	{
 	  case ValueBool:
 	    if (!value->Data.Bool.b)
-	      error (ErrorError, "Assertion failed");
+	      Error (ErrorError, "Assertion failed");
 	    break;
 
 	  default:
-	    error (ErrorError, "ASSERT expression must be boolean");
+	    Error (ErrorError, "ASSERT expression must be boolean");
 	    break;
 	}
     }
@@ -88,26 +88,26 @@ c_assert (void)
 bool
 c_info (void)
 {
-  const Value *value = exprBuildAndEval (ValueInt | ValueFloat);
+  const Value *value = Expr_BuildAndEval (ValueInt | ValueFloat);
   if (value->Tag != ValueInt && value->Tag != ValueFloat)
     {
-      error (ErrorError, "INFO expression must be arithmetic");
+      Error (ErrorError, "INFO expression must be arithmetic");
       return false;
     }
   bool giveErr = (value->Tag == ValueInt && value->Data.Int.i != 0)
 		   || (value->Tag == ValueFloat && fabs (value->Data.Float.f) >= 0.00001);
 
-  skipblanks();
+  Input_SkipWS ();
   if (!Input_Match (',', false))
     {
-      error (ErrorError, "Missing , in INFO directive");
+      Error (ErrorError, "Missing , in INFO directive");
       return false;
     }
 
-  const Value *message = exprBuildAndEval (ValueString);
+  const Value *message = Expr_BuildAndEval (ValueString);
   if (message->Tag != ValueString)
     {
-      error (ErrorError, "INFO message must be a string");
+      Error (ErrorError, "INFO message must be a string");
       return false;
     }
 
@@ -115,7 +115,7 @@ c_info (void)
   if (gPhase == ePassOne)
     {
       if (giveErr)
-	error (ErrorError, "%.*s", (int)message->Data.String.len, message->Data.String.s);
+	Error (ErrorError, "%.*s", (int)message->Data.String.len, message->Data.String.s);
       else
 	printf ("%.*s\n", (int)message->Data.String.len, message->Data.String.s);
     }
@@ -142,7 +142,7 @@ c_aof (void)
   /* Not supported in AAsm compatibility mode.  */
   if (option_abs)
     return true;
-  error (ErrorError, "Directive %s to select output format is not supported.  Use command line option instead.", "AOF");
+  Error (ErrorError, "Directive %s to select output format is not supported.  Use command line option instead.", "AOF");
   return false;
 }
 
@@ -156,6 +156,6 @@ c_aout (void)
   /* Not supported in AAsm compatibility mode.  */
   if (option_abs)
     return true;
-  error (ErrorError, "Directive %s to select output format is not supported.", "AOUT");
+  Error (ErrorError, "Directive %s to select output format is not supported.", "AOUT");
   return false;
 }

@@ -94,7 +94,7 @@ FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
 #endif
 
   if (gCurPObjP == &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
-    errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
+    Error_Abort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
   assert (gCurPObjP != NULL);
 
   gCurPObjP[1].type = POType_eMacro;
@@ -138,12 +138,12 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
 	  const char *lblP = label->tag == LexId ? label->Data.Id.str : label->Data.LocalLabel.str;
 	  size_t lblSize = label->tag == LexId ? label->Data.Id.len : label->Data.LocalLabel.len;
 	  if ((args[marg++] = strndup (lblP, lblSize)) == NULL)
-	    errorOutOfMem();
+	    Error_OutOfMem ();
 	}
       else
 	{
-	  error (ErrorWarning, "Label argument is ignored by macro %s", m->name);
-	  errorLine (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
+	  Error (ErrorWarning, "Label argument is ignored by macro %s", m->name);
+	  Error_Line (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
 	}
     }
   else if (m->labelArg)
@@ -156,19 +156,19 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
       /* Macro suffix given.  */
       assert (m->suffixArg);
       if ((args[marg++] = strndup (&macroName[m->nameLen], macroNameLen - m->nameLen)) == NULL)
-	errorOutOfMem ();
+	Error_OutOfMem ();
     }
   else if (m->suffixArg)
     args[marg++] = NULL; /* No macro suffix given.  */
   
-  skipblanks ();
+  Input_SkipWS ();
   bool tryEmptyParam = false;
   while (tryEmptyParam || !Input_IsEolOrCommentStart ())
     {
       if (marg == m->numArgs)
 	{
-	  error (ErrorError, "Too many macro arguments");
-	  errorLine (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
+	  Error (ErrorError, "Too many macro arguments");
+	  Error_Line (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
 	  return false;
 	}
       const char *arg;
@@ -181,7 +181,7 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
       else
 	{
 	  /* Unquoted argument.  */
-	  arg = inputSymbol (&len, ',');
+	  arg = Input_Symbol2 (&len, ',');
 	  /* Discard comment start.  */
 	  for (size_t i = 0; i != len; ++i)
 	    if (arg[i] == ';')
@@ -193,7 +193,7 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
 	  while (len != 0 && isspace ((unsigned char)arg[len - 1]))
 	    len--;
 	  if ((arg = strndup (arg, len)) == NULL)
-	    errorOutOfMem();
+	    Error_OutOfMem ();
 	}
       if (len == 1 && arg[0] == '|')
 	{
@@ -202,7 +202,7 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
 	  arg = strdup (m->defArgs[marg]);
 	}
       args[marg++] = arg;
-      skipblanks ();
+      Input_SkipWS ();
       if (!Input_Match (',', true))
 	break;
       /* Following deals with terminating "," character.  */
@@ -213,7 +213,7 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
     args[marg] = NULL;
 
 #ifdef DEBUG_MACRO
-  printf ("Macro call = %s\n", inputLine ());
+  printf ("Macro call = %s\n", Input_Line ());
   for (int i = 0; i != MACRO_ARG_LIMIT; ++i)
     printf ("  Arg %i = <%s>\n", i, args[i] ? args[i] : "NULL");
 #endif
@@ -250,7 +250,7 @@ Macro_GetLine (char *bufP, size_t bufSize)
 	    {
 	      size_t argLen = strlen (argP);
 	      if (bufEndP < bufP + argLen)
-		errorAbort ("Line too long");
+		Error_Abort ("Line too long");
 	      memcpy (bufP, argP, argLen);
 	      bufP += argLen;
 	    }
@@ -312,10 +312,10 @@ Macro_Find (const char *name, size_t len, bool addSfxWildcard)
 static MKeyword_e
 Macro_GetKeyword (void)
 {
-  if (!isspace ((unsigned char)inputLook ()))
+  if (!isspace ((unsigned char)Input_Look ()))
     return eMKeyword_AnythingElse;
 
-  skipblanks ();
+  Input_SkipWS ();
   /* We only need to check for "MEND" and the end of keyword (i.e. a space,
      start comment character (';') or EOL).  Upon return from Macro_Call()
      in decode(), decode_finalcheck() will deal with the rest of the line
@@ -341,7 +341,7 @@ AddMacroArg (Macro *macro, const char *arg, size_t argLen, const char *defValue)
 {
   assert (macro->numArgs < MACRO_ARG_LIMIT);
   if ((macro->args[macro->numArgs] = strndup (arg, argLen)) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   macro->defArgs[macro->numArgs] = defValue;
   macro->numArgs++;
 }
@@ -364,47 +364,47 @@ c_macro (void)
   if (gPhase == ePassTwo)
     goto lookforMEND;
 
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_IsEolOrCommentStart ())
-    error (ErrorError, "Spurious characters following MACRO");
+    Error (ErrorError, "Spurious characters following MACRO");
 
   /* Process macro prototype statement (= optional label, macro name,
      optionally a suffix and followed by zero or more macro parameters
      separated by a comma).  */
 
   if (!Input_NextLine (eNoVarSubst))
-    errorAbort ("End of file found within macro definition");
+    Error_Abort ("End of file found within macro definition");
 
   /* Read optional '$' + label name.  */
   if (Input_Match ('$', false))
     {
       size_t lblLen;
-      const char *lbl = inputSymbol (&lblLen, '\0');
+      const char *lbl = Input_Symbol2 (&lblLen, '\0');
       if (lblLen)
 	{
 	  m.labelArg = true;
 	  AddMacroArg (&m, lbl, lblLen, NULL);
 	}
     }
-  else if (!isspace ((unsigned char)inputLook ()))
+  else if (!isspace ((unsigned char)Input_Look ()))
     {
-      error (ErrorError, "Illegal parameter start in macro definition");
+      Error (ErrorError, "Illegal parameter start in macro definition");
       goto lookforMEND;
     }
-  skipblanks ();
+  Input_SkipWS ();
 
   /* Read macro name.  */
   size_t macroNameLen;
   const char *macroName;
   if ((macroName = Input_Symbol (&macroNameLen)) == NULL)
-    errorAbort ("Missing macro name");
+    Error_Abort ("Missing macro name");
   if (Input_Match ('$', false))
     {
       const char *suffix;
       size_t suffixLen;
       if ((suffix = Input_Symbol (&suffixLen)) == NULL)
 	{
-	  error (ErrorError, "Missing macro name suffix");
+	  Error (ErrorError, "Missing macro name suffix");
 	  goto lookforMEND;
 	}
       m.suffixArg = true;
@@ -421,22 +421,22 @@ c_macro (void)
          (possibly via a macro suffix).  */
       if (prevDefMacro->nameLen == macroNameLen && prevDefMacro->suffixArg == m.suffixArg)
 	{
-	  error (ErrorError, "Macro '%.*s' is already defined", (int)macroNameLen, macroName);
-	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+	  Error (ErrorError, "Macro '%.*s' is already defined", (int)macroNameLen, macroName);
+	  Error_Line (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
 		     "note: Previous macro definition '%s' was here", prevDefMacro->name);
 	}
       else if (prevDefMacro->nameLen <= macroNameLen && prevDefMacro->suffixArg)
 	{
-	  error (ErrorError, "Macro definition '%.*s' is eclipsed by macro definition '%s' with suffix $%s",
+	  Error (ErrorError, "Macro definition '%.*s' is eclipsed by macro definition '%s' with suffix $%s",
 		 (int)macroNameLen, macroName, prevDefMacro->name, prevDefMacro->args[prevDefMacro->labelArg ? 1 : 0]);
-	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+	  Error_Line (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
 		     "note: Macro definition '%s' was here", prevDefMacro->name);
 	}
       else if (macroNameLen <= prevDefMacro->nameLen && m.suffixArg)
 	{
-	  error (ErrorError, "Macro definition '%.*s' with suffix $%s eclipses macro definition '%s'",
+	  Error (ErrorError, "Macro definition '%.*s' with suffix $%s eclipses macro definition '%s'",
 		 (int)macroNameLen, macroName, m.args[m.labelArg ? 1 : 0], prevDefMacro->name);
-	  errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+	  Error_Line (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
 		     "note: Macro definition '%s' was here", prevDefMacro->name);
 	}
       else
@@ -444,21 +444,21 @@ c_macro (void)
       goto lookforMEND;
     }
   if ((m.name = strndup (macroName, macroNameLen)) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   m.nameLen = macroNameLen;
-  skipblanks ();
+  Input_SkipWS ();
 
   /* Read zero or more macro parameters.  */
   while (!Input_IsEolOrCommentStart ())
     {
       if (m.numArgs == MACRO_ARG_LIMIT)
 	{
-	  error (ErrorError, "Too many arguments in macro definition");
+	  Error (ErrorError, "Too many arguments in macro definition");
 	  break;
 	}
       if (!Input_Match ('$', false))
 	{
-	  error (ErrorError, "Illegal parameter start in macro definition");
+	  Error (ErrorError, "Illegal parameter start in macro definition");
 	  break;
 	}
       const char *arg;
@@ -466,12 +466,12 @@ c_macro (void)
       arg = Input_Symbol (&argLen);
       if (arg == NULL)
 	{
-	  error (ErrorError, "Failed to parse macro parameter");
+	  Error (ErrorError, "Failed to parse macro parameter");
 	  break;
 	}
       if ((m.args[m.numArgs] = strndup (arg, argLen)) == NULL)
-	errorOutOfMem ();
-      skipblanks ();
+	Error_OutOfMem ();
+      Input_SkipWS ();
       const char *defValue;
       if (Input_Match ('=', false))
 	{
@@ -482,16 +482,16 @@ c_macro (void)
 	    {
 	      size_t defValueLen;
 	      defValue = Input_GetString (&defValueLen);
-	      skipblanks ();
+	      Input_SkipWS ();
 	    }
 	  else
 	    {
 	      /* We do NOT skip spaces, nor do we remove the spaces before
 	         the next comma found.  */
 	      size_t defValueLen;
-	      const char *defValueRaw = inputSymbol (&defValueLen, ',');
+	      const char *defValueRaw = Input_Symbol2 (&defValueLen, ',');
 	      if ((defValue = strndup (defValueRaw, defValueLen)) == NULL)
-		errorOutOfMem ();
+		Error_OutOfMem ();
 	    }
 	}
       else
@@ -501,13 +501,13 @@ c_macro (void)
       if (!Input_Match (',', true))
 	break;
     }
-  decode_finalcheck ();
+  Decode_FinalCheck ();
 
   /* Process the macro body.  */
   m.startLineNum = FS_GetCurLineNumber ();
   size_t bufptr = 0, buflen = 128;
   if ((buf = malloc (buflen)) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   do
     {
       if (!Input_NextLine (eNoVarSubst))
@@ -523,7 +523,7 @@ c_macro (void)
 
 	  case eMKeyword_MACRO:
 	    /* Nested MACRO construction, that's not allowed.  */
-	    error (ErrorError, "Macro definitions cannot be nested");
+	    Error (ErrorError, "Macro definitions cannot be nested");
 	    /* Fall through.  */
 
 	  case eMKeyword_AnythingElse:
@@ -536,7 +536,7 @@ c_macro (void)
       bool vbar = false; /* true when there is an unmatched | character.  */
       while (1)
 	{
-	  char c = inputGet ();
+	  char c = Input_GetC ();
 	  if (c == '|')
 	    vbar ^= true;
 	  else if (c == '$' && !vbar)
@@ -547,9 +547,9 @@ c_macro (void)
 		  /* Token ? Check list and substitute.  */
 		  bool vbar_symbol = Input_Match ('|', false);
 		  size_t tokenLen;
-		  const char *token = inputSymbol (&tokenLen, '\0');
+		  const char *token = Input_Symbol2 (&tokenLen, '\0');
 		  if (vbar_symbol && !Input_Match ('|', false))
-		    error (ErrorError, "Missing vertical bar");
+		    Error (ErrorError, "Missing vertical bar");
 		  (void) Input_Match ('.', false);
 		  int i;
 		  for (i = 0;
@@ -567,7 +567,7 @@ c_macro (void)
 	    {
 	      char *tmp;
 	      if ((tmp = realloc (buf, buflen += 1024)) == NULL)
-		errorOutOfMem ();
+		Error_OutOfMem ();
 	      buf = tmp;
 	    }
 	  if (c == '\0')
@@ -584,7 +584,7 @@ c_macro (void)
 
   Macro *p;
   if ((p = malloc (sizeof (Macro))) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   *p = m;
   p->next = macroList;
   macroList = p;
@@ -597,7 +597,7 @@ lookforMEND:
       if (!Input_NextLine (eNoVarSubst))
 	{
 noMEND:
-	  errorAbort ("End of file found while looking for MEND");
+	  Error_Abort ("End of file found while looking for MEND");
 	  break;
 	}
     }
@@ -618,7 +618,7 @@ bool
 c_mexit (void)
 {
   if (gCurPObjP->type != POType_eMacro)
-    error (ErrorError, "MEXIT found outside a macro");
+    Error (ErrorError, "MEXIT found outside a macro");
   else
     FS_PopPObject (true);
   return false;
@@ -631,6 +631,6 @@ c_mexit (void)
 bool
 c_mend (void)
 {
-  error (ErrorError, "MEND found outside a macro");
+  Error (ErrorError, "MEND found outside a macro");
   return false;
 }

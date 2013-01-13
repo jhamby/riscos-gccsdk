@@ -70,7 +70,7 @@ bool
 c_align (void)
 {
   /* Determine alignment value.  */
-  skipblanks ();
+  Input_SkipWS ();
   bool alignValueProvided = false;
   uint32_t alignValue;
   if (Input_IsEolOrCommentStart ())
@@ -79,23 +79,23 @@ c_align (void)
   else
     {
       /* Determine align value */
-      const Value *valueA = exprBuildAndEval (ValueInt);
+      const Value *valueA = Expr_BuildAndEval (ValueInt);
       if (valueA->Tag == ValueInt && valueA->Data.Int.type == eIntType_PureInt)
 	{
 	  alignValue = valueA->Data.Int.i;
 	  if (alignValue != 0 && (alignValue & (alignValue - 1)) == 0)
 	    alignValueProvided = true;
 	  else
-	    error (ErrorError, "ALIGN value is not a power of two");
+	    Error (ErrorError, "ALIGN value is not a power of two");
 	}
       else
-	error (ErrorError, "Unrecognized ALIGN value");
+	Error (ErrorError, "Unrecognized ALIGN value");
     }
   if (!alignValueProvided)
     alignValue = 1<<2;
 
   /* Determine offset value.  */
-  skipblanks ();
+  Input_SkipWS ();
   bool offsetValueProvided = false;
   uint32_t offsetValue;
   if (Input_IsEolOrCommentStart ())
@@ -103,22 +103,22 @@ c_align (void)
     }
   else if (Input_Match (',', false))
     {
-      const Value *valueO = exprBuildAndEval (ValueInt);
+      const Value *valueO = Expr_BuildAndEval (ValueInt);
       if (valueO->Tag == ValueInt && valueO->Data.Int.type == eIntType_PureInt)
 	{
 	  offsetValue = ((uint32_t)valueO->Data.Int.i) % alignValue;
 	  offsetValueProvided = true;
 	}
       else
-	error (ErrorError, "Unrecognized ALIGN offset value");
+	Error (ErrorError, "Unrecognized ALIGN offset value");
     }
   else
-    error (ErrorError, "Unrecognized ALIGN offset value");
+    Error (ErrorError, "Unrecognized ALIGN offset value");
   if (!offsetValueProvided)
     offsetValue = 0;
 
   /* Determine fill value.  */
-  skipblanks ();
+  Input_SkipWS ();
   bool fillValueProvided = false;
   uint32_t fillValue;
   if (Input_IsEolOrCommentStart ())
@@ -126,22 +126,22 @@ c_align (void)
     }
   else if (Input_Match (',', false))
     {
-      const Value *valueF = exprBuildAndEval (ValueInt);
+      const Value *valueF = Expr_BuildAndEval (ValueInt);
       if (valueF->Tag == ValueInt && valueF->Data.Int.type == eIntType_PureInt)
 	{
 	  fillValue = (uint32_t)valueF->Data.Int.i;
 	  fillValueProvided = true;
 	}
       else
-	error (ErrorError, "Unrecognized ALIGN fill value");
+	Error (ErrorError, "Unrecognized ALIGN fill value");
     }
   else
-    error (ErrorError, "Unrecognized ALIGN fill value");
+    Error (ErrorError, "Unrecognized ALIGN fill value");
   if (!fillValueProvided)
     fillValue = 0;
 
   /* Determine fill value size.  */
-  skipblanks ();
+  Input_SkipWS ();
   bool fillValueSizeProvided = false;
   uint32_t fillValueSize;
   if (Input_IsEolOrCommentStart ())
@@ -149,27 +149,27 @@ c_align (void)
     }
   else if (Input_Match (',', false))
     {
-      const Value *valueS = exprBuildAndEval (ValueInt);
+      const Value *valueS = Expr_BuildAndEval (ValueInt);
       if (valueS->Tag == ValueInt && valueS->Data.Int.type == eIntType_PureInt)
 	{
 	  fillValueSize = valueS->Data.Int.i;
 	  if (fillValueSize == 1 || fillValueSize == 2 || fillValueSize == 4)
 	    fillValueSizeProvided = true;
 	  else
-	    error (ErrorError, "ALIGN value size needs to be 1, 2 or 4");
+	    Error (ErrorError, "ALIGN value size needs to be 1, 2 or 4");
 	}
       else
-	error (ErrorError, "Unrecognized ALIGN value size");
+	Error (ErrorError, "Unrecognized ALIGN value size");
     }
   else
-    error (ErrorError, "Unrecognized ALIGN value size");
+    Error (ErrorError, "Unrecognized ALIGN value size");
   if (!fillValueSizeProvided)
     fillValueSize = GetDefaultAlignValueSize ();
 
   /* Check if given fill value requires more bits than specified (or implied)
      fill value size.  */
   if (Fix_CheckForOverflow (fillValueSize, fillValue))
-    error (ErrorWarning, "Size value %" PRId32 " (= 0x%" PRIx32 ") exceeds %d byte%s",
+    Error (ErrorWarning, "Size value %" PRId32 " (= 0x%" PRIx32 ") exceeds %d byte%s",
            (int32_t)fillValue, (int32_t)fillValue, fillValueSize, fillValueSize == 1 ? "" : "s");
 
   /* We have to align on n x alignValue + offsetValue.  */
@@ -392,7 +392,7 @@ DefineInt_HandleSymbols (int size, bool allowUnaligned, bool swapHalfwords,
 	}
       assert (!relocs && !relative);
     }
-  armValue = Fix_Int (NULL, 0, size, armValue);
+  armValue = Fix_Int (size, armValue);
   if (size == 4 && swapHalfwords)
     armValue = (armValue >> 16) | (armValue << 16);
   Put_AlignDataWithOffset (offset, size, armValue, 1, !allowUnaligned);
@@ -432,7 +432,7 @@ DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemon
   do
     {
       const uint32_t offset = areaCurrentSymbol->area->curIdx;
-      const Value *valP = exprBuildAndEval (allowedTypes);
+      const Value *valP = Expr_BuildAndEval (allowedTypes);
 
       bool failed = false;
       switch (valP->Tag)
@@ -443,7 +443,7 @@ DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemon
 	      size_t len = valP->Data.String.len;
 	      if (size != 1 && len != 1)
 		{
-		  error (ErrorError, "Non 1 byte storage can only accept 1 byte long strings");
+		  Error (ErrorError, "Non 1 byte storage can only accept 1 byte long strings");
 		  Put_AlignDataWithOffset (offset, size, 0, 1, !allowUnaligned);
 		}
 	      else
@@ -459,7 +459,7 @@ DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemon
 	  case ValueInt:
 	    {
 	      assert (size == 1 || size == 2 || size == 4 || size == 8);
-	      ARMWord armValue = size != 8 ? Fix_Int (NULL, 0, size, valP->Data.Int.i) : (ARMWord)valP->Data.Int.i;
+	      ARMWord armValue = size != 8 ? Fix_Int (size, valP->Data.Int.i) : (ARMWord)valP->Data.Int.i;
 	      if (size == 4 && swapHalfwords)
 		armValue = (armValue >> 16) | (armValue << 16);
 	      Put_AlignDataWithOffset (offset, size, armValue,
@@ -508,11 +508,11 @@ DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemon
       if (failed)
 	{
 	  if (gPhase != ePassOne)
-	    error (ErrorError, "Illegal %s expression", mnemonic);
+	    Error (ErrorError, "Illegal %s expression", mnemonic);
 	  Put_AlignDataWithOffset (offset, size, 0, 1, !allowUnaligned);
 	}
 
-      skipblanks ();
+      Input_SkipWS ();
     }
   while (Input_Match (',', false));
 }
@@ -634,7 +634,7 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 {
   if (Target_GetFPUFeatures () == kArchFPUExt_None)
     {
-      error (ErrorError, "No FPU selected");
+      Error (ErrorError, "No FPU selected");
       return;
     }
 
@@ -644,7 +644,7 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 
       /* FIXME? Support for ValueInt, ValueInt64 ? */
       /* FIXME: relocation support for float values ? */
-      const Value *valP = exprBuildAndEval (ValueFloat);
+      const Value *valP = Expr_BuildAndEval (ValueFloat);
       switch (valP->Tag)
 	{
 	  case ValueFloat:
@@ -653,12 +653,12 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 
 	  default:
 	    if (gPhase != ePassOne)
-	      error (ErrorError, "Illegal %s expression", mnemonic);
+	      Error (ErrorError, "Illegal %s expression", mnemonic);
 	    Put_FloatDataWithOffset (offset, size, 0., !allowUnaligned);
 	    break;
 	}
 
-      skipblanks ();
+      Input_SkipWS ();
     }
   while (Input_Match (',', false));
 }
@@ -717,10 +717,10 @@ c_dcfd (bool doLowerCase)
 static void
 ReserveSpace (bool isFill)
 {
-  const Value *valueTimesP = exprBuildAndEval (ValueInt);
+  const Value *valueTimesP = Expr_BuildAndEval (ValueInt);
   if (valueTimesP->Tag != ValueInt)
     {
-      error (ErrorError, "Unresolved reserve not possible");
+      Error (ErrorError, "Unresolved reserve not possible");
       return;
     }
   uint32_t times = (uint32_t)valueTimesP->Data.Int.i;
@@ -732,10 +732,10 @@ ReserveSpace (bool isFill)
       /* Check for <value> presence.  */
       if (Input_Match (',', false))
 	{
-	  const Value *valueValueP = exprBuildAndEval (ValueInt);
+	  const Value *valueValueP = Expr_BuildAndEval (ValueInt);
 	  if (valueValueP->Tag != ValueInt)
 	    {
-	      error (ErrorError, "Unresolved reserve value not possible");
+	      Error (ErrorError, "Unresolved reserve value not possible");
 	      return;
 	    }
 	  value = (ARMWord)valueValueP->Data.Int.i;
@@ -743,16 +743,16 @@ ReserveSpace (bool isFill)
 	  /* Check for <valuesize> presence.  */
 	  if (Input_Match (',', false))
 	    {
-	      const Value *valueSizeP = exprBuildAndEval (ValueInt);
+	      const Value *valueSizeP = Expr_BuildAndEval (ValueInt);
 	      if (valueSizeP->Tag != ValueInt)
 		{
-		  error (ErrorError, "Unresolved reserve value size not possible");
+		  Error (ErrorError, "Unresolved reserve value size not possible");
 		  return;
 		}
 	      valueSize = (unsigned)valueSizeP->Data.Int.i;
 	      if (valueSize != 1 && valueSize != 2 && valueSize != 4)
 		{
-		  error (ErrorError, "Reserve value size can only be 1, 2 or 4");
+		  Error (ErrorError, "Reserve value size can only be 1, 2 or 4");
 		  return;
 		}
 	    }
@@ -760,7 +760,7 @@ ReserveSpace (bool isFill)
     }
   
   if ((int32_t)times < 0)
-    error (ErrorWarning, "Reserve space value is considered unsigned, i.e. reserving %u bytes now\n", times);
+    Error (ErrorWarning, "Reserve space value is considered unsigned, i.e. reserving %u bytes now\n", times);
 
   Put_AlignDataWithOffset (areaCurrentSymbol->area->curIdx, valueSize,
 			   value, times, false);

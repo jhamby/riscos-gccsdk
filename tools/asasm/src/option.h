@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,23 +27,23 @@
 
 #include "global.h"
 
-ARMWord optionCond (bool doLowerCase);
-ARMWord optionCondS (bool doLowerCase);
+ARMWord Option_Cond (bool doLowerCase);
+ARMWord Option_CondS (bool doLowerCase);
 ARMWord Option_SCond (bool doLowerCase);
 ARMWord Option_CondSP (bool doLowerCase);
 ARMWord Option_CondB (bool doLowerCase);
 ARMWord Option_LdrStrCondAndType (bool isStore, bool doLowerCase);
 ARMWord Option_CondRfeSrs (bool isLoad, bool doLowerCase);
-ARMWord optionCondLdmStm (bool isLDM, bool doLowerCase);
-ARMWord optionCondLfmSfm (bool doLowerCase);
-ARMWord optionCondPrecRound (bool doLowerCase);
-ARMWord optionCondPrec_P (bool doLowerCase);
-ARMWord optionCondL (bool doLowerCase);
+ARMWord Option_CondLdmStm (bool isLDM, bool doLowerCase);
+ARMWord Option_CondLfmSfm (bool doLowerCase);
+ARMWord Option_CondPrecRound (bool doLowerCase);
+ARMWord Option_CondPrec_P (bool doLowerCase);
+ARMWord Option_CondL (bool doLowerCase);
 
-ARMWord optionCondOptRound (bool doLowerCase);
-ARMWord optionLinkCond (bool doLowerCase);
-ARMWord optionExceptionCond (bool doLowerCase);
-ARMWord optionAdrL (bool doLowerCase);
+ARMWord Option_CondOptRound (bool doLowerCase);
+ARMWord Option_LinkCond (bool doLowerCase);
+ARMWord Option_ExceptionCond (bool doLowerCase);
+ARMWord Option_ADRL (bool doLowerCase);
 
 ARMWord Option_GetCCodeIfThere (bool doLowerCase);
 

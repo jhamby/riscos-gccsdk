@@ -94,7 +94,7 @@ typedef struct
       struct			/* ValueAddr, represents address in the form of "[<r>, #<i>]" */
         {
 	  int i;		/* Must start identical with ValueInt's i & ValueStrings's len.  */
-          int r;		/* When = 0 - 15 (inc), it is register based. -1 otherwise.  */
+          unsigned r;		/* When = 0 - 15 (inc), it is register based. INVALID_REG otherwise.  */
         } Addr;
       struct			/* ValueSymbol */
 	{
@@ -138,10 +138,21 @@ Value_Float (ARMFloat f)
   return value;
 }
 
+static inline Value
+Value_Bool (bool b)
+{
+  const Value value =
+    {
+      .Tag = ValueBool,
+      .Data.Bool.b = b
+    };
+  return value;
+}
+
 Value Value_Code (size_t len, const struct Code *code);
 
 static inline Value
-Value_Addr (int reg, int i)
+Value_Addr (unsigned reg, int i)
 {
   const Value value =
     {
@@ -163,11 +174,11 @@ Value_Symbol (struct Symbol *symbol, int factor, int offset)
 }
 
 void Value_Assign (Value *dst, const Value *src);
-void valueFree (Value *value);
+void Value_Free (Value *value);
 bool Value_ResolveSymbol (Value *valueP);
-bool valueEqual (const Value *a, const Value *b);
-const char *valueTagAsString (ValueTag tag);
+bool Value_Equal (const Value *a, const Value *b);
+const char *Value_TagAsString (ValueTag tag);
 #ifdef DEBUG
-void valuePrint (const Value *v);
+void Value_Print (const Value *v);
 #endif
 #endif

@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010-2012 GCCSDK Developers
+ * Copyright (c) 2010-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -695,13 +695,13 @@ Target_CheckCPUFeature (unsigned features, bool warn)
   if (warn && missingFeature)
     {
       if (oTarget_Device != NULL)
-	error (ErrorWarning, "Instruction is not supported on selected device %s (core %s, architecture %s)",
+	Error (ErrorWarning, "Instruction is not supported on selected device %s (core %s, architecture %s)",
 	       oTarget_Device->device, oTarget_CPU->cpu_arch, Target_GetArch (true));
       else if (oTarget_CPU->archP == NULL)
-	error (ErrorWarning, "Instruction is not supported on selected architecture %s",
+	Error (ErrorWarning, "Instruction is not supported on selected architecture %s",
 	       oTarget_CPU->cpu_arch);
       else
-	error (ErrorWarning, "Instruction is not supported on selected core %s (architecture %s)",
+	Error (ErrorWarning, "Instruction is not supported on selected core %s (architecture %s)",
 	       oTarget_CPU->cpu_arch, oTarget_CPU->archP->cpu_arch);
     }
   return !missingFeature;
@@ -721,7 +721,7 @@ Target_CheckFPUFeature (unsigned features, bool warn)
 {
   bool missingFeature = (oTarget_FPUFeatures & features) != features;
   if (warn && missingFeature)
-    error (ErrorWarning, "Instruction is not supported on selected FPU %s",
+    Error (ErrorWarning, "Instruction is not supported on selected FPU %s",
 	   oTarget_FPU->fpu);
   return !missingFeature;
 }

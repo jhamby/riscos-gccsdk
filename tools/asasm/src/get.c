@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,10 +41,10 @@
 #include "reloc.h"
 #include "symbol.h"
 
-static ARMWord
+static unsigned
 GetRegisterValue (bool genError, IntType_e type, const char *typeStr)
 {
-  const Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
+  const Lex lexSym = genError ? Lex_GetID () : Lex_GetIDNoError ();
   if (lexSym.tag == LexId)
     {
       const Symbol *sym = Symbol_Find (&lexSym);
@@ -54,46 +54,46 @@ GetRegisterValue (bool genError, IntType_e type, const char *typeStr)
 	      && sym->value.Data.Int.type == type)
 	    return sym->value.Data.Int.i;
 	  if (genError)
-	    error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
+	    Error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
 	}
       else if (genError)
-	error (ErrorError, "Undefined %s %.*s", typeStr,
+	Error (ErrorError, "Undefined %s %.*s", typeStr,
 	       (int)lexSym.Data.Id.len, lexSym.Data.Id.str);
     }
 
   return genError ? 0 : INVALID_REG;
 }
 
-ARMWord
-getCpuReg (void)
+unsigned
+Get_CPUReg (void)
 {
   return GetRegisterValue (true, eIntType_CPU, "CPU register");
 }
 
-ARMWord
+unsigned
 Get_CPURegNoError (void)
 {
   const char * const inputMark = Input_GetMark ();
-  ARMWord reg = GetRegisterValue (false, eIntType_CPU, "CPU register");
+  unsigned reg = GetRegisterValue (false, eIntType_CPU, "CPU register");
   if (reg == INVALID_REG)
     Input_RollBackToMark (inputMark);
   return reg;
 }
 
-ARMWord
-getFpuReg (void)
+unsigned
+Get_FPUReg (void)
 {
   return GetRegisterValue (true, eIntType_FPU, "FPU register");
 }
 
-ARMWord
-getCopReg (void)
+unsigned
+Get_CopReg (void)
 {
   return GetRegisterValue (true, eIntType_CoProReg, "coprocessor register");
 }
 
-ARMWord
-getCopNum (void)
+unsigned
+Get_CopNum (void)
 {
   return GetRegisterValue (true, eIntType_CoProNum, "coprocessor number");
 }
@@ -111,23 +111,23 @@ ARMWord
 Get_CPURList (void)
 {
   if (!Input_Match ('{', true))
-    error (ErrorError, "Missing '{' before reglist");
+    Error (ErrorError, "Missing '{' before reglist");
   ARMWord regList = 0;
   do
     {
-      ARMWord low = getCpuReg ();
-      skipblanks ();
-      ARMWord high;
-      switch (inputLook ())
+      unsigned low = Get_CPUReg ();
+      Input_SkipWS ();
+      unsigned high;
+      switch (Input_Look ())
 	{
 	  case '-':
-	    inputSkip ();
-	    high = getCpuReg ();
-	    skipblanks ();
+	    Input_Skip ();
+	    high = Get_CPUReg ();
+	    Input_SkipWS ();
 	    if (low > high)
 	      {
 		if (option_pedantic)
-		  error (ErrorInfo, "Register interval in wrong order r%d-r%d", low, high);
+		  Error (ErrorInfo, "Register interval in wrong order r%d-r%d", low, high);
 		ARMWord c = low;
 		low = high;
 		high = c;
@@ -140,19 +140,19 @@ Get_CPURList (void)
 	    break;
 
           default:
-	    error (ErrorError, "Illegal character '%c' in register list", inputLook ());
+	    Error (ErrorError, "Illegal character '%c' in register list", Input_Look ());
 	    high = 15;
 	    break;
         }
       if (option_pedantic && (1U << low) < regList)
-	error (ErrorInfo, "Registers in wrong order");
+	Error (ErrorInfo, "Registers in wrong order");
       if (((1U << (high + 1)) - (1U << low)) & regList)
-	error (ErrorInfo, "Register occurs more than once in register list");
+	Error (ErrorInfo, "Register occurs more than once in register list");
       regList |= (1U << (high + 1)) - (1U << low);
     }
   while (Input_Match (',', true));
   if (!Input_Match ('}', false))
-    error (ErrorError, "Inserting missing '}' after reglist");
+    Error (ErrorError, "Inserting missing '}' after reglist");
   return regList;
 }
 
@@ -161,13 +161,13 @@ static ARMWord
 getShiftOp (void)
 {
   ARMWord r = 0;
-  switch (inputLookLower ())
+  switch (Input_LookLower ())
     {
       case 'a': /* ASL, ASR */
 	{
-	  if (inputLookNLower (1) != 's')
+	  if (Input_LookNLower (1) != 's')
 	    goto illegal;
-	  switch (inputLookNLower (2))
+	  switch (Input_LookNLower (2))
 	    {
 	      case 'l':
 		r = ASL;
@@ -180,14 +180,14 @@ getShiftOp (void)
 	      default:
 		goto illegal;
 	    }
-	  inputSkipN (3);
+	  Input_SkipN (3);
 	  break;
 	}
       case 'l': /* LSL, LSR */
 	{
-	  if (inputLookNLower (1) != 's')
+	  if (Input_LookNLower (1) != 's')
 	    goto illegal;
-	  switch (inputLookNLower (2))
+	  switch (Input_LookNLower (2))
 	    {
 	      case 'l':
 		r = LSL;
@@ -200,21 +200,21 @@ getShiftOp (void)
 	      default:
 		goto illegal;
 	    }
-	  inputSkipN (3);
+	  Input_SkipN (3);
 	  break;
 	}
       case 'r': /* ROR, RRX */
 	{
-	  switch (inputLookNLower (1))
+	  switch (Input_LookNLower (1))
 	    {
 	      case 'o':
-		if (inputLookNLower (2) != 'r')
+		if (Input_LookNLower (2) != 'r')
 		  goto illegal;
 		r = ROR;
 		break;
 
 	      case 'r':
-		if (inputLookNLower (2) != 'x')
+		if (Input_LookNLower (2) != 'x')
 		  goto illegal;
 		r = RRX;
 		break;
@@ -222,13 +222,13 @@ getShiftOp (void)
 	      default:
 		goto illegal;
 	    }
-	  inputSkipN (3);
+	  Input_SkipN (3);
 	  break;
 	}
 
       default:
 illegal:
-	error (ErrorError, "Illegal shiftop %c%c%c", inputLook (), inputLookN (1), inputLookN (2));
+	Error (ErrorError, "Illegal shiftop %c%c%c", Input_Look (), Input_LookN (1), Input_LookN (2));
 	break;
     }
 
@@ -257,27 +257,27 @@ getShift (bool regshift)
     op = SHIFT_OP (shift);
   else
     {
-      skipblanks ();
+      Input_SkipWS ();
       if (Input_Match ('#', false))
 	{
-	  const Value *im = exprBuildAndEval (ValueInt);
+	  const Value *im = Expr_BuildAndEval (ValueInt);
 	  switch (im->Tag)
 	    {
 	      case ValueInt:
-		op = Fix_ShiftImm (NULL, 0, shift, im->Data.Int.i); /* !! Fixed !! */
+		op = Fix_ShiftImm (shift, im->Data.Int.i); /* !! Fixed !! */
 		break;
 
 	      default:
-		error (ErrorError, "Illegal shift expression");
+		Error (ErrorError, "Illegal shift expression");
 		break;
 	    }
 	}
       else
 	{
 	  if (regshift)
-	    op = SHIFT_REG (getCpuReg ()) | SHIFT_OP (shift);
+	    op = SHIFT_REG (Get_CPUReg ()) | SHIFT_OP (shift);
 	  else
-	    error (ErrorError, "Only shift immediate allowed here");
+	    Error (ErrorError, "Only shift immediate allowed here");
 	}
     }
 
@@ -302,23 +302,23 @@ getShift (bool regshift)
  *  11. <Rm>, RRX                (only when shift = true)
  */
 ARMWord
-getRhs (bool regshift, bool shift, ARMWord ir)
+Get_RHS (bool regshift, bool shift, ARMWord ir)
 {
   if (Input_Match ('#', false))
     {
       ir |= IMM_RHS;
-      const Value *im = exprBuildAndEval (ValueInt | ValueAddr | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
+      const Value *im = Expr_BuildAndEval (ValueInt | ValueAddr | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
       switch (im->Tag)
 	{
 	  case ValueAddr: /* This is for "MOV Rx, #@" support.  */
-	    ir = fixImm8s4 (0, ir, im->Data.Addr.i);
+	    ir = Fix_Imm8s4 (ir, im->Data.Addr.i);
 	    break;
 
 	  case ValueString:
 	    if (im->Data.String.len != 1)
-	      error (ErrorError, "String too long to be an immediate expression");
+	      Error (ErrorError, "String too long to be an immediate expression");
 	    else
-	      ir = fixImm8s4 (0, ir, (uint8_t)im->Data.String.s[0]);
+	      ir = Fix_Imm8s4 (ir, (uint8_t)im->Data.String.s[0]);
 	    break;
 
 	  case ValueInt:
@@ -328,10 +328,10 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 		if (Input_Match (',', false))
 		  {
 		    if (im->Data.Int.i < 0 || im->Data.Int.i >= 256)
-		      error (ErrorError, "Immediate value out of range: 0x%x", im->Data.Int.i);
+		      Error (ErrorError, "Immediate value out of range: 0x%x", im->Data.Int.i);
 
 		    uint32_t rotatorResult = 0;
-		    const Value *rotatorValue = exprBuildAndEval (ValueInt);
+		    const Value *rotatorValue = Expr_BuildAndEval (ValueInt);
 		    switch (rotatorValue->Tag)
 		      {
 			case ValueInt:
@@ -342,15 +342,15 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 			    }
 			  /* Fall through.  */
 			default:
-			  error (ErrorError, "Illegal immediate expression");
+			  Error (ErrorError, "Illegal immediate expression");
 			  break;
 		      }
 		    if (rotatorResult > 30 || (rotatorResult % 2) == 1)
-		      error (ErrorError, "Bad rotator %d", rotatorResult);
+		      Error (ErrorError, "Bad rotator %d", rotatorResult);
 
 		    ir |= (rotatorResult >> 1) << 8;
 		  }
-	        ir = fixImm8s4 (0, ir, imBase);
+	        ir = Fix_Imm8s4 (ir, imBase);
 	        break;
 	      }
 	    /* Fall through.  */
@@ -359,16 +359,16 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 	    /* During pass one, we discard any errors of the evaluation as it
 	       might contain unresolved symbols.  Wait until during pass two.  */
 	    if (gPhase != ePassOne)
-	      error (ErrorError, "Illegal immediate expression");
+	      Error (ErrorError, "Illegal immediate expression");
 	    break;
 	}
     }
   else
     {
-      ir |= getCpuReg ();
+      ir |= Get_CPUReg ();
       if (shift)
 	{
-	  skipblanks ();
+	  Input_SkipWS ();
 	  if (Input_Match (',', true))
 	    ir |= getShift (regshift);
 	  else

@@ -66,7 +66,7 @@ m_nop (bool doLowerCase)
   if (Target_CheckCPUFeature (kCPUExt_v6K, false)
       || Target_CheckCPUFeature (kCPUExt_v6T2, false))
     {
-      ARMWord cc = optionCond (doLowerCase);
+      ARMWord cc = Option_Cond (doLowerCase);
       if (cc == kOption_NotRecognized)
 	return true;
 
@@ -116,7 +116,7 @@ m_nop (bool doLowerCase)
 bool
 m_und (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -124,16 +124,16 @@ m_und (bool doLowerCase)
   if (instrWidth == eInstrWidth_Unrecognized)
     return true;
 
-  skipblanks ();
+  Input_SkipWS ();
   unsigned intValue;
   if (!Input_IsEolOrCommentStart ())
     {
       if (!Input_Match ('#', false))
-	error (ErrorError, "Missing #");
-      const Value *im = exprBuildAndEval (ValueInt);
+	Error (ErrorError, "Missing #");
+      const Value *im = Expr_BuildAndEval (ValueInt);
       if (im->Tag != ValueInt)
 	{
-	  error (ErrorError, "Failed to evaluate immediate constant");
+	  Error (ErrorError, "Failed to evaluate immediate constant");
 	  intValue = 0;
 	}
       else
@@ -156,7 +156,7 @@ m_und (bool doLowerCase)
     }
   if (intValue >= maxValue)
     {
-      error (ErrorError, "Expression value %u is too big to be encoded (max value is %u)",
+      Error (ErrorError, "Expression value %u is too big to be encoded (max value is %u)",
 	     intValue, maxValue - 1);
       intValue = maxValue - 1;
     }
@@ -182,17 +182,17 @@ m_und (bool doLowerCase)
 static bool
 dstlhsrhs (ARMWord ir)
 {
-  ARMWord op = getCpuReg ();
+  unsigned op = Get_CPUReg ();
   ir |= DST_OP (op);
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%sdst", InsertCommaAfter);
-  op = getCpuReg ();
+    Error (ErrorError, "%sdst", InsertCommaAfter);
+  op = Get_CPUReg ();
   ir |= LHS_OP (op);
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%slhs", InsertCommaAfter);
-  ir = getRhs (true, true, ir);
+    Error (ErrorError, "%slhs", InsertCommaAfter);
+  ir = Get_RHS (true, true, ir);
   Put_Ins (4, ir);
   return false;
 }
@@ -200,12 +200,12 @@ dstlhsrhs (ARMWord ir)
 static bool
 dstrhs (ARMWord ir)
 {
-  ARMWord op = getCpuReg ();
+  unsigned op = Get_CPUReg ();
   ir |= DST_OP (op);
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%sdst", InsertCommaAfter);
-  ir = getRhs (true, true, ir);
+    Error (ErrorError, "%sdst", InsertCommaAfter);
+  ir = Get_RHS (true, true, ir);
   Put_Ins (4, ir);
   return false;
 }
@@ -217,7 +217,7 @@ dstrhs (ARMWord ir)
 bool
 m_adc (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_ADC);
@@ -229,7 +229,7 @@ m_adc (bool doLowerCase)
 bool
 m_add (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_ADD);
@@ -241,7 +241,7 @@ m_add (bool doLowerCase)
 bool
 m_and (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_AND);
@@ -253,7 +253,7 @@ m_and (bool doLowerCase)
 bool
 m_bic (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_BIC);
@@ -265,7 +265,7 @@ m_bic (bool doLowerCase)
 bool
 m_eor (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_EOR);
@@ -280,29 +280,29 @@ m_eor (bool doLowerCase)
 static bool
 m_movw_movt_mov32 (bool doLowerCase, MOV_Type_e movType)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
-  ARMWord destReg = getCpuReg ();
-  skipblanks ();
+  unsigned destReg = Get_CPUReg ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
     {
-      error (ErrorError, "%sdst", InsertCommaAfter);
+      Error (ErrorError, "%sdst", InsertCommaAfter);
       return false;
     }
   if (!Input_Match ('#', false))
     {
-      error (ErrorError, "Missing immediate constant");
+      Error (ErrorError, "Missing immediate constant");
       return false;
     }
   uint32_t immValue = 0;
-  const Value *im = exprBuildAndEval (ValueInt | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
+  const Value *im = Expr_BuildAndEval (ValueInt | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
   switch (im->Tag)
     {
       case ValueString:
 	if (im->Data.String.len != 1)
-	  error (ErrorError, "String too long to be an immediate expression");
+	  Error (ErrorError, "String too long to be an immediate expression");
 	else
 	  immValue = (uint32_t)im->Data.String.s[0];
 	break;
@@ -319,7 +319,7 @@ m_movw_movt_mov32 (bool doLowerCase, MOV_Type_e movType)
 	/* During pass one, we discard any errors of the evaluation as it
 	   might contain unresolved symbols.  Wait until during pass two.  */
 	if (gPhase != ePassOne)
-	  error (ErrorError, "Illegal immediate expression");
+	  Error (ErrorError, "Illegal immediate expression");
 	break;
     }
 
@@ -329,7 +329,7 @@ m_movw_movt_mov32 (bool doLowerCase, MOV_Type_e movType)
       case eIsMOVW:
 	if (immValue >= 0x10000)
 	  {
-	    error (ErrorError, "Value 0x%x is out of range", immValue);
+	    Error (ErrorError, "Value 0x%x is out of range", immValue);
 	    immValue &= 0xFFFF;
 	  }
 	Put_Ins_MOVW_MOVT (cc, destReg, immValue, movType == eIsMOVT);
@@ -361,14 +361,14 @@ m_mov (bool doLowerCase)
       if (Input_Match (doLowerCase ? 't' : 'T', false))
 	return m_movw_movt_mov32 (doLowerCase, eIsMOVT);
       /* MOV32 ? */
-      if (inputLookN (0) == '3' && inputLookN (1) == '2')
+      if (Input_LookN (0) == '3' && Input_LookN (1) == '2')
 	{
-	  inputSkipN (2);
+	  Input_SkipN (2);
 	  return m_movw_movt_mov32 (doLowerCase, eIsMOV32);
 	}
     }
 
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstrhs (cc | M_MOV);
@@ -380,7 +380,7 @@ m_mov (bool doLowerCase)
 bool
 m_mvn (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstrhs (cc | M_MVN);
@@ -392,7 +392,7 @@ m_mvn (bool doLowerCase)
 bool
 m_orr (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_ORR);
@@ -404,7 +404,7 @@ m_orr (bool doLowerCase)
 bool
 m_rsb (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_RSB);
@@ -416,7 +416,7 @@ m_rsb (bool doLowerCase)
 bool
 m_rsc (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_RSC);
@@ -428,7 +428,7 @@ m_rsc (bool doLowerCase)
 bool
 m_sbc (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_SBC);
@@ -440,7 +440,7 @@ m_sbc (bool doLowerCase)
 bool
 m_sub (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstlhsrhs (cc | M_SUB);
@@ -451,12 +451,12 @@ m_sub (bool doLowerCase)
 static bool
 lhsrhs (ARMWord ir)
 {
-  ARMWord op = getCpuReg ();
+  unsigned op = Get_CPUReg ();
   ir |= LHS_OP (op);
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%slhs", InsertCommaAfter);
-  ir = getRhs (true, true, ir);
+    Error (ErrorError, "%slhs", InsertCommaAfter);
+  ir = Get_RHS (true, true, ir);
   Put_Ins (4, ir);
   return false;
 }
@@ -519,34 +519,34 @@ static void
 onlyregs (MulFlavour_e mulType, ARMWord ir)
 {
   /* Read Rd.  */
-  ARMWord regD = getCpuReg ();
+  unsigned regD = Get_CPUReg ();
   if (regD == 15)
-    error (ErrorWarning, "Use of register PC is unpredictable");
+    Error (ErrorWarning, "Use of register PC is unpredictable");
 
   /* Read Rn (lhs).  */
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%sdst", InsertCommaAfter);
-  ARMWord regN = getCpuReg ();
+    Error (ErrorError, "%sdst", InsertCommaAfter);
+  unsigned regN = Get_CPUReg ();
   if (regN == 15)
-    error (ErrorWarning, "Use of register PC is unpredictable");
+    Error (ErrorWarning, "Use of register PC is unpredictable");
 
   /* Read Rm (rhs).  */
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%slhs", InsertCommaAfter);
-  ARMWord regM = getCpuReg ();
+    Error (ErrorError, "%slhs", InsertCommaAfter);
+  unsigned regM = Get_CPUReg ();
   if (regM == 15)
-    error (ErrorWarning, "Use of register PC is unpredictable");
+    Error (ErrorWarning, "Use of register PC is unpredictable");
   if (mulType != Is_eMLS)
     {
       if (regD == regN && !Target_CheckCPUFeature (kCPUExt_v6, false))
 	{
 	  if (regN == regM)
-	    error (ErrorError, "Destination and left operand are the same register %d", regD);
+	    Error (ErrorError, "Destination and left operand are the same register %d", regD);
 	  else
 	    {
-	      error (ErrorInfo, "Changing order of operands in %s to avoid unpredicability", mulType == Is_eMLA ? "MLA" : "MUL");
+	      Error (ErrorInfo, "Changing order of operands in %s to avoid unpredicability", mulType == Is_eMLA ? "MLA" : "MUL");
 	      int t = regN;
 	      regN = regM;
 	      regM = t;
@@ -557,12 +557,12 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
   if (mulType != Is_eMUL)
     {
       /* Read Ra.  */
-      skipblanks ();
+      Input_SkipWS ();
       if (!Input_Match (',', true))
-	error (ErrorError, "%srhs", InsertCommaAfter);
-      ARMWord regA = getCpuReg ();
+	Error (ErrorError, "%srhs", InsertCommaAfter);
+      unsigned regA = Get_CPUReg ();
       if (regA == 15)
-	error (ErrorWarning, "Use of register PC is unpredictable");
+	Error (ErrorWarning, "Use of register PC is unpredictable");
       ir |= ACC_MUL (regA);
     }
   ir |= DST_MUL (regD);
@@ -579,7 +579,7 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
 bool
 m_mla (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -595,7 +595,7 @@ m_mla (bool doLowerCase)
 bool
 m_mls (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase); /* Note, no 'S' */
+  ARMWord cc = Option_Cond (doLowerCase); /* Note, no 'S' */
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -611,7 +611,7 @@ m_mls (bool doLowerCase)
 bool
 m_mul (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -633,48 +633,48 @@ l_onlyregs (ARMWord ir, const char *op)
   bool issmlalxy = (ir & 0x00600000) == 0x00400000;
   bool issmlawy = (ir & 0x00600020) == 0x00200000;
 
-  ARMWord dstl;
+  unsigned dstl;
   if (issmull)
     {
       Target_CheckCPUFeature (kCPUExt_v4, true);
-      dstl = getCpuReg ();
+      dstl = Get_CPUReg ();
       if (!Input_Match (',', true))
-        error (ErrorError, "%sdst_h", InsertCommaAfter);
+        Error (ErrorError, "%sdst_h", InsertCommaAfter);
     }
   else
     {
       Target_CheckCPUFeature (kCPUExt_v5ExP, true);
       if (issmlalxy)
         {
-          dstl = getCpuReg ();
+          dstl = Get_CPUReg ();
 	  if (!Input_Match (',', true))
-            error (ErrorError, "%sdst_l", InsertCommaAfter);
+            Error (ErrorError, "%sdst_l", InsertCommaAfter);
         }
       else
         dstl = 0;
     }
 
-  ARMWord dsth = getCpuReg ();
-  skipblanks ();
+  unsigned dsth = Get_CPUReg ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%sdst_l", InsertCommaAfter);
-  ARMWord lhs = getCpuReg ();
-  skipblanks ();
+    Error (ErrorError, "%sdst_l", InsertCommaAfter);
+  unsigned lhs = Get_CPUReg ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%slhs", InsertCommaAfter);
-  ARMWord rhs = getCpuReg ();
+    Error (ErrorError, "%slhs", InsertCommaAfter);
+  unsigned rhs = Get_CPUReg ();
   if (issmull)
     {
       if (dstl == dsth)
-        error (ErrorError, "Destination high and low are the same register %d", dstl);
+        Error (ErrorError, "Destination high and low are the same register %d", dstl);
       if ((dstl == lhs || dsth == lhs) && !Target_CheckCPUFeature (kCPUExt_v6, false))
         {
           if (dstl == rhs || dsth == rhs) 
-            error (ErrorError, "Left operand register %d also occurs in destination", lhs);
+            Error (ErrorError, "Left operand register %d also occurs in destination", lhs);
           else
 	    {
 	      if (option_fussy)
-	        error (ErrorInfo, "Changing order of operands in %s", op);
+	        Error (ErrorInfo, "Changing order of operands in %s", op);
 	      int t = lhs;
 	      lhs = rhs;
 	      rhs = t;
@@ -684,15 +684,15 @@ l_onlyregs (ARMWord ir, const char *op)
   else
     {
       if (dsth == 15 || lhs == 15 || rhs == 15)
-	error (ErrorError, "Cannot use R15 with %s", op);
+	Error (ErrorError, "Cannot use R15 with %s", op);
     }
   if (!issmull && (issmlaxy || issmlawy))
     {
       if (!Input_Match (',', true))
-        error (ErrorError, "%sdst_l", InsertCommaAfter);
-      dstl = getCpuReg ();
+        Error (ErrorError, "%sdst_l", InsertCommaAfter);
+      dstl = Get_CPUReg ();
       if (dstl == 15)
-        error (ErrorError, "Cannot use R15 with %s", op);
+        Error (ErrorError, "Cannot use R15 with %s", op);
     }
 
   ir |= dstl << 12 | dsth << 16 | lhs | rhs << 8;
@@ -705,7 +705,7 @@ l_onlyregs (ARMWord ir, const char *op)
 bool
 m_smull (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kArchExt_v3M, true);
@@ -719,7 +719,7 @@ m_smull (bool doLowerCase)
 bool
 m_smulbb (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -733,7 +733,7 @@ m_smulbb (bool doLowerCase)
 bool
 m_smulbt (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -747,7 +747,7 @@ m_smulbt (bool doLowerCase)
 bool
 m_smultb (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -761,7 +761,7 @@ m_smultb (bool doLowerCase)
 bool
 m_smultt (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -775,7 +775,7 @@ m_smultt (bool doLowerCase)
 bool
 m_smulwb (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -789,7 +789,7 @@ m_smulwb (bool doLowerCase)
 bool
 m_smulwt (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -803,7 +803,7 @@ m_smulwt (bool doLowerCase)
 bool
 m_smlal (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v3M, true);
@@ -817,7 +817,7 @@ m_smlal (bool doLowerCase)
 bool
 m_smlalbb (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -831,7 +831,7 @@ m_smlalbb (bool doLowerCase)
 bool
 m_smlalbt (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -845,7 +845,7 @@ m_smlalbt (bool doLowerCase)
 bool
 m_smlaltb (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -859,7 +859,7 @@ m_smlaltb (bool doLowerCase)
 bool
 m_smlaltt (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -873,7 +873,7 @@ m_smlaltt (bool doLowerCase)
 bool
 m_smlabb (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -887,7 +887,7 @@ m_smlabb (bool doLowerCase)
 bool
 m_smlabt (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -901,7 +901,7 @@ m_smlabt (bool doLowerCase)
 bool
 m_smlatb (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -915,7 +915,7 @@ m_smlatb (bool doLowerCase)
 bool
 m_smlatt (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -929,7 +929,7 @@ m_smlatt (bool doLowerCase)
 bool
 m_smlawb (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -943,7 +943,7 @@ m_smlawb (bool doLowerCase)
 bool
 m_smlawt (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
@@ -957,7 +957,7 @@ m_smlawt (bool doLowerCase)
 bool
 m_umull (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v3M, true);
@@ -971,7 +971,7 @@ m_umull (bool doLowerCase)
 bool
 m_umlal (bool doLowerCase)
 {
-  ARMWord cc = optionCondS (doLowerCase);
+  ARMWord cc = Option_CondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   Target_CheckCPUFeature (kCPUExt_v3M, true);
@@ -986,7 +986,7 @@ m_umlal (bool doLowerCase)
 bool
 m_clz (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -994,17 +994,17 @@ m_clz (bool doLowerCase)
 
   ARMWord ir = cc | M_CLZ;
 
-  ARMWord dst = getCpuReg ();
+  unsigned dst = Get_CPUReg ();
   ir |= DST_OP (dst);
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%slhs", InsertCommaAfter);
+    Error (ErrorError, "%slhs", InsertCommaAfter);
 
-  ARMWord rhs = getCpuReg ();
+  unsigned rhs = Get_CPUReg ();
   ir |= RHS_OP (rhs);
 
   if (dst == 15 || rhs == 15)
-    error (ErrorError, "Use of R15 in CLZ is unpredictable");
+    Error (ErrorError, "Use of R15 in CLZ is unpredictable");
 
   Put_Ins (4, ir);
   return false;
@@ -1015,19 +1015,19 @@ q_onlyregs (ARMWord ir, const char *op)
 {
   Target_CheckCPUFeature (kCPUExt_v5ExP, true);
 
-  skipblanks ();
+  Input_SkipWS ();
 
-  ARMWord dst = getCpuReg ();
-  skipblanks ();
+  unsigned dst = Get_CPUReg ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%sdst", InsertCommaAfter);
-  ARMWord lhs = getCpuReg ();
-  skipblanks ();
+    Error (ErrorError, "%sdst", InsertCommaAfter);
+  unsigned lhs = Get_CPUReg ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%slhs", InsertCommaAfter);
-  ARMWord rhs = getCpuReg ();
+    Error (ErrorError, "%slhs", InsertCommaAfter);
+  unsigned rhs = Get_CPUReg ();
   if (dst == 15 || lhs == 15 || rhs == 15)
-    error (ErrorError, "Cannot use R15 with %s", op);
+    Error (ErrorError, "Cannot use R15 with %s", op);
 
   ir |= dst << 12 | lhs | rhs << 16;
   Put_Ins (4, ir);
@@ -1039,7 +1039,7 @@ q_onlyregs (ARMWord ir, const char *op)
 bool
 m_qadd (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   q_onlyregs (cc | M_QADD, "QADD");
@@ -1052,7 +1052,7 @@ m_qadd (bool doLowerCase)
 bool
 m_qdadd (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   q_onlyregs (cc | M_QDADD, "QDADD");
@@ -1065,7 +1065,7 @@ m_qdadd (bool doLowerCase)
 bool
 m_qdsub (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   q_onlyregs (cc | M_QDSUB, "QDSUB");
@@ -1078,7 +1078,7 @@ m_qdsub (bool doLowerCase)
 bool
 m_qsub (bool doLowerCase)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   q_onlyregs (cc | M_QSUB, "QSUB");
@@ -1092,12 +1092,12 @@ UALShift (ARMWord shiftType, bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  ARMWord regD = getCpuReg ();
+  unsigned regD = Get_CPUReg ();
   if (regD == INVALID_REG)
     return false;
   if (!Input_Match (',', true))
     {
-      error (ErrorError, "Missing ,");
+      Error (ErrorError, "Missing ,");
       return false;
     }
   ARMWord regM = Get_CPURegNoError ();
@@ -1123,16 +1123,16 @@ UALShift (ARMWord shiftType, bool doLowerCase)
     {
       if (!Input_Match ('#', false))
 	{
-	  error (ErrorError, "Missing immediate constant");
+	  Error (ErrorError, "Missing immediate constant");
 	  return false;
 	}
-      const Value *im = exprBuildAndEval (ValueInt);
+      const Value *im = Expr_BuildAndEval (ValueInt);
       if (im->Tag != ValueInt)
 	{
-	  error (ErrorError, "Failed to evaluate immediate constant");
+	  Error (ErrorError, "Failed to evaluate immediate constant");
 	  return false;
 	}
-      Put_Ins (4, cc | Fix_ShiftImm (NULL, 0, shiftType, im->Data.Int.i));
+      Put_Ins (4, cc | Fix_ShiftImm (shiftType, im->Data.Int.i));
     }
   else
     Put_Ins (4, cc | SHIFT_REG (regS) | SHIFT_OP (shiftType));
@@ -1195,14 +1195,14 @@ m_rrx (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  ARMWord regD = getCpuReg ();
+  unsigned regD = Get_CPUReg ();
   if (regD == INVALID_REG)
     return false;
-  skipblanks ();
-  ARMWord regM;
+  Input_SkipWS ();
+  unsigned regM;
   if (Input_Match (',', true))
     {
-      regM = getCpuReg ();
+      regM = Get_CPUReg ();
       if (regM == INVALID_REG)
 	return false;
     }
@@ -1228,7 +1228,7 @@ typedef enum
 static bool
 core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 {
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -1238,46 +1238,46 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 
   /* Only ARM and 32 bit Thumb is possible for BFC/BFI/SBFX/UBFX.  */
   if (instrWidth == eInstrWidth_Enforce16bit)
-    error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+    Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
     
   Target_CheckCPUFeature (kCPUExt_v6T2, true); /* Only ARMv6T2 and ARMv7.  */
 
-  ARMWord rd = getCpuReg ();
+  unsigned rd = Get_CPUReg ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%sRd", InsertCommaAfter);
-  ARMWord rn;
+    Error (ErrorError, "%sRd", InsertCommaAfter);
+  unsigned rn;
   if (bitFieldType != eIsBFC)
     {
       /* BFI, SBFX and UBFX.  */
-      rn = getCpuReg ();
+      rn = Get_CPUReg ();
       if (!Input_Match (',', true))
-	error (ErrorError, "%sRd", InsertCommaAfter);
+	Error (ErrorError, "%sRd", InsertCommaAfter);
 
       if (rn == 15)
-	error (ErrorWarning, "Use of PC for Rn makes BFI behave like BFC");
+	Error (ErrorWarning, "Use of PC for Rn makes BFI behave like BFC");
     }
   else
     rn = 15;
   if (!Input_Match ('#', false))
-    error (ErrorError, "Missing #");
+    Error (ErrorError, "Missing #");
   unsigned lsb;
-  const Value *lsbValue = exprBuildAndEval (ValueInt);
+  const Value *lsbValue = Expr_BuildAndEval (ValueInt);
   if (lsbValue->Tag != ValueInt)
     {
-      error (ErrorError, "Failed to evaluate immediate constant");
+      Error (ErrorError, "Failed to evaluate immediate constant");
       lsb = 0;
     }
   else
     lsb = lsbValue->Data.Int.i;
   if (!Input_Match (',', true))
-    error (ErrorError, "%sRd", InsertCommaAfter);
+    Error (ErrorError, "%sRd", InsertCommaAfter);
   if (!Input_Match ('#', false))
-    error (ErrorError, "Missing #");
+    Error (ErrorError, "Missing #");
   unsigned width;
-  const Value *widthValue = exprBuildAndEval (ValueInt);
+  const Value *widthValue = Expr_BuildAndEval (ValueInt);
   if (widthValue->Tag != ValueInt)
     {
-      error (ErrorError, "Failed to evaluate immediate constant");
+      Error (ErrorError, "Failed to evaluate immediate constant");
       width = 1;
     }
   else
@@ -1285,12 +1285,12 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 
   if (/* lsb < 0 || */ lsb > 32)
     {
-      error (ErrorError, "lsb value needs be in range 0 to 31 (incl)");
+      Error (ErrorError, "lsb value needs be in range 0 to 31 (incl)");
       lsb = 0;
     }
   if (width < 1 || width > 32 - lsb)
     {
-      error (ErrorError, "width value needs to be in range 1 to 32 - lsb (incl)");
+      Error (ErrorError, "width value needs to be in range 1 to 32 - lsb (incl)");
       width = 1;
     }
 
@@ -1308,15 +1308,15 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 	  if (instrState == eInstrType_ARM)
 	    {
 	      if (rd == 15)
-		error (ErrorWarning, "Use of PC is unpredictable");
+		Error (ErrorWarning, "Use of PC is unpredictable");
 	      if (rd == 13 || rn == 13)
-		error (ErrorWarning, "Use of R13 as Rd or Rn is deprecated");
+		Error (ErrorWarning, "Use of R13 as Rd or Rn is deprecated");
 	      baseInstr = 0x07C00010;
 	    }
 	  else
 	    {
 	      if (rd == 13 || rd == 15 || rn == 13)
-		error (ErrorWarning, "Use of R13 or PC is unpredictable");
+		Error (ErrorWarning, "Use of R13 or PC is unpredictable");
 	      baseInstr = 0xF3600000;
 	    }
 	  break;
@@ -1329,15 +1329,15 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 	  if (instrState == eInstrType_ARM)
 	    {
 	      if (rd == 15 || rn == 15)
-		error (ErrorWarning, "Use of PC in unpredictable");
+		Error (ErrorWarning, "Use of PC in unpredictable");
 	      if (rd == 13 || rn == 13)
-		error (ErrorWarning, "Use of R13 as Rd or Rn is deprecated");
+		Error (ErrorWarning, "Use of R13 as Rd or Rn is deprecated");
 	      baseInstr = bitFieldType == eIsSBFX ? 0x07A00050 : 0x07E00050;
 	    }
 	  else
 	    {
 	      if (rd == 13 || rd == 15 || rn == 13 || rn == 15)
-		error (ErrorWarning, "Use of R13 or PC is unpredictable");
+		Error (ErrorWarning, "Use of R13 or PC is unpredictable");
 	      baseInstr = bitFieldType == eIsSBFX ? 0xF3400000 : 0xF3C00000;
 	    }
 	  break;
@@ -1413,7 +1413,7 @@ m_pkh (bool doLowerCase)
   else
     return true;
 
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -1423,7 +1423,7 @@ m_pkh (bool doLowerCase)
 
   if (instrWidth == eInstrWidth_Enforce16bit)
     {
-      error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+      Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
       instrWidth = eInstrWidth_NotSpecified;
     }
 
@@ -1444,7 +1444,7 @@ m_pkh (bool doLowerCase)
   unsigned shift = 0;
   if (regIndex < maxNumRegs - 1)
     {
-      error (ErrorError, "Not enough registers specified");
+      Error (ErrorError, "Not enough registers specified");
       while (regIndex != maxNumRegs)
 	regs[regIndex++] = 0;
     }
@@ -1454,21 +1454,21 @@ m_pkh (bool doLowerCase)
 	 (isTB = true).  */
       const char * const shiftType = isTB ? "ASR" : "LSL";
       if (!Input_MatchString (shiftType))
-	error (ErrorError, "%s expected", shiftType);
+	Error (ErrorError, "%s expected", shiftType);
       else
 	{
-	  skipblanks ();
+	  Input_SkipWS ();
 	  if (!Input_Match ('#', false))
-	    error (ErrorError, "%s #<value> expected", shiftType);
+	    Error (ErrorError, "%s #<value> expected", shiftType);
 	  else
 	    {
-	      const Value *shiftValue = exprBuildAndEval (ValueInt);
+	      const Value *shiftValue = Expr_BuildAndEval (ValueInt);
 	      /* TB : shift value from 1 to 32 (incl).
 		 BT: shift value from 0 to 31 (incl).  */
 	      if (shiftValue->Tag != ValueInt
 	          || (isTB && (shiftValue->Data.Int.i < 1 || shiftValue->Data.Int.i > 32))
 	          || (!isTB && (shiftValue->Data.Int.i < 0 || shiftValue->Data.Int.i > 31)))
-		error (ErrorError, "Wrong %s #<value>", shiftType);
+		Error (ErrorError, "Wrong %s #<value>", shiftType);
 	      else
 		shift = shiftValue->Data.Int.i;
 	    }
@@ -1493,14 +1493,14 @@ m_pkh (bool doLowerCase)
   if (instrState == eInstrType_ARM)
     {
       if (rd == 15 || rn == 15 || rm == 15)
-	error (ErrorWarning, "Use of PC for Rd, Rn or Rm is unpredictable");
+	Error (ErrorWarning, "Use of PC for Rd, Rn or Rm is unpredictable");
       const ARMWord baseInstr = 0x06800010;
       Put_Ins (4, baseInstr | cc | (rn << 16) | (rd << 12) | (shift << 7) | (isTB ? (1<<6) : 0) | rm);
     }
   else
     {
       if (rd == 15 || rd == 13 || rn == 15 || rn == 13 || rm == 15 || rm == 13)
-	error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
+	Error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
       const ARMWord baseInstr = 0xEAC00000;
       /* FIXME: condition code.  */
       Put_Ins (4, baseInstr | (rn << 16) | ((shift & 0x1C) << 10) | (rd << 8) | ((shift & 3) << 6) | (isTB ? (1<<5) : 0) | rm);
@@ -1534,7 +1534,7 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
   else
     return true;
 
-  ARMWord cc = optionCond (doLowerCase);
+  ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -1546,7 +1546,7 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
      and the B16 non accumulate one.  */
   if (instrWidth == eInstrWidth_Enforce16bit && (isAcc || extend == eIsByte16))
     {
-      error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+      Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
       instrWidth = eInstrWidth_NotSpecified;
     }
 
@@ -1567,7 +1567,7 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
   unsigned ror = 0;
   if (regIndex < maxNumRegs - 1)
     {
-      error (ErrorError, "Not enough registers specified");
+      Error (ErrorError, "Not enough registers specified");
       while (regIndex != maxNumRegs)
 	regs[regIndex++] = 0;
     }
@@ -1575,18 +1575,18 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
     {
       /* We expect to parse a ROR#<value>.  */
       if (!Input_MatchString ("ROR"))
-	error (ErrorError, "%s expected", "ROR");
+	Error (ErrorError, "%s expected", "ROR");
       else
 	{
-	  skipblanks ();
+	  Input_SkipWS ();
 	  if (!Input_Match ('#', false))
-	    error (ErrorError, "%s #<value> expected", "ROR");
+	    Error (ErrorError, "%s #<value> expected", "ROR");
 	  else
 	    {
-	      const Value *rorValue = exprBuildAndEval (ValueInt);
+	      const Value *rorValue = Expr_BuildAndEval (ValueInt);
 	      if (rorValue->Tag != ValueInt
 	          || (rorValue->Data.Int.i & ~0x18) != 0)
-		error (ErrorError, "Wrong %s #<value>", "ROR");
+		Error (ErrorError, "Wrong %s #<value>", "ROR");
 	      else
 		ror = rorValue->Data.Int.i >> 3;
 	    }
@@ -1606,14 +1606,14 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
     instrWidth = !isAcc && extend != eIsByte16 && ror == 0 && rd < 8 && rm < 8 ? eInstrWidth_Enforce16bit : eInstrWidth_Enforce32bit;
   if (instrWidth == eInstrWidth_Enforce16bit && ror != 0)
     {
-      error (ErrorError, "16 bit Thumb can only encode ROR 0 value");
+      Error (ErrorError, "16 bit Thumb can only encode ROR 0 value");
       ror = 0;
     }
 
   if (instrState == eInstrType_ARM)
     {
       if (rd == 15 || rm == 15)
-	error (ErrorWarning, "Use of PC for Rd or Rm is unpredictable");
+	Error (ErrorWarning, "Use of PC for Rd or Rm is unpredictable");
       ARMWord baseInstr;
       switch (extend)
 	{
@@ -1637,7 +1637,7 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
   else
     {
       if (rd == 13 || rd == 15 || rn == 13 || rm == 15 || rm == 15)
-	error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
+	Error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
       ARMWord baseInstr;
       switch (extend)
 	{

@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2011 GCCSDK Developers
+ * Copyright (c) 2011-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -193,7 +193,7 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
       char *varbuf = malloc (gt - (lt + 1) + 1);
 #ifndef TEST
       if (varbuf == NULL)
-	errorOutOfMem ();
+	Error_OutOfMem ();
 #endif
       /* Update variable name and substitute '$' by '_'.  */
       char *o, *i;
@@ -205,7 +205,7 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
 	{
 #ifndef TEST
 	  /* No such variable defined. Warn, though we may want to error.  */
-	  error (ErrorWarning, "Unknown environment variable '%s'", varbuf);
+	  Error (ErrorWarning, "Unknown environment variable '%s'", varbuf);
 #endif
 	  free (varbuf);
 	  break;
@@ -217,7 +217,7 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
       char *in_new = malloc (len_new);
 #ifndef TEST
       if (in_new == NULL)
-	errorOutOfMem ();
+	Error_OutOfMem ();
 #endif
       memcpy (in_new, in, lt - in);
       memcpy (in_new + (lt - in), vardef, len_vardef);

@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Nick Burrett
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -123,7 +123,7 @@ Output_Init (const char *outfile)
 	    break;
 	}
 
-      errorAbort (PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
+      Error_Abort (PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
     }
   else
     {
@@ -150,7 +150,7 @@ Output_Finish (void)
 #endif
     }
   if (outname[0])
-    dependWrite (outname);
+    Depend_Write (outname);
 }
 
 void
@@ -181,7 +181,7 @@ Output_AOF (void)
   if (option_verbose)
     fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
 
-  /* We must call relocFix() before anything else.  */
+  /* We must call Reloc_GetNumberRelocs() before anything else.  */
   size_t totalAreaSize = 0;
   uint32_t numAreas = 0;
   /* avoid problems with no areas.  */
@@ -192,7 +192,7 @@ Output_AOF (void)
 	continue;
 
       ap->area->number = numAreas++;
-      ap->area->numRelocs = relocFix (ap);
+      ap->area->numRelocs = Reloc_GetNumberRelocs (ap);
       if (!Area_IsNoInit (ap->area))
 	totalAreaSize += FIX (ap->area->maxIdx)
 			   + ap->area->numRelocs * sizeof (AofReloc);
@@ -237,7 +237,7 @@ Output_AOF (void)
 
   if (written != sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry))
     {
-      errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing chunk file header");
+      Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing chunk file header");
       return;
     }
 
@@ -258,14 +258,14 @@ Output_AOF (void)
           .BaseAddr = armword ((ap->area->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
 	};
       if (aof_entry.noRelocations != 0 && Area_IsNoInit (ap->area))
-	errorAbortLine (NULL, 0, "Internal Output_AOF: relocations in uninitialised area");
+	Error_AbortLine (NULL, 0, "Internal Output_AOF: relocations in uninitialised area");
       fwrite (&aof_entry, 1, sizeof (aof_entry), objfile);
     }
 
   /* Chunk 1 Identification (OBJ_IDFN).  */
   if (idfn_size != fwrite (GET_IDFN, 1, idfn_size, objfile))
     {
-      errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing identification");
+      Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing identification");
       return;
     }
 
@@ -273,7 +273,7 @@ Output_AOF (void)
   unsigned int strt_size = armword (symOut.stringSize + 4);
   if (fwrite (&strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
-      errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing string table size");
+      Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing string table size");
       return;
     }
   Symbol_OutputStrings (objfile, &symOut);
@@ -294,11 +294,11 @@ Output_AOF (void)
 	{
 	  if (fwrite (ap->area->image, 1, ap->area->maxIdx, objfile)
 	      != ap->area->maxIdx)
-	    errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing %s image", ap->str);
+	    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing %s image", ap->str);
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area->maxIdx); pad; --pad)
 	    fputc (0, objfile);
-	  relocAOFOutput (objfile, ap);
+	  Reloc_AOFOutput (objfile, ap);
 	}
     }
 
@@ -328,7 +328,7 @@ writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
   if (type != SHT_NOBITS)
     *offset += FIX (size);
   if (fwrite (&sect_hdr, sizeof (sect_hdr), 1, objfile) != 1)
-    errorAbortLine (NULL, 0, "Internal writeElfSH: error when writing chunk file header");
+    Error_AbortLine (NULL, 0, "Internal writeElfSH: error when writing chunk file header");
 }
 
 void
@@ -337,7 +337,7 @@ Output_ELF (void)
   if (option_verbose)
     fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
 
-  /* We must call relocFix() before anything else.  */
+  /* We must call Reloc_GetNumberRelocs() before anything else.  */
   uint32_t numAreas = 0;
   uint32_t numRelocs = 0;
   uint32_t areaSectionID = 3;
@@ -350,7 +350,7 @@ Output_ELF (void)
       ++numAreas;
 
       ap->area->number = areaSectionID++;
-      ap->area->numRelocs = relocFix (ap);
+      ap->area->numRelocs = Reloc_GetNumberRelocs (ap);
       if (ap->area->numRelocs)
 	{
 	  ++areaSectionID;
@@ -494,14 +494,14 @@ Output_ELF (void)
           if (fwrite (ap->area->image, 1, ap->area->maxIdx, objfile)
 	      != ap->area->maxIdx)
             {
-              errorAbortLine (NULL, 0, "Internal Output_ELF: error when writing %s image", ap->str);
+              Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing %s image", ap->str);
               return;
             }
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area->curIdx); pad; --pad)
 	    fputc (0, objfile);
           if (ap->area->numRelocs)
-            relocELFOutput (objfile, ap);
+            Reloc_ELFOutput (objfile, ap);
         }
     }
 

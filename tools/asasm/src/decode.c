@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -55,7 +55,6 @@
 #include "m_cpumem.h"
 #include "m_fpe.h"
 #include "opt.h"
-#include "option.h"
 #include "main.h"
 #include "state.h"
 #include "whileif.h"
@@ -419,7 +418,7 @@ IsPartiallyMatched (const decode_table_t *decP)
  * there was one found, it's LexNone when there wasn't one.
  */
 void
-decode (const Lex *label)
+Decode (const Lex *label)
 {
 #if 0
   /* Check that all entries in oDecodeTable are sorted.  */
@@ -438,7 +437,7 @@ decode (const Lex *label)
   const char * const inputMark = Input_GetMark ();
 
   /* Determines whether the mnemonic is all lowercase or all uppercase.  */
-  const bool doLowerCase = !option_uppercase && inputLook () >= 'a' && inputLook () <= 'z'; 
+  const bool doLowerCase = !option_uppercase && Input_Look () >= 'a' && Input_Look () <= 'z'; 
   
   /* Locate mnemonic entry in decode table.  */
   size_t low = 0;
@@ -446,7 +445,7 @@ decode (const Lex *label)
   size_t indexFound = SIZE_MAX;
   for (size_t charsMatched = 0; /* */; ++charsMatched)
     {
-      unsigned char c = (unsigned char)inputGet ();
+      unsigned char c = (unsigned char)Input_GetC ();
       assert (c != 0);
       while (low <= high)
 	{
@@ -505,7 +504,7 @@ decode (const Lex *label)
 	    --high;
 	  assert (low <= high);
 	  /* charsMatched += strlen (&oDecodeTable[high].mnemonic[charsMatched + 1]); */
-	  inputSkipN (strlen (&oDecodeTable[high].mnemonic[charsMatched + 1]));
+	  Input_SkipN (strlen (&oDecodeTable[high].mnemonic[charsMatched + 1]));
 	  /* We only have a full match when the full mnemonic is read (and
 	     should have been fully read).  */
 	  if (IsPartiallyMatched (&oDecodeTable[high]) || Input_IsEndOfKeyword ())
@@ -551,7 +550,7 @@ decode (const Lex *label)
     {
       assert (Input_IsEndOfKeyword () || IsPartiallyMatched (&oDecodeTable[indexFound]));
       if (!IsPartiallyMatched (&oDecodeTable[indexFound]))
-        skipblanks ();
+        Input_SkipWS ();
 
       uint32_t startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area->curIdx;
       Symbol * const startAreaSymbol = areaCurrentSymbol;
@@ -603,7 +602,7 @@ decode (const Lex *label)
 		{
 		  labelSymbol = Symbol_Find (labelLexP);
 		  if (lclLabelWarn)
-		    error (ErrorWarning, "Local label not allowed here - ignoring");
+		    Error (ErrorWarning, "Local label not allowed here - ignoring");
 		}
 	      break;
 	    }
@@ -613,7 +612,7 @@ decode (const Lex *label)
 	    {
 	      assert (!doLowerCase);
 	      if (label->tag != LexNone)
-		error (ErrorWarning, "Label not allowed here - ignoring");
+		Error (ErrorWarning, "Label not allowed here - ignoring");
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.nolex ();
 	      labelSymbol = NULL;
 	      break;
@@ -630,7 +629,7 @@ decode (const Lex *label)
 		  /* We don't want to define a label based on this symbol.  */
 		  labelSymbol = NULL;
 		  if (lclLabelWarn)
-		    error (ErrorWarning, "Local label not allowed here - ignoring");
+		    Error (ErrorWarning, "Local label not allowed here - ignoring");
 		}
 	      break;
 	    }
@@ -676,14 +675,14 @@ decode (const Lex *label)
 	         DATA areas.  */
 	      if ((entryType == eARM || entryType == eThumb)
 	          && !(areaCurrentSymbol->area->type & AREA_CODE))
-		error (ErrorWarning, "Code generated in data area");
+		Error (ErrorWarning, "Code generated in data area");
 
 	      /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
 	      static bool thumbWarnOnce;
 	      if (gPhase == ePassTwo && !thumbWarnOnce && entryType == eThumb)
 		{
 		  thumbWarnOnce = true;
-		  error (ErrorWarning, "Thumb/ThumbEE is not fully supported");
+		  Error (ErrorWarning, "Thumb/ThumbEE is not fully supported");
 		  return;
 		}
 	    }
@@ -716,22 +715,22 @@ decode (const Lex *label)
 		codeSize = areaCurrentSymbol->area->curIdx - startOffset;
 	      else
 		{
-		  codeInit ();
-		  codeValue (StorageMap_Value (), false);
-		  codeValue (&startStorage, false);
-		  codeOperator (eOp_Sub);
-		  const Value *value = codeEval (ValueInt, NULL);
+		  Code_Init ();
+		  Code_Value (StorageMap_Value (), false);
+		  Code_Value (&startStorage, false);
+		  Code_Operator (eOp_Sub);
+		  const Value *value = Code_Eval (ValueInt, NULL);
 		  if (value->Tag == ValueInt)
 		    codeSize = value->Data.Int.i;
 		  else
-		    error (ErrorError, "Failed to determine label size");
+		    Error (ErrorError, "Failed to determine label size");
 		}
 	      assert ((gPhase == ePassOne && labelSymbol->codeSize == 0) || (gPhase == ePassTwo && labelSymbol->codeSize == codeSize));
 	      labelSymbol->codeSize = codeSize;
 	    }
 	}
 
-      valueFree (&startStorage);
+      Value_Free (&startStorage);
     }
   else
     tryAsMacro = true;
@@ -745,19 +744,19 @@ decode (const Lex *label)
       /* In case we have a column, we don't read any symbol.  */
       if (macroNameLen == 0)
 	{
-	  error (ErrorError, "Mnemonic, directive or macro missing");
+	  Error (ErrorError, "Mnemonic, directive or macro missing");
 	  return;
 	}
       else if (Macro_Call (macroName, macroNameLen, label))
 	{
-	  error (ErrorError, "'%.*s' is not a recognized mnemonic, directive nor known macro",
+	  Error (ErrorError, "'%.*s' is not a recognized mnemonic, directive nor known macro",
 		 (int)macroNameLen, macroName);
 	  return;
         }
     }
 
   /* Sanity check we have consumed the complete line.  */
-  decode_finalcheck ();
+  Decode_FinalCheck ();
 }
 
 
@@ -765,9 +764,9 @@ decode (const Lex *label)
  * Checks if the remaining part of the line are only blanks or comment part.
  */
 void
-decode_finalcheck (void)
+Decode_FinalCheck (void)
 {
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_IsEolOrCommentStart ())
-    error (ErrorError, "Skipping extra characters '%s'", Input_Rest ());
+    Error (ErrorError, "Skipping extra characters '%s'", Input_Rest ());
 }

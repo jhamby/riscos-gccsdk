@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -64,7 +64,7 @@ Symbol_New (const char *str, size_t len)
 {
   Symbol *result;
   if ((result = (Symbol *) malloc (sizeof (Symbol) + len)) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   result->next = NULL;
   result->type = result->offset = 0;
   result->value.Tag = ValueIllegal;
@@ -90,7 +90,7 @@ Symbol_Free (Symbol **symPP)
 {
   Symbol *symP = *symPP;
   *symPP = symP->next;
-  valueFree (&symP->value);
+  Value_Free (&symP->value);
   free (symP);
 }
 
@@ -158,7 +158,7 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 {
   if (symbol->type & SYMBOL_AREA)
     {
-      error (ErrorError, "Area label %s can not be redefined", symbol->str);
+      Error (ErrorError, "Area label %s can not be redefined", symbol->str);
       return true;
     }
   assert ((newSymbolType & SYMBOL_AREA) == 0 && "Not to be used for defining area symbols");
@@ -171,7 +171,7 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
       if (symbol->value.Tag != ValueIllegal)
 	{
 	  bool diffValue;
-	  if (valueEqual (&symbol->value, newValue))
+	  if (Value_Equal (&symbol->value, newValue))
 	    diffValue = false;
 	  else
 	    {
@@ -181,43 +181,43 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 		  Value_Assign (&newValueCopy, newValue);
 		  newValue = &newValueCopy;
 
-		  codeInit ();
-		  codeValue (&symbol->value, false);
+		  Code_Init ();
+		  Code_Value (&symbol->value, false);
 		  Value val1 = { .Tag = ValueIllegal };
-		  Value_Assign (&val1, exprEval (ValueAll));
-		  codeInit ();
-		  codeValue (newValue, false);
+		  Value_Assign (&val1, Code_Eval (ValueAll, NULL));
+		  Code_Init ();
+		  Code_Value (newValue, false);
 		  Value val2 = { .Tag = ValueIllegal };
-		  Value_Assign (&val2, exprEval (ValueAll));
-		  diffValue = !valueEqual (&val1, &val2);
+		  Value_Assign (&val2, Code_Eval (ValueAll, NULL));
+		  diffValue = !Value_Equal (&val1, &val2);
 #ifdef DEBUG
 		  if (diffValue)
 		    {
 		      printf ("Diff: ");
-		      valuePrint (&val1);
+		      Value_Print (&val1);
 		      printf (" vs ");
-		      valuePrint (&val2);
+		      Value_Print (&val2);
 		      printf ("\n");
 		    }
 #endif
-		  valueFree (&val1);
-		  valueFree (&val2);
+		  Value_Free (&val1);
+		  Value_Free (&val2);
 		}
 	      else
 		{
 		  diffValue = true; /* Not sure if we don't have to try harder here.  */
 #ifdef DEBUG
 		  printf ("Diff: ");
-		  valuePrint (&symbol->value);
+		  Value_Print (&symbol->value);
 		  printf (" vs ");
-		  valuePrint (newValue);
+		  Value_Print (newValue);
 		  printf ("\n");
 #endif
 		}
 	    }
 	  if (diffValue)
 	    {
-	      error (ErrorError, "Symbol %s can not be redefined with a different value", symbol->str);
+	      Error (ErrorError, "Symbol %s can not be redefined with a different value", symbol->str);
 	      return true;
 	    }
 	}
@@ -226,7 +226,7 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
   Value_Assign (&symbol->value, newValue);
 
   if (newValue == &newValueCopy)
-    valueFree (&newValueCopy);
+    Value_Free (&newValueCopy);
   return false;
 }
 
@@ -292,9 +292,9 @@ NeedToOutputSymbol (const Symbol *sym)
 		        || sym->value.Tag == ValueSymbol))
     {
       if (sym->value.Tag == ValueIllegal)
-	errorLine (NULL, 0, ErrorError, "Symbol %s is marked with KEEP but has not been defined", sym->str);
+	Error_Line (NULL, 0, ErrorError, "Symbol %s is marked with KEEP but has not been defined", sym->str);
       else
-	errorLine (NULL, 0, ErrorWarning, "Symbol %s is marked with KEEP but has unsuitable value for export", sym->str);
+	Error_Line (NULL, 0, ErrorWarning, "Symbol %s is marked with KEEP but has unsuitable value for export", sym->str);
     }
 
   bool doOutput = ((SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
@@ -365,13 +365,13 @@ Symbol_CreateSymbolOut (void)
 		{
 		  /* Check for undefined exported and unused imported symbols.  */
 		  if (SYMBOL_KIND (sym->type) == SYMBOL_REFERENCE)
-		    errorLine (sym->fileName, sym->lineNumber, ErrorWarning, "Symbol %s is imported but not used, or exported but not defined", sym->str);
+		    Error_Line (sym->fileName, sym->lineNumber, ErrorWarning, "Symbol %s is imported but not used, or exported but not defined", sym->str);
 		}
 	      else if (SYMBOL_KIND (sym->type) == 0)
 		{
 		  /* Make it a reference symbol.  */
 		  sym->type |= SYMBOL_REFERENCE;
-		  errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
+		  Error_Line (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
 	    }
 	  if (NeedToOutputSymbol (sym))
@@ -388,7 +388,7 @@ Symbol_CreateSymbolOut (void)
 
   /* Claim space.  */
   if ((result.allSymbolsPP = malloc (result.numAllSymbols * sizeof (Symbol *))) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
 
   /* Run over symbols again, and start assigning them in our symbol output
      array.  */
@@ -573,9 +573,9 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 	      const Value *valueP;
 	      if (sym->value.Tag == ValueCode)
 		{
-		  codeInit ();
-		  valueP = codeEvalLow (ValueAll, sym->value.Data.Code.len,
-					sym->value.Data.Code.c, NULL);
+		  Code_Init ();
+		  valueP = Code_EvalLow (ValueAll, sym->value.Data.Code.len,
+					 sym->value.Data.Code.c, NULL);
 		}
 	      else
 		valueP = &sym->value;
@@ -607,7 +607,7 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 			}
 		      else if (valueP->Data.Symbol.factor != 1)
 			{
-			  error (ErrorError, "Unable to export symbol %s", sym->str);
+			  Error (ErrorError, "Unable to export symbol %s", sym->str);
 			  continue;
 			}
 		      break;
@@ -689,9 +689,9 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 	      const Value *valueP;
 	      if (sym->value.Tag == ValueCode)
 		{
-		  codeInit ();
-		  valueP = codeEvalLow (ValueAll, sym->value.Data.Code.len,
-					sym->value.Data.Code.c, NULL);
+		  Code_Init ();
+		  valueP = Code_EvalLow (ValueAll, sym->value.Data.Code.len,
+					 sym->value.Data.Code.c, NULL);
 		}
 	      else
 		valueP = &sym->value;
@@ -723,7 +723,7 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 			}
 		      else if (valueP->Data.Symbol.factor != 1)
 			{
-			  error (ErrorError, "Unable to export symbol %s", sym->str);
+			  Error (ErrorError, "Unable to export symbol %s", sym->str);
 			  continue;
 			}
 		      break;
@@ -771,7 +771,7 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 	    }
 	  asym.st_info = ELF32_ST_INFO (bind, (sym->type & SYMBOL_COMMON) ? STT_OBJECT : STT_NOTYPE);
 	  if (asym.st_shndx == (Elf32_Half)-1)
-	    errorAbort ("Internal symbolSymbolELFOutput: unable to find section id for symbol %s", sym->str);
+	    Error_Abort ("Internal symbolSymbolELFOutput: unable to find section id for symbol %s", sym->str);
 	  else
 	    fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
@@ -795,18 +795,18 @@ Symbol_FreeSymbolOut (SymbolOut_t *symOutP)
 static Symbol *
 ParseSymbolAndAdjustFlag (unsigned int flags, const char *err)
 {
-  const Lex lex = lexGetIdNoError ();
+  const Lex lex = Lex_GetIDNoError ();
   if (lex.tag != LexId)
     return NULL;
 
   /* When the symbol is not known yet, it will automatically be created.  */
   Symbol *sym = Symbol_Get (&lex);
   if (Local_IsLocalLabel (sym->str))
-    error (ErrorError, "Local labels cannot be %s", err);
+    Error (ErrorError, "Local labels cannot be %s", err);
   else if (Area_IsMappingSymbol (sym->str))
-    error (ErrorError, "Mapping symbols cannot be %s", err);
+    Error (ErrorError, "Mapping symbols cannot be %s", err);
   else if ((sym->type & SYMBOL_RW) != 0)
-    error (ErrorError, "%s symbols cannot be %s",
+    Error (ErrorError, "%s symbols cannot be %s",
            sym->type & SYMBOL_MACRO_LOCAL ? "Local" : "Global", err);
   else
     sym->type |= flags;
@@ -825,11 +825,11 @@ c_common (void)
   Symbol *commonSym = ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE | SYMBOL_COMMON, "marked as COMMON");
   if (commonSym == NULL)
     {
-      error (ErrorError, "Missing symbol");
+      Error (ErrorError, "Missing symbol");
       return false;
     }
 
-  skipblanks ();
+  Input_SkipWS ();
   uint32_t commonSize = 0;
   uint32_t commonAlignment = 4;
   unsigned commonVisibility = STV_DEFAULT;
@@ -837,10 +837,10 @@ c_common (void)
     {
       if (!Input_Match (',', true))
 	{
-	  error (ErrorError, "Missing ,");
+	  Error (ErrorError, "Missing ,");
 	  return false;
 	}
-      const Value *valueSizeP = exprBuildAndEval (ValueInt);
+      const Value *valueSizeP = Expr_BuildAndEval (ValueInt);
       switch (valueSizeP->Tag)
 	{
 	  case ValueInt:
@@ -849,20 +849,20 @@ c_common (void)
 	    /* Fall through.  */
 
 	  default:
-	    error (ErrorError, "Illegal COMMON size expression");
+	    Error (ErrorError, "Illegal COMMON size expression");
 	    return true;
 	}
       commonSize = valueSizeP->Data.Int.i;
 
-      skipblanks ();
+      Input_SkipWS ();
       if (!Input_IsEolOrCommentStart ())
 	{
 	  if (!Input_Match (',', true))
 	    {
-	      error (ErrorError, "Missing ,");
+	      Error (ErrorError, "Missing ,");
 	      return false;
 	    }
-	  const Value *valueAlignmentP = exprBuildAndEval (ValueInt);
+	  const Value *valueAlignmentP = Expr_BuildAndEval (ValueInt);
 	  switch (valueAlignmentP->Tag)
 	    {
 	      case ValueInt:
@@ -871,20 +871,20 @@ c_common (void)
 		/* Fall through.  */
 
 	      default:
-		error (ErrorError, "Illegal COMMON size expression");
+		Error (ErrorError, "Illegal COMMON size expression");
 		return true;
 	    }
 	  commonAlignment = valueAlignmentP->Data.Int.i;
 	  if (commonAlignment == 0 || (commonAlignment & (commonAlignment - 1)) != 0)
 	    {
-	      error (ErrorError, "Alignment value needs to be a power of 2");
+	      Error (ErrorError, "Alignment value needs to be a power of 2");
 	      commonAlignment = 4;
 	    }
 
-          skipblanks ();
+          Input_SkipWS ();
 	  if (!Input_IsEndOfKeyword ())
 	    {
-	      const Lex attribute = lexGetIdNoError ();
+	      const Lex attribute = Lex_GetIDNoError ();
 	      const char * const attrs[] =
 		{
 		  /* Same order as STV_* values.  */
@@ -899,7 +899,7 @@ c_common (void)
 		}
 	      if (i == sizeof (attrs) / sizeof (attrs[0]))
 		{
-		  error (ErrorError, "Missing or wrong type of attribute");
+		  Error (ErrorError, "Missing or wrong type of attribute");
 		  return true;
 		}
 	      commonVisibility = (unsigned)i;
@@ -920,7 +920,7 @@ typedef struct
 {
   uint32_t flagValue;
   uint32_t flagSet;
-  int basedRegNum; /* Valid when != -1.  */
+  unsigned basedRegNum; /* Valid when != INVALID_REG.  */
   uint32_t commonSize; /* Valid when SYMBOL_COMMON is set in flagValue.  */
 } QualifierResult_t;
 
@@ -932,16 +932,16 @@ typedef struct
 static bool
 ParseQualifierBASED (QualifierResult_t *result)
 {
-  ARMWord cpuReg = getCpuReg ();
+  unsigned cpuReg = Get_CPUReg ();
   if (cpuReg == INVALID_REG)
     return true;
 
   /* When BASED is specified twice, we expect the same value.
      BASED and COMMON can not be specified together.  */
-  if ((result->basedRegNum != -1 && (uint32_t)result->basedRegNum != cpuReg)
+  if ((result->basedRegNum != INVALID_REG && result->basedRegNum != cpuReg)
       || (result->flagValue & SYMBOL_COMMON) != 0)
     {
-      error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
+      Error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
 	     (int)sizeof ("BASED")-1, "BASED");
       return true;
     }
@@ -958,14 +958,14 @@ ParseQualifierBASED (QualifierResult_t *result)
 static bool
 ParseQualifierCOMMON (QualifierResult_t *result)
 {
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match ('=', false))
     {
-      error (ErrorError, "COMMON attribute needs size specification");
+      Error (ErrorError, "COMMON attribute needs size specification");
       return true;
     }
 
-  const Value *size = exprBuildAndEval (ValueInt);
+  const Value *size = Expr_BuildAndEval (ValueInt);
   switch (size->Tag)
     {
       case ValueInt:
@@ -974,14 +974,14 @@ ParseQualifierCOMMON (QualifierResult_t *result)
 	/* Fall through.  */
 
       default:
-	error (ErrorError, "Illegal COMMON attribute expression");
+	Error (ErrorError, "Illegal COMMON attribute expression");
 	return true;
     }
   /* Qualifier BASED and COMMON can not specified together.  */
-  if (result->basedRegNum != -1
+  if (result->basedRegNum != INVALID_REG
       || ((result->flagValue & SYMBOL_COMMON) != 0 && result->commonSize != (uint32_t)size->Data.Int.i))
     {
-      error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
+      Error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
 	     (int)sizeof ("COMMON")-1, "COMMON");
       return true;
     }
@@ -1038,7 +1038,7 @@ GetQualifierList (bool forExport, bool weakOnly)
     {
       .flagValue = 0,
       .flagSet = 0,
-      .basedRegNum = -1,
+      .basedRegNum = INVALID_REG,
       .commonSize = 0
     };
 
@@ -1046,10 +1046,10 @@ GetQualifierList (bool forExport, bool weakOnly)
     {
       do
 	{
-	  Lex qualifier = lexGetIdNoError ();
+	  Lex qualifier = Lex_GetIDNoError ();
 	  if (qualifier.tag != LexId)
 	    {
-	      error (ErrorError, "Missing or wrong type of %s qualifier", forExport ? "EXPORT" : "IMPORT");
+	      Error (ErrorError, "Missing or wrong type of %s qualifier", forExport ? "EXPORT" : "IMPORT");
 	      break;
 	    }
 
@@ -1077,7 +1077,7 @@ GetQualifierList (bool forExport, bool weakOnly)
 	    }
 	  if (keyword == NULL)
 	    {
-	      error (ErrorError, "Qualifier %.*s is not known",
+	      Error (ErrorError, "Qualifier %.*s is not known",
 		     (int)qualifier.Data.Id.len, qualifier.Data.Id.str);
 	    }
 	  else
@@ -1093,7 +1093,7 @@ GetQualifierList (bool forExport, bool weakOnly)
 		  /* Keyword has already been set.  Verify consistency.  */
 		  if ((keyword->flagSet & result.flagValue) != keyword->flagValue)
 		    {
-		      error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
+		      Error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
 			     (int)qualifier.Data.Id.len, qualifier.Data.Id.str);
 		      break;
 		    }
@@ -1105,17 +1105,17 @@ GetQualifierList (bool forExport, bool weakOnly)
 		}
 	    }
 
-	  skipblanks ();
+	  Input_SkipWS ();
 	  if (Input_Match (']', true))
 	    break;
 	  if (Input_IsEolOrCommentStart ())
 	    {
-	      error (ErrorError, "Missing ]");
+	      Error (ErrorError, "Missing ]");
 	      break;
 	    }
 	  if (!Input_Match (',', true))
 	    {
-	      error (ErrorError, "Missing ,");
+	      Error (ErrorError, "Missing ,");
 	      break;
 	    }
 	} while (1);
@@ -1141,21 +1141,21 @@ c_export (void)
     return true;
 
   Symbol *sym = ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE, "exported");
-  skipblanks ();
+  Input_SkipWS ();
   if (sym == NULL)
     {
       oExportAllSymbols = true;
       if (!Input_IsEolOrCommentStart ())
 	{
 	  if (!Input_Match ('[', true))
-	    error (ErrorError, "Missing [");
+	    Error (ErrorError, "Missing [");
 	  else
 	    {
 	      const QualifierResult_t result = GetQualifierList (true, true);
 	      if ((result.flagValue & SYMBOL_WEAK) != 0)
 		{
 		  if (option_aof)
-		    error (ErrorWarning, "Making EXPORT symbols WEAK is not supported for AOF output");
+		    Error (ErrorWarning, "Making EXPORT symbols WEAK is not supported for AOF output");
 		  else
 		    oAllExportSymbolsAreWeak = true;
 		}
@@ -1170,8 +1170,8 @@ c_export (void)
 	  do
 	    {
 	      if (ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE, "exported") == NULL)
-		error (ErrorError, "Missing symbol");
-	      skipblanks ();
+		Error (ErrorError, "Missing symbol");
+	      Input_SkipWS ();
 	    } while (Input_Match (',', true));
 	}
       else if (Input_Match ('[', true))
@@ -1179,15 +1179,15 @@ c_export (void)
 	  QualifierResult_t result = GetQualifierList (true, false);
 	  if (option_aof && (result.flagValue & SYMBOL_WEAK) != 0)
 	    {
-	      error (ErrorWarning, "Making EXPORT symbol %s WEAK is not supported for AOF output", sym->str);
+	      Error (ErrorWarning, "Making EXPORT symbol %s WEAK is not supported for AOF output", sym->str);
 	      result.flagValue &= ~SYMBOL_WEAK;
 	    }
 	  sym->type = ApplyDefaultSymbolTypeForExportOrImport (sym->type | result.flagValue, result.flagSet);
-	  assert (result.basedRegNum == -1);
+	  assert (result.basedRegNum == INVALID_REG);
 	  assert (result.commonSize == 0 && (result.flagValue & SYMBOL_COMMON) == 0);
 	}
       else
-	error (ErrorError, "Missing [");
+	Error (ErrorError, "Missing [");
     }
   else
     sym->type = ApplyDefaultSymbolTypeForExportOrImport (sym->type, 0);
@@ -1207,7 +1207,7 @@ c_strong (void)
     return true;
 
   if (ParseSymbolAndAdjustFlag (SYMBOL_STRONG, "marked as STRONG") == NULL)
-    error (ErrorError, "Missing symbol");
+    Error (ErrorError, "Missing symbol");
   return false;
 }
 
@@ -1239,7 +1239,7 @@ c_leaf (void)
     return true;
 
   if (ParseSymbolAndAdjustFlag (SYMBOL_LEAF, "marked as LEAF") == NULL)
-    error (ErrorError, "Missing symbol");
+    Error (ErrorError, "Missing symbol");
   return false;
 }
 
@@ -1260,11 +1260,11 @@ c_import (void)
   Symbol *sym = ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE, "imported");
   if (sym == NULL)
     {
-      error (ErrorError, "Missing symbol for import");
+      Error (ErrorError, "Missing symbol for import");
       return false;
     }
 
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_IsEolOrCommentStart ())
     {
       QualifierResult_t result;
@@ -1273,18 +1273,18 @@ c_import (void)
       else
 	{
 	  result.flagSet = result.flagValue = 0;
-	  result.basedRegNum = -1;
+	  result.basedRegNum = INVALID_REG;
 	  result.commonSize = 0;
 	}
       /* Additionally parse "FPREGARGS" and/or "WEAK".  */
-      skipblanks ();
+      Input_SkipWS ();
       uint32_t flagValue = 0;
       while (Input_Match (',', true))
 	{
-	  Lex qualifier = lexGetIdNoError ();
+	  Lex qualifier = Lex_GetIDNoError ();
 	  if (qualifier.tag != LexId)
 	    {
-	      error (ErrorError, "Missing or wrong type of %s qualifier", "IMPORT");
+	      Error (ErrorError, "Missing or wrong type of %s qualifier", "IMPORT");
 	      break;
 	    }
 	  if (qualifier.Data.Id.len == sizeof ("FPREGARGS")-1
@@ -1295,16 +1295,16 @@ c_import (void)
 	    flagValue |= SYMBOL_WEAK;
 	  else
 	    {
-	      error (ErrorError, "Qualifier %.*s is not known",
+	      Error (ErrorError, "Qualifier %.*s is not known",
 		     (int)qualifier.Data.Id.len, qualifier.Data.Id.str);
 	      break;
 	    }
-	  skipblanks ();
+	  Input_SkipWS ();
 	}
       /* Check for conflicting FPREGARGS and/or WEAK values when one or both
          are specified twice.  */
       if ((result.flagValue & result.flagSet & flagValue) != (result.flagSet & flagValue))
-	error (ErrorError, "Conflicting qualifier");
+	Error (ErrorError, "Conflicting qualifier");
       result.flagValue |= flagValue;
       result.flagSet |= flagValue;
 
@@ -1316,7 +1316,7 @@ c_import (void)
 	  Value_Assign (&sym->value, &value);
 	  sym->codeSize = result.commonSize;
 	}
-      else if (result.basedRegNum != -1)
+      else if (result.basedRegNum != INVALID_REG)
 	{
 	  sym->type |= SYMBOL_ABSOLUTE; /* FIXME: Correct ? See c_alloc implementation. */
 	  const Value value = Value_Addr (result.basedRegNum, 0);
@@ -1331,7 +1331,7 @@ c_import (void)
 
 #ifdef DEBUG
 void
-symbolPrint (const Symbol *sym)
+Symbol_Print (const Symbol *sym)
 {
   static const char * const symkind[4] = { "unknown", "local", "reference", "global" };
   printf ("\"%s\": %s",
@@ -1372,14 +1372,14 @@ symbolPrint (const Symbol *sym)
 
   printf (", size %" PRIu32 ", offset 0x%x, used %d : ",
           sym->codeSize, sym->offset, sym->used);
-  valuePrint (&sym->value);
+  Value_Print (&sym->value);
 }
 
 /**
  * Lists all symbols collected so far together with all its attributes.
  */
 void
-symbolPrintAll (void)
+Symbol_PrintAll (void)
 {
   for (int i = 0; i != SYMBOL_TABLESIZE; i++)
     {

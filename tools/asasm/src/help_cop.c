@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -65,46 +65,46 @@
  * Similar to dstmem() @ m_cpumem.c.
  */
 void
-help_copAddr (ARMWord ir, bool literal, bool stack)
+HelpCop_Addr (ARMWord ir, bool literal, bool stack)
 {
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match (',', true))
     {
-      error (ErrorError, "Inserting missing comma before address");
+      Error (ErrorError, "Inserting missing comma before address");
       return;
     }
 
   const ARMWord offset = areaCurrentSymbol->area->curIdx;
   Value value;
   const Value *valP = NULL;
-  switch (inputLook ())
+  switch (Input_Look ())
     {
       case '[':
         {
-          inputSkip ();
-          ir |= LHS_OP (getCpuReg ());	/* Base register */
-          skipblanks ();
+          Input_Skip ();
+          ir |= LHS_OP (Get_CPUReg ());	/* Base register */
+          Input_SkipWS ();
 	  bool preIndexed = !Input_Match (']', true);
           bool offValue = false;
 	  if (Input_Match (',', true))
 	    {			/* either [base,XX] or [base],XX */
 	      if (stack)
 	        {
-	          error (ErrorError, "Cannot specify both offset and stack type");
+	          Error (ErrorError, "Cannot specify both offset and stack type");
 	          break;
 	        }
 	      if (Input_Match ('#', false))
 	        {
-	          const Value *im = exprBuildAndEval (ValueInt);
+	          const Value *im = Expr_BuildAndEval (ValueInt);
 	          offValue = true;
 	          switch (im->Tag)
 		    {
 		      case ValueInt:
-		        ir = Fix_CopOffset (NULL, 0, ir, im->Data.Int.i);
+		        ir = Fix_CopOffset (ir, im->Data.Int.i);
 		        break;
 
 		      default:
-		        error (ErrorError, "Illegal offset expression");
+		        Error (ErrorError, "Illegal offset expression");
 		        break;
 		    }
 	          if (!preIndexed)
@@ -112,25 +112,25 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	        }
 	      else if (Input_Match ('{', false))
 	        {
-	          const Value *im = exprBuildAndEval (ValueInt);
+	          const Value *im = Expr_BuildAndEval (ValueInt);
 	          offValue = true;
 	          if (im->Tag != ValueInt)
-	            error (ErrorError, "Illegal option value");
+	            Error (ErrorError, "Illegal option value");
 	          if (im->Data.Int.i < -128 || im->Data.Int.i > 256)
-		    error (ErrorError, "Option value too large");
+		    Error (ErrorError, "Option value too large");
 	          ir |= (im->Data.Int.i & 0xFF) | U_FLAG;
-	          skipblanks ();
+	          Input_SkipWS ();
 		  if (!Input_Match ('}', false))
-		    error (ErrorError, "Missing '}' in option");
+		    Error (ErrorError, "Missing '}' in option");
 	        }
 	      else
-	        error (ErrorError, "Coprocessor memory instructions cannot use register offset");
-	      skipblanks ();
+	        Error (ErrorError, "Coprocessor memory instructions cannot use register offset");
+	      Input_SkipWS ();
 	    }
           else
 	    {			/* cop_reg,[base] if this way */
 	      if (preIndexed)
-	        error (ErrorError, "Illegal character '%c' after base", inputLook ());
+	        Error (ErrorError, "Illegal character '%c' after base", Input_Look ());
 	      if (!stack)
 	        ir |= U_FLAG; /* changes #-0 to #+0 */
 	    }
@@ -138,7 +138,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	  if (preIndexed)
 	    {
 	      if (!Input_Match (']', true))
-	        error (ErrorError, "Inserting missing ] after address");
+	        Error (ErrorError, "Inserting missing ] after address");
 	    }
           else if (!stack && !offValue)
 	    preIndexed = true; /* make [base] into [base,#0] */
@@ -147,7 +147,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	      if (preIndexed || stack)
 	        ir |= W_FLAG;
 	      else
-	        error (ErrorError, "Writeback is implied with post-index");
+	        Error (ErrorError, "Writeback is implied with post-index");
 	    }
           else if (stack)
 	    preIndexed = true; /* [base] in stack context => [base,#0] */
@@ -159,20 +159,20 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
       case '=':
 	{
 	  /* <floating pointer/integer literal> */
-          inputSkip ();
+          Input_Skip ();
 	  if (CP_GET_NUMBER (ir) != 1) /* FPE coprocessor is 1 (LFM/STM are using coprocessor 2).  */
 	    {
-	      error (ErrorError, "Co-processor data transfer literal not supported");
+	      Error (ErrorError, "Co-processor data transfer literal not supported");
 	      break;
 	    }
 	  if (!literal)
 	    {
-	      error (ErrorError, "You can't store into a constant");
+	      Error (ErrorError, "You can't store into a constant");
 	      break;
 	    }
           if (stack)
 	    {
-	      error (ErrorError, "Literal cannot be used when stack type is specified");
+	      Error (ErrorError, "Literal cannot be used when stack type is specified");
 	      break;
 	    }
 
@@ -188,7 +188,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 
 	      case PRECISION_MEM_EXTENDED:
 	      case PRECISION_MEM_PACKED:
-		error (ErrorWarning, "Extended and packed not supported for literals; using double");
+		Error (ErrorWarning, "Extended and packed not supported for literals; using double");
 		ir = (ir & ~PRECISION_MEM_MASK) | PRECISION_MEM_DOUBLE;
 		/* Fall through.  */
 
@@ -200,9 +200,9 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 		assert (0);
 		break;
 	    }	  
-	  const Value *literalP = exprBuildAndEval (ValueFloat | ValueSymbol | ValueCode);
+	  const Value *literalP = Expr_BuildAndEval (ValueFloat | ValueSymbol | ValueCode);
 	  if (literalP->Tag == ValueIllegal)
-	    error (ErrorError, "Wrong literal type");
+	    Error (ErrorError, "Wrong literal type");
 	  else
 	    {
 	      value = Lit_RegisterFloat (literalP, litSize);
@@ -216,7 +216,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	  /* <label> */
           if (stack)
 	    {
-	      error (ErrorError, "Address cannot be used when stack type is specified");
+	      Error (ErrorError, "Address cannot be used when stack type is specified");
 	      break;
 	    }
 	  /* We're dealing with one of the following:
@@ -229,7 +229,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	  /* Whatever happens, this must be a pre-increment.  */
 	  ir |= P_FLAG;
 
-	  valP = exprBuildAndEval (ValueFloat | ValueAddr | ValueSymbol);
+	  valP = Expr_BuildAndEval (ValueFloat | ValueAddr | ValueSymbol);
 	  break;
 	}
     }
@@ -257,7 +257,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	      assert (areaCurrentSymbol->area->type & AREA_ABS);
 	      ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
 	      ir |= LHS_OP (15);
-	      ir = Fix_CopOffset (NULL, 0, ir, newOffset);
+	      ir = Fix_CopOffset (ir, newOffset);
 	      break;
 	    }
 
@@ -297,7 +297,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 		{
 		  assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
 		  if (Reloc_Create (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP) == NULL)
-		    error (ErrorError, "Relocation failed");
+		    Error (ErrorError, "Relocation failed");
 		  break;
 		}
 	      value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));
@@ -308,12 +308,12 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	  case ValueAddr:
 	    {
 	      ir |= LHS_OP (valP->Data.Addr.r);
-	      ir = Fix_CopOffset (NULL, 0, ir, valP->Data.Addr.i);
+	      ir = Fix_CopOffset (ir, valP->Data.Addr.i);
 	      break;
 	    }
 
 	  default:
-	    error (ErrorError, "Illegal expression");
+	    Error (ErrorError, "Illegal expression");
 	    break;
 	}
     }

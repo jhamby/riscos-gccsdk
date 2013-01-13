@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2003-2012 GCCSDK Developers
+ * Copyright (c) 2003-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,10 +34,10 @@ typedef struct RELOC
   Value value;		/**< ValueSymbol.   */
 } Reloc;
 
-int relocFix (const Symbol *area);
-void relocAOFOutput (FILE *outfile, const Symbol *area);
+unsigned Reloc_GetNumberRelocs (const Symbol *area);
+void Reloc_AOFOutput (FILE *outfile, const Symbol *area);
 #ifndef NO_ELF_SUPPORT
-void relocELFOutput (FILE *outfile, const Symbol *area);
+void Reloc_ELFOutput (FILE *outfile, const Symbol *area);
 #endif
 
 Reloc *Reloc_Create (uint32_t how, uint32_t offset, const Value *value);

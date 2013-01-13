@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -148,7 +148,7 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
   /* We need to create a new literal in our pool.  */
   LitPool *litP;
   if ((litP = malloc (sizeof (LitPool))) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   litP->next = NULL;
   litP->file = FS_GetCurFileName ();
   litP->lineNum = FS_GetCurLineNumber ();
@@ -180,7 +180,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 
 #ifdef DEBUG_LIT
   printf ("Lit_RegisterInt(): area offset 0x%x : type %d : ", areaCurrentSymbol->area->curIdx, size);
-  valuePrint (valueP);
+  Value_Print (valueP);
   printf ("\n");
 #endif
 
@@ -239,14 +239,14 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 	    break;
 	}
       if (truncValue.Data.Int.i != valueP->Data.Int.i)
-	error (ErrorWarning, "Constant %d has been truncated to %d by the used mnemonic",
+	Error (ErrorWarning, "Constant %d has been truncated to %d by the used mnemonic",
 	       valueP->Data.Int.i, truncForUser);
       /* Perhaps representable as MOV/MVN/MOVW:  */
-      if (Help_CPUImm8s4 (truncForUser) != UINT32_MAX
-          || Help_CPUImm8s4 (~truncForUser) != UINT32_MAX
+      if (HelpCPU_Imm8s4 (truncForUser) != UINT32_MAX
+          || HelpCPU_Imm8s4 (~truncForUser) != UINT32_MAX
           || CPUMem_ConstantInMOVW (truncForUser))
 	{
-	  valueFree (&truncValue); /* Not really needed as it is ValueInt.  */
+	  Value_Free (&truncValue); /* Not really needed as it is ValueInt.  */
 	  return Value_Int (truncForUser, eIntType_PureInt);
 	}
     }
@@ -321,7 +321,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
       else
 	{
 	  offset = 0;
-	  equal = valueEqual (&litPoolP->value, &truncValue);
+	  equal = Value_Equal (&litPoolP->value, &truncValue);
 	}
       if (equal)
 	{
@@ -338,7 +338,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 	      if (areaCurrentSymbol->area->curIdx + 8 > litPoolP->offset + offset + ((isAddrMode3) ? 255 : 4095))
 		continue;
 
-	      valueFree (&truncValue);
+	      Value_Free (&truncValue);
 
 	      /* A literal with the same value got already assembled and is in
 	         our range to refer to.  */
@@ -346,7 +346,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 	    }
 	  else
 	    {
-	      valueFree (&truncValue);
+	      Value_Free (&truncValue);
 
 	      /* A literal with the same value was already needed so we can
 	         reuse its position where it is going to be assembled.  */
@@ -373,7 +373,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 
 #ifdef DEBUG_LIT
   printf ("Lit_RegisterFloat(): area offset 0x%x, type %d : ", areaCurrentSymbol->area->curIdx, size);
-  valuePrint (valueP);
+  Value_Print (valueP);
   printf ("\n");
 #endif
 
@@ -398,9 +398,9 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
     {
       if ((litPoolP->size == eLitFloat || litPoolP->size == eLitDouble)
           && litPoolP->size == size
- 	  && valueEqual (&litPoolP->value, &truncValue))
+ 	  && Value_Equal (&litPoolP->value, &truncValue))
 	{
-	  valueFree (&truncValue);
+	  Value_Free (&truncValue);
 
 	  assert (litPoolP->status != eNoNeedToAssemble);
 
@@ -457,12 +457,12 @@ Lit_DumpPool (void)
       /* Re-evaluate symbol/code.  It might be resolvable by now.  */
       if (litP->value.Tag == ValueSymbol || litP->value.Tag == ValueCode)
 	{
-	  codeInit ();
-	  codeValue (&litP->value, true);
-	  const Value *constValueP = codeEval (ValueInt | ValueCode | ValueSymbol | ValueFloat, NULL);
+	  Code_Init ();
+	  Code_Value (&litP->value, true);
+	  const Value *constValueP = Code_Eval (ValueInt | ValueCode | ValueSymbol | ValueFloat, NULL);
 	  if (constValueP->Tag == ValueIllegal)
 	    {
-	      errorLine (litP->file, litP->lineNum, ErrorError, "Unsupported literal case");
+	      Error_Line (litP->file, litP->lineNum, ErrorError, "Unsupported literal case");
 	      continue;
 	    }
 	  /* Upgrade ValueInt to ValueFloat when we have a float/double literal.  */
@@ -514,14 +514,14 @@ Lit_DumpPool (void)
 		    break;
 		}
 	      if (constant != litP->value.Data.Int.i)
-		errorLine (litP->file, litP->lineNum, ErrorWarning,
+		Error_Line (litP->file, litP->lineNum, ErrorWarning,
 			   "Constant %d has been truncated to %d by the used mnemonic",
 			   litP->value.Data.Int.i, constant);
 
 	      /* Value representable using MOV or MVN ? */
 	      if (isImmediate
-		  && (Help_CPUImm8s4 (constant) != UINT32_MAX
-		      || Help_CPUImm8s4 (~constant) != UINT32_MAX
+		  && (HelpCPU_Imm8s4 (constant) != UINT32_MAX
+		      || HelpCPU_Imm8s4 (~constant) != UINT32_MAX
 		      || CPUMem_ConstantInMOVW (constant)))
 		{
 		  if (gPhase == ePassOne)
@@ -538,9 +538,9 @@ Lit_DumpPool (void)
 		      /* We do MOV/MVN/MOVW optimisation but as the literal value
 		         got defined after LTORG, we've already allocated
 		         some bytes which aren't going to be used.  */
-		      errorLine (litP->file, litP->lineNum, ErrorWarning,
+		      Error_Line (litP->file, litP->lineNum, ErrorWarning,
 			         "Literal loading optimized as MOV/MVN/MOVW but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
-		      error (ErrorWarning, "note: LTORG was here");
+		      Error (ErrorWarning, "note: LTORG was here");
 		    }
 		}
 	      break;
@@ -575,16 +575,16 @@ Lit_DumpPool (void)
 		      /* We do MVF/MNF optimisation but as the literal value
 			 got defined after LTORG, we've already allocated
 			 some bytes which aren't going to be used.  */
-		      errorLine (litP->file, litP->lineNum, ErrorWarning,
+		      Error_Line (litP->file, litP->lineNum, ErrorWarning,
 				 "Literal loading optimized as MVF/MNF but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
-		      error (ErrorWarning, "note: LTORG was here");
+		      Error (ErrorWarning, "note: LTORG was here");
 		    }
 		}
 	      break;
 	    }
 	    
 	  default:
-	    errorLine (litP->file, litP->lineNum, ErrorError, "Unsupported literal case");
+	    Error_Line (litP->file, litP->lineNum, ErrorError, "Unsupported literal case");
 	    break;
 	}
 
@@ -631,7 +631,7 @@ Lit_DumpPool (void)
 	    {
 #ifdef DEBUG_LIT
 	      printf ("  Place at 0x%x value ", litP->offset);
-	      valuePrint (&litP->value);
+	      Value_Print (&litP->value);
 	      printf ("\n");
 #endif
 	      size_t litSize = Lit_GetSizeInBytes (litP);
@@ -656,7 +656,7 @@ Lit_DumpPool (void)
 		    };
 		  if (DefineInt_HandleSymbols (litSize, false, false, litP->offset, litP->value.Tag == ValueCode ? &litP->value : &valueCode))
 		    {
-		      errorLine (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
+		      Error_Line (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
 		      Put_AlignDataWithOffset (litP->offset, litSize, 0, 1, true);
 		    }
 		}
@@ -668,7 +668,7 @@ Lit_DumpPool (void)
 	    {
 #ifdef DEBUG_LIT
 	      printf ("  Place at 0x%x value ", litP->offset);
-	      valuePrint (&litP->value);
+	      Value_Print (&litP->value);
 	      printf ("\n");
 #endif
 	      double litData;
@@ -677,16 +677,16 @@ Lit_DumpPool (void)
 	      else
 		{
 		  /* Final evaluation.  */
-		  codeInit ();
-		  codeValue (&litP->value, true);
-		  const Value *valP = codeEval (ValueFloat | ValueSymbol, NULL);
+		  Code_Init ();
+		  Code_Value (&litP->value, true);
+		  const Value *valP = Code_Eval (ValueFloat | ValueSymbol, NULL);
 
 		  /* FIXME: relocation support for float values ? */
 		  if (valP->Tag == ValueFloat)
 		    litData = valP->Data.Float.f;
 		  else
 		    {
-		      errorLine (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
+		      Error_Line (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
 		      litData = 0.;
 		    }
 		}

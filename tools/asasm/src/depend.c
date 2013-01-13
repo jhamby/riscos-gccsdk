@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,14 +31,14 @@
 const char *DependFileName = NULL;
 
 void
-dependWrite (const char *objname)
+Depend_Write (const char *objname)
 {
   if (DependFileName == NULL)
     return;
 
   FILE *dependFile;
   if ((dependFile = fopen (DependFileName, "w")) == NULL)
-    errorAbort ("Failed to open dependencies file \"%s\"", DependFileName);
+    Error_Abort ("Failed to open dependencies file \"%s\"", DependFileName);
 
   if (objname[0] == '@' && objname[1] == '.')
     objname += 2;

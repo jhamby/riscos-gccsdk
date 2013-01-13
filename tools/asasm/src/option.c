@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,15 +44,15 @@ ARMWord
 Option_GetCCodeIfThere (bool doLowerCase)
 {
   ARMWord cc = kOption_NotRecognized;
-  const char c1 = inputLook ();
+  const char c1 = Input_Look ();
   if (c1 == (doLowerCase ? 'a' : 'A'))
     {
-      if (inputLookN (1) == (doLowerCase ? 'l' : 'L'))
+      if (Input_LookN (1) == (doLowerCase ? 'l' : 'L'))
 	cc = AL;
     }
   else if (c1 == (doLowerCase ? 'c' : 'C'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'c' : 'C'))
 	cc = CC;
       else if (c2 == (doLowerCase ? 's' : 'S'))
@@ -60,12 +60,12 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'e' : 'E'))
     {
-      if (inputLookN (1) == (doLowerCase ? 'q' : 'Q'))
+      if (Input_LookN (1) == (doLowerCase ? 'q' : 'Q'))
 	cc = EQ;
     }
   else if (c1 == (doLowerCase ? 'g' : 'G'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'e' : 'E'))
 	cc = GE;
       else if (c2 == (doLowerCase ? 't' : 'T'))
@@ -73,7 +73,7 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'h' : 'H'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'i' : 'I'))
 	cc = HI;
       else if (c2 == (doLowerCase ? 's' : 'S'))
@@ -81,7 +81,7 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'l' : 'L'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'e' : 'E'))
 	cc = LE;
       else if (c2 == (doLowerCase ? 'o' : 'O'))
@@ -93,12 +93,12 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'm' : 'M'))
     {
-      if (inputLookN (1) == (doLowerCase ? 'i' : 'I'))
+      if (Input_LookN (1) == (doLowerCase ? 'i' : 'I'))
 	cc = MI;
     }
   else if (c1 == (doLowerCase ? 'n' : 'N'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'e' : 'E'))
 	cc = NE;
       else if (c2 == (doLowerCase ? 'v' : 'V'))
@@ -112,7 +112,7 @@ Option_GetCCodeIfThere (bool doLowerCase)
 	    }
 	  else if (Target_CheckCPUFeature (kCPUExt_v4, false))
 	    {
-	      error (ErrorWarning, "For ARMv4, use of NV condition code is UNPREDICTABLE");
+	      Error (ErrorWarning, "For ARMv4, use of NV condition code is UNPREDICTABLE");
 	      cc = NV;
 	    }
 	  else
@@ -121,12 +121,12 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'p' : 'P'))
     {
-      if (inputLookN (1) == (doLowerCase ? 'l' : 'L'))
+      if (Input_LookN (1) == (doLowerCase ? 'l' : 'L'))
 	cc = PL;
     }
   else if (c1 == (doLowerCase ? 'v' : 'V'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'c' : 'C'))
 	cc = VC;
       else if (c2 == (doLowerCase ? 's' : 'S'))
@@ -134,7 +134,7 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
 
   if (cc != kOption_NotRecognized)
-    inputSkipN (2);
+    Input_SkipN (2);
   return cc;
 }
 
@@ -171,7 +171,7 @@ Option_GetInstrWidth (bool doLowerCase)
     {
       if (State_GetInstrType () == eInstrType_ARM)
 	{
-	  error (ErrorError, "Narrow instruction qualifier is not possible in ARM mode");
+	  Error (ErrorError, "Narrow instruction qualifier is not possible in ARM mode");
 	  return eInstrWidth_NotSpecified;
 	}
       return eInstrWidth_Enforce16bit;
@@ -189,10 +189,10 @@ static ARMWord
 GetStackMode (bool isLoad, bool doLowerCase)
 {
   ARMWord stackMode = kOption_NotRecognized;
-  const char c1 = inputLook ();
+  const char c1 = Input_Look ();
   if (c1 == (doLowerCase ? 'd' : 'D'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'b' : 'B'))
 	stackMode = STACKMODE_DB;
       else if (c2 == (doLowerCase ? 'a' : 'A'))
@@ -200,7 +200,7 @@ GetStackMode (bool isLoad, bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'e' : 'E'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'd' : 'D'))
 	stackMode = isLoad ? STACKMODE_IB : STACKMODE_DA;
       else if (c2 == (doLowerCase ? 'a' : 'A'))
@@ -208,7 +208,7 @@ GetStackMode (bool isLoad, bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'f' : 'F'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'd' : 'D'))
 	stackMode = isLoad ? STACKMODE_IA : STACKMODE_DB;
       else if (c2 == (doLowerCase ? 'a' : 'A'))
@@ -216,7 +216,7 @@ GetStackMode (bool isLoad, bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'i' : 'I'))
     {
-      const char c2 = inputLookN (1);
+      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'b' : 'B'))
 	stackMode = STACKMODE_IB;
       else if (c2 == (doLowerCase ? 'a' : 'A'))
@@ -224,7 +224,7 @@ GetStackMode (bool isLoad, bool doLowerCase)
     }
 
   if (stackMode != kOption_NotRecognized)
-    inputSkipN (2);
+    Input_SkipN (2);
 
   return stackMode;
 }
@@ -270,7 +270,7 @@ IsEndOfKeyword (ARMWord option)
 {
   if (option == kOption_NotRecognized)
     return option;
-  return (Input_IsEndOfKeyword () || inputLook () == '.') ? option : kOption_NotRecognized;
+  return (Input_IsEndOfKeyword () || Input_Look () == '.') ? option : kOption_NotRecognized;
 }
 
 
@@ -278,7 +278,7 @@ IsEndOfKeyword (ARMWord option)
  * Try to parse condition code.
  */
 ARMWord
-optionCond (bool doLowerCase)
+Option_Cond (bool doLowerCase)
 {
   return IsEndOfKeyword (GetCCode (doLowerCase));
 }
@@ -290,7 +290,7 @@ optionCond (bool doLowerCase)
  * I.e. support pre-UAL and UAL syntax.
  */
 ARMWord
-optionCondS (bool doLowerCase)
+Option_CondS (bool doLowerCase)
 {
   ARMWord option;
   if (Input_Match (doLowerCase ? 's' : 'S', false))
@@ -337,12 +337,12 @@ Option_CondSP (bool doLowerCase)
     gotS = Input_Match (doLowerCase ? 's' : 'S', false);
 
   if (gotS && option_pedantic)
-    error (ErrorInfo, "%c suffix on comparison instruction is DEPRECATED", doLowerCase ? 's' : 'S');
+    Error (ErrorInfo, "%c suffix on comparison instruction is DEPRECATED", doLowerCase ? 's' : 'S');
   if (gotP)
     {
       option |= PSR_P_FLAG;
       if (gOptionAPCS & APCS_OPT_32BIT)
-	error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
+	Error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
     }
 
   return IsEndOfKeyword (option);
@@ -474,7 +474,7 @@ Option_CondRfeSrs (bool isLoad, bool doLowerCase)
 
 
 ARMWord
-optionCondLdmStm (bool isLDM, bool doLowerCase)
+Option_CondLdmStm (bool isLDM, bool doLowerCase)
 {
   ARMWord option = GetCCode (doLowerCase);
   if (option == kOption_NotRecognized)
@@ -487,7 +487,7 @@ optionCondLdmStm (bool isLDM, bool doLowerCase)
 
 
 ARMWord
-optionCondLfmSfm (bool doLowerCase)
+Option_CondLfmSfm (bool doLowerCase)
 {
   return GetCCode (doLowerCase);
 }
@@ -497,7 +497,7 @@ optionCondLfmSfm (bool doLowerCase)
  * For all FPA (except LDF/STF) implementations.
  */
 ARMWord
-optionCondPrecRound (bool doLowerCase)
+Option_CondPrecRound (bool doLowerCase)
 {
   ARMWord option = GetCCode (doLowerCase);
   if (kOption_NotRecognized == (option |= GetFPAPrecision (false, doLowerCase)))
@@ -510,7 +510,7 @@ optionCondPrecRound (bool doLowerCase)
  * For LDF/STF implementation.
  */
 ARMWord
-optionCondPrec_P (bool doLowerCase)
+Option_CondPrec_P (bool doLowerCase)
 {
   ARMWord option = GetCCode (doLowerCase);
   if (kOption_NotRecognized == (option |= GetFPAPrecision (true, doLowerCase)))
@@ -520,7 +520,7 @@ optionCondPrec_P (bool doLowerCase)
 
 
 ARMWord
-optionCondL (bool doLowerCase)
+Option_CondL (bool doLowerCase)
 {
   ARMWord option = GetCCode (doLowerCase);
   if (Input_Match (doLowerCase ? 'l' : 'L', false))
@@ -534,16 +534,16 @@ optionCondL (bool doLowerCase)
 
 
 ARMWord
-optionCondOptRound (bool doLowerCase)
+Option_CondOptRound (bool doLowerCase)
 {
-  ARMWord optionCC = GetCCode (doLowerCase);
-  return IsEndOfKeyword (optionCC | PRECISION_SINGLE | GetFPARounding (doLowerCase));
+  ARMWord Option_CC = GetCCode (doLowerCase);
+  return IsEndOfKeyword (Option_CC | PRECISION_SINGLE | GetFPARounding (doLowerCase));
 }
 
 
 /* 'B' is matched before call */
 ARMWord
-optionLinkCond (bool doLowerCase)
+Option_LinkCond (bool doLowerCase)
 {
   /* bl.CC or b.l ?  */
   if (!Input_Match (doLowerCase ? 'l' : 'L', false))
@@ -568,7 +568,7 @@ optionLinkCond (bool doLowerCase)
 
 
 ARMWord
-optionExceptionCond (bool doLowerCase)
+Option_ExceptionCond (bool doLowerCase)
 {
   if (!Input_Match (doLowerCase ? 'e' : 'E', false))
     return IsEndOfKeyword (GetCCode (doLowerCase)); /* Only cmf.CC possible  */
@@ -581,7 +581,7 @@ optionExceptionCond (bool doLowerCase)
 
 
 ARMWord
-optionAdrL (bool doLowerCase)
+Option_ADRL (bool doLowerCase)
 {
   ARMWord option = GetCCode (doLowerCase);
   if (Input_Match (doLowerCase ? 'l' : 'L', false))

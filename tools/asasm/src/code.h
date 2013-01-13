@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,30 +47,30 @@ typedef struct Code
     } Data;
 } Code;
 
-void codeInit (void);
+void Code_Init (void);
 
-void codeOperator (Operator_e op);
-void codeSymbol (Symbol *symbol, int offset);
-void codeInt (int value);
-void codePosition (Symbol *area, int offset);
-void codeStorage (void);
-void codeString (const char *str, size_t len);
-void codeFloat (ARMFloat value);
-void codeBool (bool value);
-void codeAddr (int reg, int offset);
-void codeValue (const Value *value, bool expCode);
+void Code_Operator (Operator_e op);
+void Code_Symbol (Symbol *symbol, int offset);
+void Code_Int (int value);
+void Code_Position (Symbol *area, int offset);
+void Code_Storage (void);
+void Code_String (const char *str, size_t len);
+void Code_Float (ARMFloat value);
+void Code_Bool (bool value);
+void Code_Addr (unsigned reg, int offset);
+void Code_Value (const Value *value, bool expCode);
 
-const Value *codeEvalLow (ValueTag legal, size_t size, const Code *program, const ARMWord *instrOffsetP);
-const Value *codeEval (ValueTag legal, const ARMWord *instrOffsetP);
+const Value *Code_EvalLow (ValueTag legal, size_t size, const Code *program, const ARMWord *instrOffsetP);
+const Value *Code_Eval (ValueTag legal, const ARMWord *instrOffsetP);
 
 Value Code_TakeSnapShot (void);
 
 void Code_Free (const Code *code, size_t len);
-Code *codeCopy (size_t len, const Code *code);
-bool codeEqual (size_t len, const Code *a, const Code *b);
+Code *Code_Copy (size_t len, const Code *code);
+bool Code_Equal (size_t len, const Code *a, const Code *b);
 
 #ifdef DEBUG
-void codePrint (size_t size, const Code *program);
+void Code_Print (size_t size, const Code *program);
 #endif
 
 #endif

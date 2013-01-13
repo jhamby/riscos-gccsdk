@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) Andy Duplain, August 1992.
  * Converted to RISC OS by Niklas Röjemo
- * Copyright (c) 2002-2012 GCCSDK Developers
+ * Copyright (c) 2002-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -68,14 +68,14 @@ Include_Add (const char *path)
       if (incDirPP == NULL)
         {
           incDirMaxSize = incDirCurSize = 0;
-	  errorOutOfMem ();
+	  Error_OutOfMem ();
         }
       incDirMaxSize = newDirMaxSize;
     }
 
   char *newPath = strdup (path);
   if (newPath == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   /* Strip trailing dir separator */
   size_t len = strlen (newPath);
   if (newPath[len] == NAT_DIR_CHR)

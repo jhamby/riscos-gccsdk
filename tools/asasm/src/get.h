@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,13 +27,13 @@
 
 #include "global.h"
 
-ARMWord getCpuReg (void);
-ARMWord Get_CPURegNoError (void);
-ARMWord getFpuReg (void);
-ARMWord getCopReg (void);
-ARMWord getCopNum (void);
-ARMWord Get_CPURList (void);
-ARMWord getRhs (bool immonly, bool shift, ARMWord ir);
+unsigned Get_CPUReg (void);
+unsigned Get_CPURegNoError (void);
+unsigned Get_FPUReg (void);
+unsigned Get_CopReg (void);
+unsigned Get_CopNum (void);
+unsigned Get_CPURList (void);
+ARMWord Get_RHS (bool immonly, bool shift, ARMWord ir);
 
 #define DST_OP(op) ((op)<<12)
 #define LHS_OP(op) ((op)<<16)
@@ -52,7 +52,7 @@ ARMWord getRhs (bool immonly, bool shift, ARMWord ir);
 
 #define IMM_RHS   0x02000000
 
-#define INVALID_REG 0xFFFFFFFF
+#define INVALID_REG 0xFFFFFFFFu
 
 #define RRX 5
 #define LSL 0x00000000

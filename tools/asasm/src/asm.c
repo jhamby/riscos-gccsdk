@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -68,7 +68,7 @@ ASM_NextLine (void)
       /* Failed to read a line, this might be we're EOD for the current
          parsable object.  Go up one.  */
       if (gCurPObjP->type == POType_eFile)
-	errorLine (curFileName, curLineNum, ErrorWarning, "No END found");
+	Error_Line (curFileName, curLineNum, ErrorWarning, "No END found");
       FS_PopPObject (false);
     }
   return false;
@@ -96,22 +96,22 @@ ASM_DoPass (const char *asmFile)
 	  size_t len = strlen (fileName);
 	  if (len > 12)
 	    fileName += len - 12;
-	  printf("%.*s : %u : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area->curIdx, inputLine ());
+	  printf("%.*s : %u : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area->curIdx, Input_Line ());
 #endif
 	  /* Read label (in case there is one).  */
 	  Lex label;
-	  if (!isspace ((unsigned char)inputLook ()))
+	  if (!isspace ((unsigned char)Input_Look ()))
 	    label = Lex_GetDefiningLabel ();
 	  else
 	    label.tag = LexNone;
-	  skipblanks ();
+	  Input_SkipWS ();
 
 #ifdef DEBUG_ASM
 	  lexPrint (&label);
 	  printf ("\n");
 #endif
 
-	  decode (&label);
+	  Decode (&label);
 	}
     }
   else
@@ -134,7 +134,7 @@ ASM_Assemble (const char *asmFile, bool doOnePassOnly)
   ASM_DoPass (asmFile);
 
   /* Don't do a next pass if we already have errors now.  */
-  if (!doOnePassOnly && returnExitStatus () == EXIT_SUCCESS)
+  if (!doOnePassOnly && Error_GetExitStatus () == EXIT_SUCCESS)
     {
       Phase_PrepareFor (ePassTwo);
       ASM_DoPass (asmFile);

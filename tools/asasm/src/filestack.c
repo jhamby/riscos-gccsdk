@@ -3,7 +3,7 @@
  * Copyright (c) Andy Duplain, August 1992.
  *     Added line numbers  Niklas Röjemo
  *     Added filenames     Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -71,7 +71,7 @@ StoreFileName (const char *fileNameP)
   if (resultP == NULL)
     {
       if ((resultP = malloc (offsetof (FileNameList, fileName) + strlen (fileNameP) + 1)) == NULL)
-	errorOutOfMem ();
+	Error_OutOfMem ();
       resultP->nextP = gFileNameListP;
       strcpy (resultP->fileName, fileNameP);
       gFileNameListP = resultP;
@@ -125,13 +125,13 @@ FS_PushFilePObject (const char *fileName)
       prevWhileIfDepth = gCurPObjP[0].whileIfCurDepth;
     }
   else
-    errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
+    Error_Abort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
 
   ASFile asFile;
   newPObjP->d.file.fhandle = Include_Get (fileName, &asFile, true);
   if (newPObjP->d.file.fhandle == NULL)
     {
-      error (ErrorError, "Cannot open file \"%s\"", fileName);
+      Error (ErrorError, "Cannot open file \"%s\"", fileName);
       return true;
     }
 
@@ -201,7 +201,7 @@ File_GetLine (char *bufP, size_t bufSize)
       else if (feof (gCurPObjP->d.file.fhandle))
 	return false;
       else
-	errorAbort ("Line too long");
+	Error_Abort ("Line too long");
     }
 }
 

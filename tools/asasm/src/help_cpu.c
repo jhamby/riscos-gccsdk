@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2012 GCCSDK Developers
+ * Copyright (c) 2001-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,7 +33,7 @@
  * UINT32_MAX given value can not be encoded.
  */
 uint32_t
-Help_CPUImm8s4 (uint32_t value)
+HelpCPU_Imm8s4 (uint32_t value)
 {
   static const uint32_t mask[] =
     {
@@ -65,7 +65,7 @@ ShiftL (unsigned int val, unsigned int shiftPos)
  * the given constant.
  */
 unsigned
-Help_SplitByImm8s4 (uint32_t cnst, uint32_t c[4])
+HelpCPU_SplitByImm8s4 (uint32_t cnst, uint32_t c[4])
 {
   /* Check the odd case.  */
   if (cnst == 0)

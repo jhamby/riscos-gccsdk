@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -107,7 +107,7 @@ If_Skip (IfSkip_eToDo toDo)
   /* We will now skip input lines until a matching '|', 'ELSE', 'ELIF', ']' or
     'ENDIF'.  This means we have to do the final decode check ourselves
     for the current line.  */
-  decode_finalcheck ();
+  Decode_FinalCheck ();
 
   int nested = 0;
   while (Input_NextLine (eVarSubstNoWarning))
@@ -119,19 +119,19 @@ If_Skip (IfSkip_eToDo toDo)
       /* Check for label and skip it.
          Make special exception for '$' starting labels, i.e. macro arguments.  */
       bool labelPresent;
-      if (isspace ((unsigned char)inputLook ()))
+      if (isspace ((unsigned char)Input_Look ()))
 	labelPresent = false;
-      else if (inputLook () == '$')
+      else if (Input_Look () == '$')
 	{
 	  size_t len;
-	  (void) inputSymbol (&len, '\0');
+	  (void) Input_Symbol2 (&len, '\0');
 	  if (Input_Match ('.', false))
-	    (void) inputSymbol (&len, '\0');
+	    (void) Input_Symbol2 (&len, '\0');
 	  labelPresent = true;
 	}
       else
 	labelPresent = Lex_SkipDefiningLabel ();
-      skipblanks ();
+      Input_SkipWS ();
 
       /* Check for '[', '|', ']', 'IF', 'ELSE', 'ELIF', 'ENDIF'.  */
       enum { t_if, t_else, t_elif, t_endif } toktype;
@@ -154,13 +154,13 @@ If_Skip (IfSkip_eToDo toDo)
 
       if (toktype != t_if && toktype != t_elif)
 	{
-          skipblanks ();
+          Input_SkipWS ();
           if (!Input_IsEolOrCommentStart ())
-	    error (ErrorError, "Spurious characters after %s token", toktype == t_else ? "ELSE" : "ENDIF");
+	    Error (ErrorError, "Spurious characters after %s token", toktype == t_else ? "ELSE" : "ENDIF");
 	}
 
       if (labelPresent)
-	error (ErrorWarning, "Label not allowed here - ignoring");
+	Error (ErrorWarning, "Label not allowed here - ignoring");
 
       switch (toktype)
 	{
@@ -180,7 +180,7 @@ If_Skip (IfSkip_eToDo toDo)
 		      toDo = eSkipToEndifStrict; /* From now on, we only expect matching ENDIF (no other matching ELSE, nor matching ELIF).  */
 		      break;
 		    case eSkipToEndifStrict:
-		      error (ErrorError, "Spurious '|' or 'ELSE' is being ignored");
+		      Error (ErrorError, "Spurious '|' or 'ELSE' is being ignored");
 		      break;
 		  }
 	      }
@@ -193,11 +193,11 @@ If_Skip (IfSkip_eToDo toDo)
 		  {
 		    case eSkipToElseElifOrEndif:
 		      {
-			const Value *flag = exprBuildAndEval (ValueBool);
+			const Value *flag = Expr_BuildAndEval (ValueBool);
 			bool skipToElseElifOrEndIf;
 			if (flag->Tag != ValueBool)
 			  {
-			    error (ErrorError, "ELIF expression must be boolean (treating as true)");
+			    Error (ErrorError, "ELIF expression must be boolean (treating as true)");
 			    skipToElseElifOrEndIf = false;
 			  }
 			else
@@ -209,7 +209,7 @@ If_Skip (IfSkip_eToDo toDo)
 		    case eSkipToEndif:
 		      break;
 		    case eSkipToEndifStrict:
-		      error (ErrorError, "Spurious 'ELIF' is being ignored");
+		      Error (ErrorError, "Spurious 'ELIF' is being ignored");
 		      break;
 		  }
 	      }
@@ -242,7 +242,7 @@ c_if (void)
 {
   if (gCurPObjP->whileIfCurDepth + 1 == kMAX_WHILEIF_BLOCKS)
     {
-      error (ErrorError, "Too many nested WHILE/IFs");
+      Error (ErrorError, "Too many nested WHILE/IFs");
       return false;
     }
 
@@ -250,11 +250,11 @@ c_if (void)
   whileIfP->Tag = WhileIf_eIsIf;
   whileIfP->Data.If.lineNum = gCurPObjP->lineNum;
 
-  const Value *flag = exprBuildAndEval (ValueBool);
+  const Value *flag = Expr_BuildAndEval (ValueBool);
   bool skipToElseElifOrEndIf;
   if (flag->Tag != ValueBool)
     {
-      error (ErrorError, "IF expression must be boolean (treating as true)");
+      Error (ErrorError, "IF expression must be boolean (treating as true)");
       skipToElseElifOrEndIf = false;
     }
   else
@@ -279,13 +279,13 @@ bool
 c_else (void)
 {
   if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
-    error (ErrorError, "Mismatched | or ELSE, no matching IF found");
+    Error (ErrorError, "Mismatched | or ELSE, no matching IF found");
   else
     {
       if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
 	{
-	  error (ErrorError, "Mismatched | or ELSE");
-	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
+	  Error (ErrorError, "Mismatched | or ELSE");
+	  Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
 		     ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
@@ -313,13 +313,13 @@ c_elif (void)
   Input_Rest ();
 
   if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
-    error (ErrorError, "Mismatched ELIF, no matching IF found");
+    Error (ErrorError, "Mismatched ELIF, no matching IF found");
   else
     {
       if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
 	{
-	  error (ErrorError, "Mismatched ELIF");
-	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
+	  Error (ErrorError, "Mismatched ELIF");
+	  Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
 		     ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
@@ -341,13 +341,13 @@ bool
 c_endif (void)
 {
   if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
-    error (ErrorError, "Mismatched ] or ENDIF, no matching IF found");
+    Error (ErrorError, "Mismatched ] or ENDIF, no matching IF found");
   else
     {
       if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
 	{
-	  error (ErrorError, "Mismatched ] or ENDIF");
-	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
+	  Error (ErrorError, "Mismatched ] or ENDIF");
+	  Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
 		     ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
@@ -369,7 +369,7 @@ While_Skip (void)
 {
   /* We will now skip input lines until a matching 'WEND'.  This means we have
      to do the final decode check ourselves for the current line.  */
-  decode_finalcheck ();
+  Decode_FinalCheck ();
 
   const unsigned startLineNumber = FS_GetCurLineNumber ();
 
@@ -383,31 +383,31 @@ While_Skip (void)
       /* Check for label and skip it.
 	 Make special exception for '$' starting labels, i.e. macro arguments.  */
       bool labelPresent;
-      if (isspace ((unsigned char)inputLook ()))
+      if (isspace ((unsigned char)Input_Look ()))
 	labelPresent = false;
-      else if (inputLook () == '$')
+      else if (Input_Look () == '$')
 	{
 	  size_t len;
-	  (void) inputSymbol (&len, '\0');
+	  (void) Input_Symbol2 (&len, '\0');
 	  if (Input_Match ('.', false))
-	    (void) inputSymbol (&len, '\0');
+	    (void) Input_Symbol2 (&len, '\0');
 	  labelPresent = true;
 	}
       else
 	labelPresent = Lex_SkipDefiningLabel ();
-      skipblanks ();      
+      Input_SkipWS ();      
 
       /* Look for WHILE and WEND.  */
       if (Input_MatchKeyword ("WHILE"))
 	{
 	  if (labelPresent)
-	    error (ErrorWarning, "Label not allowed here - ignoring");
+	    Error (ErrorWarning, "Label not allowed here - ignoring");
 	  ++nested;
 	}
       else if (Input_MatchKeyword ("WEND"))
 	{
 	  if (labelPresent)
-	    error (ErrorWarning, "Label not allowed here - ignoring");
+	    Error (ErrorWarning, "Label not allowed here - ignoring");
 	  if (nested-- == 0)
 	    {
 	      assert (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile);
@@ -419,8 +419,8 @@ While_Skip (void)
 
   /* We reached the end of the current parsing object without finding a matching
      'WEND'.  */
-  error (ErrorError, "Mismatched WHILE, did you forget WEND");
-  errorLine (FS_GetCurFileName(), startLineNumber,
+  Error (ErrorError, "Mismatched WHILE, did you forget WEND");
+  Error_Line (FS_GetCurFileName(), startLineNumber,
 	     ErrorError, "note: WHILE started here");
 
   /* In order not to confuse decode_finalcheck(), inject an empty
@@ -456,7 +456,7 @@ c_while (void)
       /* First time this WHILE gets executed, create a WHILE context.  */
       if (gCurPObjP->whileIfCurDepth + 1 == kMAX_WHILEIF_BLOCKS)
 	{
-	  error (ErrorError, "Too many nested WHILE/IFs");
+	  Error (ErrorError, "Too many nested WHILE/IFs");
 	  return false;
 	}
 
@@ -480,11 +480,11 @@ c_while (void)
     }
 
   /* Evaluate expression.  */
-  const Value *flag = exprBuildAndEval (ValueBool);
+  const Value *flag = Expr_BuildAndEval (ValueBool);
   bool whileExprResult;
   if (flag->Tag != ValueBool)
     {
-      error (ErrorError, "WHILE expression must be boolean (treating as false)");
+      Error (ErrorError, "WHILE expression must be boolean (treating as false)");
       whileExprResult = false;
     }
   else
@@ -539,11 +539,11 @@ c_wend (void)
 {
   assert (gCurPObjP->whileIfCurDepth >= gCurPObjP->whileIfStartDepth);
   if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
-    error (ErrorError, "Mismatched WEND, did you forgot WHILE");
+    Error (ErrorError, "Mismatched WEND, did you forgot WHILE");
   else if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsIf)
     {
-      error (ErrorError, "Mismatched WEND, did you forgot WHILE");
-      errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.If.lineNum,
+      Error (ErrorError, "Mismatched WEND, did you forgot WHILE");
+      Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.If.lineNum,
 		 ErrorError, "note: Maybe because of an unmatched IF here");
     }
   else
@@ -569,8 +569,8 @@ FS_PopIfWhile (bool noCheck)
 	  case WhileIf_eIsIf:
 	    if (!noCheck)
 	      {
-		error (ErrorError, "Unmatched IF/ELSE/ELIF, did you forgot ENDIF");
-		errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.If.lineNum,
+		Error (ErrorError, "Unmatched IF/ELSE/ELIF, did you forgot ENDIF");
+		Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.If.lineNum,
 			   ErrorError, "note: IF started here");
 	      }
 	    break;
@@ -578,8 +578,8 @@ FS_PopIfWhile (bool noCheck)
 	  case WhileIf_eIsWhile:
 	    if (!noCheck)
 	      {
-		error (ErrorError, "Unmatched WHILE, did you forgot WEND");
-		errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.While.lineNum,
+		Error (ErrorError, "Unmatched WHILE, did you forgot WEND");
+		Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.While.lineNum,
 			   ErrorError, "note: WHILE started here");
 	      }
 	    break;

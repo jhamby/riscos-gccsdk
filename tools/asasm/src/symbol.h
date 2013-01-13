@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2012 GCCSDK Developers
+ * Copyright (c) 2001-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -163,8 +163,8 @@ bool c_leaf (void);
 bool c_strong (void);
 
 #ifdef DEBUG
-void symbolPrint (const Symbol *sym);
-void symbolPrintAll (void);
+void Symbol_Print (const Symbol *sym);
+void Symbol_PrintAll (void);
 #endif
 
 #endif

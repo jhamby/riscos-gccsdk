@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,7 +39,6 @@
 #include "eval.h"
 #include "input.h"
 #include "main.h"
-#include "option.h"
 
 #ifdef DEBUG
 //#  define DEBUG_CODE
@@ -60,13 +59,13 @@ static unsigned FirstFreeIns; /**< Index for Program[] array for first free slot
 static Value Stack[CODE_SIZESTACK]; /**< Ownership of Value object.  */
 
 void
-codeInit (void)
+Code_Init (void)
 {
   FirstFreeIns = 0;
 }
 
 void
-codeOperator (Operator_e op)
+Code_Operator (Operator_e op)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -75,11 +74,11 @@ codeOperator (Operator_e op)
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeOp: overflow");
+    Error_Abort ("Internal Code_Operator: overflow");
 }
 
 void
-codeSymbol (Symbol *symbol, int offset)
+Code_Symbol (Symbol *symbol, int offset)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -89,20 +88,20 @@ codeSymbol (Symbol *symbol, int offset)
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeSymbol: overflow");
+    Error_Abort ("Internal Code_Symbol: overflow");
 }
 
 void
-codePosition (Symbol *area, int offset)
+Code_Position (Symbol *area, int offset)
 {
   if (area->area->type & AREA_ABS)
-    codeInt (Area_GetBaseAddress (area) + offset);
+    Code_Int (Area_GetBaseAddress (area) + offset);
   else
-    codeSymbol (area, offset);
+    Code_Symbol (area, offset);
 }
 
 void
-codeStorage (void)
+Code_Storage (void)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -111,11 +110,11 @@ codeStorage (void)
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeStorage: overflow");
+    Error_Abort ("Internal Code_Storage: overflow");
 }
 
 void
-codeString (const char *str, size_t len)
+Code_String (const char *str, size_t len)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -126,11 +125,11 @@ codeString (const char *str, size_t len)
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeString: overflow");
+    Error_Abort ("Internal Code_String: overflow");
 }
 
 void
-codeInt (int value)
+Code_Int (int value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -139,42 +138,40 @@ codeInt (int value)
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeInt: overflow");
+    Error_Abort ("Internal Code_Int: overflow");
 }
 
 void
-codeFloat (ARMFloat value)
+Code_Float (ARMFloat value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value.Tag = ValueFloat;
-      Program[FirstFreeIns].Data.value.Data.Float.f = value;
+      Program[FirstFreeIns].Data.value = Value_Float (value);
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeFloat: overflow");
+    Error_Abort ("Internal Code_Float: overflow");
 }
 
 void
-codeBool (bool value)
+Code_Bool (bool value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value.Tag = ValueBool;
-      Program[FirstFreeIns].Data.value.Data.Bool.b = value;
+      Program[FirstFreeIns].Data.value = Value_Bool (value);
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeBool: overflow");
+    Error_Abort ("Internal Code_Bool: overflow");
 }
 
 /**
  * Adds "Push ValueAddr object" code element.
  */
 void
-codeAddr (int reg, int offset)
+Code_Addr (unsigned reg, int offset)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -183,11 +180,11 @@ codeAddr (int reg, int offset)
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeAddr: overflow");
+    Error_Abort ("Internal Code_Addr: overflow");
 }
 
 void
-codeValue (const Value *value, bool expCode)
+Code_Value (const Value *value, bool expCode)
 {
   if (expCode && value->Tag == ValueCode)
     {
@@ -197,7 +194,7 @@ codeValue (const Value *value, bool expCode)
 	  FirstFreeIns += value->Data.Code.len;
 	}
       else
-	errorAbort ("Internal codeValue: overflow");
+	Error_Abort ("Internal Code_Value: overflow");
     }
   else if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -206,7 +203,7 @@ codeValue (const Value *value, bool expCode)
       ++FirstFreeIns;
     }
   else
-    errorAbort ("Internal codeValue: overflow");
+    Error_Abort ("Internal Code_Value: overflow");
 }
 
 static void
@@ -253,10 +250,10 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 #ifdef DEBUG_CODE
 	      printf ("[Operator %s] ", Lex_OperatorAsStr (program[i].Data.op));
 #endif
-	      if (IsUnop (program[i].Data.op))
+	      if (Lex_IsUnop (program[i].Data.op))
 		{
 		  assert (spStart < *sp); /* At least one entry on the stack.  */
-		  if (!evalUnop (program[i].Data.op, &Stack[*sp - 1]))
+		  if (!Eval_Unop (program[i].Data.op, &Stack[*sp - 1]))
 		    {
 #ifdef DEBUG_CODE
 		      printf ("FAILED\n");
@@ -271,7 +268,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 		  assert (spStart < *sp - 1); /* At least two entries on the stack.  */
 
 		  Operator_e op = program[i].Data.op;
-		  if (!evalBinop (op, &Stack[*sp - 2], &Stack[*sp - 1]))
+		  if (!Eval_Binop (op, &Stack[*sp - 2], &Stack[*sp - 1]))
 		    {
 #ifdef DEBUG_CODE
 		      printf ("FAILED\n");
@@ -280,7 +277,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 		    }
 		  /* Stack adjusting by one, as two operands are consumed, one
 		     result is produced.  */
-		  valueFree (&Stack[*sp - 1]);
+		  Value_Free (&Stack[*sp - 1]);
 		  --(*sp);
 		}
 	      break;
@@ -291,7 +288,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 	      Value value = program[i].Data.value;
 #ifdef DEBUG_CODE
 	      printf ("[Push value: ");
-	      valuePrint (&value);
+	      Value_Print (&value);
 	      printf ("] ");
 #endif
 	      /* Resolve a defined symbol (but only when the next operator
@@ -312,7 +309,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 	    }
 
 	  default:
-	    errorAbort ("Internal codeEvalLow: illegal expression");
+	    Error_Abort ("Internal codeEvalLow: illegal expression");
 	    break;
 	}
 #ifdef DEBUG_CODE
@@ -360,9 +357,9 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
  * Use Value_Assign() to keep a non-temporary copy of it.
  */
 const Value *
-codeEval (ValueTag legal, const ARMWord *instrOffsetP)
+Code_Eval (ValueTag legal, const ARMWord *instrOffsetP)
 {
-  return codeEvalLow (legal, FirstFreeIns, Program, instrOffsetP);
+  return Code_EvalLow (legal, FirstFreeIns, Program, instrOffsetP);
 }
 
 
@@ -374,8 +371,8 @@ codeEval (ValueTag legal, const ARMWord *instrOffsetP)
  * Use Value_Assign() to keep a non-temporary copy of it.
  */
 const Value *
-codeEvalLow (ValueTag legal, size_t size, const Code *program,
-	     const ARMWord *instrOffsetP)
+Code_EvalLow (ValueTag legal, size_t size, const Code *program,
+	      const ARMWord *instrOffsetP)
 {
 #ifdef DEBUG_CODE
   printf ("*** codeEvalLow(): program is: ");
@@ -407,7 +404,7 @@ codeEvalLow (ValueTag legal, size_t size, const Code *program,
 	    {
 	      ARMFloat f = (ARMFloat) Stack[0].Data.Int.i;
 	      if (option_fussy)
-		error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].Data.Int.i, f);
+		Error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].Data.Int.i, f);
 	      Stack[0] = Value_Float (f);
 	    }
 	  break;
@@ -433,7 +430,7 @@ codeEvalLow (ValueTag legal, size_t size, const Code *program,
     }
 #ifdef DEBUG_CODE
   printf ("--- codeEvalLow() result: [");
-  valuePrint (&Stack[0]);
+  Value_Print (&Stack[0]);
   printf ("]\n\n");
 #endif
 
@@ -461,7 +458,7 @@ Code_Free (const Code *code, size_t len)
 	  case CodeOperator:
 	    break;
 	  case CodeValue:
-	    valueFree ((void *)&code[i].Data.value);
+	    Value_Free ((void *)&code[i].Data.value);
 	    break;
 	}
     }
@@ -469,11 +466,11 @@ Code_Free (const Code *code, size_t len)
 }
 
 Code *
-codeCopy (size_t len, const Code *code)
+Code_Copy (size_t len, const Code *code)
 {
   Code *newCode;
   if ((newCode = calloc (len, sizeof (Code))) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
 
   for (size_t i = 0; i < len; i++)
     {
@@ -492,7 +489,7 @@ codeCopy (size_t len, const Code *code)
 }
 
 bool
-codeEqual (size_t len, const Code *a, const Code *b)
+Code_Equal (size_t len, const Code *a, const Code *b)
 {
   for (size_t i = 0; i < len; i++)
     {
@@ -505,7 +502,7 @@ codeEqual (size_t len, const Code *a, const Code *b)
 	      return false;
 	    break;
 	  case CodeValue:
-	    if (!valueEqual (&a[i].Data.value, &b[i].Data.value))
+	    if (!Value_Equal (&a[i].Data.value, &b[i].Data.value))
 	      return false;
 	    break;
 	}
@@ -516,14 +513,14 @@ codeEqual (size_t len, const Code *a, const Code *b)
 
 #ifdef DEBUG
 void
-codePrint (size_t size, const Code *program)
+Code_Print (size_t size, const Code *program)
 {
   for (size_t i = 0; i < size; i++)
     {
       switch (program[i].Tag)
 	{
 	  case CodeOperator:
-	    if (IsUnop (program[i].Data.op))
+	    if (Lex_IsUnop (program[i].Data.op))
 	      printf ("[%s] ", Lex_OperatorAsStr (program[i].Data.op));
 	    else
 	      printf ("[%s] ", Lex_OperatorAsStr (program[i].Data.op));
@@ -531,7 +528,7 @@ codePrint (size_t size, const Code *program)
 
 	  case CodeValue:
 	    printf ("[");
-	    valuePrint (&program[i].Data.value);
+	    Value_Print (&program[i].Data.value);
 	    printf ("] ");
 	    break;
 	}
@@ -544,7 +541,7 @@ Code_PrintValueArray (size_t size, const Value *value)
 {
   for (size_t i = 0; i != size; ++i)
     {
-      valuePrint (&value[i]);
+      Value_Print (&value[i]);
       if (i + 1 != size)
 	putc (' ', stdout);
     }

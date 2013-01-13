@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -118,7 +118,7 @@ Local_ReportMissingFwdLabel (const Local_OutstandingForward *fwdLocalP)
 {
   const char *dirStr = fwdLocalP->dir == eForward ? "f" : "";
   const char *levelStr = fwdLocalP->level == eThisLevelOnly ? "t" : fwdLocalP->level == eAllLevels ? "a" : ""; 
-  errorLine (fwdLocalP->fileName, fwdLocalP->lineNum, ErrorError, "Missing local label %%%s%s%i", dirStr, levelStr, fwdLocalP->label);
+  Error_Line (fwdLocalP->fileName, fwdLocalP->lineNum, ErrorError, "Missing local label %%%s%s%i", dirStr, levelStr, fwdLocalP->label);
 }
 
 
@@ -184,7 +184,7 @@ Local_DefineLabel (unsigned labelNum)
     {
       lblP = prevLblP->nextP = malloc (sizeof (Local_Label_t));
       if (lblP == NULL)
-	errorOutOfMem ();
+	Error_OutOfMem ();
       lblP->nextP = NULL;
       lblP->num = labelNum;
       lblP->instance = 0;
@@ -240,7 +240,7 @@ void Local_CreateSymbolForOutstandingFwdLabelRef (char *buf, size_t bufSize,
 {
   Local_OutstandingForward *fwdLocalP = malloc (sizeof (Local_OutstandingForward));
   if (fwdLocalP == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
 
   fwdLocalP->nextP = oLocal_OutstandingForwardP; 
   fwdLocalP->fileName = FS_GetCurFileName ();
@@ -351,7 +351,7 @@ c_rout (const Lex *label)
 	}
 
       case LexLocalLabel:
-	error (ErrorError, "Local label is not allowed here");
+	Error (ErrorError, "Local label is not allowed here");
 	return false;
 
       default:

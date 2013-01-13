@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -99,7 +99,7 @@ Area_Create (Symbol *sym, uint32_t type)
 {
   Area *newAreaP;
   if ((newAreaP = malloc (sizeof (Area))) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
 
   newAreaP->next = areaHeadSymbol;
   newAreaP->type = type;
@@ -153,7 +153,7 @@ static uint32_t
 ValidateORGValue (uint32_t alignValue, uint32_t org)
 {
   if (org & (alignValue - 1))
-    error (ErrorWarning, "Area ORG value 0x%x is not aligned according to area alignment value 0x%x",
+    Error (ErrorWarning, "Area ORG value 0x%x is not aligned according to area alignment value 0x%x",
            org, alignValue);
   return org;
 }
@@ -173,7 +173,7 @@ Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow)
   /* When we want to grow an implicit area, it is time to give an error as
      this is not something we want to output.  */
   if (areaSym->area->imagesize == 0 && Area_IsImplicit (areaSym))
-    error (ErrorError, "No area defined");
+    Error (ErrorError, "No area defined");
 
   size_t inc;
   if (areaSym->area->imagesize && areaSym->area->imagesize < DOUBLE_UP_TO)
@@ -185,7 +185,7 @@ Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow)
   while (inc > mingrow && !areaImage (areaSym->area, areaSym->area->imagesize + inc))
     inc /= 2;
   if (inc <= mingrow && !areaImage (areaSym->area, areaSym->area->imagesize + mingrow))
-    errorAbort ("Area_EnsureExtraSize(): out of memory, minsize = %zd", mingrow);
+    Error_OutOfMem ();
 }
 
 /**
@@ -204,7 +204,7 @@ Area_PrepareForPhase (Phase_e phase)
       case ePassTwo:
 	{
 	  if (oPendingORG.isValid)
-	    errorLine (oPendingORG.fileName, oPendingORG.lineNum,
+	    Error_Line (oPendingORG.fileName, oPendingORG.lineNum,
 		       ErrorWarning, "Unused ORG statement");
 
 	  /* Do an implicit LTORG at the end of all areas.  */
@@ -225,8 +225,8 @@ Area_PrepareForPhase (Phase_e phase)
       case eOutput:
 	{
 	  if (oPendingORG.isValid)
-	    errorLine (oPendingORG.fileName, oPendingORG.lineNum,
-		       ErrorWarning, "Unused ORG statement");
+	    Error_Line (oPendingORG.fileName, oPendingORG.lineNum,
+			ErrorWarning, "Unused ORG statement");
 
 	  /* Do an implicit LTORG at the end of all areas.  */
 	  for (areaCurrentSymbol = areaHeadSymbol;
@@ -255,7 +255,7 @@ Area_PrepareForPhase (Phase_e phase)
 		  for (i = 0; i != areaP->maxIdx && areaP->image[i] == 0; ++i)
 		    /* */;
 		  if (i == areaP->maxIdx)
-		    errorLine (areaP->fileName, areaP->lineNumber, ErrorInfo, "Area %s only contains zero bytes, use NOINIT area attribute ?", areaSymP->str);
+		    Error_Line (areaP->fileName, areaP->lineNumber, ErrorInfo, "Area %s only contains zero bytes, use NOINIT area attribute ?", areaSymP->str);
 		}
 	    }
 	  
@@ -293,13 +293,13 @@ c_entry (void)
     return true;
 
   if (Area_IsImplicit (areaCurrentSymbol))
-    error (ErrorError, "No area selected before ENTRY");
+    Error (ErrorError, "No area selected before ENTRY");
   else
     {
       if (areaEntrySymbol)
 	{
-	  error (ErrorError, "More than one ENTRY");
-	  errorLine (oArea_EntrySymbolFileName, oArea_EntrySymbolLineNum,
+	  Error (ErrorError, "More than one ENTRY");
+	  Error_Line (oArea_EntrySymbolFileName, oArea_EntrySymbolLineNum,
 	             ErrorError, "note: Previous ENTRY was here"); 
 	}
       else
@@ -332,7 +332,7 @@ Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const c
   assert (areaSym->type & SYMBOL_AREA);
   assert (alignValue && (alignValue & (alignValue - 1)) == 0);
   if (msg && (offset & (alignValue - 1)) != 0)
-    error (ErrorWarning, "Implicit aligning unaligned %s", msg);
+    Error (ErrorWarning, "Implicit aligning unaligned %s", msg);
   size_t newOffset = (offset + alignValue-1) & -alignValue;
   Area_EnsureExtraSize (areaSym, newOffset - areaSym->area->curIdx);
   if (areaSym->area->curIdx < newOffset)
@@ -423,7 +423,7 @@ Area_Ensure (void)
   const Lex lex = Lex_Id (areaNameP, areaNameSize);
   Symbol *sym = Symbol_Get (&lex);
   if (SYMBOL_KIND (sym->type) != 0)
-    error (ErrorError, "Redefinition of label to area %s", sym->str);
+    Error (ErrorError, "Redefinition of label to area %s", sym->str);
   else if ((sym->type & SYMBOL_AREA) == 0)
     {
       /* When an area is made absolute, ensure its symbol is also absolute.  */
@@ -460,8 +460,8 @@ typedef struct
 static bool
 ParseAttributeBASED(AttribResult_t *result)
 {
-  skipblanks ();
-  ARMWord reg = getCpuReg ();
+  Input_SkipWS ();
+  unsigned reg = Get_CPUReg ();
   if (reg == INVALID_REG)
     return true;
 
@@ -476,21 +476,21 @@ ParseAttributeBASED(AttribResult_t *result)
 static bool
 ParseAttributeALIGN(AttribResult_t *result)
 {
-  skipblanks ();
+  Input_SkipWS ();
   if (!Input_Match ('=', false))
     {
-      error (ErrorError, "Malformed ALIGN attribute specification");
+      Error (ErrorError, "Malformed ALIGN attribute specification");
       return true;
     }
-  const Value *value = exprBuildAndEval (ValueInt);
+  const Value *value = Expr_BuildAndEval (ValueInt);
   if (value->Tag != ValueInt || value->Data.Int.type != eIntType_PureInt)
     {
-      error (ErrorError, "Unrecognized ALIGN attribute value");
+      Error (ErrorError, "Unrecognized ALIGN attribute value");
       return true;
     }
   if (value->Data.Int.i < 2 || value->Data.Int.i > 31)
     {
-      error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 31 (incl)");
+      Error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 31 (incl)");
       return true;
     }
 
@@ -570,7 +570,7 @@ AttributesAsName (unsigned attributes)
     }
   char *result = malloc (len + 1);
   if (result == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   result[0] = '\0';
   bool first = true;
   for (unsigned i = 0; i != sizeof (attributes)*8; ++i)
@@ -606,7 +606,7 @@ GetAreaAttributes (void)
   memset (&result, 0, sizeof (result));
   while (Input_Match (',', true))
     {
-      Lex attribute = lexGetId ();
+      Lex attribute = Lex_GetID ();
       const struct AKeyword *keyword = NULL;
       for (size_t i = 0; i != sizeof (oAttributes)/sizeof (oAttributes[0]); ++i)
 	{
@@ -618,7 +618,7 @@ GetAreaAttributes (void)
 	    }
 	}
       if (keyword == NULL)
-	error (ErrorError, "AREA attribute %.*s is not known",
+	Error (ErrorError, "AREA attribute %.*s is not known",
 	       (int)attribute.Data.Id.len, attribute.Data.Id.str);
       else
 	{
@@ -632,7 +632,7 @@ GetAreaAttributes (void)
 	      /* Attribute has already been set.  Verify consistency.  */
 	      if ((keyword->flagSet & result.flagValues[keyword->category]) != keyword->flagValue)
 		{
-		  error (ErrorError, "AREA attribute %.*s conflicts with a previously given attribute",
+		  Error (ErrorError, "AREA attribute %.*s conflicts with a previously given attribute",
 			 (int)attribute.Data.Id.len, attribute.Data.Id.str);
 		  break;
 		}
@@ -644,7 +644,7 @@ GetAreaAttributes (void)
 	    }
 	}
 
-      skipblanks ();
+      Input_SkipWS ();
     }
 
   return result;
@@ -660,14 +660,14 @@ c_area (void)
   if (option_abs)
     return true;
 
-  Lex lex = lexGetId ();
+  Lex lex = Lex_GetID ();
   if (lex.tag != LexId)
-    return false; /* No need to give an error, lexGetId already did.  */
+    return false; /* No need to give an error, Lex_GetID already did.  */
 
   Symbol *sym = Symbol_Get (&lex);
   if (SYMBOL_KIND (sym->type) != 0)
     {
-      error (ErrorError, "Redefinition of label as area %s", sym->str);
+      Error (ErrorError, "Redefinition of label as area %s", sym->str);
       return false;
     }
   unsigned int prevAreaAttrib;  
@@ -683,7 +683,7 @@ c_area (void)
       sym->value = Value_Int (0, eIntType_PureInt);
       sym->area = Area_Create (sym, 0);
     }
-  skipblanks ();
+  Input_SkipWS ();
 
   AttribResult_t result = GetAreaAttributes ();
 
@@ -708,7 +708,7 @@ c_area (void)
   if (wrongAreaAttributes)
     {
       const char *attrAsName = AttributesAsName (wrongAreaAttributes);
-      error (ErrorError, "A %s AREA can not have %s set", areaType, attrAsName);
+      Error (ErrorError, "A %s AREA can not have %s set", areaType, attrAsName);
       free ((void *)attrAsName);
     }
 
@@ -740,7 +740,7 @@ c_area (void)
   /* AREA_READONLY and AREA_UDATA can not be combined.  */
   if ((result.flagValues[eBothCodeAndData] & AREA_READONLY) != 0
       && (result.flagValues[eBothCodeAndData] & AREA_UDATA) != 0)
-    error (ErrorError, "Attributes READONLY and NOINIT are mutually exclusive");
+    Error (ErrorError, "Attributes READONLY and NOINIT are mutually exclusive");
 
   /* Apply APCS options on code area.  */
   if ((result.flagValues[eBothCodeAndData] & AREA_CODE) != 0)
@@ -764,7 +764,7 @@ c_area (void)
       if (changedAttr)
 	{
 	  const char *attrAsName = AttributesAsName (changedAttr);
-	  error (ErrorWarning, "Change in attribute(s) %s for area %s will be ignored", attrAsName, sym->str);
+	  Error (ErrorWarning, "Change in attribute(s) %s for area %s will be ignored", attrAsName, sym->str);
 	  free ((void *)attrAsName);
 	}
     }
@@ -787,16 +787,16 @@ c_area (void)
 bool
 c_org (void)
 {
-  const Value *value = exprBuildAndEval (ValueInt);
+  const Value *value = Expr_BuildAndEval (ValueInt);
   if (value->Tag == ValueInt && value->Data.Int.type == eIntType_PureInt)
     {
       if (Area_IsImplicit (areaCurrentSymbol))
 	{
 	  if (oPendingORG.isValid)
 	    {
-	      errorLine (oPendingORG.fileName, oPendingORG.lineNum,
+	      Error_Line (oPendingORG.fileName, oPendingORG.lineNum,
 	                 ErrorWarning, "ORG statement without any effect, because of...");
-	      error (ErrorWarning, "...this");
+	      Error (ErrorWarning, "...this");
 	    }
 	  else
 	    oPendingORG.isValid = true;
@@ -807,7 +807,7 @@ c_org (void)
       else
 	{
 	  if (areaCurrentSymbol->area->curIdx != 0)
-	    error (ErrorError, "Too late to set ORG of current area");
+	    Error (ErrorError, "Too late to set ORG of current area");
 	  else
 	    {
 	      areaCurrentSymbol->area->type |= AREA_ABS;
@@ -820,7 +820,7 @@ c_org (void)
 	}
     }
   else
-    error (ErrorError, "ORG needs explicit address");
+    Error (ErrorError, "ORG needs explicit address");
 
   return false;
 }
@@ -832,16 +832,16 @@ c_org (void)
 bool
 c_preserve8 (void)
 {
-  skipblanks ();
+  Input_SkipWS ();
   if (Input_IsEolOrCommentStart ())
     gArea_Preserve8 = ePreserve8_Yes;
   else
     {
-      const Value *value = exprBuildAndEval (ValueBool);
+      const Value *value = Expr_BuildAndEval (ValueBool);
       if (value->Tag == ValueBool)
 	gArea_Preserve8 = value->Data.Bool.b ? ePreserve8_Yes : ePreserve8_No;
       else
-	error (ErrorError, "PRESERVE8 needs boolean argument");
+	Error (ErrorError, "PRESERVE8 needs boolean argument");
     }
   return false;
 }
@@ -852,16 +852,16 @@ c_preserve8 (void)
 bool
 c_require8 (void)
 {
-  skipblanks ();
+  Input_SkipWS ();
   if (Input_IsEolOrCommentStart ())
     gArea_Require8 = true;
   else
     {
-      const Value *value = exprBuildAndEval (ValueBool);
+      const Value *value = Expr_BuildAndEval (ValueBool);
       if (value->Tag == ValueBool)
 	gArea_Require8 = value->Data.Bool.b;
       else
-	error (ErrorError, "REQUIRE8 needs boolean argument");
+	Error (ErrorError, "REQUIRE8 needs boolean argument");
     }
   return false;
 }

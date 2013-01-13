@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2012 GCCSDK Developers
+ * Copyright (c) 2002-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -139,7 +139,7 @@ GetInt (const Value *val, uint32_t *i)
       else \
 	{ \
 	  if (gPhase != ePassOne) \
-	    error (ErrorError, "Bad operand types for %s", STRINGIFY(OP)); \
+	    Error (ErrorError, "Bad operand types for %s", STRINGIFY(OP)); \
 	  return false; \
 	} \
       lvalue->Tag = ValueBool; \
@@ -151,7 +151,7 @@ GetInt (const Value *val, uint32_t *i)
  * used for given operation).
  */
 bool
-evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue)
+Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue)
 {
   assert (lvalue != rvalue);
   switch (op)
@@ -188,7 +188,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", "multiplication");
+		Error (ErrorError, "Bad operand type for %s", "multiplication");
 	      return false;
 	    }
 	  break;
@@ -203,14 +203,14 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	      || (!divisor_isint && rvalue->Tag != ValueFloat))
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", "division");
+		Error (ErrorError, "Bad operand type for %s", "division");
 	      return false;
 	    }
 	  double divisor_dbl = divisor_isint ? (double)(signed)divisor : rvalue->Data.Float.f;
 	  if (divisor_dbl == 0.)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Division by zero");
+		Error (ErrorError, "Division by zero");
 	      return false;
 	    }
 	  if (divident_isint && divisor_isint)
@@ -233,7 +233,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	      if (modulus == 0)
 		{
 		  if (gPhase != ePassOne)
-		    error (ErrorError, "Division by zero");
+		    Error (ErrorError, "Division by zero");
 		  return false;
 		}
 
@@ -242,7 +242,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", "modulo");
+		Error (ErrorError, "Bad operand type for %s", "modulo");
 	      return false;
 	    }
 	  break;
@@ -292,7 +292,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", "addition");
+		Error (ErrorError, "Bad operand type for %s", "addition");
 	      return false;
 	    }
 	  break;
@@ -325,7 +325,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	      if (lvalue->Data.Addr.r != rvalue->Data.Addr.r)
 		{
 		  if (gPhase != ePassOne)
-		    error (ErrorError, "Base registers are different in subtraction ([r%d, #x] - [r%d, #y])",
+		    Error (ErrorError, "Base registers are different in subtraction ([r%d, #x] - [r%d, #y])",
 			   lvalue->Data.Addr.r, rvalue->Data.Addr.r);
 		  return false;
 		}
@@ -355,7 +355,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", "subtraction");
+		Error (ErrorError, "Bad operand type for %s", "subtraction");
 	      return false;
 	    }
 	  break;
@@ -366,12 +366,12 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueString)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", "string concatenation");
+		Error (ErrorError, "Bad operand type for %s", "string concatenation");
 	      return false;
 	    }
 	  char *c;
 	  if ((c = malloc (lvalue->Data.String.len + rvalue->Data.String.len)) == NULL)
-	    errorOutOfMem();
+	    Error_OutOfMem ();
 	  memcpy (c, lvalue->Data.String.s, lvalue->Data.String.len);
 	  memcpy (c + lvalue->Data.String.len,
 		  rvalue->Data.String.s, rvalue->Data.String.len);
@@ -392,7 +392,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":AND:");
+		Error (ErrorError, "Bad operand type for %s", ":AND:");
 	      return false;
 	    }
 	  break;
@@ -408,7 +408,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":OR:");
+		Error (ErrorError, "Bad operand type for %s", ":OR:");
 	      return false;
 	    }
 	  break;
@@ -424,7 +424,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":EOR:");
+		Error (ErrorError, "Bad operand type for %s", ":EOR:");
 	      return false;
 	    }
 	  break;
@@ -444,7 +444,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ">>>");
+		Error (ErrorError, "Bad operand type for %s", ">>>");
 	      return false;
 	    }
 	  break;
@@ -459,7 +459,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ">> or :SHR:");
+		Error (ErrorError, "Bad operand type for %s", ">> or :SHR:");
 	      return false;
 	    }
 	  break;
@@ -474,7 +474,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", "<< or :SHR:");
+		Error (ErrorError, "Bad operand type for %s", "<< or :SHR:");
 	      return false;
 	    }
 	  break;
@@ -492,7 +492,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":ROR:");
+		Error (ErrorError, "Bad operand type for %s", ":ROR:");
 	      return false;
 	    }
 	  break;
@@ -510,7 +510,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":ROL:");
+		Error (ErrorError, "Bad operand type for %s", ":ROL:");
 	      return false;
 	    }
 	  break;
@@ -536,10 +536,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	{
 	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0
 	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0)
-	    {
-	      lvalue->Data.Bool.b = valueEqual (lvalue, rvalue);
-	      lvalue->Tag = ValueBool;
-	    }
+	    *lvalue = Value_Bool (Value_Equal (lvalue, rvalue));
 	  else
 	    COMPARE (==);
 	  break;
@@ -549,10 +546,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	{
 	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0
 	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0)
-	    {
-	      lvalue->Data.Bool.b = !valueEqual (lvalue, rvalue);
-	      lvalue->Tag = ValueBool;
-	    }
+	    *lvalue = Value_Bool (!Value_Equal (lvalue, rvalue));
 	  else
 	    COMPARE (!=);
 	  break;
@@ -563,7 +557,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":LAND:");
+		Error (ErrorError, "Bad operand type for %s", ":LAND:");
 	      return false;
 	    }
 	  lvalue->Data.Bool.b = lvalue->Data.Bool.b && rvalue->Data.Bool.b;
@@ -575,7 +569,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":LOR:");
+		Error (ErrorError, "Bad operand type for %s", ":LOR:");
 	      return false;
 	    }
 	  lvalue->Data.Bool.b = lvalue->Data.Bool.b || rvalue->Data.Bool.b;
@@ -587,7 +581,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":LEOR:");
+		Error (ErrorError, "Bad operand type for %s", ":LEOR:");
 	      return false;
 	    }
 	  lvalue->Data.Bool.b = lvalue->Data.Bool.b ^ rvalue->Data.Bool.b;
@@ -599,13 +593,13 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueInt)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":LEFT:");
+		Error (ErrorError, "Bad operand type for %s", ":LEFT:");
 	      return false;
 	    }
 	  if (rvalue->Data.Int.i < 0 || (size_t)rvalue->Data.Int.i > lvalue->Data.String.len)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Wrong number of characters (%d) specified for :LEFT:",
+		Error (ErrorError, "Wrong number of characters (%d) specified for :LEFT:",
 		       rvalue->Data.Int.i);
 	      return false;
 	    }
@@ -618,19 +612,19 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueInt)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":RIGHT:");
+		Error (ErrorError, "Bad operand type for %s", ":RIGHT:");
 	      return false;
 	    }
 	  if (rvalue->Data.Int.i < 0 || (size_t)rvalue->Data.Int.i > lvalue->Data.String.len)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Wrong number of characters (%d) specified for :RIGHT:",
+		Error (ErrorError, "Wrong number of characters (%d) specified for :RIGHT:",
 		       rvalue->Data.Int.i);
 	      return false;
 	    }
 	  char *c;
 	  if ((c = malloc (rvalue->Data.Int.i)) == NULL)
-	    errorOutOfMem ();
+	    Error_OutOfMem ();
 	  memcpy (c,
 		  lvalue->Data.String.s + lvalue->Data.String.len - rvalue->Data.Int.i,
 		  rvalue->Data.Int.i);
@@ -641,7 +635,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 	}
       
       default:
-        error (ErrorError, "Illegal binary operator");
+        Error (ErrorError, "Illegal binary operator");
         return false;
     }
 
@@ -718,7 +712,7 @@ Eval_NegValue (Value *value)
  * used for given operation).
  */
 bool
-evalUnop (Operator_e op, Value *value)
+Eval_Unop (Operator_e op, Value *value)
 {
   switch (op)
     {
@@ -728,13 +722,13 @@ evalUnop (Operator_e op, Value *value)
 	    return false;
 	  char *s;
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    errorOutOfMem();
+	    Error_OutOfMem ();
 
 	  uint32_t i;
 	  ASFile asFile;
 	  if (Include_Find (s, &asFile, true))
 	    {
-	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      Error (ErrorError, "Cannot access file \"%s\"", s);
 	      i = 0;
 	    }
 	  else
@@ -751,13 +745,13 @@ evalUnop (Operator_e op, Value *value)
 	    return false;
 	  char *s;
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    errorOutOfMem();
+	    Error_OutOfMem();
 
 	  uint32_t i;
 	  ASFile asFile;
 	  if (Include_Find (s, &asFile, true))
 	    {
-	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      Error (ErrorError, "Cannot access file \"%s\"", s);
 	      i = 0;
 	    }
 	  else
@@ -774,20 +768,20 @@ evalUnop (Operator_e op, Value *value)
 	    return false;
 	  char *s;
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    errorOutOfMem();
+	    Error_OutOfMem();
 
 	  uint32_t i;
 	  ASFile asFile;
 	  if (Include_Find (s, &asFile, true))
 	    {
-	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      Error (ErrorError, "Cannot access file \"%s\"", s);
 	      i = 0;
 	    }
 	  else
 	    {
 	      if (asFile.size > UINT32_MAX)
 		{
-		  error (ErrorWarning, "File size of \"%s\" is bigger than unsigned 32-bit integer", s);
+		  Error (ErrorWarning, "File size of \"%s\" is bigger than unsigned 32-bit integer", s);
 		  i = UINT32_MAX;
 		}
 	      else
@@ -805,13 +799,13 @@ evalUnop (Operator_e op, Value *value)
 	    return false;
 	  char *s;
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    errorOutOfMem();
+	    Error_OutOfMem();
 
 	  uint32_t i;
 	  ASFile asFile;
 	  if (Include_Find (s, &asFile, true))
 	    {
-	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      Error (ErrorError, "Cannot access file \"%s\"", s);
 	      i = 0;
 	    }
 	  else
@@ -827,7 +821,7 @@ evalUnop (Operator_e op, Value *value)
 	  if (value->Tag != ValueBool)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":LNOT:");
+		Error (ErrorError, "Bad operand type for %s", ":LNOT:");
 	      return false;
 	    }
 	  value->Data.Bool.b = !value->Data.Bool.b;
@@ -840,7 +834,7 @@ evalUnop (Operator_e op, Value *value)
 	  if (!GetInt (value, &i))
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":NOT:");
+		Error (ErrorError, "Bad operand type for %s", ":NOT:");
 	      return false;
 	    }
 	  *value = Value_Int (~i, eIntType_PureInt);
@@ -852,7 +846,7 @@ evalUnop (Operator_e op, Value *value)
 	  if (!Eval_NegValue (value))
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", "negation");
+		Error (ErrorError, "Bad operand type for %s", "negation");
 	      return false;
 	    }
 	  break;
@@ -873,7 +867,7 @@ evalUnop (Operator_e op, Value *value)
 		  else
 		    {
 		      if (gPhase != ePassOne)
-			error (ErrorError, "Not current area symbol");
+			Error (ErrorError, "Not current area symbol");
 		      return false;
 		    }
 		  break;
@@ -887,7 +881,7 @@ evalUnop (Operator_e op, Value *value)
 
 	      default:
 		if (gPhase != ePassOne)
-		  error (ErrorError, "Bad operand type for %s", ":BASE:");
+		  Error (ErrorError, "Bad operand type for %s", ":BASE:");
 		return false;
 	    }
 	  break;
@@ -912,7 +906,7 @@ evalUnop (Operator_e op, Value *value)
 		  else
 		    {
 		      if (gPhase != ePassOne)
-			error (ErrorError, "Not current area symbol");
+			Error (ErrorError, "Not current area symbol");
 		      return false;
 		    }
 		  break;
@@ -920,7 +914,7 @@ evalUnop (Operator_e op, Value *value)
 
 	      default:
 		if (gPhase != ePassOne)
-		  error (ErrorError, "Bad operand type for %s", ":INDEX:");
+		  Error (ErrorError, "Bad operand type for %s", ":INDEX:");
 		return false;
 	    }
 	  break;
@@ -931,7 +925,7 @@ evalUnop (Operator_e op, Value *value)
 	  if (value->Tag != ValueString)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":LEN:");
+		Error (ErrorError, "Bad operand type for %s", ":LEN:");
 	      return false;
 	    }
 	  value->Tag = ValueInt; /* ValueString.len at same place as ValueInt.i.  */
@@ -944,7 +938,7 @@ evalUnop (Operator_e op, Value *value)
 	    {
 	      char *c;
 	      if ((c = malloc (1)) == NULL)
-		errorOutOfMem ();
+		Error_OutOfMem ();
 	      *c = value->Data.Bool.b ? 'T' : 'F';
 	      value->Tag = ValueString;
 	      value->Data.String.s = c;
@@ -963,13 +957,13 @@ evalUnop (Operator_e op, Value *value)
 		    break;
 		  default:
 		    if (gPhase != ePassOne)
-		      error (ErrorError, "Bad operand type for %s", ":STR:");
+		      Error (ErrorError, "Bad operand type for %s", ":STR:");
 		    return false;
 		}
 	      size_t len = strlen (num);
 	      char *c;
 	      if ((c = malloc (len)) == NULL)
-		errorOutOfMem();
+		Error_OutOfMem();
 	      memcpy (c, num, len);
 	      value->Tag = ValueString;
 	      value->Data.String.s = c;
@@ -983,15 +977,15 @@ evalUnop (Operator_e op, Value *value)
 	  if (value->Tag != ValueInt)
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":CHR:");
+		Error (ErrorError, "Bad operand type for %s", ":CHR:");
 	      return false;
 	    }
 	  if (value->Data.Int.i < 0 || value->Data.Int.i >= 256)
-	    error (ErrorWarning, "Value %d will be truncated for :CHR: use",
+	    Error (ErrorWarning, "Value %d will be truncated for :CHR: use",
 	           value->Data.Int.i);
 	  char *c;
 	  if ((c = malloc (1)) == NULL)
-	    errorOutOfMem ();
+	    Error_OutOfMem ();
 	  *c = value->Data.Int.i;
 	  value->Data.String.s = c;
 	  value->Data.String.len = 1;
@@ -1003,7 +997,7 @@ evalUnop (Operator_e op, Value *value)
 	{
 	  if (value->Tag != ValueSymbol)
 	    {
-	      error (ErrorError, "Bad operand type for %s", "? operator");
+	      Error (ErrorError, "Bad operand type for %s", "? operator");
 	      return false;
 	    }
 	  if ((value->Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_COMMON)) != 0)
@@ -1012,13 +1006,13 @@ evalUnop (Operator_e op, Value *value)
 	    {
 	      if (gPhase == ePassTwo
 		  && value->Data.Symbol.symbol->area->curIdx != value->Data.Symbol.symbol->area->maxIdx)
-		error (ErrorError, "? on area symbol which gets extended later on");
+		Error (ErrorError, "? on area symbol which gets extended later on");
 	      *value = Value_Int (value->Data.Symbol.symbol->area->curIdx, eIntType_PureInt);
 	    }
 	  else
 	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Undefined symbol");
+		Error (ErrorError, "Undefined symbol");
 	      return false;
 	    }
 	  break;
@@ -1051,7 +1045,7 @@ evalUnop (Operator_e op, Value *value)
 	  int ccode = GetCCode (value->Data.String.s, value->Data.String.len);
 	  if (ccode < 0)
 	    {
-	      error (ErrorError, "Condition code %.*s is not known",
+	      Error (ErrorError, "Condition code %.*s is not known",
 	             (int)value->Data.String.len, value->Data.String.s);
 	      return false;
 	    }
@@ -1062,7 +1056,7 @@ evalUnop (Operator_e op, Value *value)
 	    {
 	      free ((void *)value->Data.String.s);
 	      if ((value->Data.String.s = malloc (2)) == NULL)
-		errorOutOfMem ();
+		Error_OutOfMem ();
 	      value->Data.String.len = 2;
 	    }
 	  str = (char *)value->Data.String.s;
@@ -1078,7 +1072,7 @@ evalUnop (Operator_e op, Value *value)
 	  int ccode = GetCCode (value->Data.String.s, value->Data.String.len);
 	  if (ccode < 0)
 	    {
-	      error (ErrorError, "Condition code %.*s is not known",
+	      Error (ErrorError, "Condition code %.*s is not known",
 	             (int)value->Data.String.len, value->Data.String.s);
 	      return false;
 	    }

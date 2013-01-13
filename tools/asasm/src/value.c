@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ Value_Assign (Value *dst, const Value *src)
   if (dst == src)
     return;
 
-  valueFree (dst);
+  Value_Free (dst);
 
   *dst = *src;
   switch (src->Tag)
@@ -65,24 +65,24 @@ Value_Assign (Value *dst, const Value *src)
 	{
 	  char *c;
 	  if ((c = malloc (src->Data.String.len)) == NULL)
-	    errorOutOfMem ();
+	    Error_OutOfMem ();
 	  memcpy (c, src->Data.String.s, src->Data.String.len);
 	  dst->Data.String.s = c;
 	}
         break;
 
       case ValueCode:
-        dst->Data.Code.c = codeCopy (src->Data.Code.len, src->Data.Code.c);
+        dst->Data.Code.c = Code_Copy (src->Data.Code.len, src->Data.Code.c);
         break;
 
       default:
-        errorAbort ("Internal Value_Assign: illegal value");
+        assert (0);
         break;
     }
 }
 
 void
-valueFree (Value *value)
+Value_Free (Value *value)
 {
   switch (value->Tag)
     {
@@ -104,7 +104,7 @@ valueFree (Value *value)
 	break;
 
       default:
-	errorAbort ("Internal valueFree: illegal value");
+	assert (0);
 	break;
     }
   value->Tag = ValueIllegal;
@@ -116,7 +116,7 @@ Value_Code (size_t len, const Code *code)
   const Value value =
     {
       .Tag = ValueCode,
-      .Data.Code = { .len = len, .c = codeCopy (len, code) }
+      .Data.Code = { .len = len, .c = Code_Copy (len, code) }
     };
   return value;
 }
@@ -206,7 +206,7 @@ Value_ResolveSymbol (Value *valueP)
 
 
 bool
-valueEqual (const Value *a, const Value *b)
+Value_Equal (const Value *a, const Value *b)
 {
   Value aCp, bCp;
 
@@ -215,7 +215,7 @@ valueEqual (const Value *a, const Value *b)
     {
       if (a->Tag == ValueCode && b->Tag == ValueCode
 	  && a->Data.Code.len == b->Data.Code.len
-	  && codeEqual (a->Data.Code.len, a->Data.Code.c, b->Data.Code.c))
+	  && Code_Equal (a->Data.Code.len, a->Data.Code.c, b->Data.Code.c))
 	return true;
 
       if (a->Tag == ValueSymbol && b->Tag == ValueSymbol
@@ -229,13 +229,13 @@ valueEqual (const Value *a, const Value *b)
       bCp.Tag = ValueIllegal;
       Value_Assign (&bCp, b);
 
-      codeInit ();
-      codeValue (&aCp, true);
-      Value_Assign (&aCp, exprEval (ValueAll));
+      Code_Init ();
+      Code_Value (&aCp, true);
+      Value_Assign (&aCp, Code_Eval (ValueAll, NULL));
 
-      codeInit ();
-      codeValue (&bCp, true);
-      Value_Assign (&bCp, exprEval (ValueAll));
+      Code_Init ();
+      Code_Value (&bCp, true);
+      Value_Assign (&bCp, Code_Eval (ValueAll, NULL));
 
       a = &aCp;
       b = &bCp;
@@ -282,7 +282,7 @@ valueEqual (const Value *a, const Value *b)
       case ValueCode:
 	result = b->Tag == ValueCode
 		   && a->Data.Code.len == b->Data.Code.len
-		   && codeEqual (a->Data.Code.len, a->Data.Code.c, b->Data.Code.c);
+		   && Code_Equal (a->Data.Code.len, a->Data.Code.c, b->Data.Code.c);
 	break;
 
       case ValueAddr:
@@ -299,21 +299,21 @@ valueEqual (const Value *a, const Value *b)
 	break;
 
       default:
-	errorAbort ("Internal valueEqual: illegal value");
+	assert (0);
 	break;
     }
 
   if (a == &aCp)
-    valueFree (&aCp);
+    Value_Free (&aCp);
   if (b == &bCp)
-    valueFree (&bCp);
+    Value_Free (&bCp);
   
   return result;
 }
 
 
 const char *
-valueTagAsString (ValueTag tag)
+Value_TagAsString (ValueTag tag)
 {
   const char *str;
   switch (tag)
@@ -355,7 +355,7 @@ valueTagAsString (ValueTag tag)
 
 #ifdef DEBUG
 void
-valuePrint (const Value *v)
+Value_Print (const Value *v)
 {
   if (v == NULL)
     return;

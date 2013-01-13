@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2011 GCCSDK Developers
+ * Copyright (c) 2002-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,6 +35,6 @@
 
 #define CP_GET_NUMBER(ir) (((ir)>>8) & 0xF) /**< Get coprocessor number.  */
 
-void help_copAddr (ARMWord ir, bool literal, bool stack);
+void HelpCop_Addr (ARMWord ir, bool literal, bool stack);
 
 #endif

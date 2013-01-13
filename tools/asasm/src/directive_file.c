@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,7 +44,7 @@ c_get (void)
 {
   char *fileName;
   if ((fileName = strdup (Input_Rest ())) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   char *cptr;
   for (cptr = fileName; *cptr && !isspace ((unsigned char)*cptr); cptr++)
     /* */;
@@ -54,7 +54,7 @@ c_get (void)
       while (*cptr && isspace ((unsigned char)*cptr))
 	cptr++;
       if (*cptr && *cptr != ';')
-	error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
+	Error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
     }
 
   if (!FS_PushFilePObject (fileName) && option_verbose)
@@ -71,7 +71,7 @@ c_lnk (void)
 {
   char *fileName;
   if ((fileName = strdup (Input_Rest ())) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   char *cptr;
   for (cptr = fileName; *cptr && !isspace ((unsigned char)*cptr); cptr++)
     /* */;
@@ -81,7 +81,7 @@ c_lnk (void)
       while (*cptr && isspace ((unsigned char)*cptr))
 	cptr++;
       if (*cptr && *cptr != ';')
-	error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
+	Error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
     }
 
   /* Terminate all outstanding macro calls and finish the current file.  */
@@ -106,7 +106,7 @@ c_incbin (void)
 {
   char *fileName;
   if ((fileName = strdup (Input_Rest ())) == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   char *cptr;
   for (cptr = fileName; *cptr && !isspace ((unsigned char)*cptr); cptr++)
     /* */;
@@ -115,7 +115,7 @@ c_incbin (void)
   ASFile asFile;
   FILE *binfp = Include_Get (fileName, &asFile, true);
   if (!binfp)
-    error (ErrorError, "Cannot open file \"%s\"", fileName);
+    Error (ErrorError, "Cannot open file \"%s\"", fileName);
   else
     {
       if (option_verbose)
@@ -140,7 +140,7 @@ bool
 c_end (void)
 {
   if (gCurPObjP->type == POType_eMacro)
-    error (ErrorError, "Cannot use END within a macro");
+    Error (ErrorError, "Cannot use END within a macro");
   else
     FS_PopPObject (false);
   return false;

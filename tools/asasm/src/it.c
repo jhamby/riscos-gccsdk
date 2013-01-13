@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2012 GCCSDK Developers
+ * Copyright (c) 2012-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,8 +48,8 @@ IT_PrepareForPhase (Phase_e phase)
 	      if (itStateP->curIdx != itStateP->maxIdx)
 		{
 		  /* We have a pending IT block.  */
-		  error (ErrorError, "There is a pending IT block at end of area %s", ap->str);
-		  errorLine (itStateP->fileName, itStateP->lineNum, ErrorError, "note: Pending IT block started here");
+		  Error (ErrorError, "There is a pending IT block at end of area %s", ap->str);
+		  Error_Line (itStateP->fileName, itStateP->lineNum, ErrorError, "note: Pending IT block started here");
 		}
 	      /* Reset any implicit IT block.  */
 	      IT_InitializeState (&ap->area->it);
@@ -117,7 +117,7 @@ m_it (bool doLowerCase)
     return true;
 
   if (instrWidth == eInstrWidth_Enforce32bit)
-    error (ErrorWarning, "Wide variant of IT does not exist");
+    Error (ErrorWarning, "Wide variant of IT does not exist");
 
   /* IT Thumb instruction is only available in ARMv6T2 and ARMv7.  In ARM
      mode it is only used for consistency check so only check for ARMv6T2/ARMv7
@@ -126,12 +126,12 @@ m_it (bool doLowerCase)
   if (instrState != eInstrType_ARM)
     Target_CheckCPUFeature (kCPUExt_v6T2, true);
 
-  skipblanks ();
+  Input_SkipWS ();
   newIT.cc = Option_GetCCodeIfThere (false); /* Condition code is an argument
     here, so always uppercase.  */
   if (newIT.cc == kOption_NotRecognized)
     {
-      error (ErrorError, "Unrecognized or missing condition code");
+      Error (ErrorError, "Unrecognized or missing condition code");
       return false;
     }
 
@@ -139,14 +139,14 @@ m_it (bool doLowerCase)
   if (curAreaP->it.curIdx != curAreaP->it.maxIdx)
     {
       /* We have a pending IT block.  */
-      error (ErrorError, "There is a pending IT block");
-      errorLine (curAreaP->it.fileName, curAreaP->it.lineNum, ErrorError, "note: Pending IT block started here");
+      Error (ErrorError, "There is a pending IT block");
+      Error_Line (curAreaP->it.fileName, curAreaP->it.lineNum, ErrorError, "note: Pending IT block started here");
     }
 
   /* We've already warned about the use of NV.
      Here, warn about using AL and having numCond non-zero.  */
   if (newIT.cc == AL && newIT.maxIdx != 1)
-    error (ErrorWarning, "Use of AL condition with one or more Then/Else arguments is UNPREDICTABLE");
+    Error (ErrorWarning, "Use of AL condition with one or more Then/Else arguments is UNPREDICTABLE");
 
   curAreaP->it = newIT;
   IT_EmitIT (&curAreaP->it, instrState != eInstrType_ARM);
@@ -203,8 +203,8 @@ IT_ApplyCond (uint32_t cc, bool isThumb)
       uint32_t expectedCC = itStateP->cc ^ (!itStateP->isThen[itStateP->curIdx] << 28);
       if (cc != expectedCC)
 	{
-	  error (ErrorError, "Condition code does not match with pending IT block");
-	  errorLine (itStateP->fileName, itStateP->lineNum, ErrorError, "note: Pending IT block started here");
+	  Error (ErrorError, "Condition code does not match with pending IT block");
+	  Error_Line (itStateP->fileName, itStateP->lineNum, ErrorError, "note: Pending IT block started here");
 	}
       itStateP->curIdx++;
     }

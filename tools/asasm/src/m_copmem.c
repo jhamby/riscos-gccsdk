@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,12 +37,12 @@
 static bool
 dstmem (ARMWord ir, bool literal)
 {
-  ir |= CP_NUMBER (getCopNum ());
-  skipblanks ();
+  ir |= CP_NUMBER (Get_CopNum ());
+  Input_SkipWS ();
   if (!Input_Match (',', true))
-    error (ErrorError, "%scoprocessor number", InsertCommaAfter);
-  ir |= CPDST_OP (getCopReg ());
-  help_copAddr (ir, literal, false);
+    Error (ErrorError, "%scoprocessor number", InsertCommaAfter);
+  ir |= CPDST_OP (Get_CopReg ());
+  HelpCop_Addr (ir, literal, false);
   return false;
 }
 
@@ -53,7 +53,7 @@ dstmem (ARMWord ir, bool literal)
 bool
 m_ldc (bool doLowerCase)
 {
-  ARMWord cc = optionCondL (doLowerCase);
+  ARMWord cc = Option_CondL (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstmem (cc | 0x0c100000, true);
@@ -81,7 +81,7 @@ m_ldc2 (bool doLowerCase)
 bool
 m_stc (bool doLowerCase)
 {
-  ARMWord cc = optionCondL (doLowerCase);
+  ARMWord cc = Option_CondL (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
   return dstmem (cc | 0x0c000000, false);

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2012 GCCSDK Developers
+ * Copyright (c) 2000-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -170,11 +170,11 @@ Lex_Id (const char *str, size_t strLen)
 
 
 Lex
-lexGetIdNoError (void)
+Lex_GetIDNoError (void)
 {
   nextbinopvalid = false;
 
-  skipblanks ();
+  Input_SkipWS ();
 
   size_t idLen;
   const char *id = Input_Symbol (&idLen);
@@ -183,11 +183,11 @@ lexGetIdNoError (void)
 
 
 Lex
-lexGetId (void)
+Lex_GetID (void)
 {
-  Lex result = lexGetIdNoError ();
+  Lex result = Lex_GetIDNoError ();
   if (result.tag != LexId)
-    error (ErrorError, "Missing or wrong identifier");
+    Error (ErrorError, "Missing or wrong identifier");
   return result;
 }
 
@@ -208,11 +208,11 @@ Lex_CheckForROUTMismatch (const char *rout, size_t routLen)
           || (memcmp (curROUTId, rout, routLen) || curROUTId[routLen] != '\0')))
     {
       if (curROUTId == NULL)
-	error (ErrorError, "Local label can not have a routine name %.*s here", (int)routLen, rout);
+	Error (ErrorError, "Local label can not have a routine name %.*s here", (int)routLen, rout);
       else
-	error (ErrorError, "Local label with routine name %.*s does not match with current routine name %s", (int)routLen, rout, curROUTId);
+	Error (ErrorError, "Local label with routine name %.*s does not match with current routine name %s", (int)routLen, rout, curROUTId);
       if (fileP != NULL)
-	errorLine (fileP, lineNum, ErrorError, "note: Last ROUT was here");
+	Error_Line (fileP, lineNum, ErrorError, "note: Last ROUT was here");
       return true;
     }
   return false;
@@ -229,18 +229,18 @@ Lex_CheckForROUTMismatch (const char *rout, size_t routLen)
 static unsigned
 Lex_ReadReferringLocalLabel (void)
 {
-  if (!isdigit ((unsigned char)inputLook ()))
+  if (!isdigit ((unsigned char)Input_Look ()))
     {
-      error (ErrorError, "Missing local label number");
+      Error (ErrorError, "Missing local label number");
       return UINT_MAX;
     }
-  unsigned label = (unsigned char)inputGet () - '0';
-  while (isdigit ((unsigned char)inputLook ()))
+  unsigned label = (unsigned char)Input_GetC () - '0';
+  while (isdigit ((unsigned char)Input_Look ()))
     {
-      unsigned next_label = 10*label + (unsigned char)inputGet () - '0';
+      unsigned next_label = 10*label + (unsigned char)Input_GetC () - '0';
       if (next_label < label)
 	{
-	  error (ErrorError, "Local label overflow");
+	  Error (ErrorError, "Local label overflow");
 	  return UINT_MAX;
 	}
       label = next_label;
@@ -248,7 +248,7 @@ Lex_ReadReferringLocalLabel (void)
 
   /* If a routinename is given, check if thats the one given with ROUT.  */
   size_t routLen;
-  const char *rout = inputSymbol (&routLen, '\0');
+  const char *rout = Input_Symbol2 (&routLen, '\0');
   if (Lex_CheckForROUTMismatch (rout, routLen))
     return UINT_MAX;
 
@@ -274,7 +274,7 @@ Lex_ReadDefiningLocalLabel (const char *lblStrP, size_t lblStrSize)
       unsigned next_label = 10*label + (unsigned char)*lblStrP++ - '0';
       if (next_label < label)
 	{
-	  error (ErrorError, "Local label overflow");
+	  Error (ErrorError, "Local label overflow");
 	  return UINT_MAX;
 	}
       label = next_label;
@@ -341,7 +341,7 @@ Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
       if (dir == eBackward)
 	{
 	  const char *levelStr = level == eThisLevelOnly ? "t" : level == eAllLevels ? "a" : ""; 
-	  errorAbort ("Missing local label %%b%s%i", levelStr, label);
+	  Error_Abort ("Missing local label %%b%s%i", levelStr, label);
 	  return Lex_None ();
 	}
       Local_CreateSymbolForOutstandingFwdLabelRef (id, sizeof (id),
@@ -352,7 +352,7 @@ Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
 
   const char *lbl = strdup (id); /* FIXME: memory leak.  */
   if (lbl == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   return Lex_Id (lbl, strlen (lbl));
 }
 
@@ -369,18 +369,18 @@ Lex_GetDefiningLabel (void)
 {
   nextbinopvalid = false; /* FIXME: why would this be necessary ? */
 
-  if (isdigit ((unsigned char)inputLook ()))
+  if (isdigit ((unsigned char)Input_Look ()))
     {
       /* Looks like this is a local label.  We just turn this into a
          LexLocalLabel Lex object and only when it is going to be used as
          a defining label (i.e. Lex_DefineLocalLabel), we'll check if this
 	 is a valid local label.  */
       const char *beginLabel = Input_GetMark ();
-      while (isdigit ((unsigned char)inputLook ()))
-	(void) inputGet ();
+      while (isdigit ((unsigned char)Input_Look ()))
+	(void) Input_GetC ();
       /* Possibly followed by a ROUT identifier.  */
       size_t routLen;
-      (void) inputSymbol (&routLen, '\0');
+      (void) Input_Symbol2 (&routLen, '\0');
 
       Lex result =
 	{
@@ -391,14 +391,14 @@ Lex_GetDefiningLabel (void)
       return result;
     }
 
-  return lexGetId ();
+  return Lex_GetID ();
 }
 
 
 /**
  * Tries to turn a LexLocalLabel object into a local label symbol.
  * \return LexId which can be used to create a label symbol.  Can also
- * be LexNone in case of an error (like malformed local label, or wrong
+ * be LexNone in case of an Error (like malformed local label, or wrong
  * routine name).
  * FIXME: should be removed as it leaks memory, teach Symbol_Get() to accept LexLocalLabel.
  */
@@ -418,7 +418,7 @@ Lex_DefineLocalLabel (const Lex *lexP)
 
   const char *lbl = strdup (id); /* FIXME: memory leak */
   if (lbl == NULL)
-    errorOutOfMem ();
+    Error_OutOfMem ();
   return Lex_Id (lbl, strlen (lbl));
 }
 
@@ -433,20 +433,20 @@ Lex_DefineLocalLabel (const Lex *lexP)
 bool
 Lex_SkipDefiningLabel (void)
 {
-  if (isdigit ((unsigned char)inputLook ()))
+  if (isdigit ((unsigned char)Input_Look ()))
     {
       /* Looks like this is a local label.  */
       do
 	{
-	  (void) inputGet ();
-	} while (isdigit ((unsigned char)inputLook ()));
+	  (void) Input_GetC ();
+	} while (isdigit ((unsigned char)Input_Look ()));
 
       size_t len;
-      (void) inputSymbol (&len, '\0');
+      (void) Input_Symbol2 (&len, '\0');
       return true;
     }
 
-  return lexGetId ().tag != LexNone;
+  return Lex_GetID ().tag != LexNone;
 }
 
 #define FINISH_STR(string, Op, Pri)	\
@@ -469,7 +469,7 @@ static void
 Lex_GetUnaryOp (Lex *lex)
 {
   lex->tag = LexOperator;
-  char c1 = inputGet ();
+  char c1 = Input_GetC ();
   switch (c1)
     {
       case 'B':
@@ -478,7 +478,7 @@ Lex_GetUnaryOp (Lex *lex)
 
       case 'C':
 	{
-	  char c2 = inputGet ();
+	  char c2 = Input_GetC ();
 	  switch (c2)
 	    {
 	      case 'C':
@@ -488,14 +488,14 @@ Lex_GetUnaryOp (Lex *lex)
 		FINISH_STR ("R:", eOp_Chr, kPrioOp_Unary); /* :CHR: */
 		break;
 	    }
-	  inputUnGet (c2);
+	  Input_UnGetC (c2);
 	  break;
 	}
 
       case 'D':
 	if (Input_MatchString ("EF:")) /* :DEF: */
 	  {
-	    *lex = lexGetPrim ();
+	    *lex = Lex_GetPrim ();
 	    if (lex->tag == LexId)
 	      {
 	        /* :DEF: only returns {TRUE} when the symbol is defined and it is
@@ -506,13 +506,13 @@ Lex_GetUnaryOp (Lex *lex)
 		return;
 	      }
 	    else
-	      error (ErrorError, "Bad operand for :DEF:");
+	      Error (ErrorError, "Bad operand for :DEF:");
 	  }
 	break;
 
       case 'F':
 	{
-	  char c2 = inputGet ();
+	  char c2 = Input_GetC ();
 	  switch (c2)
 	    {
 	      case 'A':
@@ -528,7 +528,7 @@ Lex_GetUnaryOp (Lex *lex)
 		FINISH_STR ("IZE:", eOp_FSize, kPrioOp_Unary); /* :FSIZE: */
 		break;
 	    }
-	  inputUnGet (c2);
+	  Input_UnGetC (c2);
 	  break;
 	}
 	
@@ -538,7 +538,7 @@ Lex_GetUnaryOp (Lex *lex)
 
       case 'L':
 	{
-	  char c2 = inputGet ();
+	  char c2 = Input_GetC ();
 	  switch (c2)
 	    {
 	      case 'E':
@@ -550,7 +550,7 @@ Lex_GetUnaryOp (Lex *lex)
 		FINISH_STR ("OT:", eOp_LNot, kPrioOp_Unary); /* :LNOT: */
 		break;
 	    }
-	  inputUnGet (c2);
+	  Input_UnGetC (c2);
 	  break;
 	}
 	
@@ -560,7 +560,7 @@ Lex_GetUnaryOp (Lex *lex)
 
       case 'R':
 	{
-	  char c2 = inputGet ();
+	  char c2 = Input_GetC ();
 	  switch (c2)
 	    {
 	      case 'C':
@@ -570,7 +570,7 @@ Lex_GetUnaryOp (Lex *lex)
 		FINISH_STR ("VERSE_CC:", eOp_RevCC, kPrioOp_Unary); /* :REVERSE_CC: */
 		break;
 	    }
-	  inputUnGet (c2);
+	  Input_UnGetC (c2);
 	  break;
 	}
 
@@ -582,7 +582,7 @@ Lex_GetUnaryOp (Lex *lex)
 	FINISH_STR ("PPERCASE:", eOp_UpperCase, kPrioOp_Unary); /* :UPPERCASE: */
 	break;
     }
-  inputUnGet (c1);
+  Input_UnGetC (c1);
 
   /* Failed to tokenize.  */
   lex->tag = LexNone;
@@ -593,12 +593,12 @@ static void
 Lex_GetBinaryOp (Lex *lex)
 {
   lex->tag = LexOperator;
-  char c1 = inputGet ();
+  char c1 = Input_GetC ();
   switch (c1)
     {
       case 'A':
 	{
-	  char c2 = inputGet ();
+	  char c2 = Input_GetC ();
 	  switch (c2)
 	    {
 	      case 'N':
@@ -608,7 +608,7 @@ Lex_GetBinaryOp (Lex *lex)
 		FINISH_STR ("R:", eOp_ASR, kPrioOp_Shift); /* :ASR: */
 		break;
 	    }
-	  inputUnGet (c2);
+	  Input_UnGetC (c2);
 	  break;
 	}
 	
@@ -622,7 +622,7 @@ Lex_GetBinaryOp (Lex *lex)
 	
       case 'L':
 	{
-	  char c2 = inputGet ();
+	  char c2 = Input_GetC ();
 	  switch (c2)
 	    {
 	      case 'A':
@@ -630,7 +630,7 @@ Lex_GetBinaryOp (Lex *lex)
 		break;
 	      case 'E':
 		{
-		  char c3 = inputGet ();
+		  char c3 = Input_GetC ();
 		  switch (c3)
 		    {
 		      case 'F':
@@ -640,14 +640,14 @@ Lex_GetBinaryOp (Lex *lex)
 			FINISH_STR ("R:", eOp_LEOr, kPrioOp_Boolean); /* :LEOR: */
 			break;
 		    }
-		  inputUnGet (c3);
+		  Input_UnGetC (c3);
 		  break;
 		}
 	      case 'O':
 		FINISH_STR ("R:", eOp_LOr, kPrioOp_Boolean); /* :LOR: */
 		break;
 	    }
-	  inputUnGet (c2);
+	  Input_UnGetC (c2);
 	  break;
 	}
 	
@@ -661,7 +661,7 @@ Lex_GetBinaryOp (Lex *lex)
 
       case 'R':
 	{
-	  char c2 = inputGet ();
+	  char c2 = Input_GetC ();
 	  switch (c2)
 	    {
 	      case 'I':
@@ -669,7 +669,7 @@ Lex_GetBinaryOp (Lex *lex)
 		break;
 	      case 'O':
 		{
-		  char c3 = inputGet ();
+		  char c3 = Input_GetC ();
 		  switch (c3)
 		    {
 		      case 'L':
@@ -679,22 +679,22 @@ Lex_GetBinaryOp (Lex *lex)
 			FINISH_CHR (eOp_ROR, kPrioOp_Shift); /* :ROR: */
 			break;
 		    }
-		  inputUnGet (c3);
+		  Input_UnGetC (c3);
 		  break;
 		}
 	    }
-	  inputUnGet (c2);
+	  Input_UnGetC (c2);
 	  break;
 	}
 	
       case 'S':
 	{
-	  char c2 = inputGet ();
+	  char c2 = Input_GetC ();
 	  switch (c2)
 	    {
 	      case 'H':
 		{
-		  char c3 = inputGet ();
+		  char c3 = Input_GetC ();
 		  switch (c3)
 		    {
 		      case 'L':
@@ -704,15 +704,15 @@ Lex_GetBinaryOp (Lex *lex)
 			FINISH_CHR (eOp_SHR, kPrioOp_Shift); /* :SHR: */
 			break;
 		    }
-		  inputUnGet (c3);
+		  Input_UnGetC (c3);
 		  break;
 		}
 	    }
-	  inputUnGet (c2);
+	  Input_UnGetC (c2);
 	  break;
 	}
     }
-  inputUnGet (c1);
+  Input_UnGetC (c1);
 
   /* Failed to tokenize.  */
   lex->tag = LexNone;
@@ -727,7 +727,7 @@ static Lex
 Lex_GetBuiltinVariable (void)
 {
   const char * const inputMark = Input_GetMark ();
-  switch (inputGet () | 0x20)
+  switch (Input_GetC () | 0x20)
     {
       case 'a':
 	{
@@ -1111,10 +1111,10 @@ Lex_GetBuiltinVariable (void)
   while (*lineRest != '\0' && *lineRest != '\n' && *lineRest != '}')
     ++lineRest;
   if (*lineRest == '}')
-    error (ErrorError, "Unknown built-in variable {%.*s",
+    Error (ErrorError, "Unknown built-in variable {%.*s",
 	   (int)(lineRest + 1 - inputMark), inputMark);
   else
-    error (ErrorError, "Missing closing bracket");
+    Error (ErrorError, "Missing closing bracket");
 
   return Lex_None ();
 }
@@ -1153,7 +1153,7 @@ Lex_GetIntOrFloat (unsigned base)
   uint64_t res;
   unsigned char c;
   bool atLeastOneDigit = false;
-  for (res = 0; isxdigit (c = inputLookLower ()); inputSkip ())
+  for (res = 0; isxdigit (c = Input_LookLower ()); Input_Skip ())
     {
       unsigned val = c - (c >= 'a' ? 'a' - 10 : '0');
 
@@ -1172,27 +1172,27 @@ Lex_GetIntOrFloat (unsigned base)
     {
       if (base != 10 && base != 16)
 	{
-	  error (ErrorError, "No base 10 or 16 floating-point literal is not supported"); /* FIXME */
+	  Error (ErrorError, "No base 10 or 16 floating-point literal is not supported"); /* FIXME */
 	  return Lex_None (); 
 	}
       /* Find end of floating-point literal.  */
       /* Skip digits after the dot in the mantissa.  */
       if (c == '.')
 	{
-	  inputSkip ();
-	  while (base == 10 ? isdigit ((unsigned char)inputLook ()) : isxdigit ((unsigned char)inputLook ()))
-	    inputSkip ();
-	  c = inputLook ();
+	  Input_Skip ();
+	  while (base == 10 ? isdigit ((unsigned char)Input_Look ()) : isxdigit ((unsigned char)Input_Look ()))
+	    Input_Skip ();
+	  c = Input_Look ();
 	}
       if (c == 'E' || c == 'e' || c == 'P' || c == 'p')
 	{
-	  inputSkip ();
+	  Input_Skip ();
 	  /* Skip optional exponent sign character.  */
 	  if (!Input_Match ('-', false))
 	    Input_Match ('+', false);
 	  /* Skip exponent.  */
-	  while (isdigit ((unsigned char)inputLook ()))
-	    inputSkip ();
+	  while (isdigit ((unsigned char)Input_Look ()))
+	    Input_Skip ();
 	}
       const char *markEnd = Input_GetMark ();
       /* Floating-point literal goes from 'mark' - 'markEnd'.  */
@@ -1201,14 +1201,14 @@ Lex_GetIntOrFloat (unsigned base)
 	sizeNeeded += sizeof ("0x")-1;
       char *fltLiteral = malloc (sizeNeeded);
       if (fltLiteral == NULL)
-	errorOutOfMem ();
+	Error_OutOfMem ();
       sprintf (fltLiteral, "%s%.*s", base == 10 ? "" : "0x", (int)(markEnd - mark), mark);
       char *markEnd2;
       double d = strtod (fltLiteral, &markEnd2);
       free (fltLiteral);
       if (markEnd2 != fltLiteral + sizeNeeded - 1)
 	{
-	  error (ErrorError, "Failed to read floating point value");
+	  Error (ErrorError, "Failed to read floating point value");
 	  return Lex_None ();
 	}
 
@@ -1230,7 +1230,7 @@ Lex_GetIntOrFloat (unsigned base)
       return lexInt32;
     }
   if (didOverflow)
-    error (ErrorWarning, "64-bit integer overflow");
+    Error (ErrorWarning, "64-bit integer overflow");
 
   const Lex lexInt64 =
     {
@@ -1250,12 +1250,12 @@ static Lex
 Lex_GetFloatFloatingPointLiteral (void)
 {
   uint32_t fltAsInt = 0;
-  for (unsigned i = 0; i != 8; inputSkip (), ++i)
+  for (unsigned i = 0; i != 8; Input_Skip (), ++i)
     {
-      unsigned char c = inputLookLower ();
+      unsigned char c = Input_LookLower ();
       if (!isxdigit (c))
 	{
-	  error (ErrorError, "Float floating point literal needs exactly 8 hex digits");
+	  Error (ErrorError, "Float floating point literal needs exactly 8 hex digits");
 	  return Lex_None ();
 	}
       fltAsInt = 16*fltAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
@@ -1284,12 +1284,12 @@ static Lex
 Lex_GetDoubleFloatingPointLiteral (void)
 {
   uint64_t dblAsInt = 0;
-  for (unsigned i = 0; i != 16; inputSkip (), ++i)
+  for (unsigned i = 0; i != 16; Input_Skip (), ++i)
     {
-      unsigned char c = inputLookLower ();
+      unsigned char c = Input_LookLower ();
       if (!isxdigit (c))
 	{
-	  error (ErrorError, "Double floating point literal needs exactly 16 hex digits");
+	  Error (ErrorError, "Double floating point literal needs exactly 16 hex digits");
 	  return Lex_None ();
 	}
       dblAsInt = 16*dblAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
@@ -1331,13 +1331,13 @@ Lex_GetDoubleFloatingPointLiteral (void)
 
 
 Lex
-lexGetPrim (void)
+Lex_GetPrim (void)
 {
   Lex result;
 
   nextbinopvalid = false;
-  skipblanks ();
-  char c = inputGet ();
+  Input_SkipWS ();
+  char c = Input_GetC ();
   switch (c)
     {
       case '+':
@@ -1392,7 +1392,7 @@ lexGetPrim (void)
 	{
 	  Lex_GetUnaryOp (&result);
 	  if (result.tag == LexNone)
-	    inputUnGet (':');
+	    Input_UnGetC (':');
 	  break;
 	}
 
@@ -1406,22 +1406,22 @@ lexGetPrim (void)
 	{
 	  /* Floating point literal 0f_... or 0d_... ?
 	     Or hexademical integer or floating-point literal ? */
-	  char c0 = inputLookN (0);
-	  if (c0 == 'f' && inputLookN (1) == '_')
+	  char c0 = Input_LookN (0);
+	  if (c0 == 'f' && Input_LookN (1) == '_')
 	    {
-	      inputSkipN (sizeof ("f_")-1); /* Skip "f_" */
+	      Input_SkipN (sizeof ("f_")-1); /* Skip "f_" */
 	      return Lex_GetFloatFloatingPointLiteral ();
 	    }
 
-	  if (c0 == 'd' && inputLookN (1) == '_')
+	  if (c0 == 'd' && Input_LookN (1) == '_')
 	    {
-	      inputSkipN (sizeof ("d_")-1); /* Skip "d_" */
+	      Input_SkipN (sizeof ("d_")-1); /* Skip "d_" */
 	      return Lex_GetDoubleFloatingPointLiteral ();
 	    }
 
 	  if (c0 == 'x' || c0 == 'X')
 	    {
-	      inputSkip ();
+	      Input_Skip ();
 	      return Lex_GetIntOrFloat (16);
 	    }
 	  /* Fall through.  */
@@ -1443,14 +1443,14 @@ lexGetPrim (void)
 	      base = c - '0';
 	      if (base < 2 || base > 9)
 		{
-		  error (ErrorError, "Illegal base %d", base);
+		  Error (ErrorError, "Illegal base %d", base);
 		  result = Lex_None ();
 		}
 	    }
 	  else
 	    {
 	      base = 10;
-	      inputUnGet (c);
+	      Input_UnGetC (c);
 	    }
 	  result = Lex_GetIntOrFloat (base);
 	  break;
@@ -1461,18 +1461,18 @@ lexGetPrim (void)
 	  char in[4];
 	  int i;
 	  unsigned char ci;
-	  for (i = 0; (ci = inputGet ()) != '\''; ++i)
+	  for (i = 0; (ci = Input_GetC ()) != '\''; ++i)
 	    {
 	      if (ci == '\\')
-		ci = inputGet ();
+		ci = Input_GetC ();
 	      if (ci == '\0')
 		{
-		  error (ErrorError, "Constant specification continues over newline");
+		  Error (ErrorError, "Constant specification continues over newline");
 		  break;
 		}
 	      if (i == 4)
 		{
-		  error (ErrorError, "Illegal constant specification");
+		  Error (ErrorError, "Illegal constant specification");
 		  break;
 		}
 	      in[i] = ci;
@@ -1494,10 +1494,10 @@ lexGetPrim (void)
 	{
 	  /* Do we have the position mark '.' or start of a floating point
 	     number ? */
-	  if (isdigit ((unsigned char)inputLook ()))
+	  if (isdigit ((unsigned char)Input_Look ()))
 	    {
 	      /* Looks like a floating point number.  */
-	      inputUnGet (c);
+	      Input_UnGetC (c);
 	      result = Lex_GetIntOrFloat (10);
 	    }
 	  else
@@ -1513,17 +1513,17 @@ lexGetPrim (void)
 	{
 	  /* Local label reference.  */
 	  LocalLabel_eDir dir;
-	  switch (inputLookLower ())
+	  switch (Input_LookLower ())
 	    {
 	      case 'f':
 		/* Forward looking.  */
-		inputSkip ();
+		Input_Skip ();
 		dir = eForward;
 		break;
   
 	      case 'b':
 		/* Backward looking.  */
-		inputSkip ();
+		Input_Skip ();
 		dir = eBackward;
 		break;
   
@@ -1533,17 +1533,17 @@ lexGetPrim (void)
 		break;
 	    }
 	  LocalLabel_eLevel level;
-	  switch (inputLookLower ())
+	  switch (Input_LookLower ())
 	    {
 	      case 't':
 		/* Only at this macro level.  */
-		inputSkip ();
+		Input_Skip ();
 		level = eThisLevelOnly;
 		break;
   
 	      case 'a':
 		/* All macro levels.  */
-		inputSkip ();
+		Input_Skip ();
 		level = eAllLevels;
 		break;
   
@@ -1560,7 +1560,7 @@ lexGetPrim (void)
 
       default:
 	/* Try to read a symbol.  */
-	inputUnGet (c);
+	Input_UnGetC (c);
 	if ((result.Data.Id.str = Input_Symbol (&result.Data.Id.len)) != NULL)
 	  {
 	    result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
@@ -1575,7 +1575,7 @@ lexGetPrim (void)
 }
 
 Lex
-lexGetBinop (void)
+Lex_GetBinop (void)
 {
   if (nextbinopvalid)
     {
@@ -1583,10 +1583,10 @@ lexGetBinop (void)
       return nextbinop;
     }
 
-  skipblanks ();
+  Input_SkipWS ();
   Lex result;
   int c;
-  switch (c = inputGet ())
+  switch (c = Input_GetC ())
     {
       case '*':
 	result.tag = LexOperator;
@@ -1628,11 +1628,11 @@ lexGetBinop (void)
 
       case '>':
 	result.tag = LexOperator;
-	switch (inputLook ())
+	switch (Input_Look ())
 	  {
 	    case '>':
 	      result.Data.Operator.pri = kPrioOp_Shift;
-	      inputSkip ();
+	      Input_Skip ();
 	      if (Input_Match ('>', false))
 		result.Data.Operator.op = eOp_ASR; /* >>> */
 	      else
@@ -1640,7 +1640,7 @@ lexGetBinop (void)
 	      break;
 
 	    case '=':
-	      inputSkip ();
+	      Input_Skip ();
 	      result.Data.Operator.op = eOp_GE;
 	      result.Data.Operator.pri = kPrioOp_Relational; /* >= */
 	      break;
@@ -1654,22 +1654,22 @@ lexGetBinop (void)
 
       case '<':
 	result.tag = LexOperator;
-	switch (inputLook ())
+	switch (Input_Look ())
 	  {
 	    case '<':
-	      inputSkip ();
+	      Input_Skip ();
 	      result.Data.Operator.op = eOp_SHL; /* << */
 	      result.Data.Operator.pri = kPrioOp_Shift;
 	      break;
     
 	    case '=':
-	      inputSkip ();
+	      Input_Skip ();
 	      result.Data.Operator.op = eOp_LE; /* <= */
 	      result.Data.Operator.pri = kPrioOp_Relational;
 	      break;
     
 	    case '>':
-	      inputSkip ();
+	      Input_Skip ();
 	      result.Data.Operator.op = eOp_NE; /* <> */
 	      result.Data.Operator.pri = kPrioOp_Relational;
 	      break;
@@ -1697,7 +1697,7 @@ lexGetBinop (void)
 	  }
 	else
 	  {
-	    inputUnGet (c);
+	    Input_UnGetC (c);
 	    result.tag = LexNone;
 	  }
 	break;
@@ -1733,11 +1733,11 @@ lexGetBinop (void)
       case ':':
 	Lex_GetBinaryOp (&result); /* :XYZ: */
 	if (result.tag == LexNone)
-	  inputUnGet (':');
+	  Input_UnGetC (':');
 	break;
 
       default:
-	inputUnGet (c);
+	Input_UnGetC (c);
 	result.tag = LexNone;
 	break;
     }
@@ -1746,11 +1746,11 @@ lexGetBinop (void)
 }
 
 int
-lexNextPri (void)
+Lex_NextPri (void)
 {
   if (!nextbinopvalid)
     {
-      nextbinop = lexGetBinop ();
+      nextbinop = Lex_GetBinop ();
       nextbinopvalid = true;
     }
   return (nextbinop.tag == LexOperator) ? nextbinop.Data.Operator.pri : -1;
@@ -1758,7 +1758,7 @@ lexNextPri (void)
 
 #ifdef DEBUG
 void
-lexPrint (const Lex *lex)
+Lex_Print (const Lex *lex)
 {
   if (lex == NULL)
     {

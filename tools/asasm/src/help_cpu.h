@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@
 #  include <inttypes.h>
 #endif
 
-uint32_t Help_CPUImm8s4 (uint32_t value) __attribute__ ((__const__));
-unsigned Help_SplitByImm8s4 (uint32_t cnst, uint32_t c[4]);
+uint32_t HelpCPU_Imm8s4 (uint32_t value) __attribute__ ((__const__));
+unsigned HelpCPU_SplitByImm8s4 (uint32_t cnst, uint32_t c[4]);
 
 #endif
