@@ -1385,7 +1385,7 @@ Symbol_PrintAll (void)
     {
       for (const Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
-	  symbolPrint (sym);
+	  Symbol_Print (sym);
 	  printf ("\n");
 	}
     }

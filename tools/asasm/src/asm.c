@@ -107,7 +107,7 @@ ASM_DoPass (const char *asmFile)
 	  Input_SkipWS ();
 
 #ifdef DEBUG_ASM
-	  lexPrint (&label);
+	  Lex_Print (&label);
 	  printf ("\n");
 #endif
 

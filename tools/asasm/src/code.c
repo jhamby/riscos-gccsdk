@@ -376,7 +376,7 @@ Code_EvalLow (ValueTag legal, size_t size, const Code *program,
 {
 #ifdef DEBUG_CODE
   printf ("*** codeEvalLow(): program is: ");
-  codePrint (size, program);
+  Code_Print (size, program);
   printf ("\n");
 #endif
 
