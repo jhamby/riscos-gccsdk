@@ -1333,10 +1333,10 @@ Lex_GetDoubleFloatingPointLiteral (void)
 Lex
 Lex_GetPrim (void)
 {
-  Lex result;
-
   nextbinopvalid = false;
   Input_SkipWS ();
+
+  Lex result;
   char c = Input_GetC ();
   switch (c)
     {
@@ -1436,7 +1436,7 @@ Lex_GetPrim (void)
       case '8':
       case '9':
 	{
-	  int base;
+	  unsigned base;
 	  if (Input_Match ('_', false))
 	    {
 	      /* base is specified.  */
@@ -1444,7 +1444,9 @@ Lex_GetPrim (void)
 	      if (base < 2 || base > 9)
 		{
 		  Error (ErrorError, "Illegal base %d", base);
+		  Input_UnGetC (c);
 		  result = Lex_None ();
+		  break;
 		}
 	    }
 	  else
@@ -1631,8 +1633,8 @@ Lex_GetBinop (void)
 	switch (Input_Look ())
 	  {
 	    case '>':
-	      result.Data.Operator.pri = kPrioOp_Shift;
 	      Input_Skip ();
+	      result.Data.Operator.pri = kPrioOp_Shift;
 	      if (Input_Match ('>', false))
 		result.Data.Operator.op = eOp_ASR; /* >>> */
 	      else

@@ -25,7 +25,7 @@
 
 #include "value.h"
 
-void Expr_Build (void);
+bool Expr_Build (void);
 const Value *Expr_Eval (ValueTag legal);
 const Value *Expr_BuildAndEval (ValueTag legal);
 

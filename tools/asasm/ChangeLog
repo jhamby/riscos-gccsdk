@@ -1,3 +1,17 @@
+Sat Jan 19 17:50:15 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* expr.c (expr): Add bool return value.
+	(prim): Likewise.
+	(Expr_Build): Likewise.
+	(Expr_BuildAndEval): Add check on failed expression building.
+	* expr.h (Expr_Build): Add bool return value.
+	* lex.c (Lex_GetPrim): Use unsigned type for base value.  Unget wrong
+	base character.
+	* lex.h: Update comments.
+	* m_cpuctrl.c (branch_shared): Add check on Expr_Build return value.
+	* value.c (Value_Print): Fix DEBUG build. 
+
 Sat Jan 19 17:43:57 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

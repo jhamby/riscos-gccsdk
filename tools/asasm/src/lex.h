@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2012 GCCSDK Developers
+ * Copyright (c) 2002-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,19 +44,19 @@ typedef enum
   eOp_Base, eOp_Index, eOp_Len, eOp_Str, eOp_Chr,
   eOp_Size,
   eOp_LowerCase, eOp_UpperCase, eOp_RevCC,
-  eOp_CCEnc, eOp_RConst,
+  eOp_CCEnc, eOp_RConst /* eOp_RConst is last unary operator, see Lex_IsUnop().  */ 	,
 
   /* Binary operators.  */
   eOp_Mul, eOp_Div, eOp_Mod,				/* Priority kPrioOp_Multiplicative */
   eOp_Left, eOp_Right, eOp_Concat,			/* Priority kPrioOp_String */
   eOp_ASR, eOp_SHR, eOp_SHL, eOp_ROR, eOp_ROL,		/* Priority kPrioOp_Shift */
   eOp_Add, eOp_Sub, eOp_And, eOp_Or, eOp_XOr,		/* Priority kPrioOp_AddAndLogical */
-  eOp_LE, eOp_GE, eOp_LT, eOp_GT, eOp_EQ, eOp_NE,	/* PPriority kPrioOp_Relational */
+  eOp_LE, eOp_GE, eOp_LT, eOp_GT, eOp_EQ, eOp_NE,	/* Priority kPrioOp_Relational */
   eOp_LAnd, eOp_LOr, eOp_LEOr				/* Priority kPrioOp_Boolean */
 } Operator_e;
 
-#define kPrioOp_Unary		7
-#define kPrioOp_Multiplicative	6
+#define kPrioOp_Unary		7 /* Unop */
+#define kPrioOp_Multiplicative	6 /* Binop */
 #define kPrioOp_String		5
 #define kPrioOp_Shift		4
 #define kPrioOp_AddAndLogical	3

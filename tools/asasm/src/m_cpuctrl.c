@@ -65,7 +65,8 @@ branch_shared (ARMWord cc, bool isBLX)
   const uint32_t offset = (areaCurrentSymbol->area->curIdx + instrAlign-1) & -instrAlign;
   const uint32_t areaOffset = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
 
-  Expr_Build ();
+  if (Expr_Build ())
+    Error (ErrorError, "Failed to parse expression");
 
   if (gPhase == ePassOne)
     {

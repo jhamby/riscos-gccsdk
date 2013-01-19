@@ -438,7 +438,7 @@ Value_Print (const Value *v)
 	break;
       case ValueCode:
 	printf ("Code: ");
-	codePrint (v->Data.Code.len, v->Data.Code.c);
+	Code_Print (v->Data.Code.len, v->Data.Code.c);
 	break;
       case ValueAddr:
 	printf ("AddrOffset reg %d + #0x%x", v->Data.Addr.r, v->Data.Addr.i);
