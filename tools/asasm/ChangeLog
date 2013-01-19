@@ -1,3 +1,7 @@
+Sat Jan 19 17:40:00 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpu.c (m_nop): Code reformat.
+
 Sun Jan 13 18:23:06 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

@@ -79,21 +79,17 @@ m_nop (bool doLowerCase)
 
       if (instrState == eInstrType_ARM)
 	Put_Ins (4, 0x0320F000 | cc);
+      else if (instrWidth == eInstrWidth_Enforce32bit)
+	{
+	  Target_CheckCPUFeature (kCPUExt_v6T2, true);
+	  Put_Ins (2, 0xF3AF);
+	  Put_Ins (2, 0x8000);
+	}
       else
 	{
-	  if (instrWidth == eInstrWidth_Enforce32bit)
-	    {
-	      Target_CheckCPUFeature (kCPUExt_v6T2, true);
-	      Put_Ins (2, 0xF3AF);
-	      Put_Ins (2, 0x8000);
-	    }
-	  else
-	    {
-	      Target_CheckCPUFeature (kCPUExt_v4T, true);
-	      Put_Ins (2, 0xBF00);
-	    }
+	  Target_CheckCPUFeature (kCPUExt_v4T, true);
+	  Put_Ins (2, 0xBF00);
 	}
-
     }
   else
     {
