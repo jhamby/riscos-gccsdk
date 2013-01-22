@@ -768,5 +768,8 @@ Decode_FinalCheck (void)
 {
   Input_SkipWS ();
   if (!Input_IsEolOrCommentStart ())
-    Error (ErrorError, "Skipping extra characters '%s'", Input_Rest ());
+    {
+      Error (ErrorError, "Unexpected characters");
+      Input_Rest ();
+    }
 }
