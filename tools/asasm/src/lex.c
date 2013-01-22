@@ -48,9 +48,6 @@
 #include "state.h"
 #include "targetcpu.h"
 
-static Lex nextbinop;
-static bool nextbinopvalid = false;
-
 /**
  * A simple and fast generic string hasher based on Peter K. Pearson's
  * article in CACM 33-6, pp. 677.
@@ -172,8 +169,6 @@ Lex_Id (const char *str, size_t strLen)
 Lex
 Lex_GetIDNoError (void)
 {
-  nextbinopvalid = false;
-
   Input_SkipWS ();
 
   size_t idLen;
@@ -367,8 +362,6 @@ Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
 Lex
 Lex_GetDefiningLabel (void)
 {
-  nextbinopvalid = false; /* FIXME: why would this be necessary ? */
-
   if (isdigit ((unsigned char)Input_Look ()))
     {
       /* Looks like this is a local label.  We just turn this into a
@@ -1333,7 +1326,6 @@ Lex_GetDoubleFloatingPointLiteral (void)
 Lex
 Lex_GetPrim (void)
 {
-  nextbinopvalid = false;
   Input_SkipWS ();
 
   Lex result;
@@ -1579,12 +1571,6 @@ Lex_GetPrim (void)
 Lex
 Lex_GetBinop (void)
 {
-  if (nextbinopvalid)
-    {
-      nextbinopvalid = false;
-      return nextbinop;
-    }
-
   Input_SkipWS ();
   Lex result;
   int c;
@@ -1747,17 +1733,6 @@ Lex_GetBinop (void)
   return result;
 }
 
-int
-Lex_NextPri (void)
-{
-  if (!nextbinopvalid)
-    {
-      nextbinop = Lex_GetBinop ();
-      nextbinopvalid = true;
-    }
-  return (nextbinop.tag == LexOperator) ? nextbinop.Data.Operator.pri : -1;
-}
-
 #ifdef DEBUG
 void
 Lex_Print (const Lex *lex)
@@ -1788,7 +1763,7 @@ Lex_Print (const Lex *lex)
 	printf ("Flt <%g> ", lex->Data.Float.value);
 	break;
       case LexOperator:
-	printf ("Op <%d, %d> ", lex->Data.Operator.op, lex->Data.Operator.pri);
+	printf ("Op %s (pri %d) ", Lex_OperatorAsStr (lex->Data.Operator.op), lex->Data.Operator.pri);
 	break;
       case LexPosition:
 	printf ("Pos ");
@@ -1800,7 +1775,7 @@ Lex_Print (const Lex *lex)
 	printf ("Delim <%d> ", lex->Data.Delim.delim);
 	break;
       case LexBool:
-	printf("bool <%d> ", lex->Data.Bool.value);
+	printf("bool <%s> ", lex->Data.Bool.value ? "true" : "false");
 	break;
       case LexNone:
 	printf ("None ");

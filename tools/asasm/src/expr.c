@@ -34,13 +34,14 @@
 #include "error.h"
 #include "expr.h"
 #include "global.h"
+#include "input.h"
 #include "lex.h"
 #include "symbol.h"
 
-static bool expr (int pri);
+static bool Expr_Get (void);
 
 static bool
-prim (void)
+Expr_GetPrim (void)
 {
   bool failed = false;
   const Lex lex = Lex_GetPrim ();
@@ -74,17 +75,15 @@ prim (void)
         break;
 
       case LexOperator:
-        failed = prim ();
-	if (!failed)
+	/* All unary operators have same priority (kPrioOp_Unary), so we can
+	   keep on calling Expr_GetPrim() recursively.  */
+	if (!Lex_IsUnop (lex.Data.Operator.op))
 	  {
-	    if (Lex_IsUnop (lex.Data.Operator.op))
-	      Code_Operator (lex.Data.Operator.op);
-	    else
-	      {
-		Error (ErrorError, "Illegal unary operator");
-		failed = true;
-	      }
+	    Error (ErrorError, "Illegal operator");
+	    failed = true;
 	  }
+	else if ((failed = Expr_GetPrim ()) == false)
+	  Code_Operator (lex.Data.Operator.op);
         break;
 
       case LexPosition:
@@ -100,7 +99,7 @@ prim (void)
 	  {
 	    case '(':
 	      {
-		if (expr (kPrioOp_Min))
+		if (Expr_Get ())
 		  return true;
 		/* Check closing ')'.  */
 		const Lex lexNext = Lex_GetPrim ();
@@ -113,7 +112,8 @@ prim (void)
 	      }
 
 	    case ')':
-	      Error (ErrorError, "Missing '('");
+	      Input_UnGetC (')');
+	      Error (ErrorError, "')' unexpected");
 	      failed = true;
 	      break;
 
@@ -131,28 +131,54 @@ prim (void)
         assert (0);
       case LexNone:
 	/* When Lex encountered an error.  */
+	Error (ErrorError, "Incomplete expression");
 	failed = true;
 	break;
     }
+
   return failed;
 }
 
 
+/**
+ * Builds expression with prim & binops with priority > curPri.
+ */
 static bool
-expr (int pri)
+Expr_GetInt (Lex *opP, int maxPri)
 {
-  if (pri == kPrioOp_Max ? prim () : expr (pri + 1))
+  if (maxPri != kPrioOp_Max ? Expr_GetInt (opP, maxPri + 1) : Expr_GetPrim ())
     return true;
 
-  int nextPri;
-  while ((nextPri = Lex_NextPri ()) == pri)
+  while (1)
     {
-      Lex op = Lex_GetBinop ();
-      if (op.tag != LexOperator || pri == kPrioOp_Max ? prim () : expr (pri + 1))
+      if (opP->tag != LexOperator)
+	{
+	  *opP = Lex_GetBinop ();
+	  if (opP->tag != LexOperator)
+	    break; /* Done.  */
+	}
+
+      if (opP->Data.Operator.pri != maxPri)
+	break;
+
+      Lex curOp = *opP;
+      opP->tag = LexNone;
+
+      if (maxPri != kPrioOp_Max ? Expr_GetInt (opP, maxPri + 1) : Expr_GetPrim ())
 	return true;
-      Code_Operator (op.Data.Operator.op);
+      
+      Code_Operator (curOp.Data.Operator.op);
     }
-  return nextPri == -1;
+
+  return false;
+}
+
+
+static bool
+Expr_Get (void)
+{
+  Lex nop = { .tag = LexNone };
+  return Expr_GetInt (&nop, kPrioOp_Min);
 }
 
 
@@ -164,12 +190,13 @@ bool
 Expr_Build (void)
 {
   Code_Init ();
-  return expr (kPrioOp_Min);
+  return Expr_Get ();
 }
 
 
 /**
- * Evaluates the current (code) expression stream.
+ * Evaluates the current (code) expression stream which was previous built up
+ * using Expr_Build (or via Code_Init() + Code_*() calls).
  * \param legal Or'd ValueTag values which are allowed as result.
  * \return Result of evaluation.  Use Value_Assign() to keep a non-temporary
  * copy of it.

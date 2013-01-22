@@ -148,7 +148,6 @@ Lex Lex_GetID (void);
 Lex Lex_GetIDNoError (void);
 Lex Lex_GetPrim (void);
 Lex Lex_GetBinop (void);
-int Lex_NextPri (void);
 
 Lex Lex_Id (const char *str, size_t strLen);
 
