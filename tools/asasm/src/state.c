@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010-2012 GCCSDK Developers
+ * Copyright (c) 2010-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,7 @@
 #  include <inttypes.h>
 #endif
 
+#include "area.h"
 #include "error.h"
 #include "phase.h"
 #include "state.h"
@@ -86,48 +87,60 @@ State_GetInstrType (void)
 
 /**
  * Implements CODE16.
- * What follows is in pre-UAL notation.
+ * What follows is in pre-UAL Thumb notation.
+ * If necessary, this directives also insert up to one byte of padding to
+ * align to the next halfword boundary for Thumb or ThumbEE.
  */
 bool
 c_code16 (void)
 {
   oCurrentInstrType = eInstrType_Thumb;
   oCurrentSyntax = eSyntax_PreUALOnly;
+  Area_AlignArea (areaCurrentSymbol, 2, NULL);
   return false;
 }
 
 /**
  * Implements THUMB.
- * What follows in in UAL notation.
+ * What follows in in UAL Thumb notation.
+ * If necessary, this directives also insert up to one byte of padding to
+ * align to the next halfword boundary for Thumb or ThumbEE.
  */
 bool
 c_thumb (void)
 {
   oCurrentInstrType = eInstrType_Thumb;
   oCurrentSyntax = eSyntax_UALOnly;
+  Area_AlignArea (areaCurrentSymbol, 2, NULL);
   return false;
 }
 
 /**
  * Implements THUMBX.
- * What follows is in UAL notation.
+ * What follows is in UAL Thumb notation.
+ * If necessary, this directives also insert up to one byte of padding to
+ * align to the next halfword boundary for Thumb or ThumbEE.
  */
 bool
 c_thumbx (void)
 {
   oCurrentInstrType = eInstrType_ThumbEE;
   oCurrentSyntax = eSyntax_UALOnly;
+  Area_AlignArea (areaCurrentSymbol, 2, NULL);
   return false;
 }
 
 /**
  * Implements ARM / CODE32.
- * What follows can be in UAL or pre-UAL notation.
+ * What follows can be in UAL or pre-UAL ARM notation.
+ * If necessary, this directive also insert up to three bytes of padding to
+ * align to the next word boundary for ARM.
  */
 bool
 c_code32 (void)
 {
   oCurrentInstrType = eInstrType_ARM;
   oCurrentSyntax = eSyntax_Both;
+  Area_AlignArea (areaCurrentSymbol, 4, NULL);
   return false;
 }
