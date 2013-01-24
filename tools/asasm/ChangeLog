@@ -1,3 +1,10 @@
+Thu Jan 24 01:01:20 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/lex.c (Lex_GetBuiltinVariable): Add {UAL} support.
+	* unittests/compare/core/builtinvar_codesize_config.s: Renamed to...
+	* unittests/compare/core/builtinvar_codesize_config_ual.s: ...this.
+	Added {UAL} test.
+
 Wed Jan 23 01:32:22 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/state.c (c_code16, c_code32, c_thumb, c_thumbx): Add alignment

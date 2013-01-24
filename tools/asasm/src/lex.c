@@ -1085,7 +1085,10 @@ Lex_GetBuiltinVariable (void)
       case 'u':
 	{
 	  if (Input_MatchStringLower ("al}")) /* {UAL} */
-	    return Lex_Bool (false); /* FIXME: */
+	    {
+	      /* True when only UAL syntax is accepted.  */
+	      return Lex_Bool (State_GetSyntax() == eSyntax_UALOnly);
+	    }
 	  break;
 	}
       case 'v':
