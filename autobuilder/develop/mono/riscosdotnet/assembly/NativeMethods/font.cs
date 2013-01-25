@@ -87,10 +87,10 @@ namespace riscos
 							  int y);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_convertto_os")]
-		internal static extern IntPtr Font_ConvertToOS (int y, int y, out int xOut, out int yOut);
+		internal static extern IntPtr Font_ConvertToOS (int x, int y, out int xOut, out int yOut);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_converttopoints")]
-		internal static extern IntPtr Font_ConvertToPoints (int y, int y, out int xOut, out int yOut);
+		internal static extern IntPtr Font_ConvertToPoints (int x, int y, out int xOut, out int yOut);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_set_font")]
 		internal static extern IntPtr Font_SetFont (IntPtr font);

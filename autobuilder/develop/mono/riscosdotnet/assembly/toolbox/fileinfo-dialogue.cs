@@ -173,11 +173,11 @@ namespace riscos
 			/*! \brief Set the date and time displayed in the FileInfo dialogue.  */
 			public void SetDate (OS.DateTime date)
 			{
-				GCHandle pinned_array;
+				// Prevent the GC from moving the memory while we use its address.
+				GCHandle pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
 				try {
-					// Prevent the GC from moving the memory while we use its address.
-					pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
-					MiscOp_SetR3 (0, Method.SetDate, pinned_array.AddrOfPinnedObject());
+					IntPtr raw_data_ptr = pinned_array.AddrOfPinnedObject();
+					MiscOp_SetR3 (0, Method.SetDate, raw_data_ptr);
 				}
 				catch {
 					throw;
@@ -192,11 +192,11 @@ namespace riscos
 			public OS.DateTime GetDate ()
 			{
 				OS.DateTime date = new OS.DateTime ();
-				GCHandle pinned_array;
+				// Prevent the GC from moving the memory while we use its address.
+				GCHandle pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
 				try {
-					// Prevent the GC from moving the memory while we use its address.
-					pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
-					MiscOp_SetR3 (0, Method.GetDate, pinned_array.AddrOfPinnedObject());
+					IntPtr raw_data_ptr = pinned_array.AddrOfPinnedObject();
+					MiscOp_SetR3 (0, Method.GetDate, raw_data_ptr);
 				}
 				catch {
 					throw;

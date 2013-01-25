@@ -228,8 +228,8 @@ namespace riscos
 			 * If set to null, the Help Message for this MenuEntry is detached.  */
 			public override string HelpMessage
 			{
-				override get { return GetText (Method.GetEntryHelpMessage); }
-				override set { SetText (Method.SetEntryHelpMessage, value); }
+				get { return GetText (Method.GetEntryHelpMessage); }
+				set { SetText (Method.SetEntryHelpMessage, value); }
 			}
 
 			// Methods that have no meaning for a MenuEntry.
@@ -239,8 +239,7 @@ namespace riscos
 			 * \exception InvalidOperationException Thrown if accessed via a MenuEntry object.  */
 			public override uint Type
 			{
-				override get
-				{
+				get {
 					throw new InvalidOperationException ("A Menu Entry does not have a gadget type");
 				}
 			}
@@ -250,12 +249,10 @@ namespace riscos
 			 * \exception InvalidOperationException Thrown if accessed via a MenuEntry object.  */
 			public override OS.Rect BoundingBox
 			{
-				override get
-				{
+				get {
 					throw new InvalidOperationException ("A Menu Entry does not have a bounding box");
 				}
-				override set
-				{
+				set {
 					throw new InvalidOperationException ("You cannot set the bounding box of a Menu Entry");
 				}
 			}

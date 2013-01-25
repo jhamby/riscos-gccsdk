@@ -346,12 +346,10 @@ namespace riscos
 		//! \brief Sets the calibration table for the screen.
 		public static void SetCalibration (int [] calibrationTable)
 		{
-			GCHandle pinned_table;
+			GCHandle pinned_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
 			try {
-				pinned_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
-				OS.ThrowOnError (NativeMethods.
-						 ColourTrans_SetCalibration (pinned_table.
-									       AddrOfPinnedObject ()));
+				IntPtr raw_data_ptr = pinned_table.AddrOfPinnedObject ();
+				OS.ThrowOnError (NativeMethods.ColourTrans_SetCalibration (raw_data_ptr));
 			}
 			catch {
 				// Rethrow any exceptions for the caller to deal with.
@@ -366,7 +364,7 @@ namespace riscos
 		public static int [] ReadCalibration ()
 		{
 			int buffer_size;
-			IntPtr buffer;
+			IntPtr buffer = IntPtr.Zero;
 
 			try {
 				OS.ThrowOnError (NativeMethods.ColourTrans_ReadCalibration (IntPtr.Zero,
@@ -383,7 +381,8 @@ namespace riscos
 				throw;
 			}
 			finally {
-				Marshal.FreeHGlobal (buffer);
+				if (buffer != IntPtr.Zero)
+					Marshal.FreeHGlobal (buffer);
 			}
 		}
 
@@ -394,14 +393,13 @@ namespace riscos
 		 * \return A 24-bit standard colour (0xBBGGRR00).  */
 		public static uint ConvertDeviceColour (uint colour, int [] calibrationTable)
 		{
-			GCHandle pinned_table;
+			GCHandle pinned_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
 			uint colour_result;
 			try {
-				pinned_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
+				IntPtr raw_data_ptr = pinned_table.AddrOfPinnedObject ();
 				OS.ThrowOnError (NativeMethods.
 						 ColourTrans_ConvertDeviceColour (colour,
-										  pinned_table.
-										    AddrOfPinnedObject (),
+										  raw_data_ptr,
 										  out colour_result));
 				return colour_result;
 			}
@@ -424,17 +422,19 @@ namespace riscos
 		public static int [] ConvertDevicePalette (uint [] deviceColourTable,
 							   int [] calibrationTable)
 		{
-			GCHandle pinned_calibration_table;
-			GCHandle pinned_buffer;
-			GCHandle pinned_device_table;
+			// FixMe: Do we need to pin integer arrays or can we pass them straight to native methods?
+			int colourCount = deviceColourTable.Length;
+			int [] buffer = new int [colourCount];
+
+			// Exception handling is a grey area here for me. If the 2nd or 3rd pin fail, I don't
+			// think the finally block will be called, so will the pinned arrays be leaked?
+			// We can't pin them in the try block because either they're out of scope or they're
+			// used unintialised.
+			GCHandle pinned_calibration_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
+			GCHandle pinned_buffer = GCHandle.Alloc (buffer, GCHandleType.Pinned);
+			GCHandle pinned_device_table = GCHandle.Alloc (deviceColourTable, GCHandleType.Pinned);
+
 			try {
-				int colourCount = deviceColourTable.Length;
-				int [] buffer = new int [colourCount];
-
-				pinned_calibration_table = GCHandle.Alloc (calibrationTable, GCHandleType.Pinned);
-				pinned_buffer = GCHandle.Alloc (buffer, GCHandleType.Pinned);
-				pinned_device_table = GCHandle.Alloc (deviceColourTable, GCHandleType.Pinned);
-
 				OS.ThrowOnError (NativeMethods.
 						 ColourTrans_ConvertDevicePalette (colourCount,
 										   pinned_device_table.

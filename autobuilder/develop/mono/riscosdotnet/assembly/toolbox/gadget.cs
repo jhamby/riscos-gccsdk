@@ -102,22 +102,21 @@ namespace riscos
 			 * is received for this gadget.  */
 			public virtual string HelpMessage
 			{
-				virtual get { return GetText (Method.GetHelpMessage); }
-				virtual set { SetText (Method.SetHelpMessage, value); }
+				get { return GetText (Method.GetHelpMessage); }
+				set { SetText (Method.SetHelpMessage, value); }
 			}
 
 			/*! \brief The type of this gadget.  */
 			public virtual uint Type
 			{
-				virtual get { return Object.MiscOp_SetR3GetR0 (0, Method.GetType, ComponentID); }
+				get { return Object.MiscOp_SetR3GetR0 (0, Method.GetType, ComponentID); }
 			}
 
 			/*! \brief The bounding box of the gadget.<br>
 			 * Setting allows the gadget to be moved/resized within the window.  */
 			public virtual OS.Rect BoundingBox
 			{
-				virtual get
-				{
+				get {
 					NativeOS.Rect extent = new NativeOS.Rect ();
 					OS.ThrowOnError (NativeMethods.Gadget_GetBBox (0,
 										       Object.ID,
@@ -126,8 +125,7 @@ namespace riscos
 										       out extent));
 					return new OS.Rect (ref extent);
 				}
-				virtual set
-				{
+				set {
 					NativeOS.Rect bbox = new NativeOS.Rect (value);
 					OS.ThrowOnError (NativeMethods.Gadget_MoveGadget (0,
 											  Object.ID,

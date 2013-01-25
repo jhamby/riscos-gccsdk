@@ -127,16 +127,18 @@ namespace riscos
 			 * values.  */
 			public void SetColour (int [] colourBlock, bool noneSelected)
 			{
-				GCHandle pinned_array;
+				// Prevent the GC from moving the memory while we use its address
+				GCHandle pinned_array = GCHandle.Alloc (colourBlock, GCHandleType.Pinned);
 				try {
-					// Prevent the GC from moving the memory while we use its address
-					pinned_array = GCHandle.Alloc (colourBlock, GCHandleType.Pinned);
 					if (noneSelected)
 						MiscOp_SetR3 (1U, Method.SetColour, IntPtr.Zero);
 					else
+					{
+						IntPtr raw_data_ptr = pinned_array.AddrOfPinnedObject();
 						MiscOp_SetR3 (0,
 							      Method.SetColour,
-							      pinned_array.AddrOfPinnedObject());
+							      raw_data_ptr);
+					}
 				}
 				catch {
 					throw;
@@ -155,25 +157,28 @@ namespace riscos
 			 * entry from the array returned from this method.  */
 			public int [] GetColour (out bool noneSelected)
 			{
-				int [] colour_block;
-				GCHandle pinned_array;
 				int none_selected = 0;
 				int buffer_size;
 
-				try {
-					buffer_size = GetBuffer (0,
-								 Method.GetColour,
-								 IntPtr.Zero,
-								 0,
-								 out none_selected);
-					if (buffer_size == 0)
-						return null;
+				buffer_size = GetBuffer (0,
+							 Method.GetColour,
+							 IntPtr.Zero,
+							 0,
+							 out none_selected);
 
-					colour_block = new int [buffer_size >> 2];
-					pinned_array = GCHandle.Alloc (colour_block, GCHandleType.Pinned);
+				noneSelected = none_selected != 0 ? true : false;
+
+				if (buffer_size == 0)
+					return null;
+
+				int [] colour_block = new int [buffer_size >> 2];
+				GCHandle pinned_array = GCHandle.Alloc (colour_block, GCHandleType.Pinned);
+
+				try {
+					IntPtr raw_data_ptr = pinned_array.AddrOfPinnedObject();
 					GetBuffer (0,
 						   Method.GetColour,
-						   pinned_array.AddrOfPinnedObject(),
+						   raw_data_ptr,
 						   buffer_size,
 						   out none_selected);
 					return colour_block;
@@ -182,8 +187,6 @@ namespace riscos
 					throw;
 				}
 				finally {
-					noneSelected = none_selected != 0 ? true : false;
-
 					pinned_array.Free ();
 				}
 			}
@@ -193,16 +196,18 @@ namespace riscos
 			 * \return Nothing.  */
 			public void SetColourModel (ColourModel colourModel)
 			{
-				GCHandle pinned_array;
+				int [] model_block = new int [2];
+				model_block[0] = 4;
+				model_block[1] = (int)colourModel;
+
+				// Prevent the GC from moving the memory while we use its address
+				GCHandle pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
+
 				try {
-					int [] model_block = new int [2];
-					model_block[0] = 4;
-					model_block[1] = (int)colourModel;
-					// Prevent the GC from moving the memory while we use its address
-					pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
+					IntPtr raw_data_ptr = pinned_array.AddrOfPinnedObject();
 					MiscOp_SetR3 (0,
 						      Method.SetColourModel,
-						      pinned_array.AddrOfPinnedObject());
+						      raw_data_ptr);
 				}
 				catch {
 					throw;
@@ -216,20 +221,21 @@ namespace riscos
 			 * \return A value indicating either RGB, CMYK or HSV colour models.  */
 			public ColourModel GetColourModel ()
 			{
-				GCHandle pinned_array;
-				int buffer_size, flags_out;
+				int flags_out;
+				int buffer_size = GetBuffer (0,
+							     Method.GetColourModel,
+							     IntPtr.Zero,
+							     0,
+							     out flags_out);
+				int [] model_block = new int [buffer_size >> 2];
+				// Prevent the GC from moving the memory while we use its address
+				GCHandle pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
+
 				try {
-					buffer_size = GetBuffer (0,
-								 Method.GetColourModel,
-								 IntPtr.Zero,
-								 0,
-								 out flags_out);
-					int [] model_block = new int [buffer_size >> 2];
-					// Prevent the GC from moving the memory while we use its address
-					pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
+					IntPtr raw_data_ptr = pinned_array.AddrOfPinnedObject();
 					GetBuffer (0,
 						   Method.GetColourModel,
-						   pinned_array.AddrOfPinnedObject(),
+						   raw_data_ptr,
 						   buffer_size,
 						   out flags_out);
 					return (ColourModel)model_block [1];
