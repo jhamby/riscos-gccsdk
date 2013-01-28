@@ -884,9 +884,9 @@ diff -r -u -N ./acorn/sendbits.s ../zip30-joty/acorn/sendbits.s
 +
 +        .end
 +#endif
-diff -r -u -N ./acorn/swiven.c ../zip30-joty/acorn/swiven.c
---- ./acorn/swiven.c	1970-01-01 01:00:00.000000000 +0100
-+++ ../zip30-joty/acorn/swiven.c	2009-01-18 13:48:29.000000000 +0100
+diff -r -u -N ./acorn/swiven.c.orig ./acorn/swiven.c
+--- ./acorn/swiven.c.orig	1970-01-01 01:00:00.000000000 +0100
++++ ./acorn/swiven.c	2009-01-18 13:48:29.000000000 +0100
 @@ -0,0 +1,127 @@
 +/*
 +  Copyright (c) 1990-2009 Info-ZIP.  All rights reserved.
