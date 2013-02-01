@@ -589,9 +589,10 @@ c_dcq (bool doLowerCase)
 
 /**
  * Implements DCI : "Define Constant Instruction"
- *   {label} DCI{.W} expr{,expr}
+ *   {label} DCI[{.N}|{.W}] expr{,expr}
  * In ARM code: align to 4 bytes and write 4-byte value(s).
- * In Thumb code: align to 2 bytes and write 2-byte value(s).
+ * In Thumb code: align to 2 bytes and write 2-byte or 4-byte (when .W is
+ * specified) value(s).
  */
 bool
 c_dci (bool doLowerCase)

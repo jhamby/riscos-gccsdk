@@ -341,8 +341,8 @@ Put_InsWithOffset (uint32_t offset, unsigned size, ARMWord ins)
 }
 
 /**
- * Append ARM instruction at the end of current area.
- * \entry ins ARM instruction value to be written.
+ * Append ARM/Thumb instruction at the end of current area.
+ * \entry ins ARM/Thumb instruction value to be written.
  */
 void
 Put_Ins (unsigned size, ARMWord ins)

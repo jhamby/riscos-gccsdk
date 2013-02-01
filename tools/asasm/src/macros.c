@@ -350,7 +350,7 @@ AddMacroArg (Macro *macro, const char *arg, size_t argLen, const char *defValue)
 /**
  * Implements MACRO:
  *         MACRO
- * $<lbl> <marco name>[$<suffix>] [$<param>[=<default value>]]*
+ * $<lbl> <marco name>[$<suffix>] [$<param>[=<default value>] [, $<param>[=<default value>]]*
  */
 bool
 c_macro (void)

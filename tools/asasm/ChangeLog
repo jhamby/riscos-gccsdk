@@ -1,3 +1,12 @@
+Fri Feb  1 01:15:47 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* macros.c (c_macro): Update comments.
+	* put.c (Put_Ins): Likewise.
+	* directive_data.c (c_dci): Likewise.
+
+	* unittests/compare/core/include/nop.s: Likewise.
+
 Thu Jan 24 01:01:20 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/lex.c (Lex_GetBuiltinVariable): Add {UAL} support.

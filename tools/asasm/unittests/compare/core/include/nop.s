@@ -2,7 +2,7 @@
 
 	AREA	Code, CODE
 
-; NOP encodes differenctly when the chosen architecture is ARMv6K,
+; NOP encodes differently when the chosen architecture is ARMv6K,
 ; ARMv6TE or ARMv7.  Also, for those architectures, we can use condition
 ; codes.
 NewEnc	EQU	{ARCHITECTURE} = "6K" \
