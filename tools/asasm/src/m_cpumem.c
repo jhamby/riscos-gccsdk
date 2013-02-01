@@ -639,63 +639,108 @@ m_pl (bool doLowerCase)
   return false;
 }
 
-
-static void
-dstreglist (ARMWord ir, bool isPushPop)
+typedef struct
 {
-  if (isPushPop)
+  unsigned baseReg;
+  bool writeBack;
+  bool hat; /* When ^ is specified.  Only valid for LDM/STM in ARM mode.  */
+  unsigned regList;
+} LSM_Arg_t;
+
+typedef enum
+{
+  eIsLDM,
+  eIsPop,
+  eIsSTM,
+  eIsPush
+} LSM_Type_e;
+
+/**
+ * Get the arguments of a load/store multiple instruction (LDM, STM, PUSH, POP).
+ */
+static LSM_Arg_t
+GetLoadStoreMultipleArg (LSM_Type_e lsmType)
+{
+  LSM_Arg_t rtrn;
+  if (lsmType == eIsPop || lsmType == eIsPush)
     {
-      ir |= BASE_MULTI (13);
-      ir |= W_FLAG;
+      /* Base register is fixed (r13) and writeback is always implicitely set.  */
+      rtrn.baseReg = 13;
+      rtrn.writeBack = true;
       Input_SkipWS ();
     }
   else
     {
-      ir |= BASE_MULTI (Get_CPUReg ());
+      rtrn.baseReg = Get_CPUReg ();
       Input_SkipWS ();
-      if (Input_Match ('!', true))
-	ir |= W_FLAG;
+      rtrn.writeBack = Input_Match ('!', true);
       if (!Input_Match (',', true))
-	Error (ErrorError, "Inserting missing comma before reglist");
+	Error (ErrorError, "%sbase register", InsertCommaAfter);
     }
 
   /* Parse register list.  */
-  ARMWord regList;
   if (Input_Look () == '{')
-    regList = Get_CPURList ();
+    rtrn.regList = Get_CPURList ();
   else
     {
+      /* Symbol representing a register list.  */
       const Value *rlistValue = Expr_BuildAndEval (ValueInt);
       if (rlistValue->Tag != ValueInt || rlistValue->Data.Int.type != eIntType_CPURList)
 	{
 	  Error (ErrorError, "Not a register list");
-	  regList = 0;
+	  rtrn.regList = 0;
 	}
       else
 	{
-	  assert ((unsigned)rlistValue->Data.Int.i <= 0xFFFF);
-	  regList = rlistValue->Data.Int.i;
+	  assert ((rlistValue->Data.Int.i & ~0xFFFFu) == 0);
+	  rtrn.regList = rlistValue->Data.Int.i;
 	}
     }
 
   Input_SkipWS ();
+  rtrn.hat = false;
   if (Input_Match ('^', true))
     {
-      if ((ir & W_FLAG) && !(regList & (1 << 15)))
-	Error (ErrorInfo, "Writeback together with force user");
-      ir |= FORCE_FLAG;
+      /* Only LDM/STM can have an optional ^.  */
+      if (lsmType == eIsLDM || lsmType == eIsSTM)
+	rtrn.hat = true;
+      else
+	Error (ErrorError, "PUSH/POP can not have ^ specified");
     }
 
+  return rtrn;
+}
+
+static bool
+LoadStoreMultiple (ARMWord cc, bool doLowerCase, LSM_Type_e lsmType)
+{
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM); 
+
+  const LSM_Arg_t lsmArg = GetLoadStoreMultipleArg (lsmType);
+
   /* Count number of registers loaded or saved.  */
-  int numRegs = 0;
-  for (int i = 0; i < 16; ++i)
+  unsigned numRegs = 0;
+  for (unsigned i = 0; i != 16; ++i)
     {
-      if (regList & (1<<i))
+      if (lsmArg.regList & (1u << i))
 	++numRegs;
     }
-  if (GET_BASE_MULTI (ir) == 13 && (ir & W_FLAG))
+  unsigned singleRegInList; /* Only valid when numRegs == 1.  */
+  if (numRegs == 1)
     {
-      if (numRegs & 1)
+      singleRegInList = ffs (lsmArg.regList) - 1;
+      assert (lsmArg.regList == (1U << singleRegInList));
+    }
+
+  /* For PRESERVE8, check if the number of stack elements is even.  */
+  if (lsmArg.baseReg == 13 && lsmArg.writeBack)
+    {
+      if ((numRegs & 1) != 0)
 	{
 	  if (gArea_Preserve8 == ePreserve8_Yes)
 	    Error (ErrorWarning, "Stack pointer update potentially breaks 8 byte stack alignment");
@@ -703,51 +748,307 @@ dstreglist (ARMWord ir, bool isPushPop)
 	    gArea_Preserve8Guessed = false;
 	}
     }
-  if (GET_BASE_MULTI (ir) == 15)
+
+  if (lsmArg.baseReg == 15)
     Error (ErrorWarning, "Use of PC as Rn is UNPREDICTABLE");
   if (numRegs == 0)
-    Error (ErrorWarning, "Specifying no registers to %s is UNPREDICTABLE", ir & L_FLAG ? "load" : "save");
-  if ((ir & W_FLAG) && numRegs == 1 && Target_CheckCPUFeature (kArchExt_v7, false))
-    Error (ErrorWarning, "%s one register with writeback is UNPREDICTABLE for ARMv7 onwards, use %s instead",
-           (ir & L_FLAG) ? "Loading" : "Saving",
-           (ir & L_FLAG) ? "POP" : "PUSH");
-  if (isPushPop && numRegs == 1)
+    Error (ErrorWarning, "Specifying no registers to %s is UNPREDICTABLE", lsmType == eIsLDM || lsmType == eIsPop ? "load" : "save");
+  if (!lsmArg.hat && lsmArg.writeBack && numRegs == 1)
     {
-      /* Switch to LDR/STR.  */
-      bool isLoad = ir & L_FLAG;
-      int rt = ffs (regList) - 1;
-      assert (regList == (1U << rt));
-      ir = (ir & NV) | (isLoad ? 0x049D0004 : 0x052D0004) | (rt << 12);
-      if (rt == 13)
-	Error (ErrorWarning, "%s r13 is UNPREDICTABLE", isLoad ? "Loading" : "Saving");
+      /* One register save/load via LDM/STM on stack (with writeback) can
+	 better be done using POP/PUSH as those get optimised to LDR/STR.  */
+      if (lsmArg.baseReg == 13 && lsmType == eIsLDM)
+	Error (ErrorInfo, "Loading one register with writeback from stack can better be done using POP");
+      else if (lsmArg.baseReg == 13 && lsmType == eIsSTM)
+	Error (ErrorInfo, "Saving one register with writeback on stack can better be done using PUSH");
+    }
+  if (option_pedantic
+      && (lsmType == eIsLDM || lsmType == eIsPop)
+      && (lsmArg.regList &  (1 << 15))
+      && Target_CheckCPUFeature (kCPUExt_v4T, false) && !Target_CheckCPUFeature (kCPUExt_v5T, false))
+    Error (ErrorWarning, "ARMv4T does not switch ARM/Thumb state when LDM/POP specifies PC (use BX instead)");
+
+// FIXME: LDM (?)/POP + Thumb with PC in reglist && IT Block && not last instr in IT block -> UNPREDICTABLE
+
+  /* Simplifies ARM/Thumb2 implementation.  */
+  switch (lsmType)
+    {
+      case eIsPop:
+	cc |= STACKMODE_IA;
+	break;
+      case eIsPush:
+	cc |= STACKMODE_DB;
+	break;
+      case eIsLDM:
+      case eIsSTM:
+	break;
+    }
+  if (instrState == eInstrType_ARM)
+    {
+      ARMWord ir;
+      /* Encode one register load/store with POP/PUSH into LDR/STR.  */
+      if (numRegs == 1 && (lsmType == eIsPop || lsmType == eIsPush))
+	{
+	  ir = (cc & NV) | (lsmType == eIsPop ? 0x049D0004 : 0x052D0004) | (singleRegInList << 12);
+	  if (singleRegInList == 13)
+	    Error (ErrorWarning, "%s r13 is UNPREDICTABLE", lsmType == eIsPop ? "Loading" : "Saving");
+	}
+      else
+	{	    
+	  switch (lsmType)
+	    {
+	      case eIsLDM:
+		/* LDM (user register) with write-back is UNPREDICTABLE.  */
+		if (lsmArg.hat && (lsmArg.regList & 0x8000) == 0 && lsmArg.writeBack)
+		  Error (ErrorWarning, "Writeback of base register when loading user registers is UNPREDICTABLE");
+		/* LDM (user register) before ARMv6 needs to be followed by a
+		   NOP before a banked register can be accessed.  */
+		if (lsmArg.hat && (lsmArg.regList & 0x8000) == 0 && !Target_CheckCPUFeature (kArchExt_v6, false))
+		  Error (ErrorInfo, "Instruction after LDM (user register) can not access banked register");
+		/* Fall through.  */
+	      case eIsPop:
+		/* From ARMv6T2 onwards, SP in LDM/POP register list is DEPRECATED.  */
+		if ((lsmArg.regList & 0x2000u) != 0 && Target_CheckCPUFeature (kArchExt_v6T2, false))
+		  Error (ErrorWarning, "LDM/POP with SP in register list is DEPRECATED from ARMv6T2 onwards");
+		/* From ARMv6T2 onwards, both LR and PC in LDM/POP register list is DEPRECATED.  */
+		if ((lsmArg.regList & 0xC000u) == 0xC000u && Target_CheckCPUFeature (kArchExt_v6T2, false))
+		  Error (ErrorWarning, "LDM/POP with both LR and PC in register list is DEPRECATED from ARMv6T2 onwards");
+		/* LDM/POP with writeback and base register in register list is DEPRECATED/UNPREDICTABLE.  */
+		if (lsmArg.writeBack
+		    && (lsmArg.regList & (1u << lsmArg.baseReg)) != 0)
+		  {
+		    if (Target_CheckCPUFeature (kArchExt_v7, false))
+		      Error (ErrorWarning, "LDM/POP with writeback and base register in register list is UNPREDICTABLE from ARMv7 onwards");
+		    else
+		      Error (ErrorWarning, "LDM/POP with writeback and base register in register list is DEPRECATED");
+		  }
+		ir = cc | 0x08100000; /* cc already contains the stack type.  */
+		break;
+
+	      case eIsSTM:
+		/* STM (user register) with write-back is UNPREDICTABLE.  */
+		if (lsmArg.hat && lsmArg.writeBack)
+		  Error (ErrorWarning, "Writeback of base register when loading user registers is UNPREDICTABLE");
+		/* Fall through.  */
+	      case eIsPush:
+		/* From ARMv6T2 onwards, SP and/or PC in STM/PUSH register list is DEPRECATED.  */
+		if ((lsmArg.regList & 0xA000u) != 0 && Target_CheckCPUFeature (kArchExt_v6T2, false))
+		  Error (ErrorWarning, "STM/PUSH with SP or PC in register list is DEPRECATED from ARMv6T2 onwards");
+		/* STM/PUSH with writeback and base register in register list is DEPRECATED/UNPREDICTABLE.  */
+		if (lsmArg.writeBack
+		    && (lsmArg.regList & (1u << lsmArg.baseReg)) != 0)
+		  {
+		    if ((lsmArg.regList & ((1u << lsmArg.baseReg)-1)) != 0)
+		      Error (ErrorWarning, "Base register with writeback is not lowest-numbered in register list is UNPREDICTABLE");
+		    else
+		      Error (ErrorWarning, "Base register with writeback as lowest-numbered in register list is DEPRECATED");
+		  }
+		ir = cc | 0x08000000; /* cc already contains the stack type.  */
+		break;
+	    }
+	  ir |= lsmArg.baseReg << 16;
+	  if (lsmArg.writeBack)
+	    ir |= W_FLAG;
+	  if (lsmArg.hat)
+	    ir |= FORCE_FLAG;
+	  ir |= lsmArg.regList;
+	}
+      Put_Ins (4, ir);
     }
   else
     {
-      if ((ir & W_FLAG) /* Write-back is specified.  */
-	  && (ir & L_FLAG) /* Is LDM/POP.  */
-	  && (regList & (1 << GET_BASE_MULTI (ir))) /* Base reg. in reg. list.  */
-	  && (!isPushPop || (regList ^ (1 << GET_BASE_MULTI (ir))) != 0) /* Is either LDM/STM, either multi-reg. POP/PUSH.  */)
+      /* Thumb or Thumb2.  */
+
+      if (lsmArg.hat)
 	{
-	  /* LDM instructions and multi-register POP instructions that specify base
-	     register writeback and load their base register are permitted but
-	     deprecated before ARMv7.
-	     Use of such instructions is obsolete in ARMv7.  */
-	  const char *what = isPushPop ? "multi-register POP" : "LDM";
-	  if (!Target_CheckCPUFeature (kArchExt_v7, false))
-	    Error (ErrorWarning,
-	           "Deprecated before ARMv7 : %s with writeback and base register in register list",
-	           what);
+	  assert (lsmType == eIsLDM || lsmType == eIsSTM);
+	  if (lsmType == eIsLDM)
+	    Error (ErrorError, "LDM user register or exception return is not possible in Thumb");
 	  else
-	    Error (ErrorWarning,
-	           "Obsoleted from ARMv7 onwards : %s with writeback and base register in register list",
-	           what);
+	    Error (ErrorError, "STM user register is not possible in Thumb");
 	}
-      ir |= regList;
+
+      /* Use 16-bit Thumb when possible.  If not and wide instruction width
+         is specified, give an error.  */
+      if (instrWidth == eInstrWidth_NotSpecified
+          || instrWidth == eInstrWidth_Enforce16bit)
+	{
+	  const char *err = NULL;
+	  switch (lsmType)
+	    {
+	      case eIsLDM:
+	      case eIsSTM:
+		if ((lsmArg.regList & ~0xFFu) != 0)
+		  err = "Thumb LDM/STM only allows R0-R7 in register list";
+		if ((lsmArg.baseReg & ~7) != 0)
+		  err = "Thumb base register can only be one of R0 ... R7";
+		/* Writeback is needed, *unless* 
+		   1) There is only one register to load/save as then we're
+		      using "LDR/STR rx, [ry, ..." alike encoding.
+		   2) Or, base register is in reglist and it's LDM.  */
+		if (!lsmArg.writeBack
+		    && !(numRegs == 1
+		         || (lsmType == eIsLDM && (lsmArg.regList & (1u << lsmArg.baseReg)) != 0)))
+		  err = "Thumb LDM/STM needs base register writeback";
+		if ((cc & STACKMODE_BITS) != STACKMODE_IA)
+		  err = "Thumb doesn't support non-IA stackmode";
+		break;
+
+	      case eIsPop:
+		/* Only R0-R7 and PC are allowed in register list.  */
+		if ((lsmArg.regList & ~0x80FFu) != 0)
+		  err = "Thumb POP only allows R0-R7 and PC in register list";
+		break;
+
+	      case eIsPush:
+		/* Only R0-R7 and LR are allowed in register list.  */
+		if ((lsmArg.regList & ~0x40FFu) != 0)
+		  err = "Thumb PUSH only allows R0-R7 and LR in register list";
+		break;
+	    }
+	  if (err)
+	    {
+	      if (instrWidth == eInstrWidth_Enforce16bit)
+		Error (ErrorError, "%s", err);
+	      else
+	        instrWidth = eInstrWidth_Enforce32bit;
+	    }
+	}
+
+      if (instrWidth == eInstrWidth_Enforce32bit)
+	{
+	  Target_CheckCPUFeature (kCPUExt_v6T2, true);
+
+	  if ((cc & STACKMODE_BITS) != STACKMODE_IA
+	      && (cc & STACKMODE_BITS) != STACKMODE_DB)
+	    Error (ErrorError, "Stack mode is not supported in Thumb2 mode");
+
+	  ARMWord ir;
+	  switch (lsmType)
+	    {
+	      case eIsPop:
+	      case eIsLDM:
+		/* LDM/POP with writeback and base register in register list is UNPREDICTABLE.  */
+		if (lsmArg.writeBack
+		    && (lsmArg.regList & (1u << lsmArg.baseReg)) != 0)
+		  Error (ErrorWarning, "LDM/POP with writeback and base register in register list is UNPREDICTABLE");
+		/* One register LDM/POP gets encoded differently as 32-bit
+		   Thumb LDM/POP instruction would be UNPREDICTABLE.  */
+		if (numRegs == 1)
+		  {
+		    /* LDR T3 encoding:
+		         LDR<c>.W <Rt>, [<Rn>{, #<imm12>}] with <imm12> = 0: LDMIA rx, {ry} (U_FLAG)
+		       LDR T4 encoding:
+			 LDR<c> <Rt>, [<Rn>, #-<imm8>] with -<imm8> = -4 : LDMDB rx, {ry} (P_FLAG)
+			 LDR<c> <Rt>, [<Rn>], #+/-<imm8> with +/-<imm8> = 4 : LDMIA rx!, {ry} (U_FLAG)
+			 LDR<c> <Rt>, [<Rn>, #+/-<imm8>]! with +/-<imm8> = -4 : LDMDB rx!, {ry} (P_FLAG) */
+		    if ((cc & U_FLAG) != 0 && !lsmArg.writeBack)
+		      ir = 0xF8D00000 | (lsmArg.baseReg << 16) | (singleRegInList << 12);
+		    else
+		      ir = 0xF8500000 | (lsmArg.baseReg << 16) | (singleRegInList << 12) | 0x0800 | ((cc & P_FLAG) ? 0x0400 : 0) | ((cc & U_FLAG) ? 0x0200 : 0) | (lsmArg.writeBack << 8) | 0x0004;
+		  }
+		else
+		  {
+		    /* Only R0-R12, LR and PC are allowed in register list.  */
+		    if ((lsmArg.regList & ~0xDFFFu) != 0)
+		      Error (ErrorError, "Thumb2 LDM/POP only allow R0-R12, LR and PC in register list");
+		    /* LR and PC can not both be in register list.  */
+		    if ((lsmArg.regList & 0xC000u) == 0xC000u)
+		      Error (ErrorError, "Thumb2 LDM/POP can not have both LR and PC in register list");
+		    ir = 0xE8100000 | ((cc & P_FLAG) ? 0x01000000 : 0) | ((cc & U_FLAG) ? 0x00800000 : 0) | (lsmArg.writeBack << 21) | (lsmArg.baseReg << 16) | lsmArg.regList;
+		  }
+		break;
+
+	      case eIsPush:
+	      case eIsSTM:
+		/* One register STM/PUSH gets encoded differently as 32-bit
+		   Thumb STM/PUSH instruction would be UNPREDICTABLE.  */
+		if (numRegs == 1)
+		  {
+		    if (lsmType == eIsPush && singleRegInList == 13)
+		      Error (ErrorWarning, "PUSH with r13 in register list is UNPREDICTABLE");
+		    /* STR T3 encoding:
+		         STR<c>.W <Rt>, [<Rn>{, #<imm12>}] with <imm12> = 0: STMIA rx, {ry} (U_FLAG)
+		       STR T4 encoding:
+			 STR<c> <Rt>, [<Rn>, #-<imm8>] with -<imm8> = -4 : STMDB rx, {ry} (P_FLAG)
+			 STR<c> <Rt>, [<Rn>], #+/-<imm8> with +/-<imm8> = 4 : STMIA rx!, {ry} (U_FLAG)
+			 STR<c> <Rt>, [<Rn>, #+/-<imm8>]! with +/-<imm8> = -4 : STMDB rx!, {ry} (P_FLAG) */
+		    if ((cc & U_FLAG) != 0 && !lsmArg.writeBack)
+		      ir = 0xF8C00000 | (lsmArg.baseReg << 16) | (singleRegInList << 12);
+		    else
+		      ir = 0xF8400000 | (lsmArg.baseReg << 16) | (singleRegInList << 12) | 0x0800 | ((cc & P_FLAG) ? 0x0400 : 0) | ((cc & U_FLAG) ? 0x0200 : 0) | (lsmArg.writeBack << 8) | 0x0004;
+		  }
+		else
+		  {
+		    /* Only R0-R12 and LR are allowed in register list.  */
+		    if ((lsmArg.regList & ~0x5FFFu) != 0)
+		      Error (ErrorError, "Thumb2 STM/PUSH only allow R0-R12 and LR in register list");
+		    if (lsmArg.writeBack
+		        && (lsmArg.regList & (1u << lsmArg.baseReg)) != 0)
+		      Error (ErrorError, "Thumb2 mode does not support STM with write back and base register in register list");
+		    ir = 0xE8000000 | ((cc & P_FLAG) ? 0x01000000 : 0) | ((cc & U_FLAG) ? 0x00800000 : 0) | (lsmArg.writeBack << 21) | (lsmArg.baseReg << 16) | lsmArg.regList;
+		  }
+		break;
+	    }
+	  Put_Ins (4, ir);
+	}
+      else
+	{
+	  /* 16-bit Thumb LDM/STM is not available in ThumbEE state.  */
+	  if (State_GetInstrType () == eInstrType_ThumbEE)
+	    Error (ErrorError, "Instruction not available in ThumbEE state");
+
+	  ARMWord ir;
+	  switch (lsmType)
+	    {
+	      case eIsLDM:
+		if (!lsmArg.writeBack && numRegs == 1)
+		  {
+		    assert (numRegs == 1);
+		    ir = 0x6800 | (lsmArg.baseReg << 3) | singleRegInList;
+		  }
+		else
+		  {
+		    if (lsmArg.writeBack
+		        && (lsmArg.regList & (1u << lsmArg.baseReg)) != 0)
+		      Error (ErrorError, "LDM with writeback and base register in register list is not possible");
+		    ir = 0xC800 | (lsmArg.baseReg << 8) | (lsmArg.regList & 0xFFu);
+		  }
+		break;
+
+	      case eIsPop:
+		/* Oddly enough, one register in regList is ok here.  */
+		ir = 0xBC00 | ((lsmArg.regList & 0x8000u) >> (15-8)) | (lsmArg.regList & 0xFFu);
+		break;
+
+	      case eIsSTM:
+		if (!lsmArg.writeBack)
+		  {
+		    assert (numRegs == 1);
+		    ir = 0x6000 | (lsmArg.baseReg << 3) | singleRegInList;
+		  }
+		else
+		  {
+		    /* 16-bit Thumb STM instructions with writeback that
+		       specify base register as the lowest register in the
+		       reglist are deprecated in ARMv6T2 and above.  */
+		    if ((lsmArg.regList & ((1u << (lsmArg.baseReg + 1))-1)) == (1u << lsmArg.baseReg)
+		        && Target_CheckCPUFeature (kArchExt_v6T2, false))
+		      Error (ErrorWarning, "STM with writeback when base register is lowest register in register list is DEPRECATED from ARMv6T2 onwards");
+		    ir = 0xC000 | (lsmArg.baseReg << 8) | (lsmArg.regList & 0xFFu);
+		  }
+		break;
+
+	      case eIsPush:
+		/* Oddly enough, one register in regList is ok here.  */
+		ir = 0xB400 | ((lsmArg.regList & 0x4000u) >> (14-8)) | (lsmArg.regList & 0xFFu);
+		break;
+	    }
+	  Put_Ins (2, ir);
+	}
     }
-  if (option_pedantic && (ir & L_FLAG) && (1 << 15)
-      && Target_CheckCPUFeature (kCPUExt_v4T, false) && !Target_CheckCPUFeature (kCPUExt_v5T, false))
-    Error (ErrorWarning, "ARMv4T does not switch ARM/Thumb state when LDM/POP specifies PC (use BX instead)");
-  Put_Ins (4, ir);
+
+  return false;
 }
 
 
@@ -760,15 +1061,15 @@ m_ldm (bool doLowerCase)
   ARMWord cc = Option_CondLdmStm (true, doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  dstreglist (cc | 0x08100000, false);
-  return false;
+
+  return LoadStoreMultiple (cc, doLowerCase, eIsLDM);
 }
 
 
 /**
- * Implements POP, i.e. LDM<cond>FD sp!, {...} (= LDM<cond>IA sp!, {...})
- * when more than one register is to be popped from the stack, or
- * LDR Rx, [sp, #4]! when one register is to be popped from the stack.
+ * Implements POP, i.e. LDM<cond>FD sp!, {...} when more than one register is
+ * to be popped from the stack, or is LDR Rx, [sp, #4]! when one register is
+ * to be popped from the stack.
  * UAL syntax.
  */
 bool
@@ -777,8 +1078,7 @@ m_pop (bool doLowerCase)
   ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  dstreglist (cc | STACKMODE_IA | 0x08100000, true);
-  return false;
+  return LoadStoreMultiple (cc, doLowerCase, eIsPop);
 }
 
 
@@ -791,15 +1091,14 @@ m_stm (bool doLowerCase)
   ARMWord cc = Option_CondLdmStm (false, doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  dstreglist (cc | 0x08000000, false);
-  return false;
+  return LoadStoreMultiple (cc, doLowerCase, eIsSTM);
 }
 
 
 /**
- * Implements PUSH, i.e. STM<cond>FD sp!, {...} (= STM<cond>DB sp!, {...})
- * when more than one register is to be pushed on the stack, or
- * STR Rx, [sp], #-4 when one register is to be pushed on the stack.
+ * Implements PUSH, i.e. STM<cond>FD sp!, {...} when more than one register is
+ * to be pushed on the stack, or STR Rx, [sp], #-4 when one register is to be
+ * pushed on the stack.
  * UAL syntax.
  */
 bool
@@ -808,8 +1107,7 @@ m_push (bool doLowerCase)
   ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  dstreglist (cc | STACKMODE_DB | 0x08000000, true);
-  return false;
+  return LoadStoreMultiple (cc, doLowerCase, eIsPush);
 }
 
 

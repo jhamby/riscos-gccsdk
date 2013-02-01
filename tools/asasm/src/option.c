@@ -155,7 +155,8 @@ GetCCode (bool doLowerCase)
 
 
 /**
- * Try to read the instruction width indicator (".W"/".w" or ".N"/".n").
+ * When in non-pre-UAL mode, try to read the instruction width indicator
+ * (".W"/".w" or ".N"/".n").
  * \param doLowerCase When true, instruction width indication should be
  * lowercase, uppercase otherwise.
  * \return Instruction qualifier when specified, or indication if there wasn't
@@ -165,17 +166,23 @@ GetCCode (bool doLowerCase)
 InstrWidth_e
 Option_GetInstrWidth (bool doLowerCase)
 {
-  if (Input_MatchKeyword (doLowerCase ? ".w" : ".W"))
-    return eInstrWidth_Enforce32bit;
-  if (Input_MatchKeyword (doLowerCase ? ".n" : ".N"))
+  if (State_GetSyntax () != eSyntax_PreUALOnly)
     {
-      if (State_GetInstrType () == eInstrType_ARM)
+      if (Input_MatchKeyword (doLowerCase ? ".w" : ".W"))
+	return eInstrWidth_Enforce32bit;
+
+      if (Input_MatchKeyword (doLowerCase ? ".n" : ".N"))
 	{
-	  Error (ErrorError, "Narrow instruction qualifier is not possible in ARM mode");
-	  return eInstrWidth_NotSpecified;
+	  if (State_GetInstrType () == eInstrType_ARM)
+	    {
+	      Error (ErrorError, "Narrow instruction qualifier is not possible in ARM mode");
+	      return eInstrWidth_NotSpecified;
+	    }
+
+	  return eInstrWidth_Enforce16bit;
 	}
-      return eInstrWidth_Enforce16bit;
     }
+
   return Input_IsEndOfKeyword () ? eInstrWidth_NotSpecified : eInstrWidth_Unrecognized;
 }
 
@@ -261,15 +268,13 @@ GetFPARounding (bool doLowerCase)
 /**
  * Checks if the end of the current keyword has been reached.
  * \param option Value to return when the end of current keyword has been
- * reached.
- * \return -1 when end of current keyword has not been reached, otherwise
- * the given option value.
+ * reached.  Might already be kOption_NotRecognized as well.
+ * \return kOption_NotRecognized when end of current keyword has not been
+ * reached, otherwise the given option value.
  */
 static ARMWord
 IsEndOfKeyword (ARMWord option)
 {
-  if (option == kOption_NotRecognized)
-    return option;
   return (Input_IsEndOfKeyword () || Input_Look () == '.') ? option : kOption_NotRecognized;
 }
 
@@ -473,16 +478,35 @@ Option_CondRfeSrs (bool isLoad, bool doLowerCase)
 }
 
 
+/**
+ * Tries to parse [<cc>]<stackmode> (pre-UAL) and/or [<stackmode>][<cc>] (UAL).
+ */
 ARMWord
 Option_CondLdmStm (bool isLDM, bool doLowerCase)
 {
-  ARMWord option = GetCCode (doLowerCase);
-  if (option == kOption_NotRecognized)
-    return kOption_NotRecognized;
-  ARMWord stackMode = GetStackMode (isLDM, doLowerCase);
-  if (stackMode == kOption_NotRecognized)
-    stackMode = STACKMODE_IA;
-  return IsEndOfKeyword (option | stackMode);
+  Syntax_e syntax = State_GetSyntax ();
+  ARMWord ccode = syntax == eSyntax_UALOnly ? kOption_NotRecognized : Option_GetCCodeIfThere (doLowerCase);
+
+  ARMWord stackMode;
+  if (syntax != eSyntax_PreUALOnly)
+    {
+      stackMode = GetStackMode (isLDM, doLowerCase); 
+      if (stackMode == kOption_NotRecognized)
+	stackMode = STACKMODE_IA;
+
+      /* Second (or first in case of UAL-only) chance to parse a valid CC code.  */
+      if (ccode == kOption_NotRecognized)
+	ccode = Option_GetCCodeIfThere (doLowerCase);
+    }
+  else
+    {
+      /* Pre-UAL only syntax requires an explicit "IA"/"ia" as stackmode.  */
+      stackMode = Input_MatchString (doLowerCase ? "ia" : "IA") ? STACKMODE_IA : kOption_NotRecognized;
+    }
+  if (ccode == kOption_NotRecognized)
+    ccode = AL;
+
+  return IsEndOfKeyword (ccode | stackMode);
 }
 
 

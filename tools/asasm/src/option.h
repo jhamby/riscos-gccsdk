@@ -61,22 +61,22 @@ typedef enum
 
 InstrWidth_e Option_GetInstrWidth (bool doLowerCase);
 
-#define EQ ((ARMWord)0<<28)
-#define NE ((ARMWord)1<<28)
-#define CS ((ARMWord)2<<28)
-#define CC ((ARMWord)3<<28)
-#define MI ((ARMWord)4<<28)
-#define PL ((ARMWord)5<<28)
-#define VS ((ARMWord)6<<28)
-#define VC ((ARMWord)7<<28)
-#define HI ((ARMWord)8<<28)
-#define LS ((ARMWord)9<<28)
-#define GE ((ARMWord)10<<28)
-#define LT ((ARMWord)11<<28)
-#define GT ((ARMWord)12<<28)
-#define LE ((ARMWord)13<<28)
-#define AL ((ARMWord)14<<28)
-#define NV ((ARMWord)15<<28)
+#define EQ ((ARMWord)0u<<28)
+#define NE ((ARMWord)1u<<28)
+#define CS ((ARMWord)2u<<28)
+#define CC ((ARMWord)3u<<28)
+#define MI ((ARMWord)4u<<28)
+#define PL ((ARMWord)5u<<28)
+#define VS ((ARMWord)6u<<28)
+#define VC ((ARMWord)7u<<28)
+#define HI ((ARMWord)8u<<28)
+#define LS ((ARMWord)9u<<28)
+#define GE ((ARMWord)10u<<28)
+#define LT ((ARMWord)11u<<28)
+#define GT ((ARMWord)12u<<28)
+#define LE ((ARMWord)13u<<28)
+#define AL ((ARMWord)14u<<28)
+#define NV ((ARMWord)15u<<28)
 
 /* Address mode flags (LDR* and STR*): */
 
@@ -110,10 +110,11 @@ InstrWidth_e Option_GetInstrWidth (bool doLowerCase);
 #define LINK_BIT	((ARMWord)1<<24)
 #define EXCEPTION_BIT	((ARMWord)0x00400000)
 
-#define STACKMODE_IB (P_FLAG | U_FLAG)
-#define STACKMODE_IA (         U_FLAG)
-#define STACKMODE_DB (P_FLAG |      0)
-#define STACKMODE_DA (     0 |      0)
+#define STACKMODE_IB    (P_FLAG | U_FLAG)
+#define STACKMODE_IA    (         U_FLAG)
+#define STACKMODE_DB    (P_FLAG |      0)
+#define STACKMODE_DA    (     0 |      0)
+#define STACKMODE_BITS  (P_FLAG | U_FLAG)
 
 /* FPA precision bits (except for LDF/STF usage).  */
 #define PRECISION_SINGLE    ((ARMWord)0x00000000)

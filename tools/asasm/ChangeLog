@@ -1,3 +1,24 @@
+Fri Feb  1 03:29:51 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src;
+	* m_cpumem.c (LSM_Type_e, GetLoadStoreMultipleArg,
+	LoadStoreMultiple): Add.
+	(dstreglist): Remove.
+	* it.c (m_it): Move ARMv6T2 target test to...
+	(IT_EmitIT): ...here.
+	(IT_ApplyCond): Filter on condition code only.
+	* get.h (BASE_MULTI, GET_BASE_MULTI): Remove.
+	* option.c (Option_GetInstrWidth): Make difference between
+	pre-UAL only and UAL support.
+	(IsEndOfKeyword): Simplify.
+	(Option_CondLdmStm): Add UAL syntax support.
+	* option.h: Beautify.
+
+	* unittests/compare/core/instr_ldm_stm_pop_push.s: Recreated from
+	scratch.
+	* unittests/compare/core/directive_rlist.s: Fix PUSH/POP with hat
+	tests.
+
 Fri Feb  1 03:22:22 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/compare/core/directive_data_integer.s: Added DCI.N/DCI.W

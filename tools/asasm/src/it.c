@@ -75,6 +75,12 @@ IT_EmitIT (const IT_State_t *state, bool isThumb)
   if (!isThumb)
     return;
 
+  /* IT Thumb instruction is only available in ARMv6T2 and ARMv7.  In ARM
+     mode it is only used for consistency check so only check for ARMv6T2/ARMv7
+     in Thumb mode.
+     Pre-ARMv6T2, only branch Thumb instructions can be conditional.  */
+  Target_CheckCPUFeature (kCPUExt_v6T2, true);
+
   assert(state->isThen[0]);
   uint32_t cc = state->cc >> (28 - 4);
   uint32_t mask = 0x8;
@@ -119,13 +125,6 @@ m_it (bool doLowerCase)
   if (instrWidth == eInstrWidth_Enforce32bit)
     Error (ErrorWarning, "Wide variant of IT does not exist");
 
-  /* IT Thumb instruction is only available in ARMv6T2 and ARMv7.  In ARM
-     mode it is only used for consistency check so only check for ARMv6T2/ARMv7
-     in Thumb mode.  */
-  InstrType_e instrState = State_GetInstrType ();
-  if (instrState != eInstrType_ARM)
-    Target_CheckCPUFeature (kCPUExt_v6T2, true);
-
   Input_SkipWS ();
   newIT.cc = Option_GetCCodeIfThere (false); /* Condition code is an argument
     here, so always uppercase.  */
@@ -149,7 +148,7 @@ m_it (bool doLowerCase)
     Error (ErrorWarning, "Use of AL condition with one or more Then/Else arguments is UNPREDICTABLE");
 
   curAreaP->it = newIT;
-  IT_EmitIT (&curAreaP->it, instrState != eInstrType_ARM);
+  IT_EmitIT (&curAreaP->it, State_GetInstrType () != eInstrType_ARM);
 
   return false;
 }
@@ -195,6 +194,7 @@ IT_StartImplicitIT (IT_State_t *itStateP, uint32_t cc)
 void
 IT_ApplyCond (uint32_t cc, bool isThumb)
 {
+  cc &= NV; /* Filter out the condition codes.  */
   IT_State_t *itStateP = &areaCurrentSymbol->area->it;
   if (itStateP->curIdx != itStateP->maxIdx)
     {
@@ -210,7 +210,7 @@ IT_ApplyCond (uint32_t cc, bool isThumb)
     }
   else if (itStateP->implicitIT && itStateP->maxIdx != 4)
     {
-      /* If it is not Thumb, we've switch to ARM code while we still have
+      /* If it is not Thumb, we've switched to ARM code while we still have
          a pending implicit IT block.  */
       if (!isThumb || cc == AL)
 	IT_InitializeState (itStateP);

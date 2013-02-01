@@ -46,10 +46,6 @@ ARMWord Get_RHS (bool immonly, bool shift, ARMWord ir);
 #define RHS_MUL(r) ((r)<< 8)
 #define ACC_MUL(r) ((r)<<12)
 
-#define BASE_MULTI(r) ((r)<<16)
-
-#define GET_BASE_MULTI(instr) ((instr >> 16) & 15)
-
 #define IMM_RHS   0x02000000
 
 #define INVALID_REG 0xFFFFFFFFu
