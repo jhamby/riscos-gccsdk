@@ -77,9 +77,8 @@ int option_verbose = 0;
 static const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
 
-static Syntax_e oOptionInstrSyntax; /* Set via options --16, --32, --arm, --thumb, --thumbx.  */
-static InstrType_e oOptionInstrType; /* Set via options --16, --32, --arm, --thumb, --thumbx.  */
-static const char *oOptionInstrSet; /* Non-NULL when oOptionInstrSyntax and oOptionInstrType are set.  */  
+static SyntaxInstrState_e oOptionSyntaxInstr; /* Set via options --16, --32, --arm, --thumb, --thumbx.  */
+static const char *oOptionSyntaxInstrSet; /* Non-NULL when oOptionSyntaxInstr is set.  */
 
 /* Default value of gOptionAPCS depends on chosen FPU.  We will set it at
    ParseOption_APCS() after having determined the FPU.  */
@@ -516,7 +515,7 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr,
 		   DEFAULT_IDFN "\n"
-		   "Copyright (c) 1992-2012 Niklas Röjemo, Darren Salt and GCCSDK Developers\n"
+		   "Copyright (c) 1992-2013 Niklas Röjemo, Darren Salt and GCCSDK Developers\n"
 		   "This is free software; see the source for copying conditions.  There is NO\n"
 		   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
 	  return EXIT_SUCCESS;
@@ -566,67 +565,43 @@ main (int argc, char **argv)
 	set_option_aof (1);
       else if (!strcasecmp (arg, "16"))
 	{
-	  const InstrType_e wantedType = eInstrType_Thumb;
-	  const Syntax_e wantedSyntax = eSyntax_PreUALOnly;
-	  if (oOptionInstrSet != NULL)
+	  if (oOptionSyntaxInstr != eState_Code16 && oOptionSyntaxInstrSet != NULL)
 	    {
-	      if (wantedType != oOptionInstrType || wantedSyntax != oOptionInstrSyntax)
-		{
-		  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionInstrSet);
-		  return EXIT_FAILURE;
-		}
+	      fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionSyntaxInstrSet);
+	      return EXIT_FAILURE;
 	    }
-	  oOptionInstrType = wantedType;
-	  oOptionInstrSyntax = wantedSyntax;
-	  oOptionInstrSet = arg;
+	  oOptionSyntaxInstr = eState_Code16;
+	  oOptionSyntaxInstrSet = arg;
 	}
       else if (!strcasecmp (arg, "32") || !strcasecmp (arg, "arm"))
 	{
-	  const InstrType_e wantedType = eInstrType_ARM;
-	  const Syntax_e wantedSyntax = eSyntax_Both;
-	  if (oOptionInstrSet != NULL)
+	  if (oOptionSyntaxInstr != eState_Code32 && oOptionSyntaxInstrSet != NULL)
 	    {
-	      if (wantedType != oOptionInstrType || wantedSyntax != oOptionInstrSyntax)
-		{
-		  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionInstrSet);
-		  return EXIT_FAILURE;
-		}
+	      fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionSyntaxInstrSet);
+	      return EXIT_FAILURE;
 	    }
-	  oOptionInstrType = wantedType;
-	  oOptionInstrSyntax = wantedSyntax;
-	  oOptionInstrSet = arg;
+	  oOptionSyntaxInstr = eState_Code32;
+	  oOptionSyntaxInstrSet = arg;
 	}
       else if (!strcasecmp (arg, "thumb"))
 	{
-	  const InstrType_e wantedType = eInstrType_Thumb;
-	  const Syntax_e wantedSyntax = eSyntax_UALOnly;
-	  if (oOptionInstrSet != NULL)
+	  if (oOptionSyntaxInstr != eState_Thumb && oOptionSyntaxInstrSet != NULL)
 	    {
-	      if (wantedType != oOptionInstrType || wantedSyntax != oOptionInstrSyntax)
-		{
-		  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionInstrSet);
-		  return EXIT_FAILURE;
-		}
+	      fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionSyntaxInstrSet);
+	      return EXIT_FAILURE;
 	    }
-	  oOptionInstrType = wantedType;
-	  oOptionInstrSyntax = wantedSyntax;
-	  oOptionInstrSet = arg;
+	  oOptionSyntaxInstr = eState_Thumb;
+	  oOptionSyntaxInstrSet = arg;
 	}
       else if (!strcasecmp (arg, "thumbx"))
 	{
-	  const InstrType_e wantedType = eInstrType_ThumbEE;
-	  const Syntax_e wantedSyntax = eSyntax_UALOnly;
-	  if (oOptionInstrSet != NULL)
+	  if (oOptionSyntaxInstr != eState_ThumbEE && oOptionSyntaxInstrSet != NULL)
 	    {
-	      if (wantedType != oOptionInstrType || wantedSyntax != oOptionInstrSyntax)
-		{
-		  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionInstrSet);
-		  return EXIT_FAILURE;
-		}
+	      fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionSyntaxInstrSet);
+	      return EXIT_FAILURE;
 	    }
-	  oOptionInstrType = wantedType;
-	  oOptionInstrSyntax = wantedSyntax;
-	  oOptionInstrSet = arg;
+	  oOptionSyntaxInstr = eState_ThumbEE;
+	  oOptionSyntaxInstrSet = arg;
 	}
       else if (!strcasecmp (arg, "stamp") || !strcasecmp (arg, "quit"))
 	{
@@ -653,34 +628,11 @@ main (int argc, char **argv)
     return EXIT_FAILURE;
   if (ParseOption_RegNames (regnames))
     return EXIT_FAILURE;
-  /* Sanity check --16, --32, --arm, --thumb, --thumbx options for given
-     cpu/device options.  */
-  InstrType_e wantedType;
-  Syntax_e wantedSyntax;
-  unsigned cpu_features = Target_GetCPUFeatures ();
-  bool canDoARMInstr = (cpu_features & kArchExt_v1) != 0;
-  if (oOptionInstrSet != NULL)
-    {
-      bool canDoThumb = (cpu_features & (kCPUExt_v4T | kCPUExt_v6T2)) != 0;
-      bool canDoThumbEE = (cpu_features & kCPUExt_ThumbEE) != 0;
-      if ((!canDoARMInstr && oOptionInstrType == eInstrType_ARM)
-	  || (!canDoThumb && oOptionInstrType != eInstrType_ARM)
-          || (!canDoThumbEE && oOptionInstrType == eInstrType_ThumbEE))
-	{
-	  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with cpu/device option\n", oOptionInstrSet);
-	  return EXIT_FAILURE;
-	}
 
-      wantedType = oOptionInstrType;
-      wantedSyntax = oOptionInstrSyntax;
-    }
-  else
-    {
-      wantedType = canDoARMInstr ? eInstrType_ARM : eInstrType_Thumb;
-      wantedSyntax = canDoARMInstr ? eSyntax_Both : eSyntax_UALOnly;
-    }
-  State_SetCmdLineInstrType (wantedType);
-  State_SetCmdLineSyntax (wantedSyntax);
+  /* Pass on --16, --32, --arm, --thumb, --thumbx options.  */
+  if (oOptionSyntaxInstrSet == NULL)
+    oOptionSyntaxInstr = Target_CheckCPUFeature (kArchExt_v1, false) ? eState_Code32 : eState_Thumb; 
+  State_Set (oOptionSyntaxInstr);
   
   if (ObjFileName == NULL)
     {

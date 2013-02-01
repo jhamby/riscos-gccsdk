@@ -32,26 +32,55 @@
 #include "error.h"
 #include "phase.h"
 #include "state.h"
+#include "targetcpu.h"
 
-static Syntax_e oDefaultSyntax = eSyntax_Both;
-static InstrType_e oDefaultInstrType = eInstrType_ARM;
+static SyntaxInstrState_e oDefaultSyntaxInstrType = eState_Code32;
 
 static Syntax_e oCurrentSyntax;
 static InstrType_e oCurrentInstrType;
 
-void
-State_SetCmdLineSyntax (Syntax_e syntax)
-{
-  assert (gPhase == eStartup);
-  oDefaultSyntax = syntax;
-}
 
 void
-State_SetCmdLineInstrType (InstrType_e instrType)
+State_Set (SyntaxInstrState_e syntaxInstrType)
 {
-  assert (gPhase == eStartup);
-  oDefaultInstrType = instrType;
+  oDefaultSyntaxInstrType = syntaxInstrType;
 }
+
+
+static void
+State_Init (SyntaxInstrState_e syntaxInstrType)
+{
+  switch (syntaxInstrType)
+    {
+      case eState_Code32:
+	oCurrentInstrType = eInstrType_ARM;
+	oCurrentSyntax = eSyntax_Both;
+	Target_CheckCPUFeatureDetail (kArchExt_v1, "ARM instruction set");
+	break;
+
+      case eState_Code16:
+	oCurrentInstrType = eInstrType_Thumb;
+	oCurrentSyntax = eSyntax_PreUALOnly;
+	/* Assume v6T2 -> v4T Thumb support as well.  */
+	Target_CheckCPUFeatureDetail (kCPUExt_v4T, "Thumb instruction set");
+	break;
+
+      case eState_Thumb:
+	oCurrentInstrType = eInstrType_Thumb;
+	oCurrentSyntax = eSyntax_UALOnly;
+	/* Assume v6T2 -> v4T Thumb support as well.  */
+	Target_CheckCPUFeatureDetail (kCPUExt_v4T, "Thumb instruction set");
+	break;
+
+      case eState_ThumbEE:
+	oCurrentInstrType = eInstrType_ThumbEE;
+	oCurrentSyntax = eSyntax_UALOnly;
+	Target_CheckCPUFeatureDetail (kCPUExt_ThumbEE, "ThumbEE instruction set");
+	break;
+
+    }
+}
+
 
 void
 State_PrepareForPhase (Phase_e phase)
@@ -62,9 +91,7 @@ State_PrepareForPhase (Phase_e phase)
     {
       case ePassOne:
       case ePassTwo:
-	assert ((oDefaultInstrType != eInstrType_ThumbEE || oDefaultSyntax == eSyntax_UALOnly) && "ThumbEE & pre-UAL is impossible");
-	oCurrentSyntax = oDefaultSyntax;
-	oCurrentInstrType = oDefaultInstrType;
+	State_Init (oDefaultSyntaxInstrType);
 	break;
 
       case eStartup:
@@ -88,14 +115,14 @@ State_GetInstrType (void)
 /**
  * Implements CODE16.
  * What follows is in pre-UAL Thumb notation.
+ * Does *not* support the 32-bit Thumb instructions.
  * If necessary, this directives also insert up to one byte of padding to
  * align to the next halfword boundary for Thumb or ThumbEE.
  */
 bool
 c_code16 (void)
 {
-  oCurrentInstrType = eInstrType_Thumb;
-  oCurrentSyntax = eSyntax_PreUALOnly;
+  State_Init (eState_Code16);
   Area_AlignArea (areaCurrentSymbol, 2, NULL);
   return false;
 }
@@ -109,8 +136,7 @@ c_code16 (void)
 bool
 c_thumb (void)
 {
-  oCurrentInstrType = eInstrType_Thumb;
-  oCurrentSyntax = eSyntax_UALOnly;
+  State_Init (eState_Thumb);
   Area_AlignArea (areaCurrentSymbol, 2, NULL);
   return false;
 }
@@ -124,8 +150,7 @@ c_thumb (void)
 bool
 c_thumbx (void)
 {
-  oCurrentInstrType = eInstrType_ThumbEE;
-  oCurrentSyntax = eSyntax_UALOnly;
+  State_Init (eState_ThumbEE);
   Area_AlignArea (areaCurrentSymbol, 2, NULL);
   return false;
 }
@@ -139,8 +164,7 @@ c_thumbx (void)
 bool
 c_code32 (void)
 {
-  oCurrentInstrType = eInstrType_ARM;
-  oCurrentSyntax = eSyntax_Both;
+  State_Init (eState_Code32);
   Area_AlignArea (areaCurrentSymbol, 4, NULL);
   return false;
 }

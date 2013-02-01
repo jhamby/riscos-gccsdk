@@ -691,19 +691,27 @@ Target_GetThumbISAVersion (void)
 bool
 Target_CheckCPUFeature (unsigned features, bool warn)
 {
+  return Target_CheckCPUFeatureDetail (features, warn ? "Instruction" : NULL); 
+}
+
+
+bool
+Target_CheckCPUFeatureDetail (unsigned features, const char *what)
+{
   bool missingFeature = (Target_GetCPUFeatures () & features) != features;
-  if (warn && missingFeature)
+  if (what != NULL && missingFeature)
     {
       if (oTarget_Device != NULL)
-	Error (ErrorWarning, "Instruction is not supported on selected device %s (core %s, architecture %s)",
-	       oTarget_Device->device, oTarget_CPU->cpu_arch, Target_GetArch (true));
+	Error (ErrorWarning, "%s is not supported on selected device %s (core %s, architecture %s)",
+	       what, oTarget_Device->device, oTarget_CPU->cpu_arch, Target_GetArch (true));
       else if (oTarget_CPU->archP == NULL)
-	Error (ErrorWarning, "Instruction is not supported on selected architecture %s",
-	       oTarget_CPU->cpu_arch);
+	Error (ErrorWarning, "%s is not supported on selected architecture %s",
+	       what, oTarget_CPU->cpu_arch);
       else
-	Error (ErrorWarning, "Instruction is not supported on selected core %s (architecture %s)",
-	       oTarget_CPU->cpu_arch, oTarget_CPU->archP->cpu_arch);
+	Error (ErrorWarning, "%s is not supported on selected core %s (architecture %s)",
+	       what, oTarget_CPU->cpu_arch, oTarget_CPU->archP->cpu_arch);
     }
+
   return !missingFeature;
 }
 

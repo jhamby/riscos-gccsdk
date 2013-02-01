@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010-2012 GCCSDK Developers
+ * Copyright (c) 2010-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,8 +40,15 @@ typedef enum
   eInstrType_ThumbEE
 } InstrType_e;
 
-void State_SetCmdLineSyntax (Syntax_e syntax);
-void State_SetCmdLineInstrType (InstrType_e instrType);
+typedef enum
+{
+  eState_Code32,	/* Pre-UAL and UAL, ARM.  */
+  eState_Code16,	/* Pre-UAL only, Thumb.  */
+  eState_Thumb,		/* UAL only, Thumb.  */
+  eState_ThumbEE	/* UAL only, ThumbEE.  */
+} SyntaxInstrState_e;
+
+void State_Set (SyntaxInstrState_e syntaxInstrType);
 
 void State_PrepareForPhase (Phase_e phase);
 

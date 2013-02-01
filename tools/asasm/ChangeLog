@@ -1,3 +1,20 @@
+Fri Feb  1 01:25:33 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* state.h (SyntaxInstrState_e, State_Set): Add.
+	(State_SetCmdLineInstrType, State_SetCmdLineSyntax): Remove.
+	* state.c: Likewise.
+	(oDefaultSyntax, oDefaultInstrType): Replace by...
+	(oDefaultSyntaxInstrType): ...this.
+	(State_Init): Add.
+	(c_code16, c_code32, c_thumb, c_thumbx): Add State_Init call.
+	* targetcpu.c (Target_CheckCPUFeatureDetail): Add.
+	* targetcpu.h: Likewise.
+	* main.c (oOptionInstrSyntax, oOptionInstrType, oOptionInstrSet):
+	Replace by...
+	(oOptionSyntaxInstr, oOptionSyntaxInstrSet): ...this.
+	(main): Follow above changes.
+
 Fri Feb  1 01:15:47 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010-2012 GCCSDK Developers
+ * Copyright (c) 2010-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -230,6 +230,7 @@ unsigned Target_GetARMISAVersion (void);
 unsigned Target_GetThumbISAVersion (void);
 
 bool Target_CheckCPUFeature (unsigned features, bool warn);
+bool Target_CheckCPUFeatureDetail (unsigned features, const char *what);
 bool Target_CheckFPUFeature (unsigned features, bool warn);
 
 unsigned Target_GetCPUFeatures (void);
