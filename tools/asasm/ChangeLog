@@ -1,3 +1,7 @@
+Fri Feb  1 01:54:02 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpu.c (core_sxt_uxt): Add target check.
+
 Fri Feb  1 01:25:33 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

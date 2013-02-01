@@ -1632,6 +1632,7 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
     }
   else
     {
+      Target_CheckCPUFeature (kCPUExt_v6T2, true);
       if (rd == 13 || rd == 15 || rn == 13 || rm == 15 || rm == 15)
 	Error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
       ARMWord baseInstr;
@@ -1671,5 +1672,5 @@ m_sxt (bool doLowerCase)
 bool
 m_uxt (bool doLowerCase)
 {
-  return  core_sxt_uxt (doLowerCase, true);
+  return core_sxt_uxt (doLowerCase, true);
 }
