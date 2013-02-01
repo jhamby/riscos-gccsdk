@@ -156,4 +156,30 @@ DExpr6	*	"2"
 
 	]
 
+	; DCI test for ARM/CODE16 and THUMB syntax mode.
+	AREA	Code, CODE
+	[ :LNOT:REFERENCE
+	ARM
+	DCI	&e3a03004	; Generates 2 bytes
+
+	CODE16
+	DCI	&c938		; Generates 2 bytes
+
+	THUMB
+	DCI	&c938		; Generates 2 bytes
+	DCI.N	&c938		; Generates 2 bytes
+	DCI.W	&e8b10238	; Generates 4 bytes
+	|
+	ARM
+	MOV	r3, #4
+
+	CODE16
+	LDMIA	r1!, {r3,r4,r5}
+
+	THUMB
+	LDM	r1!, {r3,r4,r5}
+	LDM	r1!, {r3,r4,r5}
+	LDM	r1!, {r3,r4,r5,r9}
+	]
+
 	END

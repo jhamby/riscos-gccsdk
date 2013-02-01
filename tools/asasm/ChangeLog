@@ -1,3 +1,8 @@
+Fri Feb  1 03:22:22 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/compare/core/directive_data_integer.s: Added DCI.N/DCI.W
+	tests.
+
 Fri Feb  1 01:54:02 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/m_cpu.c (core_sxt_uxt): Add target check.
