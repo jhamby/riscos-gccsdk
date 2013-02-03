@@ -25,13 +25,11 @@ Test1R	SETL	{TRUE}
 	LDM$rest $param1, $param2
 	NOP	; not available, was LDM$rest $param1, $param2
 	;INFO	0, "\tLDM$rest $param1, $param2\t;Unavailable"
-	ASSERT	NStrict
 	MEND
 	MACRO
 	STM$rest $param1, $param2
 	NOP	; not available, was LDM$rest $param1, $param2
 	;INFO	0, "\tSTM$rest $param1, $param2\t;Unavailable"
-	ASSERT	NStrict
 	MEND
 
 	MACRO
@@ -1155,6 +1153,50 @@ cc	SETA	cc + 1
 	DCI &e8d30091		; ldm	r3, {r0, r4, r7}^
 	DCI &e8f38091		; ldm	r3!, {r0, r4, r7, pc}^
 	DCI &e8c30091		; stm	r3, {r0, r4, r7}^
+	]
+
+	; Test syntax macro failback:
+	[ :LNOT:REFERENCE
+	ARM
+	; Pre-UAL and UAL:
+	LDMCCIA	r9, {r1}	; Is pre-UAL
+	LDMIACC	r9, {r1}	; Is UAL
+	LDMCC	r9, {r1}	; Is UAL
+	LDM	r9, {r1}	; Is UAL
+
+	CODE16
+	; Pre-UAL only:
+	LDMCCIA	r9, {r1}
+	LDMIACC	r9, {r1}	; Should call LDM* macro
+	LDMCC	r9, {r1}	; Should call LDM* macro
+	LDM	r9, {r1}	; Should call LDM* macro
+
+	THUMB
+	; UAL only:
+	LDMCCIA	r9, {r1}	; Should call LDM* macro
+	LDMIACC	r9, {r1}
+	LDMCC	r9, {r1}
+	LDM	r9, {r1}
+
+	|
+
+	DCI &38990002		; ldmcc	r9, {r1}
+	DCI &38990002		; ldmcc	r9, {r1}
+	DCI &38990002		; ldmcc	r9, {r1}
+	DCI &e8990002		; ldm	r9, {r1}
+
+	THUMB
+	DCI.N &bf38		; it	cc
+	DCI.W &f8d91000		; ldrcc.w	r1, [r9]
+	DCI.N &bf00		; nop
+	DCI.N &bf00		; nop
+	DCI.N &bf00		; nop
+
+	DCI.N &bf00		; nop
+	DCI.N &bf3c		; itt	cc
+	DCI.W &f8d91000		; ldrcc.w	r1, [r9]
+	DCI.W &f8d91000		; ldrcc.w	r1, [r9]
+	DCI.W &f8d91000		; ldr.w	r1, [r9]
 	]
 
 	END

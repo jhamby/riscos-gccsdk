@@ -1,3 +1,8 @@
+Sun Feb  3 16:14:22 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/compare/core/instr_ldm_stm_pop_push.s: Add syntax macro
+	failback test.
+
 Sun Feb  3 15:59:57 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 	src:
 	* code.c (Code_EvalLowest, Code_Eval, Code_EvalLow): Drop no longer used
