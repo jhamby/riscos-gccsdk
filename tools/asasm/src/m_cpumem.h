@@ -22,9 +22,15 @@
 #ifndef m_cpumem_header_included
 #define m_cpumem_header_included
 
-#include <stdbool.h>
+#include "config.h"
 
-#include "decode.h"
+#include <stdbool.h>
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
 
 bool m_clrex (void);
 bool m_ldm (bool doLowerCase);

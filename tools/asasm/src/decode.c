@@ -719,7 +719,7 @@ Decode (const Lex *label)
 		  Code_Value (StorageMap_Value (), false);
 		  Code_Value (&startStorage, false);
 		  Code_Operator (eOp_Sub);
-		  const Value *value = Code_Eval (ValueInt, NULL);
+		  const Value *value = Code_Eval (ValueInt);
 		  if (value->Tag == ValueInt)
 		    codeSize = value->Data.Int.i;
 		  else

@@ -459,7 +459,7 @@ Lit_DumpPool (void)
 	{
 	  Code_Init ();
 	  Code_Value (&litP->value, true);
-	  const Value *constValueP = Code_Eval (ValueInt | ValueCode | ValueSymbol | ValueFloat, NULL);
+	  const Value *constValueP = Code_Eval (ValueInt | ValueCode | ValueSymbol | ValueFloat);
 	  if (constValueP->Tag == ValueIllegal)
 	    {
 	      Error_Line (litP->file, litP->lineNum, ErrorError, "Unsupported literal case");
@@ -679,7 +679,7 @@ Lit_DumpPool (void)
 		  /* Final evaluation.  */
 		  Code_Init ();
 		  Code_Value (&litP->value, true);
-		  const Value *valP = Code_Eval (ValueFloat | ValueSymbol, NULL);
+		  const Value *valP = Code_Eval (ValueFloat | ValueSymbol);
 
 		  /* FIXME: relocation support for float values ? */
 		  if (valP->Tag == ValueFloat)

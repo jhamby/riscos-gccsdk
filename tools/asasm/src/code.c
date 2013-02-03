@@ -47,8 +47,7 @@
 #define CODE_SIZECODE  (1024)
 #define CODE_SIZESTACK (1024)
 
-static void Code_ExpandCurrAreaSymbolAsAddr (Value *value, ARMWord instrOffset);
-static bool Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP, int *sp);
+static bool Code_EvalLowest (size_t size, const Code *program, int *sp);
 
 #ifdef DEBUG_CODE
 static void Code_PrintValueArray (size_t size, const Value *value);
@@ -206,22 +205,13 @@ Code_Value (const Value *value, bool expCode)
     Error_Abort ("Internal Code_Value: overflow");
 }
 
-static void
-Code_ExpandCurrAreaSymbolAsAddr (Value *value, ARMWord instrOffset)
-{
-  if (value->Tag == ValueSymbol && value->Data.Symbol.symbol == areaCurrentSymbol
-      && value->Data.Symbol.factor == 1)
-    *value = Value_Addr (15, -(instrOffset + 8) + value->Data.Symbol.offset);
-}  
-
 /**
  * \param sp Empty incrementing stack index.  On successful exit, Stack[sp - 1]
  * (with sp at least value 1) is the result, otherwise there is no result.
  * \return false if succeeded, true otherwise.
  */
 static bool
-Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
-		 int *sp)
+Code_EvalLowest (size_t size, const Code *program, int *sp)
 {
 #ifdef DEBUG_CODE
   printf ("vvv Code_EvalLowest\n");
@@ -329,16 +319,6 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
     }
   printf ("\n");
 #endif
-    
-  if (instrOffsetP != NULL)
-    {
-#ifdef DEBUG_CODE
-      printf ("+++ Converting current AREA symbol to ValueInt/ValueAddr.\n");
-#endif
-      /* Search for all current AREA symbols and convert them into ValueAddr.  */
-      for (int s = spStart; s != *sp; ++s)
-	Code_ExpandCurrAreaSymbolAsAddr (&Stack[s], *instrOffsetP);
-    }
    
 #ifdef DEBUG_CODE
   printf ("Final stack result: [ ");
@@ -350,29 +330,22 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 }
 
 /**
- * \param instrOffsetP It points to the instruction offset
- * which can be use to convert the current AREA symbol into a ValueAddr
- * [PC, #-(<instr offset> + 8)].
  * \return Result of evaluation.  Only to be used before next evaluation.
  * Use Value_Assign() to keep a non-temporary copy of it.
  */
 const Value *
-Code_Eval (ValueTag legal, const ARMWord *instrOffsetP)
+Code_Eval (ValueTag legal)
 {
-  return Code_EvalLow (legal, FirstFreeIns, Program, instrOffsetP);
+  return Code_EvalLow (legal, FirstFreeIns, Program);
 }
 
 
 /**
- * \param instrOffsetP When non-NULL, it points to the instruction offset
- * which can be use to convert the current AREA symbol into a ValueAddr
- * [PC, #-(<instr offset> + 8)].
  * \return Result of evaluation.  Only to be used before next evaluation.
  * Use Value_Assign() to keep a non-temporary copy of it.
  */
 const Value *
-Code_EvalLow (ValueTag legal, size_t size, const Code *program,
-	      const ARMWord *instrOffsetP)
+Code_EvalLow (ValueTag legal, size_t size, const Code *program)
 {
 #ifdef DEBUG_CODE
   printf ("*** codeEvalLow(): program is: ");
@@ -381,7 +354,7 @@ Code_EvalLow (ValueTag legal, size_t size, const Code *program,
 #endif
 
   int sp = 0;
-  if (size == 0 || Code_EvalLowest (size, program, instrOffsetP, &sp))
+  if (size == 0 || Code_EvalLowest (size, program, &sp))
     {
       if (legal & ValueCode)
 	{

@@ -118,7 +118,7 @@ c_alloc (const Lex *lex)
 	Code_Value (StorageMap_Value (), true);
 	Code_Value (value, true);
 	Code_Operator (eOp_Add);
-        value = Code_Eval (ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL);
+        value = Code_Eval (ValueInt | ValueAddr | ValueSymbol | ValueCode);
 	if (value->Tag != ValueIllegal)
 	  {
 	    Value_Assign (&oStorageMapValue, value);

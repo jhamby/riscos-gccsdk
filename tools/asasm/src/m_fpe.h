@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,6 @@
 
 #include <stdbool.h>
 
-#include "decode.h"
 #include "global.h"
 
 #define M_ADF (0x0e000000 | CP_NUMBER (1))

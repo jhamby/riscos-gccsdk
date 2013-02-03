@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,10 +23,16 @@
 #ifndef directive_data_header_included
 #define directive_data_header_included
 
-#include <stdbool.h>
+#include "config.h"
 
-#include "decode.h"
-#include "global.h"
+#include <stdbool.h>
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+
 #include "value.h"
 
 bool c_align (void);
@@ -43,7 +49,8 @@ bool c_dcq (bool doLowerCase);
 bool c_fill (void);
 bool c_reserve (void);
 
-bool DefineInt_HandleSymbols (int size, bool allowUnaligned, bool swapHalfwords,
-			      uint32_t offset, const Value *valueP);
+bool DefineInt_HandleSymbols (unsigned size, bool allowUnaligned,
+			      bool swapHalfwords, uint32_t offset,
+			      const Value *valueP);
 
 #endif

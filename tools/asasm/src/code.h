@@ -60,8 +60,8 @@ void Code_Bool (bool value);
 void Code_Addr (unsigned reg, int offset);
 void Code_Value (const Value *value, bool expCode);
 
-const Value *Code_EvalLow (ValueTag legal, size_t size, const Code *program, const ARMWord *instrOffsetP);
-const Value *Code_Eval (ValueTag legal, const ARMWord *instrOffsetP);
+const Value *Code_EvalLow (ValueTag legal, size_t size, const Code *program);
+const Value *Code_Eval (ValueTag legal);
 
 Value Code_TakeSnapShot (void);
 

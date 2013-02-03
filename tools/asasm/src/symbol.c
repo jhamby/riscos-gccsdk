@@ -184,11 +184,11 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 		  Code_Init ();
 		  Code_Value (&symbol->value, false);
 		  Value val1 = { .Tag = ValueIllegal };
-		  Value_Assign (&val1, Code_Eval (ValueAll, NULL));
+		  Value_Assign (&val1, Code_Eval (ValueAll));
 		  Code_Init ();
 		  Code_Value (newValue, false);
 		  Value val2 = { .Tag = ValueIllegal };
-		  Value_Assign (&val2, Code_Eval (ValueAll, NULL));
+		  Value_Assign (&val2, Code_Eval (ValueAll));
 		  diffValue = !Value_Equal (&val1, &val2);
 #ifdef DEBUG
 		  if (diffValue)
@@ -575,7 +575,7 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 		{
 		  Code_Init ();
 		  valueP = Code_EvalLow (ValueAll, sym->value.Data.Code.len,
-					 sym->value.Data.Code.c, NULL);
+					 sym->value.Data.Code.c);
 		}
 	      else
 		valueP = &sym->value;
@@ -691,7 +691,7 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 		{
 		  Code_Init ();
 		  valueP = Code_EvalLow (ValueAll, sym->value.Data.Code.len,
-					 sym->value.Data.Code.c, NULL);
+					 sym->value.Data.Code.c);
 		}
 	      else
 		valueP = &sym->value;

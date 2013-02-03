@@ -231,11 +231,11 @@ Value_Equal (const Value *a, const Value *b)
 
       Code_Init ();
       Code_Value (&aCp, true);
-      Value_Assign (&aCp, Code_Eval (ValueAll, NULL));
+      Value_Assign (&aCp, Code_Eval (ValueAll));
 
       Code_Init ();
       Code_Value (&bCp, true);
-      Value_Assign (&bCp, Code_Eval (ValueAll, NULL));
+      Value_Assign (&bCp, Code_Eval (ValueAll));
 
       a = &aCp;
       b = &bCp;

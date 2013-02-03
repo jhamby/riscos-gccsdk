@@ -1,3 +1,26 @@
+Sun Feb  3 15:59:57 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+	src:
+	* code.c (Code_EvalLowest, Code_Eval, Code_EvalLow): Drop no longer used
+	instrOffsetP parameter.
+	(Code_ExpandCurrAreaSymbolAsAddr): Remove.
+	* code.h (Code_Eval, Code_EvalLow): Likewise.
+	* decode.c (Decode): Follow instrOffsetP parameter removal.
+	* lit.c (Lit_DumpPool): Likewise.
+	* symbol.c (Symbol_OutputForAOF, Symbol_OutputForELF, Symbol_Define):
+	Likewise.
+	* directive_storagemap.c (c_alloc): Likewise.
+	* value.c (Value_Equal): Likewise.
+	* expr.c (Expr_Eval): Likewise.
+	* directive_data.c (DefineInt_HandleSymbols, DefineInt): Make size
+	parameter unsigned.
+	* m_cpuctrl.h: Remove decode.h include header.
+	* m_fpe.h: Likewise.
+	* m_copmem.h: Likewise.
+	* m_cpu.h: Likewise.
+	* m_cpumem.h: Likewise.  Add stdint.h/inttypes.h header include.
+	* directive_data.h: Likewise.
+	(DefineInt_HandleSymbols): Make size parameter unsigned.
+
 Fri Feb  1 03:29:51 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src;

@@ -234,7 +234,7 @@ c_data (void)
  * \return true when error occured.
  */
 bool
-DefineInt_HandleSymbols (int size, bool allowUnaligned, bool swapHalfwords,
+DefineInt_HandleSymbols (unsigned size, bool allowUnaligned, bool swapHalfwords,
 			 uint32_t offset, const Value *valueP)
 {
   assert (valueP->Tag == ValueCode);
@@ -405,7 +405,8 @@ DefineInt_HandleSymbols (int size, bool allowUnaligned, bool swapHalfwords,
  * Implements core of DCB, =, DCW, DCWU, &, DCD, DCDU, DCQ, DCQU, DCI.
  */
 static void
-DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemonic)
+DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
+	   const char *mnemonic)
 {
   ValueTag allowedTypes; /* Types which we accept to see in PassTwo.  */
   switch (size)
@@ -605,7 +606,7 @@ c_dci (bool doLowerCase)
   IT_ApplyCond (areaCurrentSymbol->area->it.cc, instrState != eInstrType_ARM); 
 
   unsigned alignValue;
-  int instructionSize;
+  unsigned instructionSize;
   bool swapHalfwords;
   if (instrState == eInstrType_ARM)
     {

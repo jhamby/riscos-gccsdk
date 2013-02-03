@@ -204,7 +204,7 @@ Expr_Build (void)
 const Value *
 Expr_Eval (ValueTag legal)
 {
-  return Code_Eval (legal, NULL);
+  return Code_Eval (legal);
 }
 
 
