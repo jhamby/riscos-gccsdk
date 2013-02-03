@@ -1,3 +1,17 @@
+Sun Feb  3 18:16:23 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* symbol.c (NeedToOutputSymbol, Symbol_CreateSymbolOut): Report source
+	location of symbol.
+	(Symbol_Print): Fix wrong assert for AREA symbol.
+	* symbol.h (SYMBOL_NO_EXPORT): Update comment.
+	* lit.c (Lit_GetLitOffsetAsSymbol): Tag with SYMBOL_NO_EXPORT.
+	(Lit_DumpPool): Ensure we have an absolute offset-to-literal symbol
+	when current area is ABSOLUTE.
+	* lit.h: Add stdbool.h include.
+
+	* unittests/compare/core/load_literal5.s: Add testcase.
+
 Sun Feb  3 16:14:22 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/compare/core/instr_ldm_stm_pop_push.s: Add syntax macro

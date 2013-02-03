@@ -287,14 +287,14 @@ NeedToOutputSymbol (const Symbol *sym)
 
   /* Give a warning for a symbol which got explicitly marked as 'KEEP'
      but as a valuetype which does not allow us to 'keep' it.  */
-  if ((sym->type & SYMBOL_KEEP)
+  if ((sym->type & SYMBOL_KEEP) != 0
       && !((sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt)
-		        || sym->value.Tag == ValueSymbol))
+	   || sym->value.Tag == ValueSymbol))
     {
       if (sym->value.Tag == ValueIllegal)
-	Error_Line (NULL, 0, ErrorError, "Symbol %s is marked with KEEP but has not been defined", sym->str);
+	Error_Line (sym->fileName, sym->lineNumber, ErrorError, "Symbol %s is marked with KEEP but has not been defined", sym->str);
       else
-	Error_Line (NULL, 0, ErrorWarning, "Symbol %s is marked with KEEP but has unsuitable value for export", sym->str);
+	Error_Line (sym->fileName, sym->lineNumber, ErrorWarning, "Symbol %s is marked with KEEP but has unsuitable value for export", sym->str);
     }
 
   bool doOutput = ((SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
@@ -371,7 +371,7 @@ Symbol_CreateSymbolOut (void)
 		{
 		  /* Make it a reference symbol.  */
 		  sym->type |= SYMBOL_REFERENCE;
-		  Error_Line (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
+		  Error_Line (sym->fileName, sym->lineNumber, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
 	    }
 	  if (NeedToOutputSymbol (sym))
@@ -1333,11 +1333,20 @@ c_import (void)
 void
 Symbol_Print (const Symbol *sym)
 {
-  static const char * const symkind[4] = { "unknown", "local", "reference", "global" };
-  printf ("\"%s\": %s",
-          sym->str, symkind[SYMBOL_KIND (sym->type)]);
+  if (sym->area == NULL)
+    {
+      static const char * const symkind[4] =
+	{
+	  "unknown",
+	  "local",
+	  "reference",
+	  "global"
+	};
+      printf ("\"%s\": %s", sym->str, symkind[SYMBOL_KIND (sym->type)]);
+    }
   assert (strlen (sym->str) == (size_t)sym->len);
-  assert (sym->area == NULL || ((sym->type & SYMBOL_DEFINED) != 0 && (sym->type & SYMBOL_AREA) != 0 && sym->area != NULL));
+  /* It's either a non-AREA symbol, either an AREA symbol.  */
+  assert (sym->area == NULL || (SYMBOL_KIND (sym->type) == 0 && (sym->type & SYMBOL_AREA) != 0 && sym->area != NULL));
 
   /* Dump the symbol attributes:  */
   if (sym->type & SYMBOL_ABSOLUTE)

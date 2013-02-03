@@ -77,8 +77,10 @@
   area.  */
 #define SYMBOL_MACRO_LOCAL	0x08000000 /** Set when symbol is only known as
   a local macro variable.  */
-#define SYMBOL_NO_EXPORT	0x10000000 /** Do not export this symbol, even
-  with SYMBOL_KEEP.  */
+#define SYMBOL_NO_EXPORT	0x10000000 /** Do not export this symbol
+  without any exceptions, even when SYMBOL_KEEP set (offset-to-literal-value
+  symbols, local symbols, storage map symbols, bool/string variables,
+  register/coprocessor number symbols).  */
 #define SYMBOL_RW		0x20000000 /** GBLL, GBLA, GBLS, LBLL, LBLA or LBLS, i.e. a read-write symbol.  */
 #define SYMBOL_KEEP		0x40000000 /* Symbol needs to come in output,
   even if it is local.  Not when its value does not allow it.  */

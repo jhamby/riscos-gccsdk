@@ -41,7 +41,6 @@
 #include "m_fpe.h"
 #include "help_cpu.h"
 #include "lit.h"
-#include "local.h"
 #include "main.h"
 #include "phase.h"
 #include "put.h"
@@ -86,7 +85,9 @@ Lit_GetLitOffsetAsSymbol (const LitPool *literal)
   int bytesWritten = snprintf (intSymbol, sizeof (intSymbol), kIntLabelPrefix "Lit$%p", (void *)literal);
   assert (bytesWritten >= 0);
   const Lex lex = Lex_Id (intSymbol, (size_t)bytesWritten);
-  return Symbol_Get (&lex);
+  Symbol *offsetToLiteralSymbol = Symbol_Get (&lex);
+  offsetToLiteralSymbol->type |= SYMBOL_NO_EXPORT;
+  return offsetToLiteralSymbol;
 }
 
 static size_t
@@ -472,6 +473,8 @@ Lit_DumpPool (void)
 	}
 
       Symbol *symP = Lit_GetLitOffsetAsSymbol (litP);
+      if ((areaCurrentSymbol->type & SYMBOL_ABSOLUTE) != 0)
+	symP->type |= SYMBOL_ABSOLUTE;
       symP->type |= SYMBOL_DEFINED;
 
       /* Check if it is a fixed integer/float which fits an immediate
@@ -576,7 +579,7 @@ Lit_DumpPool (void)
 			 got defined after LTORG, we've already allocated
 			 some bytes which aren't going to be used.  */
 		      Error_Line (litP->file, litP->lineNum, ErrorWarning,
-				 "Literal loading optimized as MVF/MNF but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
+				  "Literal loading optimized as MVF/MNF but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
 		      Error (ErrorWarning, "note: LTORG was here");
 		    }
 		}
