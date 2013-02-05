@@ -1,0 +1,7 @@
+AB_SVN=svn://svn.riscos.info/ccres/trunk/
+
+make
+make install
+
+
+echo "all:" > Makefile
