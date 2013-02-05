@@ -1,0 +1,9 @@
+Licence: Free
+Description: Convert Toolbox Resource and Wimp Template files to and from text
+ CCRes converts Toolbox Resource files (type &FAE, RESF v1.00 or v1.01) and
+ Wimp Template files (type &FEC) to and from text format.
+ It uses a simple C-like text layout format based on the equivalent OSLib
+ header definitions.
+ .
+ This package contains a Wimp front end applicaton !CCRes and a command line
+ version ccres.
