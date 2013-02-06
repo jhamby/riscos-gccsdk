@@ -13,8 +13,9 @@ ab_package()
    ab_create_app CCRes Apps/Development
    cp -av Release/!CCres/* $A
    ab_add_commands Release/ccres,e1f
+   mv $A/!RunImage,e1f $A/!RunImage,ff8
    mv $A/ccres,e1f $A/ccres,ff8
 
-  $AB_HOME/add-riscpkg -package CCRes -unixlib -copyrightfile $S/Doc/COPYING 
+  $AB_HOME/add-riscpkg -package CCRes -copyrightfile $S/Doc/COPYING 
 }
 
