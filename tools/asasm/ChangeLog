@@ -1,3 +1,7 @@
+Sat Feb  9 14:18:59 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/common.h (UNUSED): Removed.
+
 Sat Feb  9 14:14:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

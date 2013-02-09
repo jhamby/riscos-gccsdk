@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2011 GCCSDK Developers
+ * Copyright (c) 2011-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,8 +25,6 @@
 #include "config.h"
 
 #include <stdlib.h>
-
-#define UNUSED __attribute__((unused))
 
 #ifndef HAVE_STRNDUP
 char *strndup (const char *str, size_t len);
