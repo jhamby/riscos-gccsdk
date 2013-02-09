@@ -1,3 +1,10 @@
+Sat Feb  9 14:14:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* variables.h (VarPos::next): Constify pointer.
+	* macros.h (MacroPObject:::varListP): Likewise.
+	* variables.c (c_lcl): Follow MacroPObject::varListP constification.
+
 Sun Feb  3 18:16:23 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

@@ -256,7 +256,7 @@ c_lcl (void)
   if (symbolP != NULL)
     {
       /* Perhaps already made local ? */
-      VarPos *varPosP;
+      const VarPos *varPosP;
       for (varPosP = gCurPObjP->d.macro.varListP;
 	   varPosP != NULL && varPosP->symbolP != symbolP;
 	   varPosP = varPosP->next)

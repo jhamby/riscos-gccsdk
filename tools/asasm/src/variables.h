@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,7 +33,7 @@
  */
 typedef struct VarPos
 {
-  struct VarPos *next;
+  const struct VarPos *next;
   Symbol *symbolP; /**< Non-NULL when macro caller has this variable already defined.  */
   Symbol symbol; /**< When symbolP is non-NULL, the previous symbol object.  */
   char name[]; /**< NUL terminated symbol name.  */
