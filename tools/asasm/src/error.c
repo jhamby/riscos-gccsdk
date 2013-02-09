@@ -183,6 +183,7 @@ errorCore (ErrorTag e, const char *format, va_list ap)
       switch (pObjP->type)
 	{
 	  case POType_eFile:
+	  case POType_eCachedFile:
 	    /* When lineNum is zero, we're processing the -PD options.  */
 	    if (pObjP->lineNum != 0)
 	      fprintf (stderr, "%s:%u:%zd: %s: %s\n",
@@ -214,6 +215,7 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 	  switch (pObjP->type)
 	    {
 	      case POType_eFile:
+	      case POType_eCachedFile:
 		{
 		  /* When lineNum is zero, we're processing the -PD options.  */
 		  if (pObjP->lineNum != 0)

@@ -57,7 +57,7 @@ typedef struct
   const VarPos *varListP; /**< Linked list of local variables defined in this macro.  */
   unsigned optDirective; /**< Value {OPT} just before macro invocation.
     {OPT} gets restored after macro invocation.  */
-} MacroPObject;
+} PObject_Macro;
 
 void FS_PopMacroPObject (bool noCheck);
 

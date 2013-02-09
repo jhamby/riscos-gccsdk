@@ -56,8 +56,9 @@ typedef struct
   unsigned lineNum;	/* Line number where WHILE is located.  */
   union
     {
-      off_t offsetFile; /* Only valid when gCurPObjP->type == POType_eFile */
-      const char *offsetMacro; /* Only valid when gCurPObjP->type == POType_eMacro */
+      off_t offsetFile; /* Only valid when gCurPObjP->type == POType_eFile.  */
+      const char *offsetCurP; /* Only valid when gCurPObjP->type == POType_eCachedFile.  */
+      const char *offsetMacro; /* Only valid when gCurPObjP->type == POType_eMacro.  */
     } restoreData;
 } WhileBlock_t;
 
@@ -469,6 +470,10 @@ c_while (void)
 	    whileIfP->Data.While.restoreData.offsetFile = ftell (gCurPObjP->d.file.fhandle) - gCurPObjP->lastLineSize;
 	    break;
 
+	  case POType_eCachedFile:
+	    whileIfP->Data.While.restoreData.offsetCurP = gCurPObjP->d.memory.curP - gCurPObjP->lastLineSize;
+	    break;
+	    
 	  case POType_eMacro:
 	    whileIfP->Data.While.restoreData.offsetMacro = gCurPObjP->d.macro.curPtr - gCurPObjP->lastLineSize;
 	    break;
@@ -516,6 +521,10 @@ While_Rewind (void)
     {
       case POType_eFile:
 	fseek (gCurPObjP->d.file.fhandle, whileBlockP->restoreData.offsetFile, SEEK_SET);
+	break;
+
+      case POType_eCachedFile:
+	gCurPObjP->d.memory.curP = whileBlockP->restoreData.offsetCurP;
 	break;
 
       case POType_eMacro:

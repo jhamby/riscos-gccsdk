@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <limits.h>
 #include <setjmp.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -34,9 +35,6 @@
 #  include <stdint.h>
 #elif HAVE_INTTYPES_H
 #  include <inttypes.h>
-#endif
-#ifdef __riscos__
-#  include <kernel.h>
 #endif
 
 #include "area.h"
@@ -62,8 +60,7 @@ bool asmContinueValid = false;
 jmp_buf asmAbort;
 bool asmAbortValid = false;
 
-/* AS options :
- */
+/* AsAsm options : */
 bool option_abs = false;
 int option_aof = -1; /* -1 = option not specified.  */
 int option_fussy = 0;
@@ -76,6 +73,8 @@ int option_verbose = 0;
 
 static const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
+
+static unsigned oOptionSrcCacheSize = 8;
 
 static SyntaxInstrState_e oOptionSyntaxInstr; /* Set via options --16, --32, --arm, --thumb, --thumbx.  */
 static const char *oOptionSyntaxInstrSet; /* Non-NULL when oOptionSyntaxInstr is set.  */
@@ -282,6 +281,8 @@ asasm_help (void)
            "-NOWarn                    Suppress all warnings.\n"
 	   "-From asmfile              Source assembler file (ObjAsm compatibility).\n"
 	   "-To objfile                Destination AOF file (ObjAsm compatibility).\n"
+           "-NOCache                   No source caching.\n"
+           "-MaxCache=<num MByte>      Maximum source cache size.\n"
 	   "-ABSolute                  Accept AAsm source code.\n"
 	   "-apcs <APCS options>       Specifies one or more APCS options.\n"
 	   "-regnames=none             No predefined registers.\n"
@@ -429,6 +430,20 @@ main (int argc, char **argv)
 	      fprintf (stderr, PACKAGE_NAME ": Missing filename after -%s\n", arg);
 	      return EXIT_FAILURE;
 	    }
+	}
+      else if (!strcasecmp (arg, "nocache") || !strcasecmp (arg, "noc") || !strcasecmp (arg, "no_cache"))
+	oOptionSrcCacheSize = 0;
+      else if ((val = IsOptGetArg (&argv, "MaxCache", sizeof ("MaxCache")-1, &argc)) != NULL
+               || (val = IsOptGetArg (&argv, "MC", sizeof ("MC")-1, &argc)) != NULL)
+	{
+	  char *endVal;
+	  long cacheSize = strtol(val, &endVal, 10);
+	  if (endVal == val || *endVal != '\0' || cacheSize > UINT_MAX)
+	    {
+	      fprintf (stderr, PACKAGE_NAME ": Wrong value for source cache size\n");
+	      return EXIT_FAILURE;
+	    }
+	  oOptionSrcCacheSize = (unsigned)cacheSize;
 	}
       else if (!strcasecmp (arg, "no_code_gen"))
 	option_no_code_gen = true;
@@ -633,6 +648,8 @@ main (int argc, char **argv)
   if (oOptionSyntaxInstrSet == NULL)
     oOptionSyntaxInstr = Target_CheckCPUFeature (kArchExt_v1, false) ? eState_Code32 : eState_Thumb; 
   State_Set (oOptionSyntaxInstr);
+
+  FS_SetFileCacheSize (oOptionSrcCacheSize);
   
   if (ObjFileName == NULL)
     {

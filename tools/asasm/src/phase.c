@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2012 GCCSDK Developers
+ * Copyright (c) 2012-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@
 #include "area.h"
 #include "input.h"
 #include "it.h"
+#include "filestack.h"
 #include "local.h"
 #include "opt.h"
 #include "phase.h"
@@ -41,6 +42,7 @@ Phase_PrepareFor (Phase_e phase)
   Area_PrepareForPhase (phase);
   Input_PrepareForPhase (phase);
   IT_PrepareForPhase (phase);
+  FS_PrepareForPhase (phase);
   Local_PrepareForPhase (phase);
   Opt_PrepareForPhase (phase);
   State_PrepareForPhase (phase);

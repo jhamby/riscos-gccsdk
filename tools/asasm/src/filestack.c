@@ -44,12 +44,50 @@
 #include "os.h"
 #include "whileif.h"
 
+typedef struct CachedFile
+{
+  const struct CachedFile *nextP;
+  const char *fileNameP; /** Filename of this cached file.  */
+  size_t size; /** Size of this cached file.  */
+  char bufP[1]; /** Pointer to cached file in memory.  */
+} CachedFile_t;
+
+static size_t oFileCacheSize; /* In bytes.  */
+static const CachedFile_t *oCachedFileListP;
+
 FileNameList *gFileNameListP; // FIXME: needs freeing !
 
 PObject gPOStack[PARSEOBJECT_STACK_SIZE];
-PObject *gCurPObjP = NULL; /**< Current parsable object.  */
+PObject *gCurPObjP = NULL; /**< Current parsable object.  Points into
+  gPOStack array.  */
 
 static bool File_GetLine (char *bufP, size_t bufSize);
+static bool CachedFile_GetLine (char *bufP, size_t bufSize);
+
+void
+FS_PrepareForPhase (Phase_e phase)
+{
+  switch (phase)
+    {
+      case eStartup:
+      case ePassOne:
+      case ePassTwo:
+	break;
+
+      case eOutput:
+	/* We can remove all cached files now.  */
+	for (const CachedFile_t *cachedFileP = oCachedFileListP;
+	     cachedFileP != NULL;
+	     /* */)
+	  {
+	    const CachedFile_t *nextCachedFileP = cachedFileP->nextP;
+	    free ((void *)cachedFileP);
+	    cachedFileP = nextCachedFileP;
+	  }
+	break;
+    }
+}
+
 
 /**
  * In order to have permanent storage of filenames.
@@ -76,9 +114,63 @@ StoreFileName (const char *fileNameP)
       strcpy (resultP->fileName, fileNameP);
       gFileNameListP = resultP;
     }
-  free ((void *)fileNameP);
 
   return resultP->fileName;
+}
+
+
+static const CachedFile_t *
+CachedFile_Lookup (const char *fileNameP, const ASFile *asFileP)
+{
+  for (const CachedFile_t *cachedFileP = oCachedFileListP;
+       cachedFileP != NULL;
+       cachedFileP = cachedFileP->nextP)
+    {
+      if (!strcmp (asFileP->canonName, cachedFileP->fileNameP))
+	return cachedFileP;
+    }
+
+  /* Not in the cache so far.  If there is still enough place, pull it in
+     the cache.  */
+  if ((size_t)asFileP->size <= oFileCacheSize)
+    {
+      CachedFile_t *cachedFileP = malloc (offsetof (CachedFile_t, bufP) + asFileP->size);
+      if (cachedFileP == NULL)
+	return NULL; /* Don't give an error, just read the file from disc.  */
+      FILE *fhandle = Include_OpenForRead (fileNameP, asFileP);
+      if (fhandle == NULL)
+	{
+	  free (cachedFileP);
+	  return NULL;
+	}
+      if (fread (cachedFileP->bufP, asFileP->size, 1, fhandle) != 1)
+	{
+	  fclose (fhandle);
+	  free (cachedFileP);
+	  return NULL;
+	}
+      fclose (fhandle);
+
+      cachedFileP->nextP = oCachedFileListP;
+      cachedFileP->fileNameP = StoreFileName (asFileP->canonName);
+      cachedFileP->size = asFileP->size;
+      
+      oFileCacheSize -= asFileP->size;
+      oCachedFileListP = cachedFileP;
+      return oCachedFileListP;
+    }
+
+  return NULL;
+}
+
+
+/**
+ * Sets the maximum file cache size in MBytes.
+ */
+void
+FS_SetFileCacheSize (unsigned sizeMByte)
+{
+  oFileCacheSize = sizeMByte <= SIZE_MAX / (1024 * 1024) ? (size_t)sizeMByte * 1024 * 1024 : SIZE_MAX;
 }
 
 
@@ -101,12 +193,12 @@ FS_GetMacroDepth (void)
 
 /**
  * Opens given file for immediate parsing.  Cancel using FS_PopPObject().
- * \param fileName Filename of assembler file to parse.
+ * \param fileNameP Filename of assembler file to parse.
  * \return false for success, true for failure.
  * Similar to FS_PushMacroPObject().
  */
 bool
-FS_PushFilePObject (const char *fileName)
+FS_PushFilePObject (const char *fileNameP)
 {
 #ifdef DEBUG_FILESTACK
   ReportFSStack (__func__);
@@ -128,19 +220,36 @@ FS_PushFilePObject (const char *fileName)
     Error_Abort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
 
   ASFile asFile;
-  newPObjP->d.file.fhandle = Include_Get (fileName, &asFile, true);
-  if (newPObjP->d.file.fhandle == NULL)
+  if (Include_Find (fileNameP, &asFile, true))
     {
-      Error (ErrorError, "Cannot open file \"%s\"", fileName);
+      Error (ErrorError, "Cannot find file \"%s\"", fileNameP);
+      ASFile_Free (&asFile);
       return true;
     }
 
-  newPObjP->type = POType_eFile;
+  /* Try to retrieve file from cache.  */
+  const CachedFile_t *cachedFileP = CachedFile_Lookup (fileNameP, &asFile);
+  if (cachedFileP != NULL)
+    {
+      newPObjP->type = POType_eCachedFile;
+      newPObjP->d.memory.curP = newPObjP->d.memory.startP = cachedFileP->bufP; 
+      newPObjP->d.memory.endP = cachedFileP->bufP + cachedFileP->size; 
+      newPObjP->GetLine = CachedFile_GetLine;
+    }
+  else
+    {
+      newPObjP->type = POType_eFile;
+      if ((newPObjP->d.file.fhandle = Include_OpenForRead (fileNameP, &asFile)) == NULL)
+	{
+	  Error (ErrorError, "Cannot open file \"%s\"", asFile.canonName);
+	  ASFile_Free (&asFile);
+	  return true;
+	}
+      newPObjP->GetLine = File_GetLine;
+    }
   newPObjP->fileName = StoreFileName (asFile.canonName);
-  asFile.canonName = NULL; /* Ownership moved to StoreFileName().  */
   newPObjP->lineNum = 0;
   newPObjP->whileIfCurDepth = newPObjP->whileIfStartDepth = prevWhileIfDepth;
-  newPObjP->GetLine = File_GetLine;
   newPObjP->lastLineSize = 0;
 
   ASFile_Free (&asFile);
@@ -160,6 +269,7 @@ FS_PopFilePObject (bool noCheck)
 #ifdef DEBUG_FILESTACK
   ReportFSStack (__func__);
 #endif
+  assert (gCurPObjP->type == POType_eFile || gCurPObjP->type == POType_eCachedFile); 
 
   FS_PopIfWhile (noCheck);
 
@@ -167,8 +277,11 @@ FS_PopFilePObject (bool noCheck)
     fprintf (stderr, "Returning from file \"%s\"\n", gCurPObjP->fileName);
 
   gCurPObjP->fileName = NULL;
-  fclose (gCurPObjP->d.file.fhandle);
-  gCurPObjP->d.file.fhandle = NULL;
+  if (gCurPObjP->type == POType_eFile)
+    {
+      fclose (gCurPObjP->d.file.fhandle);
+      gCurPObjP->d.file.fhandle = NULL;
+    }
 }
 
 
@@ -206,6 +319,45 @@ File_GetLine (char *bufP, size_t bufSize)
 }
 
 
+static bool
+CachedFile_GetLine (char *bufP, size_t bufSize)
+{
+  PObject_CachedFile *memP = &gCurPObjP->d.memory;
+  const char *curP = memP->curP;
+  const char * const bufStartP = bufP;
+  const char * const bufEndP = bufP + bufSize;
+  while (1)
+    {
+      /* Read one EOL terminated line.  */
+      while (curP != memP->endP
+             && bufP != bufEndP
+             && *curP != '\n')
+	*bufP++ = *curP++;
+      if (curP == memP->endP || *curP == '\n')
+	{
+	  if (*curP == '\n')
+	    ++curP;
+	  /* EOF or EOL ? */
+	  if (bufP != bufStartP && bufP[-1] == '\\')
+	    {
+	      --bufP;
+	      gCurPObjP->lineNum++;
+	      continue;
+	    }
+	  if (bufP != bufEndP)
+	    {
+	      *bufP++ = '\0';
+	      break;
+	    }
+	}
+      Error_Abort ("Line too long");
+    }
+  gCurPObjP->lastLineSize = curP - memP->curP;
+  memP->curP = curP;
+  return false;
+}
+
+
 /**
  * \param noCheck When true, no checking will be performed.
  */
@@ -218,6 +370,7 @@ FS_PopPObject (bool noCheck)
   switch (gCurPObjP->type)
     {
       case POType_eFile:
+      case POType_eCachedFile:
 	FS_PopFilePObject (noCheck);
 	break;
 
@@ -269,7 +422,7 @@ unsigned
 FS_GetBuiltinVarLineNum (void)
 {
   assert (gCurPObjP != NULL);
-  assert (gPOStack[0].type == POType_eFile);
+  assert (gPOStack[0].type == POType_eFile || gPOStack[0].type == POType_eCachedFile);
   return gPOStack[0].lineNum;
 }
 
@@ -286,7 +439,7 @@ FS_GetBuiltinVarLineNumUp (void)
   assert (gCurPObjP != NULL);
   if (gCurPObjP->type == POType_eMacro)
     return gCurPObjP->lineNum - gCurPObjP->d.macro.macro->startLineNum;
-  assert (gPOStack[0].type == POType_eFile);
+  assert (gPOStack[0].type == POType_eFile || gPOStack[0].type == POType_eCachedFile);
   return gPOStack[0].lineNum;
 }
 
@@ -308,7 +461,7 @@ FS_GetBuiltinVarLineNumUpper (void)
     }
   if (gCurPObjP->type == POType_eMacro)
     return gCurPObjP->lineNum - gCurPObjP->d.macro.macro->startLineNum;
-  assert (gPOStack[0].type == POType_eFile);
+  assert (gPOStack[0].type == POType_eFile || gPOStack[0].type == POType_eCachedFile);
   return gPOStack[0].lineNum;
 }
 
@@ -331,6 +484,12 @@ ReportFSStack (const char *id)
 	{
 	  case POType_eFile:
 	    printf ("  - File: line num %d (if/while %d - %d): %s\n",
+	            pObjP->lineNum, pObjP->whileIfStartDepth, pObjP->whileIfCurDepth,
+	            pObjP->name);
+	    break;
+
+	  case POType_eCachedFile:
+	    printf ("  - CachedFile: line num %d (if/while %d - %d): %s\n",
 	            pObjP->lineNum, pObjP->whileIfStartDepth, pObjP->whileIfCurDepth,
 	            pObjP->name);
 	    break;

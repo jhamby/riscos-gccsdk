@@ -179,21 +179,15 @@ Include_Find (const char *fileName, ASFile *asFileP, bool inc)
 }
 
 /**
- * Opens file with given filename (possibly via suffix swapping tricks)
- * and optionally returns a possibly better qualified filename.
- * \param fileName Filename of file which needs to be opened.
- * \param asFileP ASFile object to be filled in for given filename.
- * \param inc When true, consider user support include paths.
+ * Opens file for read.
+ * \param asFileP ASFile object to open a read-only std C FILE for.
  * \return When non-NULL, a std C file stream pointer.
  */
 FILE *
-Include_Get (const char *fileName, ASFile *asFileP, bool inc)
+Include_OpenForRead (const char *fileNameP, const ASFile *asFileP)
 {
-  if (Include_Find (fileName, asFileP, inc))
-    return NULL;
-
   if (option_verbose > 1)
-    fprintf (stderr, "Open '%s' as '%s' for read: ", fileName, asFileP->canonName);
+    fprintf (stderr, "Open '%s' as '%s' for read: ", fileNameP, asFileP->canonName);
   FILE *fp = fopen (asFileP->canonName, "r");
   if (option_verbose > 1)
     fprintf (stderr, fp ? "ok\n" : "not ok\n");

@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -47,25 +48,25 @@ static const char oLowcaseCCodes[] = "eqnecsccmiplvsvchilsgeltgtlealnvhslo";
  * \param len Length of the condition code.
  * \return The condition code.  Values 16 and 17 are respectively "HS" and
  * "LO" (those correspond to condition codes 2 and 3).
- * Is -1 when condition code is not known.
+ * Is UINT_MAX when condition code is not known.
  */
-static int
+static unsigned
 GetCCode (const char *str, size_t len)
 {
   if (len == 0)
     return 14;
   if (len != 2)
-    return -1;
+    return UINT_MAX;
   if ((str[0] & 0x20) != (str[1] & 0x20))
     return -1;
   const char lowCase0 = str[0] | 0x20;
   const char lowCase1 = str[1] | 0x20;
-  for (int result = 0; result != (int)(sizeof (oLowcaseCCodes)-1); result += 2)
+  for (size_t result = 0; result != sizeof (oLowcaseCCodes)-1; result += 2)
     {
       if (lowCase0 == oLowcaseCCodes[result + 0] && lowCase1 == oLowcaseCCodes[result + 1])
-	return result / 2;
+	return (unsigned)result / 2;
     }
-  return -1;
+  return UINT_MAX;
 }
 
 /* No validation checking on value types! */
@@ -1042,15 +1043,15 @@ Eval_Unop (Operator_e op, Value *value)
 	{
 	  if (value->Tag != ValueString)
 	    return false;
-	  int ccode = GetCCode (value->Data.String.s, value->Data.String.len);
-	  if (ccode < 0)
+	  unsigned ccode = GetCCode (value->Data.String.s, value->Data.String.len);
+	  if (ccode == UINT_MAX)
 	    {
 	      Error (ErrorError, "Condition code %.*s is not known",
 	             (int)value->Data.String.len, value->Data.String.s);
 	      return false;
 	    }
-	  int revCCode = ccode ^ 1;
-	  int isUpcase = (value->Data.String.len ? (value->Data.String.s[0] & 0x20) : 0) ^ 0x20;
+	  unsigned revCCode = ccode ^ 1;
+	  unsigned isUpcase = (value->Data.String.len ? (value->Data.String.s[0] & 0x20) : 0) ^ 0x20;
 	  char *str;
 	  if (value->Data.String.len != 2)
 	    {
@@ -1069,8 +1070,8 @@ Eval_Unop (Operator_e op, Value *value)
 	{
 	  if (value->Tag != ValueString)
 	    return false;
-	  int ccode = GetCCode (value->Data.String.s, value->Data.String.len);
-	  if (ccode < 0)
+	  unsigned ccode = GetCCode (value->Data.String.s, value->Data.String.len);
+	  if (ccode == UINT_MAX)
 	    {
 	      Error (ErrorError, "Condition code %.*s is not known",
 	             (int)value->Data.String.len, value->Data.String.s);

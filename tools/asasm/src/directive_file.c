@@ -104,23 +104,20 @@ c_lnk (void)
 bool
 c_incbin (void)
 {
-  char *fileName;
-  if ((fileName = strdup (Input_Rest ())) == NULL)
+  char *fileNameP;
+  if ((fileNameP = strdup (Input_Rest ())) == NULL)
     Error_OutOfMem ();
   char *cptr;
-  for (cptr = fileName; *cptr && !isspace ((unsigned char)*cptr); cptr++)
+  for (cptr = fileNameP; *cptr && !isspace ((unsigned char)*cptr); cptr++)
     /* */;
   *cptr = '\0';
 
   ASFile asFile;
-  FILE *binfp = Include_Get (fileName, &asFile, true);
+  FILE *binfp = !Include_Find (fileNameP, &asFile, true) ? Include_OpenForRead (fileNameP, &asFile) : NULL;
   if (!binfp)
-    Error (ErrorError, "Cannot open file \"%s\"", fileName);
+    Error (ErrorError, "Cannot open file \"%s\"", fileNameP);
   else
     {
-      if (option_verbose)
-	fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", fileName, asFile.canonName);
-
       /* Include binary file.  */
       int c;
       while ((c = getc (binfp)) != EOF)
@@ -128,7 +125,7 @@ c_incbin (void)
       fclose (binfp);
     }
 
-  free (fileName);
+  free (fileNameP);
   ASFile_Free (&asFile);
   return false;
 }

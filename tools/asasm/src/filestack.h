@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) Andy Duplain, August 1992.
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "phase.h"
 #include "macros.h"
 #include "whileif.h"
 
@@ -41,7 +42,14 @@ extern FileNameList *gFileNameListP;
 typedef struct
 {
   FILE *fhandle;
-} FilePObject;
+} PObject_File;
+
+typedef struct
+{
+  const char *startP;
+  const char *endP;
+  const char *curP;
+} PObject_CachedFile;
 
 #define PARSEOBJECT_STACK_SIZE (32)
 
@@ -50,6 +58,7 @@ typedef struct
 typedef enum
 {
   POType_eFile,
+  POType_eCachedFile,
   POType_eMacro
 } POType_e;
 typedef struct
@@ -57,8 +66,9 @@ typedef struct
   POType_e type;
   union
     {
-      FilePObject file;
-      MacroPObject macro;
+      PObject_File file;
+      PObject_CachedFile memory;
+      PObject_Macro macro;
     } d;
 
   const char *fileName; /**< Current file name, or file name of current macro
@@ -78,12 +88,18 @@ typedef struct
   bool (*GetLine)(char *bufP, size_t bufSize);
 
   size_t lastLineSize; /**< Size of the last line read by (*GetLine) *before*
-    any variable substitution is done. So this is *not* equal to what the
-    parsable input is after Input_NextLine().  */
+    any variable substitution is done and before continuation character is
+    taken into account.
+    So this is *not* equal to what the parsable input is after
+    Input_NextLine().  */
 } PObject;
 
 extern PObject gPOStack[PARSEOBJECT_STACK_SIZE];
 extern PObject *gCurPObjP; /**< Current parsable object.  */
+
+void FS_PrepareForPhase (Phase_e phase);
+
+void FS_SetFileCacheSize (unsigned sizeMByte);
 
 unsigned FS_GetMacroDepth (void);
 

@@ -1,3 +1,35 @@
+Sat Feb  9 15:02:21 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* main.c (oOptionSrcCacheSize): Add.
+	(asasm_help): Add NOCache and MaxCache option help.
+	(main): Add NOCache/MaxCache options.
+	* filestack.c (CachedFile_t): Add.
+	(CachedFile_GetLine): Add.
+	(FS_PrepareForPhase): Add.
+	(CachedFile_Lookup): Add.
+	(FS_PushFilePObject): Add support for cached files.
+	(FS_PopFilePObject): Add assert and support for POType_eCachedFile.
+	(FS_PopPObject, FS_GetBuiltinVarLineNum, FS_GetBuiltinVarLineNumUp,
+	FS_GetBuiltinVarLineNumUpper, ReportFSStack): Add support for
+	POType_eCachedFile.
+	* filestack.h (PObject_CachedFile): Add.
+	(POType_eCachedFile): Add.
+	(PObject::d::memory): Add.
+	(FS_PrepareForPhase, FS_SetFileCacheSize): Add.
+	* whileif.c (WhileBlock_t::restoreData::offsetCurP): Add.
+	(c_while): Add support for POType_eCachedFile.
+	(While_Rewind): Likewise.
+	* asm.c (ASM_NextLine): Add support for POType_eCachedFile.
+	* error.c (errorCore): Likewise.
+	* include.c (Include_Get): Change into...
+	(Include_OpenForRead): ...this.
+	* directive_file.c (c_incbin): Follow Include_Get change into
+	Include_OpenForRead.
+	* include.h (Include_Get): Likewise.
+	* macros.h (MacroPObject): Rename into...
+	(PObject_Macro): ...this.
+
 Sat Feb  9 14:18:59 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/common.h (UNUSED): Removed.

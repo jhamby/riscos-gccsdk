@@ -67,7 +67,7 @@ ASM_NextLine (void)
 
       /* Failed to read a line, this might be we're EOD for the current
          parsable object.  Go up one.  */
-      if (gCurPObjP->type == POType_eFile)
+      if (gCurPObjP->type == POType_eFile || gCurPObjP->type == POType_eCachedFile)
 	Error_Line (curFileName, curLineNum, ErrorWarning, "No END found");
       FS_PopPObject (false);
     }
