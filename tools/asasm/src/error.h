@@ -22,7 +22,7 @@
 #ifndef error_header_included
 #define error_header_included
 
-#include "global.h"
+#include "phase.h"
 
 typedef enum
 {
@@ -34,7 +34,7 @@ typedef enum
 
 extern const char InsertCommaAfter[];
 
-void Error_Finish (void);
+void Error_PrepareForPhase (Phase_e phase);
 
 void Error_Line (const char *fileName, unsigned lineNum,
 		 ErrorTag e, const char *format, ...)

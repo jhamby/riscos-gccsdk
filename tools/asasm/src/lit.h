@@ -38,6 +38,7 @@ typedef enum
   eLitDouble
 } Lit_eSize;
 
+void Lit_RemoveLiterals (Symbol *areaSymbolP);
 Value Lit_RegisterInt (const Value *valueP, Lit_eSize size);
 Value Lit_RegisterFloat (const Value *valueP, Lit_eSize size);
 void Lit_DumpPool (void);

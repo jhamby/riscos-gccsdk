@@ -22,16 +22,22 @@
 #include "config.h"
 
 #include "area.h"
+#include "include.h"
 #include "input.h"
 #include "it.h"
+#include "error.h"
 #include "filestack.h"
 #include "local.h"
 #include "opt.h"
+#include "output.h"
+#include "macros.h"
 #include "phase.h"
+#include "predef_reg.h"
 #include "state.h"
+#include "symbol.h"
 #include "variables.h"
 
-Phase_e gPhase = eStartup;
+Phase_e gPhase = eStartUp;
 
 /**
  * Broadcast the fact new phase is about to begin.
@@ -40,12 +46,18 @@ void
 Phase_PrepareFor (Phase_e phase)
 {
   Area_PrepareForPhase (phase);
+  Include_PrepareForPhase (phase);
   Input_PrepareForPhase (phase);
   IT_PrepareForPhase (phase);
+  Error_PrepareForPhase (phase);
   FS_PrepareForPhase (phase);
   Local_PrepareForPhase (phase);
+  Macro_PrepareForPhase (phase);
   Opt_PrepareForPhase (phase);
+  Output_PrepareForPhase (phase);
+  PreDefReg_PrepareForPhase (phase);
   State_PrepareForPhase (phase);
+  Symbol_PrepareForPhase (phase);
   Var_PrepareForPhase (phase);
 
   gPhase = phase;

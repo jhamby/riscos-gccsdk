@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2012 GCCSDK Developers
+ * Copyright (c) 2012-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,14 +24,14 @@
 
 typedef enum
 {
-  eStartup,
+  eStartUp,
   ePassOne,
   ePassTwo,
-  eOutput
+  eOutput,
+  eCleanUp
 } Phase_e;
 extern Phase_e gPhase;
 
 void Phase_PrepareFor (Phase_e phase);
 
 #endif
-

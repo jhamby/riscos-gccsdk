@@ -311,6 +311,7 @@ atexit_handler (void)
     Output_Remove ();
 }
 
+
 static void
 set_option_aof (int writeaof)
 {
@@ -319,7 +320,7 @@ set_option_aof (int writeaof)
       fprintf (stderr, PACKAGE_NAME ": Conflicting options aof and elf\n");
       exit (EXIT_FAILURE);
     }
-  option_aof = writeaof ? true : false;
+  option_aof = writeaof;
 }
 
 
@@ -688,41 +689,36 @@ main (int argc, char **argv)
   else
     {
       asmAbortValid = true;
-      PreDefReg_Init ();
-      if (option_no_code_gen)
-        ASM_Assemble (SourceFileName, true); /* One pass only.  */
-      else
+
+      /* Initialize and do the one or two assembly passes.  */
+      Phase_PrepareFor (eStartUp);
+      ASM_Assemble (SourceFileName, option_no_code_gen);
+
+      /* Don't try to output anything when we have assemble errors.  */
+      const char *canonOutFileName;
+      if (Error_GetExitStatus () == EXIT_SUCCESS
+          && (canonOutFileName = Output_OpenOutput (ObjFileName)) != NULL)
 	{
-	  Output_Init (ObjFileName);
-
-	  /* Do the two pass assembly.  */
-	  ASM_Assemble (SourceFileName, false);
-
-	  /* Don't try to output anything when we have assemble errors.  */
-	  if (Error_GetExitStatus () == EXIT_SUCCESS)
+	  if (option_verbose)
+	    fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", canonOutFileName);
+	  if (setjmp (asmContinue))
+	    fprintf (stderr, PACKAGE_NAME ": Error when writing object file '%s'.\n", canonOutFileName);
+	  else
 	    {
-	      if (setjmp (asmContinue))
-		fprintf (stderr, PACKAGE_NAME ": Error when writing object file '%s'.\n", ObjFileName);
-	      else
-		{
-		  asmContinueValid = true;
-		  /* Write the ELF/AOF output.  */
-		  Phase_PrepareFor (eOutput);
-		  if (Error_GetExitStatus () == EXIT_SUCCESS)
-		    {
+	      asmContinueValid = true;
+	      /* Write the ELF/AOF output.  */
+	      Phase_PrepareFor (eOutput);
 #ifndef NO_ELF_SUPPORT
-		      if (!option_aof)
-			Output_ELF ();
-		      else
+	      if (!option_aof)
+		Output_ELF ();
+	      else
 #endif
-			Output_AOF ();
-		    }
-		}
-	      asmContinueValid = false;
+		Output_AOF ();
 	    }
+	  asmContinueValid = false;
 	}
     }
-  Output_Finish ();
-  Error_Finish ();
+
+  Phase_PrepareFor (eCleanUp);
   return Error_GetExitStatus ();
 }

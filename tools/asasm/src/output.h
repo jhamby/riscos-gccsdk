@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2012 GCCSDK Developers
+ * Copyright (c) 2002-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,9 +26,11 @@
 #include "config.h"
 
 #include "global.h"
+#include "phase.h"
 
-void Output_Init (const char *outfile);
-void Output_Finish (void);
+void Output_PrepareForPhase (Phase_e phase);
+
+const char *Output_OpenOutput (const char *outfile);
 void Output_Remove (void);
 
 void Output_AOF (void);

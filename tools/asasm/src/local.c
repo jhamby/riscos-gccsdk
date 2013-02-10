@@ -91,8 +91,9 @@ Local_PrepareForPhase (Phase_e phase)
 {
   switch (phase)
     {
-      case eStartup:
+      case eStartUp:
       case ePassOne:
+      case eCleanUp:
 	break;
 
       case ePassTwo:

@@ -168,6 +168,20 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
   return Value_Symbol (Lit_GetLitOffsetAsSymbol (litP), 1, 0);
 }
 
+
+void
+Lit_RemoveLiterals (Symbol *areaSymbolP)
+{
+  for (const LitPool *litP = areaSymbolP->area->litPool; litP != NULL; /* */)
+    {
+      const LitPool *nextLitP = litP->next;
+      free ((void *)litP);
+      litP = nextLitP;
+    }
+  areaSymbolP->area->litPool = NULL;
+}
+
+
 /**
  * Registers a literal integer for the current area.
  * \return Either a ValueAddr of a previous (but same) literal integer,

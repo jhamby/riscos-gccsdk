@@ -56,7 +56,7 @@
 #include "reloc.h"
 #include "symbol.h"
 
-static FILE *objfile;
+static FILE *oFHandle;
 
 #define FIX(n) ((3+(int)(n))&~3)
 #define EXTRA(n) (FIX(n)-(n))
@@ -88,78 +88,96 @@ ourword (ARMWord val)
 }
 #endif
 
-void
-Output_Init (const char *outfile)
+
+const char *
+Output_OpenOutput (const char *outfile)
 {
-  objfile = NULL;
-  if (outfile && !(outfile[0] == '-' && outfile[1] == '\0'))
+  oFHandle = NULL;
+  for (unsigned pathidx = 0; /* */; ++pathidx)
     {
-      for (unsigned pathidx = 0; /* */; ++pathidx)
+      const char *out[3];
+      bool state[3] = { false, false, false };
+
+      do
 	{
-	  const char *out[3];
-	  bool state[3] = { false, false, false };
+	  out[0] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
+				   &state[0], eA_Dot_B);
+	  if (out[0] && (oFHandle = fopen (out[0], "wb")) != NULL)
+	    return outname;
 
-	  do
-	    {
-	      out[0] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
-				       &state[0], eA_Dot_B);
-	      if (out[0] && (objfile = fopen (out[0], "wb")) != NULL)
-		return;
+	  out[1] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
+				   &state[1], eB_DirSep_A);
+	  if (out[1] && (oFHandle = fopen (out[1], "wb")) != NULL)
+	    return outname;
 
-	      out[1] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
-				       &state[1], eB_DirSep_A);
-	      if (out[1] && (objfile = fopen (out[1], "wb")) != NULL)
-		return;
+	  out[2] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
+				   &state[2], eA_Slash_B);
+	  if (out[2] && (oFHandle = fopen (out[2], "wb")) != NULL)
+	    return outname;
 
-	      out[2] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
-				       &state[2], eA_Slash_B);
-	      if (out[2] && (objfile = fopen (out[2], "wb")) != NULL)
-		return;
+	  assert (state[0] == state[1] && state[0] == state[2]);
+	} while (out[0] && out[1] && out[2] && state[0]);
 
-	      assert (state[0] == state[1] && state[0] == state[2]);
-	    } while (out[0] && out[1] && out[2] && state[0]);
+      if (out[0] == NULL && out[1] == NULL && out[2] == NULL)
+	break;
+    }
 
-	  if (out[0] == NULL && out[1] == NULL && out[2] == NULL)
-	    break;
+  Error (ErrorError, PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
+  return NULL;
+}
+
+
+void
+Output_PrepareForPhase (Phase_e phase)
+{
+  switch (phase)
+    {
+      case eStartUp:
+      case ePassOne:
+      case ePassTwo:
+	break;
+
+      case eOutput:
+	{
+	  if (outname[0])
+	    Depend_Write (outname);
+	  break;
 	}
 
-      Error_Abort (PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
-    }
-  else
-    {
-      outname[0] = 0;
-      objfile = stdout;
-    }
-}
-
-void
-Output_Finish (void)
-{
-  if (objfile != NULL && objfile != stdout)
-    {
-      fclose (objfile);
-      objfile = NULL;
+      case eCleanUp:
+	{
+	  if (oFHandle != NULL)
+	    {
+	      fclose (oFHandle);
+	      oFHandle = NULL;
 #ifdef __riscos__
-      /* Set filetype to 0xE1F (ELF, ELF output) or 0xFFD (Data, AOF output).  */
-      _kernel_swi_regs regs;
-      regs.r[0] = 18;
-      regs.r[1] = (int) outname;
-      regs.r[2] = (option_aof) ? 0xFFD : 0xE1F;
+	      /* Set filetype to 0xE1F (ELF, ELF output) or 0xFFD (Data, AOF output).  */
+	      _kernel_swi_regs regs;
+	      regs.r[0] = 18;
+	      regs.r[1] = (int) outname;
+	      regs.r[2] = (option_aof) ? 0xFFD : 0xE1F;
 
-      _kernel_swi(OS_File, &regs, &regs);
+	      _kernel_swi(OS_File, &regs, &regs);
 #endif
+	    }
+	  break;
+	}
     }
-  if (outname[0])
-    Depend_Write (outname);
 }
+
 
 void
 Output_Remove (void)
 {
-  Output_Finish ();
+  if (oFHandle != NULL)
+    {
+      fclose (oFHandle);
+      oFHandle = NULL;
+    }
   if (outname[0])
     remove (outname);
 }
+
 
 static size_t
 writeEntry (int ID, int type, size_t size, size_t *offset)
@@ -172,15 +190,12 @@ writeEntry (int ID, int type, size_t size, size_t *offset)
       .Size = armword (size)
     };
   *offset += size;
-  return fwrite (&chunk_entry, 1, sizeof (chunk_entry), objfile);
+  return fwrite (&chunk_entry, 1, sizeof (chunk_entry), oFHandle);
 }
 
 void
 Output_AOF (void)
 {
-  if (option_verbose)
-    fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
-
   /* We must call Reloc_GetNumberRelocs() before anything else.  */
   size_t totalAreaSize = 0;
   uint32_t numAreas = 0;
@@ -217,7 +232,7 @@ Output_AOF (void)
       .maxChunks = armword (5),
       .noChunks = armword (5)
     };
-  size_t written = fwrite (&chunk_header, 1, sizeof (chunk_header), objfile);
+  size_t written = fwrite (&chunk_header, 1, sizeof (chunk_header), oFHandle);
   size_t offset = sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry);
 
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_HEAD,
@@ -242,7 +257,7 @@ Output_AOF (void)
     }
 
   /* Chunk 0 Header (OBJ_HEAD).  */
-  fwrite (&aof_head, 1, sizeof (aof_head), objfile);
+  fwrite (&aof_head, 1, sizeof (aof_head), oFHandle);
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
@@ -259,11 +274,11 @@ Output_AOF (void)
 	};
       if (aof_entry.noRelocations != 0 && Area_IsNoInit (ap->area))
 	Error_AbortLine (NULL, 0, "Internal Output_AOF: relocations in uninitialised area");
-      fwrite (&aof_entry, 1, sizeof (aof_entry), objfile);
+      fwrite (&aof_entry, 1, sizeof (aof_entry), oFHandle);
     }
 
   /* Chunk 1 Identification (OBJ_IDFN).  */
-  if (idfn_size != fwrite (GET_IDFN, 1, idfn_size, objfile))
+  if (idfn_size != fwrite (GET_IDFN, 1, idfn_size, oFHandle))
     {
       Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing identification");
       return;
@@ -271,17 +286,17 @@ Output_AOF (void)
 
   /* Chunk 2 String Table (OBJ_STRT).  */
   unsigned int strt_size = armword (symOut.stringSize + 4);
-  if (fwrite (&strt_size, 1, 4, objfile) != sizeof (strt_size))
+  if (fwrite (&strt_size, 1, 4, oFHandle) != sizeof (strt_size))
     {
       Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing string table size");
       return;
     }
-  Symbol_OutputStrings (objfile, &symOut);
+  Symbol_OutputStrings (oFHandle, &symOut);
   for (unsigned pad = EXTRA (symOut.stringSize); pad; pad--)
-    fputc (0, objfile);
+    fputc (0, oFHandle);
 
   /* Chunk 3 Symbol Table (OBJ_SYMT).  */
-  Symbol_OutputForAOF (objfile, &symOut);
+  Symbol_OutputForAOF (oFHandle, &symOut);
 
   /* Chunk 4 Area (OBJ_AREA).  */
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
@@ -292,13 +307,13 @@ Output_AOF (void)
       
       if (!Area_IsNoInit (ap->area))
 	{
-	  if (fwrite (ap->area->image, 1, ap->area->maxIdx, objfile)
+	  if (fwrite (ap->area->image, 1, ap->area->maxIdx, oFHandle)
 	      != ap->area->maxIdx)
 	    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing %s image", ap->str);
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area->maxIdx); pad; --pad)
-	    fputc (0, objfile);
-	  Reloc_AOFOutput (objfile, ap);
+	    fputc (0, oFHandle);
+	  Reloc_AOFOutput (oFHandle, ap);
 	}
     }
 
@@ -327,16 +342,13 @@ writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
     };
   if (type != SHT_NOBITS)
     *offset += FIX (size);
-  if (fwrite (&sect_hdr, sizeof (sect_hdr), 1, objfile) != 1)
+  if (fwrite (&sect_hdr, sizeof (sect_hdr), 1, oFHandle) != 1)
     Error_AbortLine (NULL, 0, "Internal writeElfSH: error when writing chunk file header");
 }
 
 void
 Output_ELF (void)
 {
-  if (option_verbose)
-    fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
-
   /* We must call Reloc_GetNumberRelocs() before anything else.  */
   uint32_t numAreas = 0;
   uint32_t numRelocs = 0;
@@ -390,7 +402,7 @@ Output_ELF (void)
   elf_head.e_shentsize = sizeof (Elf32_Shdr);
   elf_head.e_shnum = numAreas + numRelocs + 4; /* 4 = "" (SHT_NULL) + ".symtab" (SHT_SYMTAB) + ".strtab" (SHT_STRTAB) + ".shstrtab" (SHT_STRTAB) */
   elf_head.e_shstrndx = numAreas + numRelocs + 3;
-  fwrite (&elf_head, 1, sizeof (elf_head), objfile);
+  fwrite (&elf_head, 1, sizeof (elf_head), oFHandle);
 
   /* Order of sections:
        "" (SHT_NULL),
@@ -474,13 +486,13 @@ Output_ELF (void)
   writeElfSH (shstrsize - sizeof (".shstrtab"), SHT_STRTAB, 0, 0, shstrsize, 0, 0, 1, 0, &offset);
 
   /* Symbol table (.symtab).  */
-  Symbol_OutputForELF (objfile, &symOut);
+  Symbol_OutputForELF (oFHandle, &symOut);
 
   /* String table (.strtab).  */
-  fputc (0, objfile);
-  Symbol_OutputStrings (objfile, &symOut);
+  fputc (0, oFHandle);
+  Symbol_OutputStrings (oFHandle, &symOut);
   for (unsigned pad = EXTRA (strsize); pad; pad--)
-    fputc (0, objfile);
+    fputc (0, oFHandle);
 
   /* Areas */
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
@@ -491,7 +503,7 @@ Output_ELF (void)
       
       if (!Area_IsNoInit (ap->area))
         {
-          if (fwrite (ap->area->image, 1, ap->area->maxIdx, objfile)
+          if (fwrite (ap->area->image, 1, ap->area->maxIdx, oFHandle)
 	      != ap->area->maxIdx)
             {
               Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing %s image", ap->str);
@@ -499,32 +511,32 @@ Output_ELF (void)
             }
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area->curIdx); pad; --pad)
-	    fputc (0, objfile);
+	    fputc (0, oFHandle);
           if (ap->area->numRelocs)
-            Reloc_ELFOutput (objfile, ap);
+            Reloc_ELFOutput (oFHandle, ap);
         }
     }
 
   /* Section head string table.  */
-  fputc (0, objfile);
-  fwrite (".symtab", 1, sizeof(".symtab"), objfile);
-  fwrite (".strtab", 1, sizeof(".strtab"), objfile);
+  fputc (0, oFHandle);
+  fwrite (".symtab", 1, sizeof(".symtab"), oFHandle);
+  fwrite (".strtab", 1, sizeof(".strtab"), oFHandle);
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
-      fwrite (ap->str, 1, ap->len + 1, objfile);
+      fwrite (ap->str, 1, ap->len + 1, oFHandle);
       if (ap->area->numRelocs)
         {
-          fwrite (".rel.", 1, sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0), objfile);
-          fwrite (ap->str, 1, ap->len + 1, objfile);
+          fwrite (".rel.", 1, sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0), oFHandle);
+          fwrite (ap->str, 1, ap->len + 1, oFHandle);
         }
     }
-  fwrite (".shstrtab", 1, sizeof(".shstrtab"), objfile);
+  fwrite (".shstrtab", 1, sizeof(".shstrtab"), oFHandle);
   for (unsigned pad = EXTRA (shstrsize); pad; pad--)
-    fputc (0, objfile);
+    fputc (0, oFHandle);
 
   Symbol_FreeSymbolOut (&symOut);
 }

@@ -27,8 +27,11 @@
 #include <stdio.h>
 
 #include "os.h"
+#include "phase.h"
 
-void Include_Add (const char *incpath);
+void Include_PrepareForPhase (Phase_e phase);
+
+void Include_Add (const char *inclDirP);
 bool Include_Find (const char *fileName, ASFile *asFileP, bool inc);
 FILE *Include_OpenForRead (const char *fileNameP, const ASFile *asFileP);
 

@@ -55,7 +55,7 @@ typedef struct CachedFile
 static size_t oFileCacheSize; /* In bytes.  */
 static const CachedFile_t *oCachedFileListP;
 
-FileNameList *gFileNameListP; // FIXME: needs freeing !
+FileNameList *gFileNameListP;
 
 PObject gPOStack[PARSEOBJECT_STACK_SIZE];
 PObject *gCurPObjP = NULL; /**< Current parsable object.  Points into
@@ -69,22 +69,35 @@ FS_PrepareForPhase (Phase_e phase)
 {
   switch (phase)
     {
-      case eStartup:
+      case eStartUp:
       case ePassOne:
       case ePassTwo:
 	break;
 
       case eOutput:
-	/* We can remove all cached files now.  */
-	for (const CachedFile_t *cachedFileP = oCachedFileListP;
-	     cachedFileP != NULL;
-	     /* */)
-	  {
-	    const CachedFile_t *nextCachedFileP = cachedFileP->nextP;
-	    free ((void *)cachedFileP);
-	    cachedFileP = nextCachedFileP;
-	  }
-	break;
+	{
+	  /* We can remove all cached files now.  */
+	  for (const CachedFile_t *cachedFileP = oCachedFileListP; cachedFileP != NULL; /* */)
+	    {
+	      const CachedFile_t *nextCachedFileP = cachedFileP->nextP;
+	      free ((void *)cachedFileP);
+	      cachedFileP = nextCachedFileP;
+	    }
+	  oCachedFileListP = NULL;
+	  break;
+	}
+
+      case eCleanUp:
+	{
+	  for (const FileNameList *fileNameP = gFileNameListP; fileNameP != NULL; /* */)
+	    {
+	      const FileNameList *nextFileNameP = fileNameP->nextP;
+	      free ((void *)fileNameP);
+	      fileNameP = nextFileNameP;
+	    }
+	  gFileNameListP = NULL;
+	  break;
+	}
     }
 }
 

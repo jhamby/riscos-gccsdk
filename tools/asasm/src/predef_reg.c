@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2012 GCCSDK Developers
+ * Copyright (c) 2012-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -92,12 +92,13 @@ PreDefReg_Range (char reg, unsigned num, IntType_e type, bool upcaseToo)
 
 
 /**
- * Predefines registers based on REGNAMES, APCS and CPU/FPU/DEVICE options.
+ * Predefines registers based on REGNAMES, APCS and CPU/FPU/DEVICE options
+ * at eStartUp phase time (depending on RegNames options).
  */
 void
-PreDefReg_Init (void)
+PreDefReg_PrepareForPhase (Phase_e phase)
 {
-  if (gOptionRegNames == eNone)
+  if (phase != eStartUp || gOptionRegNames == eNone)
     return;
 
   PreDefReg_Range ('r', 16, eIntType_CPU, true); /* CPU registers r0-r15, R0-R15.  */

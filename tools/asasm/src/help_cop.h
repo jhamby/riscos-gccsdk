@@ -25,6 +25,8 @@
 
 #include <stdbool.h>
 
+#include "global.h"
+
 #define CP_NUMBER(n) ((n)<< 8) /* CP# */
 #define CP_DCODE(n)  ((n)<<20) /* CP Opc */
 #define CP_RTRAN(n)  ((n)<<21) /* ??? */

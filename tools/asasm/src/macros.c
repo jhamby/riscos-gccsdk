@@ -53,10 +53,44 @@ typedef enum
   eMKeyword_AnythingElse
 } MKeyword_e;
 
-static Macro *macroList;
+static Macro *oMacroListP;
 
 static bool Macro_GetLine (char *bufP, size_t bufSize);
 static const Macro *Macro_Find (const char *name, size_t len, bool addSfxWildcard);
+
+void
+Macro_PrepareForPhase (Phase_e phase)
+{
+  switch (phase)
+    {
+      case eStartUp:
+      case ePassOne:
+      case ePassTwo:
+      case eOutput:
+	break;
+
+      case eCleanUp:
+	{
+	  for (Macro *macroP = oMacroListP; macroP != NULL; /* */)
+	    {
+	      Macro *nextMacroP = macroP->nextP;
+	      free ((void *)macroP->name); macroP->name = NULL;
+	      free ((void *)macroP->buf); macroP->buf = NULL;
+	      /* Free argument names and default argument values.  */
+	      for (unsigned i = 0; i != macroP->numArgs; ++i)
+		{
+		  free ((void *)macroP->args[i]); macroP->args[i] = NULL;
+		  free ((void *)macroP->defArgs[i]); macroP->defArgs[i] = NULL;
+		}
+	      free (macroP);
+	      macroP = nextMacroP;
+	    }
+	  oMacroListP = NULL;
+	  break;
+	}
+    }
+}
+
 
 /**
  * Similar to FS_PopFilePObject().
@@ -287,16 +321,16 @@ Macro_GetLine (char *bufP, size_t bufSize)
 static const Macro *
 Macro_Find (const char *name, size_t len, bool addSfxWildcard)
 {
-  for (const Macro *m = macroList; m != NULL; m = m->next)
+  for (const Macro *mP = oMacroListP; mP != NULL; mP = mP->nextP)
     {
       /* Check length requirement first.  */
-      if (m->nameLen == len
-	  || (m->nameLen < len && m->suffixArg)
-	  || (m->nameLen > len && addSfxWildcard))
+      if (mP->nameLen == len
+	  || (mP->nameLen < len && mP->suffixArg)
+	  || (mP->nameLen > len && addSfxWildcard))
 	{
-	  size_t charsToMatch = len < m->nameLen ? len : m->nameLen;
-	  if (!memcmp (name, m->name, charsToMatch))
-	    return m;
+	  size_t charsToMatch = len < mP->nameLen ? len : mP->nameLen;
+	  if (!memcmp (name, mP->name, charsToMatch))
+	    return mP;
 	}
     }
 
@@ -469,8 +503,6 @@ c_macro (void)
 	  Error (ErrorError, "Failed to parse macro parameter");
 	  break;
 	}
-      if ((m.args[m.numArgs] = strndup (arg, argLen)) == NULL)
-	Error_OutOfMem ();
       Input_SkipWS ();
       const char *defValue;
       if (Input_Match ('=', false))
@@ -586,8 +618,8 @@ c_macro (void)
   if ((p = malloc (sizeof (Macro))) == NULL)
     Error_OutOfMem ();
   *p = m;
-  p->next = macroList;
-  macroList = p;
+  p->nextP = oMacroListP;
+  oMacroListP = p;
 
   return false;
 

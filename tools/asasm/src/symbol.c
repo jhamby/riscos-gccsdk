@@ -59,6 +59,33 @@ static bool oKeepAllSymbols;
 static bool oExportAllSymbols;
 static bool oAllExportSymbolsAreWeak;
 
+static void Symbol_Free (Symbol **symPP);
+
+void
+Symbol_PrepareForPhase (Phase_e phase)
+{
+  switch (phase)
+    {
+      case eStartUp:
+      case ePassOne:
+      case ePassTwo:
+      case eOutput:
+	break;
+
+      case eCleanUp:
+	{
+	  for (unsigned i = 0; i != SYMBOL_TABLESIZE; i++)
+	    {
+	      Symbol **symPP = &symbolTable[i];
+	      while (*symPP)
+		Symbol_Free (symPP);
+	    }
+	  break;
+	}
+    }
+}
+
+
 static Symbol *
 Symbol_New (const char *str, size_t len)
 {
@@ -257,7 +284,7 @@ Symbol_Remove (const Lex *l)
 void
 Symbol_RemoveVariables (void)
 {
-  for (int i = 0; i != SYMBOL_TABLESIZE; i++)
+  for (unsigned i = 0; i != SYMBOL_TABLESIZE; i++)
     {
       Symbol **symPP = &symbolTable[i];
       while (*symPP)
@@ -1390,7 +1417,7 @@ Symbol_Print (const Symbol *sym)
 void
 Symbol_PrintAll (void)
 {
-  for (int i = 0; i != SYMBOL_TABLESIZE; i++)
+  for (unsigned i = 0; i != SYMBOL_TABLESIZE; i++)
     {
       for (const Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{

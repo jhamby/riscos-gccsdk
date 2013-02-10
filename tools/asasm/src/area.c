@@ -47,6 +47,7 @@
 #include "main.h"
 #include "phase.h"
 #include "symbol.h"
+#include "reloc.h"
 
 static void Area_Ensure (void);
 
@@ -196,6 +197,9 @@ Area_PrepareForPhase (Phase_e phase)
 {
   switch (phase)
     {
+      case eStartUp:
+	break;
+
       case ePassOne:
 	Area_ResetPrivateVars ();
 	Area_Ensure ();
@@ -276,8 +280,23 @@ Area_PrepareForPhase (Phase_e phase)
 	  break;
 	}
 
-      default:
-	break;
+      case eCleanUp:
+	{
+	  for (Symbol *areaSymbolP = areaHeadSymbol; areaSymbolP != NULL; /* */)
+	    {
+	      Symbol *nextAreaSymbolP = areaSymbolP->area->next;
+              Area *areaP = areaSymbolP->area;
+	      free (areaP->image);
+	      areaP->image = NULL;
+	      Reloc_RemoveRelocs (areaSymbolP);
+	      Lit_RemoveLiterals (areaSymbolP);
+	      free (areaP);
+	      areaSymbolP->area = NULL;
+	      areaSymbolP = nextAreaSymbolP;
+	    }
+	  areaHeadSymbol = NULL;
+	  break;
+	}
     }
 }
 

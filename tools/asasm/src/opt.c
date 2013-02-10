@@ -70,8 +70,9 @@ Opt_PrepareForPhase (Phase_e phase)
 	gOpt_DirectiveValue = kOpt_DefaultValue;
 	break;
 
-      case eStartup:
+      case eStartUp:
       case eOutput:
+      case eCleanUp:
 	break;
     }
 }

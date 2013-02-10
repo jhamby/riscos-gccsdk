@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2012 GCCSDK Developers
+ * Copyright (c) 2012-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,9 @@
 #ifndef predef_reg_header_included
 #define predef_reg_header_included
 
-void PreDefReg_Init (void);
+#include "phase.h"
+
+void PreDefReg_PrepareForPhase (Phase_e phase);
 
 #endif
 

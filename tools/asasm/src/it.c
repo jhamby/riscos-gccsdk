@@ -57,9 +57,10 @@ IT_PrepareForPhase (Phase_e phase)
 	  break;
 	}
 
-      case eStartup:
+      case eStartUp:
       case ePassOne:
       case eOutput:
+      case eCleanUp:
 	break;
     }
 }

@@ -39,11 +39,8 @@
 #include "error.h"
 #include "expr.h"
 #include "eval.h"
-#include "filestack.h"
 #include "global.h"
-#include "main.h"
 #include "output.h"
-#include "phase.h"
 #include "reloc.h"
 #include "symbol.h"
 
@@ -70,6 +67,22 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
     newReloc->value.Data.Symbol.symbol->used = 0;
 
   return newReloc;
+}
+
+
+/**
+ * Removes all the relocations associated with given area.
+ */
+void
+Reloc_RemoveRelocs (Symbol *areaSymbolP)
+{
+  for (const Reloc *relocP = areaSymbolP->area->relocs; relocP != NULL; /* */)
+    {
+      const Reloc *nextRelocP = relocP->next;
+      free ((void *)relocP);
+      relocP = nextRelocP;
+    }
+  areaSymbolP->area->relocs = NULL;
 }
 
 

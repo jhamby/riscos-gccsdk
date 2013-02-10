@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include "lex.h"
+#include "phase.h"
 #include "value.h"
 
 #define SYMBOL_LOCAL     0x0001	/* Defined with local scope */
@@ -135,6 +136,8 @@ typedef struct Symbol
 
 /* Prefix of all internal AsAsm symbols.  */
 #define kIntLabelPrefix "$$AsAsm$$Int$$"
+
+void Symbol_PrepareForPhase (Phase_e phase);
 
 Symbol *Symbol_Get (const Lex *l);
 Symbol *Symbol_Find (const Lex *l);

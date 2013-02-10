@@ -1,3 +1,60 @@
+Sun Feb 10 04:16:45 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* eval.h: Remove global.h include.
+	* code.h: Likewise.
+	* help_cop.h: Add global.h include.
+	* input.h: Add stddef.h and phase.h include.  Remove ctype.h, stdio.h,
+	global.h and macros.h include.
+	* directive_file.c: Add ctype.h include.
+	* filename.h: Add stddef.h include.
+	* directive_misc.c: Add stdio.h include.
+	* phase.c (Phase_PrepareFor): Add calls to Include_PrepareForPhase,
+	Error_PrepareForPhase, Macro_PrepareForPhase, Output_PrepareFor,
+	PreDefReg_PrepareForPhase, Symbol_PrepareForPhase.
+	* phase.h (eCleanUp): Add.
+	(eStartup): Rename to eStartUp.
+	* symbol.c (Symbol_PrepareForPhase): Add.
+	(Symbol_RemoveVariables): Use unsigned.
+	(Symbol_PrintAll): Likewise.
+	* symbol.h (Symbol_PrepareForPhase): Add.
+	* reloc.c (Reloc_RemoveRelocs): Add.
+	* reloc.h: Likewise.
+	* it.c (IT_PrepareForPhase): Follow eStartup/eCleanUp changes.
+	* area.c (Area_PrepareForPhase): Likewise.
+	* stat.c (State_PrepareForPhase): Likewise.
+	* local.c (Local_PrepareForPhase): Likewise.
+	* opt.c (Opt_PrepareForPhase): Likewise.
+	* include.c (incDirPP, incDirCurSize, incDirMaxSize): Remove.
+	(IncludeDir_t, oIncludeDirListP): Add.
+	(Include_PrepareForPhase): Add.
+	(Include_Add): Reimplement.
+	(Include_Find): Follow changes.
+	* include.h (Include_PrepareForPhase): Add.
+	* macro.c (Macro_PrepareForPhase): Add.
+	(macroList): Rename to oMacroListP.
+	* macro.h (Macro_PrepareForPhase): Add.
+	* lit.c (Lit_RemoveLiterals): Add.
+	* lit.h: Likewise.
+	* output.c (objfile): Rename to oFHandle.
+	(Output_Init): Rework to Output_OpenOutput.  Drop stdout support.
+	(Output_Finish): Rework to...
+	(Output_PrepareForPhase): ...this.
+	(Output_Remove): Don't use Output_Finish.
+	(Output_AOF,Output_ELF): Move verbose output to main.
+	* output.h: Likewise.
+	* help_cpu.h: Add config.h include.
+	* error.c (Error_Finish): Rework to...
+	(Error_PrepareForPhase): ...this.
+	(fixup): Reordered.
+	* error.h: Likewise.  Drop global.h include.
+	* predef_reg.c (PreDefReg_Init): Rework to...
+	(PreDefReg_PrepareForPhase): ...this.
+	* predef_reg.h: Likewise.
+	* filestack.c (FS_PrepareForPhase): Free filenames.
+	* main.c (set_option_aof): Fix option_aof writing.
+	(main): Support eCleanUp phase.
+
 Sat Feb  9 15:02:21 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

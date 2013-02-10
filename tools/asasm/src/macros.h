@@ -24,7 +24,9 @@
 #define macros_header_included
 
 #include <stdbool.h>
+
 #include "lex.h"
+#include "phase.h"
 #include "variables.h"
 
 #define MACRO_ARG_LIMIT (18)
@@ -35,7 +37,7 @@
 
 typedef struct Macro
 {
-  const struct Macro *next;
+  struct Macro *nextP;
   const char *name; /**< Name of this macro.  Malloced string.  */
   size_t nameLen; /**< Length of macro name.  */  
   const char *fileName; /**< Filename where this macro has been defined.  */
@@ -58,6 +60,8 @@ typedef struct
   unsigned optDirective; /**< Value {OPT} just before macro invocation.
     {OPT} gets restored after macro invocation.  */
 } PObject_Macro;
+
+void Macro_PrepareForPhase (Phase_e phase);
 
 void FS_PopMacroPObject (bool noCheck);
 

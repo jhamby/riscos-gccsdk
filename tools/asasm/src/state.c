@@ -94,8 +94,9 @@ State_PrepareForPhase (Phase_e phase)
 	State_Init (oDefaultSyntaxInstrType);
 	break;
 
-      case eStartup:
+      case eStartUp:
       case eOutput:
+      case eCleanUp:
 	break;
     }
 }

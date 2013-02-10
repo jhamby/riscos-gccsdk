@@ -23,6 +23,7 @@
 #define filename_header_included
 
 #include <stdbool.h>
+#include <stddef.h>
 
 /* Source:        Unix:                          RISC OS:
  * Dir.A.B        Dir/A.B   Dir/B/A   Dir/A/B    Dir.A.B

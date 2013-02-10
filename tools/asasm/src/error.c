@@ -56,7 +56,8 @@ typedef enum
 {
   eTB_NotStarted,
   eTB_SuccessfullyStarted,
-  eTB_NotStartedBecauseOfError
+  eTB_NotStartedBecauseOfError,
+  eTB_Ended
 } TBStatus;
 static TBStatus oThrowbackStarted = eTB_NotStarted;
 #endif
@@ -65,16 +66,30 @@ static char errbuf[2048];
 
 
 void
-Error_Finish (void)
+Error_PrepareForPhase (Phase_e phase)
 {
-#ifdef __riscos__
-  if (oThrowbackStarted == eTB_SuccessfullyStarted)
+  switch (phase)
     {
-      _kernel_oserror *err;
-      if ((err = OS_ThrowbackEnd ()) != NULL && option_verbose > 1)
-        fprintf (stderr, "OS_ThrowbackEnd error: %s\n", err->errmess);
-    }
+      case eStartUp:
+      case ePassOne:
+      case ePassTwo:
+      case eOutput:
+	break;
+
+      case eCleanUp:
+	{
+#ifdef __riscos__
+	  if (oThrowbackStarted == eTB_SuccessfullyStarted)
+	    {
+	      _kernel_oserror *err;
+	      if ((err = OS_ThrowbackEnd ()) != NULL && option_verbose > 1)
+		fprintf (stderr, "OS_ThrowbackEnd error: %s\n", err->errmess);
+	      oThrowbackStarted = eTB_Ended;
+	    }
 #endif
+	  break;
+	}
+    }
 }
 
 
@@ -110,15 +125,13 @@ Error_GetExitStatus (void)
 static void __attribute__ ((noreturn))
 fixup (void)
 {
-  if (!asmContinueValid)
-    {
-      if (asmAbortValid)
-        longjmp (asmAbort, 1);
-      else
-	abort ();	
-    }
-  else
+  if (asmContinueValid)
     longjmp (asmContinue, 1);
+
+  if (asmAbortValid)
+    longjmp (asmAbort, 1);
+
+  abort ();	
 }
 
 

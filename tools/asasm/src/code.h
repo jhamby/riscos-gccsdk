@@ -25,7 +25,6 @@
 
 #include <stdbool.h>
 
-#include "global.h"
 #include "lex.h"
 #include "reloc.h"
 #include "symbol.h"

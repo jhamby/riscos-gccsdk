@@ -23,12 +23,10 @@
 #ifndef input_header_included
 #define input_header_included
 
-#include <ctype.h>
 #include <stdbool.h>
-#include <stdio.h>
+#include <stddef.h>
 
-#include "global.h"
-#include "macros.h"
+#include "phase.h"
 
 void Input_PrepareForPhase (Phase_e phase);
 

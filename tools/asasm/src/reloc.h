@@ -23,6 +23,14 @@
 #ifndef reloc_header_included
 #define reloc_header_included
 
+#include "config.h"
+
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "aoffile.h"
 #include "symbol.h"
 #include "value.h"
@@ -34,6 +42,7 @@ typedef struct RELOC
   Value value;		/**< ValueSymbol.   */
 } Reloc;
 
+void Reloc_RemoveRelocs (Symbol *areaSymbolP);
 unsigned Reloc_GetNumberRelocs (const Symbol *area);
 void Reloc_AOFOutput (FILE *outfile, const Symbol *area);
 #ifndef NO_ELF_SUPPORT

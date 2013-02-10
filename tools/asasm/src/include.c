@@ -25,6 +25,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,38 +50,63 @@
 #  define NAT_DIR_CHR '/'
 #endif
 
-static const char **incDirPP;
-static unsigned incDirCurSize;
-static unsigned incDirMaxSize;
+typedef struct IncludeDir
+{
+  struct IncludeDir *nextP;
+  char dirP[1];
+} IncludeDir_t;
+
+static IncludeDir_t *oIncludeDirListP;
 
 void
-Include_Add (const char *path)
+Include_PrepareForPhase (Phase_e phase)
 {
-  for (unsigned i = 0; i != incDirCurSize; i++)
-    if (strcmp (incDirPP[i], path) == 0)
-      return; /* already in list */
-
-  /* Need to add to the list */
-  if (incDirCurSize == incDirMaxSize)
+  switch (phase)
     {
-      size_t newDirMaxSize = 2*incDirMaxSize + 3;
-      incDirPP = (const char **)realloc (incDirPP, newDirMaxSize * sizeof (const char *));
-      if (incDirPP == NULL)
-        {
-          incDirMaxSize = incDirCurSize = 0;
-	  Error_OutOfMem ();
-        }
-      incDirMaxSize = newDirMaxSize;
-    }
+      case eStartUp:
+      case ePassOne:
+      case ePassTwo:
+      case eOutput:
+	break;
 
-  char *newPath = strdup (path);
-  if (newPath == NULL)
+      case eCleanUp:
+	{
+	  for (const IncludeDir_t *inclDirP = oIncludeDirListP; inclDirP != NULL; /* */)
+	    {
+	      const IncludeDir_t *nextInclDirP = inclDirP->nextP;
+	      free ((void *)inclDirP);
+	      inclDirP = nextInclDirP;
+	    }
+	  oIncludeDirListP = NULL;
+	  break;
+	}
+    }
+}
+
+
+void
+Include_Add (const char *inclDirP)
+{
+  IncludeDir_t **prevInclDirPP = &oIncludeDirListP;
+  while (*prevInclDirPP != 0)
+    {
+      if (!strcmp ((*prevInclDirPP)->dirP, inclDirP))
+	return; /* already in list */
+      prevInclDirPP = &(*prevInclDirPP)->nextP;
+    }      
+
+  /* Need to add to the include directory list.  */
+  size_t inclDirSize = strlen (inclDirP) + 1;
+  IncludeDir_t *newInclDirP = malloc (offsetof (IncludeDir_t, dirP) + inclDirSize);
+  if (newInclDirP == NULL)
     Error_OutOfMem ();
+  newInclDirP->nextP = NULL;
+  memcpy (newInclDirP->dirP, inclDirP, inclDirSize);
+  ((IncludeDir_t *)prevInclDirPP)->nextP = newInclDirP;
+
   /* Strip trailing dir separator */
-  size_t len = strlen (newPath);
-  if (newPath[len] == NAT_DIR_CHR)
-    newPath[len] = '\0';
-  incDirPP[incDirCurSize++] = newPath;
+  if (inclDirSize >= 2 && newInclDirP->dirP[inclDirSize - 2] == NAT_DIR_CHR)
+    newInclDirP->dirP[inclDirSize - 2] = '\0';
 }
 
 
@@ -130,7 +156,7 @@ Include_Find (const char *fileName, ASFile *asFileP, bool inc)
     return true;
 
   /* Try to find the file via the user supplied include paths.  */
-  for (unsigned i = 0; i != incDirCurSize; i++)
+  for (const IncludeDir_t *incDirP = oIncludeDirListP; incDirP != NULL; incDirP = incDirP->nextP)
     {
       char incpath[MAXPATHLEN];
       bool state[3] = { false, false, false };
@@ -142,7 +168,7 @@ Include_Find (const char *fileName, ASFile *asFileP, bool inc)
 				   &state[0], eA_Dot_B);
 	  if (out[0])
 	    {
-	      snprintf (incpath, sizeof (incpath), "%s" NAT_DIR_STR "%s", incDirPP[i], out[0]);
+	      snprintf (incpath, sizeof (incpath), "%s" NAT_DIR_STR "%s", incDirP->dirP, out[0]);
 	      incpath[sizeof (incpath) - 1] = '\0';
 	      if (!ASFile_Create (incpath, asFileP))
 		return false;
@@ -152,7 +178,7 @@ Include_Find (const char *fileName, ASFile *asFileP, bool inc)
 				   &state[1], eB_DirSep_A);
 	  if (out[1])
 	    {
-	      snprintf (incpath, sizeof (incpath), "%s" NAT_DIR_STR "%s", incDirPP[i], out[1]);
+	      snprintf (incpath, sizeof (incpath), "%s" NAT_DIR_STR "%s", incDirP->dirP, out[1]);
 	      incpath[sizeof (incpath) - 1] = '\0';
 	      if (!ASFile_Create (incpath, asFileP))
 		return false;
@@ -162,7 +188,7 @@ Include_Find (const char *fileName, ASFile *asFileP, bool inc)
 				   &state[2], eA_Slash_B);
 	  if (out[2])
 	    {
-	      snprintf (incpath, sizeof (incpath), "%s" NAT_DIR_STR "%s", incDirPP[i], out[2]);
+	      snprintf (incpath, sizeof (incpath), "%s" NAT_DIR_STR "%s", incDirP->dirP, out[2]);
 	      incpath[sizeof (incpath) - 1] = '\0';
 	      if (!ASFile_Create (incpath, asFileP))
 		return false;
