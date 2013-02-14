@@ -176,7 +176,7 @@ restart that step where it left off:
      
        For one of the gcc components, use:
 
-         $ PATH=<path-to-builddir>/installed-buildtools-for-gcc/bin:$PATH make install
+         $ PATH=$GCCSDK_INSTALL_CROSSBIN:<path-to-builddir>/installed-buildtools-for-gcc/bin:$PATH make install
 
      - When you want to debug the built compiler, it is very useful to disable
        optimisations and enable debug information.  You can do this by having
