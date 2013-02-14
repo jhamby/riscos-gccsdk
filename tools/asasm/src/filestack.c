@@ -348,7 +348,7 @@ CachedFile_GetLine (char *bufP, size_t bufSize)
 	*bufP++ = *curP++;
       if (curP == memP->endP || *curP == '\n')
 	{
-	  if (*curP == '\n')
+	  if (curP != memP->endP)
 	    ++curP;
 	  /* EOF or EOL ? */
 	  if (bufP != bufStartP && bufP[-1] == '\\')

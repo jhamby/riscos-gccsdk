@@ -1,3 +1,8 @@
+Thu Feb 14 03:23:43 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/filestack.c (CachedFile_GetLine): Fix uninitialised memory
+	read.
+
 Sun Feb 10 04:16:45 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
