@@ -106,8 +106,14 @@ rename (const char *old_name, const char *new_name)
     {
       /* We check on RISC OS error 176 which probably is caused by a rename
          across file systems.  */
-      return (err->errnum == 176)
-	       ? __set_errno (EXDEV) : __ul_seterr (err, EOPSYS);
+      if (err->errnum == 176)
+	return __set_errno (EXDEV);
+      /* RISC OS error 0xD6 "'foo' not found" is given when ofile does not
+	 exist.  A RISC OS FS error 0x1xxD6 "Not found" indicates not all
+	 directories of nfile exist.  Both conditions should return ENOENT.  */
+      if (err->errnum == 0xD6 || (err->errnum & 0xFFFF00FF) == 0x100D6)
+	return __set_errno (ENOENT);
+      return __ul_seterr (err, EOPSYS);
     }
 
 try_filetyping:

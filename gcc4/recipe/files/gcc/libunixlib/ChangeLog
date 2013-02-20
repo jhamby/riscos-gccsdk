@@ -1,3 +1,8 @@
+Wed Feb 20 01:40:08 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/rename.c (rename): Set errno to ENOENT when old filename or
+	directory path of new filename does not exist.
+
 Thu Dec  6 18:39:21 GMT 2012  Lee Noar <leenoar@sky.com>
 
 	* Makefile.am: Compile files sys/brk.c, sys/stackalloc.c and
