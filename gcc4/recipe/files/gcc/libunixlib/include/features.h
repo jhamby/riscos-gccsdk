@@ -398,7 +398,7 @@
    may wish to expose them as files for the purpose of compression
    or direct manipulation of the contents.  Set to one in this case.
    Note: this is a weak symbol.  */
-extern int __feature_imagefs_is_file;
+extern int __feature_imagefs_is_file __attribute__ ((__weak__));
 
 /* When defined, specifies the <program name> part of the UnixLib OS
    variables.  Otherwise, the leaf filename part of main()'s argv[0] is

@@ -159,7 +159,7 @@ Unix programs by simply defining an extra RISC OS specific source file
 containing just something like e.g. :
 
 ---8<---
-#include <unixlib/local.h>
+#include <features.h>
 
 int __feature_imagefs_is_file = 1;
 ---8<---
@@ -169,6 +169,7 @@ The list of current 'WEAK'ly defined symbols :
 1. __riscosify_control
 
 Header file: <unixlib/local.h>, default value 0.
+
 This symbol controls how riscosify_std() processes filenames and
 that routine is used by UnixLib to convert (nearly) all Unix filenames
 to RISC OS filenames before those filenames are passed on to RISC OS
@@ -185,9 +186,13 @@ variables.  Otherwise, the leaf filename part of main()'s argv[0] is used.
 
 2. __feature_imagefs_is_file
 
-Header file: <features.h>, default value 1.
-When non zero, files with filetypes recognized by an active ImageFS will
-be considered as regular files and not as directories.
+Header file: <features.h>.
+
+extern int __feature_imagefs_is_file __attribute__ ((__weak__));
+
+When not defined or defined and being non zero, files with filetypes
+recognized by an active ImageFS will be considered as regular files and not
+as directories.
 
 3. __dynamic_no_da
 

@@ -1,3 +1,8 @@
+Sat Feb 23 17:47:28 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* doc/UnixLib/README: Update __feature_imagefs_is_file description.
+	* include/features (__feature_imagefs_is_file): Make weak as expected.
+
 Wed Feb 20 01:40:08 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/rename.c (rename): Set errno to ENOENT when old filename or
