@@ -1,8 +1,8 @@
 Index: gcc/ada/gcc-interface/Makefile.in
 ===================================================================
---- gcc/ada/gcc-interface/Makefile.in	(revision 192896)
+--- gcc/ada/gcc-interface/Makefile.in	(revision 196237)
 +++ gcc/ada/gcc-interface/Makefile.in	(working copy)
-@@ -1866,6 +1866,26 @@
+@@ -1088,6 +1088,26 @@
    LIBRARY_VERSION := $(LIB_VERSION)
  endif
  
@@ -26,6 +26,6 @@ Index: gcc/ada/gcc-interface/Makefile.in
 +  EH_MECHANISM=-gcc
 +endif
 +
- ifeq ($(strip $(filter-out arm% linux-gnueabi,$(arch) $(osys)-$(word 4,$(targ)))),)
+ ifeq ($(strip $(filter-out %86 linux%,$(arch) $(osys))),)
    LIBGNAT_TARGET_PAIRS = \
    a-intnam.ads<a-intnam-linux.ads \

@@ -1,8 +1,8 @@
 Index: gcc/incpath.c
 ===================================================================
---- gcc/incpath.c	(revision 183662)
+--- gcc/incpath.c	(revision 196237)
 +++ gcc/incpath.c	(working copy)
-@@ -416,6 +416,21 @@
+@@ -428,6 +428,21 @@
      *end = 0;
  #endif
  

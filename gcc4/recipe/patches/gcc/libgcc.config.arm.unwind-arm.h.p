@@ -1,8 +1,8 @@
 Index: libgcc/config/arm/unwind-arm.h
 ===================================================================
---- libgcc/config/arm/unwind-arm.h	(revision 178826)
+--- libgcc/config/arm/unwind-arm.h	(revision 196237)
 +++ libgcc/config/arm/unwind-arm.h	(working copy)
-@@ -48,7 +48,7 @@
+@@ -49,7 +49,7 @@
        if (!tmp)
  	return 0;
  
