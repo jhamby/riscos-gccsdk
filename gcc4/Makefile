@@ -524,9 +524,9 @@ endif
 	touch $(BUILDSTEPSDIR)/src-gcc-copied
 
 # Unpack gmp source:
-src-gmp-copied: $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.gz
+src-gmp-copied: $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.bz2
 	-rm -rf $(SRCORIGDIR)/gmp-$(GMP_VERSION) $(SRCDIR)/gmp
-	cd $(SRCORIGDIR) && tar xfz $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.gz
+	cd $(SRCORIGDIR) && tar xfj $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.bz2
 	-mkdir -p $(SRCDIR)/gmp
 	cp -T -p -r $(SRCORIGDIR)/gmp-$(GMP_VERSION) $(SRCDIR)/gmp
 ifeq ($(TARGET),arm-unknown-riscos)
@@ -543,9 +543,9 @@ src-mpc-copied: $(SRCORIGDIR)/mpc-$(MPC_VERSION).tar.gz
 	touch $(BUILDSTEPSDIR)/src-mpc-copied
 
 # Unpack mpfr source:
-src-mpfr-copied: $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.gz
+src-mpfr-copied: $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.bz2
 	-rm -rf $(SRCORIGDIR)/mpfr-$(MPFR_VERSION) $(SRCDIR)/mpfr
-	cd $(SRCORIGDIR) && tar xfz $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.gz
+	cd $(SRCORIGDIR) && tar xfj $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.bz2
 	-mkdir -p $(SRCDIR)/mpfr
 	cp -T -p -r $(SRCORIGDIR)/mpfr-$(MPFR_VERSION) $(SRCDIR)/mpfr
 	touch $(BUILDSTEPSDIR)/src-mpfr-copied
@@ -653,10 +653,10 @@ $(SRCORIGDIR)/gcc-$(GCC_VERSION).tar.bz2:
 endif
 
 # Download gmp source:
-$(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.gz:
+$(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.bz2:
 	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && wget -c ftp://ftp.gmplib.org/pub/gmp-$(GMP_VERSION)/gmp-$(GMP_VERSION).tar.gz
-	touch $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.gz
+	cd $(SRCORIGDIR) && wget -c ftp://ftp.gmplib.org/pub/gmp-$(GMP_VERSION)/gmp-$(GMP_VERSION).tar.bz2
+	touch $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.bz2
 
 # Download mpc source:
 $(SRCORIGDIR)/mpc-$(MPC_VERSION).tar.gz:
@@ -665,10 +665,10 @@ $(SRCORIGDIR)/mpc-$(MPC_VERSION).tar.gz:
 	touch $(SRCORIGDIR)/mpc-$(MPC_VERSION).tar.gz
 
 # Download mpfr source:
-$(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.gz:
+$(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.bz2:
 	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && wget -c http://www.mpfr.org/mpfr-$(MPFR_VERSION)/mpfr-$(MPFR_VERSION).tar.gz
-	touch $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.gz
+	cd $(SRCORIGDIR) && wget -c http://www.mpfr.org/mpfr-$(MPFR_VERSION)/mpfr-$(MPFR_VERSION).tar.bz2
+	touch $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.bz2
 
 # Download ppl source:
 $(SRCORIGDIR)/ppl-$(PPL_VERSION).tar.gz:
