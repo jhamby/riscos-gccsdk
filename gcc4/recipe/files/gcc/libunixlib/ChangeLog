@@ -1,3 +1,8 @@
+Sat Feb 23 19:06:13 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/dev.c (__fsopen): Don't use a pointer to a buffer going
+	out-of-scope.
+
 Sat Feb 23 17:47:28 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* doc/UnixLib/README: Update __feature_imagefs_is_file description.

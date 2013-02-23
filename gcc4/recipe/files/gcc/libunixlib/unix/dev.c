@@ -1,5 +1,5 @@
 /* Low-level device handling.
-   Copyright (c) 2002-2012 UnixLib Developers.  */
+   Copyright (c) 2002-2013 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <dirent.h>
@@ -159,14 +159,11 @@ __fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
 
   const char *ro_filename;
 #if __UNIXLIB_SYMLINKS
-  {
-    char target[MAXPATHLEN + 2];
+  char target[MAXPATHLEN + 2];
+  if (__resolve_symlinks (file, target, MAXPATHLEN) != 0)
+    return (void *) -1;
 
-    if (__resolve_symlinks (file, target, MAXPATHLEN) != 0)
-      return (void *) -1;
-
-    ro_filename = target;
-  }
+  ro_filename = target;
 #else
   ro_filename = file;
 #endif
