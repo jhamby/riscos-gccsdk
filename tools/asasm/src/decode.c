@@ -554,11 +554,7 @@ Decode (const Lex *label)
 
       uint32_t startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area->curIdx;
       Symbol * const startAreaSymbol = areaCurrentSymbol;
-      Value startStorage =
-	{
-	  .Tag = ValueIllegal
-	};
-      Value_Assign (&startStorage, StorageMap_Value ());
+      Value startStorage = Value_Copy (StorageMap_Value ());
 
       Symbol *labelSymbol;
       switch (oDecodeTable[indexFound].cb_type)

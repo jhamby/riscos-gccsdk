@@ -314,7 +314,7 @@ Get_RHS (bool regshift, bool shift, ARMWord ir)
 	    ir = Fix_Imm8s4 (ir, im->Data.Addr.i);
 	    break;
 
-	  case ValueString:
+	  case ValueString: /* FIXME: Remove ValueString case, cfr. Code_EvalLow() handling this.  */
 	    if (im->Data.String.len != 1)
 	      Error (ErrorError, "String too long to be an immediate expression");
 	    else

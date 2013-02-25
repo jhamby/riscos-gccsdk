@@ -39,7 +39,7 @@
 #include "value.h"
 
 /**
- * Assigns one Value to another, correctly freeing/claiming memory resources.
+ * Copies one Value to another, correctly freeing/claiming memory resources.
  */
 void
 Value_Assign (Value *dst, const Value *src)
@@ -48,8 +48,15 @@ Value_Assign (Value *dst, const Value *src)
     return;
 
   Value_Free (dst);
+  *dst = Value_Copy (src);
+}
 
-  *dst = *src;
+/**
+ * Copies one Value to another, correctly freeing/claiming memory resources.
+ */
+Value
+Value_Copy (const Value *src)
+{
   switch (src->Tag)
     {
       case ValueIllegal:
@@ -59,21 +66,20 @@ Value_Assign (Value *dst, const Value *src)
       case ValueBool:
       case ValueAddr:
       case ValueSymbol:
-        break;
+	return *src;
 
       case ValueString:
 	{
+	  size_t len = src->Data.String.len;
 	  char *c;
-	  if ((c = malloc (src->Data.String.len)) == NULL)
+	  if ((c = malloc (len)) == NULL)
 	    Error_OutOfMem ();
-	  memcpy (c, src->Data.String.s, src->Data.String.len);
-	  dst->Data.String.s = c;
+	  memcpy (c, src->Data.String.s, len);
+	  return Value_String (c, len, true);
 	}
-        break;
 
       case ValueCode:
-        dst->Data.Code.c = Code_Copy (src->Data.Code.len, src->Data.Code.c);
-        break;
+        return Value_Code (src->Data.Code.len, src->Data.Code.c);
 
       default:
         assert (0);
@@ -96,11 +102,12 @@ Value_Free (Value *value)
 	break;
 
       case ValueString:
-	free ((void *)value->Data.String.s);
+	if (value->Data.String.owns)
+	  free ((void *)value->Data.String.s);
 	break;
 
       case ValueCode:
-	Code_Free (value->Data.Code.c, value->Data.Code.len);
+	Code_Free ((Code *)value->Data.Code.c, value->Data.Code.len);
 	break;
 
       default:
@@ -124,12 +131,12 @@ Value_Code (size_t len, const Code *code)
 
 /**
  * Resolve the defined value behind a ValueSymbol object.
- * \return true When resolving failed.
+ * \return true When resolving failed.  No ownership transfered.
  */
 bool
 Value_ResolveSymbol (Value *valueP)
 {
-  /* Resolve all defined symbols and absolute area symbols.  */
+  /* Resolve all defined symbols and based/absolute area symbols.  */
   /* FIXME: this can probably loop forever: label1 -> label2 -> label1 */
   while (valueP->Tag == ValueSymbol /* Only replace symbols... */
          && ((valueP->Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0
@@ -141,7 +148,7 @@ Value_ResolveSymbol (Value *valueP)
       if ((valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0)
 	{
 	  /* Label symbol.  */
-	  struct AREA *areaP = valueP->Data.Symbol.symbol->area; 
+	  const Area *areaP = valueP->Data.Symbol.symbol->area; 
 	  if ((areaP->type & AREA_BASED) != 0)
 	    {
 	      if (factor != 1)
@@ -224,10 +231,8 @@ Value_Equal (const Value *a, const Value *b)
           && a->Data.Symbol.offset == b->Data.Symbol.offset)
 	return true;
 
-      aCp.Tag = ValueIllegal;
-      Value_Assign (&aCp, a);
-      bCp.Tag = ValueIllegal;
-      Value_Assign (&bCp, b);
+      aCp = Value_Copy (a);
+      bCp = Value_Copy (b);
 
       Code_Init ();
       Code_Value (&aCp, true);
@@ -431,7 +436,7 @@ Value_Print (const Value *v)
 	printf ("Float <%g>", v->Data.Float.f);
 	break;
       case ValueString:
-	printf ("String <%.*s>", (int)v->Data.String.len, v->Data.String.s);
+	printf ("String <%.*s> (%s)", (int)v->Data.String.len, v->Data.String.s, v->Data.String.owns ? "owns" : "NO ownership");
 	break;
       case ValueBool:
 	printf ("Bool <%s>", v->Data.Bool.b ? "true" : "false");

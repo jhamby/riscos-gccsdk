@@ -152,6 +152,7 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
   if (localMacro)
     sym->type |= SYMBOL_MACRO_LOCAL;
 
+  Value_Free (&sym->value);
   switch (type)
     {
       case ValueInt:
@@ -163,11 +164,7 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 	break;
 
       case ValueString:
-	sym->value.Tag = type;
-	sym->value.Data.String.len = 0;
-	/* We don't do malloc(0) as this can on some systems return NULL.  */
-	if ((sym->value.Data.String.s = malloc (1)) == NULL)
-	  Error_OutOfMem ();
+	sym->value = Value_String (NULL, 0, false);
 	break;
 
       default:
@@ -268,18 +265,20 @@ c_lcl (void)
 
   if (doRestore)
     {
-      VarPos *p;
-      if ((p = malloc (sizeof (VarPos) + len + 1)) == NULL)
+      /* Create a variable restore point.  */
+      VarPos *varPosP;
+      if ((varPosP = malloc (sizeof (VarPos) + len + 1)) == NULL)
 	Error_OutOfMem ();
-      memcpy (p->name, ptr, len); p->name[len] = '\0';
-      p->next = gCurPObjP->d.macro.varListP;
-      if ((p->symbolP = symbolP) != NULL)
+      memcpy (varPosP->name, ptr, len); varPosP->name[len] = '\0';
+      varPosP->next = gCurPObjP->d.macro.varListP;
+      if ((varPosP->symbolP = symbolP) != NULL)
 	{
-	  p->symbol = *symbolP;
+	  varPosP->symbol = *symbolP;
+	  varPosP->symbol.value = Value_Copy (&symbolP->value);
 	  /* Reset Symbol parts which won't get touched by Var_Define().  */
 	  symbolP->codeSize = 0;
 	}
-      gCurPObjP->d.macro.varListP = p;
+      gCurPObjP->d.macro.varListP = varPosP;
     }
   
   Var_Define (ptr, len, type, true);

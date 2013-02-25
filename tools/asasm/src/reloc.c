@@ -57,8 +57,7 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
   newReloc->next = areaCurrentSymbol->area->relocs;
   newReloc->reloc.Offset = offset;
   newReloc->reloc.How = how;
-  newReloc->value.Tag = ValueIllegal;
-  Value_Assign (&newReloc->value, value);
+  newReloc->value = Value_Copy (value);
 
   areaCurrentSymbol->area->relocs = newReloc;
 

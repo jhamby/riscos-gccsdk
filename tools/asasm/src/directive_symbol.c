@@ -55,8 +55,7 @@ Define (const char *msg, Symbol *sym, ValueTag legal, IntType_e intType)
 	}
       else
 	{
-	  Value valueDef = { .Tag = ValueIllegal };
-	  Value_Assign (&valueDef, value);
+	  Value valueDef = *value;
 	  if (valueDef.Tag == ValueInt && legal == ValueInt)
 	    {
 	      /* Only when we have a pure int coming from our expression
@@ -76,7 +75,8 @@ Define (const char *msg, Symbol *sym, ValueTag legal, IntType_e intType)
 	  if (!failed)
 	    {
 	      /* We allow export for pure integers, i.e. for the "Foo EQU 42"
-	         case.  */
+	         case.
+	         FIXME: what about 1 character strings "Foo EQU "x" ? */
 	      unsigned symbolType;
 	      if (valueDef.Tag == ValueInt && valueDef.Data.Int.type == eIntType_PureInt)
 		symbolType = SYMBOL_ABSOLUTE;

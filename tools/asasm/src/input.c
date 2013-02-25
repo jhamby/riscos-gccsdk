@@ -390,6 +390,9 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
 	      case ValueString:
 		toCopyLen = sym->value.Data.String.len;
 		toCopy = sym->value.Data.String.s;
+		assert (sym->value.Data.String.s || sym->value.Data.String.len == 0);
+		if (toCopy == NULL)
+		  toCopy = "";
 		break;
 	      case ValueBool:
 		toCopyLen = 1;

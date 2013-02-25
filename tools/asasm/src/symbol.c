@@ -94,7 +94,7 @@ Symbol_New (const char *str, size_t len)
     Error_OutOfMem ();
   result->next = NULL;
   result->type = result->offset = 0;
-  result->value.Tag = ValueIllegal;
+  result->value = Value_Illegal ();
   result->codeSize = 0;
   result->area = NULL;
   result->fileName = FS_GetCurFileName ();
@@ -190,7 +190,7 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
     }
   assert ((newSymbolType & SYMBOL_AREA) == 0 && "Not to be used for defining area symbols");
 
-  Value newValueCopy = { .Tag = ValueIllegal };
+  Value newValueCopy = Value_Illegal ();
   if (symbol->type & SYMBOL_DEFINED)
     {
       /* When a symbol is already defined, we can only overrule its value when
@@ -210,12 +210,10 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 
 		  Code_Init ();
 		  Code_Value (&symbol->value, false);
-		  Value val1 = { .Tag = ValueIllegal };
-		  Value_Assign (&val1, Code_Eval (ValueAll));
+		  Value val1 = Value_Copy (Code_Eval (ValueAll));
 		  Code_Init ();
 		  Code_Value (newValue, false);
-		  Value val2 = { .Tag = ValueIllegal };
-		  Value_Assign (&val2, Code_Eval (ValueAll));
+		  Value val2 = Value_Copy (Code_Eval (ValueAll));
 		  diffValue = !Value_Equal (&val1, &val2);
 #ifdef DEBUG
 		  if (diffValue)
@@ -1339,7 +1337,7 @@ c_import (void)
       /* Extra for BASED and COMMON qualifiers.  */
       if ((sym->type & SYMBOL_COMMON) != 0)
 	{
-	  const Value value = Value_Int(result.commonSize, eIntType_PureInt);
+	  const Value value = Value_Int (result.commonSize, eIntType_PureInt);
 	  Value_Assign (&sym->value, &value);
 	  sym->codeSize = result.commonSize;
 	}

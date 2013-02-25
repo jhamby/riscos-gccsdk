@@ -296,7 +296,7 @@ m_movw_movt_mov32 (bool doLowerCase, MOV_Type_e movType)
   const Value *im = Expr_BuildAndEval (ValueInt | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
   switch (im->Tag)
     {
-      case ValueString:
+      case ValueString: /* FIXME: Remove ValueString case, cfr. Code_EvalLow() handling this.  */
 	if (im->Data.String.len != 1)
 	  Error (ErrorError, "String too long to be an immediate expression");
 	else

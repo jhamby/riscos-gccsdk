@@ -22,6 +22,7 @@
 #include "config.h"
 
 #include "area.h"
+#include "code.h"
 #include "include.h"
 #include "input.h"
 #include "it.h"
@@ -46,6 +47,7 @@ void
 Phase_PrepareFor (Phase_e phase)
 {
   Area_PrepareForPhase (phase);
+  Code_PrepareForPhase (phase);
   Include_PrepareForPhase (phase);
   Input_PrepareForPhase (phase);
   IT_PrepareForPhase (phase);

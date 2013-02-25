@@ -130,13 +130,16 @@ Lex_Int (int i)
 }
 
 
+/**
+ * \param str NUL terminated string.
+ */
 static Lex
-Lex_String (const char *str, size_t strLen)
+Lex_String (const char *str, size_t len, bool ownership)
 {
   const Lex result =
     {
       .tag = LexString,
-      .Data.String = { .str = str, .len = strLen }
+      .Data.String = { .str = str, .len = len, .owns = ownership }
     };
   return result;
 }
@@ -345,10 +348,10 @@ Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
   else
     Local_CreateSymbol (lblP, macroDepth, false, id, sizeof (id));
 
-  const char *lbl = strdup (id); /* FIXME: memory leak.  */
-  if (lbl == NULL)
-    Error_OutOfMem ();
-  return Lex_Id (lbl, strlen (lbl));
+  /* Trick: put our local label as a symbol in our symbol hash table.  */
+  const Lex tmpLexId = Lex_Id (id, strlen (id));
+  const Symbol *lclLabelSymP = Symbol_Get (&tmpLexId);
+  return Lex_Id (lclLabelSymP->str, lclLabelSymP->len);
 }
 
 
@@ -393,7 +396,6 @@ Lex_GetDefiningLabel (void)
  * \return LexId which can be used to create a label symbol.  Can also
  * be LexNone in case of an Error (like malformed local label, or wrong
  * routine name).
- * FIXME: should be removed as it leaks memory, teach Symbol_Get() to accept LexLocalLabel.
  */
 Lex
 Lex_DefineLocalLabel (const Lex *lexP)
@@ -409,10 +411,10 @@ Lex_DefineLocalLabel (const Lex *lexP)
   Local_CreateSymbol (lblP, FS_GetMacroDepth (), true, id, sizeof (id));
   lblP->instance++;
 
-  const char *lbl = strdup (id); /* FIXME: memory leak */
-  if (lbl == NULL)
-    Error_OutOfMem ();
-  return Lex_Id (lbl, strlen (lbl));
+  /* Trick: put our local label as a symbol in our symbol hash table.  */
+  const Lex tmpLexId = Lex_Id (id, strlen (id));
+  const Symbol *lclLabelSymP = Symbol_Get (&tmpLexId);
+  return Lex_Id (lclLabelSymP->str, lclLabelSymP->len);
 }
 
 
@@ -730,11 +732,11 @@ Lex_GetBuiltinVariable (void)
 	  if (Input_MatchStringLower ("rchitecture}")) /* {ARCHITECTURE} */
 	    {
 	      const char *arch = Target_GetArch (true);
-	      return Lex_String (arch, strlen (arch));
+	      return Lex_String (arch, strlen (arch), false);
 	    }
 
 	  if (Input_MatchStringLower ("reaname}")) /* {AREANAME} */
-	    return Lex_String (areaCurrentSymbol->str, areaCurrentSymbol->len);
+	    return Lex_String (areaCurrentSymbol->str, areaCurrentSymbol->len, false);
 	  break;
 	}
 
@@ -755,7 +757,7 @@ Lex_GetBuiltinVariable (void)
 	  if (Input_MatchStringLower ("pu}")) /* {CPU} */
 	    {
 	      const char *cpu = Target_GetCPU ();
-	      return Lex_String (cpu, strlen (cpu));
+	      return Lex_String (cpu, strlen (cpu), false);
 	    }
 	  break;
 	}
@@ -763,7 +765,7 @@ Lex_GetBuiltinVariable (void)
       case 'e':
 	{
 	  if (Input_MatchStringLower ("ndian}")) /* {ENDIAN} */
-	    return Lex_String ("little", sizeof ("little")-1);
+	    return Lex_String ("little", sizeof ("little")-1, false);
 	  break;
 	}
 
@@ -774,7 +776,7 @@ Lex_GetBuiltinVariable (void)
 	  if (Input_MatchStringLower ("pu}")) /* {FPU} */
 	    {
 	      const char *fpu = Target_GetFPU ();
-	      return Lex_String (fpu, strlen (fpu));
+	      return Lex_String (fpu, strlen (fpu), false);
 	    }
 	  break;
 	}
@@ -784,7 +786,7 @@ Lex_GetBuiltinVariable (void)
 	  if (Input_MatchStringLower ("nputfile}")) /* {INPUTFILE} */ 
 	    {
 	      const char *inputFile = FS_GetCurFileName ();
-	      return Lex_String (inputFile, strlen (inputFile));
+	      return Lex_String (inputFile, strlen (inputFile), false);
 	    }
 	  if (Input_MatchStringLower ("nter}")) /* {INTER} */
 	    return Lex_Bool ((gOptionAPCS & APCS_OPT_INTERWORK) != 0);
@@ -1338,7 +1340,7 @@ Lex_GetPrim (void)
       case '+':
 	{
 	  result.tag = LexOperator;
-	  result.Data.Operator.op = eOp_None; /* +XYZ */
+	  result.Data.Operator.op = eOp_Pos; /* +XYZ */
 	  result.Data.Operator.pri = kPrioOp_Unary;
 	  break;
 	}
@@ -1482,8 +1484,9 @@ Lex_GetPrim (void)
 
       case '"':
 	{
-	  result.tag = LexString;
-	  result.Data.String.str = Input_GetString (&result.Data.String.len); /* FIXME: this leaks memory.  */
+	  size_t len;
+	  const char *str = Input_GetString (&len);
+	  result = Lex_String (str, len, true);
 	  break;
 	}
 
@@ -1754,7 +1757,7 @@ Lex_Print (const Lex *lex)
 	printf ("LocalLabel <%.*s> ", (int)lex->Data.LocalLabel.len, lex->Data.LocalLabel.str);
 	break;
       case LexString:
-	printf ("Str <%.*s> ", (int)lex->Data.String.len, lex->Data.String.str);
+	printf ("Str <%.*s> (%s)", (int)lex->Data.String.len, lex->Data.String.str, lex->Data.String.owns ? "owns" : "NO ownership");
 	break;
       case LexInt:
 	printf ("Int <%d = 0x%x> ", lex->Data.Int.value, lex->Data.Int.value);

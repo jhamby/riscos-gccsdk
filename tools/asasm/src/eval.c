@@ -121,76 +121,62 @@ GetInt (const Value *val, uint32_t *i)
     { \
       uint32_t lint, rint;\
       if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat) \
-	lvalue->Data.Bool.b = lvalue->Data.Float.f OP rvalue->Data.Float.f; \
+	result = Value_Bool (lvalue->Data.Float.f OP rvalue->Data.Float.f); \
       else if (lvalue->Tag == ValueString && rvalue->Tag == ValueString) \
-	lvalue->Data.Bool.b = ememcmp (lvalue, rvalue) OP 0; \
+	result = Value_Bool (ememcmp (lvalue, rvalue) OP 0); \
       else if (GetInt (lvalue, &lint) && GetInt (rvalue, &rint)) \
-	{ \
-	  /* Comparing integers happens *unsigned* ! */ \
-	  lvalue->Data.Bool.b = lint OP rint; \
-	} \
+	result = Value_Bool (lint OP rint); /* Comparing integers happens *unsigned* ! */ \
       else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr) \
 	{ \
 	  /* ObjAsm implementation: when base register differs, always return false */ \
-	  if (lvalue->Data.Addr.r != rvalue->Data.Addr.r) \
-	    lvalue->Data.Bool.b = false; \
-	  else \
-	    lvalue->Data.Bool.b = lvalue->Data.Addr.i OP rvalue->Data.Addr.i; \
+	  result = Value_Bool (lvalue->Data.Addr.r == rvalue->Data.Addr.r && lvalue->Data.Addr.i OP rvalue->Data.Addr.i); \
 	} \
       else \
 	{ \
 	  if (gPhase != ePassOne) \
 	    Error (ErrorError, "Bad operand types for %s", STRINGIFY(OP)); \
-	  return false; \
+	  result = Value_Illegal (); \
 	} \
-      lvalue->Tag = ValueBool; \
     } while (0)
 
 /**
- * Do <lvalue> = <lvalue> <op> <rvalue>
- * \return true for success, false for failure (e.g. wrong operand types being
- * used for given operation).
+ * <result> = <lvalue> <op> <rvalue>
+ * \return Value of result.  Is ValueIllegal when operation can not be
+ * computed.
  */
-bool
-Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue)
+Value
+Eval_Binop (Operator_e op,
+	    const Value * restrict lvalue, const Value * restrict rvalue)
 {
   assert (lvalue != rvalue);
+  Value result;
   switch (op)
     {
       case eOp_Mul: /* * */
 	{
-	  /* ValueAddr * ValueAddr does not make sense.  */
+	  /* Promotion for ValueFloat, ValueAddr and ValueSymbol.  */
+	  if (rvalue->Tag == ValueFloat || rvalue->Tag == ValueAddr || rvalue->Tag == ValueSymbol)
+	    {
+	      const Value * restrict tmp = lvalue;
+	      lvalue = rvalue;
+	      rvalue = tmp;
+	    }
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
-	  bool r_isint = GetInt (rvalue, &rval);	 
-	  if ((lvalue->Tag == ValueAddr && r_isint)
-	      || (l_isint && rvalue->Tag == ValueAddr))
-	    {
-	      /* ValueInt * ValueAddr and ValueAddr * ValueInt.  */
-	      signed val = r_isint ? (signed)rval : (signed)lval;
-	      if (!r_isint)
-		*lvalue = *rvalue;
-	      lvalue->Data.Addr.i *= val;
-	    }
-	  else if ((lvalue->Tag == ValueSymbol && r_isint)
-		   || (l_isint && rvalue->Tag == ValueSymbol))
-	    {
-	      /* ValueInt * ValueSymbol and ValueSymbol * ValueInt.  */
-	      signed val = r_isint ? (signed)rval : (signed)lval;
-	      if (!r_isint)
-		*lvalue = *rvalue;
-	      lvalue->Data.Symbol.factor *= val;
-	      lvalue->Data.Symbol.offset *= val;
-	    }
+	  bool r_isint = GetInt (rvalue, &rval);
+	  if (lvalue->Tag == ValueAddr && r_isint) /* ValueAddr <= ValueAddr * ValueInt  <or>  ValueInt * ValueAddr */
+	    result = Value_Addr (lvalue->Data.Addr.r, lvalue->Data.Addr.i * (signed)rval);
+	  else if (lvalue->Tag == ValueSymbol && r_isint) /* ValueSymbol <= ValueSymbol * ValueInt  <or>  ValueInt * ValueSymbol */
+	    result = Value_Symbol (lvalue->Data.Symbol.symbol, lvalue->Data.Symbol.factor * (signed)rval, lvalue->Data.Symbol.offset * (signed)rval);
+	  else if (lvalue->Tag == ValueFloat && (r_isint || rvalue->Tag == ValueFloat)) /* ValueFloat <= ValueFloat * ValueInt  <or>  ValueInt * ValueFloat */
+	    result = Value_Float (lvalue->Data.Float.f * (r_isint ? (signed)rval : rvalue->Data.Float.f));
 	  else if (l_isint && r_isint)
-	    *lvalue = Value_Int (lval * rval, eIntType_PureInt);
-	  else if ((l_isint || lvalue->Tag == ValueFloat) && (r_isint || rvalue->Tag == ValueFloat))
-	    *lvalue = Value_Float ((l_isint ? lval : lvalue->Data.Float.f) * (r_isint ? rval : rvalue->Data.Float.f));
+	    result = Value_Int (lval * rval, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", "multiplication");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
@@ -205,23 +191,26 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", "division");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  double divisor_dbl = divisor_isint ? (double)(signed)divisor : rvalue->Data.Float.f;
-	  if (divisor_dbl == 0.)
+	  else
 	    {
-	      if (gPhase != ePassOne)
-		Error (ErrorError, "Division by zero");
-	      return false;
-	    }
-	  if (divident_isint && divisor_isint)
-	    *lvalue = Value_Int (divident / divisor, eIntType_PureInt);
-	  else if ((divident_isint || lvalue->Tag == ValueFloat)
-		   && (divisor_isint || rvalue->Tag == ValueFloat))
-	    {
-	      /* Floating point division.  */
-	      double divident_dbl = divident_isint ? (double)(signed)divident : lvalue->Data.Float.f;
-	      *lvalue = Value_Float (divident_dbl / divisor_dbl);
+	      double divisor_dbl = divisor_isint ? (double)(signed)divisor : rvalue->Data.Float.f;
+	      if (divisor_dbl == 0.)
+		{
+		  if (gPhase != ePassOne)
+		    Error (ErrorError, "Division by zero");
+		  result = Value_Illegal ();
+		}
+	      if (divident_isint && divisor_isint)
+		result = Value_Int (divident / divisor, eIntType_PureInt);
+	      else if ((divident_isint || lvalue->Tag == ValueFloat)
+	        && (divisor_isint || rvalue->Tag == ValueFloat))
+		{
+		  /* Floating point division.  */
+		  double divident_dbl = divident_isint ? (double)(signed)divident : lvalue->Data.Float.f;
+		  result = Value_Float (divident_dbl / divisor_dbl);
+		}
 	    }
 	  break;
 	}
@@ -235,66 +224,60 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 		{
 		  if (gPhase != ePassOne)
 		    Error (ErrorError, "Division by zero");
-		  return false;
+		  result = Value_Illegal ();
 		}
-
-	      *lvalue = Value_Int (divident % modulus, eIntType_PureInt);
+	      else
+		result = Value_Int (divident % modulus, eIntType_PureInt);
 	    }
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", "modulo");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
       
       case eOp_Add: /* + */
 	{
-	  Value rhs;
 	  /* Promotion for ValueFloat, ValueAddr and ValueSymbol.  */
 	  if (rvalue->Tag == ValueFloat || rvalue->Tag == ValueAddr
 	      || rvalue->Tag == ValueSymbol)
 	    {
-	      rhs = *lvalue;
-	      *lvalue = *rvalue;
+	      const Value * restrict tmp = lvalue;
+	      lvalue = rvalue;
+	      rvalue = tmp;
 	    }
-	  else
-	    rhs = *rvalue;
 
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
-	  bool r_isint = GetInt (&rhs, &rval);
+	  bool r_isint = GetInt (rvalue, &rval);
 
-	  if (lvalue->Tag == ValueAddr && r_isint)
-	    lvalue->Data.Addr.i += rval; /* <addr> + <int> -> <addr> */
-	  else if (lvalue->Tag == ValueSymbol && rhs.Tag == ValueSymbol)
+	  if (lvalue->Tag == ValueAddr && r_isint) /* ValueAddr <= ValueAddr + ValueInt  <or>  ValueInt + ValueAddr */
+	    result = Value_Addr (lvalue->Data.Addr.r, lvalue->Data.Addr.i + rval);
+	  else if (lvalue->Tag == ValueSymbol && rvalue->Tag == ValueSymbol) /* ValueSymbol <or> ValueInt <= ValueSymbol + ValueSymbol */
 	    {
-	      if (lvalue->Data.Symbol.symbol != rhs.Data.Symbol.symbol)
-		return false;
-	      lvalue->Data.Symbol.factor += rhs.Data.Symbol.factor;
-	      lvalue->Data.Symbol.offset += rhs.Data.Symbol.offset;
-	      if (lvalue->Data.Symbol.factor == 0)
-		*lvalue = Value_Int (lvalue->Data.Symbol.offset, eIntType_PureInt);
+	      if (lvalue->Data.Symbol.symbol != rvalue->Data.Symbol.symbol)
+		result = Value_Illegal ();
+	      else
+		{
+		  int factor = lvalue->Data.Symbol.factor + rvalue->Data.Symbol.factor;
+		  int offset = lvalue->Data.Symbol.offset + rvalue->Data.Symbol.offset;
+		  result = factor == 0 ? Value_Int (offset, eIntType_PureInt) : Value_Symbol (lvalue->Data.Symbol.symbol, factor, offset);
+		}
 	    }
 	  else if (lvalue->Tag == ValueSymbol && r_isint)
-	    lvalue->Data.Symbol.offset += (signed)rval;
-	  else if (l_isint && r_isint)
-	    {
-	      /* <int> + <int> -> <int> */
-	      *lvalue = Value_Int (lval + rval, eIntType_PureInt);
-	    }
+	    result = Value_Symbol (lvalue->Data.Symbol.symbol, lvalue->Data.Symbol.factor, lvalue->Data.Symbol.offset + rval);
+	  else if (l_isint && r_isint) /* ValueInt <= ValueInt + ValueInt */
+	    result = Value_Int (lval + rval, eIntType_PureInt);
 	  else if (lvalue->Tag == ValueFloat
-		   && (r_isint || rhs.Tag == ValueFloat))
-	    {
-	      /* <float>/<signed int> + <float>/<signed/int> -> <float> */
-	      lvalue->Data.Float.f += (r_isint ? (signed)rval : rhs.Data.Float.f); 
-	    }
+		   && (r_isint || rvalue->Tag == ValueFloat)) /* ValueFloat <= ValueFloat + ValueInt  <or>  ValueInt + ValueFloat */
+	    result = Value_Float (lvalue->Data.Float.f + (r_isint ? (signed)rval : rvalue->Data.Float.f)); 
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", "addition");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
@@ -305,59 +288,51 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	  bool l_isint = GetInt (lvalue, &lval);
 	  bool r_isint = GetInt (rvalue, &rval);
 
-	  if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat)
-	    lvalue->Data.Float.f -= rvalue->Data.Float.f; /* <float> - <float> -> <float> */
+	  if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat) /* ValueFloat <= ValueFloat - ValueFloat */
+	    result = Value_Float (lvalue->Data.Float.f - rvalue->Data.Float.f);
 	  else if (lvalue->Tag == ValueFloat && r_isint)
-	    lvalue->Data.Float.f -= (signed)rval; /* <float> - <signed int> -> <float> */
-	  else if (l_isint && rvalue->Tag == ValueFloat)
+	    result = Value_Float (lvalue->Data.Float.f - (signed)rval); /* ValueFloat <= ValueFloat - ValueInt */
+	  else if (l_isint && rvalue->Tag == ValueFloat) /* ValueFloat <= ValueInt - ValueFloat */
+	    result = Value_Float ((signed)lval - rvalue->Data.Float.f);
+	  else if (l_isint && r_isint) /* ValueInt <= ValueInt - ValueInt */
+	    result = Value_Int (lval - rval, eIntType_PureInt);
+	  else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr) /* ValueInt <= ValueAddr - ValueAddr */
 	    {
-	      /* <signed int> - <float> -> <float> */
-	      lvalue->Tag = ValueFloat;
-	      lvalue->Data.Float.f = (double)(signed)lval - rvalue->Data.Float.f;
-	    }
-	  else if (l_isint && r_isint)
-	    {
-	      /* <int> - <int> -> <int> */
-	      *lvalue = Value_Int (lval - rval, eIntType_PureInt);
-	    }
-	  else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr)
-	    {
-	      /* <addr> - <addr> -> <int> */
 	      if (lvalue->Data.Addr.r != rvalue->Data.Addr.r)
 		{
 		  if (gPhase != ePassOne)
 		    Error (ErrorError, "Base registers are different in subtraction ([r%d, #x] - [r%d, #y])",
 			   lvalue->Data.Addr.r, rvalue->Data.Addr.r);
-		  return false;
+		  result = Value_Illegal ();
 		}
-	      *lvalue = Value_Int (lvalue->Data.Addr.i - rvalue->Data.Addr.i, eIntType_PureInt);
+	      else
+		result = Value_Int (lvalue->Data.Addr.i - rvalue->Data.Addr.i, eIntType_PureInt);
 	    }
-	  else if (lvalue->Tag == ValueAddr && r_isint)
-	    {
-	      /* <addr> - <int> -> <addr> */
-	      lvalue->Tag = ValueAddr;
-	      lvalue->Data.Addr.i -= (signed)rval;
-	    }
+	  else if (lvalue->Tag == ValueAddr && r_isint) /* ValueAddr <= ValueAddr - ValueInt */
+	    result = Value_Addr (lvalue->Data.Addr.r, lvalue->Data.Addr.i - (signed)rval);
 	  else if ((lvalue->Tag == ValueSymbol || l_isint)
 	           && (rvalue->Tag == ValueSymbol || r_isint))
 	    {
 	      if (lvalue->Tag == ValueSymbol && rvalue->Tag == ValueSymbol
 	          && lvalue->Data.Symbol.symbol != rvalue->Data.Symbol.symbol)
-		return false;
-	      assert (!(l_isint && r_isint) && "Needs to be handled elsewhere");
-	      Symbol *symbol = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.symbol : rvalue->Data.Symbol.symbol;
-	      int factor = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.factor : 0;
-	      if (rvalue->Tag == ValueSymbol)
-		factor -= rvalue->Data.Symbol.factor;
-	      int offset = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.offset : (signed)lval;
-	      offset -= (rvalue->Tag == ValueSymbol) ? rvalue->Data.Symbol.offset : (signed)rval;
-	      *lvalue = factor ? Value_Symbol (symbol, factor, offset) : Value_Int (offset, eIntType_PureInt);
+		result = Value_Illegal ();
+	      else
+		{
+		  assert (!(l_isint && r_isint) && "Needs to be handled elsewhere");
+		  Symbol *symbol = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.symbol : rvalue->Data.Symbol.symbol;
+		  int factor = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.factor : 0;
+		  if (rvalue->Tag == ValueSymbol)
+		    factor -= rvalue->Data.Symbol.factor;
+		  int offset = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.offset : (signed)lval;
+		  offset -= (rvalue->Tag == ValueSymbol) ? rvalue->Data.Symbol.offset : (signed)rval;
+		  result = factor ? Value_Symbol (symbol, factor, offset) : Value_Int (offset, eIntType_PureInt);
+		}
 	    }
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", "subtraction");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
@@ -368,16 +343,19 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", "string concatenation");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  char *c;
-	  if ((c = malloc (lvalue->Data.String.len + rvalue->Data.String.len)) == NULL)
-	    Error_OutOfMem ();
-	  memcpy (c, lvalue->Data.String.s, lvalue->Data.String.len);
-	  memcpy (c + lvalue->Data.String.len,
-		  rvalue->Data.String.s, rvalue->Data.String.len);
-	  lvalue->Data.String.s = c;
-	  lvalue->Data.String.len += rvalue->Data.String.len;
+	  else
+	    {
+	      size_t len = lvalue->Data.String.len + rvalue->Data.String.len;
+	      char *c;
+	      if ((c = malloc (len)) == NULL)
+		Error_OutOfMem ();
+	      memcpy (c, lvalue->Data.String.s, lvalue->Data.String.len);
+	      memcpy (c + lvalue->Data.String.len,
+	        rvalue->Data.String.s, rvalue->Data.String.len);
+	      result = Value_String (c, len, true);
+	    }
 	  break;
 	}
       
@@ -385,16 +363,24 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	{
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
+	  if (lvalue->Tag == ValueAddr) /* FIXME: why this support, and not in :OR: or :EOR: ? */
+	    {
+	      lval = (unsigned)lvalue->Data.Addr.i;
+	      l_isint = true;
+	    }
 	  bool r_isint = GetInt (rvalue, &rval);
-	  if ((lvalue->Tag == ValueAddr && r_isint)
-	      || (l_isint && rvalue->Tag == ValueAddr)
-	      || (l_isint && r_isint))
-	    *lvalue = Value_Int ((l_isint ? lval : (unsigned)lvalue->Data.Addr.i) & (r_isint ? rval : (unsigned)rvalue->Data.Addr.i), eIntType_PureInt);
+	  if (rvalue->Tag == ValueAddr)
+	    {
+	      rval = rvalue->Data.Addr.i;
+	      r_isint = true;
+	    }
+	  if (l_isint && r_isint)
+	    result = Value_Int (lval & rval, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":AND:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
@@ -405,12 +391,12 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	  bool l_isint = GetInt (lvalue, &lval);
 	  bool r_isint = GetInt (rvalue, &rval);
 	  if (l_isint && r_isint)
-	    *lvalue = Value_Int (lval | rval, eIntType_PureInt);
+	    result = Value_Int (lval | rval, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":OR:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
@@ -421,98 +407,103 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	  bool l_isint = GetInt (lvalue, &lval);
 	  bool r_isint = GetInt (rvalue, &rval);
 	  if (l_isint && r_isint)
-	    *lvalue = Value_Int (lval ^ rval, eIntType_PureInt);
+	    result = Value_Int (lval ^ rval, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":EOR:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
       
       case eOp_ASR: /* >>> */
 	{
-	  uint32_t lval;
+	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
-	  if (l_isint && rvalue->Tag == ValueInt)
+	  bool r_isint = GetInt (rvalue, &rval);
+	  if (l_isint && r_isint)
 	    {
-	      unsigned numbits = (unsigned)rvalue->Data.Int.i >= 32 ? 1 : 32 - (unsigned)rvalue->Data.Int.i;
+	      unsigned numbits = rval >= 32 ? 1 : 32 - rval;
 	      unsigned mask = 1U << (numbits - 1);
 	      uint32_t nosign = lval >> (32 - numbits);
-	      *lvalue = Value_Int ((nosign ^ mask) - mask, eIntType_PureInt);
+	      result = Value_Int ((nosign ^ mask) - mask, eIntType_PureInt);
 	    }
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ">>>");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
       
       case eOp_SHR: /* >> :SHR: */
 	{
-	  uint32_t lval;
+	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
-	  if (l_isint && rvalue->Tag == ValueInt)
-	    *lvalue = Value_Int ((unsigned)rvalue->Data.Int.i >= 32 ? 0 : lval >> rvalue->Data.Int.i, eIntType_PureInt);
+	  bool r_isint = GetInt (rvalue, &rval);
+	  if (l_isint && r_isint)
+	    result = Value_Int (rval >= 32 ? 0 : lval >> rval, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ">> or :SHR:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
       
       case eOp_SHL: /* << :SHL: */
 	{
-	  uint32_t lval;
+	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
-	  if (l_isint && rvalue->Tag == ValueInt)
-	    *lvalue = Value_Int ((unsigned)rvalue->Data.Int.i >= 32 ? 0 : lval << rvalue->Data.Int.i, eIntType_PureInt);
+	  bool r_isint = GetInt (rvalue, &rval);
+	  if (l_isint && r_isint)
+	    result = Value_Int (rval >= 32 ? 0 : lval << rval, eIntType_PureInt);
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", "<< or :SHR:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
       
       case eOp_ROR: /* :ROR: */
 	{
-	  uint32_t lval;
+	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
-	  if (l_isint && rvalue->Tag == ValueInt)
+	  bool r_isint = GetInt (rvalue, &rval);
+	  if (l_isint && r_isint)
 	    {
-	      unsigned numbits = rvalue->Data.Int.i & 31;
-	      *lvalue = Value_Int ((lval >> numbits) | (lval << (32 - numbits)), eIntType_PureInt);
+	      unsigned numbits = rval & 31;
+	      result = Value_Int ((lval >> numbits) | (lval << (32 - numbits)), eIntType_PureInt);
 	    }
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":ROR:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
       
-    case eOp_ROL: /* :ROL: */
+      case eOp_ROL: /* :ROL: */
 	{
-	  uint32_t lval;
+	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
-	  if (l_isint && rvalue->Tag == ValueInt)
+	  bool r_isint = GetInt (rvalue, &rval);
+	  if (l_isint && r_isint)
 	    {
-	      unsigned numbits = rvalue->Data.Int.i & 31;
-	      *lvalue = Value_Int ((lval << numbits) | (lval >> (32 - numbits)), eIntType_PureInt);
+	      unsigned numbits = rval & 31;
+	      result = Value_Int ((lval << numbits) | (lval >> (32 - numbits)), eIntType_PureInt);
 	    }
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":ROL:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
@@ -537,7 +528,7 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	{
 	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0
 	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0)
-	    *lvalue = Value_Bool (Value_Equal (lvalue, rvalue));
+	    result = Value_Bool (Value_Equal (lvalue, rvalue));
 	  else
 	    COMPARE (==);
 	  break;
@@ -547,7 +538,7 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	{
 	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0
 	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0)
-	    *lvalue = Value_Bool (!Value_Equal (lvalue, rvalue));
+	    result = Value_Bool (!Value_Equal (lvalue, rvalue));
 	  else
 	    COMPARE (!=);
 	  break;
@@ -559,9 +550,10 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":LAND:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  lvalue->Data.Bool.b = lvalue->Data.Bool.b && rvalue->Data.Bool.b;
+	  else
+	    result = Value_Bool (lvalue->Data.Bool.b && rvalue->Data.Bool.b);
 	  break;
 	}
       
@@ -571,9 +563,10 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":LOR:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  lvalue->Data.Bool.b = lvalue->Data.Bool.b || rvalue->Data.Bool.b;
+	  else
+	    result = Value_Bool (lvalue->Data.Bool.b || rvalue->Data.Bool.b);
 	  break;
 	}
       
@@ -583,237 +576,206 @@ Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalu
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":LEOR:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  lvalue->Data.Bool.b = lvalue->Data.Bool.b ^ rvalue->Data.Bool.b;
+	  else
+	    result = Value_Bool (lvalue->Data.Bool.b ^ rvalue->Data.Bool.b);
 	  break;
 	}
       
       case eOp_Left: /* :LEFT: */
 	{
-	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueInt)
+	  uint32_t rval;
+	  bool r_isint = GetInt (rvalue, &rval);
+	  if (lvalue->Tag != ValueString || !r_isint)
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":LEFT:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  if (rvalue->Data.Int.i < 0 || (size_t)rvalue->Data.Int.i > lvalue->Data.String.len)
+	  else
 	    {
-	      if (gPhase != ePassOne)
-		Error (ErrorError, "Wrong number of characters (%d) specified for :LEFT:",
-		       rvalue->Data.Int.i);
-	      return false;
+	      if ((signed)rval < 0 || rval > lvalue->Data.String.len)
+		{
+		  if (gPhase != ePassOne)
+		    Error (ErrorError, "Wrong number of characters (%d) specified for :LEFT:",
+			   rval);
+		  result = Value_Illegal ();
+		}
+	      else
+		{
+		  char *strP;
+		  if ((strP = malloc (rval)) == NULL)
+		    Error_OutOfMem ();
+		  memcpy (strP, lvalue->Data.String.s, rval);
+		  result = Value_String (strP, rval, true);
+		}
 	    }
-	  lvalue->Data.String.len = rvalue->Data.Int.i;
 	  break;
 	}
       
       case eOp_Right: /* :RIGHT: */
 	{
-	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueInt)
+	  uint32_t rval;
+	  bool r_isint = GetInt (rvalue, &rval);
+	  if (lvalue->Tag != ValueString || !r_isint)
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":RIGHT:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  if (rvalue->Data.Int.i < 0 || (size_t)rvalue->Data.Int.i > lvalue->Data.String.len)
+	  else
 	    {
-	      if (gPhase != ePassOne)
-		Error (ErrorError, "Wrong number of characters (%d) specified for :RIGHT:",
-		       rvalue->Data.Int.i);
-	      return false;
+	      if ((signed)rval < 0 || rval > lvalue->Data.String.len)
+		{
+		  if (gPhase != ePassOne)
+		    Error (ErrorError, "Wrong number of characters (%d) specified for :RIGHT:",
+			   rval);
+		  result = Value_Illegal ();
+		}
+	      else
+		{
+		  char *strP;
+		  if ((strP = malloc (rval)) == NULL)
+		    Error_OutOfMem ();
+		  memcpy (strP,
+			  lvalue->Data.String.s + lvalue->Data.String.len - rval,
+			  rval);
+		  result = Value_String (strP, rval, true);
+		}
 	    }
-	  char *c;
-	  if ((c = malloc (rvalue->Data.Int.i)) == NULL)
-	    Error_OutOfMem ();
-	  memcpy (c,
-		  lvalue->Data.String.s + lvalue->Data.String.len - rvalue->Data.Int.i,
-		  rvalue->Data.Int.i);
-	  /* free ((void *)lvalue->Data.String.s); FIXME: enable this ? */
-	  lvalue->Data.String.s = c;
-	  lvalue->Data.String.len = rvalue->Data.Int.i;
 	  break;
 	}
       
       default:
-        Error (ErrorError, "Illegal binary operator");
-        return false;
+	assert (0);
+        result = Value_Illegal ();
+	break;
     }
 
-  return true;
+  return result;
 }
 
 /**
- * Negates given value.
+ * <result> = <op> <value>
+ * \return Value of result.  Is ValueIllegal when operation can not be
+ * computed.
  */
-static bool
-Eval_NegValue (Value *value)
+Value
+Eval_Unop (Operator_e op, const Value *value)
 {
-  switch (value->Tag)
-    {
-      case ValueInt:
-	value->Data.Int.i = -value->Data.Int.i;
-	value->Data.Int.type = eIntType_PureInt;
-	break;
-
-      case ValueInt64:
-	value->Data.Int64.i = -value->Data.Int64.i;
-	break;
-	
-      case ValueFloat:
-	value->Data.Float.f = -value->Data.Float.f;
-	break;
-
-      case ValueString:
-	{
-	  if (value->Data.String.len != 1)
-	    return false;
-	  int c = (unsigned char)value->Data.String.s[0];
-	  value->Tag = ValueInt;
-	  value->Data.Int.i = -c;
-	}
-	break;
-
-#if 0
-      case ValueAddr:
-	value->Data.Addr.i = -value->Data.Addr.i;
-	break;
-#endif
-
-      case ValueSymbol:
-	value->Data.Symbol.factor = -value->Data.Symbol.factor;
-	value->Data.Symbol.offset = -value->Data.Symbol.offset;
-	break;
-
-#if 0
-      case ValueCode:
-	for (size_t i = 0; i != value->Data.Code.len; ++i)
-	  {
-	    /* Negate only the values (not operations).  */
-	    /* FIXME: this is not always correct.  */
-	    if (value->Data.Code.c[i].Tag == CodeValue)
-	      {
-		if (!Eval_NegValue (&value->Data.Code.c[i].Data.value))
-		  return false;
-	      }
-	  }
-	break;
-#endif
-
-      default:
-	return false;
-    }
-
-  return true;
-}
-
-/**
- * <value> = <op> <value>
- * \return true for success, false for failure (e.g. wrong operand types being
- * used for given operation).
- */
-bool
-Eval_Unop (Operator_e op, Value *value)
-{
+  Value result;
   switch (op)
     {
       case eOp_FLoad:
 	{
 	  if (value->Tag != ValueString)
-	    return false;
-	  char *s;
-	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    Error_OutOfMem ();
-
-	  uint32_t i;
-	  ASFile asFile;
-	  if (Include_Find (s, &asFile, true))
-	    {
-	      Error (ErrorError, "Cannot access file \"%s\"", s);
-	      i = 0;
-	    }
+	    result = Value_Illegal ();
 	  else
-	    i = asFile.loadAddress;
-	  *value = Value_Int (i, eIntType_PureInt);
-	  ASFile_Free (&asFile);
-	  free (s);
+	    {
+	      char *s;
+	      if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+		Error_OutOfMem ();
+
+	      uint32_t i;
+	      ASFile asFile;
+	      if (Include_Find (s, &asFile, true))
+		{
+		  Error (ErrorError, "Cannot access file \"%s\"", s);
+		  i = 0;
+		}
+	      else
+		i = asFile.loadAddress;
+	      result = Value_Int (i, eIntType_PureInt);
+	      ASFile_Free (&asFile);
+	      free (s);
+	    }
 	  break;
 	}
 	
       case eOp_FExec:
 	{
 	  if (value->Tag != ValueString)
-	    return false;
-	  char *s;
-	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    Error_OutOfMem();
-
-	  uint32_t i;
-	  ASFile asFile;
-	  if (Include_Find (s, &asFile, true))
-	    {
-	      Error (ErrorError, "Cannot access file \"%s\"", s);
-	      i = 0;
-	    }
+	    result = Value_Illegal ();
 	  else
-	    i = asFile.execAddress;
-	  *value = Value_Int (i, eIntType_PureInt);
-	  ASFile_Free (&asFile);
-	  free (s);
+	    {
+	      char *s;
+	      if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+		Error_OutOfMem();
+
+	      uint32_t i;
+	      ASFile asFile;
+	      if (Include_Find (s, &asFile, true))
+		{
+		  Error (ErrorError, "Cannot access file \"%s\"", s);
+		  i = 0;
+		}
+	      else
+		i = asFile.execAddress;
+	      result = Value_Int (i, eIntType_PureInt);
+	      ASFile_Free (&asFile);
+	      free (s);
+	    }
 	  break;
 	}
 
       case eOp_FSize:
 	{
 	  if (value->Tag != ValueString)
-	    return false;
-	  char *s;
-	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    Error_OutOfMem();
-
-	  uint32_t i;
-	  ASFile asFile;
-	  if (Include_Find (s, &asFile, true))
-	    {
-	      Error (ErrorError, "Cannot access file \"%s\"", s);
-	      i = 0;
-	    }
+	    result = Value_Illegal ();
 	  else
 	    {
-	      if (asFile.size > UINT32_MAX)
+	      char *s;
+	      if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+		Error_OutOfMem();
+
+	      uint32_t i;
+	      ASFile asFile;
+	      if (Include_Find (s, &asFile, true))
 		{
-		  Error (ErrorWarning, "File size of \"%s\" is bigger than unsigned 32-bit integer", s);
-		  i = UINT32_MAX;
+		  Error (ErrorError, "Cannot access file \"%s\"", s);
+		  i = 0;
 		}
 	      else
-		i = asFile.size;
+		{
+		  if (asFile.size > UINT32_MAX)
+		    {
+		      Error (ErrorWarning, "File size of \"%s\" is bigger than unsigned 32-bit integer", s);
+		      i = UINT32_MAX;
+		    }
+		  else
+		    i = asFile.size;
+		}
+	      result = Value_Int (i, eIntType_PureInt);
+	      ASFile_Free (&asFile);
+	      free (s);
 	    }
-	  *value = Value_Int (i, eIntType_PureInt);
-	  ASFile_Free (&asFile);
-	  free (s);
 	  break;
 	}
 
       case eOp_FAttr:
 	{
 	  if (value->Tag != ValueString)
-	    return false;
-	  char *s;
-	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    Error_OutOfMem();
-
-	  uint32_t i;
-	  ASFile asFile;
-	  if (Include_Find (s, &asFile, true))
-	    {
-	      Error (ErrorError, "Cannot access file \"%s\"", s);
-	      i = 0;
-	    }
+	    result = Value_Illegal ();
 	  else
-	    i = asFile.attribs;
-	  *value = Value_Int (i, eIntType_PureInt);
-	  ASFile_Free (&asFile);
-	  free (s);
+	    {
+	      char *s;
+	      if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+		Error_OutOfMem();
+
+	      uint32_t i;
+	      ASFile asFile;
+	      if (Include_Find (s, &asFile, true))
+		{
+		  Error (ErrorError, "Cannot access file \"%s\"", s);
+		  i = 0;
+		}
+	      else
+		i = asFile.attribs;
+	      result = Value_Int (i, eIntType_PureInt);
+	      ASFile_Free (&asFile);
+	      free (s);
+	    }
 	  break;
 	}
 
@@ -823,9 +785,10 @@ Eval_Unop (Operator_e op, Value *value)
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":LNOT:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  value->Data.Bool.b = !value->Data.Bool.b;
+	  else
+	    result = Value_Bool (!value->Data.Bool.b);
 	  break;
 	}
 
@@ -836,25 +799,46 @@ Eval_Unop (Operator_e op, Value *value)
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":NOT:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  *value = Value_Int (~i, eIntType_PureInt);
+	  else
+	    result = Value_Int (~i, eIntType_PureInt);
 	  break;
 	}
 
-      case eOp_Neg: /* - */
+      case eOp_Neg: /* Unary - */
 	{
-	  if (!Eval_NegValue (value))
+	  uint32_t i;
+	  if (GetInt (value, &i))
+	    result = Value_Int (-i, eIntType_PureInt);
+	  else if (value->Tag == ValueInt64)
+	    result = Value_Int64 (-value->Data.Int64.i);
+	  else if (value->Tag == ValueFloat)
+	    result = Value_Float (-value->Data.Float.f);
+	  else if (value->Tag == ValueSymbol)
+	    result = Value_Symbol (value->Data.Symbol.symbol, -value->Data.Symbol.factor, -value->Data.Symbol.offset);
+	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", "negation");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
 
-      case eOp_None: /* */
-	break;
+      case eOp_Pos: /* Unary + */
+	{
+	  if (value->Tag == ValueInt || value->Tag == ValueInt64
+	      || value->Tag == ValueFloat)
+	    result = Value_Copy (value);
+	  else
+	    {
+	      if (gPhase != ePassOne)
+		Error (ErrorError, "Bad operand type for %s", "+");
+	      result = Value_Illegal ();
+	    }
+	  break;
+	}
 
       case eOp_Base: /* :BASE: */
 	{
@@ -864,26 +848,29 @@ Eval_Unop (Operator_e op, Value *value)
 		{
 		  if (value->Data.Symbol.symbol == areaCurrentSymbol
 		      && value->Data.Symbol.factor == 1)
-		    *value = Value_Int (15, eIntType_PureInt);
+		    result = Value_Int (15, eIntType_PureInt);
 		  else
 		    {
 		      if (gPhase != ePassOne)
 			Error (ErrorError, "Not current area symbol");
-		      return false;
+		      result = Value_Illegal ();
 		    }
 		  break;
 		}
 
 	      case ValueAddr:
 		{
-		  *value = Value_Int (value->Data.Addr.r, eIntType_PureInt);
+		  result = Value_Int (value->Data.Addr.r, eIntType_PureInt);
 		  break;
 		}
 
 	      default:
-		if (gPhase != ePassOne)
-		  Error (ErrorError, "Bad operand type for %s", ":BASE:");
-		return false;
+		{
+		  if (gPhase != ePassOne)
+		    Error (ErrorError, "Bad operand type for %s", ":BASE:");
+		  result = Value_Illegal ();
+		  break;
+		}
 	    }
 	  break;
 	}
@@ -893,30 +880,34 @@ Eval_Unop (Operator_e op, Value *value)
 	  switch (value->Tag)
 	    {
 	      case ValueInt:
+		result = *value;
 		break;
 
 	      case ValueAddr:
-		*value = Value_Int (value->Data.Addr.i, eIntType_PureInt);
+		result = Value_Int (value->Data.Addr.i, eIntType_PureInt);
 		break;
 
 	      case ValueSymbol:
 		{
 		  if (value->Data.Symbol.symbol == areaCurrentSymbol
 		      && value->Data.Symbol.factor == 1)
-		    *value = Value_Int (value->Data.Symbol.offset, eIntType_PureInt);
+		    result = Value_Int (value->Data.Symbol.offset, eIntType_PureInt);
 		  else
 		    {
 		      if (gPhase != ePassOne)
 			Error (ErrorError, "Not current area symbol");
-		      return false;
+		      result = Value_Illegal ();
 		    }
 		  break;
 		}
 
 	      default:
-		if (gPhase != ePassOne)
-		  Error (ErrorError, "Bad operand type for %s", ":INDEX:");
-		return false;
+		{
+		  if (gPhase != ePassOne)
+		    Error (ErrorError, "Bad operand type for %s", ":INDEX:");
+		  result = Value_Illegal ();
+		  break;
+		}
 	    }
 	  break;
 	}
@@ -927,70 +918,70 @@ Eval_Unop (Operator_e op, Value *value)
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":LEN:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  value->Tag = ValueInt; /* ValueString.len at same place as ValueInt.i.  */
+	  else
+	    result = Value_Int (value->Data.String.len, eIntType_PureInt);
 	  break;
 	}
 
       case eOp_Str: /* :STR: */
 	{
-	  if (value->Tag == ValueBool)
+	  switch (value->Tag)
 	    {
-	      char *c;
-	      if ((c = malloc (1)) == NULL)
-		Error_OutOfMem ();
-	      *c = value->Data.Bool.b ? 'T' : 'F';
-	      value->Tag = ValueString;
-	      value->Data.String.s = c;
-	      value->Data.String.len = 1;
-	    }
-	  else
-	    {
-	      char num[32];
-	      switch (value->Tag)
+	      default:
+		if (gPhase != ePassOne)
+		  Error (ErrorError, "Bad operand type for %s", ":STR:");
+		result = Value_Illegal ();
+		break;
+
+	      case ValueBool:
+	      case ValueInt:
+	      case ValueFloat:
 		{
-		  case ValueInt:
-		    sprintf (num, "%.8X", value->Data.Int.i);
-		    break;
-		  case ValueFloat:
-		    sprintf (num, "%f", value->Data.Float.f);
-		    break;
-		  default:
-		    if (gPhase != ePassOne)
-		      Error (ErrorError, "Bad operand type for %s", ":STR:");
-		    return false;
+		  size_t len;
+		  char num[32];
+		  switch (value->Tag)
+		    {
+		      case ValueBool:
+			len = sprintf (num, "%c", value->Data.Bool.b ? 'T' : 'F');
+			break;
+		      case ValueInt:
+			len = sprintf (num, "%.8X", value->Data.Int.i);
+			break;
+		      case ValueFloat:
+			len = sprintf (num, "%f", value->Data.Float.f);
+			break;
+		    }
+		  char *c;
+		  if ((c = malloc (len)) == NULL)
+		    Error_OutOfMem();
+		  memcpy (c, num, len);
+		  result = Value_String (c, len, true);
 		}
-	      size_t len = strlen (num);
-	      char *c;
-	      if ((c = malloc (len)) == NULL)
-		Error_OutOfMem();
-	      memcpy (c, num, len);
-	      value->Tag = ValueString;
-	      value->Data.String.s = c;
-	      value->Data.String.len = len;
 	    }
 	  break;
 	}
 
       case eOp_Chr: /* :CHR: */
 	{
-	  if (value->Tag != ValueInt)
+	  uint32_t i;
+	  if (!GetInt (value, &i))
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Bad operand type for %s", ":CHR:");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  if (value->Data.Int.i < 0 || value->Data.Int.i >= 256)
-	    Error (ErrorWarning, "Value %d will be truncated for :CHR: use",
-	           value->Data.Int.i);
-	  char *c;
-	  if ((c = malloc (1)) == NULL)
-	    Error_OutOfMem ();
-	  *c = value->Data.Int.i;
-	  value->Data.String.s = c;
-	  value->Data.String.len = 1;
-	  value->Tag = ValueString;
+	  else
+	    {
+	      if (i >= 256)
+		Error (ErrorWarning, "Value %d will be truncated for :CHR: use", i);
+	      char *c;
+	      if ((c = malloc (1)) == NULL)
+		Error_OutOfMem ();
+	      *c = i;
+	      result = Value_String (c, 1, true);
+	    }
 	  break;
 	}
 
@@ -999,22 +990,22 @@ Eval_Unop (Operator_e op, Value *value)
 	  if (value->Tag != ValueSymbol)
 	    {
 	      Error (ErrorError, "Bad operand type for %s", "? operator");
-	      return false;
+	      result = Value_Illegal ();
 	    }
-	  if ((value->Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_COMMON)) != 0)
-	    *value = Value_Int (value->Data.Symbol.symbol->codeSize, eIntType_PureInt);
+	  else if ((value->Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_COMMON)) != 0)
+	    result = Value_Int (value->Data.Symbol.symbol->codeSize, eIntType_PureInt);
 	  else if (value->Data.Symbol.symbol->type & SYMBOL_AREA)
 	    {
 	      if (gPhase == ePassTwo
 		  && value->Data.Symbol.symbol->area->curIdx != value->Data.Symbol.symbol->area->maxIdx)
 		Error (ErrorError, "? on area symbol which gets extended later on");
-	      *value = Value_Int (value->Data.Symbol.symbol->area->curIdx, eIntType_PureInt);
+	      result = Value_Int (value->Data.Symbol.symbol->area->curIdx, eIntType_PureInt);
 	    }
 	  else
 	    {
 	      if (gPhase != ePassOne)
 		Error (ErrorError, "Undefined symbol");
-	      return false;
+	      result = Value_Illegal ();
 	    }
 	  break;
 	}
@@ -1022,80 +1013,91 @@ Eval_Unop (Operator_e op, Value *value)
       case eOp_LowerCase: /* :LOWERCASE: */
 	{
 	  if (value->Tag != ValueString)
-	    return false;
-	  unsigned char *str = (unsigned char *)value->Data.String.s;
-	  for (size_t i = 0; i != value->Data.String.len; ++i)
-	    str[i] = tolower (str[i]);
+	    result = Value_Illegal ();
+	  else
+	    {
+	      result = Value_Copy (value);
+	      unsigned char *str = (unsigned char *)result.Data.String.s;
+	      for (size_t i = 0; i != result.Data.String.len; ++i)
+		str[i] = tolower (str[i]);
+	    }
 	  break;
 	}
 
       case eOp_UpperCase: /* :UPPERCASE: */
 	{
 	  if (value->Tag != ValueString)
-	    return false;
-	  unsigned char *str = (unsigned char *)value->Data.String.s;
-	  for (size_t i = 0; i != value->Data.String.len; ++i)
-	    str[i] = toupper (str[i]);
+	    result = Value_Illegal ();
+	  else
+	    {
+	      result = Value_Copy (value);
+	      unsigned char *str = (unsigned char *)result.Data.String.s;
+	      for (size_t i = 0; i != result.Data.String.len; ++i)
+		str[i] = toupper (str[i]);
+	    }
 	  break;
 	}
 
       case eOp_RevCC: /* :REVERSE_CC: */
 	{
 	  if (value->Tag != ValueString)
-	    return false;
-	  unsigned ccode = GetCCode (value->Data.String.s, value->Data.String.len);
-	  if (ccode == UINT_MAX)
+	    result = Value_Illegal ();
+	  else
 	    {
-	      Error (ErrorError, "Condition code %.*s is not known",
-	             (int)value->Data.String.len, value->Data.String.s);
-	      return false;
-	    }
-	  unsigned revCCode = ccode ^ 1;
-	  unsigned isUpcase = (value->Data.String.len ? (value->Data.String.s[0] & 0x20) : 0) ^ 0x20;
-	  char *str;
-	  if (value->Data.String.len != 2)
-	    {
-	      free ((void *)value->Data.String.s);
-	      if ((value->Data.String.s = malloc (2)) == NULL)
+	      unsigned ccode = GetCCode (value->Data.String.s, value->Data.String.len);
+	      if (ccode == UINT_MAX)
+		{
+		  Error (ErrorError, "Condition code %.*s is not known",
+			 (int)value->Data.String.len, value->Data.String.s);
+		  result = Value_Illegal ();
+		}
+	      unsigned revCCode = ccode ^ 1;
+	      unsigned isUpcase = (value->Data.String.len ? (value->Data.String.s[0] & 0x20) : 0) ^ 0x20;
+	      /* Input string length is 0 or 2.  */
+	      char *str;
+	      if ((str = malloc (2)) == NULL)
 		Error_OutOfMem ();
-	      value->Data.String.len = 2;
+	      str[0] = oLowcaseCCodes[revCCode*2 + 0] ^ isUpcase;
+	      str[1] = oLowcaseCCodes[revCCode*2 + 1] ^ isUpcase;
+	      result = Value_String (str, 2, true);
 	    }
-	  str = (char *)value->Data.String.s;
-	  str[0] = oLowcaseCCodes[revCCode*2 + 0] ^ isUpcase;
-	  str[1] = oLowcaseCCodes[revCCode*2 + 1] ^ isUpcase;
 	  break;
 	}
 
       case eOp_CCEnc: /* :CC_ENCODING: */
 	{
 	  if (value->Tag != ValueString)
-	    return false;
-	  unsigned ccode = GetCCode (value->Data.String.s, value->Data.String.len);
-	  if (ccode == UINT_MAX)
+	    result = Value_Illegal ();
+	  else
 	    {
-	      Error (ErrorError, "Condition code %.*s is not known",
-	             (int)value->Data.String.len, value->Data.String.s);
-	      return false;
+	      unsigned ccode = GetCCode (value->Data.String.s, value->Data.String.len);
+	      if (ccode == UINT_MAX)
+		{
+		  Error (ErrorError, "Condition code %.*s is not known",
+			 (int)value->Data.String.len, value->Data.String.s);
+		  result = Value_Illegal ();
+		}
+	      if (ccode >= 16)
+		ccode += -16 + 2;
+	      result = Value_Int (ccode, eIntType_PureInt);
 	    }
-	  if (ccode >= 16)
-	    ccode += -16 + 2;
-	  const Value newValue = Value_Int (ccode, eIntType_PureInt);
-	  Value_Assign (value, &newValue);
 	  break;
 	}
 
       case eOp_RConst: /* :RCONST: */
 	{
 	  if (value->Tag != ValueInt && value->Data.Int.type == eIntType_PureInt)
-	    return false;
-	  value->Data.Int.type = eIntType_PureInt;
+	    result = Value_Illegal ();
+	  else
+	    result = Value_Int (value->Data.Int.i, eIntType_PureInt);
 	  break;
 	}
 
       default:
 	assert (0);
-	return false;
+	result = Value_Illegal ();
+	break;
     }
 
-  return true;
+  return result;
 }

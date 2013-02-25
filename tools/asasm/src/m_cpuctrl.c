@@ -49,6 +49,7 @@
 #include "os.h"
 #include "phase.h"
 #include "put.h"
+#include "reloc.h"
 #include "state.h"
 #include "targetcpu.h"
 #include "value.h"

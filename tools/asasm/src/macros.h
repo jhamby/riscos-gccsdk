@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2012 GCCSDK Developers
+ * Copyright (c) 2002-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -53,9 +53,9 @@ typedef struct Macro
 
 typedef struct
 {
-  const Macro *macro;
+  const Macro *macro; /**< Pointer to the macro definition which is being executed.  */
   const char *curPtr; /**< Current pointer inside macro buffer Macro::buf.  */
-  const char *args[MACRO_ARG_LIMIT]; /**< Current argument values during macro execution.  */
+  const char *args[MACRO_ARG_LIMIT]; /**< Current argument values during macro execution.  NULL or malloced strings.  */
   const VarPos *varListP; /**< Linked list of local variables defined in this macro.  */
   unsigned optDirective; /**< Value {OPT} just before macro invocation.
     {OPT} gets restored after macro invocation.  */

@@ -45,7 +45,7 @@
 
 typedef struct
 {
-  const char *id;
+  const char *id; /**< Malloced block.  */
   unsigned counter;
 
   const char *fileName;

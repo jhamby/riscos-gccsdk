@@ -23,12 +23,11 @@
 #ifndef eval_header_included
 #define eval_header_included
 
-#include <stdbool.h>
-
 #include "lex.h"
 #include "value.h"
 
-bool Eval_Binop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue);
-bool Eval_Unop (Operator_e op, Value *value);
+Value Eval_Binop (Operator_e op,
+		  const Value * restrict lvalue, const Value * restrict rvalue);
+Value Eval_Unop (Operator_e op, const Value *value);
 
 #endif

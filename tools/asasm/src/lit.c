@@ -172,9 +172,10 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
 void
 Lit_RemoveLiterals (Symbol *areaSymbolP)
 {
-  for (const LitPool *litP = areaSymbolP->area->litPool; litP != NULL; /* */)
+  for (LitPool *litP = areaSymbolP->area->litPool; litP != NULL; /* */)
     {
-      const LitPool *nextLitP = litP->next;
+      LitPool *nextLitP = litP->next;
+      Value_Free (&litP->value);
       free ((void *)litP);
       litP = nextLitP;
     }
@@ -221,8 +222,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
      in our register after loading, before we wrongly match to the untruncated
      version for a different size value.
      E.g.  LDRB Rx, =0x808 and LDR Rx, =0x808 can not share the same literal.  */
-  Value truncValue = { .Tag = ValueIllegal };
-  Value_Assign (&truncValue, valueP);
+  Value truncValue = Value_Copy (valueP);
   if (valueP->Tag == ValueInt)
     {
       int truncForUser;
@@ -402,8 +402,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 	  || FPE_ConvertImmediate (-valueP->Data.Float.f) != (ARMWord)-1))
     return value;
 
-  Value truncValue = { .Tag = ValueIllegal };
-  Value_Assign (&truncValue, valueP);
+  Value truncValue = Value_Copy (valueP);
 
   /* Check if we already have the literal assembled in an range of up to
      1020 bytes ago.  */

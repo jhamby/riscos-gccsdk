@@ -26,7 +26,7 @@
 #include <stdbool.h>
 
 #include "lex.h"
-#include "reloc.h"
+#include "phase.h"
 #include "symbol.h"
 #include "value.h"
 
@@ -46,14 +46,13 @@ typedef struct Code
     } Data;
 } Code;
 
+void Code_PrepareForPhase (Phase_e phase);
 void Code_Init (void);
 
 void Code_Operator (Operator_e op);
 void Code_Symbol (Symbol *symbol, int offset);
 void Code_Int (int value);
-void Code_Position (Symbol *area, int offset);
-void Code_Storage (void);
-void Code_String (const char *str, size_t len);
+void Code_String (const char *str, size_t len, bool owns);
 void Code_Float (ARMFloat value);
 void Code_Bool (bool value);
 void Code_Addr (unsigned reg, int offset);
@@ -62,9 +61,7 @@ void Code_Value (const Value *value, bool expCode);
 const Value *Code_EvalLow (ValueTag legal, size_t size, const Code *program);
 const Value *Code_Eval (ValueTag legal);
 
-Value Code_TakeSnapShot (void);
-
-void Code_Free (const Code *code, size_t len);
+void Code_Free (Code *code, size_t len);
 Code *Code_Copy (size_t len, const Code *code);
 bool Code_Equal (size_t len, const Code *a, const Code *b);
 

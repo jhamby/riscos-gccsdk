@@ -1,3 +1,51 @@
+Mon Feb 25 23:35:05 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* lex.h (Lex::Data::String): Add owns entry.
+	* lex.c (Lex_String): Add ownership parameter.
+	(Lex_MakeReferringLocalLabel): Store local lex label name in symbol
+	table.
+	(Lex_DefineLocalLabel): Likewise.
+	(Lex_GetBuiltinVariable): Follow Lex_String API change.
+	(Lex_Print): Likewise.
+	* lit.c (Lit_RegisterInt): Use Value_Copy instead of Value_Assign.
+	(Lit_RegisterFloat): Likewise.
+	* reloc.c: Likewise.
+	* symbol.c: Likewise.
+	* decode.c: Likewise.
+	* variables.c (Var_Define): Use Value_String.  Empty strings can have
+	NULL string pointer.
+	* phase.c (Phase_PrepareFor): Add call to Code_PrepareForPhase.
+	* directive_data.c: Add reloc.h header include.
+	* m_cpumem.c: Likewise.
+	* m_cpuctrl.c: Likewise.
+	* eval.c (Eval_Binop): Pass result as Value return value.
+	(Eval_Unop): Likewise.  Follow eOp_None rename to eOp_Pos.
+	(Eval_NegValue): Merge into Eval_Unop.
+	* eval.c (Eval_Binop): Add result Value parameter.
+	(Eval_Upop): Likewise.
+	* macros.h: Update comments.
+	* input.c (Input_VarSub): Fix case of NULL string pointers.
+	* directive_symbol.c (Define): Remove call to Value_Assign.
+	* code.c (Code_PrepareForPhase): Add.
+	(Code_FreeCode): Add.
+	(Code_Position, Code_Storage): Remove.
+	(Program, Stack): Add ownership to those structures.
+	Deal with the fallout.
+	(Code_TakeSnapShot): Remove.
+	(Code_Free): De-const code pointer.
+	* code.h: Remove reloc.h header include.  Add phase.h header include.
+	(Code_PrepareForPhase): Add.
+	(Code_Position, Code_Storage, Code_TakeSnapShot): Remove.
+	(Code_Free): De-const code pointer.
+	* expr.c: Follow code.{c,h} changes.
+	* value.c (Value_Copy): Add.
+	(Value_Assign): Re-implement using Value_Copy.
+	Make use of Value_Copy where possible.
+	* value.h (Value::Data::String): Add owns entry.
+	(Value_String): Add.
+	(Value_Copy): Add.
+
 Thu Feb 14 03:23:43 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/filestack.c (CachedFile_GetLine): Fix uninitialised memory

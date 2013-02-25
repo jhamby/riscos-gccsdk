@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2004-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -66,7 +66,7 @@ typedef struct
     {
       struct			/* ValueInt */
         {
-          int i;		/* Must start identical with ValueAddr's i & ValueString's len.  */
+          int i;		/* Must start identical with ValueAddr's i & ValueString's len (FIXME: get rid of this).  */
 	  IntType_e type;
         } Int;
       struct			/* ValueInt64 */
@@ -79,8 +79,9 @@ typedef struct
         } Float;
       struct			/* ValueString */
         {
-	  size_t len;		/**< Size string.  Must start identical with ValueInt's i & ValueAddr's i.  */
-	  const char *s;	/**< Malloced memory block and string contents is *NOT* NUL terminated.  */
+	  size_t len;		/**< Size string.  Must start identical with ValueInt's i & ValueAddr's i (FIXME: get rid of this).  */
+	  const char *s;	/**< *NOT* NUL terminated.  Might be NULL but then len needs to be 0.  */
+	  bool owns;		/**< true when this object's s has ownership.  */ 
         } String;
       struct			/* ValueBool */
         {
@@ -93,7 +94,7 @@ typedef struct
         } Code;
       struct			/* ValueAddr, represents address in the form of "[<r>, #<i>]" */
         {
-	  int i;		/* Must start identical with ValueInt's i & ValueStrings's len.  */
+	  int i;		/* Must start identical with ValueInt's i & ValueStrings's len (FIXME: get rid of this).  */
           unsigned r;		/* When = 0 - 15 (inc), it is register based. INVALID_REG otherwise.  */
         } Addr;
       struct			/* ValueSymbol */
@@ -104,6 +105,13 @@ typedef struct
 	} Symbol;
     } Data;
 } Value;
+
+static inline Value
+Value_Illegal (void)
+{
+  const Value value = { .Tag = ValueIllegal };
+  return value;
+}
 
 static inline Value
 Value_Int (int i, IntType_e type)
@@ -134,6 +142,24 @@ Value_Float (ARMFloat f)
     {
       .Tag = ValueFloat,
       .Data.Float.f = f
+    };
+  return value;
+}
+
+/**
+ * \param str Pointer to string with length len.  Maybe NULL but then len
+ * needs to be 0 as well.
+ * Does *NOT* to be NUL terminated.
+ * \param ownership When false, no ownership is being transfered.  When true,
+ * str is a malloced block and ownership being transfered.
+ */
+static inline Value
+Value_String (const char *str, size_t len, bool ownership)
+{
+  const Value value =
+    {
+      .Tag = ValueString,
+      .Data.String = { .s = str, .len = len, .owns = ownership }
     };
   return value;
 }
@@ -174,6 +200,7 @@ Value_Symbol (struct Symbol *symbol, int factor, int offset)
 }
 
 void Value_Assign (Value *dst, const Value *src);
+Value Value_Copy (const Value *src);
 void Value_Free (Value *value);
 bool Value_ResolveSymbol (Value *valueP);
 bool Value_Equal (const Value *a, const Value *b);

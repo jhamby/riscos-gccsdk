@@ -34,28 +34,62 @@
 
 #include "area.h"
 #include "code.h"
-#include "directive_storagemap.h"
 #include "error.h"
 #include "eval.h"
-#include "input.h"
+#include "phase.h"
 #include "main.h"
 
 #ifdef DEBUG
 //#  define DEBUG_CODE
 #endif
 
+typedef struct
+{
+  Value value;
+  bool owns;
+} StackType_t;
+
 #define CODE_SIZECODE  (1024)
 #define CODE_SIZESTACK (1024)
 
+static void Code_FreeCode (Code *codeP);
 static bool Code_EvalLowest (size_t size, const Code *program, int *sp);
 
 #ifdef DEBUG_CODE
-static void Code_PrintValueArray (size_t size, const Value *value);
+static void Code_PrintValueArray (size_t size, const StackType_t *stackP);
 #endif
 
-static Code Program[CODE_SIZECODE]; /**< No ownership of Value objects.  */
-static unsigned FirstFreeIns; /**< Index for Program[] array for first free slot.  */
-static Value Stack[CODE_SIZESTACK]; /**< Ownership of Value object.  */
+static Code Program[CODE_SIZECODE]; /**< Ownership of Value objects.  */
+static size_t FirstFreeIns; /**< Index for Program[] array for first free slot.  */
+static StackType_t Stack[CODE_SIZESTACK]; /**< Stack objects.  */
+
+void
+Code_PrepareForPhase (Phase_e phase)
+{
+  switch (phase)
+    {
+      case eStartUp:
+      case ePassOne:
+	break;
+
+      case ePassTwo:
+      case eOutput:
+	{
+	  /* Time to get rid of our ownership of Value objects.  */
+	  for (size_t i = 0; i != sizeof (Program)/sizeof (Program[0]); ++i)
+	    Code_FreeCode (&Program[i]);
+	  for (size_t i = 0; i != sizeof (Stack)/sizeof (Stack[0]); ++i)
+	    {
+	      if (Stack[i].owns)
+		Value_Free (&Stack[i].value);
+	    }
+	  break;
+	}
+
+      case eCleanUp:
+	break;
+    }
+}
 
 void
 Code_Init (void)
@@ -63,11 +97,26 @@ Code_Init (void)
   FirstFreeIns = 0;
 }
 
+static void
+Code_FreeCode (Code *codeP)
+{
+  switch (codeP->Tag)
+    {
+      case CodeOperator:
+	break;
+
+      case CodeValue:
+	Value_Free (&codeP->Data.value);
+	break;
+    }
+}
+
 void
 Code_Operator (Operator_e op)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
+      Code_FreeCode (&Program[FirstFreeIns]);
       Program[FirstFreeIns].Tag = CodeOperator;
       Program[FirstFreeIns].Data.op = op;
       ++FirstFreeIns;
@@ -81,6 +130,7 @@ Code_Symbol (Symbol *symbol, int offset)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
+      Code_FreeCode (&Program[FirstFreeIns]);
       /* Only during evaluation, we're going to expand the symbols.  */
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].Data.value = Value_Symbol (symbol, 1, offset);
@@ -91,36 +141,13 @@ Code_Symbol (Symbol *symbol, int offset)
 }
 
 void
-Code_Position (Symbol *area, int offset)
-{
-  if (area->area->type & AREA_ABS)
-    Code_Int (Area_GetBaseAddress (area) + offset);
-  else
-    Code_Symbol (area, offset);
-}
-
-void
-Code_Storage (void)
+Code_String (const char *str, size_t len, bool owns)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
+      Code_FreeCode (&Program[FirstFreeIns]);
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value = *StorageMap_Value ();
-      ++FirstFreeIns;
-    }
-  else
-    Error_Abort ("Internal Code_Storage: overflow");
-}
-
-void
-Code_String (const char *str, size_t len)
-{
-  if (FirstFreeIns < CODE_SIZECODE)
-    {
-      Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value.Tag = ValueString;
-      Program[FirstFreeIns].Data.value.Data.String.len = len;
-      Program[FirstFreeIns].Data.value.Data.String.s = str;
+      Program[FirstFreeIns].Data.value = Value_String (str, len, owns);
       ++FirstFreeIns;
     }
   else
@@ -132,6 +159,7 @@ Code_Int (int value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
+      Code_FreeCode (&Program[FirstFreeIns]);
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].Data.value = Value_Int (value, eIntType_PureInt);
       ++FirstFreeIns;
@@ -145,6 +173,7 @@ Code_Float (ARMFloat value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
+      Code_FreeCode (&Program[FirstFreeIns]);
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].Data.value = Value_Float (value);
       ++FirstFreeIns;
@@ -158,6 +187,7 @@ Code_Bool (bool value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
+      Code_FreeCode (&Program[FirstFreeIns]);
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].Data.value = Value_Bool (value);
       ++FirstFreeIns;
@@ -174,6 +204,7 @@ Code_Addr (unsigned reg, int offset)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
+      Code_FreeCode (&Program[FirstFreeIns]);
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].Data.value = Value_Addr (reg, offset);
       ++FirstFreeIns;
@@ -187,16 +218,20 @@ Code_Value (const Value *value, bool expCode)
 {
   if (expCode && value->Tag == ValueCode)
     {
-      if (value->Data.Code.len + FirstFreeIns < CODE_SIZECODE)
+      size_t numEntries = value->Data.Code.len; 
+      if (numEntries + FirstFreeIns < CODE_SIZECODE)
 	{
-	  memcpy (&Program[FirstFreeIns], value->Data.Code.c, value->Data.Code.len*sizeof (Code));
-	  FirstFreeIns += value->Data.Code.len;
+	  for (size_t i = 0; i != numEntries; ++i)
+	    Code_FreeCode (&Program[FirstFreeIns + i]);
+	  memcpy (&Program[FirstFreeIns], value->Data.Code.c, numEntries*sizeof (Code));
+	  FirstFreeIns += numEntries;
 	}
       else
 	Error_Abort ("Internal Code_Value: overflow");
     }
   else if (FirstFreeIns < CODE_SIZECODE)
     {
+      Code_FreeCode (&Program[FirstFreeIns]);
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].Data.value = *value;
       ++FirstFreeIns;
@@ -243,22 +278,24 @@ Code_EvalLowest (size_t size, const Code *program, int *sp)
 	      if (Lex_IsUnop (program[i].Data.op))
 		{
 		  assert (spStart < *sp); /* At least one entry on the stack.  */
-		  if (!Eval_Unop (program[i].Data.op, &Stack[*sp - 1]))
+		  const Value result = Eval_Unop (program[i].Data.op, &Stack[*sp - 1].value);
+		  if (result.Tag == ValueIllegal)
 		    {
 #ifdef DEBUG_CODE
 		      printf ("FAILED\n");
 #endif
 		      return true;
 		    }
-		  /* No stack adjusting is needed, as one operand is consumed,
-		     one result is produced.  */
+		  if (Stack[*sp - 1].owns)
+		    Value_Free (&Stack[*sp - 1].value);
+		  Stack[*sp - 1].owns = true;
+		  Stack[*sp - 1].value = result;
 		}
 	      else
 		{
 		  assert (spStart < *sp - 1); /* At least two entries on the stack.  */
-
-		  Operator_e op = program[i].Data.op;
-		  if (!Eval_Binop (op, &Stack[*sp - 2], &Stack[*sp - 1]))
+		  const Value result = Eval_Binop (program[i].Data.op, &Stack[*sp - 2].value, &Stack[*sp - 1].value);
+		  if (result.Tag == ValueIllegal)
 		    {
 #ifdef DEBUG_CODE
 		      printf ("FAILED\n");
@@ -267,7 +304,10 @@ Code_EvalLowest (size_t size, const Code *program, int *sp)
 		    }
 		  /* Stack adjusting by one, as two operands are consumed, one
 		     result is produced.  */
-		  Value_Free (&Stack[*sp - 1]);
+		  if (Stack[*sp - 2].owns)
+		    Value_Free (&Stack[*sp - 2].value);
+		  Stack[*sp - 2].owns = true;
+		  Stack[*sp - 2].value = result;
 		  --(*sp);
 		}
 	      break;
@@ -293,7 +333,10 @@ Code_EvalLowest (size_t size, const Code *program, int *sp)
 #endif
 		  return true;
 		}
-	      Value_Assign (&Stack[*sp], &value);
+	      if (Stack[*sp].owns)
+		Value_Free (&Stack[*sp].value);
+	      Stack[*sp].owns = false; /* Just a copy from code program, stack doesn't have ownership.  */
+	      Stack[*sp].value = value;
 	      ++(*sp);
 	      break;
 	    }
@@ -331,7 +374,7 @@ Code_EvalLowest (size_t size, const Code *program, int *sp)
 
 /**
  * \return Result of evaluation.  Only to be used before next evaluation.
- * Use Value_Assign() to keep a non-temporary copy of it.
+ * Use Value_Assign()/Value_Copy() to keep a non-temporary copy of it.
  */
 const Value *
 Code_Eval (ValueTag legal)
@@ -342,7 +385,7 @@ Code_Eval (ValueTag legal)
 
 /**
  * \return Result of evaluation.  Only to be used before next evaluation.
- * Use Value_Assign() to keep a non-temporary copy of it.
+ * Use Value_Assign()/Value_Copy() to keep a non-temporary copy of it.
  */
 const Value *
 Code_EvalLow (ValueTag legal, size_t size, const Code *program)
@@ -356,18 +399,23 @@ Code_EvalLow (ValueTag legal, size_t size, const Code *program)
   int sp = 0;
   if (size == 0 || Code_EvalLowest (size, program, &sp))
     {
-      if (legal & ValueCode)
+      if (Stack[0].owns)
+	Value_Free (&Stack[0].value);
+      if ((legal & ValueCode) != 0)
 	{
-	  const Value valueCode = Value_Code (size, program);
-	  Value_Assign (&Stack[0], &valueCode);
+	  Stack[0].owns = true;
+	  Stack[0].value = Value_Code (size, program);
 	}
       else
-	Stack[0].Tag = ValueIllegal;
+	{
+	  Stack[0].owns = false;
+	  Stack[0].value = Value_Illegal ();
+	}
     }
   else
     assert (sp == 1);
 
-  switch (Stack[0].Tag)
+  switch (Stack[0].value.Tag)
     {
       case ValueInt:
 	{
@@ -375,54 +423,54 @@ Code_EvalLow (ValueTag legal, size_t size, const Code *program)
 	     float result is.  */
 	  if ((legal & (ValueInt | ValueFloat)) == ValueFloat)
 	    {
-	      ARMFloat f = (ARMFloat) Stack[0].Data.Int.i;
+	      ARMFloat fltVal = (ARMFloat) Stack[0].value.Data.Int.i;
 	      if (option_fussy)
-		Error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].Data.Int.i, f);
-	      Stack[0] = Value_Float (f);
+		Error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].value.Data.Int.i, fltVal);
+	      Stack[0].value = Value_Float (fltVal);
 	    }
 	  break;
 	}
+
       case ValueString:
 	{
 	  /* Convert a one char string into integer when string is not wanted
 	     but integer result is.  */
 	  if ((legal & (ValueString | ValueInt)) == ValueInt
-	      && Stack[0].Data.String.len == 1)
-	    Stack[0] = Value_Int ((uint8_t)Stack[0].Data.String.s[0], eIntType_PureInt);
+	      && Stack[0].value.Data.String.len == 1)
+	    {
+	      uint32_t intVal = (uint8_t)Stack[0].value.Data.String.s[0];
+	      if (Stack[0].owns)
+		Value_Free (&Stack[0].value);
+	      Stack[0].value = Value_Int (intVal, eIntType_PureInt);
+	    }
 	  break;
 	}
+
       default:
 	break;
     }
-  if (!(Stack[0].Tag & legal))
+  if ((Stack[0].value.Tag & legal) == 0)
     {
 #ifdef DEBUG_CODE
-      printf ("XXX codeEvalLow(): resulting object (tag 0x%x) is not wanted (allowed tags 0x%x).\n", Stack[0].Tag, legal);
+      printf ("XXX codeEvalLow(): resulting object (tag 0x%x) is not wanted (allowed tags 0x%x).\n", Stack[0].value.Tag, legal);
 #endif
-      Stack[0].Tag = ValueIllegal;
+      if (Stack[0].owns)
+        Value_Free (&Stack[0].value);
+      else
+	Stack[0].value = Value_Illegal ();
     }
 #ifdef DEBUG_CODE
   printf ("--- codeEvalLow() result: [");
-  Value_Print (&Stack[0]);
+  Value_Print (&Stack[0].value);
   printf ("]\n\n");
 #endif
 
-  return &Stack[0];
+  return &Stack[0].value;
 }
 
-
-/**
- * Takes a full copy of current Code program.
- * \return You have ownership.
- */
-Value
-Code_TakeSnapShot (void)
-{
-  return Value_Code (FirstFreeIns, Program);
-}
 
 void
-Code_Free (const Code *code, size_t len)
+Code_Free (Code *code, size_t len)
 {
   for (size_t i = 0; i < len; ++i)
     {
@@ -430,13 +478,15 @@ Code_Free (const Code *code, size_t len)
 	{
 	  case CodeOperator:
 	    break;
+
 	  case CodeValue:
-	    Value_Free ((void *)&code[i].Data.value);
+	    Value_Free (&code[i].Data.value);
 	    break;
 	}
     }
   free ((void *)code);
 }
+
 
 Code *
 Code_Copy (size_t len, const Code *code)
@@ -452,6 +502,7 @@ Code_Copy (size_t len, const Code *code)
 	  case CodeOperator:
 	    newCode[i].Data.op = code[i].Data.op;
 	    break;
+
 	  case CodeValue:
 	    Value_Assign (&newCode[i].Data.value, &code[i].Data.value);
 	    break;
@@ -474,6 +525,7 @@ Code_Equal (size_t len, const Code *a, const Code *b)
 	    if (a[i].Data.op != b[i].Data.op)
 	      return false;
 	    break;
+
 	  case CodeValue:
 	    if (!Value_Equal (&a[i].Data.value, &b[i].Data.value))
 	      return false;
@@ -510,11 +562,11 @@ Code_Print (size_t size, const Code *program)
 
 #  ifdef DEBUG_CODE
 static void
-Code_PrintValueArray (size_t size, const Value *value)
+Code_PrintValueArray (size_t size, const StackType_t *stackP)
 {
   for (size_t i = 0; i != size; ++i)
     {
-      Value_Print (&value[i]);
+      Value_Print (&stackP[i].value);
       if (i + 1 != size)
 	putc (' ', stdout);
     }

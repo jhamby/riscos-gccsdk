@@ -31,6 +31,7 @@
 
 #include "area.h"
 #include "code.h"
+#include "directive_storagemap.h"
 #include "error.h"
 #include "expr.h"
 #include "global.h"
@@ -56,7 +57,7 @@ Expr_GetPrim (void)
 	break;
 
       case LexString:
-        Code_String (lex.Data.String.str, lex.Data.String.len);
+        Code_String (lex.Data.String.str, lex.Data.String.len, lex.Data.String.owns);
         break;
 
       case LexInt:
@@ -87,11 +88,14 @@ Expr_GetPrim (void)
         break;
 
       case LexPosition:
-        Code_Position (areaCurrentSymbol, areaCurrentSymbol->area->curIdx);
+	if (areaCurrentSymbol->area->type & AREA_ABS)
+	  Code_Int (Area_GetBaseAddress (areaCurrentSymbol) + areaCurrentSymbol->area->curIdx);
+	else
+	  Code_Symbol (areaCurrentSymbol, areaCurrentSymbol->area->curIdx);
         break;
 
       case LexStorage:
-        Code_Storage ();
+	Code_Value (StorageMap_Value (), true);
         break;
 
       case LexDelim:
@@ -141,7 +145,7 @@ Expr_GetPrim (void)
 
 
 /**
- * Builds expression with prim & binops with priority > curPri.
+ * Builds expression with prim & binops with priority >= maxPri.
  */
 static bool
 Expr_GetInt (Lex *opP, int maxPri)
@@ -198,8 +202,8 @@ Expr_Build (void)
  * Evaluates the current (code) expression stream which was previous built up
  * using Expr_Build (or via Code_Init() + Code_*() calls).
  * \param legal Or'd ValueTag values which are allowed as result.
- * \return Result of evaluation.  Use Value_Assign() to keep a non-temporary
- * copy of it.
+ * \return Result of evaluation.
+ * Use Value_Assign()/Value_Copy() to keep a non-temporary copy of it.
  */
 const Value *
 Expr_Eval (ValueTag legal)
@@ -210,7 +214,7 @@ Expr_Eval (ValueTag legal)
 
 /**
  * \return Result of evaluation.  Only to be used before next evaluation.
- * Use Value_Assign() to keep a non-temporary copy of it.
+ * Use Value_Assign()/Value_Copy() to keep a non-temporary copy of it.
  */
 const Value *
 Expr_BuildAndEval (ValueTag legal)

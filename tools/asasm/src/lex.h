@@ -40,7 +40,7 @@ typedef enum
 {
   /* Unary operators.  */
   eOp_FLoad = 0, eOp_FExec, eOp_FSize, eOp_FAttr,	/* Priority kPrioOp_Unary */
-  eOp_LNot, eOp_Not, eOp_Neg, eOp_None,
+  eOp_LNot, eOp_Not, eOp_Neg, eOp_Pos,
   eOp_Base, eOp_Index, eOp_Len, eOp_Str, eOp_Chr,
   eOp_Size,
   eOp_LowerCase, eOp_UpperCase, eOp_RevCC,
@@ -112,6 +112,7 @@ typedef struct
         {
           const char *str;	/* *NOT* NUL terminated.  */
           size_t len;
+	  bool owns;		/**< true when this contains ownership of str.  */
         } String;
       struct			/* LexInt */
         {
