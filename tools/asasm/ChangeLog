@@ -1,3 +1,18 @@
+Thu Feb 28 03:08:42 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* get.c (Get_RHS): Remove one-character string support.  Already
+	provided by Code_EvalLow.
+	* m_cpu.c (m_movw_movt_mov32): Likewise.
+	* directive_data.c (DefineInt): Likewise.
+	* variables.c (Var_Define): Add assert on possible value types.
+	* input.c (Input_VarSub): Tune comment.
+
+	unittests/compare/core:
+	* instr_movt_movw_mov32.s: Add one-character string test.
+	* instr_adc_add_and_bic_eor_mov_mvn_orr_rsb_rsc_sbc_sub_cmn_cmp_teq_tst.s:
+	Change a couple of immediate constants into an one-character string.
+
 Mon Feb 25 23:35:05 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

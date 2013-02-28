@@ -8,6 +8,15 @@
 	AREA	Code, CODE
 	[ :LNOT: REFERENCE
 
+	GBLS Chr3
+Chr3	SETS :CHR:3
+	GBLS Chr4
+Chr4	SETS :CHR:4
+	GBLS Chr31
+Chr31	SETS :CHR:31
+	GBLS Chr32
+Chr32	SETS " "
+
 	; *** Part A:
 
 	; <base>			; no conditional code
@@ -55,21 +64,21 @@ cnt	SETA	cnt + 1
 	MACRO
 	SubInvoke3 $base
 	Inject "$base R1,R2,#0"			; 1
-	Inject "$base R1,R2,#4"
+	Inject "$base R1,R2,#Chr4"
 	Inject "$base R1,R2,#&FF"
 	Inject "$base R1,R2,#&3F0"
 	Inject "$base R1,R2,R3"			; 2
 	Inject "$base R1,R2,R3,LSL #2"		; 3
-	Inject "$base R1,R2,R3,LSL #31"
+	Inject "$base R1,R2,R3,LSL #Chr31"
 	Inject "$base R1,R2,R3,LSL R4"		; 4
 	Inject "$base R1,R2,R3,LSR #2"		; 5
-	Inject "$base R1,R2,R3,LSR #32"
+	Inject "$base R1,R2,R3,LSR #Chr32"
 	Inject "$base R1,R2,R3,LSR R4"		; 6
 	Inject "$base R1,R2,R3,ASR #2"		; 7
-	Inject "$base R1,R2,R3,ASR #32"
+	Inject "$base R1,R2,R3,ASR #Chr32"
 	Inject "$base R1,R2,R3,ASR R4"		; 8
 	Inject "$base R1,R2,R3,ROR #2"		; 9
-	Inject "$base R1,R2,R3,ROR #31"
+	Inject "$base R1,R2,R3,ROR #Chr31"
 	Inject "$base R1,R2,R3,ROR R4"		; 10
 	Inject "$base R1,R2,R3,RRX"		; 11
 	MEND
@@ -143,7 +152,7 @@ instr0	SETS	"$base" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*
 instr1	SETS	"$base" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2) :CC: "SP"
 instr2	SETS	"$base" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2) :CC: "PS"
 	Inject "$instr0 r1, #3"
-	Inject "$instr1 r1, #3"
+	Inject "$instr1 r1, #Chr3"
 	Inject "$instr2 r1, #3"
 cnt	SETA	cnt + 1
 	WEND

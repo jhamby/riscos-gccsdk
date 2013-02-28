@@ -230,4 +230,31 @@ bitPos	SETA	bitPos + 1
 
 	]
 
+	; Check one-character string support:
+	[ :LNOT: REFERENCE
+	ARM
+	MOVW	r9, #" "
+	MOVT	r9, #" "
+	MOV32	r9, #" "
+
+	THUMB
+	MOVW	r9, #" "
+	MOVT	r9, #" "
+	MOV32	r9, #" "
+
+	|
+
+	ARM
+	DCI.W &e3009020 	; movw	r9, #32
+	DCI.W &e3409020 	; movt	r9, #32
+	DCI.W &e3009020 	; movw	r9, #32
+	DCI.W &e3409000 	; movt	r9, #0
+
+	THUMB
+	DCI.W &f2400920 	; movw	r9, #32
+	DCI.W &f2c00920 	; movt	r9, #32
+	DCI.W &f2400920 	; movw	r9, #32
+	DCI.W &f2c00900 	; movt	r9, #0
+	]
+
 	END

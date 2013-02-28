@@ -103,6 +103,8 @@ Var_PredefineVariables (void)
 static Symbol *
 Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
+  assert (type == ValueInt || type == ValueString || type == ValueBool);
+
   const Lex var = Lex_Id (ptr, len);
   Symbol *sym = Symbol_Get (&var);
 

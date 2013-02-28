@@ -307,18 +307,11 @@ Get_RHS (bool regshift, bool shift, ARMWord ir)
   if (Input_Match ('#', false))
     {
       ir |= IMM_RHS;
-      const Value *im = Expr_BuildAndEval (ValueInt | ValueAddr | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
+      const Value *im = Expr_BuildAndEval (ValueInt | ValueAddr); /* FIXME: *** NEED ValueSymbol & ValueCode */
       switch (im->Tag)
 	{
 	  case ValueAddr: /* This is for "MOV Rx, #@" support.  */
 	    ir = Fix_Imm8s4 (ir, im->Data.Addr.i);
-	    break;
-
-	  case ValueString: /* FIXME: Remove ValueString case, cfr. Code_EvalLow() handling this.  */
-	    if (im->Data.String.len != 1)
-	      Error (ErrorError, "String too long to be an immediate expression");
-	    else
-	      ir = Fix_Imm8s4 (ir, (uint8_t)im->Data.String.s[0]);
 	    break;
 
 	  case ValueInt:

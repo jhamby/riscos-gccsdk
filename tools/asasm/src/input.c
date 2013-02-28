@@ -399,7 +399,7 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
 		toCopy = (sym->value.Data.Bool.b) ? "T" : "F";
 		break;
 	      default:
-		/* Only GBLL, GBLS and GBLA variables are used for
+		/* Only GBL{L,S,A} and LCL{L,S,A} variables are used for
 		   substitution.  */
 		assert (0);
 		toCopyLen = 0;

@@ -415,7 +415,11 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
       case 1:
       case 2:
       case 4:
-	allowedTypes = ValueInt | ValueString; /* Only 1 byte long strings for size 2 and 4.  */
+	allowedTypes = ValueInt;
+	/* For size 2 and 4, one byte strings are automatically supported
+	   by Code_EvalLow.  */
+	if (size == 1)
+	  allowedTypes |= ValueString;
 	/* Only during pass two we will emit symbols.  */
 	if (gPhase != ePassOne)
 	  allowedTypes |= ValueSymbol | ValueCode;
@@ -441,20 +445,12 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
 	{
 	  case ValueString:
 	    {
-	      assert (size == 1 || size == 2 || size == 4);
+	      assert (size == 1);
 	      size_t len = valP->Data.String.len;
-	      if (size != 1 && len != 1)
-		{
-		  Error (ErrorError, "Non 1 byte storage can only accept 1 byte long strings");
-		  Put_AlignDataWithOffset (offset, size, 0, 1, !allowUnaligned);
-		}
-	      else
-		{
-		  const char *str = valP->Data.String.s;
-		  for (size_t i = 0; i != len; ++i)
-		    Put_AlignDataWithOffset (offset + i, size, (unsigned char)str[i],
-					     1, !allowUnaligned);
-		}
+	      const char *str = valP->Data.String.s;
+	      for (size_t i = 0; i != len; ++i)
+		Put_AlignDataWithOffset (offset + i, size, (unsigned char)str[i],
+					 1, !allowUnaligned);
 	      break;
 	    }
 

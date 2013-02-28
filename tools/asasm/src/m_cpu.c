@@ -293,16 +293,9 @@ m_movw_movt_mov32 (bool doLowerCase, MOV_Type_e movType)
       return false;
     }
   uint32_t immValue = 0;
-  const Value *im = Expr_BuildAndEval (ValueInt | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
+  const Value *im = Expr_BuildAndEval (ValueInt); /* FIXME: *** NEED ValueSymbol & ValueCode */
   switch (im->Tag)
     {
-      case ValueString: /* FIXME: Remove ValueString case, cfr. Code_EvalLow() handling this.  */
-	if (im->Data.String.len != 1)
-	  Error (ErrorError, "String too long to be an immediate expression");
-	else
-	  immValue = (uint32_t)im->Data.String.s[0];
-	break;
-
       case ValueInt:
 	if (im->Data.Int.type == eIntType_PureInt)
 	  {
