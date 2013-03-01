@@ -1,1 +1,3 @@
-<Mono$Dir>.bin.Mono-SGen /Mono:/lib/mono/2.0/gmcs.exe %*0
+| This is a wrapper to the MCS compiler which is suitable for use with
+| profile 2.0.
+mcs -sdk:2 %*0

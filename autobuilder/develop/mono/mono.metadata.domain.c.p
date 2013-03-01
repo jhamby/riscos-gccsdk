@@ -1,6 +1,6 @@
---- mono/metadata/domain.c.orig	2011-12-19 21:10:24.000000000 +0000
-+++ mono/metadata/domain.c	2012-05-28 19:38:19.000000000 +0100
-@@ -38,6 +38,11 @@
+--- mono/metadata/domain.c.orig	2013-01-08 18:41:07.000000000 +0000
++++ mono/metadata/domain.c	2013-01-16 19:41:47.000000000 +0000
+@@ -39,6 +39,11 @@
  #include <metadata/profiler-private.h>
  #include <mono/metadata/coree.h>
  
@@ -12,7 +12,7 @@
  /* #define DEBUG_DOMAIN_UNLOAD */
  
  /* we need to use both the Tls* functions and __thread because
-@@ -1323,6 +1328,12 @@
+@@ -1308,6 +1313,12 @@
  	
  	/* Get a list of runtimes supported by the exe */
  	if (exe_filename != NULL) {

@@ -1,6 +1,6 @@
 			 Mono for RISC OS
 			Ported by Lee Noar
-			    V2.10.8
+			    V3.0.3
 Introduction
 ------------
 Mono is an open source version of Microsoft's .net framework. It's home
@@ -18,12 +18,12 @@ This package is a port of Mono to RISC OS. Because of its size and
 complexity, it should be considered a Work In Progress as testing has
 barely scratched the surface.
 
-The Mono package is supplied with a number of C# compilers, all of which
-are themselves written in C# and therefore require Mono to run. These are:
+The Mono package is supplied with the MCS C# 5.0 compiler, a number of
+scripts are provided allowing the compiler to target different profiles:
 
-mcs		Compiler to target the 1.1 runtime (deprecated with Mono 2.8).
-gmcs		Compiler to target the 2.0 runtime.
-dmcs		Compiler to target the 4.0 runtime.
+mcs		Target any profile, and any mscorlib.
+gmcs		Target the 2.0 profile
+dmcs		Target the 4.0 profile.
 
 Using mono runtime
 ------------------
@@ -95,7 +95,7 @@ public class HelloWorld
 
 It can be compiled using:
 
-gmcs helloworld.cs
+mcs helloworld.cs
 
 This will create a binary file called helloworld/exe. This file contains the
 compiled code in the form of an intermediate language called CIL (Common Interface
@@ -172,7 +172,7 @@ Mono natively on the host machine, however, there can be problems due
 to mismatched runtimes and/or bugs. For example, Ubuntu 10.10 and 11.04
 both contain V2.6.7 of Mono, but this version causes segmentation faults
 when building RISC OS Mono. If you have a later version of Ubuntu or your
-distro of choice contains at least version 2.10 of Mono, then you should
+distro of choice contains at least version 3.0.3 of Mono, then you should
 be fine. Otherwise, the best option is to build a native version of Mono
 yourself (preferably the same version as that used for RISC OS) using
 /usr/local as the prefix. This will override the package managed version.
@@ -182,10 +182,6 @@ Known problems
 Sometimes the GC kicks in just before program exit causing a delay before
 control is returned to the command line. This gives the impression that the
 program has hung.
-
-There may be an issue with exception handling whereby on stack extension,
-the caller registers are not present in the new stack chunk, but I've yet to
-see this actually occur.
 
 Glossary
 --------

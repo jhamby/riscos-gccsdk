@@ -1,7 +1,7 @@
---- libgc/configure.in.orig	2011-08-26 02:06:38.000000000 +0100
-+++ libgc/configure.in	2011-11-13 14:44:40.000000000 +0000
-@@ -165,6 +165,9 @@
- 	INCLUDES="$INCLUDES -pthread"
+--- libgc/configure.in.orig	2013-01-08 18:41:10.000000000 +0000
++++ libgc/configure.in	2013-01-16 19:41:46.000000000 +0000
+@@ -168,6 +168,9 @@
+ 	AM_CPPFLAGS="$AM_CPPFLAGS -pthread"
  	THREADDLLIBS="-lpthread -lrt"
  	;;
 +     *-*-riscos*)

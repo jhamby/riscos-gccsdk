@@ -1,6 +1,6 @@
---- mono/mini/mini-arm.h.orig	2011-12-19 21:10:25.000000000 +0000
-+++ mono/mini/mini-arm.h	2012-05-26 17:28:21.000000000 +0100
-@@ -131,6 +131,9 @@
+--- mono/mini/mini-arm.h.orig	2013-01-08 18:41:05.000000000 +0000
++++ mono/mini/mini-arm.h	2013-01-16 19:41:47.000000000 +0000
+@@ -137,6 +137,9 @@
  	gpointer seq_point_bp_method_var;
  	gboolean omit_fp, omit_fp_computed;
  	gpointer cinfo;
@@ -10,7 +10,7 @@
  } MonoCompileArch;
  
  #define MONO_ARCH_EMULATE_FCONV_TO_I8 1
-@@ -180,7 +183,12 @@
+@@ -190,7 +193,12 @@
  #endif
  
  /* ARM doesn't have too many registers, so we have to use a callee saved one */
@@ -23,7 +23,7 @@
  /* First argument reg */
  #define MONO_ARCH_VTABLE_REG ARMREG_R0
  
-@@ -221,5 +229,12 @@
+@@ -222,5 +230,12 @@
  guint8*
  mono_arm_get_thumb_plt_entry (guint8 *code) MONO_INTERNAL;
  

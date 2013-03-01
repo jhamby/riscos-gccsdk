@@ -1,6 +1,6 @@
---- mono/arch/arm/arm-codegen.h.orig	2011-08-26 02:06:56.000000000 +0100
-+++ mono/arch/arm/arm-codegen.h	2012-01-21 19:15:54.000000000 +0000
-@@ -80,7 +80,11 @@
+--- mono/arch/arm/arm-codegen.h.orig	2013-01-08 18:41:05.000000000 +0000
++++ mono/arch/arm/arm-codegen.h	2013-01-16 19:41:47.000000000 +0000
+@@ -82,7 +82,11 @@
  	ARMREG_V6 = ARMREG_R9,
  	ARMREG_V7 = ARMREG_R10,
  

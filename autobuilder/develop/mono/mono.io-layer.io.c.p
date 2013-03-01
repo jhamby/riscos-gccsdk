@@ -1,6 +1,6 @@
---- mono/io-layer/io.c.orig	2012-02-03 20:48:56.000000000 +0000
-+++ mono/io-layer/io.c	2012-02-03 21:15:03.000000000 +0000
-@@ -43,6 +43,12 @@
+--- mono/io-layer/io.c.orig	2013-01-08 18:41:09.000000000 +0000
++++ mono/io-layer/io.c	2013-01-21 19:47:00.000000000 +0000
+@@ -46,6 +46,12 @@
  #include <mono/io-layer/io-portability.h>
  #include <mono/utils/strenc.h>
  
@@ -10,12 +10,12 @@
 +#define RISCOS_CIL_IMAGE_FILETYPE 0xA7D
 +#endif
 +
- #undef DEBUG
- 
- static void file_close (gpointer handle, gpointer data);
-@@ -1686,6 +1692,18 @@
- 	g_message("%s: returning handle %p", __func__, handle);
- #endif
+ #if 0
+ #define DEBUG(...) g_message(__VA_ARGS__)
+ #define DEBUG_ENABLED 1
+@@ -1574,6 +1580,18 @@
+ 	
+ 	DEBUG("%s: returning handle %p", __func__, handle);
  	
 +#ifdef __riscos__
 +	if ((flags & (O_CREAT | O_WRONLY))
@@ -32,3 +32,12 @@
  	return(handle);
  }
  
+@@ -4194,7 +4212,7 @@
+ }
+ 
+ /* Linux has struct statfs which has a different layout */
+-#if defined (PLATFORM_MACOSX) || defined (__linux__) || defined(PLATFORM_BSD) || defined(__native_client__)
++#if defined (PLATFORM_MACOSX) || defined (__linux__) || defined(PLATFORM_BSD) || defined(__native_client__) || defined (__riscos__)
+ gboolean
+ GetVolumeInformation (const gunichar2 *path, gunichar2 *volumename, int volumesize, int *outserial, int *maxcomp, int *fsflags, gunichar2 *fsbuffer, int fsbuffersize)
+ {

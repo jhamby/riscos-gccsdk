@@ -1,6 +1,6 @@
---- mono/mini/cpu-arm.md.orig	2011-12-19 21:10:25.000000000 +0000
-+++ mono/mini/cpu-arm.md	2012-05-25 21:38:22.000000000 +0100
-@@ -110,23 +110,23 @@
+--- mono/mini/cpu-arm.md.orig	2013-01-08 18:41:06.000000000 +0000
++++ mono/mini/cpu-arm.md	2013-01-16 19:41:47.000000000 +0000
+@@ -112,23 +112,23 @@
  storer8_membase_reg: dest:b src1:f len:24
  store_memindex: dest:b src1:i src2:i len:4
  storei1_memindex: dest:b src1:i src2:i len:4

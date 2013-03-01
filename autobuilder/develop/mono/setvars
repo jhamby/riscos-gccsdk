@@ -1,19 +1,16 @@
 AB_CATEGORY="Development"
 
-MONO_VERSION=2.10.8
+MONO_VERSION=3.0.3
 
-AB_URL=http://download.mono-project.com/sources/mono/mono-2.10.8.tar.bz2
+AB_URL=http://download.mono-project.com/sources/mono/mono-3.0.3.tar.bz2
 
-AB_CONFLAGS="--ro-recurse --with-sgen=yes --with-gc=sgen --with-tls=pthread --with-xen-opt=no --with-ikvm-native=no --with-moonlight=no --disable-shared-memory --with-sigaltstack=no --with-jit=yes --with-malloc-mempools --with-profile4=yes"
+AB_CONFLAGS="--ro-recurse --with-sgen=yes --with-gc=sgen --with-tls=pthread --with-xen-opt=no --with-ikvm-native=no --with-moonlight=no --disable-shared-memory --with-sigaltstack=no --with-jit=yes --with-malloc-mempools --with-static_mono=yes --with-shared_mono=yes"
 
 export RO_SHAREDLIBS=yes
 
 export ac_cv_func_madvise=yes
 export ac_cv_func_mmap=no
 export armv6=no
-
-mkdir -p $S/mcs/build
-ln -T -s -f $H/mcs.build.config.make $S/mcs/build/config.make
 
 ln -T -s -f $H/mono.utils.riscos-memory.c $S/mono/utils/riscos-memory.c
 
@@ -47,24 +44,8 @@ build_riscosdotnet() {
 }
 
 ab_make() {
+  $AB_MAKE
   $AB_MAKE install
-
-  # In a native Linux build, the class libraries, compilers and other tools are
-  # built automatically. However here, I suspect the build system detects that
-  # mono is cross compiled and therefore not executable and does not go any
-  # further than the mono binary. So we build them separately, having used some
-  # trial and error to work out what to pass to make.
-  pushd . >/dev/null
-    cd mcs
-    # Parallel building using -j can cause:
-    # error CS0006: Metadata file `../../class/lib/net_2_0/Mono.Cecil.dll' could not be found
-    # when building mono-api-info.exe
-    $AB_MAKE -j1 NO_DIR_CHECK=1 PROFILES='net_2_0 net_3_5 net_4_0' all-profiles install MONO_VERSION=$MONO_VERSION
-
-    # Make sure profiles 3.5 & 4.0 are installed
-    $AB_MAKE -j1 NO_DIR_CHECK=1 PROFILE=net_3_5 install MONO_VERSION=$MONO_VERSION
-    $AB_MAKE -j1 NO_DIR_CHECK=1 PROFILE=net_4_0 install MONO_VERSION=$MONO_VERSION
-  popd >/dev/null
 
   build_riscosdotnet
 }
@@ -130,20 +111,18 @@ ab_package() {
   copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/2.0" "$A/lib/mono/2.0"
   copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/3.5" "$A/lib/mono/3.5"
   copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/4.0" "$A/lib/mono/4.0"
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/4.5" "$A/lib/mono/4.5"
 
   copy_framework_exes "2.0"
   copy_framework_exes "3.5"
   copy_framework_exes "4.0"
-
-  # This is cheating a bit. The mcs compiler is built in the basic profile and in a
-  # native Linux build is installed in lib/mono/2.0, but I can't get the same result
-  # here so we'll copy it from there.
-  cp -T "$S/mcs/class/lib/basic/mcs.exe" "$A/lib/mono/2.0/mcs.exe,A7D"
+  copy_framework_exes "4.5"
 
   # Copy config files
-  mkdir -p $A/etc/mono/2.0 $A/etc/mono/4.0
+  mkdir -p $A/etc/mono/2.0 $A/etc/mono/4.0 $A/etc/mono/4.5
   cp "$GCCSDK_INSTALL_ENV/etc/mono/2.0/machine.config" "$A/etc/mono/2.0/"
   cp "$GCCSDK_INSTALL_ENV/etc/mono/4.0/machine.config" "$A/etc/mono/4.0/"
+  cp "$GCCSDK_INSTALL_ENV/etc/mono/4.5/machine.config" "$A/etc/mono/4.5/"
   cp "$GCCSDK_INSTALL_ENV/etc/mono/config" "$A/etc/mono/"
 
   # Copy the riscos assembly

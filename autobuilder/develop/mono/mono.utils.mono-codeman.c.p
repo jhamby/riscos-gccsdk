@@ -1,8 +1,8 @@
---- mono/utils/mono-codeman.c.orig	2011-08-09 02:18:46.000000000 +0100
-+++ mono/utils/mono-codeman.c	2011-08-21 14:57:03.000000000 +0100
-@@ -25,6 +25,13 @@
- #include <sys/nacl_syscalls.h>
- #endif
+--- mono/utils/mono-codeman.c.orig	2013-01-08 18:41:09.000000000 +0000
++++ mono/utils/mono-codeman.c	2013-01-16 19:41:47.000000000 +0000
+@@ -28,6 +28,13 @@
+ 
+ static uintptr_t code_memory_used = 0;
  
 +#if defined(__riscos__)
 +/* Malloc allocations are already word aligned.  */
