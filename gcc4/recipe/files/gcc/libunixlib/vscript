@@ -59,8 +59,6 @@ VERSION {
      __init_des_r;
      __init_des;
      __invalidate;
-     __isdir_raw;
-     __isdir;
      malloc_trim;
      malloc_trim_unlocked;
      malloc_unlocked;
@@ -69,6 +67,8 @@ VERSION {
      __net_error;
      __newstream;
      __null*;
+     __object_exists_ro;
+     __object_exists_ux;
      __opensock;
      __peekchar;
      __pipe*;

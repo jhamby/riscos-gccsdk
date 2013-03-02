@@ -1,5 +1,5 @@
 /* symlink ()
- * Copyright (c) 2002-2012 UnixLib Developers
+ * Copyright (c) 2002-2013 UnixLib Developers
  */
 
 #include <errno.h>
@@ -57,7 +57,7 @@ symlink (const char *ux_targetfile, const char *ux_newfile)
     }
 
   /* Don't overwrite an existing file with a symlink file.  */
-  if (__object_exists_raw (ro_newfile))
+  if (__object_exists_ro (ro_newfile))
     {
       result = __set_errno (EEXIST);
       goto exit;

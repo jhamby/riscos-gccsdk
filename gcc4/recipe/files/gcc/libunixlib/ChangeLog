@@ -1,3 +1,29 @@
+Sat Mar  2 16:50:10 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/rename.c (rename): Better determination of errno values.
+	Allow case-only rename on case insensitve RISC OS FS. Use
+	SWI_OS_FSControl_Rename instead of __os_swi.
+	* common/objattr.c: Fix comment.
+	* common/_exists.s (__isdir_raw, __object_exists_raw): Remove.
+	* common/exist.c (__isdir, __object_exists): Remove.
+	(__object_exists_ux, __object_exists_ro): Add.
+	* incl-local/internal/local.h: Follow above changes.
+	* incl-local/internal/os.h (SWI_OS_File_ReadCatInfo): Take
+	__get_feature_imagefs_is_file into account.
+	(SWI_OS_FSControl_Rename): Add.
+	* unix/dev.c (__fsopen): Follow __isdir_raw to __object_exists_ro
+	rename.
+	* unix/dirent.c (opendir): Follow __object_exists_raw to
+	__object_exists_ro rename.
+	* unistd/symlink.c (symlink): Likewise.
+	* stdio/tmpfile.c (generate_temporary_filename): Follow rename
+	__object_exists to __object_exists_ux.
+	(isdir): Follow rename __isdir_raw/__isdir to __object_exists_ro/
+	__objet_exists_ux.
+	* vscript (__isdir_raw, __isdir): Remove.
+	(__object_exists_ro, __object_exissts_ux): Add.
+	* unittest/test-rename.c, unittest/include/check.c: Add.
+
 Sat Feb 23 19:06:13 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/dev.c (__fsopen): Don't use a pointer to a buffer going

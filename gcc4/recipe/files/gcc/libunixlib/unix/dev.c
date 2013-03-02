@@ -270,7 +270,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
 		*end_of_filename++ = '.';
 	      *end_of_filename = ':';
 
-	      if (!__isdir_raw (file))
+	      if (__object_exists_ro (file) != 2)
 		return (void *) __set_errno (ENOENT);
 	      /* No parent directory - throw Unix error.  */
 	    }

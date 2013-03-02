@@ -1,5 +1,5 @@
 /* __object_get_attrs ()
- * Copyright (c) 2000-2012 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
 #include <errno.h>
@@ -60,7 +60,7 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
     return __ul_seterr (err, EIO);
 
   /* Does the file has a filetype (at this point we aren't even sure that
-     the file exists but that's not a problem, see next 'if' on regs[0]
+     the file exists but that's not a problem, see next 'if' on objtype_cp == 0
      contents further on) ?  */
   int aftype;
   if ((loadaddr_cp & 0xfff00000U) == 0xfff00000U)

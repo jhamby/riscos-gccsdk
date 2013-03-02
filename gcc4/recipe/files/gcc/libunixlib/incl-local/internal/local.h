@@ -1,5 +1,5 @@
 /* UnixLib internal function declarations.
-   Copyright (c) 2002-2010 UnixLib Developers.  */
+   Copyright (c) 2002-2013 UnixLib Developers.  */
 
 #ifndef __INTERNAL_LOCAL_H
 #define __INTERNAL_LOCAL_H 1
@@ -42,19 +42,19 @@ extern int __set_protection (__mode_t __mode);
    file access mode.  */
 extern __mode_t __get_protection (int __attrib);
 
-/* Return nonzero if DIR is an existent directory.  */
-extern int __isdir (const char *__dir);
+/* Return 0 if UX_OBJ does not exist; 1 if it is an existing file or an
+   ImageFS image when __feature_imagefs_is_file is 1; 2 if it  an
+   existing directory or an ImageFS image when __feature_imagefs_is_file
+   is 0.
+   UX_OBJ is a Unix path.  */
+extern int __object_exists_ux (const char *__ux_obj);
 
-/* Return nonzero if OBJECT exists as file, dir or image.  */
-extern int __object_exists (const char *__object);
-
-/* Return nonzero if DIR is an existent directory.
-   Don't call __riscosify[_std] ().  */
-extern int __isdir_raw (const char *__dir);
-
-/* Return nonzero if OBJECT exists as file, dir or image.
-   Don't call __riscosify[_std] ().  */
-extern int __object_exists_raw (const char *__object);
+/* Return 0 if RO_OBJ does not exist; 1 if it is an existing file or an
+   ImageFS image when __feature_imagefs_is_file is 1; 2 if it  an
+   existing directory or an ImageFS image when __feature_imagefs_is_file
+   is 0.
+   RO_OBJ is a RISC OS path.  */
+extern int __object_exists_ro (const char *__ro_obj);
 
 /* Convert RISC OS format 5 byte time into Unix format time.
    The lowest significant 4 bytes is passed 'low' and the most

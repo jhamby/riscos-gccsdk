@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2000-2012 UnixLib Developers
- */
+/* Direct interface calls to RISC OS.
+   Copyright (c) 2000-2013 UnixLib Developers.  */
 
 #ifndef __INTERNAL_OS_H
 #define __INTERNAL_OS_H
@@ -236,7 +235,7 @@ SWI_OS_File_ReadCatInfo (const char *__filename, unsigned *__objtype,
   if (!err)
     {
       if (__objtype)
-	*__objtype = objtype;
+	*__objtype = objtype == 3 ? (__get_feature_imagefs_is_file () ? 1 : 2) : objtype;
       if (__loadaddr)
 	*__loadaddr = loadaddr;
       if (__execaddr)
@@ -373,6 +372,22 @@ SWI_DDEUtils_ReadPrefix (int __ao, const char **__prefix)
 		    : "r14", "cc");
   if (__prefix && !err)
     *__prefix = prefix;
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_FSControl_Rename (const char *__oldfn, const char *__newfn)
+{
+  register const char *oldfn __asm ("r1") = __oldfn;
+  register const char *newfn __asm ("r2") = __newfn;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #25\n\t"
+		    "SWI\t%[SWI_XOS_FSControl]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (oldfn), "r" (newfn),
+		      [SWI_XOS_FSControl] "i" (OS_FSControl | (1<<17))
+		    : "r14", "cc");
   return err;
 }
 

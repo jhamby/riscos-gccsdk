@@ -1,5 +1,5 @@
 /* Perform operations on a directory.
-   Copyright (c) 2002-2012 UnixLib Developers.  */
+   Copyright (c) 2002-2013 UnixLib Developers.  */
 
 #include <dirent.h>
 #include <errno.h>
@@ -157,7 +157,7 @@ opendir (const char *ux_name)
   debug_printf ("-- opendir: ux_name=%s, ro name=%s\n", ux_name, name);
 #endif
 
-  switch (__object_exists_raw (name))
+  switch (__object_exists_ro (name))
     {
       case 0:
 	(void) __set_errno (ENOENT);

@@ -1,5 +1,5 @@
 /* tmpfile (), tmpfile64 (), tmpnam (), tmpnam_r (), mktemp (), tempnam ()
- * Copyright (c) 2000-2012 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
 #include <string.h>
@@ -76,7 +76,7 @@ generate_temporary_filename (char *buf, const char *dir,
       s[6] = '\0';
 
       /* Check for filename existence.  */
-      if (!__object_exists (buf))
+      if (!__object_exists_ux (buf))
 	return buf;
 
       if (++idx == maxidx)
@@ -102,7 +102,7 @@ isdir (const char *dir)
 {
   if (*dir == '\0')
     return 0;
-  return (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS) ? __isdir_raw (dir) : __isdir (dir);
+  return ((__get_riscosify_control () & __RISCOSIFY_NO_PROCESS) ? __object_exists_ro (dir) : __object_exists_ux (dir)) == 2;
 }
 
 
