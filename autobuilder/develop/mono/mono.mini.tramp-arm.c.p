@@ -1,6 +1,6 @@
---- mono/mini/tramp-arm.c.orig	2013-01-08 18:41:05.000000000 +0000
-+++ mono/mini/tramp-arm.c	2013-01-16 20:53:20.000000000 +0000
-@@ -167,7 +167,11 @@
+--- mono/mini/tramp-arm.c.orig	2013-02-27 16:56:56.000000000 +0000
++++ mono/mini/tramp-arm.c	2013-03-01 20:41:44.000000000 +0000
+@@ -226,7 +226,11 @@
  	/* The size of the area already allocated by the push in the specific trampoline */
  	regsave_size = 14 * sizeof (mgreg_t);
  	/* The offset where lr was saved inside the regsave area */
@@ -12,7 +12,7 @@
  
  	// FIXME: Finish the unwind info, the current info allows us to unwind
  	// when the trampoline is not in the epilog
-@@ -176,7 +180,11 @@
+@@ -235,7 +239,11 @@
  	cfa_offset = 14 * sizeof (mgreg_t);
  	mono_add_unwind_op_def_cfa (unwind_ops, code, buf, ARMREG_SP, cfa_offset);
  	// PC saved at sp+LR_OFFSET
@@ -24,7 +24,7 @@
  
  	if (aot && tramp_type != MONO_TRAMPOLINE_GENERIC_CLASS_INIT) {
  		/* 
-@@ -253,13 +261,23 @@
+@@ -318,13 +326,23 @@
  	ARM_ADD_REG_IMM8 (code, ARMREG_R2, ARMREG_SP, cfa_offset);
  	ARM_STR_IMM (code, ARMREG_R2, ARMREG_V1, G_STRUCT_OFFSET (MonoLMF, sp));
  	/* save caller FP */
@@ -48,7 +48,7 @@
  	}
  	ARM_STR_IMM (code, ARMREG_R2, ARMREG_V1, G_STRUCT_OFFSET (MonoLMF, ip));
  
-@@ -301,7 +319,12 @@
+@@ -371,7 +389,12 @@
  	 * clobbered). This way we can just restore all the regs in one inst
  	 * and branch to IP.
  	 */
@@ -61,7 +61,7 @@
  
  	/* Check for thread interruption */
  	/* This is not perf critical code so no need to check the interrupt flag */
-@@ -343,7 +366,11 @@
+@@ -419,7 +442,11 @@
  	 * Note that IP has been conveniently set to the method addr.
  	 */
  	ARM_ADD_REG_IMM8 (code, ARMREG_SP, ARMREG_SP, STACK - regsave_size);
@@ -73,7 +73,7 @@
  	if (tramp_type == MONO_TRAMPOLINE_RGCTX_LAZY_FETCH)
  		ARM_MOV_REG_REG (code, ARMREG_R0, ARMREG_IP);
  	ARM_ADD_REG_IMM8 (code, ARMREG_SP, ARMREG_SP, regsave_size);
-@@ -428,8 +455,13 @@
+@@ -533,8 +560,13 @@
  	 * method-literal
  	 * tramp-literal
  	 */
@@ -87,7 +87,7 @@
  	if (short_branch) {
  		constants = (gpointer*)code;
  		constants [0] = GUINT_TO_POINTER (short_branch | (1 << 24));
-@@ -653,7 +685,13 @@
+@@ -828,7 +860,13 @@
  		mono_marshal_find_bitfield_offset (MonoVTable, initialized, &byte_offset, &bitmask);
  
  	g_assert (arm_is_imm8 (byte_offset));

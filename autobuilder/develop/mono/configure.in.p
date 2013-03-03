@@ -1,6 +1,6 @@
---- configure.in.orig	2013-01-08 18:42:26.000000000 +0000
-+++ configure.in	2013-02-19 20:18:15.000000000 +0000
-@@ -338,6 +338,14 @@
+--- configure.in.orig	2013-02-27 16:56:35.000000000 +0000
++++ configure.in	2013-03-03 19:07:17.000000000 +0000
+@@ -339,6 +339,14 @@
  		libgc_threads=pthreads
  		use_sigposix=yes
  		;;
@@ -15,9 +15,9 @@
  	*)
  		AC_MSG_WARN([*** Please add $host to configure.in checks!])
  		host_win32=no
-@@ -2488,6 +2496,16 @@
- 		sgen_supported=true
- 		AOT_SUPPORTED="yes"
+@@ -2565,6 +2573,16 @@
+ 		   NESTED_LIBGC_FLAGS="$NESTED_LIBGC_FLAGS -DHAVE_ARMV6"
+   		fi
  		;;
 +	arm*-riscos*)
 +		TARGET=ARM;
@@ -32,7 +32,7 @@
  	s390-*-linux*)
  		TARGET=S390;
  		arch_target=s390;
-@@ -2995,7 +3013,8 @@
+@@ -3078,7 +3096,8 @@
  dnl
  dnl Consistency settings
  dnl
@@ -42,7 +42,7 @@
     DISABLE_MCS_DOCS=yes
     with_profile2=no
     with_profile4=no
-@@ -3012,7 +3031,8 @@
+@@ -3095,7 +3114,8 @@
  AC_SUBST(docs_dir)
  
  ## Maybe should also disable if mcsdir is invalid.  Let's punt the issue for now.
@@ -52,7 +52,7 @@
  
  AM_CONDITIONAL(HAVE_OPROFILE, test x$OPROFILE = xyes)
  AC_SUBST(OPROFILE_CFLAGS)
-@@ -3330,18 +3350,21 @@
+@@ -3411,18 +3431,21 @@
    # any existing config.make.  This allows people to share the same source tree
    # with different build directories, one native and one cross
    #
@@ -62,14 +62,13 @@
      test -w $mcs_topdir/build || chmod +w $mcs_topdir/build
  
      echo "prefix=$prefix" > $mcs_topdir/build/config.make
--    echo "exec_prefix=$exec_prefix" >> $mcs_topdir/build/config.make
-+    echo "exec_prefix=/usr" >> $mcs_topdir/build/config.make
+     echo "exec_prefix=$exec_prefix" >> $mcs_topdir/build/config.make
      echo "sysconfdir=$sysconfdir" >> $mcs_topdir/build/config.make
 -    echo 'mono_libdir=${exec_prefix}/lib' >> $mcs_topdir/build/config.make
 +    echo 'mono_libdir=${prefix}/lib' >> $mcs_topdir/build/config.make
      echo 'IL_FLAGS = /debug' >> $mcs_topdir/build/config.make
 -    echo "RUNTIME = $mono_build_root/runtime/mono-wrapper" >> $mcs_topdir/build/config.make
-+    echo "RUNTIME = mono" >> $mcs_topdir/build/config.make
++    echo "RUNTIME = $mono_build_root/native-env/bin/mono" >> $mcs_topdir/build/config.make
      echo "ILDISASM = $mono_build_root/runtime/monodis-wrapper" >> $mcs_topdir/build/config.make
      echo "JAY_CFLAGS = $JAY_CFLAGS" >> $mcs_topdir/build/config.make
 +    echo 'ifeq ($(thisdir),jay)' >> $mcs_topdir/build/config.make
@@ -78,11 +77,13 @@
  
      case $INSTALL in
      [[\\/$]]* | ?:[[\\/]]* ) mcs_INSTALL=$INSTALL ;;
-@@ -3410,7 +3433,7 @@
+@@ -3491,7 +3514,9 @@
        echo "BCL_OPTIMIZE = 1" >> $srcdir/$mcsdir/build/config.make
      fi
  
 -  fi
++    echo "BOOTSTRAP_MCS = PATH=$mono_build_root/native-env/bin gmcs" >> $mcs_topdir/build/config.make
++
 +#  fi
  
    # if we have an olive folder, override the default settings

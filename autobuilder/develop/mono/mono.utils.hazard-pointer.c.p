@@ -1,6 +1,6 @@
---- mono/utils/hazard-pointer.c.orig	2013-01-18 17:54:32.000000000 +0000
-+++ mono/utils/hazard-pointer.c	2013-01-18 17:55:25.000000000 +0000
-@@ -85,6 +85,11 @@
+--- mono/utils/hazard-pointer.c.orig	2013-02-27 16:56:56.000000000 +0000
++++ mono/utils/hazard-pointer.c	2013-03-01 21:10:58.000000000 +0000
+@@ -86,6 +86,11 @@
  		hazard_table = g_malloc0 (sizeof (MonoThreadHazardPointers) * HAZARD_TABLE_MAX_SIZE);
  		hazard_table_size = HAZARD_TABLE_MAX_SIZE;
  #else
@@ -12,7 +12,7 @@
  		gpointer page_addr;
  		int pagesize = mono_pagesize ();
  		int num_pages = (hazard_table_size * sizeof (MonoThreadHazardPointers) + pagesize - 1) / pagesize;
-@@ -104,6 +109,7 @@
+@@ -105,6 +110,7 @@
  		hazard_table_size = num_pages * pagesize / sizeof (MonoThreadHazardPointers);
  
  #endif

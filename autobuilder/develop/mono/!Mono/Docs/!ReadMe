@@ -1,6 +1,6 @@
 			 Mono for RISC OS
 			Ported by Lee Noar
-			    V3.0.3
+			    V3.0.6
 Introduction
 ------------
 Mono is an open source version of Microsoft's .net framework. It's home
@@ -171,11 +171,10 @@ be installed already. Normally this would just be a case of installing
 Mono natively on the host machine, however, there can be problems due
 to mismatched runtimes and/or bugs. For example, Ubuntu 10.10 and 11.04
 both contain V2.6.7 of Mono, but this version causes segmentation faults
-when building RISC OS Mono. If you have a later version of Ubuntu or your
-distro of choice contains at least version 3.0.3 of Mono, then you should
-be fine. Otherwise, the best option is to build a native version of Mono
-yourself (preferably the same version as that used for RISC OS) using
-/usr/local as the prefix. This will override the package managed version.
+when building RISC OS Mono. The build system for Mono now builds a native
+version itself and uses that during the build of the RISC OS port. A
+packaged version of Mono still needs to be installed to build this native
+version, but is not relied on as much.
 
 Known problems
 --------------

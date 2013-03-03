@@ -1,5 +1,5 @@
---- mono/utils/mono-mmap.c.orig	2013-01-08 18:41:09.000000000 +0000
-+++ mono/utils/mono-mmap.c	2013-02-14 23:05:18.000000000 +0000
+--- mono/utils/mono-mmap.c.orig	2013-02-27 16:56:56.000000000 +0000
++++ mono/utils/mono-mmap.c	2013-03-01 20:41:45.000000000 +0000
 @@ -39,6 +39,10 @@
  #define MAP_32BIT 0
  #endif
@@ -11,7 +11,7 @@
  typedef struct {
  	int size;
  	int pid;
-@@ -425,8 +429,62 @@
+@@ -428,8 +432,62 @@
  	return mprotect (addr, length, prot);
  }
  
