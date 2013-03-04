@@ -1,8 +1,7 @@
 /* clearerr ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
-#include <errno.h>
 #include <stdio.h>
 
 #include <pthread.h>
@@ -14,14 +13,11 @@ clearerr (FILE *stream)
 {
   PTHREAD_UNSAFE
 
+  /* An invalid stream may not set errno.  */
   if (!__validfp (stream))
-    {
-      (void) __set_errno (EINVAL);
-      return;
-    }
+    return;
 
-  stream->__error = 0;
-  stream->__eof = 0;
+  stream->__eof = stream->__error = 0;
 }
 weak_alias (clearerr, clearerr_unlocked)
 

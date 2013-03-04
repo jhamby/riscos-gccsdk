@@ -1,8 +1,7 @@
 /* ferror ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
-#include <errno.h>
 #include <stdio.h>
 
 #include <pthread.h>
@@ -16,8 +15,6 @@ ferror (FILE *stream)
 {
   PTHREAD_UNSAFE
 
-  if (!__validfp (stream))
-    return __set_errno (EINVAL);
-
-  return stream->__error;
+  /* An invalid stream may not set errno.  */
+  return __validfp (stream) && stream->__error != 0;
 }

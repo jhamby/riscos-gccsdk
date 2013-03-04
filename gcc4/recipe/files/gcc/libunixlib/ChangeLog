@@ -1,3 +1,9 @@
+Mon Mar  4 01:39:12 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/ferror.c (ferror): Don't set errno for an invalid stream.
+	* stdio/feof.c (feof): Likewise.
+	* stdio/clearerr.c (clearerr.c): Likewise.
+
 Sat Mar  2 16:50:10 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/rename.c (rename): Better determination of errno values.
