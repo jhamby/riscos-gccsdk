@@ -1,5 +1,5 @@
 /* UnixLib fdopen() implementation.
-   Copyright 2001-2010 UnixLib Developers.  */
+   Copyright 2001-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -25,12 +25,18 @@ fdopen (int fd, const char *mode)
 #endif
   __io_mode m = __getmode (mode);
   if (! m.__bits.__read && ! m.__bits.__write)
-    return NULL;
+    {
+      (void) __set_errno (EINVAL);
+      return NULL;
+    }
 
-  /* Verify the FD is valid and allows the access 'mode' specifies.  */
+  /* Verify the FD is valid.  */
+  if (BADF (fd))
+    {
+      (void) __set_errno (EBADF);
+      return NULL;
+    }
   int dflags = getfd (fd)->fflag; /* dflags = fcntl (fd, F_GETFL); */
-  if (dflags == -1)
-    return NULL;
 
   /* Check the access mode.  */
   if (((dflags & O_ACCMODE) == O_RDONLY && !m.__bits.__read)
