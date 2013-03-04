@@ -1,5 +1,5 @@
 /* UnixLib internal function declarations.
-   Copyright (c) 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2002-2013 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_LOCAL_H
 #define __UNIXLIB_LOCAL_H 1
@@ -113,10 +113,10 @@ extern char *__unixify_std (const char *__name,
 extern char *__unixify_ext (const char *name, char *buffer, size_t buflen,
                             int filetype, const char *ext);
 
-extern void __set_customselect (int fd,
-				int (*cselect) (void *__fd, int __fd1,
-						fd_set *__read, fd_set *__write,
-						fd_set *__except));
+extern int __set_customselect (int fd,
+			       int (*cselect) (void *__fd, int __fd1,
+					       fd_set *__read, fd_set *__write,
+					       fd_set *__except));
 
 /* Force writing a coredump in directory 'dir' when non-NULL.  Otherwise a
    previous specified non-NULL directory gets used, or the directory specified

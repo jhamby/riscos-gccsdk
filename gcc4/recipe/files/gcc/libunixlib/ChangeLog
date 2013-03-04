@@ -1,3 +1,11 @@
+Mon Mar  4 01:44:36 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/custom.c (__unixlib_getdev): Merge into...
+	(__set_customselect): ...this.  Change return type into int and return
+	-1 with errno BADF when bad file descriptor is passed.
+	* include/unixlib/local.h (__set_customselect): Change return type into
+	int.
+
 Mon Mar  4 01:39:12 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/ferror.c (ferror): Don't set errno for an invalid stream.

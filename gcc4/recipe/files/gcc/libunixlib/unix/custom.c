@@ -4,7 +4,7 @@
  * This is used where the device specific structures need to set on a per
  * file descriptor basis, such as faking a socket.
  *
- * Copyright (c) 2005-2010 UnixLib Developers
+ * Copyright (c) 2005-2013 UnixLib Developers
  */
 
 #include <swis.h>
@@ -21,20 +21,6 @@
 #include <internal/dev.h>
 #include <internal/unix.h>
 #include <internal/swiparams.h>
-
-
-/* Return the UnixLib device from a file descriptor.  This allows the
-   overriding to occur.  */
-static struct dev *
-__unixlib_getdev (int fd)
-{
-  const struct __unixlib_fd *file_desc = getfd (fd);
-
-  if (!file_desc || !file_desc->devicehandle)
-    return NULL;
-
-  return (struct dev *)file_desc->devicehandle->handle;
-}
 
 
 void *
@@ -121,12 +107,15 @@ __customselect (struct __unixlib_fd *file_desc, int fd,
 }
 
 
-void
+int
 __set_customselect (int fd, int (*cselect) (void *, int, __fd_set *,
 		    __fd_set *, __fd_set *))
 {
-  struct dev *cdev = __unixlib_getdev (fd);
-  if (cdev != NULL)
-    cdev->select = (int (*)(struct __unixlib_fd *, int, fd_set *, fd_set *,
-			    fd_set *)) cselect;
+  if (BADF (fd))
+    return __set_errno (EBADF);
+
+  struct dev *cdev = (struct dev *)getfd (fd)->devicehandle->handle;
+  cdev->select = (int (*)(struct __unixlib_fd *, int, fd_set *, fd_set *,
+		   fd_set *)) cselect;
+  return 0;
 }
