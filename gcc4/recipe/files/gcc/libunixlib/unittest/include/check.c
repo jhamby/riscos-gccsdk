@@ -33,7 +33,7 @@ typedef struct
 typedef struct
 {
   size_t numEntries;
-  size_t maxObjInfos;
+  size_t maxNumObjInfos;
   ObjInfo_t *objInfos;
 } DirContents_t;
 
@@ -41,7 +41,7 @@ static bool
 DirContents_Get (const char *dir, DirContents_t *dirContents)
 {
   dirContents->numEntries = 0;
-  dirContents->maxObjInfos = 0;
+  dirContents->maxNumObjInfos = 0;
   dirContents->objInfos = NULL;
 
   char tmpPath[_POSIX_PATH_MAX];
@@ -61,15 +61,17 @@ DirContents_Get (const char *dir, DirContents_t *dirContents)
       /* Filter out "." and "..".  */
       if (!strcmp (dirEntry->d_name, ".") || !strcmp (dirEntry->d_name, ".."))
         continue;
-      if (dirContents->numEntries == dirContents->maxObjInfos)
+      if (dirContents->numEntries == dirContents->maxNumObjInfos)
         {
-          ObjInfo_t *newObjInfos = realloc (dirContents->objInfos, sizeof (ObjInfo_t)*(dirContents->maxObjInfos + 3)*2);
+          size_t newMaxNumObjInfos = (dirContents->maxNumObjInfos + 3)*2;
+          ObjInfo_t *newObjInfos = realloc (dirContents->objInfos, sizeof (ObjInfo_t)*newMaxNumObjInfos);
           if (newObjInfos == NULL)
             {
               fprintf (stderr, "realloc() failed\n");
               closedir (dhandle);
               return true;
             }
+          dirContents->maxNumObjInfos = newMaxNumObjInfos;
           dirContents->objInfos = newObjInfos;
         }
       strcpy (tmpPath + dirLen, dirEntry->d_name);
@@ -209,6 +211,25 @@ Check_ROFileType (const char *fpath, unsigned roftype)
 #else
   return false;
 #endif
+}
+
+static bool
+Check_FileSize (const char *fname, off_t fsize)
+{
+  struct stat statBuf;
+  if (stat (fname, &statBuf) != 0)
+    {
+      fprintf (stderr, "stat(%s) failed with errno %d (%s)\n",
+               fname, errno, strerror (errno));
+      return true;
+    }
+  if (statBuf.st_size != fsize)
+    {
+      fprintf (stderr, "File %s is %u bytes long, but we expected %u bytes.\n",
+               fname, (unsigned)statBuf.st_size, (unsigned)fsize);
+      return true;
+    }
+  return false;
 }
 
 /**

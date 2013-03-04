@@ -1,3 +1,10 @@
+Mon Mar  4 02:00:04 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittest/include/check.c (DirContents_Get): Fix reallocation.
+	(Check_FileSize): Add.
+	* unittest/test-rename.c (main): Move to...
+	* unittest/include/main.c: ...here.
+
 Mon Mar  4 01:56:43 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/fclose.c (fclose): Minor reformat.
