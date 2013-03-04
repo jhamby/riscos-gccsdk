@@ -1,5 +1,5 @@
 /* UnixLib fclose() implementation.
-   Copyright 2001-2008 UnixLib Developers.  */
+   Copyright 2001-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -18,17 +18,13 @@
 int
 fclose (FILE * stream)
 {
-  int status;
-
   PTHREAD_UNSAFE
 
   if (stream == NULL)
     {
-      FILE *f;
-      int status = 0;
-
       /* Close all streams.  */
-      for (f = __iob_head; f != NULL; f = f->next)
+      int status = 0;
+      for (FILE *f = __iob_head; f != NULL; f = f->next)
         {
           if (__validfp (f))
             status |= fclose (f);
@@ -63,7 +59,7 @@ fclose (FILE * stream)
     free (stream->o_base);
 
   /* Close the file descriptor.  */
-  status = close (stream->fd);
+  int status = close (stream->fd);
 
   /* Invalidate the stream, ready for re-use.  */
   __invalidate (stream);

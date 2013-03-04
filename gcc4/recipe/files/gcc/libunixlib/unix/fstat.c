@@ -1,5 +1,5 @@
 /* fstat (), fstat64 ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
 #include <errno.h>
@@ -18,8 +18,6 @@
 int
 fstat (int fd, struct stat *buf)
 {
-  struct __unixlib_fd *file_desc;
-
   PTHREAD_UNSAFE
 
   if (buf == NULL)
@@ -28,7 +26,7 @@ fstat (int fd, struct stat *buf)
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = getfd (fd);
+  const struct __unixlib_fd *file_desc = getfd (fd);
 
   buf->st_dev = file_desc->devicehandle->type;
 

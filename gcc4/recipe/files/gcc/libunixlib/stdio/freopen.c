@@ -1,5 +1,5 @@
 /* UnixLib freopen(), freopen64() implementation.
-   Copyright 2001-2011 UnixLib Developers.  */
+   Copyright 2001-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -21,10 +21,6 @@
 FILE *
 freopen (const char *filename, const char *mode, FILE *stream)
 {
-  __io_mode m;
-  __mode_t file_mode;
-  int fd;
-
   PTHREAD_UNSAFE
 
   /* Close the file if it is open.  */
@@ -45,7 +41,7 @@ freopen (const char *filename, const char *mode, FILE *stream)
 		filename, mode, stream->fd);
 #endif
 
-  m = __getmode (mode);
+  __io_mode m = __getmode (mode);
   if (! m.__bits.__read && ! m.__bits.__write)
     {
       fclose (stream);
@@ -70,6 +66,7 @@ freopen (const char *filename, const char *mode, FILE *stream)
 
   stream->__mode = m;
 
+  __mode_t file_mode;
   if (m.__bits.__read && m.__bits.__write)
     file_mode = O_RDWR;
   else
@@ -80,6 +77,7 @@ freopen (const char *filename, const char *mode, FILE *stream)
   if (m.__bits.__truncate)
     file_mode |= O_TRUNC;
 
+  int fd;
   if (m.__bits.__create)
     fd = __reopen (stream->fd, filename, file_mode | O_CREAT,
                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);

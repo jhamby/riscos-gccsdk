@@ -1,3 +1,9 @@
+Mon Mar  4 01:56:43 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/fclose.c (fclose): Minor reformat.
+	* stdio/freopen.c (freopen): Likewise.
+	* unix/fstat.c (fstat): Likewise.
+
 Mon Mar  4 01:50:53 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/ul_fdopen.c (fdopen): Set errno to EINVAL for invalid mode.
