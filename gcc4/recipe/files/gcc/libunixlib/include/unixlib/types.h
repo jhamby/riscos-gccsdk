@@ -5,6 +5,7 @@
  *  - Added definitions for __tcflag_t, __cc_t, __speed_t, __sig_atomic_t
  *    __sigset_t
  *  - Changed "bits/types.h" of last line into unixlib/types.h.
+ *  - Change __ssize_t from int to long int.
  */
 
 /* Copyright (C) 1991,1992,94-1999,2000,2001 Free Software Foundation, Inc.
@@ -85,7 +86,7 @@ typedef unsigned short int __nlink_t; /* Type of file link counts.  */
 typedef long int __off_t;	/* Type of file sizes and offsets.  */
 typedef __quad_t __off64_t;	/* Type of file sizes and offsets (LFS).  */
 typedef int __pid_t;		/* Type of process identifications.  */
-typedef int __ssize_t;		/* Type of a byte count, or error.  */
+typedef long int __ssize_t;	/* Type of a byte count, or error.  */
 typedef __u_quad_t __fsid_t;	/* Type of file system IDs.  */
 typedef long int __clock_t;	/* Type of CPU usage counts.  */
 typedef long int __rlim_t;	/* Type for resource measurement.  */
