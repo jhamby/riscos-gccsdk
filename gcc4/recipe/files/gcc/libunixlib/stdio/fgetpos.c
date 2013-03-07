@@ -1,5 +1,5 @@
 /* UnixLib fgetpos(), fgetpos64() implementation.
-   Copyright 2001-2011 UnixLib Developers.  */
+   Copyright 2001-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -38,7 +38,15 @@ fgetpos (FILE *stream, __off_t *pos)
   debug_printf ("-- fgetpos(fd=%d): ", stream->fd);
 #endif
 
-  if (stream->i_base)
+  if (stream->o_base)
+    {
+#ifdef DEBUG
+      debug_printf ("offset=%u, o_ptr - o_base=%d\n",
+		    stream->__offset, stream->o_ptr - stream->o_base);
+#endif
+      *pos = stream->__offset + (stream->o_ptr - stream->o_base);
+    }
+  else if (stream->i_base)
     {
 #ifdef DEBUG
       debug_printf ("offset=%u, i_cnt=%d, pushed_back=%d\n",
@@ -47,14 +55,6 @@ fgetpos (FILE *stream, __off_t *pos)
       *pos = stream->__offset
 	       - (stream->__pushedback ? stream->__pushedi_cnt + 1
 				       : stream->i_cnt);
-    }
-  else if (stream->o_base)
-    {
-#ifdef DEBUG
-      debug_printf ("offset=%u, o_ptr - o_base=%d\n",
-		    stream->__offset, stream->o_ptr - stream->o_base);
-#endif
-      *pos = stream->__offset + (stream->o_ptr - stream->o_base);
     }
   else
     {

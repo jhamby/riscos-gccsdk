@@ -1,5 +1,5 @@
 /* UnixLib low-level stream implementation.
-   Copyright 2001-2011 UnixLib Developers.  */
+   Copyright 2001-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stddef.h>
@@ -73,13 +73,6 @@ __stream_init (int fd, FILE *stream)
     setvbuf (stream, NULL, _IOLBF, BUFSIZ);
   else
     {
-      /* When 'append' is specified, always write at the end
-	 of file.  */
-      if (stream->__mode.__bits.__append)
-	stream->__offset = lseek (fd, 0, SEEK_END);
-      else
-	stream->__offset = lseek (fd, 0, SEEK_CUR);
-
       /* Set input/output buffering for the stream.  */
       setvbuf (stream, NULL, _IOFBF, BUFSIZ);
     }
@@ -87,13 +80,13 @@ __stream_init (int fd, FILE *stream)
   return stream;
 }
 
-/* Dissect the given mode string into an __io_mode.  */
+/* Dissect the given mode string into an __io_mode.
+   We have an invalid mode description when both __io_mode::__bits::__read and
+   __io_mode::__bits::__write are unset.  */
 __io_mode
 __getmode (const char *mode)
 {
-  __io_mode m;
-
-  m.__allbits = 0;
+  __io_mode m = { .__allbits = 0 };
 
   if (*mode == 'a')
     m.__bits.__write = m.__bits.__create = m.__bits.__append = 1;
@@ -103,11 +96,13 @@ __getmode (const char *mode)
     m.__bits.__read = 1;
   else
     return m;
-
   ++mode;
-  if (*mode == '+' || (*mode && mode[1] == '+'))
+
+  /* Check on '+', '+b', 'b' or 'b+'.  Any other remaining set of mode
+     descriptions are silently ignored.  */
+  if (*mode == '+' || (*mode == 'b' && mode[1] == '+'))
     m.__bits.__read = m.__bits.__write = 1;
-  if (*mode == 'b' || (*mode && mode[1] == 'b'))
+  if (*mode == 'b' || (*mode == '+' && mode[1] == 'b'))
     m.__bits.__binary = 1;
 
   return m;

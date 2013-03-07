@@ -2,6 +2,7 @@
  * File taken from glibc 2.11.
  * Following changes were made:
  *   - _FEATURES_H -> __UNIXLIB_FEATURES_H
+ *   - Add __UNIXLIB_NO_NONNULL test for __nonnull().
  */
 
 /* Copyright (C) 1992-2001, 2002, 2004, 2005, 2006, 2007, 2009
@@ -267,7 +268,7 @@
 
 /* The nonull function attribute allows to mark pointer parameters which
    must not be NULL.  */
-#if __GNUC_PREREQ (3,3)
+#if __GNUC_PREREQ (3,3) && !defined(__UNIXLIB_NO_NONNULL)
 # define __nonnull(params) __attribute__ ((__nonnull__ params))
 #else
 # define __nonnull(params)

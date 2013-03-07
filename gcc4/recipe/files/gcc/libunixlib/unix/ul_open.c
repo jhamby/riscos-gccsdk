@@ -1,5 +1,5 @@
-/* UnixLib ttyname(), open() and open64() implementation.
-   Copyright (c) 2000-2011 UnixLib Developers.  */
+/* UnixLib open() and open64() implementation.
+   Copyright (c) 2000-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -93,12 +93,14 @@ open (const char *file, int oflag, ...)
 {
   PTHREAD_UNSAFE_CANCELLATION
 
-  if (file == NULL)
-    return __set_errno (EINVAL);
-
 #ifdef DEBUG
   debug_printf ("open(file=%s)\n", file);
 #endif
+
+  if (file == NULL)
+    return __set_errno (EFAULT);
+  if (*file == '\0')
+    return __set_errno (ENOENT);
 
   int mode;
   if (oflag & O_CREAT)

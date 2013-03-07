@@ -1,3 +1,31 @@
+Thu Mar  7 02:53:14 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (AM_CFLAGS): Add __UNIXLIB_NO_NONNULL define.
+	* include/sys/cdefs.h (__nonnull): Disable when __UNIXLIB_NO_NONNULL
+	is defined.
+	* sys/vfork.c (__fork_post): Add FIXME.
+	* stdio/newstream.c (__stream_init): Don't seek.
+	(__getmode): Tighten checks.
+	* stdio/fgetpos.c (fgetpos): Switch order o_base and i_base test.
+	* stdio/flsbuf.c (__flsbuf): Don't check on stream being writable
+	(will happen at write() time).  Don't check on stream error state.
+	Don't check on zero byte writes (happens at write() time).  For append
+	streams, write() will have seeked to EOF so update FILE::__offset
+	differently.
+	* stdio/filbuf.c (check_stream): Drop check on stream being readable
+	and not in error state. Merge remaining part into __filbuf and
+	__peekchar.
+	* stdio/ul_fopen.c (fopen): Drop tests on input parameters.
+	* unix/ul_open.c (open): Fix input parameter test.
+
+	unittest/include:
+	* expect-fseek.c, expect-feof.c, expect-fputc.c, expect-fopen.c,
+	expect-fgetc.c, expect-fclose.c: Add.
+
+	* unittest/test-rename.c (Call_Rename, ExpectCall_Rename): Move to...
+	* unittest/include/expect-rename.c: ...here.
+	* unittest/test-fopen.c: Add.
+
 Wed Mar  6 02:51:45 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/unixlib/types.h (__ssize_t): Change type from int to long int.

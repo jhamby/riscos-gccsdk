@@ -1,5 +1,5 @@
 /* __flslbbuf (), __flsbuf ()
- * Copyright (c) 2000-2011 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
 #include <errno.h>
@@ -45,12 +45,6 @@ __flsbuf (int c, FILE *stream)
 {
   PTHREAD_UNSAFE
 
-  if (!stream->__mode.__bits.__write)
-    stream->__error = 1;
-
-  if (ferror (stream))
-    return EOF;
-
 #ifdef DEBUG
   debug_printf ("-- __flsbuf(%d): ", stream->fd);
 #endif
@@ -68,14 +62,25 @@ __flsbuf (int c, FILE *stream)
 #ifdef DEBUG
       debug_printf ("to_write=%d\n", to_write);
 #endif
-      /* Skip write if 0 characters to write. Keeps perl happy, consistent
-         with BSD.  */
-      if (to_write && write (stream->fd, stream->o_base, to_write) == -1)
+      if (write (stream->fd, stream->o_base, to_write) == -1)
         {
           stream->__error = 1;
           return EOF;
         }
-      stream->__offset += to_write;
+      /* In append mode, write() will first have seeked to EOF, so get file
+	 offset directly.  */
+      if (stream->__mode.__bits.__append)
+	{
+	  off_t new_offset = lseek (stream->fd, 0, SEEK_CUR);
+	  if (new_offset == (off_t)-1)
+	    {
+	      stream->__error = 1;
+	      return EOF;
+	    }
+	  stream->__offset = new_offset;
+	}
+      else
+	stream->__offset += to_write;
       stream->o_cnt = stream->__bufsize;
       stream->o_ptr = stream->o_base;
     }
@@ -94,7 +99,19 @@ __flsbuf (int c, FILE *stream)
       stream->__error = 1;
       return EOF;
     }
-  stream->__offset++;
+  if (stream->o_base == NULL
+      && stream->__mode.__bits.__append)
+    {
+      off_t new_offset = lseek (stream->fd, 0, SEEK_CUR);
+      if (new_offset == (off_t)-1)
+	{
+	  stream->__error = 1;
+	  return EOF;
+	}
+      stream->__offset = new_offset;
+    }
+  else
+    stream->__offset++;
 
   return c;
 }

@@ -1,5 +1,5 @@
 # Automake style makefile for UnixLib
-# Copyright (c) 2005-2012 UnixLib developers
+# Copyright (c) 2005-2013 UnixLib developers
 # Written by Nick Burrett <nick@sqrt.co.uk>
 
 # Directory where headers will be installed.
@@ -29,7 +29,10 @@ AM_CPPFLAGS = -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
 # The NO_LONG_DOUBLE definition here and the __NO_LONG_DOUBLE_MATH definition
 # in features.h results in having the 'long double' math routines aliased as
 # the normal 'double' onces.
-AM_CFLAGS = -D__GNU_LIBRARY__ -DNO_LONG_DOUBLE -D_GNU_SOURCE=1 -std=c99 $(LIBM_FLAGS)
+# __UNIXLIB_NO_NONNULL is there because otherwise __nonnull() marked function
+# arguments can not be tested for NULL in UnixLib itself.
+AM_CFLAGS = -D__GNU_LIBRARY__ -DNO_LONG_DOUBLE -D_GNU_SOURCE=1 \
+	-D__UNIXLIB_NO_NONNULL -std=c99 $(LIBM_FLAGS)
 if UNIXLIB_CHUNKED_STACK
 AM_CFLAGS += -D__UNIXLIB_CHUNKED_STACK=1
 else

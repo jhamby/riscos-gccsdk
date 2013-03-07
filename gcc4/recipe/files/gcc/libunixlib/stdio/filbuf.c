@@ -1,5 +1,5 @@
 /* UnixLib buffer stream handling.
-   Copyright 2000-2011 UnixLib Developers.  */
+   Copyright 2000-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -9,26 +9,6 @@
 
 #include <pthread.h>
 #include <internal/unix.h>
-
-/* Check the stream for validity and errors.
-   Does NOT check for EOF.  */
-static int
-check_stream (FILE *stream)
-{
-  if (!__validfp (stream))
-    {
-      (void) __set_errno (EINVAL);
-      return EOF;
-    }
-
-  if (!stream->__mode.__bits.__read)
-    stream->__error = 1;
-
-  if (stream->__error)
-    return EOF;
-
-  return 0;
-}
 
 /* Fill the input buffer.  */
 static ssize_t
@@ -88,8 +68,11 @@ __filbuf (FILE *stream)
 {
   PTHREAD_UNSAFE
 
-  if (check_stream (stream) == EOF)
-    return EOF;
+  if (!__validfp (stream))
+    {
+      (void) __set_errno (EINVAL);
+      return EOF;
+    }
 
   /* __filbuf is only called via getc_unlocked() when i_cnt got decremented
      to -1. If we don't restore it to 0 ftell() returns <off by one (more)>
@@ -134,7 +117,14 @@ __peek_char (FILE *stream)
 {
   PTHREAD_UNSAFE
 
-  if (check_stream (stream) == EOF || stream->__eof)
+  if (!__validfp (stream))
+    {
+      (void) __set_errno (EINVAL);
+      return EOF;
+    }
+
+  /* FIXME: corrrect ? */
+  if (stream->__eof)
     return EOF;
 
   /* When we have possibly unflushed data in one of our line buffered streams

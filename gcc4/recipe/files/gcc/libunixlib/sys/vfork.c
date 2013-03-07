@@ -142,6 +142,8 @@ __fork_post (pid_t pid, int isfork)
 		{
 		  (void) __os_fopen (OSFILE_OPENUP, gbl->ul_out_pathname,
 				     &prev_fh_out);
+		  /* FIXME: is getfd (1)->devicehandle valid ? I.e. no need for
+		     BADF (1) test ? */
 		  getfd (1)->devicehandle->handle = (void *) prev_fh_out;
 		  int extent;
 		  if (SWI_OS_Args_GetExtent (prev_fh_out, &extent) == NULL)

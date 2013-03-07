@@ -1,5 +1,5 @@
 /* UnixLib fopen(), fopen64() implementation.
-   Copyright 2001-2011 UnixLib Developers.  */
+   Copyright 2001-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -22,17 +22,14 @@ fopen (const char *filename, const char *mode)
 {
   PTHREAD_UNSAFE
 
-  if (filename == NULL || mode == NULL)
-    {
-      __set_errno (EINVAL);
-      return NULL;
-    }
+  /* No check on filename or mode being NULL or filename being an empty string.
+     filename checks will be check in open() and mode shouldn't be checked.  */
 
 #ifdef DEBUG
   debug_printf ("-- fopen(fname=%s, mode=%s): ", filename, mode);
 #endif
 
-  __io_mode m = __getmode (mode);
+  const __io_mode m = __getmode (mode);
   if (! m.__bits.__read && ! m.__bits.__write)
     {
       (void) __set_errno (EINVAL);
