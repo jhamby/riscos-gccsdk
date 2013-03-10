@@ -1,0 +1,3 @@
+| This is a wrapper to the CSharp interactive shell.
+Set TERM "dumb"
+<Mono$Dir>.bin.Mono-SGen /Mono:/lib/mono/4.5/csharp.exe %*0
