@@ -249,7 +249,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
 	{
 	  /* Could not create.  Cannot assume component of name does not
 	     exist, as errors such as "directory full" end up here.  */
-	  char *where = ro_filename;
+	  const char *where = ro_filename;
 	  int leafonly = 1;
 	  char ch;
 	  while ((ch = *where++))

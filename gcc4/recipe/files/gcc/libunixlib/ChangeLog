@@ -1,3 +1,7 @@
+Sun Mar 10 20:55:07 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/dev.c (__fsopen): Fix warning.
+
 Thu Mar  7 02:53:14 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (AM_CFLAGS): Add __UNIXLIB_NO_NONNULL define.
