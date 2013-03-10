@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <sys/types.h>
@@ -227,6 +228,43 @@ Check_FileSize (const char *fname, off_t fsize)
     {
       fprintf (stderr, "File %s is %u bytes long, but we expected %u bytes.\n",
                fname, (unsigned)statBuf.st_size, (unsigned)fsize);
+      return true;
+    }
+  return false;
+}
+
+
+static bool
+Check_FileModDate (const char *fname, time_t mtime_sec, unsigned mtime_csec)
+{
+  struct stat statBuf;
+  if (stat (fname, &statBuf) != 0)
+    {
+      fprintf (stderr, "stat(%s) failed with errno %d (%s)\n",
+               fname, errno, strerror (errno));
+      return true;
+    }
+  if (statBuf.st_mtim.tv_sec != mtime_sec
+      || abs (statBuf.st_mtim.tv_nsec - mtime_csec * 10000000) >= 10000000)
+    {
+      char buf1[64];
+      if (ctime_r (&statBuf.st_mtim.tv_sec, buf1))
+	buf1[strlen (buf1) - 1] = '\0';
+      else
+	buf1[0] = '\0';
+      char buf2[64];
+      if (ctime_r (&mtime_sec, buf2))
+	buf2[strlen (buf2) - 1] = '\0';
+      else
+	buf2[0] = '\0';
+      fprintf (stderr, "File %s has modification date %u.%09u (0x%08x 0x%08x) '%s', but we expected %u.%09u (0x%08x 0x%08x) '%s'.\n",
+               fname,
+               (unsigned)statBuf.st_mtim.tv_sec, (unsigned)statBuf.st_mtim.tv_nsec,
+               (unsigned)statBuf.st_mtim.tv_sec, (unsigned)statBuf.st_mtim.tv_nsec,
+               buf1,
+               (unsigned)mtime_sec, (unsigned)mtime_csec * 10000000,
+               (unsigned)mtime_sec, (unsigned)mtime_csec * 10000000,
+               buf2);
       return true;
     }
   return false;

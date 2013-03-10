@@ -61,6 +61,30 @@ extern int __object_exists_ro (const char *__ro_obj);
    significant byte in 'high'. */
 extern __time_t __cvt_riscos_time (unsigned int __high, unsigned int __low);
 
+/* Convert RISC OS format 5 byte time into Unix format time but with csec
+   resolution.
+
+   Unix time (time_t) represents the number of seconds elapsed since
+   00:00:00 on January 1, 1970 Coordinated Universal Time.
+
+   RISC OS time is a 5 byte number representing the number of
+   centiseconds that have elapsed since 00:00:00 on January 1, 1900 CUT.
+
+   The number of centiseconds that have elapsed between the starts
+   of RISC OS and Unix times is 0x336e996a00.  */
+static __inline __int64_t
+__cvt_riscos_time_csec (__int64_t ro_time)
+{
+  return ro_time - 0x336e996a00LL;
+}
+
+/* Convert Unix time format (with csec resolution) to RISC OS time format.  */
+static __inline __int64_t
+__cvt_unix_time_csec (__int64_t ux_time)
+{
+  return ux_time + 0x336e996a00LL;
+}
+
 /* Convert Unix time into RISC OS five byte time.
    The lowest significant 4 bytes are returned in 'low' and the
    most significant byte in 'high'.  */

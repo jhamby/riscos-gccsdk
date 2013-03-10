@@ -2,6 +2,7 @@
  * File taken from glibc ???
  * Following changes were made:
  *  - Disabled _POSIX_TIMEOUTS as we don't have support for pthread_mutex_timedlock.
+ *  - Defined _POSIX_MONOTONIC_CLOCK
  */
 
 /* Define POSIX options for Linux.
@@ -150,7 +151,7 @@
 #define _POSIX_THREAD_PROCESS_SHARED	-1
 
 /* The monotonic clock might be available.  */
-#undef _POSIX_MONOTONIC_CLOCK
+#define _POSIX_MONOTONIC_CLOCK	0
 
 /* The clock selection interfaces are not available.  */
 #define _POSIX_CLOCK_SELECTION	-1

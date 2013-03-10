@@ -21,7 +21,9 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
 		    int *length, int *attr)
 {
   if (ux_file == NULL)
-    return __set_errno (EINVAL);
+    return __set_errno (EFAULT);
+  if (ux_file[0] == '\0')
+    return __set_errno (ENOENT);
 
   /* Convert the filename. We don't want to guess the filetype of the file
      based on the extension, as this may cause the filetype check later on

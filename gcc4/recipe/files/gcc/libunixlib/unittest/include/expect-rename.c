@@ -10,7 +10,7 @@
 
 /**
  * Calls rename() for testing purposes.  We check on errno consistency
- * (i.e. when rename() errno should be unchanged, when rename() failses, errno
+ * (i.e. when rename() errno should be unchanged, when rename() fails, errno
  * should be non-zero).
  * \return errno
  */

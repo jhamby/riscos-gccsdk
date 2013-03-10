@@ -1,3 +1,37 @@
+Sun Mar 10 21:45:56 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	Based on contribution from buzby@kdmsc.plus.com.
+	* common/objattr.c (__object_get_attrs): Add check on empty filename.
+	* common/riscosify.c (translate_or_null): Add fixme question.
+	* incl-local/internal/local.h (__cvt_riscos_time_csec): Add.
+	(__cvt_unix_time_csec): Add.
+	* include/sys/stat.h (struct stat, struct stat64): Add st_atim, st_mtim,
+	st_ctim members.  Redefine st_atime, st_mtime and st_ctime.  Rename
+	st_atime_usec, st_ctime_usec, st_mtime_usec to st_atimensec,
+	st_mtimensec and st_ctimensec.
+	* incl-local/sys/stat.h (__stat): Use unsigned parameters.
+	* common/__stat.c (__stat): Fill in st_atim, st_mtim and st_ctim
+	instead of st_atime, st_mtime, st_ctime, st_atime_usec, st_mtime_usec,
+	st_ctime_usec.
+	* include/bits/posix_opt.h (_POSIX_MONOTONIC_CLOCK): Define.
+	* unix/utime.c (utime): Reimplement using utimes.
+	* time/utims.c (utimes): Reimplement with csec accuracy.
+	* time/clk_getres.c (clock_getres): Fix resolution value.
+	* time/gettod.c (gettimeofday): Do signed time calculation and use
+	__cvt_riscos_time_csec.
+	* time/clk_gettime.c (clock_gettime): Likewise.  Add check on NULL
+	timespec parameter.
+	* common/cvttime.c (__cvt_riscos_time, __cvt_unix_time): Use signed
+	time calculation based on __cvt_riscos_time_csec and
+	__cvt_unix_time_csec.
+	* unittest/include/check.c (Check_FileModDate): Add.
+	* unittest/Makefile, unittest/test-utime.c, unittest/test-utimes.c
+	unittest/include/expect-utime.c, unittest/include/expect-utimes.c: Add.
+	* unittest/include/expect-rename.c (Call_Rename): Fix comment.
+	* unittest/test-rename.c: Trim comment.
+	* unittest/include/main.c: Mention the test's name when it was
+	successful.
+
 Sun Mar 10 20:55:07 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/dev.c (__fsopen): Fix warning.

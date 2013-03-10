@@ -1,10 +1,6 @@
 /* rename() unittest.
    Copyright (c) 2013 UnixLib Developers.
-  
-   To build:
-     gcc -Wall -std=c99 -D_POSIX_SOURCE -D_BSD_SOURCE -o tester-rename test-rename.c
-     arm-unknown-riscos-gcc -static -Wall -std=c99 -D_POSIX_SOURCE -D_BSD_SOURCE -o tester-rename,ff8 test-rename.c && elf2aif tester-rename,ff8
-  
+
    Written by John Tytgat / BASS.  */
 
 #include <errno.h>

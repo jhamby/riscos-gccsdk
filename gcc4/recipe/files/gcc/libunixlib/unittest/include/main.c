@@ -48,7 +48,7 @@ main (int argc, char *argv[])
 
   if (ok)
     {
-      printf ("All tests were ok\n");
+      printf ("All %s tests were ok\n", argv[0]);
       return EXIT_SUCCESS;
     }
   return EXIT_FAILURE;

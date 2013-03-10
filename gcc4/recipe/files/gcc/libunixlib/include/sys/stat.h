@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 5.6: File Characteristics <sys/stat.h>.
- * Copyright (c) 2000-2011 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
 #ifndef __SYS_STAT_H
@@ -14,7 +14,11 @@
 #include <unixlib/types.h>
 #endif
 
-#define __need_time_t
+#if defined __USE_MISC || defined __USE_XOPEN2K8
+# define __need_timespec
+#else
+# define __need_time_t
+#endif
 #include <time.h>
 
 /* The Single Unix specification says that some more types are
@@ -75,6 +79,23 @@ typedef __blksize_t blksize_t;
 __BEGIN_DECLS
 
 /* Currently struct stat/stat64 are the same.  */
+#if defined __USE_MISC || defined __USE_XOPEN2K8
+# define __UNIXLIB_STAT_TIME \
+    struct timespec st_atim; \
+    struct timespec st_mtim; \
+    struct timespec st_ctim;
+# define st_atime st_atim.tv_sec
+# define st_mtime st_mtim.tv_sec
+# define st_ctime st_ctim.tv_sec
+#else
+# define __UNIXLIB_STAT_TIME \
+    __time_t	st_atime;		/* Time of last access.  */ \
+    unsigned long int st_atimensec; \
+    __time_t	st_mtime;		/* Time of last modification.  */ \
+    unsigned long int st_mtimensec; \
+    __time_t	st_ctime;		/* Time of last status change.  */ \
+    unsigned long int st_ctimensec;
+#endif
 #define __DEFINE_STAT(stattype) \
   struct stattype \
   { \
@@ -86,12 +107,7 @@ __BEGIN_DECLS
     __gid_t	st_gid;			/* Group ID of the file's group. */ \
     __dev_t 	st_rdev;		/* Device number, if device.  */ \
     __off_t 	st_size;		/* Size of file, in bytes.  */ \
-    __time_t	st_atime;		/* Time of last access.  */ \
-    unsigned long int st_atime_usec; \
-    __time_t	st_mtime;		/* Time of last modification.  */ \
-    unsigned long int st_mtime_usec; \
-    __time_t	st_ctime;		/* Time of last status change.  */ \
-    unsigned long int st_ctime_usec; \
+    __UNIXLIB_STAT_TIME \
     __blksize_t	st_blksize;		/* Optimal block size for I/O.  */ \
   /*  unsigned long int st_nblocks; / * Number of 512-byte blocks allocated.  */ \
     __blkcnt_t	st_blocks;		/* Number of 512-byte blocks allocated.  */ \

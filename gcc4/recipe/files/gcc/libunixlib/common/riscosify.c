@@ -491,7 +491,7 @@ translate_or_null (int create_dir, int flags,
 
   if (out == buffer && !path)
     {
-      /* Translate an empty filename into the current dir */
+      /* Translate an empty filename into the current dir (FIXME: do we really want this ?) */
       if (out + 1 > buf_end)
 	return NULL;
 

@@ -1,7 +1,6 @@
-/* Common stat operation.
-   Copyright (c) 2002-2012 UnixLib Developers.  */
+/* __stat () : common stat operation.
+   Copyright (c) 2002-2013 UnixLib Developers.  */
 
-#include <time.h>
 #include <sys/stat.h>
 
 #include <unixlib/types.h>
@@ -13,7 +12,8 @@
 /* struct stat's st_dev is filled in at stat(), fstat() and lstat() time.
    struct stat's st_ino is filled in by the __stat callers in dev.c.  */
 int
-__stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct stat *buf)
+__stat (unsigned objtype, unsigned loadaddr, unsigned execaddr,
+        unsigned length, unsigned attr, struct stat *buf)
 {
   /* Calculate the file mode.  */
   __mode_t mode = __get_protection (attr);
@@ -117,18 +117,27 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
      usually use as a suitable parameter for setvbuf.  */
   buf->st_blksize = 4096;
 
-  if ((((unsigned int) loadaddr) >> 20) == 0xfff)	/* date stamped file */
+  if ((loadaddr & 0xFFF00000) == 0xFFF00000)	
     {
-      time_t filetime = __cvt_riscos_time ((unsigned int)(loadaddr & 0xff),
-					   (unsigned int)execaddr);
-
-      buf->st_atime = buf->st_mtime = buf->st_ctime = filetime;
+      /* Date stamped file.  */
+      __int64_t ftime = __cvt_riscos_time_csec (((__int64_t)(loadaddr & 0xff) << 32)
+						+ execaddr);
+      buf->st_atim.tv_sec = ftime / 100;
+      buf->st_atim.tv_nsec = ftime % 100;
+      if (buf->st_atim.tv_nsec < 0)
+	{
+	  buf->st_atim.tv_nsec = 100 + buf->st_atim.tv_nsec;
+	  buf->st_atim.tv_sec -= 1;
+	}
+      buf->st_atim.tv_nsec *= 10000000;
     }
   else
-    buf->st_atime = buf->st_mtime = buf->st_ctime = 0;
-
-  /* Fractional parts of the file access times. Not supported on RISC OS.  */
-  buf->st_atime_usec = buf->st_mtime_usec = buf->st_ctime_usec = 0;
+    {
+      /* Load/exec file.  */
+      buf->st_atim.tv_sec = 0;
+      buf->st_atim.tv_nsec = 0;
+    }
+  buf->st_ctim = buf->st_mtim = buf->st_atim;
 
   return 0;
 }

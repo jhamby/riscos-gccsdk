@@ -1,16 +1,19 @@
 /* Read clock information.
-   Copyright (c) 2005-2010 UnixLib Developers.  */
+   Copyright (c) 2005-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <kernel.h>
-#include <stdint.h>
 #include <time.h>
 
 #include <internal/os.h>
+#include <internal/local.h>
 
 int
 clock_gettime (clockid_t clk_id, struct timespec *tp)
 {
+  if (tp == NULL)
+    return __set_errno (EFAULT);
+
   switch (clk_id)
     {
       case CLOCK_REALTIME:
@@ -20,29 +23,32 @@ clock_gettime (clockid_t clk_id, struct timespec *tp)
 	  if (_kernel_osword (14, (int *)buf) < 0)
 	    return -1;
 
-	  /* The number of centiseconds that have elapsed between the starts
-	     of RISC OS and Unix times is 0x336e996a00.  */
-	  uint64_t centisec = (uint64_t)buf[0] + (((uint64_t)(buf[1] & 0xFF))<<32)
-		     - 0x336e996a00ULL;
-
-	  tp->tv_sec = (centisec / 10ULL) / 10ULL;
-	  tp->tv_nsec = (centisec - tp->tv_sec * 100ULL) * 10000000;
+	  /* Convert RISC OS time to Unix time (with csec resolution).  */
+	  __int64_t csec = __cvt_riscos_time_csec (((__int64_t)(buf[1] & 0xFF) << 32)
+						   + buf[0]);
+	  tp->tv_sec = csec / 100;
+	  tp->tv_nsec = csec % 100;
+	  if (tp->tv_nsec < 0)
+	    {
+	      tp->tv_nsec = 100 + tp->tv_nsec;
+	      tp->tv_sec -= 1;
+	    }
+	  tp->tv_nsec *= 10000000;
           break;
         }
 
-    case CLOCK_MONOTONIC:
-      if (tp != NULL)
+      case CLOCK_MONOTONIC:
 	{
 	  /* UnixLib's clock function reads RISC OS's Monotonic Timer
 	     and has centisecond resolution.  */
 	  clock_t c = clock ();
 	  tp->tv_sec = c / 100;
 	  tp->tv_nsec = (c - tp->tv_sec * 100) * 10000000;
+	  break;
 	}
-      break;
 
-    default:
-      return __set_errno (EINVAL);
+      default:
+        return __set_errno (EINVAL);
     }
 
   return 0;
