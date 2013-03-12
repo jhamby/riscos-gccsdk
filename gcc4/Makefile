@@ -233,7 +233,11 @@ distclean-done: clean-done
 updategcc: $(GCCSDK_INTERNAL_GETENV)
 updategcc-done:
 ifeq "$(GCC_USE_SCM)" "yes"
+	-svn revert -R $(SRCORIGDIR)/gcc-trunk
+	-svn status $(SRCORIGDIR)/gcc-trunk | grep -E "^?" | cut -b 9- | xargs rm -rf
 	cd $(SRCORIGDIR)/gcc-trunk && ./contrib/gcc_update
+else
+	@echo "Makefile target updategcc is only supported when GCC sources are fetched from the GCC source control system."
 endif
 
 # Respawn Makefile again after having loaded all our GCCSDK environment variables.
@@ -258,13 +262,12 @@ buildtool-autoconf-for-gcc-built: src-autoconf-for-gcc-copied
 	-rm -rf $(BUILDDIR)/buildtool-autoconf-for-gcc
 	mkdir -p $(BUILDDIR)/buildtool-autoconf-for-gcc
 	cd $(BUILDDIR)/buildtool-autoconf-for-gcc && $(SRCDIR)/autoconf-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
-	touch $(BUILDSTEPSDIR)/buildtool-autoconf-for-gcc-built
 else
 # autoconf-for-gcc and automake-for-gcc are the same as autoconf-for-binutils and automake-for-gcc so we can use PREFIX_BUILDTOOL_GCC as PREFIX_BUILDTOOL_BINUTILS
 buildtool-autoconf-for-gcc-built: buildtool-autoconf-for-binutils-built
 	ln -f -s $(PREFIX_BUILDTOOL_BINUTILS) $(PREFIX_BUILDTOOL_GCC)
-	touch $(BUILDSTEPSDIR)/buildtool-autoconf-for-gcc-built
 endif
+	touch $(BUILDSTEPSDIR)/buildtool-autoconf-for-gcc-built
 
 # Configure & build automake-for-binutils tool:
 buildtool-automake-for-binutils-built: src-automake-for-binutils-copied buildtool-autoconf-for-binutils-built
@@ -279,12 +282,11 @@ buildtool-automake-for-gcc-built: src-automake-for-gcc-copied buildtool-autoconf
 	-rm -rf $(BUILDDIR)/buildtool-automake-for-gcc
 	mkdir -p $(BUILDDIR)/buildtool-automake-for-gcc
 	cd $(BUILDDIR)/buildtool-automake-for-gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SRCDIR)/automake-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
-	touch $(BUILDSTEPSDIR)/buildtool-automake-for-gcc-built
 else
 # autoconf-for-gcc and automake-for-gcc are the same as autoconf-for-binutils and automake-for-gcc so we can use PREFIX_BUILDTOOL_GCC as PREFIX_BUILDTOOL_BINUTILS
 buildtool-automake-for-gcc-built: buildtool-autoconf-for-gcc-built
-	touch $(BUILDSTEPSDIR)/buildtool-automake-for-gcc-built
 endif
+	touch $(BUILDSTEPSDIR)/buildtool-automake-for-gcc-built
 
 # Configure binutils cross:
 cross-binutils-configured: src-binutils-copied
