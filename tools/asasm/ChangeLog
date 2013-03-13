@@ -1,3 +1,11 @@
+Wed Mar 13 19:03:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	Fixes for bugs reported by Ben Avison <bavison@riscosopen.org> :
+	* src/m_cpuctrl.c (m_bx): Changed minimal architecture check from 5T
+	to 4T.
+	* unittests/reloc/Makefile.in: Add empty install target.
+	* unittests/compare/Makefile.in: Likewise.
+
 Thu Feb 28 03:08:42 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

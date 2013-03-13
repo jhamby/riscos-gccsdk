@@ -65,6 +65,8 @@ all:
 check: $(act_PROGRAMS)
 	@$(ECHO) "*** All 'compare' tests were OK (do 'make -C `echo @abs_builddir@ | sed -e s#^@abs_top_builddir@/##` clean' first if you want to re-do them)"
 
+install:
+
 clean:
 	-rm -fr output_actual
 	-rm -fr output_reference
@@ -82,7 +84,7 @@ output_reference/%.o: %.s
 	$(V)$(MKDIR) -p output_reference
 	$(V)$(ASASM) $(ASFLAGS) $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -o $@ $<
 
-.PHONY: all check clean distclean
+.PHONY: all check install clean distclean
 .SUFFIXES:
 .SUFFIXES: .o .s
 

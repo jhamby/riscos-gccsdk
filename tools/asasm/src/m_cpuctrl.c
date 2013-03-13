@@ -169,7 +169,7 @@ m_bx (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v5T, true);
+  Target_CheckCPUFeature (kCPUExt_v4T, true);
 
   unsigned dst = Get_CPUReg ();
   if (dst == 15)
