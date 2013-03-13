@@ -552,7 +552,7 @@ Decode (const Lex *label)
       if (!IsPartiallyMatched (&oDecodeTable[indexFound]))
         Input_SkipWS ();
 
-      uint32_t startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area->curIdx;
+      uint32_t startOffset = areaCurrentSymbol->area->curIdx;
       Symbol * const startAreaSymbol = areaCurrentSymbol;
       Value startStorage = Value_Copy (StorageMap_Value ());
 
@@ -640,6 +640,8 @@ Decode (const Lex *label)
 	{
 	  if (IsARMOrThumbInstr (&oDecodeTable[indexFound]))
 	    {
+	      /* Do the same area offset adjustment as done for any ARM/Thumb
+		 instruction in Put_InsWithOffset().  */
 	      unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
 	      startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, NULL);
 	    }

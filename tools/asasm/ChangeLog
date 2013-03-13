@@ -1,3 +1,11 @@
+Wed Mar 13 20:02:32 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/decode.c (Decode): Drop test on implicit area for determining
+	start offset.
+	* src/error.c (Error): Remove unnecessary second test on
+	Error_SuppressMsg.
+	* src/symbol.c (Symbol_Print): Output symbol name for area symbols.
+
 Wed Mar 13 19:03:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	Fixes for bugs reported by Ben Avison <bavison@riscosopen.org> :

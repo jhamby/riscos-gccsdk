@@ -1369,6 +1369,8 @@ Symbol_Print (const Symbol *sym)
 	};
       printf ("\"%s\": %s", sym->str, symkind[SYMBOL_KIND (sym->type)]);
     }
+  else
+    printf ("\"%s\": ", sym->str); 
   assert (strlen (sym->str) == (size_t)sym->len);
   /* It's either a non-AREA symbol, either an AREA symbol.  */
   assert (sym->area == NULL || (SYMBOL_KIND (sym->type) == 0 && (sym->type & SYMBOL_AREA) != 0 && sym->area != NULL));

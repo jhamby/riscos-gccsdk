@@ -279,8 +279,7 @@ Error (ErrorTag e, const char *format, ...)
   errorCore (e, format, ap);
   va_end (ap);
 
-  if (!Error_SuppressMsg (e))
-    Input_ShowLine ();
+  Input_ShowLine ();
 
   if (e == ErrorAbort || oNumErrors > MAXERR)
     fixup ();
