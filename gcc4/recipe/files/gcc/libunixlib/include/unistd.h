@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 2.10: Symbolic Constants <unistd.h>.
- * Copyright (c) 2000-2011 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
 #ifndef __UNISTD_H
@@ -428,8 +428,8 @@ extern int symlink (const char *__from, const char *__to)
      __THROW __nonnull ((1, 2)) __wur;
 
 /* Read vaue of a symbolic link.  */
-extern int readlink (const char *__restrict __path, char *__restrict __buf,
-		     size_t __butsiz) __THROW __nonnull ((1, 2)) __wur;
+extern ssize_t readlink (const char *__restrict __path, char *__restrict __buf,
+			 size_t __butsiz) __THROW __nonnull ((1, 2)) __wur;
 #endif /* __TARGET_SCL__ */
 
 /* Remove the line name.  */

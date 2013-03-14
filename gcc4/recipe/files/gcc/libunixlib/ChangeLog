@@ -1,3 +1,9 @@
+Thu Mar 14 23:08:55 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unistd/readlink.c (readlink): Changed return value from int to
+	ssize_t.
+	* include/unistd.h (readlink): Likewise.
+
 Sun Mar 10 21:45:56 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	Based on contribution from buzby@kdmsc.plus.com.

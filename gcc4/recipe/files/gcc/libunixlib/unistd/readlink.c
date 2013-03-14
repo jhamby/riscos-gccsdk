@@ -1,11 +1,11 @@
 /* readlink ()
- * Copyright (c) 2002-2006 UnixLib Developers
+ * Copyright (c) 2002-2013 UnixLib Developers
  */
 
 #include <errno.h>
 #include <unistd.h>
 
-int
+ssize_t
 readlink (const char *path, char *buf, size_t bufsiz)
 {
   path = path;
