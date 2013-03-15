@@ -79,9 +79,9 @@ Define (const char *msg, Symbol *sym, ValueTag legal, IntType_e intType)
 	         FIXME: what about 1 character strings "Foo EQU "x" ? */
 	      unsigned symbolType;
 	      if (valueDef.Tag == ValueInt && valueDef.Data.Int.type == eIntType_PureInt)
-		symbolType = SYMBOL_ABSOLUTE;
+		symbolType = SYMBOL_CONSTANT | SYMBOL_ABSOLUTE;
 	      else
-		symbolType = SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT;
+		symbolType = SYMBOL_CONSTANT | SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT;
 	      failed = Symbol_Define (sym, symbolType, &valueDef);
 	    }
 	}
@@ -192,6 +192,6 @@ c_rlist (Symbol *symbol)
       return false;
     }
   const Value rlistValue = Value_Int (Get_CPURList (), eIntType_CPURList);
-  Symbol_Define (symbol, SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, &rlistValue);
+  Symbol_Define (symbol, SYMBOL_CONSTANT | SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, &rlistValue);
   return false;
 }

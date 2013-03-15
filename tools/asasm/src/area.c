@@ -111,9 +111,6 @@ Area_Create (Symbol *sym, uint32_t type)
   newAreaP->maxIdx = 0;
 
   newAreaP->entryType = eInvalid;
-
-  newAreaP->fileName = FS_GetCurFileName ();
-  newAreaP->lineNumber = FS_GetCurLineNumber ();
   
   newAreaP->relocs = NULL;
 
@@ -259,7 +256,8 @@ Area_PrepareForPhase (Phase_e phase)
 		  for (i = 0; i != areaP->maxIdx && areaP->image[i] == 0; ++i)
 		    /* */;
 		  if (i == areaP->maxIdx)
-		    Error_Line (areaP->fileName, areaP->lineNumber, ErrorInfo, "Area %s only contains zero bytes, use NOINIT area attribute ?", areaSymP->str);
+		    Error_Line (areaSymP->fileName, areaSymP->lineNumber, ErrorInfo,
+				"Area %s only contains zero bytes, use NOINIT area attribute ?", areaSymP->str);
 		}
 	    }
 	  
@@ -319,7 +317,7 @@ c_entry (void)
 	{
 	  Error (ErrorError, "More than one ENTRY");
 	  Error_Line (oArea_EntrySymbolFileName, oArea_EntrySymbolLineNum,
-	             ErrorError, "note: Previous ENTRY was here"); 
+		      ErrorError, "note: Previous ENTRY was here"); 
 	}
       else
 	{
@@ -441,9 +439,8 @@ Area_Ensure (void)
     }
   const Lex lex = Lex_Id (areaNameP, areaNameSize);
   Symbol *sym = Symbol_Get (&lex);
-  if (SYMBOL_KIND (sym->type) != 0)
-    Error (ErrorError, "Redefinition of label to area %s", sym->str);
-  else if ((sym->type & SYMBOL_AREA) == 0)
+  assert (SYMBOL_KIND (sym->type) == 0);
+  if ((sym->type & SYMBOL_AREA) == 0)
     {
       /* When an area is made absolute, ensure its symbol is also absolute.  */
       sym->type = (areaType & AREA_ABS) ? SYMBOL_ABSOLUTE | SYMBOL_AREA : SYMBOL_AREA;
@@ -686,7 +683,10 @@ c_area (void)
   Symbol *sym = Symbol_Get (&lex);
   if (SYMBOL_KIND (sym->type) != 0)
     {
-      Error (ErrorError, "Redefinition of label as area %s", sym->str);
+      const char *symDescrP = Symbol_GetDescription (sym);
+      Error (ErrorError, "Redefinition of %s %s as area", symDescrP, sym->str);
+      Error_Line (sym->fileName, sym->lineNumber, ErrorError, "note: %c%s %s was previously defined here",
+		  toupper ((unsigned char)symDescrP[0]), symDescrP + 1, sym->str);
       return false;
     }
   unsigned int prevAreaAttrib;  
@@ -814,7 +814,7 @@ c_org (void)
 	  if (oPendingORG.isValid)
 	    {
 	      Error_Line (oPendingORG.fileName, oPendingORG.lineNum,
-	                 ErrorWarning, "ORG statement without any effect, because of...");
+			  ErrorWarning, "ORG statement without any effect, because of...");
 	      Error (ErrorWarning, "...this");
 	    }
 	  else
@@ -826,7 +826,11 @@ c_org (void)
       else
 	{
 	  if (areaCurrentSymbol->area->curIdx != 0)
-	    Error (ErrorError, "Too late to set ORG of current area");
+	    {
+	      Error (ErrorError, "Too late to set ORG of current area");
+	      Error_Line (areaCurrentSymbol->fileName, areaCurrentSymbol->lineNumber,
+			  ErrorError, "note: Expected to be set just before or after this line");
+	    }
 	  else
 	    {
 	      areaCurrentSymbol->area->type |= AREA_ABS;

@@ -198,7 +198,7 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
       /* Update variable name and substitute '$' by '_'.  */
       char *o, *i;
       for (o = varbuf, i = lt + 1; i != gt; ++o, ++i)
-	*o = *i == '$' ? '_' : toupper ((unsigned)*i);
+	*o = *i == '$' ? '_' : toupper ((unsigned char)*i);
       *o = '\0';
       char *vardef = getenv (varbuf);
       if (vardef == NULL)
@@ -338,7 +338,7 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
 	      break;
 	    }
 #ifndef __riscos__
-	  path[i - in] = *i == '$' ? '_' : toupper (*i);
+	  path[i - in] = *i == '$' ? '_' : toupper ((unsigned char)*i);
 #endif
 	}
     }

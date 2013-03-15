@@ -74,15 +74,16 @@
 /* The following are 'asasm' internal SYMBOL attribute values only and should
    not be output in the AOF output file.  */
 
-#define SYMBOL_READONLY		0x04000000 /* Imported symbol from a READONLY
+#define SYMBOL_READONLY		0x02000000 /* Imported symbol from a READONLY
   area.  */
-#define SYMBOL_MACRO_LOCAL	0x08000000 /** Set when symbol is only known as
+#define SYMBOL_MACRO_LOCAL	0x04000000 /** Set when symbol is only known as
   a local macro variable.  */
-#define SYMBOL_NO_EXPORT	0x10000000 /** Do not export this symbol
+#define SYMBOL_NO_EXPORT	0x08000000 /** Do not export this symbol
   without any exceptions, even when SYMBOL_KEEP set (offset-to-literal-value
   symbols, local symbols, storage map symbols, bool/string variables,
   register/coprocessor number symbols).  */
-#define SYMBOL_RW		0x20000000 /** GBLL, GBLA, GBLS, LBLL, LBLA or LBLS, i.e. a read-write symbol.  */
+#define SYMBOL_CONSTANT		0x10000000 /** Defined by EQU, *, RN, CN, FN, CP, RLIST.  */
+#define SYMBOL_RW		0x20000000 /** GBLL, GBLA, GBLS, LBLL, LBLA or LBLS, i.e. a read-write symbol or variable.  */
 #define SYMBOL_KEEP		0x40000000 /* Symbol needs to come in output,
   even if it is local.  Not when its value does not allow it.  */
 #define SYMBOL_AREA		0x80000000 /* Symbol is an area name.  */
@@ -145,6 +146,8 @@ void Symbol_Remove (const Lex *l);
 void Symbol_RemoveVariables (void);
 
 bool Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue);
+
+const char *Symbol_GetDescription (const Symbol *symbol);
 
 typedef struct
 {

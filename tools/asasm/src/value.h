@@ -53,8 +53,8 @@ typedef enum
   eIntType_CPU,			/* r0 - r15, lr, pc : ARM CPU register.  */
   eIntType_FPU,			/* f0 - f8 : FPE (FPA10/FPA11 and FPASC) register.  */
   eIntType_NeonQuadReg,		/* q0 - q15 : NEON quadword registers.  */
-  eIntType_NeonOrVFPDoubleReg,	/* d0 - d31 : NEON doubleword registers, VFP double-precision registers.  */
-  eIntType_VFPSingleReg,	/* s0 - s31 : VFP single-precision registers.  */
+  eIntType_NeonOrVFPDoubleReg,	/* d0 - d31 : NEON/VFP doubleword registers.  */
+  eIntType_VFPSingleReg,	/* s0 - s31 : VFP single word registers.  */
   eIntType_CoProReg,		/* p0 - p15 : Coprocessor register.  */
   eIntType_CoProNum		/* c0 - c15 : Not really a register... */
 } IntType_e;
@@ -204,7 +204,6 @@ Value Value_Copy (const Value *src);
 void Value_Free (Value *value);
 bool Value_ResolveSymbol (Value *valueP);
 bool Value_Equal (const Value *a, const Value *b);
-const char *Value_TagAsString (ValueTag tag);
 #ifdef DEBUG
 void Value_Print (const Value *v);
 #endif

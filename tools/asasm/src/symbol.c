@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -51,7 +52,7 @@
 #include "symbol.h"
 
 #ifdef DEBUG
-#  define DEBUG_SYMBOL
+//#  define DEBUG_SYMBOL
 #endif
 
 static Symbol *symbolTable[SYMBOL_TABLESIZE];
@@ -185,7 +186,8 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 {
   if (symbol->type & SYMBOL_AREA)
     {
-      Error (ErrorError, "Area label %s can not be redefined", symbol->str);
+      Error (ErrorError, "Area %s can not be redefined", symbol->str);
+      Error_Line (symbol->fileName, symbol->lineNumber, ErrorError, "note: Area was defined here");
       return true;
     }
   assert ((newSymbolType & SYMBOL_AREA) == 0 && "Not to be used for defining area symbols");
@@ -215,7 +217,7 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 		  Code_Value (newValue, false);
 		  Value val2 = Value_Copy (Code_Eval (ValueAll));
 		  diffValue = !Value_Equal (&val1, &val2);
-#ifdef DEBUG
+#ifdef DEBUG_SYMBOL
 		  if (diffValue)
 		    {
 		      printf ("Diff: ");
@@ -231,7 +233,7 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 	      else
 		{
 		  diffValue = true; /* Not sure if we don't have to try harder here.  */
-#ifdef DEBUG
+#ifdef DEBUG_SYMBOL
 		  printf ("Diff: ");
 		  Value_Print (&symbol->value);
 		  printf (" vs ");
@@ -242,7 +244,11 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 	    }
 	  if (diffValue)
 	    {
-	      Error (ErrorError, "Symbol %s can not be redefined with a different value", symbol->str);
+	      const char *symDescP = Symbol_GetDescription (symbol);
+	      Error (ErrorError, "%c%s %s can not be redefined with a different value",
+		     toupper ((unsigned char)symDescP[0]), symDescP + 1, symbol->str);
+	      if (symbol->fileName != FS_GetCurFileName() || symbol->lineNumber != FS_GetCurLineNumber ())
+		Error_Line (symbol->fileName, symbol->lineNumber, ErrorError, "note: previous definition was done here");
 	      return true;
 	    }
 	}
@@ -253,6 +259,62 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
   if (newValue == &newValueCopy)
     Value_Free (&newValueCopy);
   return false;
+}
+
+
+/**
+ * \return An user description what this symbol actually is.
+ */
+const char *
+Symbol_GetDescription (const Symbol *symbol)
+{
+  const char *descrP;
+  if ((symbol->type & SYMBOL_AREA) != 0)
+    descrP = "area";
+  else if ((symbol->type & SYMBOL_RW) != 0)
+    descrP = (symbol->type & SYMBOL_MACRO_LOCAL) ? "local variable" : "global variable";
+  else if ((symbol->type & SYMBOL_CONSTANT) != 0)
+    {
+      if (symbol->value.Tag == ValueInt)
+	{
+	  switch (symbol->value.Data.Int.type)
+	    {
+	      case eIntType_PureInt:
+		descrP = "constant";
+		break;
+	      case eIntType_CPURList:
+		descrP = "register list";
+		break;
+	      case eIntType_CPU:
+		descrP = "CPU register";
+		break;
+	      case eIntType_FPU:
+		descrP = "FPU register";
+		break;
+	      case eIntType_NeonQuadReg:
+		descrP = "NEON quadword register";
+		break;
+	      case eIntType_NeonOrVFPDoubleReg:
+		descrP = "NEON/VFP doubleword register";
+		break;
+	      case eIntType_VFPSingleReg:
+		descrP = "VFP single word register";
+		break;
+	      case eIntType_CoProReg:
+		descrP = "coprocessor register";
+		break;
+	      case eIntType_CoProNum:
+		descrP = "coprocessor number";
+		break;
+	    }
+	}
+      else
+	descrP = "constant";
+    }
+  else
+    descrP = "label";
+
+  return descrP;
 }
 
 
@@ -632,7 +694,7 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 			}
 		      else if (valueP->Data.Symbol.factor != 1)
 			{
-			  Error (ErrorError, "Unable to export symbol %s", sym->str);
+			  Error_Line (sym->fileName, sym->lineNumber, ErrorError, "Unable to export symbol %s", sym->str);
 			  continue;
 			}
 		      break;
@@ -748,7 +810,7 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 			}
 		      else if (valueP->Data.Symbol.factor != 1)
 			{
-			  Error (ErrorError, "Unable to export symbol %s", sym->str);
+			  Error_Line (sym->fileName, sym->lineNumber, ErrorError, "Unable to export symbol %s", sym->str);
 			  continue;
 			}
 		      break;

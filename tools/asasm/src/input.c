@@ -646,7 +646,7 @@ Input_MatchStringLower (const char *str)
 {
   int matched = 0;
   while (input_pos[matched]
-         && tolower ((unsigned)input_pos[matched]) == str[matched])
+         && tolower ((unsigned char)input_pos[matched]) == str[matched])
     ++matched;
   if (str[matched] == '\0')
     {

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2012 GCCSDK Developers
+ * Copyright (c) 2001-2013 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -106,9 +106,6 @@ typedef struct AREA
   uint32_t maxIdx;
 
   Area_eEntryType entryType;
-
-  const char *fileName;
-  unsigned lineNumber;
   
   struct RELOC *relocs;
 

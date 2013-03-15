@@ -162,7 +162,7 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
           Input_Skip ();
 	  if (CP_GET_NUMBER (ir) != 1) /* FPE coprocessor is 1 (LFM/STM are using coprocessor 2).  */
 	    {
-	      Error (ErrorError, "Co-processor data transfer literal not supported");
+	      Error (ErrorError, "Coprocessor data transfer literal not supported");
 	      break;
 	    }
 	  if (!literal)

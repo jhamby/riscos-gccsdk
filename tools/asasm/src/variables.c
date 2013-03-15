@@ -94,6 +94,29 @@ Var_PredefineVariables (void)
 }
 
 /**
+ * \return User description for the value type a variable can contain.
+ */
+static const char *
+Var_GetDescription (ValueTag type)
+{
+  assert (type == ValueInt || type == ValueString || type == ValueBool);
+  const char *descP;
+  switch (type)
+    {
+      case ValueInt:
+	descP = "integer";
+	break;
+      case ValueString:
+	descP = "string";
+	break;
+      case ValueBool:
+	descP = "boolean";
+	break;
+    }
+  return descP;
+}
+
+/**
  * (Re)define local or global variable.
  * When variable exists we'll give a pedantic warning when its type is the same,
  * when type is different an error is given instead.
@@ -106,44 +129,44 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
   assert (type == ValueInt || type == ValueString || type == ValueBool);
 
   const Lex var = Lex_Id (ptr, len);
-  Symbol *sym = Symbol_Get (&var);
-
-  if (sym->type & (SYMBOL_REFERENCE | SYMBOL_STRONG | SYMBOL_KEEP))
+  /* Check if global variables are not already used as constants, area names,
+     CPU/coprocessor name, etc.
+     Local macro names can overrule any existing symbol.  */
+  Symbol *sym;
+  if (!localMacro && (sym = Symbol_Find (&var)) != NULL)
     {
-      Error (ErrorError, "'%.*s' is already in use as symbol and can not be used as %s variable",
-	     (int)len, ptr, localMacro ? "local" : "global");
-      return NULL;
+      if ((sym->type & SYMBOL_RW) == 0)
+	{
+	  const char *symDescP = Symbol_GetDescription (sym);
+	  Error (ErrorError, "Redefinition of %s %s as %s variable",
+		 symDescP, sym->str, localMacro ? "local" : "global");
+	  Error_Line (sym->fileName, sym->lineNumber, ErrorError, "note: %c%s %s was first used here",
+		      toupper ((unsigned char)symDescP[0]), symDescP + 1, sym->str);
+	  return NULL;
+	}
     }
+  else
+    sym = Symbol_Get (&var);
   
   if (sym->value.Tag != ValueIllegal)
     {
-      if (sym->type & SYMBOL_AREA)
-	{
-	  Error (ErrorError, "'%.*s' is already defined as an area",
-		 (int)len, ptr);
-	  return NULL;
-	}
-
       /* A local variable can have a different type than a similar named
 	 global variable.  */
       /* FIXME: this is not 100% bullet proof: a local variable with same
 	 name as global one will not get SYMBOL_MACRO_LOCAL bit so remains
-	 local.  So we won't detect two different type local variables (with
-	 same name) when we have a global variable also with same name).  */
+	 global.  So we won't detect two different type local variables (with
+	 same name) when we already have a global variable also with that
+	 name).  */
       if (sym->value.Tag != type
           && (!localMacro || (sym->type & SYMBOL_MACRO_LOCAL) != 0))
 	{
-	  if (sym->value.Tag == ValueIllegal)
-	    Error (ErrorError, "'%.*s' is already defined", (int)len, ptr);
-	  else
-	    Error (ErrorError, "'%.*s' is already defined as a %s",
-		   (int)len, ptr, Value_TagAsString (sym->value.Tag));
+	  const char *symDescP = Symbol_GetDescription (sym);
+	  Error (ErrorError, "Redefinition of %s %s %s as %s %s",
+		 Var_GetDescription (sym->value.Tag), symDescP, sym->str,
+		 Var_GetDescription (type), symDescP);
+	  Error_Line (sym->fileName, sym->lineNumber, ErrorError, "note: Previous definition was here");
 	  return NULL;
 	}
-      if (option_pedantic)
-	Error (ErrorWarning, "Redefinition of %s variable '%.*s'",
-	       Value_TagAsString (sym->value.Tag),
-	       (int)var.Data.Id.len, var.Data.Id.str);
 
       /* When symbol is already known as global, it remains a global variable
 	 (and :DEF: returns {TRUE} for it).  */
@@ -167,10 +190,6 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 
       case ValueString:
 	sym->value = Value_String (NULL, 0, false);
-	break;
-
-      default:
-	assert (0);
 	break;
     }
 
@@ -296,12 +315,12 @@ bool
 c_set (const Lex *label)
 {
   ValueTag type;
-  const char c  = Input_Look ();
-  if (c == 'L')
+  const char setType  = Input_Look ();
+  if (setType == 'L')
     type = ValueBool;
-  else if (c == 'A')
+  else if (setType == 'A')
     type = ValueInt;
-  else if (c == 'S')
+  else if (setType == 'S')
     type = ValueString;
   else
     return true;
@@ -312,7 +331,7 @@ c_set (const Lex *label)
   switch (label->tag)
     {
       case LexNone:
-	Error (ErrorError, "Label missing");
+	Error (ErrorError, "Variable name missing");
 	return false;
 
       case LexId:
@@ -330,21 +349,33 @@ c_set (const Lex *label)
   Symbol *sym = Symbol_Find (label);
   if (sym == NULL)
     {
-      Error (ErrorError, "'%.*s' is undefined",
+      Error (ErrorError, "Variable %.*s is undefined",
 	     (int)label->Data.Id.len, label->Data.Id.str);
+      return false;
+    }
+  if ((sym->type & SYMBOL_RW) == 0)
+    {
+      const char *symDescP = Symbol_GetDescription (sym);
+      Error (ErrorError, "%c%s %s can not be used as variable",
+	     toupper ((unsigned char)symDescP[0]), symDescP + 1, sym->str);
+      Error_Line (sym->fileName, sym->lineNumber, ErrorError, "%c%s %s was defined here",
+		  toupper ((unsigned char)symDescP[0]), symDescP + 1, sym->str);
       return false;
     }
   if (type != sym->value.Tag)
     {
-      Error (ErrorError, "Wrong type for symbol '%.*s'",
-	     (int)label->Data.Id.len, label->Data.Id.str);
+      const char *scope = (sym->type & SYMBOL_MACRO_LOCAL) ? "local" : "global";
+      Error (ErrorError, "SET%c is unexpected for %s %s variable %s",
+	     setType, Var_GetDescription (sym->value.Tag), scope, sym->str);
+      Error_Line (sym->fileName, sym->lineNumber, ErrorError, "note: %c%s variable %s was defined here",
+		  toupper ((unsigned char)scope[0]), scope + 1, sym->str);
       return false;
     }
   const Value *value = Expr_BuildAndEval (sym->value.Tag);
   switch (value->Tag)
     {
       case ValueIllegal:
-	Error (ErrorError, "Wrong variable type for '%.*s'", (int)label->Data.Id.len, label->Data.Id.str);
+	Error (ErrorError, "Wrong value type for variable %s", sym->str);
 	break;
 
       default:

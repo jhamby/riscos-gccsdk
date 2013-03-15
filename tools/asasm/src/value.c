@@ -317,47 +317,6 @@ Value_Equal (const Value *a, const Value *b)
 }
 
 
-const char *
-Value_TagAsString (ValueTag tag)
-{
-  const char *str;
-  switch (tag)
-    {
-      case ValueIllegal:
-        str = "illegal";
-        break;
-      case ValueInt:
-        str = "integer/register/coprocessornumber/registerlist";
-        break;
-      case ValueInt64:
-	str = "int64";
-	break;
-      case ValueFloat:
-        str = "float";
-        break;
-      case ValueString:
-        str = "string";
-        break;
-      case ValueBool:
-        str = "bool";
-        break;
-      case ValueCode:
-        str = "code";
-        break;
-      case ValueAddr:
-        str = "register based address";
-        break;
-      case ValueSymbol:
-	str = "symbol";
-	break;
-      default:
-        str = "unknown";
-        break;
-    }
-  return str;
-}
-
-
 #ifdef DEBUG
 void
 Value_Print (const Value *v)

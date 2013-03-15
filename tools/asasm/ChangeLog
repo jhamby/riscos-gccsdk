@@ -1,3 +1,34 @@
+Fri Mar 15 02:45:13 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/symbol.h (SYMBOL_CONSTANT): Define.
+	(Symbol_GetDescription): Declare.
+	* src/symbol.c (Symbol_Define): Use DEBUG_SYMBOL iso DEBUG.
+	Improve error message when symbol gets redefined with different value.
+	(Symbol_GetDescription): Add.
+	(Symbol_OutputForAOF): Improve error message when symbol can not be
+	exported.
+	(Symbol_OutputForELF): Likewise.
+	* src/variables.c (Var_GetDescription): Add.
+	(Var_Define): Improve redefinition error detection.
+	(c_set): Likewise.
+	* src/area.h (Area): Drop fileName and lineNumber members.
+	* src/area.c (Area_Create): Follow Area::fileName and Area::lineNumber
+	removal.
+	(Area_Ensure): Use assert iso if test.
+	(c_area): Improve error message when area name has been used before
+	as non-area name.
+	(c_org): Improve error message when ORG was used too late.
+	* src/value.c (Value_TagAsString): Remove.
+	* src/value.h (Value_TagAsString): Likewise.
+	* src/directive_symbol.c (Define): Use SYMBOL_CONSTANT.
+	(c_rlist): Likewise.
+	* src/help_cop.c (HelpCop_Addr): Fix error message.
+	* src/strdup.c (strncasecmp): Do explicit unsigned char cast for
+	toupper calling.
+	(strcasecmp): Likewise.
+	* src/input.c (Input_MatchStringLower): Likewise.
+	* src/filename.c (FN_AnyToNative): Likewise.
+
 Wed Mar 13 20:02:32 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/decode.c (Decode): Drop test on implicit area for determining
