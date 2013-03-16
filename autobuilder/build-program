@@ -161,9 +161,17 @@ ab_create_command_app() {
 
 
 ab_add_commands() {
+  local program
   for program in $@; do
-    # Call elf2aif only for statically linked ELF binaries.
-    file $program | grep -q -e ELF -e statically && $GCCSDK_INSTALL_ENV/ro-path elf2aif $program
+    if [ "$AB_ELFBUILD" == yes ] && file $program | grep -q -e ELF -e statically ; then
+      # Call elf2aif only for statically linked ELF binaries.  In that case,
+      # change ,e1f extension (if any) to ,ff8.
+      local abs_program
+      abs_program=`sed -e s#,e1f## <<< $program`,ff8
+      $GCCSDK_INSTALL_ENV/ro-path elf2aif $program $abs_program
+      [ "$program" != "$abs_program" ] && rm $program
+      program=$abs_program
+    fi
 
     # Determine minimal WimpSlot size for binaries (will be empty for ObeyFiles)
     # We don't just strip AB_EXEEXT but any RISC OS filetype extension
@@ -175,6 +183,7 @@ ab_add_commands() {
     else
       echo "Set Alias\$$name WimpSlot -min `echo $slotsize`k|MRun <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
     fi
+
     /bin/cp -av $program $A
   done
 }
@@ -542,9 +551,9 @@ if true; then
   fi
 
   # If no preference is set for shared versus dynamic, then by default build libraries dynamically
-  # (which ususally also builds a static library) but others statically
+  # (which usually also builds a static library) but others statically
   if [ -z "$RO_SHAREDLIBS" ] ; then
-    if [ "$AB_INSTALL" == "yes" ] ; then
+    if [ "$AB_INSTALL" == "yes" ] && [ "$AB_ELFBUILD" == "yes" ] ; then
       export RO_SHAREDLIBS=yes
     else
       export RO_SHAREDLIBS=no
