@@ -1,7 +1,6 @@
-
-gcc -g -Wall -Werror utils/ttf2font.c `freetype-config --cflags --libs` -o utils/ttf2font
-gcc -g -Wall -Werror utils/data2c.c `sdl-config --cflags --libs` -o utils/data2c
-gcc -g -Wall -Werror utils/anim.c `sdl-config --cflags --libs` -o utils/anim
+$HOST_CC -g -Wall -Werror utils/ttf2font.c `freetype-config --cflags --libs` -o utils/ttf2font
+$HOST_CC -g -Wall -Werror utils/data2c.c `sdl-config --cflags --libs` -o utils/data2c
+$HOST_CC -g -Wall -Werror utils/anim.c `sdl-config --cflags --libs` -o utils/anim
 
 ab_package() {
   ab_create_app Tuxpuck Apps/Games

@@ -6,7 +6,7 @@ ab_make() {
   cd src
   ./makemake --without-readline --with-libiconv-prefix=$GCCSDK_INSTALL_ENV --with-libsigsegv-prefix=$GCCSDK_INSTALL_ENV > Makefile
 
-  sed s%^CC.b*=.b*.*$%CC\ =\ gcc%g Makefile > HostCCMakefile
+  sed s%^CC.b*=.b*.*$%CC\ =\ $HOST_CC%g Makefile > HostCCMakefile
   make -f HostCCMakefile comment5 gctrigger varbrace txt2c
 
   eval $AB_MAKE config.lisp lisp.run
@@ -18,19 +18,19 @@ ab_package() {
   test -d $D/!CLISP-SWI/doc || mkdir -p $D/!CLISP-SWI/doc
   test -d $D/!CLISP-SWI/src || mkdir -p $D/!CLISP-SWI/src
   test -d $D/obey || mkdir -p $D/obey
-  gcc $H/txt_dummy.c -o txt 
+  $HOST_CC $H/txt_dummy.c -o txt 
   make README
   mv $S/src/txt$AB_EXEEXT $D/obey/README.x$AB_EXEEXT
-  gcc $H/txt_dummy.c -o txt
+  $HOST_CC $H/txt_dummy.c -o txt
   make README.de
   mv $S/src/txt$AB_EXEEXT $D/obey/README.de.x$AB_EXEEXT
-  gcc $H/txt_dummy.c -o txt
+  $HOST_CC $H/txt_dummy.c -o txt
   make README.es
   mv $S/src/txt$AB_EXEEXT $D/obey/README.es.x$AB_EXEEXT
-  gcc $H/txt_dummy.c -o txt
+  $HOST_CC $H/txt_dummy.c -o txt
   make clisp.1
   mv $S/src/txt$AB_EXEEXT $D/obey/clisp.1.x$AB_EXEEXT
-  gcc $H/txt_dummy.c -o txt
+  $HOST_CC $H/txt_dummy.c -o txt
   make clisp.html
   mv $S/src/txt$AB_EXEEXT $D/obey/clisp.html.x$AB_EXEEXT
   make manual

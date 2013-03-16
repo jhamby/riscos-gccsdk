@@ -28,7 +28,7 @@ if [ ! -e $GCCSDK_INSTALL_ENV/bin/valac ] ; then
   done
   touch vala/vala.vala.stamp
 
-  CC=/usr/bin/gcc ./configure $AB_CONFLAGS --disable-shared --enable-static
+  CC=$HOST_CC ./configure $AB_CONFLAGS --disable-shared --enable-static
   make
   cp compiler/valac $GCCSDK_INSTALL_ENV/bin
 

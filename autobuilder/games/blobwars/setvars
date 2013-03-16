@@ -1,7 +1,6 @@
-
 AB_URL=http://www.parallelrealities.co.uk/download/blobwars/blobwars-1.17-1.tar.gz
 
-/usr/bin/g++ -O2 src/pak.cpp src/CFileData.cpp -o pak `sdl-config --libs` -lSDL_mixer -lSDL_image -lSDL_ttf -lSDL_net -lz
+$HOST_CXX -O2 src/pak.cpp src/CFileData.cpp -o pak `sdl-config --libs` -lSDL_mixer -lSDL_image -lSDL_ttf -lSDL_net -lz
 make buildpak
 
 ab_package() {
@@ -13,8 +12,6 @@ ab_package() {
 
   mkdir $A/doc
   cp -av $S/doc/* $A/doc/
-
-
 
   $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/license
 }

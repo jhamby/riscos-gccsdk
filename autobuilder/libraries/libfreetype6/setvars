@@ -13,7 +13,7 @@ mkdir -p $D/include/freetype2/freetype/config
 mkdir -p $D/include/freetype2/freetype/cache
 mkdir -p $D/include/freetype2/freetype/internal
 
-AB_MAKE="$AB_MAKE CCexe=/usr/bin/gcc"
+AB_MAKE="$AB_MAKE CCexe=$HOST_CC"
 
 ab_make() {
   cp freetype-config freetype2.pc ftconfig.h libtool *.mk builds/unix

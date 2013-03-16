@@ -1,13 +1,11 @@
-
 AB_PRECONF=:
 AB_MAKE=:
 
 #AB_SVN=svn://source.netsurf-browser.org/trunk/tools/makerun/
 AB_GIT=git://git.netsurf-browser.org/makerun.git
 
-gcc -O2 makerun.c -o makerun
+$HOST_CC -O2 makerun.c -o makerun
 
 mkdir -p $GCCSDK_INSTALL_ENV/bin
 cp makerun $GCCSDK_INSTALL_ENV/bin/
-
 

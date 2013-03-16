@@ -6,7 +6,7 @@ AB_PVERSION=7.00
 AB_INSTALL=no
 
 # ro-make turns an empty $CC into our cross-compiler filename.
-AB_MAKE="CC=/usr/bin/cc $AB_MAKE vapis"
+AB_MAKE="CC=$HOST_CC $AB_MAKE vapis"
 
 ab_package() {
   mkdir -p $D/oslibvapis/Apps/Development/\!Vala

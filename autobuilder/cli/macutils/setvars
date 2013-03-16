@@ -1,5 +1,5 @@
 
-(cd crc; /usr/bin/cc -c makecrc.c -O; /usr/bin/cc -o makecrc makecrc.o; ./makecrc)
+(cd crc; $HOST_CC -O -o makecrc makecrc.c; ./makecrc)
 
 AB_MANPAGE="man/binhex.1 man/frommac.1 man/hexbin.1 man/macsave.1 man/macstream.1 man/macunpack.1 man/macutil.1 man/tomac.1"
 

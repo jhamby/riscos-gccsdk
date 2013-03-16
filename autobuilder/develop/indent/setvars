@@ -1,5 +1,4 @@
-
-/usr/bin/cc -o man/texinfo2man man/texinfo2man.c
+$HOST_CC -o man/texinfo2man man/texinfo2man.c
 
 ab_package() {
   ab_create_command_app Indent Apps/Development

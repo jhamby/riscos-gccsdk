@@ -1,4 +1,3 @@
-
 AB_CATEGORY=Games
 
 AB_PRECONF=:
@@ -6,8 +5,8 @@ AB_PRECONF=:
 . sys/unix/setup.sh
 
 cd ../../src
-CC=/usr/bin/gcc make objects.o monst.o
-CC=/usr/bin/gcc make -C ../util makedefs
+CC=$HOST_CC make objects.o monst.o
+CC=$HOST_CC make -C ../util makedefs
 
 rm *.o
 make objects.o monst.o
@@ -16,5 +15,5 @@ touch ../util/makedefs
 #rm ../util/makedefs.o
 
 ab_make() {
-  $AB_MAKE WIN=console LIBS=-L/home/riscos/env/lib
+  $AB_MAKE WIN=console LIBS=-L$GCCSDK_INSTALL_ENV/lib
 }

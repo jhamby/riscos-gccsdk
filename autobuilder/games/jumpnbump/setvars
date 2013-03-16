@@ -2,8 +2,7 @@ AB_LICENCE=Free
 
 AB_PRECONF=:
 
-CC=/usr/bin/gcc make gobpack
-
+CC=$HOST_CC make gobpack
 
 ab_package() {
   ab_create_app jumpnbump Apps/Games

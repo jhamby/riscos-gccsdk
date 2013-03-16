@@ -1,7 +1,6 @@
-
 AB_URL=http://sourceforge.net/projects/legendofedgar/files/0.94/edgar-0.94-2.tar.gz
 
-gcc -O2 src/pak_creator.c -o pak -lz
+$HOST_CC -O2 src/pak_creator.c -o pak -lz
 touch pak_creator.o
 make buildpak
 

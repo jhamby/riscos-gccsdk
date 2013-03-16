@@ -6,10 +6,10 @@ AB_INSTALL=yes
 
 # ro-make turns an empty $CC into our cross-compiler filename.
 if [ "$AB_ELFBUILD" == "yes" ] ; then
-AB_MAKE="CC=/usr/bin/cc $AB_MAKE oslib-elf"
+AB_MAKE="CC=$HOST_CC $AB_MAKE oslib-elf"
 AB_INSTALLTARGET=install-elf
 else
-AB_MAKE="CC=/usr/bin/cc $AB_MAKE oslib-aof"
+AB_MAKE="CC=$HOST_CC $AB_MAKE oslib-aof"
 AB_INSTALLTARGET=install-aof
 fi
 

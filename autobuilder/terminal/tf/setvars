@@ -1,11 +1,8 @@
-
 AB_CATEGORY=Terminal/test
 
 AB_PRECONF=:
 
 AB_MAKE="yes | /home/riscos/env/ro-path ./unixmake files"
 
-/usr/bin/cc src/makehelp.c -o src/makehelp
-
-
+$HOST_CC src/makehelp.c -o src/makehelp
 

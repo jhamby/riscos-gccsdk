@@ -24,7 +24,7 @@ ab_package() {
 }
 
 ab_make() {
-  /usr/bin/gcc src/util/makekeys.c -o src/util/makekeys
+  $HOST_CC src/util/makekeys.c -o src/util/makekeys
   touch src/util/makekeys-makekeys.o
   touch src/util/makekeys$AB_EXEEXT
   $AB_MAKE

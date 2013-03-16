@@ -2,7 +2,7 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--enable-malloc0returnsnull"
 
-gcc util/makestrs.c -o util/makestrs
+$HOST_CC util/makestrs.c -o util/makestrs
 
 if [ ! -d man/man3 ] ; then
   ln -s . man/man3

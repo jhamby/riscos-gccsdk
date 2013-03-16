@@ -2,14 +2,13 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--disable-nls --with-idl-compiler=$GCCSDK_INSTALL_ENV/bin/orbit-idl-2"
 
-
 if ! [ -e /usr/bin/glib-genmarshal ] || ! [ -e /usr/include/popt.h ] ; then
   echo "Please install native libglib2.0-dev, libidl-dev and libpopt-dev packages"
   exit 1
 fi
 
 # Build orbit-idl-compiler natively:
-CC=/usr/bin/gcc ./configure $AB_CONFLAGS --disable-shared --enable-static
+CC=$HOST_CC ./configure $AB_CONFLAGS --disable-shared --enable-static
 make -C src/idl-compiler
 cp src/idl-compiler/orbit-idl-2 $GCCSDK_INSTALL_ENV/bin
 
