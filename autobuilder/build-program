@@ -52,11 +52,14 @@ H=$AB_HOME/$AB_PACKAGEDIR
 
 rm -f $AB_HOME/last-zips
 
-# Make $CC, $CXX available
+# Make $CC, $CXX available, i.e. our RISC OS cross-compiler.
 eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
 eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
+# Make $HOST_CC and $HOST_CXX available, i.e. our native compiler.
 export HOST_CC=$(which cc)
+[ -z "$HOST_CC" ] && HOST_CC=$(which gcc)
 export HOST_CXX=$(which c++)
+[ -z "$HOST_CXX" ] && HOST_CXX=$(which g++)
 
 if [ -x $GCCSDK_INSTALL_ENV/bin/unzip ] ; then
   export GCCSDK_UNZIP="$GCCSDK_INSTALL_ENV/bin/unzip -F "
