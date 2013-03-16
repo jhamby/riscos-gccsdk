@@ -32,11 +32,11 @@ if [ -z "$AB_CPUS" ] || [ "$AB_CPUS"=="X" ] ; then
 		NUMCPUS=1
 	fi
 	export MAKEFLAGS="-j$NUMCPUS"
-	echo "$CPUMESSAGE: set AB_CPUS to use more or fewer (eg in case build breaks)"
+	echo "Autobuilder: $CPUMESSAGE: set AB_CPUS to use more or fewer (eg in case build breaks)"
 	export AB_MAKE="MAKEFLAGS=\"$MAKEFLAGS\" $GCCSDK_INSTALL_ENV/ro-make"
 else
 	export MAKEFLAGS="-j$AB_CPUS"
-	echo "Using $AB_CPUS CPUs"
+	echo "Autobuilder: Using $AB_CPUS CPUs"
 	export AB_MAKE="MAKEFLAGS=\"$MAKEFLAGS\" $GCCSDK_INSTALL_ENV/ro-make"
 fi
 
@@ -338,7 +338,6 @@ ab_makerun() {
     mv $run,feb $run
   else
     # Create standard !Run
-
     echo -e "WIMPSLOT\n" > $run
     echo -e "Set $AA\$Dir <Obey\$Dir>\n" >> $run
     echo "Run <$AA\$Dir>.$(basename $(sed "s#,ff8##" <<< $dest)) >null: 2><Obey\$Dir>.stderr" >> $run
@@ -553,7 +552,7 @@ if true; then
   fi
 
   if [ -n "$AB_ZIPNAME" ] ; then
-    echo "AB_ZIPNAME (set to \"$AB_ZIPNAME\") is no longer used.  Instead, set AB_PVERSION, and use ab_create_app, etc" 1>&2
+    echo "Autobuilder: AB_ZIPNAME (set to \"$AB_ZIPNAME\") is no longer used.  Instead, set AB_PVERSION, and use ab_create_app, etc" 1>&2
     exit 1
   fi
 
@@ -683,7 +682,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
       # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
       if [ -e $AB_PZIP ] ; then
-	echo "Removing old $AB_PZIP"
+	echo "Autobuilder: Removing old $AB_PZIP"
         rm $AB_PZIP
       fi
       cd $package
