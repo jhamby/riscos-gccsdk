@@ -1,2 +1,0 @@
-bunzip2 -c cvs-*.tar.bz2 | tar xf -
-cp -r cvs-*/* .
