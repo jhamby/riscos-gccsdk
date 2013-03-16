@@ -1,22 +1,28 @@
-AB_GIT=git://git.denx.de/u-boot.git
+# Our patches are currently not sufficent to build the git version.  Use a
+# known buildable older version instead.
+##AB_GIT=git://git.denx.de/u-boot.git
+AB_URL=ftp://ftp.denx.de/pub/u-boot/u-boot-2010.09.tar.bz2
+
+##AB_PVERSION=git-$(date +%Y%m%d)
+AB_PVERSION=2010.09
 
 AB_INSTALL=no
 
 AB_LICENCE=Free
 
 ab_make () {
-  export HOSTLDFLAGS=-static
+  if [ "$RO_SHAREDLIBS" != yes ] ; then
+    export HOSTLDFLAGS=-static
+  fi
   $AB_MAKE tools
-  $GCCSDK_INSTALL_ENV/ro-path elf2aif tools/mkimage tools/mkimage,ff8
+  mv tools/mkimage tools/mkimage$AB_EXEEXT
 }
 
 AB_CATEGORY=Command
 
-AB_PVERSION=git-$(date +%Y%m%d)
-
 ab_package() {
   ab_create_command_app MkImage Apps/File
-  ab_add_commands $S/tools/mkimage,ff8
+  ab_add_commands $S/tools/mkimage$AB_EXEEXT
 
   cp -av $S/COPYING $A
 
