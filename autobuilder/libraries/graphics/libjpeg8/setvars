@@ -1,9 +1,6 @@
 AB_INSTALL=yes
-AB_INSTALLTARGET=install
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
-
-AB_MAKE="$AB_MAKE makefile.ansi"
 
 ab_package() {
   # Package programs
