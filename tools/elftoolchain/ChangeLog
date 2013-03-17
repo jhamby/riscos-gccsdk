@@ -1,3 +1,10 @@
+Sun Mar 17 20:42:14 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile (distclean): Add directory existence check.
+	* current-trunk/libelf/GNUmakefile.am (dist_man3_MANS): Add elf_open.3.
+	* current-trunk/as: Add svn:ignore property.
+	* current-trunk/isa: Likewise.
+
 Sun Mar 17 17:46:21 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile: Add.

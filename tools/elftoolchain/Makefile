@@ -46,10 +46,11 @@ clean:
 
 distclean:
 	-rm -rf $(BUILDDIR) $(BUILDDIRTEST) $(INSTALLDIR)
-	-cd $(ETCROOT) && rm -rf `svn status --no-ignore | grep "^[I|\?]" | cut -c 9-`
-	-cd $(TESTROOT) && rm -rf `svn status --no-ignore | grep "^[I|\?]" | cut -c 9-`
+	-test -d $(ETCROOT) && cd $(ETCROOT) && rm -rf `svn status --no-ignore | grep "^[I|\?]" | cut -c 9-`
+	-test -d $(TESTROOT) && cd $(TESTROOT) && rm -rf `svn status --no-ignore | grep "^[I|\?]" | cut -c 9-`
 
 .PHONY: all install etc etc-install test clean distclean
+.NOTPARALLEL:
 
 # --------------------
 

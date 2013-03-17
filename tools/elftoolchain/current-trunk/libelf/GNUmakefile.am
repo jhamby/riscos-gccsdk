@@ -2,7 +2,7 @@ GENSRCS = libelf_fsize.c libelf_msize.c libelf_convert.c
 BUILT_SOURCES = ${GENSRCS}
 
 lib_LTLIBRARIES = libelf.la
-libelf_la_SOURCES = elf.c							\
+libelf_la_SOURCES = elf.c					\
 	elf_begin.c						\
 	elf_cntl.c						\
 	elf_end.c elf_errmsg.c elf_errno.c			\
@@ -88,6 +88,7 @@ dist_man3_MANS = elf.3						\
 	elf_kind.3						\
 	elf_memory.3						\
 	elf_next.3						\
+	elf_open.3						\
 	elf_rawfile.3						\
 	elf_rand.3						\
 	elf_strptr.3						\
