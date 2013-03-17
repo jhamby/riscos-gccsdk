@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_output.h 2548 2012-08-18 01:20:14Z kaiwang27 $
+ * $Id: ld_output.h 2917 2013-02-16 07:16:02Z kaiwang27 $
  */
 
 enum ld_output_element_type {
@@ -59,6 +59,9 @@ struct ld_output_data_buffer {
 	uint64_t odb_type;		/* buffer data type */
 };
 
+struct ld_reloc_entry_head;
+struct ld_symbol;
+
 struct ld_output_section {
 	Elf_Scn *os_scn;		/* output section descriptor */
 	char *os_name;			/* output section name */
@@ -71,14 +74,21 @@ struct ld_output_section {
 	uint64_t os_type;		/* output section type */
 	uint64_t os_entsize;		/* output seciton entry size */
 	uint64_t os_info_val;		/* output section info */
-	char *os_link_name;		/* link to other output section */
-	unsigned os_empty;		/* output section is empty */
-	struct ld_output_section *os_link; /* link to other output section */
+	unsigned char os_empty;		/* output section is empty */
+	unsigned char os_dynrel;	/* contains dynamic relocations */
+	unsigned char os_pltrel;	/* contains PLT relocations */
+	unsigned char os_rel;		/* contains normal relocations */
+	unsigned char os_entsize_set;	/* entsize is set */
+	char *os_link;			/* link to other output section */
+	struct ld_symbol *os_secsym;	/* assoicated STT_SECTION symbol */
 	struct ld_output_section *os_info; /* info refer to other section */
+	struct ld_output_section *os_r;	   /* relocation section */
 	struct ld_script_sections_output *os_ldso;
 					/* output section descriptor */
 	struct ld_output_element *os_pe;    /* parent element */
 	struct ld_output_element_head os_e; /* list of child elements */
+	struct ld_reloc_entry_head *os_reloc; /* list of relocations */
+	uint64_t os_num_reloc;		/* number of relocations */
 	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
 	UT_hash_handle hh;		/* hash handle */
 };
@@ -93,13 +103,21 @@ struct ld_output {
 	int lo_ec;			 /* output object elf class */
 	int lo_endian;			 /* outout object endianess */
 	int lo_osabi;			 /* output object osabi */
+	int lo_soname_nameindex;	 /* string index for DT_SONAME */
 	unsigned lo_phdr_num;		 /* num of phdrs */
 	unsigned lo_phdr_note;		 /* create PT_NOTE */
 	unsigned lo_dso_needed;		 /* num of DSO referenced */
 	unsigned lo_version_index;	 /* current symver index */
+	unsigned lo_verdef_num;		 /* num of verdef entries */
 	unsigned lo_verneed_num;	 /* num of verneed entries */
 	unsigned lo_rel_plt_type;	 /* type of PLT relocation */
 	unsigned lo_rel_dyn_type;	 /* type of dynamic relocation */
+	unsigned lo_fde_num;		 /* num of FDE in .eh_frame */
+	uint64_t lo_shoff;		 /* section header table offset */
+	uint64_t lo_tls_size;		 /* TLS segment size */
+	uint64_t lo_tls_align;		 /* TLS segment align */
+	uint64_t lo_tls_addr;		 /* TLS segment VMA */
+	size_t lo_symtab_shndx;		 /* .symtab section index */
 	UT_array *lo_dso_nameindex;	 /* array of DSO name indices */
 	struct ld_symver_verneed_head *lo_vnlist; /* Verneed list */
 	struct ld_output_element_head lo_oelist; /* output element list */
@@ -115,10 +133,11 @@ struct ld_output {
 	struct ld_output_section *lo_verdef; /* .gnu.version.d section */
 	struct ld_output_section *lo_verneed; /* .gnu.version.r section */
 	struct ld_output_section *lo_versym; /* .gnu.version section */
-	struct ld_output_section *lo_got; /* GOT section */
+	struct ld_output_section *lo_gotplt; /* GOT(for PLT) section */
 	struct ld_output_section *lo_plt; /* PLT section */
 	struct ld_output_section *lo_rel_plt; /* PLT relocation section */
 	struct ld_output_section *lo_rel_dyn;  /* Dynamic relocation section */
+	struct ld_output_section *lo_ehframe_hdr; /* .eh_frame_hdr section */
 	struct ld_output_data_buffer *lo_dynamic_odb; /* .dynamic buffer */
 	struct ld_output_data_buffer *lo_got_odb; /* GOT section data */
 	struct ld_output_data_buffer *lo_plt_odb; /* PLT section data */
@@ -127,11 +146,18 @@ struct ld_output {
 };
 
 struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,
-    struct ld_output_section *);
+    struct ld_output_section *, struct ld_output_section *);
 void	ld_output_create(struct ld *);
 struct ld_output_element *ld_output_create_element(struct ld *,
     struct ld_output_element_head *, enum ld_output_element_type, void *,
     struct ld_output_element *);
+struct ld_output_element *ld_output_create_section_element(struct ld *,
+    struct ld_output_section *, enum ld_output_element_type, void *,
+    struct ld_output_element *);
+void	ld_output_create_elf_sections(struct ld *);
+void	ld_output_create_string_table_section(struct ld *, const char *,
+    struct ld_strtab *, Elf_Scn *);
+void	ld_output_emit_gnu_stack_section(struct ld *);
 void	ld_output_format(struct ld *, char *, char *, char *);
 void	ld_output_init(struct ld *);
 void	ld_output_write(struct ld *);

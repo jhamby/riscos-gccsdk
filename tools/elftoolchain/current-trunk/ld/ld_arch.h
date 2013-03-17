@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_arch.h 2514 2012-06-02 23:22:15Z kaiwang27 $
+ * $Id: ld_arch.h 2913 2013-02-16 07:15:24Z kaiwang27 $
  */
 
 #define	MAX_ARCH_NAME_LEN	64
@@ -38,13 +38,21 @@ struct ld_arch {
 	const char *interp;
 	uint64_t (*get_max_page_size)(struct ld *);
 	uint64_t (*get_common_page_size)(struct ld *);
+	void (*scan_reloc)(struct ld *, struct ld_input_section *,
+	    struct ld_reloc_entry *);
+	void (*adjust_reloc)(struct ld *, struct ld_input_section *,
+	    struct ld_reloc_entry *, struct ld_symbol *, uint8_t *);
 	void (*process_reloc)(struct ld *, struct ld_input_section *,
 	    struct ld_reloc_entry *, struct ld_symbol *, uint8_t *);
-	void (*create_dynrel)(struct ld *);
-	void (*finalize_dynrel)(struct ld *);
-	void (*create_pltgot)(struct ld *);
-	void (*finalize_pltgot)(struct ld *);
-	UT_hash_handle hh;		/* hash handle */
+	void (*finalize_reloc)(struct ld *, struct ld_input_section *,
+	    struct ld_reloc_entry *);
+	void (*finalize_got_and_plt)(struct ld *);
+	int (*is_absolute_reloc)(uint64_t);
+	int (*is_relative_reloc)(uint64_t);
+	unsigned char reloc_is_64bit;
+	unsigned char reloc_is_rela;
+	size_t reloc_entsize;
+	UT_hash_handle hh;
 	struct ld_arch *alias;
 };
 

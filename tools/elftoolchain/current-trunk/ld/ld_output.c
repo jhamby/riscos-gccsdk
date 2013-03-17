@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_dynamic.h"
+#include "ld_ehframe.h"
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_layout.h"
@@ -35,7 +36,7 @@
 #include "ld_strtab.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id: ld_output.c 2573 2012-09-09 10:44:49Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_output.c 2920 2013-02-16 07:16:27Z kaiwang27 $");
 
 static void _alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
     struct ld_input_section *is);
@@ -51,19 +52,21 @@ static void _copy_and_reloc_input_sections(struct ld *ld);
 static Elf_Scn *_create_elf_scn(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os);
 static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
-static void _create_elf_sections(struct ld *ld);
 static void _create_phdr(struct ld *ld);
-static void _create_string_table_section(struct ld *ld, const char *name,
-    struct ld_strtab *st, Elf_Scn *scn);
 static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
-static uint64_t _insert_shdr(struct ld *ld);
+static void _produce_reloc_sections(struct ld *ld, struct ld_output *lo);
+static void _join_and_finalize_dynamic_reloc_sections(struct ld *ld,
+    struct ld_output *lo);
+static void _join_normal_reloc_sections(struct ld *ld, struct ld_output *lo);
 static void _update_section_header(struct ld *ld);
 
 void
 ld_output_init(struct ld *ld)
 {
 	struct ld_output *lo;
+	const char *fn;
+	GElf_Ehdr eh;
 
 	if ((lo = calloc(1, sizeof(*lo))) == NULL)
 		ld_fatal_std(ld, "calloc");
@@ -71,6 +74,46 @@ ld_output_init(struct ld *ld)
 	STAILQ_INIT(&lo->lo_oelist);
 	STAILQ_INIT(&lo->lo_oslist);
 	ld->ld_output = lo;
+
+	if (ld->ld_output_file == NULL)
+		fn = "a.out";
+	else
+		fn = ld->ld_output_file;
+
+	lo->lo_fd = open(fn, O_WRONLY | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
+	if (lo->lo_fd < 0)
+		ld_fatal_std(ld, "can not create output file: open %s", fn);
+
+	if ((lo->lo_elf = elf_begin(lo->lo_fd, ELF_C_WRITE, NULL)) == NULL)
+		ld_fatal(ld, "elf_begin failed: %s", elf_errmsg(-1));
+
+	elf_flagelf(lo->lo_elf, ELF_C_SET, ELF_F_LAYOUT);
+
+	assert(ld->ld_otgt != NULL);
+	lo->lo_ec = elftc_bfd_target_class(ld->ld_otgt);
+	lo->lo_endian = elftc_bfd_target_byteorder(ld->ld_otgt);
+
+	if (gelf_newehdr(lo->lo_elf, lo->lo_ec) == NULL)
+		ld_fatal(ld, "gelf_newehdr failed: %s", elf_errmsg(-1));
+
+	if (gelf_getehdr(lo->lo_elf, &eh) == NULL)
+		ld_fatal(ld, "gelf_getehdr failed: %s", elf_errmsg(-1));
+
+	eh.e_ident[EI_CLASS] = lo->lo_ec;
+	eh.e_ident[EI_DATA] = lo->lo_endian;
+	eh.e_flags = 0;		/* TODO */
+	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
+	if (ld->ld_dso || ld->ld_pie)
+		eh.e_type = ET_DYN;
+	else if (ld->ld_reloc)
+		eh.e_type = ET_REL;
+	else
+		eh.e_type = ET_EXEC;
+	eh.e_version = EV_CURRENT;
+
+	/* Save updated ELF header. */
+	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
+		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
 }
 
 void
@@ -113,9 +156,32 @@ ld_output_create_element(struct ld *ld, struct ld_output_element_head *head,
 	return (oe);
 }
 
+struct ld_output_element *
+ld_output_create_section_element(struct ld *ld, struct ld_output_section *os,
+    enum ld_output_element_type type, void *entry,
+    struct ld_output_element *after)
+{
+	struct ld_output_element *oe;
+
+	oe = ld_output_create_element(ld, &os->os_e, type, entry, after);
+
+	switch (type) {
+	case OET_DATA:
+	case OET_DATA_BUFFER:
+	case OET_SYMTAB:
+	case OET_STRTAB:
+		os->os_empty = 0;
+		break;
+	default:
+		break;
+	}
+
+	return (oe);
+}
+
 struct ld_output_section *
 ld_output_alloc_section(struct ld *ld, const char *name,
-    struct ld_output_section *after)
+    struct ld_output_section *after, struct ld_output_section *ros)
 {
 	struct ld_output *lo;
 	struct ld_output_section *os;
@@ -144,6 +210,9 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 		os->os_pe = ld_output_create_element(ld, &lo->lo_oelist,
 		    OET_OUTPUT_SECTION, os, after->os_pe);
 	}
+
+	if (ros != NULL)
+		ros->os_r = os;
 
 	return (os);
 }
@@ -174,7 +243,6 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 	struct ld_input_section_head *islist;
 	Elf_Data *d;
 	Elf_Scn *scn;
-	GElf_Shdr sh;
 
 	lo = ld->ld_output;
 	assert(lo->lo_elf != NULL);
@@ -198,8 +266,19 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 			STAILQ_FOREACH(is, islist, is_next) {
 				if (scn == NULL)
 					scn = _create_elf_scn(ld, lo, os);
-				if (os->os_type != SHT_NOBITS)
+				if (os->os_type != SHT_NOBITS &&
+				    !os->os_dynrel)
 					_alloc_input_section_data(ld, scn, is);
+			}
+			if ((ld->ld_reloc || ld->ld_emit_reloc) &&
+			    os->os_r != NULL) {
+				/* Create Scn for relocation section. */
+				if (os->os_r->os_scn == NULL) {
+					os->os_r->os_scn = _create_elf_scn(ld,
+					    lo, os->os_r);
+					_add_to_shstrtab(ld,
+					    os->os_r->os_name);
+				}
 			}
 			break;
 		case OET_KEYWORD:
@@ -238,22 +317,7 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 		d->d_buf = NULL;
 	}
 
-	if (gelf_getshdr(scn, &sh) == NULL)
-		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
-
-	sh.sh_flags = os->os_flags;
-	sh.sh_addr = os->os_addr;
-	sh.sh_addralign = os->os_align;
-	sh.sh_offset = os->os_off;
-	sh.sh_size = os->os_size;
-	sh.sh_type = os->os_type;
-	sh.sh_entsize = os->os_entsize;
-	sh.sh_info = os->os_info_val;
-
 	_add_to_shstrtab(ld, os->os_name);
-
-	if (!gelf_update_shdr(scn, &sh))
-		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
 }
 
 static void
@@ -286,6 +350,23 @@ _alloc_section_data_from_buffer(struct ld *ld, Elf_Scn *scn,
 	d->d_size = odb->odb_size;
 	d->d_version = EV_CURRENT;
 	d->d_buf = odb->odb_buf;
+}
+
+static void
+_alloc_section_data_from_reloc_buffer(struct ld *ld, Elf_Scn *scn,
+    void *buf, size_t sz)
+{
+	Elf_Data *d;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = ld->ld_arch->reloc_is_64bit ? 8 : 4;
+	d->d_off = 0;		/* has to be the only data descriptor */
+	d->d_type = ld->ld_arch->reloc_is_rela ? ELF_T_RELA : ELF_T_REL;
+	d->d_size = sz;
+	d->d_version = EV_CURRENT;
+	d->d_buf = buf;
 }
 
 static void
@@ -340,23 +421,139 @@ _copy_and_reloc_input_sections(struct ld *ld)
 		ld_input_load(ld, li);
 		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
 			is = &li->li_is[i];
-			if (is->is_data == NULL)
+
+			if (is->is_discard || !is->is_need_reloc)
 				continue;
+
 			d = is->is_data;
+
 			d->d_align = is->is_align;
 			d->d_off = is->is_reloff;
 			d->d_type = ELF_T_BYTE;
 			d->d_size = is->is_size;
 			d->d_version = EV_CURRENT;
-			d->d_buf = ld_input_get_section_rawdata(ld, is);
-			ld_reloc_process_input_section(ld, is, d->d_buf);
+
+			/*
+			 * Take different actions depending on different types
+			 * of input sections:
+			 *
+			 * For internal input sections, assign the internal
+			 * buffer directly to the data descriptor.
+			 * For relocation sections, they should be ignored
+			 * since they are handled elsewhere.
+			 * For other input sections, load the raw data from
+			 * input object and preform relocation.
+			 */
+			if (is->is_ibuf != NULL) {
+				d->d_buf = is->is_ibuf;
+				/* .eh_frame section needs relocation */
+				if (strcmp(is->is_name, ".eh_frame") == 0)
+					ld_reloc_process_input_section(ld, is,
+					    d->d_buf);
+			} else if (is->is_reloc == NULL) {
+				d->d_buf = ld_input_get_section_rawdata(ld,
+				    is);
+				ld_reloc_process_input_section(ld, is,
+				    d->d_buf);
+			}
 		}
 		ld_input_unload(ld, li);
 	}
 }
 
 static void
-_create_elf_sections(struct ld *ld)
+_produce_reloc_sections(struct ld *ld, struct ld_output *lo)
+{
+	struct ld_output_section *os;
+	void *buf;
+	size_t sz;
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_reloc != NULL) {
+			/* Serialize relocation records. */
+			buf = ld_reloc_serialize(ld, os, &sz);
+			_alloc_section_data_from_reloc_buffer(ld, os->os_scn,
+			    buf, sz);
+
+			/*
+			 * Link dynamic relocation sections to .dynsym
+			 * section.
+			 */
+			if (os->os_dynrel) {
+				if ((os->os_link = strdup(".dynsym")) == NULL)
+					ld_fatal_std(ld, "strdup");
+			}
+		}
+	}
+}
+
+static void
+_join_and_finalize_dynamic_reloc_sections(struct ld *ld, struct ld_output *lo)
+{
+	struct ld_output_section *os;
+	struct ld_output_element *oe;
+	struct ld_input_section *is;
+	struct ld_input_section_head *islist;
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+
+		if (!os->os_dynrel)
+			continue;
+
+		STAILQ_FOREACH(oe, &os->os_e, oe_next) {
+			switch (oe->oe_type) {
+			case OET_INPUT_SECTION_LIST:
+				islist = oe->oe_islist;
+				STAILQ_FOREACH(is, islist, is_next)
+					ld_reloc_join(ld, os, is);
+				break;
+			default:
+				break;
+			}
+		}
+
+		/* Sort dynamic relocations for the runtime linker. */
+		if (os->os_reloc != NULL && os->os_dynrel)
+			ld_reloc_sort(ld, os);
+
+		/* Finalize relocations. */
+		ld_reloc_finalize_dynamic(ld, lo, os);
+	}
+}
+
+static void
+_join_normal_reloc_sections(struct ld *ld, struct ld_output *lo)
+{
+	struct ld_output_section *os;
+	struct ld_output_element *oe;
+	struct ld_input_section *is;
+	struct ld_input_section_head *islist;
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+
+		if (os->os_r == NULL)
+			continue;
+
+		STAILQ_FOREACH(oe, &os->os_e, oe_next) {
+			switch (oe->oe_type) {
+			case OET_INPUT_SECTION_LIST:
+				islist = oe->oe_islist;
+				STAILQ_FOREACH(is, islist, is_next) {
+					if (is->is_ris == NULL)
+						continue;
+					ld_reloc_join(ld, os->os_r,
+					    is->is_ris);
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+}
+
+void
+ld_output_create_elf_sections(struct ld *ld)
 {
 	struct ld_output *lo;
 	struct ld_output_element *oe;
@@ -375,6 +572,37 @@ _create_elf_sections(struct ld *ld)
 	}
 }
 
+void
+ld_output_emit_gnu_stack_section(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+
+	ls = &ld->ld_state;
+	lo = ld->ld_output;
+
+	os = ld_output_alloc_section(ld, ".note.GNU-stack", NULL, NULL);
+	os->os_empty = 0;
+	os->os_addr = 0;
+	os->os_type = SHT_PROGBITS;
+	os->os_align = 1;
+	os->os_entsize = 0;
+	os->os_off = ls->ls_offset;
+	os->os_size = 0;
+	if (ld->ld_stack_exec)
+		os->os_flags = SHF_EXECINSTR;
+
+	(void) _create_elf_scn(ld, lo, os);
+
+	_add_to_shstrtab(ld, ".note.GNU-stack");
+
+	/*
+	 * .note.GNU-stack is an empty section so we don't allocate any
+	 * Elf_Data descriptors.
+	 */
+}
+
 static uint64_t
 _find_entry_point(struct ld *ld)
 {
@@ -389,7 +617,7 @@ _find_entry_point(struct ld *ld)
 		if (ld_symbols_get_value(ld, ld->ld_entry, &entry) < 0)
 			ld_fatal(ld, "symbol %s is undefined", ld->ld_entry);
 		return (entry);
-	} 
+	}
 
 	if (ld->ld_scp->lds_entry_point != NULL) {
 		if (ld_symbols_get_value(ld, ld->ld_scp->lds_entry_point,
@@ -419,8 +647,10 @@ _create_phdr(struct ld *ld)
 	Elf64_Phdr *p64;
 	void *phdrs;
 	uint64_t addr, off, align, flags, filesz, memsz, phdr_addr;
+	uint64_t tls_addr, tls_off, tls_align, tls_flags;
+	uint64_t tls_filesz, tls_memsz;
 	unsigned w;
-	int i, new, first;
+	int i, new, first, tls;
 
 	/* TODO: support segments created by linker script command PHDR. */
 
@@ -469,7 +699,7 @@ _create_phdr(struct ld *ld)
 	addr = os->os_addr - os->os_off;
 
 	/* Create PT_PHDR segment for dynamically linked output object */
-	if (lo->lo_dso_needed > 0) {
+	if (lo->lo_dso_needed > 0 && !ld->ld_dso) {
 		i++;
 		off = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
 		phdr_addr = addr + off;
@@ -490,17 +720,19 @@ _create_phdr(struct ld *ld)
 	}
 
 	/*
-	 * Create PT_LOAD segments. 
+	 * Create PT_LOAD segments.
 	 */
 
 	align = ld->ld_arch->get_max_page_size(ld);
 	new = 1;
 	w = 0;
-	filesz = 0;
-	memsz = 0;
+	off = filesz = memsz = 0;
 	flags = PF_R;
-	off = 0;
 	first = 1;
+
+	tls = 0;
+	tls_off = tls_addr = tls_filesz = tls_memsz = tls_align = 0;
+	tls_flags = PF_R;	/* TLS segment is a read-only image */
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_empty)
@@ -510,6 +742,24 @@ _create_phdr(struct ld *ld)
 			new = 1;
 			continue;
 		}
+
+		if ((os->os_flags & SHF_TLS) != 0) {
+			if (tls < 0)
+				ld_warn(ld, "can not have multiple TLS "
+				    "segments");
+			else {
+				if (tls == 0) {
+					tls = 1;
+					tls_addr = os->os_addr;
+					tls_off = os->os_off;
+				}
+
+				if (os->os_align > tls_align)
+					tls_align = os->os_align;
+			}
+
+		} else if (tls > 0)
+			tls = -1;
 
 		if ((os->os_flags & SHF_WRITE) != w || new) {
 			new = 0;
@@ -534,8 +784,14 @@ _create_phdr(struct ld *ld)
 		}
 
 		memsz = os->os_addr + os->os_size - addr;
-		if (os->os_type != SHT_NOBITS)
+		if (tls > 0)
+			tls_memsz = memsz;
+
+		if (os->os_type != SHT_NOBITS) {
 			filesz = memsz;
+			if (tls > 0)
+				tls_filesz = tls_memsz;
+		}
 
 		if (os->os_flags & SHF_WRITE)
 			flags |= PF_W;
@@ -573,6 +829,30 @@ _create_phdr(struct ld *ld)
 	}
 
 	/*
+	 * Create PT_TLS segment.
+	 */
+
+	if (tls != 0) {
+		i++;
+		lo->lo_tls_size = tls_memsz;
+		lo->lo_tls_align = tls_align;
+		lo->lo_tls_addr = tls_addr;
+		_WRITE_PHDR(PT_TLS, tls_off, tls_addr, tls_filesz, tls_memsz,
+		    tls_flags, tls_align);
+	}
+
+	/*
+	 * Create PT_GNU_EH_FRAME segment.
+	 */
+	if (ld->ld_ehframe_hdr) {
+		i++;
+		os = lo->lo_ehframe_hdr;
+		assert(os != NULL);
+		_WRITE_PHDR(PT_GNU_EH_FRAME, os->os_off, os->os_addr,
+		    os->os_size, os->os_size, PF_R, 4);
+	}
+
+	/*
 	 * Create PT_GNU_STACK segment.
 	 */
 
@@ -594,62 +874,20 @@ void
 ld_output_create(struct ld *ld)
 {
 	struct ld_output *lo;
-	const char *fn;
 	GElf_Ehdr eh;
-
-	if (ld->ld_output_file == NULL)
-		fn = "a.out";
-	else
-		fn = ld->ld_output_file;
 
 	lo = ld->ld_output;
 
-	lo->lo_fd = open(fn, O_WRONLY | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
-	if (lo->lo_fd < 0)
-		ld_fatal_std(ld, "can not create output file: open %s", fn);
-
-	if ((lo->lo_elf = elf_begin(lo->lo_fd, ELF_C_WRITE, NULL)) == NULL)
-		ld_fatal(ld, "elf_begin failed: %s", elf_errmsg(-1));
-
-	elf_flagelf(lo->lo_elf, ELF_C_SET, ELF_F_LAYOUT);
-
-	assert(ld->ld_otgt != NULL);
-	lo->lo_ec = elftc_bfd_target_class(ld->ld_otgt);
-	lo->lo_endian = elftc_bfd_target_byteorder(ld->ld_otgt);
-
-	if (gelf_newehdr(lo->lo_elf, lo->lo_ec) == NULL)
-		ld_fatal(ld, "gelf_newehdr failed: %s", elf_errmsg(-1));
-
 	if (gelf_getehdr(lo->lo_elf, &eh) == NULL)
 		ld_fatal(ld, "gelf_getehdr failed: %s", elf_errmsg(-1));
-
-	eh.e_ident[EI_CLASS] = lo->lo_ec;
-	eh.e_ident[EI_DATA] = lo->lo_endian;
-	eh.e_flags = 0;		/* TODO */
-	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
-	eh.e_type = ET_EXEC;	/* TODO */
-	eh.e_version = EV_CURRENT;
-
-	/* Create program headers. */
-	_create_phdr(ld);
 
 	/* Set program header table offset. */
 	eh.e_phoff = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
 	if (eh.e_phoff == 0)
 		ld_fatal(ld, "gelf_fsize failed: %s", elf_errmsg(-1));
 
-	/* Create output ELF sections. */
-	_create_elf_sections(ld);
-
-	/* Calculate symbol values and indices of the output object. */
-	ld_symbols_update(ld);
-
-	/* Print out link map if requested. */
-	if (ld->ld_print_linkmap)
-		ld_layout_print_linkmap(ld);
-
-	/* Insert section headers table and point e_shoff to it. */
-	eh.e_shoff = _insert_shdr(ld);
+	/* Set section headers table offset. */
+	eh.e_shoff = lo->lo_shoff;
 
 	/* Set executable entry point. */
 	eh.e_entry = _find_entry_point(ld);
@@ -658,11 +896,17 @@ ld_output_create(struct ld *ld)
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
 
+	/* Allocate space for internal sections. */
+	ld_input_alloc_internal_section_buffers(ld);
+
+	/* Finalize PLT and GOT sections. */
+	ld->ld_arch->finalize_got_and_plt(ld);
+
+	/* Join and sort dynamic relocation sections. */
+	_join_and_finalize_dynamic_reloc_sections(ld, lo);
+
 	/* Finalize sections for dynamically linked output object. */
 	ld_dynamic_finalize(ld);
-
-	/* Copy and relocate input section data to output section. */
-	_copy_and_reloc_input_sections(ld);
 
 	/* Finalize dynamic symbol section. */
 	if (lo->lo_dynsym != NULL) {
@@ -671,52 +915,36 @@ ld_output_create(struct ld *ld)
 		    lo->lo_dynsym->os_scn, ld->ld_dynsym);
 	}
 
-	/* Generate section name string table section (.shstrtab). */
-	_create_string_table_section(ld, ".shstrtab", ld->ld_shstrtab, NULL);
-
 	/* Generate symbol table. */
 	_create_symbol_table(ld);
 
+	/* Copy and relocate input section data to output section. */
+	_copy_and_reloc_input_sections(ld);
+
+	/* Finalize .eh_frame_hdr section. */
+	if (ld->ld_ehframe_hdr)
+		ld_ehframe_finalize_hdr(ld);
+
 	/*
-	 * Update "sh_name", "sh_link" and "sh_info" fields of each section
-	 * headers, wherever applicable.
+	 * Join normal relocation sections if the linker is creating a
+	 * relocatable object or if option -emit-relocs is specified.
 	 */
+	if (ld->ld_reloc || ld->ld_emit_reloc)
+		_join_normal_reloc_sections(ld, lo);
+
+	/* Produce relocation entries. */
+	_produce_reloc_sections(ld, lo);
+
+	/* Update section headers for the output sections. */
 	_update_section_header(ld);
+
+	/* Create program headers. */
+	if (!ld->ld_reloc)
+		_create_phdr(ld);
 
 	/* Finally write out the output ELF object. */
 	if (elf_update(lo->lo_elf, ELF_C_WRITE) < 0)
 		ld_fatal(ld, "elf_update failed: %s", elf_errmsg(-1));
-}
-
-static uint64_t
-_insert_shdr(struct ld *ld)
-{
-	struct ld_state *ls;
-	struct ld_output *lo;
-	struct ld_output_section *os;
-	uint64_t shoff;
-	int n;
-
-	ls = &ld->ld_state;
-	lo = ld->ld_output;
-
-	if (lo->lo_ec == ELFCLASS32)
-		shoff = roundup(ls->ls_offset, 4);
-	else
-		shoff = roundup(ls->ls_offset, 8);
-
-	ls->ls_offset = shoff;
-
-	n = 0;
-	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
-		if (os->os_scn != NULL)
-			n++;
-	}
-
-	/* TODO: n + 2 if ld(1) will not create symbol table. */
-	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 4, EV_CURRENT);
-
-	return (shoff);
 }
 
 static void
@@ -740,7 +968,7 @@ _update_section_header(struct ld *ld)
 	struct ld_output *lo;
 	struct ld_output_section *os, *_os;
 	GElf_Shdr sh;
-	
+
 	lo = ld->ld_output;
 	st = ld->ld_shstrtab;
 	assert(st != NULL && st->st_buf != NULL);
@@ -753,25 +981,33 @@ _update_section_header(struct ld *ld)
 			ld_fatal(ld, "gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 
-		/*
-		 * Set "sh_name" fields of each section headers to point
-		 * to the string table.
-		 */
 		sh.sh_name = ld_strtab_lookup(st, os->os_name);
+		sh.sh_flags = os->os_flags;
+		sh.sh_addr = os->os_addr;
+		sh.sh_addralign = os->os_align;
+		sh.sh_offset = os->os_off;
+		sh.sh_size = os->os_size;
+		sh.sh_type = os->os_type;
+		sh.sh_entsize = os->os_entsize;
 
 		/* Update "sh_link" field. */
-		if (os->os_link_name != NULL) {
-			HASH_FIND_STR(lo->lo_ostbl, os->os_link_name, _os);
-			if (_os == NULL)
-				ld_fatal(ld, "Internal: can not find link"
-				    " section %s", os->os_link_name);
-			sh.sh_link = elf_ndxscn(_os->os_scn);
-		} else if (os->os_link != NULL)
-			sh.sh_link = elf_ndxscn(os->os_link->os_scn);
+		if (os->os_link != NULL) {
+			if (!strcmp(os->os_link, ".symtab"))
+				sh.sh_link = lo->lo_symtab_shndx;
+			else {
+				HASH_FIND_STR(lo->lo_ostbl, os->os_link, _os);
+				if (_os == NULL)
+					ld_fatal(ld, "Internal: can not find"
+					    " link section %s", os->os_link);
+				sh.sh_link = elf_ndxscn(_os->os_scn);
+			}
+		}
 
 		/* Update "sh_info" field. */
 		if (os->os_info != NULL)
 			sh.sh_info = elf_ndxscn(os->os_info->os_scn);
+		else
+			sh.sh_info = os->os_info_val;
 
 #if 0
 		printf("name=%s, shname=%#jx, offset=%#jx, size=%#jx, type=%#jx\n",
@@ -806,9 +1042,9 @@ _create_symbol_table(struct ld *ld)
 	/*
 	 * Create .symtab section.
 	 */
-
 	scn_symtab = _create_elf_scn(ld, lo, NULL);
 	scn_strtab = _create_elf_scn(ld, lo, NULL);
+	lo->lo_symtab_shndx = elf_ndxscn(scn_symtab);
 	strndx = elf_ndxscn(scn_strtab);
 
 	if (gelf_getshdr(scn_symtab, &sh) == NULL)
@@ -844,12 +1080,12 @@ _create_symbol_table(struct ld *ld)
 	/*
 	 * Create .strtab section.
 	 */
-
-	_create_string_table_section(ld, ".strtab", ld->ld_strtab, scn_strtab);
+	ld_output_create_string_table_section(ld, ".strtab", ld->ld_strtab,
+	    scn_strtab);
 }
 
-static void
-_create_string_table_section(struct ld *ld, const char *name,
+void
+ld_output_create_string_table_section(struct ld *ld, const char *name,
     struct ld_strtab *st, Elf_Scn *scn)
 {
 	struct ld_state *ls;

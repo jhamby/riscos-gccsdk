@@ -202,12 +202,14 @@ AS_IF([test x"$my_cv_check__byte_order" != "xyes" -a x"$my_cv_check___byte_order
 AC_CONFIG_FILES([GNUmakefile
                  addr2line/GNUmakefile
                  ar/GNUmakefile
+                 as/GNUmakefile
                  brandelf/GNUmakefile
                  common/GNUmakefile
                  cxxfilt/GNUmakefile
                  elfcopy/GNUmakefile
                  elfdump/GNUmakefile
                  findtextrel/GNUmakefile
+                 isa/GNUmakefile
                  ld/GNUmakefile
                  libdwarf/GNUmakefile
                  libelf/GNUmakefile

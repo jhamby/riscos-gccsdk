@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld.h 2520 2012-06-17 00:21:36Z kaiwang27 $
+ * $Id: ld.h 2913 2013-02-16 07:15:24Z kaiwang27 $
  */
 
 #include "_elftc.h"
@@ -50,17 +50,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "dwarf.h"
 #define oom() ld_fatal(ld, "out of memory")
 #include "utarray.h"
 #define uthash_fatal(msg) ld_fatal(ld, msg)
 #include "uthash.h"
 
 struct ld_file;
+struct ld_input_section_head;
 struct ld_path;
 struct ld_symbol;
 struct ld_symbol_head;
 struct ld_output_data_buffer;
 struct ld_wildcard_match;
+struct ld_ehframe_cie_head;
+struct ld_ehframe_fde_head;
 
 #define	LD_MAX_NESTED_GROUP	16
 
@@ -75,12 +79,18 @@ struct ld_state {
 					/* extracted from archive group */
 	unsigned ls_search_dir;		/* search library directories */
 	uint64_t ls_loc_counter;	/* location counter */
-	uint64_t ls_offset;		/* current output section file offset */
+	uint64_t ls_offset;		/* cur. output section file offset */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
 	unsigned ls_arch_conflict;	/* input arch conflict with output */
 	unsigned ls_first_elf_object;	/* first ELF object to process */
 	unsigned ls_rerun;		/* ld(1) restarted */
 	unsigned ls_archive_mb_header;	/* extracted list header printed */
+	unsigned ls_first_output_sec;	/* flag indicates 1st output section */
+	unsigned ls_ignore_next_plt;	/* ignore next PLT relocation */
+	unsigned ls_version_local;	/* version entry is local */
+	uint64_t ls_relative_reloc;	/* number of *_RELATIVE relocations */
+	struct ld_input_section_head *ls_gc;
+					/* garbage collection search list */
 };
 
 struct ld {
@@ -98,14 +108,13 @@ struct ld {
 	char *ld_entry;			/* entry point set by -e */
 	char *ld_scp_entry;		/* entry point set by linker script */
 	char *ld_interp;		/* dynamic linker */
+	char *ld_soname;		/* DT_SONAME */
 	struct ld_script *ld_scp;	/* linker script */
 	struct ld_state ld_state;	/* linker state */
 	struct ld_strtab *ld_shstrtab;	/* section name table */
 	struct ld_symbol_head *ld_ext_symbols; /* -u/EXTERN symbols */
 	struct ld_symbol_head *ld_var_symbols; /* ldscript var symbols */
-	struct ld_symbol *ld_symtab_def;/* hash for defined symbols */
-	struct ld_symbol *ld_symtab_undef; /* hash for undefined symbols */
-	struct ld_symbol *ld_symtab_common; /* hash for common symbols */
+	struct ld_symbol *ld_sym;	/* internal symbol table */
 	struct ld_symbol *ld_symtab_import; /* hash for import symbols */
 	struct ld_symbol *ld_symtab_export; /* hash for export symbols */
 	struct ld_symbol_defver *ld_defver; /* default version table */
@@ -116,15 +125,25 @@ struct ld {
 	struct ld_symbol_head *ld_dyn_symbols; /* dynamic symbol list */
 	struct ld_wildcard_match *ld_wm; /* wildcard hash table */
 	struct ld_input_section *ld_dynbss; /* .dynbss section */
-	unsigned ld_num_import_func;	/* number of import functions */
-	unsigned ld_num_copy_reloc;	/* number of copy relocation */
-	unsigned ld_common_alloc;	/* always alloc space for common sym */
-	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
-	unsigned ld_emit_reloc;		/* emit relocations */
-	unsigned ld_gen_gnustack;	/* generate PT_GNUSTACK */
-	unsigned ld_print_linkmap;	/* print link map */
-	unsigned ld_stack_exec;		/* stack executable */
-	unsigned ld_stack_exec_set;	/* stack executable override */
+	struct ld_input_section *ld_got;    /* .got section */
+	struct ld_ehframe_cie_head *ld_cie; /* ehframe CIE list */
+	struct ld_ehframe_fde_head *ld_fde; /* ehframe FDE list */
+	unsigned char ld_common_alloc;	/* always alloc space for common sym */
+	unsigned char ld_common_no_alloc; /* never alloc space for common sym */
+	unsigned char ld_emit_reloc;	/* emit relocations */
+	unsigned char ld_gen_gnustack;	/* generate PT_GNUSTACK */
+	unsigned char ld_print_linkmap;	/* print link map */
+	unsigned char ld_stack_exec;	/* stack executable */
+	unsigned char ld_stack_exec_set; /* stack executable override */
+	unsigned char ld_exec;		/* output normal executable */
+	unsigned char ld_pie;		/* position-independent executable */
+	unsigned char ld_dso;		/* output shared library */
+	unsigned char ld_reloc;		/* output relocatable object */
+	unsigned char ld_dynamic_link;	/* perform dynamic linking */
+	unsigned char ld_print_version; /* linker version printed */
+	unsigned char ld_gc;		/* perform garbage collection */
+	unsigned char ld_gc_print;	/* print removed sections */
+	unsigned char ld_ehframe_hdr;	/* create .eh_frame_hdr section */
 	STAILQ_HEAD(ld_input_head, ld_input) ld_lilist; /* input object list */
 	TAILQ_HEAD(ld_file_head, ld_file) ld_lflist; /* input file list */
 };
@@ -133,3 +152,4 @@ void	ld_err(struct ld *, const char *, ...);
 void	ld_fatal(struct ld *, const char *, ...);
 void	ld_fatal_std(struct ld *, const char *, ...);
 void	ld_warn(struct ld *, const char *, ...);
+void	ld_info(struct ld *, const char *, ...);

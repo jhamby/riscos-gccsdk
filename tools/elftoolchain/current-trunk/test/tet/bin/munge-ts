@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: munge-ts 2054 2011-10-26 12:12:06Z jkoshy $
+# $Id: munge-ts 2834 2012-12-30 16:34:47Z jkoshy $
 #
 # This shell script generates scaffolding for a TET C API test case
 # given a list of objects that use the TET C API.

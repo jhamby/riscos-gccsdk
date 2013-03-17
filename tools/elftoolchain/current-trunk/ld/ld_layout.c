@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +27,19 @@
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_dynamic.h"
+#include "ld_ehframe.h"
 #include "ld_exp.h"
 #include "ld_file.h"
 #include "ld_script.h"
 #include "ld_input.h"
 #include "ld_output.h"
+#include "ld_reloc.h"
 #include "ld_layout.h"
 #include "ld_options.h"
 #include "ld_symbols.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_layout.c 2550 2012-08-18 22:21:34Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_layout.c 2920 2013-02-16 07:16:27Z kaiwang27 $");
 
 struct ld_wildcard_match {
 	char *wm_name;
@@ -56,9 +58,11 @@ struct ld_wildcard_match {
 static void _calc_offset(struct ld *ld);
 static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
+static void _calc_reloc_section_offset(struct ld *ld, struct ld_output *lo);
+static void _calc_shdr_offset(struct ld *ld);
 static int _check_filename_constraint(struct ld_input *li,
     struct ld_script_sections_output_input *ldoi);
-static void _insert_input_to_output(struct ld_output *lo,
+static void _insert_input_to_output(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os, struct ld_input_section *is,
     struct ld_input_section_head *islist);
 static void _layout_input_sections(struct ld *ld, struct ld_input *li);
@@ -122,11 +126,24 @@ ld_layout_sections(struct ld *ld)
 	if (!sections_cmd_exist)
 		_layout_sections(ld, NULL);
 
+	/* Scan and optimize .eh_frame section. */
+	ld_ehframe_scan(ld);
+
 	/* Initialise sections for dyanmically linked output object. */
 	ld_dynamic_create(ld);
 
+	/* Create ELF sections. */
+	ld_output_create_elf_sections(ld);
+
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
+
+	/* Calculate symbol values and indices of the output object. */
+	ld_symbols_update(ld);
+
+	/* Print out link map if requested. */
+	if (ld->ld_print_linkmap)
+		ld_layout_print_linkmap(ld);
 }
 
 void
@@ -316,7 +333,7 @@ ld_layout_calc_header_size(struct ld *ld)
 	struct ld_output_section *os;
 	off_t header_size;
 	unsigned ec, w, num_phdrs;
-	int new;
+	int new, tls;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
@@ -330,6 +347,12 @@ ld_layout_calc_header_size(struct ld *ld)
 	else
 		header_size += sizeof(Elf64_Ehdr);
 
+	/* Do not generate segments for relocatable output. */
+	if (ld->ld_reloc) {
+		lo->lo_phdr_num = 0;
+		return (header_size);
+	}
+
 	if (!STAILQ_EMPTY(&ld->ld_scp->lds_p)) {
 		num_phdrs = 0;
 		STAILQ_FOREACH(ldsp, &ld->ld_scp->lds_p, ldsp_next)
@@ -340,6 +363,7 @@ ld_layout_calc_header_size(struct ld *ld)
 		else {
 			num_phdrs = 0;
 			new = 1;
+			tls = 0;
 			w = 0;
 			STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 				if (os->os_empty)
@@ -355,16 +379,30 @@ ld_layout_calc_header_size(struct ld *ld)
 					num_phdrs++;
 					w = os->os_flags & SHF_WRITE;
 				}
+
+				if ((os->os_flags & SHF_TLS) != 0 && !tls) {
+					tls = 1;
+					num_phdrs++;
+				}
 			}
 
-			/* PT_PHDR and PT_DYNAMIC for dynamic linking */
-			if (lo->lo_dso_needed > 0)
-				num_phdrs += 2;
+			/*
+			 * PT_PHDR and PT_DYNAMIC for dynamic linking. But
+			 * do not create PT_PHDR for shared libraries.
+			 */
+			if (lo->lo_dso_needed > 0) {
+				num_phdrs++;
+				if (!ld->ld_dso)
+					num_phdrs++;
+			}
 
 			if (lo->lo_interp != NULL)
 				num_phdrs++;
 
 			if (lo->lo_phdr_note)
+				num_phdrs++;
+
+			if (ld->ld_ehframe_hdr)
 				num_phdrs++;
 
 			if (ld->ld_gen_gnustack)
@@ -422,12 +460,6 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	/* Lay out each input object. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 
-		/*
-		 * Build the pseudo COMMON section which holds all the
-		 * common symbols for this input object.
-		 */
-		ld_input_init_common_section(ld, li);
-
 		/* Only lay out relocatable input objects. */
 		if (li->li_type != LIT_RELOCATABLE)
 			continue;
@@ -452,22 +484,22 @@ _prepare_output_section(struct ld *ld, struct ld_script_sections_output *ldso)
 	if (os != NULL)
 		return;
 
-	os = ld_output_alloc_section(ld, ldso->ldso_name, NULL);
+	os = ld_output_alloc_section(ld, ldso->ldso_name, NULL, NULL);
 	os->os_ldso = ldso;
 	_set_output_section_loadable_flag(os);
 
 	STAILQ_FOREACH(ldc, &ldso->ldso_c, ldc_next) {
 		switch (ldc->ldc_type) {
 		case LSC_ASSERT:
-			oe = ld_output_create_element(ld, &os->os_e,
+			oe = ld_output_create_section_element(ld, os,
 			    OET_ASSERT, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_ASSIGN:
-			oe = ld_output_create_element(ld, &os->os_e,
+			oe = ld_output_create_section_element(ld, os,
 			    OET_ASSIGN, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_SECTIONS_OUTPUT_DATA:
-			oe = ld_output_create_element(ld, &os->os_e,
+			oe = ld_output_create_section_element(ld, os,
 			    OET_DATA, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_SECTIONS_OUTPUT_INPUT:
@@ -475,12 +507,12 @@ _prepare_output_section(struct ld *ld, struct ld_script_sections_output *ldso)
 			if (islist == NULL)
 				ld_fatal_std(ld, "calloc");
 			STAILQ_INIT(islist);
-			oe = ld_output_create_element(ld, &os->os_e,
+			oe = ld_output_create_section_element(ld, os,
 			    OET_INPUT_SECTION_LIST, ldc->ldc_cmd, NULL);
 			oe->oe_islist = islist;
 			break;
 		case LSC_SECTIONS_OUTPUT_KEYWORD:
-			ld_output_create_element(ld, &os->os_e,
+			ld_output_create_section_element(ld, os,
 			    OET_KEYWORD, ldc->ldc_cmd, NULL);
 			break;
 		default:
@@ -636,7 +668,7 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 	struct ld_output_section *os;
 	struct ld_output_element *oe;
 	struct ld_wildcard_match *wm;
-	struct ld_script_sections_output_input *ldoi;	
+	struct ld_script_sections_output_input *ldoi;
 	int i;
 
 	lo = ld->ld_output;
@@ -684,7 +716,7 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 			 * this section to the input section list of the
 			 * output section element.
 			 */
-			_insert_input_to_output(lo, wm->wm_os, is,
+			_insert_input_to_output(ld, lo, wm->wm_os, is,
 			    wm->wm_islist);
 			break;
 
@@ -741,7 +773,7 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 				}
 
 				/* Match! Insert to the input section list. */
-				_insert_input_to_output(lo, os, is,
+				_insert_input_to_output(ld, lo, os, is,
 				    oe->oe_islist);
 				goto next_input_section;
 			}
@@ -785,15 +817,29 @@ _layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 		return;
 
 	if ((is->is_type == SHT_REL || is->is_type == SHT_RELA) &&
-	    !ld->ld_emit_reloc)
+	    !is->is_dynrel)
 		return;
+
+	/*
+	 * When garbage collection is enabled (option `-gc-sections'
+	 * specified), remove sections that are not used.
+	 */
+	if (ld->ld_gc) {
+		if ((is->is_flags & SHF_ALLOC) != 0 && !is->is_refed) {
+			if (ld->ld_gc_print)
+				ld_info(ld, "Remove unused ection `%s' in "
+				    "file %s", is->is_name,
+				    ld_input_get_fullname(ld, is->is_input));
+			return;
+		}
+	}
 
 	HASH_FIND_STR(lo->lo_ostbl, is->is_name, os);
 	if (os != NULL) {
 		oe = STAILQ_FIRST(&os->os_e);
 		assert(oe != NULL &&
 		    oe->oe_type == OET_INPUT_SECTION_LIST);
-		_insert_input_to_output(lo, os, is, oe->oe_islist);
+		_insert_input_to_output(ld, lo, os, is, oe->oe_islist);
 		return;
 	}
 
@@ -808,10 +854,10 @@ _layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 		ld_fatal_std(ld, "calloc");
 	STAILQ_INIT(islist);
 
-	oe = ld_output_create_element(ld, &_os->os_e,
-	    OET_INPUT_SECTION_LIST, NULL, NULL);
+	oe = ld_output_create_section_element(ld, _os, OET_INPUT_SECTION_LIST,
+	    NULL, NULL);
 	oe->oe_islist = islist;
-	_insert_input_to_output(lo, _os, is, oe->oe_islist);
+	_insert_input_to_output(ld, lo, _os, is, oe->oe_islist);
 }
 
 struct ld_output_section *
@@ -840,30 +886,54 @@ ld_layout_insert_output_section(struct ld *ld, const char *name,
 			break;
 	}
 
-	_os = ld_output_alloc_section(ld, name, os);
+	_os = ld_output_alloc_section(ld, name, os, NULL);
 	_os->os_flags |= flags & SHF_ALLOC;
 
 	return (_os);
 }
 
 static void
-_insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
-    struct ld_input_section *is, struct ld_input_section_head *islist)
+_insert_input_to_output(struct ld *ld, struct ld_output *lo,
+    struct ld_output_section *os, struct ld_input_section *is,
+    struct ld_input_section_head *islist)
 {
+	struct ld_output_section *_os;
+	char *name;
+	int len;
 
 	/*
-	 * TODO: Since we now only support "-static" linking, assume all
-	 * input relocation sections has been processed and consumed.
+	 * Relocation sections is handled separately.
 	 */
-	if (is->is_type == SHT_REL || is->is_type == SHT_RELA)
+	if ((is->is_type == SHT_REL || is->is_type == SHT_RELA) &&
+	    !is->is_dynrel)
 		return;
 
 	os->os_empty = 0;
 
-	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE);
+	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE | SHF_TLS);
+	os->os_dynrel |= is->is_dynrel;
+	os->os_pltrel |= is->is_pltrel;
+
+	if (!is->is_dynrel && !is->is_pltrel && is->is_type != SHT_NOBITS &&
+	    is->is_size != 0)
+		is->is_need_reloc = 1;
 
 	if (is->is_align > os->os_align)
 		os->os_align = is->is_align;
+
+	/*
+	 * The entsize of the output section is determined by the
+	 * input sections it contains. If all the input sections has
+	 * the same entsize, the output section will also have that
+	 * entsize. If any input section has a different entsize,
+	 * the entsize for output section is set to 0, meaning that
+	 * it has variable entry sizes.
+	 */
+	if (!os->os_entsize_set) {
+		os->os_entsize = is->is_entsize;
+		os->os_entsize_set = 1;
+	} else if (os->os_entsize != is->is_entsize)
+		os->os_entsize = 0;
 
 	if (os->os_type == SHT_NULL)
 		os->os_type = is->is_type;
@@ -871,7 +941,56 @@ _insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
 		lo->lo_phdr_note = 1;
 
 	is->is_output = os;
+
 	STAILQ_INSERT_TAIL(islist, is, is_next);
+
+	/*
+	 * Lay out relocation section for this input section if the linker
+	 * creates relocatable output object or if -emit-relocs option is
+	 * sepcified.
+	 */
+	if ((ld->ld_reloc || ld->ld_emit_reloc) && is->is_ris != NULL &&
+	    is->is_ris->is_num_reloc > 0) {
+		if (os->os_r == NULL) {
+			/*
+			 * Create relocation section for output sections.
+			 */
+			if (ld->ld_arch->reloc_is_rela) {
+				len = strlen(os->os_name) + 6;
+				if ((name = malloc(len)) == NULL)
+					ld_fatal_std(ld, "malloc");
+				snprintf(name, len, ".rela%s", os->os_name);
+			} else {
+				len = strlen(os->os_name) + 5;
+				if ((name = malloc(len)) == NULL)
+					ld_fatal_std(ld, "malloc");
+				snprintf(name, len, ".rel%s", os->os_name);
+			}
+			_os = ld_output_alloc_section(ld, name, NULL, os);
+			_os->os_rel = 1;
+
+			/*
+			 * Fill in entry size, alignment and type for output
+			 * relocation sections.
+			 */
+			_os->os_entsize = ld->ld_arch->reloc_entsize;
+			_os->os_type = ld->ld_arch->reloc_is_rela ? SHT_RELA :
+			    SHT_REL;
+			_os->os_align = ld->ld_arch->reloc_is_64bit ? 8 : 4;
+
+			/* Setup sh_link and sh_info. */
+			if ((_os->os_link = strdup(".symtab")) == NULL)
+				ld_fatal_std(ld, "strdup");
+			_os->os_info = os;
+
+			/* Relocation sections are not allocated in memory. */
+			_os->os_addr = 0;
+		} else
+			_os = os->os_r;
+
+		_os->os_size += is->is_ris->is_num_reloc * _os->os_entsize;
+	}
+
 }
 
 static void
@@ -905,6 +1024,7 @@ _calc_offset(struct ld *ld)
 	lo = ld->ld_output;
 	ls->ls_loc_counter = 0;
 	ls->ls_offset = ld_layout_calc_header_size(ld);
+	ls->ls_first_output_sec = 1;
 
 	STAILQ_FOREACH(oe, &lo->lo_oelist, oe_next) {
 		switch (oe->oe_type) {
@@ -925,6 +1045,21 @@ _calc_offset(struct ld *ld)
 			break;
 		}
 	}
+
+	/* Emit .note.GNU-stack section for reloctable output object. */
+	if (ld->ld_gen_gnustack && ld->ld_reloc)
+		ld_output_emit_gnu_stack_section(ld);
+
+	/* Lay out section header table after normal input sections. */
+	_calc_shdr_offset(ld);
+
+	/* Create .shstrtab section and put it after section header table. */
+	ld_output_create_string_table_section(ld, ".shstrtab",
+	    ld->ld_shstrtab, NULL);
+
+	/* Lay out relocation sections. */
+	if (ld->ld_reloc || ld->ld_emit_reloc)
+		_calc_reloc_section_offset(ld, lo);
 }
 
 static void
@@ -939,13 +1074,35 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	struct ld_strtab *st;
 	uint64_t addr;
 
+	/* Relocation sections are handled separately. */
+	if (os->os_rel)
+		return;
+
 	ls = &ld->ld_state;
 
 	/*
-	 * Location counter is an offset relative to the start of the
-	 * section, when it's refered inside an output section descriptor.
+	 * Position independent output object should have VMA from 0.
+	 * So if we are building a DSO or PIE, and this output section is
+	 * the first one, we should set current VMA to SIZEOF_HEADERS
+	 * and ignore all the previous assignments to the location counter.
+	 */
+	if ((ld->ld_dso || ld->ld_pie) && ls->ls_first_output_sec) {
+		ls->ls_loc_counter = ld_layout_calc_header_size(ld);
+		if (!os->os_empty)
+			ls->ls_first_output_sec = 0;
+	}
+
+	/*
+	 * Location counter stores the end VMA offset of the previous output
+	 * section. We use that value as the base VMA offset for this output
+	 * section.
 	 */
 	addr = ls->ls_loc_counter;
+
+	/*
+	 * Location counter when refered inside an output section descriptor,
+	 * is an offset relative to the start of the section.
+	 */
 	ls->ls_loc_counter = 0;
 
 	STAILQ_FOREACH(oe, &os->os_e, oe_next) {
@@ -1008,7 +1165,7 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	 * alignment.
 	 */
 
-	if (os->os_flags & SHF_ALLOC) {
+	if ((os->os_flags & SHF_ALLOC) != 0 && !ld->ld_reloc) {
 		if (os->os_ldso == NULL || os->os_ldso->ldso_vma == NULL)
 			os->os_addr = roundup(addr, os->os_align);
 	} else
@@ -1023,9 +1180,71 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	    os->os_addr, os->os_align);
 #endif
 
-	ls->ls_offset = os->os_off + os->os_size;
+	/*
+	 * Calculate the file offset for the next output section. Note that
+	 * only sections with type other than SHT_NOBITS consume file space.
+	 */
+	ls->ls_offset = os->os_off;
+	if (os->os_type != SHT_NOBITS)
+		ls->ls_offset += os->os_size;
 
 	/* Reset location counter to the current VMA. */
-	if (os->os_flags & SHF_ALLOC)
-		ls->ls_loc_counter = os->os_addr + os->os_size;
+	if (os->os_flags & SHF_ALLOC) {
+		ls->ls_loc_counter = os->os_addr;
+		/*
+		 * Do not allocate VMA for TLS .tbss sections. TLS sections
+		 * are only used as an initialization image and .tbss section
+		 * will not be allocated in memory.
+		 */
+		if (os->os_type != SHT_NOBITS || (os->os_flags & SHF_TLS) == 0)
+			ls->ls_loc_counter += os->os_size;
+	}
+}
+
+static void
+_calc_reloc_section_offset(struct ld *ld, struct ld_output *lo)
+{
+	struct ld_state *ls;
+	struct ld_output_section *os, *_os;
+
+	ls = &ld->ld_state;
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_r != NULL) {
+			_os = os->os_r;
+			_os->os_off = roundup(ls->ls_offset, _os->os_align);
+			ls->ls_offset = _os->os_off + _os->os_size;
+		}
+	}
+}
+
+static void
+_calc_shdr_offset(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	uint64_t shoff;
+	int n;
+
+	ls = &ld->ld_state;
+	lo = ld->ld_output;
+
+	if (lo->lo_ec == ELFCLASS32)
+		shoff = roundup(ls->ls_offset, 4);
+	else
+		shoff = roundup(ls->ls_offset, 8);
+
+	ls->ls_offset = shoff;
+
+	n = 0;
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_scn != NULL)
+			n++;
+	}
+
+	/* TODO: n + 2 if ld(1) will not create symbol table. */
+	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 4, EV_CURRENT);
+
+	lo->lo_shoff = shoff;
 }

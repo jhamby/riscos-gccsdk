@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,20 @@
 #include "ld_options.h"
 #include "ld_output.h"
 
-ELFTC_VCSID("$Id: ld_options.c 2520 2012-06-17 00:21:36Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_options.c 2909 2013-02-03 06:06:09Z kaiwang27 $");
 
 /*
  * Support routines for parsing command line options.
  */
 
 static const char *ld_short_opts =
-    "b:c:e:Ef:Fgh:iI:l:L:m:MnNo:O::qrR:sStT:xXyY:u:vV()";
+    "b:c:de:Ef:Fgh:iI:l:L:m:MnNo:O::qrR:sStT:xXyY:u:vV()";
 
 static struct ld_option ld_opts[] = {
 	{"aarchive", KEY_STATIC, ONE_DASH, NO_ARG},
 	{"adefault", KEY_DYNAMIC, ONE_DASH, NO_ARG},
 	{"ashared", KEY_DYNAMIC, ONE_DASH, NO_ARG},
-	{"accept-unknown-input-arch", KEY_ACCPET_UNKNOWN, ANY_DASH, NO_ARG},
+	{"accept-unknown-input-arch", KEY_ACCEPT_UNKNOWN, ANY_DASH, NO_ARG},
 	{"allow-multiple-definition", KEY_Z_MULDEFS, ANY_DASH, NO_ARG},
 	{"allow-shlib-undefined", KEY_ALLOW_SHLIB_UNDEF, ANY_DASH, NO_ARG},
 	{"assert", KEY_ASSERT, ANY_DASH, NO_ARG},
@@ -96,6 +96,7 @@ static struct ld_option ld_opts[] = {
 	{"no-gc-sections", KEY_NO_GC_SECTIONS, ANY_DASH, NO_ARG},
 	{"no-keep-memorg", KEY_NO_KEEP_MEMORY, ANY_DASH, NO_ARG},
 	{"no-omagic", KEY_NO_OMAGIC, ANY_DASH, NO_ARG},
+	{"no-print-gc-sections", KEY_NO_PRINT_GC_SECTIONS, ANY_DASH, NO_ARG},
 	{"no-undefined", KEY_Z_DEFS, ANY_DASH, NO_ARG},
 	{"no-undefined-version", KEY_NO_UNDEF_VERSION, ANY_DASH, NO_ARG},
 	{"no-whole-archive", KEY_NO_WHOLE_ARCHIVE, ANY_DASH, NO_ARG},
@@ -106,6 +107,7 @@ static struct ld_option ld_opts[] = {
 	{"output", 'o', TWO_DASH, REQ_ARG},
 	{"pic-executable", KEY_PIE, ANY_DASH, NO_ARG},
 	{"pie", KEY_PIE, ONE_DASH, NO_ARG},
+	{"print-gc-sections", KEY_PRINT_GC_SECTIONS, ANY_DASH, NO_ARG},
 	{"print-map", 'M', ANY_DASH, NO_ARG},
 	{"qmagic", KEY_QMAGIC, ANY_DASH, NO_ARG},
 	{"relax", KEY_RELAX, ANY_DASH, NO_ARG},
@@ -134,12 +136,13 @@ static struct ld_option ld_opts[] = {
 	{"unresolved-symbols", KEY_UNRESOLVED_SYMBOLS, ANY_DASH, REQ_ARG},
 	{"verbose" , 'v', ANY_DASH, NO_ARG},
 	{"version", KEY_VERSION, ANY_DASH, NO_ARG},
-	{"version_script", KEY_VERSION_SCRIPT, ANY_DASH, REQ_ARG},
+	{"version-script", KEY_VERSION_SCRIPT, ANY_DASH, REQ_ARG},
 	{"warn-common", KEY_WARN_COMMON, ANY_DASH, NO_ARG},
 	{"warn-constructors", KEY_WARN_CONSTRUCTORS, ANY_DASH, NO_ARG},
 	{"warn-multiple-gp", KEY_WARN_MULTIPLE_GP, ANY_DASH, NO_ARG},
 	{"warn-once", KEY_WARN_ONCE, ANY_DASH, NO_ARG},
 	{"warn-section-align", KEY_WARN_SECTION_ALIGN, ANY_DASH, NO_ARG},
+	{"warn-shared-textrel", KEY_WARN_SHARED_TEXTREL, ANY_DASH, NO_ARG},
 	{"warn-unresolved-symbols", KEY_WARN_UNRESOLVE_SYM, ANY_DASH, NO_ARG},
 	{"whole_archive", KEY_WHOLE_ARCHIVE, ANY_DASH, NO_ARG},
 	{"wrap", KEY_WRAP, ANY_DASH, REQ_ARG},
@@ -185,10 +188,11 @@ static struct ld_option ld_opts_z[] = {
 	{"systemlibrary", KEY_Z_SYSTEM_LIBRARY, ONE_DASH, NO_ARG},
 };
 
+static void _copy_optarg(struct ld *ld, char **dst, char *src);
 static void _process_options(struct ld *ld, int key, char *arg);
 static int _parse_long_options(struct ld *, struct ld_option *, int,
     int, char **, char *, enum ld_dash);
-static void _print_version(void);
+static void _print_version(struct ld *ld);
 
 void
 ld_options_parse(struct ld* ld, int argc, char **argv)
@@ -340,16 +344,13 @@ _process_options(struct ld *ld, int key, char *arg)
 		ld->ld_common_alloc = 1;
 		break;
 	case 'e':
-		if (ld->ld_entry != NULL)
-			free(ld->ld_entry);
-		if ((ld->ld_entry = strdup(arg)) == NULL)
-			ld_fatal_std(ld, "strdup");
+		_copy_optarg(ld, &ld->ld_entry, arg);
+		break;
+	case 'h':
+		_copy_optarg(ld, &ld->ld_soname, arg);
 		break;
 	case 'I':
-		if (ld->ld_interp != NULL)
-			free(ld->ld_interp);
-		if ((ld->ld_interp = strdup(arg)) == NULL)
-			ld_fatal_std(ld, "strdup");
+		_copy_optarg(ld, &ld->ld_interp, arg);
 		break;
 	case 'l':
 		ld_path_search_library(ld, arg);
@@ -361,11 +362,13 @@ _process_options(struct ld *ld, int key, char *arg)
 		ld->ld_print_linkmap = 1;
 		break;
 	case 'o':
-		if ((ld->ld_output_file = strdup(arg)) == NULL)
-			ld_fatal_std(ld, "strdup");
+		_copy_optarg(ld, &ld->ld_output_file, arg);
 		break;
 	case 'q':
 		ld->ld_emit_reloc = 1;
+		break;
+	case 'r':
+		ld->ld_reloc = 1;
 		break;
 	case 'T':
 		ld_script_parse(arg);
@@ -375,7 +378,7 @@ _process_options(struct ld *ld, int key, char *arg)
 		break;
 	case 'v':
 	case 'V':
-		_print_version();
+		_print_version(ld);
 		break;
 	case '(':
 		ls->ls_group_level++;
@@ -391,17 +394,43 @@ _process_options(struct ld *ld, int key, char *arg)
 	case KEY_DYNAMIC:
 		ls->ls_static = 0;
 		break;
+	case KEY_EH_FRAME_HDR:
+		ld->ld_ehframe_hdr = 1;
+		break;
+	case KEY_GC_SECTIONS:
+		ld->ld_gc = 1;
+		break;
 	case KEY_NO_AS_NEEDED:
 		ls->ls_as_needed = 0;
 		break;
 	case KEY_NO_DEFINE_COMMON:
 		ld->ld_common_no_alloc = 1;
 		break;
+	case KEY_NO_GC_SECTIONS:
+		ld->ld_gc = 0;
+		break;
+	case KEY_NO_PRINT_GC_SECTIONS:
+		ld->ld_gc_print = 0;
+		break;
 	case KEY_NO_WHOLE_ARCHIVE:
 		ls->ls_whole_archive = 0;
 		break;
 	case KEY_OFORMAT:
 		ld_output_format(ld, arg, arg, arg);
+		break;
+	case KEY_PIE:
+		ld->ld_exec = 0;
+		ld->ld_pie = 1;
+		ld->ld_dynamic_link = 1;
+		break;
+	case KEY_PRINT_GC_SECTIONS:
+		ld->ld_gc_print = 1;
+		break;
+	case KEY_SHARED:
+		ld->ld_exec = 0;
+		ld->ld_dso = 1;
+		ld->ld_dynamic_link = 1;
+		break;
 	case KEY_STATIC:
 		ls->ls_static = 1;
 		break;
@@ -410,6 +439,9 @@ _process_options(struct ld *ld, int key, char *arg)
 		break;
 	case KEY_FILE:
 		ld_file_add(ld, arg, LFT_UNKNOWN);
+		break;
+	case KEY_VERSION_SCRIPT:
+		ld_script_parse(arg);
 		break;
 	case KEY_Z_EXEC_STACK:
 		ld->ld_gen_gnustack = 1;
@@ -427,10 +459,21 @@ _process_options(struct ld *ld, int key, char *arg)
 }
 
 static void
-_print_version(void)
+_print_version(struct ld *ld)
 {
 
 	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
+	ld->ld_print_version = 1;
+}
+
+static void
+_copy_optarg(struct ld *ld, char **dst, char *src)
+{
+
+	if (*dst != NULL)
+		free(*dst);
+	if ((*dst = strdup(src)) == NULL)
+		ld_fatal_std(ld, "strdup");
 }
 
 struct ld_wildcard *

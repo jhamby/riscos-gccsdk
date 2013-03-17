@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_layout.h 2340 2011-12-17 20:38:38Z kaiwang27 $
+ * $Id: ld_layout.h 2696 2012-11-24 17:12:24Z kaiwang27 $
  */
 
 void	ld_layout_sections(struct ld *);

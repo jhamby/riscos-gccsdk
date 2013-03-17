@@ -1,6 +1,6 @@
 %{
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 #include "ld.h"
 #include "ld_script_parser.h"
 
-ELFTC_VCSID("$Id: ld_script_lexer.l 2472 2012-03-25 15:34:48Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_script_lexer.l 2875 2013-01-09 22:46:03Z kaiwang27 $");
 
 #define	YY_NO_UNPUT
 int lineno = 1;
@@ -130,7 +130,6 @@ SUBALIGN			{ return (T_SUBALIGN); }
 SYSLIB				{ return (T_SYSLIB); }
 TARGET				{ return (T_TARGET); }
 TRUNCATE			{ return (T_TRUNCATE); }
-VERSION				{ return (T_VERSION); }
 extern				{ return (T_VER_EXTERN); }
 global:				{ return (T_VER_GLOBAL); }
 l				{ return (T_LENGTH); }

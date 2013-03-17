@@ -29,7 +29,7 @@
 #include "ld_file.h"
 #include "ld_path.h"
 
-ELFTC_VCSID("$Id: ld_file.c 2514 2012-06-02 23:22:15Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_file.c 2780 2012-12-15 19:17:47Z kaiwang27 $");
 
 /*
  * Support routines for input file handling.
@@ -212,6 +212,9 @@ _add_file(struct ld *ld, const char *name, enum ld_file_type type,
 		if (elftc_bfd_target_flavor(ls->ls_itgt) == ETF_BINARY)
 			lf->lf_type = LFT_BINARY;
 	}
+
+	if (lf->lf_type == LFT_DSO)
+		ld->ld_dynamic_link = 1;
 
 	if (first)
 		TAILQ_INSERT_HEAD(&ld->ld_lflist, lf, lf_next);

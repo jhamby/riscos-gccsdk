@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "ld_ehframe.h"
 #include "ld_options.h"
 #include "ld_reloc.h"
 #include "ld_script.h"
@@ -38,7 +39,7 @@
 #include "ld_path.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id: ld_main.c 2515 2012-06-06 23:05:00Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_main.c 2910 2013-02-03 06:06:23Z kaiwang27 $");
 
 static struct ld _ld;
 struct ld* ld = &_ld;
@@ -86,6 +87,10 @@ main(int argc, char **argv)
 	ld_arch_init(ld);
 
 restart:
+
+	/* The linker generate an executable by default */
+	ld->ld_exec = 1;
+
 	ld_script_init(ld);
 
 	ld_options_parse(ld, argc, argv);
@@ -104,6 +109,27 @@ restart:
 	}
 
 	ld_reloc_load(ld);
+
+	/*
+	 * Perform section garbage collection if command line option
+	 * -gc-sections is specified. Perform deferred relocation scan
+	 * after garbage sections are found.
+	 */
+	if (ld->ld_gc) {
+		ld_reloc_gc_sections(ld);
+		ld_reloc_deferred_scan(ld);
+	}
+
+	/*
+	 * Search for undefined symbols and allocate space for common
+	 * symbols. Copy relevant symbols to the dynamic symbol table
+	 * if the linker is performing a dyanmic linking.
+	 */
+	ld_symbols_scan(ld);
+
+	/* Create .eh_frame_hdr section. */
+	if (ld->ld_ehframe_hdr)
+		ld_ehframe_create_hdr(ld);
 
 	ld_output_init(ld);
 

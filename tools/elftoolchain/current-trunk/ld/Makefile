@@ -1,4 +1,4 @@
-# $Id: Makefile 2508 2012-05-20 22:29:48Z kaiwang27 $
+# $Id: Makefile 2910 2013-02-03 06:06:23Z kaiwang27 $
 
 TOP=	..
 
@@ -11,6 +11,7 @@ SRCS=	amd64.c			\
 	i386_script.c		\
 	ld_arch.c		\
 	ld_dynamic.c		\
+	ld_ehframe.c		\
 	ld_error.c 		\
 	ld_exp.c		\
 	ld_file.c		\
@@ -38,8 +39,8 @@ GENSRCS=	amd64_script.c i386_script.c
 
 CLEANFILES+=	${GENSRCS}
 
-DPADD=	${LIBELFTC} ${LIBELF}
-LDADD=	-lelftc -lelf
+DPADD=	${LIBELFTC} ${LIBELF} ${LIBDWARF}
+LDADD=	-lelftc -ldwarf -lelf
 
 CFLAGS+= -I. -I${.CURDIR}
 

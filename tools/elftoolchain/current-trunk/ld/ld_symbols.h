@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_symbols.h 2566 2012-09-02 14:02:54Z kaiwang27 $
+ * $Id: ld_symbols.h 2882 2013-01-09 22:47:04Z kaiwang27 $
  */
 
 struct ld_symver_verdef;
@@ -38,25 +38,33 @@ struct ld_symbol {
 	uint16_t lsb_shndx;		/* symbol section index */
 	uint64_t lsb_index;		/* symbol index */
 	uint64_t lsb_dyn_index;		/* dynamic symbol index */
+	uint64_t lsb_out_index;		/* symbol index (in output) */
+	uint64_t lsb_got_off;		/* got entry offset */
+	uint64_t lsb_plt_off;		/* plt entry offset */
 	struct ld_script_variable *lsb_var; /* associated ldscript variable */
 	unsigned char lsb_bind;		/* symbol binding */
 	unsigned char lsb_type;		/* symbol type */
 	unsigned char lsb_other;	/* symbol visibility */
 	unsigned char lsb_default;	/* symbol is default/only version */
 	unsigned char lsb_provide;	/* provide symbol */
-	unsigned char lsb_provide_refed; /* provide symbol is referenced */
 	unsigned char lsb_import;	/* symbol is a import symbol */
 	unsigned char lsb_ref_dso;	/* symbol appeared in a DSO */
 	unsigned char lsb_ref_ndso;	/* symbol appeared in elsewhere */
-	unsigned char lsb_copy_reloc;	/* symbol need copy reloc */
+	unsigned char lsb_dynrel;	/* symbol used by dynamic reloc */
+	unsigned char lsb_copy_reloc;	/* symbol has copy reloc */
+	unsigned char lsb_got;		/* symbol has got entry */
+	unsigned char lsb_plt;		/* symbol has plt entry */
+	unsigned char lsb_func_addr;	/* symbol(function) has address */
+	unsigned char lsb_tls_ld;	/* local dynamic TLS symbol */
+	unsigned char lsb_vndx_known;	/* version index is known */
+	uint16_t lsb_vndx;		/* version index */
 	struct ld_symver_verdef *lsb_vd; /* version definition */
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
 	struct ld_input *lsb_input;	/* containing input object */
+	struct ld_input_section *lsb_is; /* containing input section */
 	struct ld_output_section *lsb_preset_os; /* Preset output section */
 	UT_hash_handle hh;		/* hash handle */
-	UT_hash_handle hhimp;		/* hash handle (import) */
-	UT_hash_handle hhexp;		/* hash handle (export) */
 	STAILQ_ENTRY(ld_symbol) lsb_next; /* next symbol */
 	STAILQ_ENTRY(ld_symbol) lsb_dyn;  /* next dynamic symbol */
 };
@@ -83,11 +91,15 @@ void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
     unsigned, unsigned);
 void	ld_symbols_add_internal(struct ld *, const char *, uint64_t, uint64_t,
     uint16_t, unsigned char, unsigned char, unsigned char,
-    struct ld_output_section *);
+    struct ld_input_section *, struct ld_output_section *);
 void	ld_symbols_build_symtab(struct ld *);
 void	ld_symbols_cleanup(struct ld *);
-void	ld_symbols_create_dynsym(struct ld *);
+void	ld_symbols_scan(struct ld *);
 void	ld_symbols_finalize_dynsym(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
 void	ld_symbols_resolve(struct ld *);
 void	ld_symbols_update(struct ld *);
+struct ld_symbol *ld_symbols_ref(struct ld_symbol *);
+int	ld_symbols_overridden(struct ld *, struct ld_symbol *);
+int	ld_symbols_in_dso(struct ld_symbol *);
+int	ld_symbols_in_regular(struct ld_symbol *);

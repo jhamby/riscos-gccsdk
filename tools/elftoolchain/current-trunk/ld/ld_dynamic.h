@@ -23,9 +23,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id$
+ * $Id: ld_dynamic.h 2784 2012-12-15 19:19:48Z kaiwang27 $
  */
 
 void	ld_dynamic_create(struct ld *);
 void	ld_dynamic_finalize(struct ld *);
+void	ld_dynamic_load_dso_dynamic(struct ld *, struct ld_input *, Elf *,
+    Elf_Scn *, size_t);
 void	ld_dynamic_create_copy_reloc(struct ld *);
+void	ld_dynamic_reserve_dynbss_entry(struct ld *, struct ld_symbol *);

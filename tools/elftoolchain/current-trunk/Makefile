@@ -1,4 +1,4 @@
-# $Id: Makefile 2557 2012-08-29 13:17:35Z jkoshy $
+# $Id: Makefile 2872 2013-01-07 13:57:54Z jkoshy $
 
 TOP=	.
 
@@ -13,6 +13,9 @@ SUBDIR += libdwarf
 
 # Build additional APIs.
 SUBDIR += libelftc
+
+# Build the tools needed for the rest of the build.
+SUBDIR += isa
 
 # Build tools after the libraries.
 SUBDIR += addr2line

@@ -7,6 +7,7 @@ ld_SOURCES = \
 	i386.c			\
 	ld_arch.c		\
 	ld_dynamic.c		\
+	ld_ehframe.c		\
 	ld_error.c 		\
 	ld_exp.c		\
 	ld_file.c		\
@@ -27,6 +28,7 @@ ld_SOURCES = \
 	${GENSRCS}
 
 ld_CFLAGS = -I${top_srcdir}/common \
+	    -I${top_srcdir}/libdwarf \
 	    -I${top_srcdir}/libelftc \
 	    -I${top_srcdir}/libelf
 

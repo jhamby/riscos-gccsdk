@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
 
 #include "ld.h"
 
-ELFTC_VCSID("$Id: ld_error.c 2202 2011-11-23 22:03:55Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_error.c 2895 2013-01-15 23:05:31Z kaiwang27 $");
 
 /*
  * Support routines for error and warning message generation.
@@ -80,4 +80,16 @@ ld_warn(struct ld *ld, const char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 	fputc('\n', stderr);
+}
+
+void
+ld_info(struct ld *ld, const char *fmt, ...)
+{
+	va_list ap;
+
+	fprintf(stdout, "%s: ", ld->ld_progname);
+	va_start(ap, fmt);
+	vfprintf(stdout, fmt, ap);
+	va_end(ap);
+	fputc('\n', stdout);
 }

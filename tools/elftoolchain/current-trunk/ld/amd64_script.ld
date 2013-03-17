@@ -1,4 +1,4 @@
-/* $Id: amd64_script.ld 2472 2012-03-25 15:34:48Z kaiwang27 $ */
+/* $Id: amd64_script.ld 2806 2012-12-24 08:23:59Z kaiwang27 $ */
 
 OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
 ENTRY(_start)
@@ -66,7 +66,6 @@ SECTIONS {
 	.gcc_except_table   : { *(.gcc_except_table) }
 	. = ALIGN (CONSTANT(MAXPAGESIZE)) - ((CONSTANT(MAXPAGESIZE) - .) & (CONSTANT(MAXPAGESIZE) - 1));
 	. = DATA_SEGMENT_ALIGN (CONSTANT(MAXPAGESIZE), CONSTANT(COMMONPAGESIZE));
-	. = ALIGN(64 / 8);
 	.tdata		: { *(.tdata .tdata.* .gnu.linkonce.td.*) }
 	.tbss		: { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
 	PROVIDE(__preinit_array_start = .);
@@ -78,7 +77,6 @@ SECTIONS {
 	PROVIDE(__fini_array_start = .);
 	.fini_array	: { *(.fini_array) }
 	PROVIDE(__fini_array_end = .);
-	.dynamic	: { *(.dynamic) }
 	.ctors		:
 	{
 		KEEP(*crtbegin*.o(.ctors))
@@ -94,7 +92,13 @@ SECTIONS {
 		KEEP(*(.dtors))
 	}
 	.jcr		: { KEEP(*(.jcr)) }
-	.got		: { *(.got.plt) *(.got) }
+	.data.rel.ro : {
+		*(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*)
+		*(.data.rel.ro* .gnu.linkonce.d.rel.ro.*)
+	}
+	.dynamic	: { *(.dynamic) }
+	.got		: { *(.got) }
+	.got.plt	: { *(.got.plt) }
 	.data		:
 	{
 		*(.data .data.* .gnu.linkonce.d.*)

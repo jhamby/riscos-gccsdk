@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id$
+ * $Id: ld_hash.h 2669 2012-11-11 13:20:43Z kaiwang27 $
  */
 
 void	ld_hash_create_svr4_hash_section(struct ld *);
