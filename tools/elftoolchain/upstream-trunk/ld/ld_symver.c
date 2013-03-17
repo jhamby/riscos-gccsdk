@@ -32,7 +32,7 @@
 #include "ld_symver.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id$");
+ELFTC_VCSID("$Id: ld_symver.c 6207 2012-12-08 18:29:49Z joty $");
 
 /*
  * Symbol versioning sections are the same for 32bit and 64bit

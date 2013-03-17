@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id$
+ * $Id: ld_symver.h 6207 2012-12-08 18:29:49Z joty $
  */
 
 struct ld_symver_vna {

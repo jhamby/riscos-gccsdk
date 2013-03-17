@@ -30,7 +30,7 @@
 #include "ld_output.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id$");
+ELFTC_VCSID("$Id: ld_hash.c 6207 2012-12-08 18:29:49Z joty $");
 
 /*
  * The number of buckets to use for a certain number of symbols.
