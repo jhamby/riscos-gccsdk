@@ -166,7 +166,7 @@ ab_create_command_app() {
 ab_add_commands() {
   local program
   for program in $@; do
-    if [ "$AB_ELFBUILD" == yes ] && file $program | grep -q -e ELF -e statically ; then
+    if [ "$AB_ELFBUILD" == yes ] && file -b $program | grep -q -e "ELF.*statically" ; then
       # Call elf2aif only for statically linked ELF binaries.  In that case,
       # change ,e1f extension (if any) to ,ff8.
       local abs_program
