@@ -7,7 +7,7 @@ diff -ur Makefile Makefile
  # make NetHack
 -PREFIX	 = /usr
 -GAME     = glhack
-+PREFIX	 = /home/riscos/usr
++PREFIX	 = $GCCSDK_INSTALL_ENV
 +GAME     = glhack,ff8
  # GAME     = glhack.prg
  GAMEUID  = root
@@ -17,7 +17,7 @@ diff -ur Makefile Makefile
  # instructions)
  GAMEDIR  = $(PREFIX)/lib/games/$(GAME)
 -VARDIR   = /var/lib/games/glhack
-+VARDIR   = /home/riscos/var/lib/games/glhack
++VARDIR   = $GCCSDK_INSTALL_ENV/var/lib/games/glhack
  SHELLDIR = $(PREFIX)/bin
  MANDIR   = $(PREFIX)/share/man
  
@@ -95,7 +95,7 @@ diff -ur doc/Makefile doc/Makefile
  
  GAME	= nethack
 -MANDIR	= /usr/man/man6
-+MANDIR	= /home/riscos/usr/man/man6
++MANDIR	= $GCCSDK_INSTALL_ENV/usr/man/man6
  MANEXT	= 6
  
  # manual installation for most BSD-style systems

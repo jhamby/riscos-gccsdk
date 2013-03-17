@@ -23,5 +23,5 @@ cd unix
 ab_make() {
   $AB_MAKE -f Makefile.gtk COMPAT=-DNO_GSSAPI CC=$CC CFLAGS=-O1 tree234.o
   $AB_MAKE -f Makefile.gtk "COMPAT=-DNO_GSSAPI -DHAVE_NO_SETRESUID -DOMIT_UTMP -DBSD_PTYS" \
-    CC=$CC "LDFLAGS=-L/home/riscos/env/lib -lz -lpng -lpixman-1 -lxml2 -lexpat -lCX11 -lDesk -static"
+    CC=$CC "LDFLAGS=-L$GCCSDK_INSTALL_ENV/lib -lz -lpng -lpixman-1 -lxml2 -lexpat -lCX11 -lDesk -static"
 }

@@ -5,7 +5,7 @@
  # Set this to -g if you want to be able to debug the client, otherwise
  # use -O to have the compiler do some optimization instead.
 -CFLAGS = @CFLAGS@
-+CFLAGS = @CFLAGS@ -DGETPGRP_VOID -I/home/riscos/env/include
++CFLAGS = @CFLAGS@ -DGETPGRP_VOID -I$GCCSDK_INSTALL_ENV/include
  
  # Set this to -s if you want the binary to be stripped.
  LDFLAGS = @LDFLAGS@

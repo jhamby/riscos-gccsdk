@@ -502,14 +502,14 @@ diff -r -u -N ./acorn/ReadMe ../zip30-joty/acorn/ReadMe
 +------------------------------
 +
 +Use of RunMe1st is not required when using GCCSDK 3.4 or GCCSDK 4
-+(<URL:http://gccsdk.riscos.info/). Instead copy the GCC makefile to the right
++(<URL:http://gccsdk.riscos.info/>). Instead copy the GCC makefile to the right
 +place (e.g. 'cp acorn/GMakefile makefile') and then start the cross compiler:
 +
-+  $ /home/riscos/env/ro-make E=,ff8
++  $ $GCCSDK_INSTALL_ENV/ro-make E=,ff8
 +
 +Or when using GCCSDK 4:
 +
-+  $ /home/riscos/env/ro-make E=,ff8 CC=arm-unknown-riscos-gcc
++  $ $GCCSDK_INSTALL_ENV/ro-make E=,ff8 CC=arm-unknown-riscos-gcc
  
  Acorn-specific usage instructions
  ---------------------------------

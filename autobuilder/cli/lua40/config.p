@@ -5,7 +5,7 @@
  
  # Locations for "make install". You may need to be root do "make install".
 -INSTALL_ROOT= /usr/local
-+INSTALL_ROOT= /home/riscos/env
++INSTALL_ROOT= $GCCSDK_INSTALL_ENV
  INSTALL_BIN= $(INSTALL_ROOT)/bin
  INSTALL_INC= $(INSTALL_ROOT)/include
  INSTALL_LIB= $(INSTALL_ROOT)/lib

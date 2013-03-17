@@ -2,7 +2,7 @@ AB_CATEGORY=Terminal/test
 
 AB_PRECONF=:
 
-AB_MAKE="yes | /home/riscos/env/ro-path ./unixmake files"
+AB_MAKE="yes | $GCCSDK_INSTALL_ENV/ro-path ./unixmake files"
 
 $HOST_CC src/makehelp.c -o src/makehelp
 

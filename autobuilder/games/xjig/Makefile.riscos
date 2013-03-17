@@ -2,9 +2,9 @@
 #
 
 LD=$(CC)
-CFLAGS = -O2 -I/home/riscos/env/include 
+CFLAGS = -O2 -I$GCCSDK_INSTAL_ENV/include 
 CXXFLAGS=$(CFLAGS)
-LIBS = -L/home/riscos/env/lib -ljpeg -lXext -lCX11 -lDesk -lstdc++ -static
+LIBS = -L$GCCSDK_INSTAL_ENV/lib -ljpeg -lXext -lCX11 -lDesk -lstdc++ -static
 
 JIG_DEFAULT = \"/\<XJig\$$Dir\>/tina.gif\"
 

@@ -4,7 +4,7 @@
  
 -SDL_CFLAGS = `sdl-config --cflags`
 -SDL_LIBS = `sdl-config --libs`
-+SDL_CFLAGS = `sdl-config --cflags` -I/home/riscos/env/include
++SDL_CFLAGS = `sdl-config --cflags` -I$GCCSDK_INSTALL_ENV/include
 +SDL_LIBS = `sdl-config --libs` -static
  
  DEFINES = -DBYPASS_PROTECTION

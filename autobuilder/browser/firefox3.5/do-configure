@@ -1,1 +1,1 @@
-HOST_LIBIDL_CONFIG=/usr/bin/libIDL-config-2 RO_SHAREDLIBS=yes RO_APPSHARED=yes /home/riscos/env/ro-config
+HOST_LIBIDL_CONFIG=/usr/bin/libIDL-config-2 RO_SHAREDLIBS=yes RO_APPSHARED=yes $GCCSDK_INSTALL_ENV/ro-config

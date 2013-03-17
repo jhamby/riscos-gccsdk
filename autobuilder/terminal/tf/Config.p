@@ -5,7 +5,7 @@
  # if your linker can't resolve an external reference.
  
 -LIBS=''
-+LIBS='-L/home/riscos/env/lib'
++LIBS='-L$GCCSDK_INSTALL_ENV/lib'
  
  
  ### Make Program.
