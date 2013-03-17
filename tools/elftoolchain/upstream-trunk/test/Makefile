@@ -1,4 +1,4 @@
-# $Id: Makefile 2101 2011-11-03 15:56:38Z jkoshy $
+# $Id: Makefile 2827 2012-12-29 16:43:15Z jkoshy $
 #
 # TET-based test suites used by the Elftoolchain project.
 #
@@ -10,6 +10,7 @@ SUBDIR+=	tet
 
 # Build tests for libraries.
 SUBDIR+=	libelf
+SUBDIR+=	libelftc
 SUBDIR+=	libdwarf
 
 # Build tests for tools.

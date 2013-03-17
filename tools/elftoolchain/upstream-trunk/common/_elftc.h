@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: _elftc.h 2495 2012-04-23 05:31:56Z jkoshy $
+ * $Id: _elftc.h 2851 2013-01-04 09:12:30Z jkoshy $
  */
 
 /**
@@ -75,6 +75,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+#ifndef	SLIST_FOREACH_SAFE
+#define	SLIST_FOREACH_SAFE(var, head, field, tvar)			\
+	for ((var) = SLIST_FIRST((head));				\
+	    (var) && ((tvar) = SLIST_NEXT((var), field), 1);		\
+	    (var) = (tvar))
+#endif
 
 #ifndef	STAILQ_CONCAT
 #define	STAILQ_CONCAT(head1, head2) do {			\

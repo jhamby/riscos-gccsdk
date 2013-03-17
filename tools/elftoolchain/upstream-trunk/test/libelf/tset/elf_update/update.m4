@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: update.m4 2025 2011-10-22 05:01:21Z jkoshy $
+ * $Id: update.m4 2833 2012-12-30 16:16:51Z jkoshy $
  */
 
 #include <sys/types.h>
@@ -43,6 +43,10 @@
 
 include(`elfts.m4')
 define(`TS_OFFSET_SHDR',512)
+define(`MAKE_EM',
+    `ifelse($1,32,
+        ifelse($2,msb,EM_SPARC,EM_386),
+        ifelse($2,msb,EM_SPARCV9,EM_X86_64))')
 
 /*
  * Tests for the `elf_update' API.

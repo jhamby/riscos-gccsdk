@@ -33,7 +33,7 @@
 #include "ld_utils.h"
 #include "i386.h"
 
-ELFTC_VCSID("$Id: i386.c 2501 2012-04-29 18:18:04Z kaiwang27 $");
+ELFTC_VCSID("$Id: i386.c 2706 2012-12-01 21:34:08Z kaiwang27 $");
 
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);

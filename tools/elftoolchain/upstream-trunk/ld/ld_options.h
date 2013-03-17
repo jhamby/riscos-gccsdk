@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_options.h 2518 2012-06-16 23:10:52Z kaiwang27 $
+ * $Id: ld_options.h 2894 2013-01-15 23:05:24Z kaiwang27 $
  */
 
 enum ld_dash {
@@ -39,7 +39,7 @@ enum ld_arg {
 };
 
 enum ld_key {
-	KEY_ACCPET_UNKNOWN = 0x10000,
+	KEY_ACCEPT_UNKNOWN = 0x10000,
 	KEY_ALLOW_SHLIB_UNDEF,
 	KEY_ASSERT,
 	KEY_AS_NEEDED,
@@ -70,6 +70,7 @@ enum ld_key {
 	KEY_NO_GC_SECTIONS,
 	KEY_NO_KEEP_MEMORY,
 	KEY_NO_OMAGIC,
+	KEY_NO_PRINT_GC_SECTIONS,
 	KEY_NO_SHLIB_UNDEF,
 	KEY_NO_STDLIB,
 	KEY_NO_UNDEF_VERSION,
@@ -82,6 +83,7 @@ enum ld_key {
 	KEY_SECTION_START,
 	KEY_OFORMAT,
 	KEY_PIE,
+	KEY_PRINT_GC_SECTIONS,
 	KEY_QMAGIC,
 	KEY_QY,
 	KEY_RELAX,
@@ -108,6 +110,7 @@ enum ld_key {
 	KEY_WARN_MULTIPLE_GP,
 	KEY_WARN_ONCE,
 	KEY_WARN_SECTION_ALIGN,
+	KEY_WARN_SHARED_TEXTREL,
 	KEY_WARN_UNRESOLVE_SYM,
 	KEY_WHOLE_ARCHIVE,
 	KEY_WRAP,

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Kai Wang
+ * Copyright (c) 2012,2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 #include "ld_symver.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_dynamic.c 6207 2012-12-08 18:29:49Z joty $");
+ELFTC_VCSID("$Id: ld_dynamic.c 2918 2013-02-16 07:16:10Z kaiwang27 $");
 
 static void _check_dso_needed(struct ld *ld, struct ld_output *lo);
 static void _create_dynamic(struct ld *ld, struct ld_output *lo);
@@ -60,26 +60,28 @@ ld_dynamic_create(struct ld *ld)
 	if (lo->lo_dso_needed == 0)
 		return;
 
+	ld->ld_dynamic_link = 1;
+
 	/* Create .interp section. */
-	_create_interp(ld, lo);
-
-	/* Create dynamic relocation. */
-	ld->ld_arch->create_dynrel(ld);
-
-	/* Create PLT and GOT sections. */
-	ld->ld_arch->create_pltgot(ld);
+	if (!ld->ld_dso)
+		_create_interp(ld, lo);
 
 	/* Create .dynamic section. */
 	_create_dynamic(ld, lo);
-
-	/* Copy relevant symbols to internal dynsym table. */
-	ld_symbols_create_dynsym(ld);
 
 	/* Create .dynsym and .dynstr sections. */
 	_create_dynsym_and_dynstr_section(ld, lo);
 
 	/* Create .hash section. */
 	ld_hash_create_svr4_hash_section(ld);
+
+	/*
+	 * Create .gnu.version_d section if the linker creats a shared
+	 * library and version script is provided.
+	 */
+	lo->lo_version_index = 2;
+	if (ld->ld_dso)
+		ld_symver_create_verdef_section(ld);
 
 	/* Create .gnu.version_r section. */
 	ld_symver_create_verneed_section(ld);
@@ -99,91 +101,113 @@ ld_dynamic_finalize(struct ld *ld)
 	if (lo->lo_dso_needed == 0)
 		return;
 
-	/* Finalize dynamic relocation. */
-	ld->ld_arch->finalize_dynrel(ld);
-
-	/* Finalize PLT and GOT sections. */
-	ld->ld_arch->finalize_pltgot(ld);
-
 	/* Finalize .dynamic section */
 	_finalize_dynamic(ld, lo);
 }
 
 void
-ld_dynamic_create_copy_reloc(struct ld *ld)
+ld_dynamic_load_dso_dynamic(struct ld *ld, struct ld_input *li, Elf *e,
+    Elf_Scn *scn, size_t strndx)
 {
-	struct ld_input *li;
-	struct ld_input_section *is;
-	struct ld_symbol *lsb, *tmp;
-	size_t a, off;
+	GElf_Shdr shdr;
+	GElf_Dyn dyn;
+	Elf_Data *d;
+	int elferr, i, len;
+	const char *name;
 
-	ld->ld_num_copy_reloc = 0;
-	off = 0;
-	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
-
-		li = lsb->lsb_input;
-
-		if (li == NULL || li->li_type != LIT_DSO)
-			continue;
-
-		if (lsb->lsb_type != STT_OBJECT)
-			continue;
-
-		/*
-		 * TODO: we don't have to create copy relocation
-		 * for every import object. Some import objects
-		 * are read-only, in that case we can create other
-		 * dynamic relocations for them.
-		 */
-
-		if (ld->ld_dynbss == NULL) {
-			ld->ld_dynbss = ld_input_add_internal_section(ld,
-			    ".dynbss");
-			ld->ld_dynbss->is_type = SHT_NOBITS;
-		}
-
-		/*
-		 * If the section that the import symbols belongs to
-		 * has a larger alignment requirement, we increase .dynbss
-		 * section alignment accordingly. XXX What if it is a
-		 * DSO common symbol?
-		 */
-		is = NULL;
-		if (lsb->lsb_shndx != SHN_COMMON) {
-			assert(lsb->lsb_shndx < li->li_shnum - 1);
-			is = &li->li_is[lsb->lsb_shndx];
-			if (is->is_align > ld->ld_dynbss->is_align)
-				ld->ld_dynbss->is_align = is->is_align;
-		}
-
-		/*
-		 * Calculate the alignment for this object.
-		 */
-		if (is != NULL) {
-			for (a = is->is_align; a > 1; a >>= 1) {
-				if ((lsb->lsb_value - is->is_off) % a == 0)
-					break;
-			}
-		} else
-			a = 1;
-
-		if (a > 1)
-			off = roundup(off, a);
-
-		lsb->lsb_value = off;
-		lsb->lsb_copy_reloc = 1;
-		lsb->lsb_input = ld->ld_dynbss->is_input;
-		lsb->lsb_shndx = ld->ld_dynbss->is_index;
-
-		ld->ld_num_copy_reloc++;
-
-		off += lsb->lsb_size;
-	}
-
-	if (off == 0)
+	if (strndx == SHN_UNDEF)
 		return;
 
-	ld->ld_dynbss->is_size = off;
+	if (gelf_getshdr(scn, &shdr) != &shdr) {
+		ld_warn(ld, "%s: gelf_getshdr failed: %s", li->li_name,
+		    elf_errmsg(-1));
+		return;
+	}
+
+	(void) elf_errno();
+	if ((d = elf_getdata(scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			ld_warn(ld, "%s: elf_getdata failed: %s", li->li_name,
+			    elf_errmsg(elferr));
+		return;
+	}
+
+	len = d->d_size / shdr.sh_entsize;
+	for (i = 0; i < len; i++) {
+		if (gelf_getdyn(d, i, &dyn) != &dyn) {
+			ld_warn(ld, "%s: gelf_getdyn failed: %s", li->li_name,
+			    elf_errmsg(-1));
+			continue;
+		}
+		if (dyn.d_tag == DT_SONAME) {
+			name = elf_strptr(e, strndx, dyn.d_un.d_ptr);
+			if (name != NULL &&
+			    (li->li_soname = strdup(name)) == NULL)
+				ld_fatal_std(ld, "strdup");
+			break;
+		}
+	}
+}
+
+void
+ld_dynamic_reserve_dynbss_entry(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_input *li;
+	struct ld_input_section *dynbss, *is;
+	uint64_t a;
+
+	/* Create .dynbss section if it doesn't yet exist. */
+	dynbss = ld_input_find_internal_section(ld, ".dynbss");
+	if (dynbss == NULL) {
+		dynbss = ld_input_add_internal_section(ld, ".dynbss");
+		dynbss->is_type = SHT_NOBITS;
+	}
+
+	li = lsb->lsb_input;
+	assert(li != NULL && li->li_type == LIT_DSO);
+
+	/*
+	 * TODO: we don't have to create copy relocation
+	 * for every import object. Some import objects
+	 * are read-only, in that case we can create other
+	 * dynamic relocations for them.
+	 */
+
+	/*
+	 * If the section to which the symbols belong has a larger
+	 * alignment requirement, we increase .dynbss section alignment
+	 * accordingly. XXX What if it is a DSO common symbol?
+	 */
+	is = NULL;
+	if (lsb->lsb_shndx != SHN_COMMON) {
+		assert(lsb->lsb_shndx < li->li_shnum - 1);
+		is = &li->li_is[lsb->lsb_shndx];
+		if (is->is_align > dynbss->is_align)
+			dynbss->is_align = is->is_align;
+	}
+
+	/*
+	 * Calculate the alignment for this object.
+	 */
+	if (is != NULL) {
+		for (a = is->is_align; a > 1; a >>= 1) {
+			if ((lsb->lsb_value - is->is_off) % a == 0)
+				break;
+		}
+	} else
+		a = 1;
+
+	if (a > 1)
+		dynbss->is_size = roundup(dynbss->is_size, a);
+
+	lsb->lsb_value = dynbss->is_size;
+	lsb->lsb_copy_reloc = 1;
+	lsb->lsb_input = dynbss->is_input;
+	lsb->lsb_shndx = dynbss->is_index;
+	lsb->lsb_is = dynbss;
+
+	dynbss->is_size += lsb->lsb_size;
 }
 
 static void
@@ -222,7 +246,7 @@ _create_interp(struct ld *ld, struct ld_output *lo)
 	strncpy(odb->odb_buf, interp, strlen(interp));
 	odb->odb_buf[strlen(interp)] = '\0';
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER, odb,
 	    NULL);
 }
 
@@ -252,8 +276,19 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 
 	lo->lo_dynamic = os;
 
+	/* .dynamic section should link to .dynstr section. */
+	if ((os->os_link = strdup(".dynstr")) == NULL)
+		ld_fatal_std(ld, "strdup");
+
 	/* DT_NEEDED */
 	entries = lo->lo_dso_needed;
+
+	/* DT_SONAME. */
+	if (ld->ld_soname != NULL) {
+		lo->lo_soname_nameindex = ld_strtab_insert_no_suffix(ld,
+		    ld->ld_dynstr, ld->ld_soname);
+		entries++;
+	}
 
 	/* DT_INIT */
 	HASH_FIND_STR(lo->lo_ostbl, init_name, _os);
@@ -270,8 +305,7 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	}
 
 	/* DT_HASH, DT_STRTAB, DT_SYMTAB, DT_STRSZ and DT_SYMENT */
-	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0 ||
-	    HASH_CNT(hhexp, ld->ld_symtab_export) > 0)
+	if (ld->ld_dynsym)
 		entries += 5;
 
 	/* TODO: DT_RPATH. */
@@ -281,19 +315,23 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	 * it to find all the loaded DSOs. (thus .dynamic has to be
 	 * writable)
 	 */
-	entries++;
+	if (!ld->ld_dso)
+		entries++;
 
-	/* TODO: DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
+	/* DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
 	entries += 4;
 
 	/* DT_REL/DT_RELA, DT_RELSZ/DT_RELASZ and DT_RELENT/DT_RELAENT */
 	entries += 3;
 
 	/*
-	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
-	 * DT_VERSYM.
+	 * DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and DT_VERSYM.
 	 */
 	entries += 5;
+
+	/* DT_RELCOUNT/DT_RELACOUNT. */
+	if (ld->ld_state.ls_relative_reloc > 0)
+		entries++;
 
 	/* DT_NULL. TODO: Reserve multiple DT_NULL entries for DT_RPATH? */
 	entries++;
@@ -309,14 +347,14 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	odb->odb_align = os->os_align;
 	odb->odb_type = ELF_T_DYN;
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER, odb,
 	    NULL);
 
 	lo->lo_dynamic_odb = odb;
 
 	/* Create _DYNAMIC symobl. */
 	ld_symbols_add_internal(ld, "_DYNAMIC", 0, 0, SHN_ABS, STB_LOCAL,
-	    STT_OBJECT, STV_HIDDEN, os);
+	    STT_OBJECT, STV_HIDDEN, NULL, os);
 }
 
 #define	DT_ENTRY_VAL(tag,val)					\
@@ -386,6 +424,10 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	     p = (int *) (uintptr_t) utarray_next(lo->lo_dso_nameindex, p))
 		DT_ENTRY_VAL(DT_NEEDED, *p);
 
+	/* DT_SONAME. */
+	if (ld->ld_soname != NULL)
+		DT_ENTRY_VAL(DT_SONAME, lo->lo_soname_nameindex);
+
 	/* DT_INIT and DT_FINI */
 	if (lo->lo_init != NULL)
 		DT_ENTRY_PTR(DT_INIT, lo->lo_init->os_addr);
@@ -407,44 +449,51 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	}
 
 	/* DT_DEBUG */
-	DT_ENTRY_VAL(DT_DEBUG, 0);
+	if (!ld->ld_dso)
+		DT_ENTRY_VAL(DT_DEBUG, 0);
 
 	/* DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
-	if (lo->lo_got != NULL)
-		DT_ENTRY_PTR(DT_PLTGOT, lo->lo_got->os_addr);
+	if (lo->lo_gotplt != NULL)
+		DT_ENTRY_PTR(DT_PLTGOT, lo->lo_gotplt->os_addr);
 	if (lo->lo_rel_plt != NULL) {
 		DT_ENTRY_VAL(DT_PLTRELSZ, lo->lo_rel_plt->os_size);
-		DT_ENTRY_VAL(DT_PLTREL, lo->lo_rel_plt_type);
+		DT_ENTRY_VAL(DT_PLTREL,
+		    ld->ld_arch->reloc_is_rela ? DT_RELA : DT_REL);
 		DT_ENTRY_PTR(DT_JMPREL, lo->lo_rel_plt->os_addr);
 	}
 
 	/* DT_REL/DT_RELA, DT_RELSZ/DT_RELASZ and DT_RELENT/DT_RELAENT */
 	if (lo->lo_rel_dyn != NULL) {
-		if (lo->lo_rel_dyn_type == DT_REL) {
+		if (!ld->ld_arch->reloc_is_rela) {
 			DT_ENTRY_PTR(DT_REL, lo->lo_rel_dyn->os_addr);
 			DT_ENTRY_VAL(DT_RELSZ, lo->lo_rel_dyn->os_size);
-			DT_ENTRY_VAL(DT_RELENT,
-			    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Rel) :
-			    sizeof(Elf64_Rel));
+			DT_ENTRY_VAL(DT_RELENT, ld->ld_arch->reloc_entsize);
 		} else {
 			DT_ENTRY_PTR(DT_RELA, lo->lo_rel_dyn->os_addr);
 			DT_ENTRY_VAL(DT_RELASZ, lo->lo_rel_dyn->os_size);
-			DT_ENTRY_VAL(DT_RELAENT,
-			    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Rela) :
-			    sizeof(Elf64_Rela));
+			DT_ENTRY_VAL(DT_RELAENT, ld->ld_arch->reloc_entsize);
 		}
 	}
 
 	/*
-	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
+	 * DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
 	 * DT_VERSYM.
 	 */
+	if (lo->lo_verdef != NULL) {
+		DT_ENTRY_PTR(DT_VERDEF, lo->lo_verdef->os_addr);
+		DT_ENTRY_VAL(DT_VERDEFNUM, lo->lo_verdef_num);
+	}
 	if (lo->lo_verneed != NULL) {
 		DT_ENTRY_PTR(DT_VERNEED, lo->lo_verneed->os_addr);
-		DT_ENTRY_PTR(DT_VERNEEDNUM, lo->lo_verneed_num);
+		DT_ENTRY_VAL(DT_VERNEEDNUM, lo->lo_verneed_num);
 	}
 	if (lo->lo_versym != NULL)
 		DT_ENTRY_PTR(DT_VERSYM, lo->lo_versym->os_addr);
+
+	/* DT_RELCOUNT/DT_RELACOUNT. */
+	if (ld->ld_state.ls_relative_reloc > 0)
+		DT_ENTRY_VAL(ld->ld_arch->reloc_is_rela ? DT_RELACOUNT :
+		    DT_RELCOUNT, ld->ld_state.ls_relative_reloc);
 
 	/* Fill in the space left with DT_NULL entries */
 	DT_ENTRY_NULL;
@@ -474,10 +523,9 @@ _create_dynsym_and_dynstr_section(struct ld *ld, struct ld_output *lo)
 		os->os_entsize = sizeof(Elf64_Sym);
 		os->os_align = 8;
 	}
-	os->os_info_val = ld->ld_dynsym->sy_first_nonlocal;
 	lo->lo_dynsym = os;
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_SYMTAB,
+	(void) ld_output_create_section_element(ld, os, OET_SYMTAB,
 	    ld->ld_dynsym, NULL);
 
 	/*
@@ -494,10 +542,11 @@ _create_dynsym_and_dynstr_section(struct ld *ld, struct ld_output *lo)
 	os->os_align = 1;
 	lo->lo_dynstr = os;
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_STRTAB,
+	(void) ld_output_create_section_element(ld, os, OET_STRTAB,
 	    ld->ld_dynstr, NULL);
 
-	lo->lo_dynsym->os_link = os;
+	if ((lo->lo_dynsym->os_link = strdup(".dynstr")) == NULL)
+		ld_fatal_std(ld, "strdup");
 }
 
 static void
@@ -520,10 +569,14 @@ _check_dso_needed(struct ld *ld, struct ld_output *lo)
 				ld->ld_dynstr = ld_strtab_alloc(ld);
 
 			/* Insert DSO name to the .dynstr string table. */
-			if ((bn = strrchr(li->li_name, '/')) == NULL)
-				bn = li->li_name;
-			else
-				bn++;
+			if (li->li_soname != NULL)
+				bn = li->li_soname;
+			else {
+				if ((bn = strrchr(li->li_name, '/')) == NULL)
+					bn = li->li_name;
+				else
+					bn++;
+			}
 			ndx = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
 			    bn);
 

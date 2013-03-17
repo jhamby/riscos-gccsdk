@@ -24,7 +24,7 @@ pushdef(`_DIVNUM',divnum)divert(-1)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: elfts.m4 1645 2011-07-14 05:48:37Z jkoshy $
+ * $Id: elfts.m4 2844 2012-12-31 03:30:20Z jkoshy $
  */
 
 dnl `mkstemp' is a built-in in GNU m4.
@@ -78,8 +78,3 @@ define(`TP_SET_VERSION',`do {
 	} while (0)')
 
 divert(_DIVNUM)popdef(`_DIVNUM')
-
-define(`MAKE_EM',
-    `ifelse($1,32,
-        ifelse($2,msb,EM_SPARC,EM_386),
-        ifelse($2,msb,EM_SPARCV9,EM_X86_64))')

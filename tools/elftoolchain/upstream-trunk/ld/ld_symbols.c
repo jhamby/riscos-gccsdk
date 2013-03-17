@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #include "ld_script.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_symbols.c 2572 2012-09-08 17:37:10Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_symbols.c 2918 2013-02-16 07:16:10Z kaiwang27 $");
 
 #define	_INIT_SYMTAB_SIZE	128
 
@@ -55,30 +55,17 @@ static struct ld_archive_member * _extract_archive_member(struct ld *ld,
 static void _print_extracted_member(struct ld *ld,
     struct ld_archive_member *lam, struct ld_symbol *lsb);
 static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
-static int _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
-    struct ld_symbol *_lsb);
 static struct ld_symbol *_alloc_symbol(struct ld *ld);
 static void _free_symbol(struct ld_symbol *lsb);
 static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
-static struct ld_symbol *_find_symbol_from_import(struct ld *ld, char *name);
-static struct ld_symbol *_find_symbol_from_export(struct ld *ld, char *name);
-static void _add_to_import(struct ld *ld, struct ld_symbol *lsb);
-static void _remove_from_import(struct ld *ld, struct ld_symbol *lsb);
-static void _add_to_export(struct ld *ld, struct ld_symbol *lsb);
-static void _remove_from_export(struct ld *ld, struct ld_symbol *lsb);
-static void _update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
-    struct ld_symbol *lsb);
-static void _update_export(struct ld *ld, struct ld_symbol *lsb, int add);
 static void _update_symbol(struct ld_symbol *lsb);
 
 #define	_add_symbol(tbl, s) do {				\
 	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_longname,		\
 	    strlen((s)->lsb_longname), (s));			\
-	_update_export(ld, (s), 1);				\
 	} while (0)
 #define _remove_symbol(tbl, s) do {				\
 	HASH_DEL((tbl), (s));					\
-	_update_export(ld, (s), 0);				\
 	} while (0)
 #define _resolve_symbol(_s, s) do {				\
 	assert((_s) != (s));					\
@@ -90,7 +77,6 @@ static void _update_symbol(struct ld_symbol *lsb);
 	}							\
 	(s)->lsb_prev = (_s);					\
 	(_s)->lsb_ref = (s);					\
-	_update_import_and_export(ld, _s, s);			\
 	} while (0)
 
 void
@@ -99,9 +85,7 @@ ld_symbols_cleanup(struct ld *ld)
 	struct ld_input *li;
 	struct ld_symbol *lsb, *_lsb;
 
-	HASH_CLEAR(hh, ld->ld_symtab_def);
-	HASH_CLEAR(hh, ld->ld_symtab_undef);
-	HASH_CLEAR(hh, ld->ld_symtab_common);
+	HASH_CLEAR(hh, ld->ld_sym);
 
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		_unload_symbols(li);
@@ -148,7 +132,8 @@ ld_symbols_add_extern(struct ld *ld, char *name)
 {
 	struct ld_symbol *lsb;
 
-	if (_find_symbol(ld->ld_symtab_undef, name) != NULL)
+	/* Check if the extern symbol has been added before. */
+	if (_find_symbol(ld->ld_sym, name) != NULL)
 		return;
 
 	lsb = _alloc_symbol(ld);
@@ -165,7 +150,7 @@ ld_symbols_add_extern(struct ld *ld, char *name)
 	}
 	STAILQ_INSERT_TAIL(ld->ld_ext_symbols, lsb, lsb_next);
 
-	_add_symbol(ld->ld_symtab_undef, lsb);
+	_add_symbol(ld->ld_sym, lsb);
 }
 
 void
@@ -201,7 +186,8 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 void
 ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
     uint64_t value, uint16_t shndx, unsigned char bind, unsigned char type,
-    unsigned char other, struct ld_output_section *preset_os)
+    unsigned char other, struct ld_input_section *is,
+    struct ld_output_section *preset_os)
 {
 	struct ld_symbol *lsb;
 
@@ -218,6 +204,8 @@ ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
 	lsb->lsb_other = other;
 	lsb->lsb_preset_os = preset_os;
 	lsb->lsb_ref_ndso = 1;
+	lsb->lsb_input = (is == NULL) ? NULL : is->is_input;
+	lsb->lsb_is = is;
 
 	_resolve_and_add_symbol(ld, lsb);
 }
@@ -227,9 +215,7 @@ ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
 {
 	struct ld_symbol *lsb;
 
-	if ((lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL)
-		*val = lsb->lsb_value;
-	else if ((lsb = _find_symbol(ld->ld_symtab_common, name)) != NULL)
+	if ((lsb = _find_symbol(ld->ld_sym, name)) != NULL)
 		*val = lsb->lsb_value;
 	else
 		return (-1);
@@ -244,8 +230,12 @@ ld_symbols_resolve(struct ld *ld)
 	struct ld_file *lf;
 	struct ld_symbol *lsb, *_lsb;
 
-	if (TAILQ_EMPTY(&ld->ld_lflist))
-		ld_fatal(ld, "no input files");
+	if (TAILQ_EMPTY(&ld->ld_lflist)) {
+		if (ld->ld_print_version)
+			exit(EXIT_SUCCESS);
+		else
+			ld_fatal(ld, "no input files");
+	}
 
 	ls = &ld->ld_state;
 	lf = TAILQ_FIRST(&ld->ld_lflist);
@@ -275,10 +265,12 @@ ld_symbols_resolve(struct ld *ld)
 	}
 
 	/* Print information regarding space allocated for common symbols. */
-	if (ld->ld_print_linkmap && HASH_COUNT(ld->ld_symtab_common) > 0) {
+	if (ld->ld_print_linkmap) {
 		printf("\nCommon symbols:\n");
 		printf("%-34s %-10s %s\n", "name", "size", "file");
-		HASH_ITER(hh, ld->ld_symtab_common, lsb, _lsb) {
+		HASH_ITER(hh, ld->ld_sym, lsb, _lsb) {
+			if (lsb->lsb_shndx != SHN_COMMON)
+				continue;
 			printf("%-34s", lsb->lsb_name);
 			if (strlen(lsb->lsb_name) > 34)
 				printf("\n%-34s", "");
@@ -286,16 +278,6 @@ ld_symbols_resolve(struct ld *ld)
 			    ld_input_get_fullname(ld, lsb->lsb_input));
 		}
 	}
-
-	if (HASH_COUNT(ld->ld_symtab_undef) > 0) {
-		HASH_ITER(hh, ld->ld_symtab_undef, lsb, _lsb) {
-			if (lsb->lsb_bind != STB_WEAK)
-				ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
-		}
-	}
-
-	/* Create copy relocations for import symbols, if need. */
-	ld_dynamic_create_copy_reloc(ld);
 }
 
 void
@@ -311,16 +293,11 @@ ld_symbols_update(struct ld *ld)
 			_update_symbol(lsb);
 	}
 
-	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
-		/* Skip defined symbols from DSOs. */
-		if (lsb->lsb_input != NULL &&
-		    lsb->lsb_input->li_type == LIT_DSO)
+	HASH_ITER(hh, ld->ld_sym, lsb, _lsb) {
+		/* Skip symbols from DSOs. */
+		if (ld_symbols_in_dso(lsb))
 			continue;
 
-		_update_symbol(lsb);
-	}
-
-	HASH_ITER(hh, ld->ld_symtab_common, lsb, _lsb) {
 		_update_symbol(lsb);
 	}
 }
@@ -329,12 +306,10 @@ void
 ld_symbols_build_symtab(struct ld *ld)
 {
 	struct ld_output *lo;
-	struct ld_output_section *os;
+	struct ld_output_section *os, *_os;
 	struct ld_input *li;
-#if 0
 	struct ld_input_section *is;
-#endif
-	struct ld_symbol *lsb, *lsb0, *tmp, _lsb;
+	struct ld_symbol *lsb, *tmp, _lsb;
 
 	lo = ld->ld_output;
 
@@ -355,14 +330,37 @@ ld_symbols_build_symtab(struct ld *ld)
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_empty)
 			continue;
-		_lsb.lsb_name = NULL;
-		_lsb.lsb_size = 0;
-		_lsb.lsb_value = os->os_addr;
-		_lsb.lsb_shndx = elf_ndxscn(os->os_scn);
-		_lsb.lsb_bind = STB_LOCAL;
-		_lsb.lsb_type = STT_SECTION;
-		_lsb.lsb_other = 0;
-		_add_to_symbol_table(ld, &_lsb);
+		if (os->os_secsym != NULL)
+			continue;
+		if (os->os_rel)
+			continue;
+		os->os_secsym = calloc(1, sizeof(*os->os_secsym));
+		if (os->os_secsym == NULL)
+			ld_fatal_std(ld, "calloc");
+		os->os_secsym->lsb_name = NULL;
+		os->os_secsym->lsb_size = 0;
+		os->os_secsym->lsb_value = os->os_addr;
+		os->os_secsym->lsb_shndx = elf_ndxscn(os->os_scn);
+		os->os_secsym->lsb_bind = STB_LOCAL;
+		os->os_secsym->lsb_type = STT_SECTION;
+		os->os_secsym->lsb_other = 0;
+		_add_to_symbol_table(ld, os->os_secsym);
+
+		/* Create STT_SECTION symbols for relocation sections. */
+		if (os->os_r != NULL && !ld->ld_reloc) {
+			_os = os->os_r;
+			_os->os_secsym = calloc(1, sizeof(*_os->os_secsym));
+			if (_os->os_secsym == NULL)
+				ld_fatal_std(ld, "calloc");
+			_os->os_secsym->lsb_name = NULL;
+			_os->os_secsym->lsb_size = 0;
+			_os->os_secsym->lsb_value = _os->os_addr;
+			_os->os_secsym->lsb_shndx = elf_ndxscn(_os->os_scn);
+			_os->os_secsym->lsb_bind = STB_LOCAL;
+			_os->os_secsym->lsb_type = STT_SECTION;
+			_os->os_secsym->lsb_other = 0;
+			_add_to_symbol_table(ld, _os->os_secsym);
+		}
 	}
 
 	/* Copy local symbols from each input object. */
@@ -370,52 +368,64 @@ ld_symbols_build_symtab(struct ld *ld)
 		if (li->li_local == NULL)
 			continue;
 		STAILQ_FOREACH(lsb, li->li_local, lsb_next) {
-#if 0
-			li = lsb->lsb_input;
-			is = &li->li_is[lsb->lsb_shndx];
-			if (is->is_output == NULL) {
-				printf("discard symbol: %s\n", lsb->lsb_name);
-				continue;
-			}
-#endif
 			if (lsb->lsb_type != STT_SECTION &&
 			    lsb->lsb_index != 0)
 				_add_to_symbol_table(ld, lsb);
+
+			/*
+			 * Set the symbol index of the STT_SECTION symbols
+			 * to the index of the section symbol for the
+			 * corresponding output section. The updated
+			 * symbol index will be used by the relocation
+			 * serialization function If the linker generates
+			 * relocatable object or option -emit-relocs is
+			 * specified.
+			 */
+			if (lsb->lsb_type == STT_SECTION) {
+				is = lsb->lsb_is;
+				if (is->is_output != NULL) {
+					os = is->is_output;
+					assert(os->os_secsym != NULL);
+					lsb->lsb_out_index =
+					    os->os_secsym->lsb_out_index;
+				}
+			}
 		}
 	}
 
 	/* Copy resolved global symbols from hash table. */
-	HASH_ITER(hh, ld->ld_symtab_def, lsb, tmp) {
-		if (lsb->lsb_input != NULL &&
-		    lsb->lsb_input->li_type == LIT_DSO) {
-			lsb0 = _find_symbol_from_import(ld, lsb->lsb_longname);
-			if (lsb0 == NULL)
-				continue;
-			memcpy(&_lsb, lsb0, sizeof(_lsb));
-			_lsb.lsb_value = 0;
-			_lsb.lsb_shndx = SHN_UNDEF;
-			_add_to_symbol_table(ld, &_lsb);
-		} else
-			_add_to_symbol_table(ld, lsb);
-	}
+	HASH_ITER(hh, ld->ld_sym, lsb, tmp) {
 
-	/* Copy undefined weak symbols. */
-	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
-		/* Skip weak undefined symbols from DSO. */
-		if (lsb->lsb_input != NULL &&
-		    lsb->lsb_input->li_type == LIT_DSO)
+		/* Skip undefined/unreferenced symbols from DSO. */
+		if (ld_symbols_in_dso(lsb) &&
+		    (lsb->lsb_shndx == SHN_UNDEF || !lsb->lsb_ref_ndso))
 			continue;
-		_add_to_symbol_table(ld, lsb);
-	}
 
-	/* Copy common symbols. */
-	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
+		/*
+		 * Skip linker script defined symbols when creating
+		 * relocatable output object.
+		 */
+		if (lsb->lsb_input == NULL && ld->ld_reloc)
+			continue;
+
+		/* Skip "provide" symbols that are not referenced. */
+		if (lsb->lsb_provide && lsb->lsb_prev == NULL)
+			continue;
+
+		if (lsb->lsb_import) {
+			if (lsb->lsb_type == STT_FUNC && lsb->lsb_func_addr)
+				lsb->lsb_value = lsb->lsb_plt_off;
+			else
+				lsb->lsb_value = 0;
+			lsb->lsb_shndx = SHN_UNDEF;
+		}
+
 		_add_to_symbol_table(ld, lsb);
 	}
 }
 
 void
-ld_symbols_create_dynsym(struct ld *ld)
+ld_symbols_scan(struct ld *ld)
 {
 	struct ld_symbol *lsb, *tmp;
 
@@ -426,31 +436,80 @@ ld_symbols_create_dynsym(struct ld *ld)
 	/* Reserve space for the initial symbol. */
 	ld->ld_dynsym->sy_size++;
 
-	/* undefined weak symbols. */
-	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
-		/* Skip weak undefined symbols from DSO. */
-		if (lsb->lsb_input != NULL &&
-		    lsb->lsb_input->li_type == LIT_DSO)
+	HASH_ITER(hh, ld->ld_sym, lsb, tmp) {
+
+		/*
+		 * Warn undefined symbols if the linker is creating an
+		 * executable.
+		 */
+		if ((ld->ld_exec || ld->ld_pie) &&
+		    lsb->lsb_shndx == SHN_UNDEF &&
+		    lsb->lsb_bind != STB_WEAK)
+			ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
+
+		/*
+		 * Allocate space for common symbols and add them to the
+		 * special input section COMMON for section layout later.
+		 */
+		if (lsb->lsb_shndx == SHN_COMMON)
+			ld_input_alloc_common_symbol(ld, lsb);
+
+		/*
+		 * The code below handles the dynamic symbol table. If
+		 * we are doing a -static linking, we can skip.
+		 */
+		if (!ld->ld_dynamic_link)
 			continue;
-		_add_to_dynsym_table(ld, lsb);
-	}
 
-	/* import symbols. */
-	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
-		lsb->lsb_import = 1;
-		_add_to_dynsym_table(ld, lsb);
-	}
+		/*
+		 * Following symbols should not be added to the dynamic
+		 * symbol table:
+		 *
+		 * 1. Do not add undefined symbols in DSOs.
+		 */
+		if (ld_symbols_in_dso(lsb) && lsb->lsb_shndx == SHN_UNDEF)
+			continue;
 
-	/* export symbols. */
-	HASH_ITER(hhexp, ld->ld_symtab_export, lsb, tmp) {
-		_add_to_dynsym_table(ld, lsb);
+		/*
+		 * Add following symbols to the dynamic symbol table:
+		 *
+		 * 1. A symbol that is defined in a regular object and
+		 *    referenced by a DSO.
+		 *
+		 * 2. A symbol that is defined in a DSO and referenced
+		 *    by a regular object.
+		 *
+		 * 3. A symbol that is referenced by a dynamic relocation.
+		 *
+		 * 4. The linker creates a DSO and the symbol is defined
+		 *    in a regular object and is visible externally.
+		 *
+		 */
+		if (lsb->lsb_ref_dso && ld_symbols_in_regular(lsb))
+			_add_to_dynsym_table(ld, lsb);
+		else if (lsb->lsb_ref_ndso && ld_symbols_in_dso(lsb)) {
+			lsb->lsb_import = 1;
+			lsb->lsb_input->li_dso_refcnt++;
+			ld_symver_add_verdef_refcnt(ld, lsb);
+			_add_to_dynsym_table(ld, lsb);
+		} else if (lsb->lsb_dynrel)
+			_add_to_dynsym_table(ld, lsb);
+		else if (ld->ld_dso && ld_symbols_in_regular(lsb) &&
+		    lsb->lsb_other == STV_DEFAULT &&
+		    ld_symver_search_version_script(ld, lsb) != 0)
+
+			_add_to_dynsym_table(ld, lsb);
 	}
 }
 
 void
 ld_symbols_finalize_dynsym(struct ld *ld)
 {
+	struct ld_output *lo;
 	struct ld_symbol *lsb, _lsb;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
 
 	/* Create an initial symbol at the beginning of symbol table. */
 	_lsb.lsb_name = NULL;
@@ -466,14 +525,80 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 	assert(ld->ld_dyn_symbols != NULL);
 
 	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
-		if (lsb->lsb_import && lsb->lsb_type == STT_FUNC) {
+		if (lsb->lsb_import) {
 			memcpy(&_lsb, lsb, sizeof(_lsb));
-			_lsb.lsb_value = 0;
+			if (lsb->lsb_type == STT_FUNC && lsb->lsb_func_addr)
+				_lsb.lsb_value = lsb->lsb_plt_off;
+			else
+				_lsb.lsb_value = 0;
 			_lsb.lsb_shndx = SHN_UNDEF;
 			_write_to_dynsym_table(ld, &_lsb);
 		} else
 			_write_to_dynsym_table(ld, lsb);
 	}
+
+	lo->lo_dynsym->os_info_val = ld->ld_dynsym->sy_first_nonlocal;
+}
+
+/*
+ * Retrieve the resolved symbol.
+ */
+struct ld_symbol *
+ld_symbols_ref(struct ld_symbol *lsb)
+{
+
+	while (lsb->lsb_ref != NULL)
+		lsb = lsb->lsb_ref;
+
+	return (lsb);
+}
+
+/*
+ * Check if a symbol can be overriden (by symbols in main executable).
+ */
+int
+ld_symbols_overridden(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	/* Symbols can be overridden only when we are creating a DSO. */
+	if (!ld->ld_dso)
+		return (0);
+
+	/* Only visible symbols can be overriden. */
+	if (lsb->lsb_other != STV_DEFAULT)
+		return (0);
+
+	/*
+	 * Symbols converted to local by version script can not be
+	 * overridden.
+	 */
+	if (ld_symver_search_version_script(ld, lsb) == 0)
+		return (0);
+
+	/* TODO: other cases. */
+
+	/* Otherwise symbol can be overridden. */
+	return (1);
+}
+
+/*
+ * Check if a symbol is defined in regular object.
+ */
+int
+ld_symbols_in_regular(struct ld_symbol *lsb)
+{
+
+	return (lsb->lsb_input == NULL || lsb->lsb_input->li_type != LIT_DSO);
+}
+
+/*
+ * Check if a symbol is defined in a DSO.
+ */
+int
+ld_symbols_in_dso(struct ld_symbol *lsb)
+{
+
+	return (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO);
 }
 
 static struct ld_symbol *
@@ -496,167 +621,16 @@ _find_symbol(struct ld_symbol *tbl, char *name)
 	return (s);
 }
 
-static struct ld_symbol *
-_find_symbol_from_import(struct ld *ld, char *name)
-{
-	struct ld_symbol *s;
+#define _prefer_new()	do {			\
+	_resolve_symbol(_lsb, lsb);		\
+	_remove_symbol(ld->ld_sym, _lsb);	\
+	_add_symbol(ld->ld_sym, lsb);		\
+	} while (0)
 
-	HASH_FIND(hhimp, ld->ld_symtab_import, name, strlen(name), s);
-	return (s);
-}
+#define _prefer_old()	_resolve_symbol(lsb, _lsb)
 
-static struct ld_symbol *
-_find_symbol_from_export(struct ld *ld, char *name)
-{
-	struct ld_symbol *s;
-
-	HASH_FIND(hhexp, ld->ld_symtab_export, name, strlen(name), s);
-	return (s);
-}
-
-static void
-_add_to_import(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-
-	_lsb = _find_symbol_from_import(ld, lsb->lsb_longname);
-	if (_lsb != NULL)
-		return;
-	HASH_ADD_KEYPTR(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
-	    strlen(lsb->lsb_longname), lsb);
-	lsb->lsb_input->li_dso_refcnt++;
-	ld_symver_increase_verdef_refcnt(ld, lsb);
-
-	if (lsb->lsb_type == STT_FUNC)
-		ld->ld_num_import_func++;
-}
-
-static void
-_remove_from_import(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-
-	_lsb = _find_symbol_from_import(ld, lsb->lsb_longname);
-	if (_lsb == NULL)
-		return;
-	HASH_DELETE(hhimp, ld->ld_symtab_import, _lsb);
-	_lsb->lsb_input->li_dso_refcnt--;
-	ld_symver_decrease_verdef_refcnt(ld, lsb);
-
-	if (lsb->lsb_type == STT_FUNC) {
-		assert(ld->ld_num_import_func > 0);
-		ld->ld_num_import_func--;
-	}
-}
-
-static void
-_add_to_export(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-
-	if (lsb->lsb_other == STV_HIDDEN)
-		return;
-
-	_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
-	if (_lsb != NULL)
-		return;
-	HASH_ADD_KEYPTR(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
-	    strlen(lsb->lsb_longname), lsb);
-}
-
-static void
-_remove_from_export(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-
-	if (lsb->lsb_other == STV_HIDDEN)
-		return;
-
-	_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
-	if (_lsb == NULL)
-		return;
-	HASH_DELETE(hhexp, ld->ld_symtab_export, _lsb);
-}
-
-static void
-_update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
-    struct ld_symbol *lsb)
-{
-
-	/*
-	 * If a DSO symbol is resolved by a defined symbol, the latter should
-	 * be added to the export list if it is *not* defined in a DSO and
-	 * if it doesn't yet exist there.
-	 *
-	 * If a defined DSO symbol is resolved by another symbol, the DSO
-	 * symbol should be removed from the import symbol table, if it exists
-	 * there.
-	 */
-	if (_lsb->lsb_input != NULL && _lsb->lsb_input->li_type == LIT_DSO) {
-		if (_lsb->lsb_shndx != SHN_UNDEF)
-			_remove_from_import(ld, _lsb);
-		if (lsb->lsb_shndx != SHN_UNDEF && (lsb->lsb_input == NULL ||
-		    lsb->lsb_input->li_type == LIT_RELOCATABLE))
-			_add_to_export(ld, lsb);
-	}
-
-
-	/*
-	 * If some symbol resolved to a defined DSO symbol, and the former
-	 * once appeared in a place other than a DSO, the DSO symbol
-	 * should be added to import symbol table, if it doesn't yet exist
-	 * there.
-	 */
-	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO &&
-	    lsb->lsb_shndx != SHN_UNDEF && lsb->lsb_ref_ndso)
-		_add_to_import(ld, lsb);
-}
-
-static void
-_update_export(struct ld *ld, struct ld_symbol *lsb, int add)
-{
-
-	if (lsb->lsb_shndx == SHN_UNDEF)
-		return;
-
-	/* TODO: handle DSO. */
-	if (lsb->lsb_input != NULL &&
-	    lsb->lsb_input->li_type != LIT_RELOCATABLE)
-		return;
-
-	/*
-	 * Update the export table if the symbol has appeared in
-	 * a DSO before.
-	 */
-	if (lsb->lsb_ref_dso) {
-		if (add)
-			_add_to_export(ld, lsb);
-		else
-			_remove_from_export(ld, lsb);
-	}
-}
-
-static int
-_resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
-    struct ld_symbol *_lsb)
-{
-
-	if (_lsb->lsb_provide)
-		_remove_symbol(ld->ld_symtab_def, _lsb);
-	else if (lsb->lsb_input != NULL &&
-	    lsb->lsb_input->li_type == LIT_DSO) {
-		_resolve_symbol(lsb, _lsb);
-		return (-1);
-	} else if (_lsb->lsb_input != NULL &&
-	    _lsb->lsb_input->li_type == LIT_DSO) {
-		_resolve_symbol(_lsb, lsb);
-		_remove_symbol(ld->ld_symtab_def, _lsb);
-	} else
-		ld_fatal(ld, "multiple definition of symbol "
-		    "%s", lsb->lsb_longname);
-
-	return (0);
-}
+#undef	max
+#define	max(a, b) ((a) > (b) ? (a) : (b))
 
 static void
 _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
@@ -665,155 +639,235 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 	struct ld_symbol_defver *dv;
 	char *name, *sn;
 
+	/* "long" name is a symbol name plus a symbol version string. */
 	name = lsb->lsb_longname;
+
+	/* "sn" stores the bare symbol name. */
 	sn = lsb->lsb_name;
+
+	/*
+	 * Search in the symbol table for the symbol with the same name and
+	 * same version.
+	 */
+	if ((_lsb = _find_symbol(ld->ld_sym, name)) != NULL)
+		goto found;
+
+	/*
+	 * If there is a default version recorded for the symbol name:
+	 *
+	 * 1. If the symbol to resolve doesn't have a version, search the
+	 *    symbol with the same name and with a default version.
+	 *
+	 * 2. If the symbol to resolve has the default version, search the
+	 *    symbol with the same name but without a version.
+	 */
+	HASH_FIND_STR(ld->ld_defver, sn, dv);
+	if (dv != NULL) {
+		if (!strcmp(name, sn)) {
+			if ((_lsb = _find_symbol(ld->ld_sym,
+			    dv->dv_longname)) != NULL)
+				goto found;
+		} else if (!strcmp(name, dv->dv_longname)) {
+			if ((_lsb = _find_symbol(ld->ld_sym, sn)) != NULL)
+				goto found;
+		}
+	}
+
+	/*
+	 * This is *probably* a new symbol, add it to the symbol table
+	 * and proceed.
+	 *
+	 * Note that if one symbol has a version but another one doesn't,
+	 * and they are both undefined, there is still a chance that they are
+	 * the same symbol. We will solve that when we see the definition.
+	 */
+	_add_symbol(ld->ld_sym, lsb);
+
+	return;
+
+found:
+
+	/*
+	 * We found the same symbol in the symbol table. Now we should
+	 * decide which symbol to resolve and which symbol to keep.
+	 */
+
+	/*
+	 * Verify both symbol has the same TLS (thread local storage)
+	 * characteristics.
+	 */
+	if ((lsb->lsb_type == STT_TLS || _lsb->lsb_type == STT_TLS) &&
+	    lsb->lsb_type != _lsb->lsb_type)
+		ld_fatal(ld, "TLS symbol %s is non-TLS in another reference");
+
+
+	/*
+	 * If the symbol to resolve is undefined, we always resolve this
+	 * symbol to the symbol that is already in the table, no matter it is
+	 * defined or not.
+	 */
+
 	if (lsb->lsb_shndx == SHN_UNDEF) {
-		/*
-		 * Search the undefined, defined and common symbol hash
-		 * table for symbol with the same name. If found, point this
-		 * symbol to the symbol found.
-		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL ||
-		    (_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL ||
-		    (_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
-		    NULL) {
-			_resolve_symbol(lsb, _lsb);
-			return;
-		}
+		_prefer_old();
+		return;
+	}
 
-		/*
-		 * If the symbol version is not specified, also search the
-		 * default-versioned defined symbol table.
-		 */
-		if (!strcmp(name, sn)){
-			HASH_FIND_STR(ld->ld_defver, name, dv);
-			if (dv != NULL) {
-				if ((_lsb = _find_symbol(ld->ld_symtab_def,
-				    dv->dv_longname)) != NULL) {
-					_resolve_symbol(lsb, _lsb);
-					return;
-				}
-			}
-		}
+	/*
+	 * If the symbol to resolve is a common symbol and is defined in
+	 * a regular object:
+	 *
+	 * 1. If the symbol in the table is undefined, we prefer the
+	 *    common symbol.
+	 *
+	 * 2. If both symbols are common symbols, we prefer the symbol
+	 *    already in the table. However if the symbol in the table
+	 *    is found in a DSO, we prefer the common symbol in regular
+	 *    object. The size of the symbol we decided to keep is set to
+	 *    the larger one of the two.
+	 *
+	 * 3. If the symbol in the table is defined, we prefer the
+	 *    defined symbol. However if the defined symbol is found
+	 *    in a DSO, we prefer the common symbol in regular object.
+	 *
+	 */
 
-		/*
-		 * Otherwise add the new symbol to undefined symbol hash
-		 * table.
-		 */
-		_add_symbol(ld->ld_symtab_undef, lsb);
-
-	} else if (lsb->lsb_shndx == SHN_COMMON) {
-		/*
-		 * Search the defined symbol hash table for symbol with the
-		 * same name. If found, resolve this symbol to the symbol
-		 * found.
-		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
-			_resolve_symbol(lsb, _lsb);
-			return;
-		}
-
-		/*
-		 * If the symbol version is not specified, also search the
-		 * default-versioned defined symbol table.
-		 */
-		if (!strcmp(name, sn)){
-			HASH_FIND_STR(ld->ld_defver, name, dv);
-			if (dv != NULL) {
-				if ((_lsb = _find_symbol(ld->ld_symtab_def,
-				    dv->dv_longname)) != NULL) {
-					_resolve_symbol(lsb, _lsb);
-					return;
-				}
-			}
-		}
-
-		/*
-		 * Search the undefined symbol hash table for symbol with the
-		 * same name. If found, resolve the found symbol to this
-		 * symbol.
-		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL) {
-			_resolve_symbol(_lsb, lsb);
-			_remove_symbol(ld->ld_symtab_undef, _lsb);
-		}
-
-		/*
-		 * Search the common symbol hash table for symbol with the
-		 * same name. If found, compare the size of the two symbols
-		 * and prefer the one that has a bigger size.
-		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
-		    NULL) {
-			if (lsb->lsb_size > _lsb->lsb_size) {
-				_resolve_symbol(_lsb, lsb);
-				_remove_symbol(ld->ld_symtab_common, _lsb);
+	if (lsb->lsb_shndx == SHN_COMMON && ld_symbols_in_regular(lsb)) {
+		if (_lsb->lsb_shndx == SHN_UNDEF)
+			_prefer_new();
+		else if (_lsb->lsb_shndx == SHN_COMMON) {
+			if (ld_symbols_in_dso(_lsb)) {
+				_prefer_new();
+				lsb->lsb_size = max(lsb->lsb_size,
+				    _lsb->lsb_size);
 			} else {
-				_resolve_symbol(lsb, _lsb);
-				return;
+				_prefer_old();
+				_lsb->lsb_size = max(lsb->lsb_size,
+				    _lsb->lsb_size);
+			}
+		} else {
+			if (ld_symbols_in_dso(_lsb))
+				_prefer_new();
+			else
+				_prefer_old();
+		}
+		return;
+	}
+
+
+	/*
+	 * If the symbol to resolve is a common symbol and is defined in
+	 * a DSO:
+	 *
+	 * 1. If the symbol in the table is undefined, we prefer the common
+	 *    symbol.
+	 *
+	 * 2. If the symbol in the table is also a common symbol, we prefer
+	 *    the one in the table. The size of the symbol we decided to
+	 *    keep is set to the larger one of the two.
+	 *
+	 * 3. If the symbol in the table is defined, we prefer the defined
+	 *    symbol.
+	 */
+
+	if (lsb->lsb_shndx == SHN_COMMON && ld_symbols_in_dso(lsb)) {
+		if (_lsb->lsb_shndx == SHN_UNDEF)
+			_prefer_new();
+		else if (_lsb->lsb_shndx == SHN_COMMON) {
+			_prefer_old();
+			_lsb->lsb_size = max(lsb->lsb_size, _lsb->lsb_size);
+		} else
+			_prefer_old();
+		return;
+	}
+
+	/*
+	 * Now we know the symbol to resolve is a defined symbol. If it is
+	 * defined in a regular object:
+	 *
+	 * 1. If the symbol in the table is undefined, we prefer the defined
+	 *    symbol. (no doubt!)
+	 *
+	 * 2. If the symbol in the table is a common symbol, we perfer the
+	 *    defined symbol.
+	 *
+	 * 3. If the symbol in the table is also a defined symbol, we need to
+	 * consider:
+	 *
+	 * a) If the symbol in the table is also defined in a regular object,
+	 *    and both symbols are strong, we have a multi-definition error.
+	 *    If only one of them is strong, we pick that one. If both of them
+	 *    are weak, we pick the one that is already in the table. (fisrt
+	 *    seen). Another case is that if one of them is a "provide" symbol,
+	 *    we prefer the one that is not "provide".
+	 *
+	 * b) If the symbol in the table is defined in a DSO, we pick the one
+	 *    defined in the regular object. (no matter weak or strong!)
+	 */
+
+	if (ld_symbols_in_regular(lsb)) {
+		if (_lsb->lsb_shndx == SHN_UNDEF ||
+		    _lsb->lsb_shndx == SHN_COMMON)
+			_prefer_new();
+		else {
+			if (ld_symbols_in_regular(_lsb)) {
+				if (_lsb->lsb_provide && !lsb->lsb_provide)
+					_prefer_new();
+				else if (lsb->lsb_bind == _lsb->lsb_bind) {
+					if (lsb->lsb_bind == STB_WEAK)
+						_prefer_old();
+					else
+						ld_fatal(ld, "multiple "
+						    "definition of symbol %s",
+						    lsb->lsb_longname);
+				} else if (lsb->lsb_bind == STB_WEAK)
+					_prefer_old();
+				else
+					_prefer_new();
+			} else
+				_prefer_new();
+		}
+		return;
+	}
+
+	/*
+	 * Last case, the symbol to resolve is a defined symbol in a DSO.
+	 *
+	 * 1. If the symbol in the table is undefined, we prefer the defined
+	 *    symbol. (no doubt!)
+	 *
+	 * 2. If the symbol in the table is a common symbol: if it is in a
+	 *    regular object and the defined DSO symbol is a function, we
+	 *    prefer the common symbol. For all the other cases, we prefer
+	 *    the defined symbol in the DSO.
+	 *
+	 * 3. If the symbol in the table is a defined symbol. We always pick
+	 *    the symbol already in the table. (no matter it's in regular
+	 *    object or DSO, strong or weak)
+	 */
+
+	if (_lsb->lsb_shndx != SHN_UNDEF && _lsb->lsb_shndx != SHN_COMMON)
+		_prefer_old();
+	else if (_lsb->lsb_shndx == SHN_COMMON &&
+	    ld_symbols_in_regular(_lsb) && lsb->lsb_type == STT_FUNC)
+		_prefer_old();
+	else {
+		_prefer_new();
+
+		/*
+		 * Now we added a defined symbol from DSO. Here we should
+		 * check if the DSO symbol has a default symbol version.
+		 * If so, we search the symbol table for the symbol with the
+		 * same name but without a symbol version. If there is one,
+		 * we resolve the found symbol to this newly added DSO symbol
+		 * and remove the found symbol from the table.
+		 */
+		HASH_FIND_STR(ld->ld_defver, sn, dv);
+		if (dv != NULL) {
+			if ((_lsb = _find_symbol(ld->ld_sym, sn)) != NULL) {
+				_resolve_symbol(_lsb, lsb);
+				_remove_symbol(ld->ld_sym, _lsb);
 			}
 		}
-
-		/* Add the new symbol to common symbol hash table. */
-		_add_symbol(ld->ld_symtab_common, lsb);
-
-	} else {
-		/*
-		 * Search in the defined symbol hash table for the symbol
-		 * with the same "long name". If such symbol is found, pass
-		 * it to function _resolve_multidef_symbol() for resolution.
-		 * If the symbol is default-versioned, also search in the
-		 * defined symbol hash table for unversioned symbol with the
-		 * same "short name".
-		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
-			if (_resolve_multidef_symbol(ld, lsb, _lsb) < 0)
-				return;
-		}
-		if (lsb->lsb_default &&
-		    (_lsb = _find_symbol(ld->ld_symtab_def, sn)) != NULL) {
-			if (_resolve_multidef_symbol(ld, lsb, _lsb) < 0)
-				return;
-		}
-
-		/*
-		 * Search in the undefined symbol hash table for the symbol
-		 * with the same "long name". If such symbol is found, we
-		 * resolve the found symbol to this symbol. If the symbol
-		 * is default-versioned, also search in the undefined symbol
-		 * hash table for unversioned symbol with the same
-		 * "short name".
-		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL) {
-			_resolve_symbol(_lsb, lsb);
-			_remove_symbol(ld->ld_symtab_undef, _lsb);
-		}
-		if (lsb->lsb_default &&
-		    (_lsb = _find_symbol(ld->ld_symtab_undef, sn)) != NULL) {
-			_resolve_symbol(_lsb, lsb);
-			_remove_symbol(ld->ld_symtab_undef, _lsb);
-		}
-
-		/*
-		 * Search in the common symbol hash table for the symbol with
-		 * the same "long name". If such symbol is found, we resolve
-		 * the found symbol to this symbol. If the symbol is
-		 * default-versioned, also search in the common symbol hash
-		 * table for unversioned symbol with the same "short name".
-		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
-		    NULL) {
-			_resolve_symbol(_lsb, lsb);
-			_remove_symbol(ld->ld_symtab_common, _lsb);
-		}
-		if (lsb->lsb_default &&
-		    (_lsb = _find_symbol(ld->ld_symtab_common, sn)) != NULL) {
-			_resolve_symbol(_lsb, lsb);
-			_remove_symbol(ld->ld_symtab_common, _lsb);
-		}
-
-		/* Add the new symbol to the defined symbol hash table. */
-		_add_symbol(ld->ld_symtab_def, lsb);
 	}
 }
 
@@ -842,6 +896,15 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	lsb->lsb_index = i;
 	lsb->lsb_input = li;
 	lsb->lsb_ver = NULL;
+
+	if (lsb->lsb_shndx != SHN_UNDEF && lsb->lsb_shndx != SHN_ABS) {
+		if (lsb->lsb_shndx == SHN_COMMON)
+			lsb->lsb_is = &li->li_is[li->li_shnum - 1];
+		else {
+			assert(lsb->lsb_shndx < li->li_shnum - 1);
+			lsb->lsb_is = &li->li_is[lsb->lsb_shndx];
+		}
+	}
 
 	if (li->li_type == LIT_DSO)
 		lsb->lsb_ref_dso = 1;
@@ -1011,8 +1074,8 @@ _load_archive_symbols(struct ld *ld, struct ld_file *lf)
 				break;
 			if (_archive_member_extracted(la, as[i].as_off))
 				continue;
-			if ((lsb = _find_symbol(ld->ld_symtab_undef,
-			    as[i].as_name)) != NULL) {
+			if ((lsb = _find_symbol(ld->ld_sym, as[i].as_name)) !=
+			    NULL) {
 				lam = _extract_archive_member(ld, lf, la,
 				    as[i].as_off);
 				extracted = 1;
@@ -1028,19 +1091,19 @@ static void
 _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	struct ld_input_section *is;
-	Elf_Scn *scn, *scn_sym;
+	Elf_Scn *scn_sym, *scn_dynamic;
 	Elf_Scn *scn_versym, *scn_verneed, *scn_verdef;
 	Elf_Data *d;
 	GElf_Sym sym;
 	GElf_Shdr shdr;
-	size_t strndx;
+	size_t dyn_strndx, strndx;
 	int elferr, i;
 
 	/* Load section list from input object. */
 	ld_input_init_sections(ld, li, e);
 
-	strndx = SHN_UNDEF;
-	scn = scn_sym = scn_versym = scn_verneed = scn_verdef = NULL;
+	strndx = dyn_strndx = SHN_UNDEF;
+	scn_sym = scn_versym = scn_verneed = scn_verdef = scn_dynamic = NULL;
 
 	for (i = 0; (uint64_t) i < li->li_shnum - 1; i++) {
 		is = &li->li_is[i];
@@ -1048,13 +1111,16 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 			if (is->is_type == SHT_DYNSYM) {
 				scn_sym = elf_getscn(e, is->is_index);
 				strndx = is->is_link;
-			}
-			if (is->is_type == SHT_SUNW_versym)
+			} else if (is->is_type == SHT_SUNW_versym)
 				scn_versym = elf_getscn(e, is->is_index);
-			if (is->is_type == SHT_SUNW_verneed)
+			else if (is->is_type == SHT_SUNW_verneed)
 				scn_verneed = elf_getscn(e, is->is_index);
-			if (is->is_type == SHT_SUNW_verdef)
+			else if (is->is_type == SHT_SUNW_verdef)
 				scn_verdef = elf_getscn(e, is->is_index);
+			else if (is->is_type == SHT_DYNAMIC) {
+				scn_dynamic = elf_getscn(e, is->is_index);
+				dyn_strndx = is->is_link;
+			}
 		} else {
 			if (is->is_type == SHT_SYMTAB) {
 				scn_sym = elf_getscn(e, is->is_index);
@@ -1069,15 +1135,21 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 	ld_symver_load_symbol_version_info(ld, li, e, scn_versym, scn_verneed,
 	    scn_verdef);
 
-	if (gelf_getshdr(scn_sym, &shdr) != &shdr)
-		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
+	if (scn_dynamic != NULL)
+		ld_dynamic_load_dso_dynamic(ld, li, e, scn_dynamic,
+		    dyn_strndx);
+
+	if (gelf_getshdr(scn_sym, &shdr) != &shdr) {
+		ld_warn(ld, "%s: gelf_getshdr failed: %s", li->li_name,
 		    elf_errmsg(-1));
+		return;
+	}
 
 	(void) elf_errno();
 	if ((d = elf_getdata(scn_sym, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
+			ld_warn(ld, "%s: elf_getdata failed: %s", li->li_name,
 			    elf_errmsg(elferr));
 		/* Empty symbol table section? */
 		return;
@@ -1086,7 +1158,7 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 	li->li_symnum = d->d_size / shdr.sh_entsize;
 	for (i = 0; (uint64_t) i < li->li_symnum; i++) {
 		if (gelf_getsym(d, i, &sym) != &sym)
-			ld_fatal(ld, "%s: gelf_getsym failed: %s", li->li_name,
+			ld_warn(ld, "%s: gelf_getsym failed: %s", li->li_name,
 			    elf_errmsg(-1));
 		_add_elf_symbol(ld, li, e, &sym, strndx, i);
 	}
@@ -1128,7 +1200,6 @@ _free_symbol(struct ld_symbol *lsb)
 static void
 _update_symbol(struct ld_symbol *lsb)
 {
-	struct ld_input *li;
 	struct ld_input_section *is;
 	struct ld_output_section *os;
 
@@ -1142,12 +1213,8 @@ _update_symbol(struct ld_symbol *lsb)
 		return;
 
 	if (lsb->lsb_input != NULL) {
-		li = lsb->lsb_input;
-		if (lsb->lsb_shndx == SHN_COMMON)
-			is = &li->li_is[li->li_shnum - 1];
-		else
-			is = &li->li_is[lsb->lsb_shndx];
-		if ((os = is->is_output) == NULL)
+		is = lsb->lsb_is;
+		if (is == NULL || (os = is->is_output) == NULL)
 			return;
 		lsb->lsb_value += os->os_addr + is->is_reloff;
 		lsb->lsb_shndx = elf_ndxscn(os->os_scn);
@@ -1300,6 +1367,7 @@ _add_to_symbol_table(struct ld *ld, struct ld_symbol *lsb)
 	if (symtab->sy_first_nonlocal == 0 && lsb->lsb_bind != STB_LOCAL)
 		symtab->sy_first_nonlocal = symtab->sy_size;
 
+	lsb->lsb_out_index = symtab->sy_size;
 	symtab->sy_size++;
 }
 

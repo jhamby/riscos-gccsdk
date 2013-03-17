@@ -31,7 +31,7 @@
 
 #include "_libelf.h"
 
-ELFTC_VCSID("$Id: elf_data.c 2272 2011-12-03 17:07:31Z jkoshy $");
+ELFTC_VCSID("$Id: elf_data.c 2921 2013-03-04 16:19:22Z jkoshy $");
 
 Elf_Data *
 elf_getdata(Elf_Scn *s, Elf_Data *ed)
@@ -234,8 +234,10 @@ elf_rawdata(Elf_Scn *s, Elf_Data *ed)
 		sh_align  = s->s_shdr.s_shdr64.sh_addralign;
 	}
 
-	if (sh_type == SHT_NULL)
+	if (sh_type == SHT_NULL) {
+		LIBELF_SET_ERROR(SECTION, 0);
 		return (NULL);
+	}
 
 	if ((d = _libelf_allocate_data(s)) == NULL)
 		return (NULL);

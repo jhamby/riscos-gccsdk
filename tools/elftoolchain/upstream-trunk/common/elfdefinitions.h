@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: elfdefinitions.h 2597 2012-09-20 14:14:22Z jkoshy $
+ * $Id: elfdefinitions.h 2612 2012-10-19 02:16:43Z jkoshy $
  */
 
 /*

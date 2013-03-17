@@ -1,5 +1,5 @@
 #
-# $Id: elftoolchain.lib.mk 2319 2011-12-11 16:39:16Z jkoshy $
+# $Id: elftoolchain.lib.mk 2796 2012-12-19 12:44:09Z jkoshy $
 #
 
 .if !defined(TOP)
@@ -26,10 +26,8 @@ LDFLAGS+=	-L${TOP}/libelf
 .endif
 .endif
 
-# Keep the .SUFFIXES line after the include of bsd.lib.mk
-.SUFFIXES:	.m4 .c
-.m4.c:
-	m4 -D SRCDIR=${.CURDIR} ${.IMPSRC} > ${.TARGET}
+# Note: include the M4 ruleset after bsd.lib.mk.
+.include "${TOP}/mk/elftoolchain.m4.mk"
 
 .if defined(DEBUG)
 CFLAGS:=	${CFLAGS:N-O*} -g

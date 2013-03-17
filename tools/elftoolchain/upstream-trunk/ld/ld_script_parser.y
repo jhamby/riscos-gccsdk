@@ -1,6 +1,6 @@
 %{
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,20 @@
 #include "ld_path.h"
 #include "ld_exp.h"
 
-ELFTC_VCSID("$Id: ld_script_parser.y 2551 2012-08-18 23:13:49Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_script_parser.y 2876 2013-01-09 22:46:11Z kaiwang27 $");
 
 struct yy_buffer_state;
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 
+#ifndef	YY_BUF_SIZE
+#define	YY_BUF_SIZE 16384
+#endif
+
 extern int yylex(void);
 extern int yyparse(void);
+extern YY_BUFFER_STATE yy_create_buffer(FILE *file, int size);
 extern YY_BUFFER_STATE yy_scan_string(char *yy_str);
+extern void yy_switch_to_buffer(YY_BUFFER_STATE b);
 extern void yy_delete_buffer(YY_BUFFER_STATE b);
 extern int lineno;
 extern FILE *yyin;
@@ -119,7 +125,6 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %token T_SYSLIB
 %token T_TARGET
 %token T_TRUNCATE
-%token T_VERSION
 %token T_VER_EXTERN
 %token T_VER_GLOBAL
 %token T_VER_LOCAL
@@ -242,6 +247,11 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <str> symbolic_constant
 %type <str> wildcard
 %type <wildcard> wildcard_sort
+%type <version_entry> version_entry
+%type <version_entry_head> version_block
+%type <version_entry_head> version_entry_list
+%type <version_entry_head> extern_block
+%type <str> version_dependency
 
 %union {
 	struct ld_exp *exp;
@@ -256,6 +266,8 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 	struct ld_script_sections_output_input *input_section;
 	struct ld_script_sections_overlay *overlay_desc;
 	struct ld_script_sections_overlay_section *overlay_section;
+	struct ld_script_version_entry *version_entry;
+	struct ld_script_version_entry_head *version_entry_head;
 	struct ld_wildcard *wildcard;
 	char *str;
 	int64_t num;
@@ -523,7 +535,7 @@ ldscript_command
 	| sections_command
 	| startup_command { $$ = NULL; }
 	| target_command { $$ = NULL; }
-	| version_script_node ';' { $$ = NULL; }
+	| version_script_node { $$ = NULL; }
 	| ';' { $$ = NULL; }
 	;
 
@@ -1016,32 +1028,63 @@ target_command
 	;
 
 version_script_node
-	: ident extern_block version_dependency
-	| ident version_block version_dependency
+	: ident extern_block version_dependency ';' {
+		ld_script_version_add_node(ld, $1, $2, $3);
+	}
+	| ident version_block version_dependency ';' {
+		ld_script_version_add_node(ld, $1, $2, $3);
+	}
+	| extern_block version_dependency ';' {
+		ld_script_version_add_node(ld, NULL, $1, $2);
+	}
+	| version_block version_dependency ';' {
+		ld_script_version_add_node(ld, NULL, $1, $2);
+	}
 	;
 
 extern_block
-	: T_VER_EXTERN T_STRING version_block
+	: T_VER_EXTERN T_STRING version_block {
+		ld_script_version_set_lang(ld, $3, $2);
+		$$ = $3;
+	}
 	;
 
 version_block
-	: '{' version_definition_list '}'
+	: '{' version_entry_list '}' {
+		$$ = $2;
+		ld->ld_state.ls_version_local = 0;
+	}
 	;
 
-version_definition_list
-	: version_definition
-	| version_definition_list version_definition
+version_entry_list
+	: version_entry {
+		$$ = ld_script_version_link_entry(ld, NULL, $1);
+	}
+	| version_entry_list version_entry {
+		$$ = ld_script_version_link_entry(ld, $1, $2);
+	}
 	;
 
-version_definition
-	: T_VER_GLOBAL
-	| T_VER_LOCAL
-	| wildcard ';'
+version_entry
+	: T_VER_GLOBAL {
+		ld->ld_state.ls_version_local = 0;
+		$$ = NULL;
+	}
+	| T_VER_LOCAL {
+		ld->ld_state.ls_version_local = 1;
+		$$ = NULL;
+	}
+	| wildcard ';' {
+		$$ = ld_script_version_alloc_entry(ld, $1, NULL);
+	}
+	| extern_block ';' {
+		$$ = ld_script_version_alloc_entry(ld, NULL, $1);
+	}
 	;
 
 version_dependency
 	: ident
-	|
+	| { $$ = NULL; }
 	;
 
 ident
@@ -1055,7 +1098,7 @@ variable
 	;
 
 wildcard
-	: ident 
+	: ident
 	| T_WILDCARD
 	| '*' { $$ = strdup("*"); }
 	| '?' { $$ = strdup("?"); }
@@ -1155,13 +1198,17 @@ _init_script(void)
 void
 ld_script_parse(const char *name)
 {
+	YY_BUFFER_STATE b;
 
 	_init_script();
 
 	if ((yyin = fopen(name, "r")) == NULL)
 		ld_fatal_std(ld, "fopen %s name failed", name);
+	b = yy_create_buffer(yyin, YY_BUF_SIZE);
+	yy_switch_to_buffer(b);
 	if (yyparse() < 0)
 		ld_fatal(ld, "unable to parse linker script %s", name);
+	yy_delete_buffer(b);
 }
 
 void
@@ -1173,6 +1220,7 @@ ld_script_parse_internal(void)
 
 	assert(ld->ld_arch != NULL && ld->ld_arch->script != NULL);
 	b = yy_scan_string(ld->ld_arch->script);
+	yy_switch_to_buffer(b);
 	if (yyparse() < 0)
 		ld_fatal(ld, "unable to parse internal linker script");
 	yy_delete_buffer(b);

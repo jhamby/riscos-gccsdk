@@ -46,7 +46,7 @@
 
 #include "_elftc.h"
 
-ELFTC_VCSID("$Id: readelf.c 2593 2012-09-16 18:53:33Z kaiwang27 $");
+ELFTC_VCSID("$Id: readelf.c 2740 2012-12-10 17:17:24Z jkoshy $");
 
 /*
  * readelf(1) options.
@@ -3470,7 +3470,8 @@ dump_verdef(struct readelf *re, int dump)
 				SAVE_VERSION_NAME((int)vd->vd_ndx, name, 1);
 			} else if (dump)
 				printf("  0x%4.4lx parent: %s\n",
-				    buf2 - (uint8_t *)d->d_buf, name);
+				    (unsigned long) (buf2 -
+				    (uint8_t *)d->d_buf), name);
 			if (vda->vda_next == 0)
 				break;
 			buf2 += vda->vda_next;

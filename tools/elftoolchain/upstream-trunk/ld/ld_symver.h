@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_symver.h 6207 2012-12-08 18:29:49Z joty $
+ * $Id: ld_symver.h 2882 2013-01-09 22:47:04Z kaiwang27 $
  */
 
 struct ld_symver_vna {
@@ -72,7 +72,8 @@ STAILQ_HEAD(ld_symver_verdef_head, ld_symver_verdef);
 
 void	ld_symver_load_symbol_version_info(struct ld *, struct ld_input *,
     Elf *, Elf_Scn *, Elf_Scn *, Elf_Scn *);
+void	ld_symver_create_verdef_section(struct ld *);
 void	ld_symver_create_verneed_section(struct ld *);
 void	ld_symver_create_versym_section(struct ld *);
-void	ld_symver_increase_verdef_refcnt(struct ld *, struct ld_symbol *);
-void	ld_symver_decrease_verdef_refcnt(struct ld *, struct ld_symbol *);
+void	ld_symver_add_verdef_refcnt(struct ld *, struct ld_symbol *);
+uint16_t ld_symver_search_version_script(struct ld *, struct ld_symbol *);

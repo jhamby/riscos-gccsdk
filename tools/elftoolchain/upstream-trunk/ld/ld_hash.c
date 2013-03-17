@@ -30,7 +30,7 @@
 #include "ld_output.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id: ld_hash.c 6207 2012-12-08 18:29:49Z joty $");
+ELFTC_VCSID("$Id: ld_hash.c 2917 2013-02-16 07:16:02Z kaiwang27 $");
 
 /*
  * The number of buckets to use for a certain number of symbols.
@@ -69,6 +69,9 @@ ld_hash_create_svr4_hash_section(struct ld *ld)
 		os->os_align = 4;
 	else
 		os->os_align = 8;
+
+	if ((os->os_link = strdup(".dynsym")) == NULL)
+		ld_fatal_std(ld, "strdup");
 
 	lo->lo_hash = os;
 
@@ -118,6 +121,6 @@ ld_hash_create_svr4_hash_section(struct ld *ld)
 	odb->odb_align = os->os_align;
 	odb->odb_type = ELF_T_WORD; /* enable libelf translation */
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER,
 	    odb, NULL);
 }

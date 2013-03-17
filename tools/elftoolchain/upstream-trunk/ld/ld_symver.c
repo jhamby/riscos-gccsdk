@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,12 @@
 #include "ld_input.h"
 #include "ld_layout.h"
 #include "ld_output.h"
+#include "ld_script.h"
 #include "ld_symbols.h"
 #include "ld_symver.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_symver.c 6207 2012-12-08 18:29:49Z joty $");
+ELFTC_VCSID("$Id: ld_symver.c 2917 2013-02-16 07:16:02Z kaiwang27 $");
 
 /*
  * Symbol versioning sections are the same for 32bit and 64bit
@@ -52,13 +53,14 @@ static struct ld_symver_vna *_alloc_vna(struct ld *ld, const char *name,
 static struct ld_symver_verdef *_alloc_verdef(struct ld *ld,
     struct ld_symver_verdef_head *head);
 static struct ld_symver_verneed *_alloc_verneed(struct ld *ld,
-    const char *file, struct ld_symver_verneed_head *head);
+    struct ld_input *li, struct ld_symver_verneed_head *head);
 static struct ld_symver_verdef *_load_verdef(struct ld *ld,
     struct ld_input *li, Elf_Verdef *vd);
 static void _load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verdef);
 static void _load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verneed);
+
 void
 ld_symver_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef)
@@ -130,7 +132,9 @@ ld_symver_create_verneed_section(struct ld *ld)
 		os->os_align = 4;
 	else
 		os->os_align = 8;
-	os->os_link = lo->lo_dynstr;
+
+	if ((os->os_link = strdup(".dynstr")) == NULL)
+		ld_fatal_std(ld, "strdup");
 
 	lo->lo_verneed = os;
 
@@ -138,7 +142,6 @@ ld_symver_create_verneed_section(struct ld *ld)
 	 * Build Verneed/Vernaux structures.
 	 */
 	sz = 0;
-	lo->lo_version_index = 2; /* TODO: move this to somewhere else. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		if (li->li_type != LIT_DSO || li->li_dso_refcnt == 0 ||
 		    li->li_verdef == NULL)
@@ -167,8 +170,7 @@ ld_symver_create_verneed_section(struct ld *ld)
 
 			/* Allocate Verneed entry. */
 			if (svn == NULL) {
-				svn = _alloc_verneed(ld, li->li_name,
-				    lo->lo_vnlist);
+				svn = _alloc_verneed(ld, li, lo->lo_vnlist);
 				svn->svn_version = VER_NEED_CURRENT;
 				svn->svn_cnt = 0;
 				svn->svn_fileindex =
@@ -234,7 +236,7 @@ ld_symver_create_verneed_section(struct ld *ld)
 		buf2 = buf + sizeof(Elf_Verneed);
 		vna = NULL;
 		STAILQ_FOREACH(sna, &svn->svn_aux, sna_next) {
-			vna = (Elf32_Vernaux *) (uintptr_t) buf2;
+			vna = (Elf_Vernaux *) (uintptr_t) buf2;
 			vna->vna_hash = sna->sna_hash;
 			vna->vna_flags = 0; /* TODO: VER_FLG_WEAK? */
 			vna->vna_other = sna->sna_other;
@@ -256,7 +258,154 @@ ld_symver_create_verneed_section(struct ld *ld)
 
 	assert(buf == end);
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER,
+	    odb, NULL);
+}
+
+void
+ld_symver_create_verdef_section(struct ld *ld)
+{
+	struct ld_script *lds;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_output_data_buffer *odb;
+	struct ld_script_version_node *ldvn;
+	char verdef_name[] = ".gnu.version_d";
+	Elf_Verdef *vd;
+	Elf_Verdaux *vda;
+	uint8_t *buf, *end;
+	char *soname;
+	size_t sz;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+	assert(lo->lo_dynstr != NULL);
+
+	lds = ld->ld_scp;
+	if (STAILQ_EMPTY(&lds->lds_vn))
+		return;
+
+	/*
+	 * Create .gnu.version_d section.
+	 */
+	HASH_FIND_STR(lo->lo_ostbl, verdef_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, verdef_name,
+		    SHF_ALLOC);
+	os->os_type = SHT_GNU_verdef;
+	os->os_flags = SHF_ALLOC;
+	os->os_entsize = 0;
+	if (lo->lo_ec == ELFCLASS32)
+		os->os_align = 4;
+	else
+		os->os_align = 8;
+
+	if ((os->os_link = strdup(".dynstr")) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	lo->lo_verdef = os;
+
+	/*
+	 * Calculate verdef section size: .gnu.version_d section consists
+	 * of one file version entry and several symbol version definition
+	 * entries (with corresponding) auxiliary entries.
+	 */
+	lo->lo_verdef_num = 1;
+	sz = sizeof(Elf_Verdef) + sizeof(Elf_Verdaux);
+	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
+		sz += sizeof(Elf_Verdef) + sizeof(Elf_Verdaux);
+		if (ldvn->ldvn_dep != NULL)
+			sz += sizeof(Elf_Verdaux);
+		lo->lo_verdef_num++;
+	}
+
+	/* Store the number of verdef entries in the sh_info field. */
+	os->os_info_val = lo->lo_verdef_num;
+
+	/* Allocate buffer for Verdef/Verdaux entries. */
+	if ((buf = malloc(sz)) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	end = buf + sz;
+
+	if ((odb = calloc(1, sizeof(*odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	odb->odb_buf = buf;
+	odb->odb_size = sz;
+	odb->odb_align = os->os_align;
+	odb->odb_type = ELF_T_VDEF; /* enable libelf translation */
+
+	/*
+	 * Set file version name to `soname' if it is provided,
+	 * otherwise set version name to output file name.
+	 */
+	if (ld->ld_soname != NULL)
+		soname = ld->ld_soname;
+	else {
+		if ((soname = strrchr(ld->ld_output_file, '/')) == NULL)
+			soname = ld->ld_output_file;
+		else
+			soname++;
+	}
+
+	/* Write file version entry. */
+	vd = (Elf_Verdef *) (uintptr_t) buf;
+	vd->vd_version = VER_DEF_CURRENT;
+	vd->vd_flags |= VER_FLG_BASE;
+	vd->vd_ndx = 1;
+	vd->vd_cnt = 1;
+	vd->vd_hash = elf_hash(soname);
+	vd->vd_aux = sizeof(Elf_Verdef);
+	vd->vd_next = sizeof(Elf_Verdef) + sizeof(Elf_Verdaux);
+	buf += sizeof(Elf_Verdef);
+
+	/* Write file version auxiliary entry. */
+	vda = (Elf_Verdaux *) (uintptr_t) buf;
+	vda->vda_name = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+	    soname);
+	vda->vda_next = 0;
+	buf += sizeof(Elf_Verdaux);
+	
+	/* Write symbol version definition entries. */
+	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
+		vd = (Elf_Verdef *) (uintptr_t) buf;
+		vd->vd_version = VER_DEF_CURRENT;
+		vd->vd_flags = 0;
+		vd->vd_ndx = lo->lo_version_index++;
+		vd->vd_cnt = (ldvn->ldvn_dep == NULL) ? 1 : 2;
+		vd->vd_hash = elf_hash(ldvn->ldvn_name);
+		vd->vd_aux = sizeof(Elf_Verdef);
+		if (STAILQ_NEXT(ldvn, ldvn_next) == NULL)
+			vd->vd_next = 0;
+		else
+			vd->vd_next = sizeof(Elf_Verdef) + 
+			    ((ldvn->ldvn_dep == NULL) ? 1 : 2) *
+				sizeof(Elf_Verdaux);
+		buf += sizeof(Elf_Verdef);
+
+		/* Write version name auxiliary entry. */
+		vda = (Elf_Verdaux *) (uintptr_t) buf;
+		vda->vda_name = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+		    ldvn->ldvn_name);
+		vda->vda_next = ldvn->ldvn_dep == NULL ? 0 :
+		    sizeof(Elf_Verdaux);
+		buf += sizeof(Elf_Verdaux);
+
+		if (ldvn->ldvn_dep == NULL)
+			continue;
+		
+		/* Write version dependency auxiliary entry. */
+		vda = (Elf_Verdaux *) (uintptr_t) buf;
+		vda->vda_name = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+		    ldvn->ldvn_dep);
+		vda->vda_next = 0;
+		buf += sizeof(Elf_Verdaux);
+	}
+
+	assert(buf == end);
+
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER,
 	    odb, NULL);
 }
 
@@ -288,7 +437,9 @@ ld_symver_create_versym_section(struct ld *ld)
 	os->os_flags = SHF_ALLOC;
 	os->os_entsize = 2;
 	os->os_align = 2;
-	os->os_link = lo->lo_dynsym;
+
+	if ((os->os_link = strdup(".dynsym")) == NULL)
+		ld_fatal_std(ld, "strdup");
 
 	lo->lo_versym = os;
 
@@ -302,12 +453,30 @@ ld_symver_create_versym_section(struct ld *ld)
 	buf[0] = 0;		/* special index 0 symbol */
 	i = 1;
 	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
+		/*
+		 * Assign version index according to the following rules:
+		 *
+		 * 1. If the symbol is local, the version is *local*.
+		 *
+		 * 2. If the symbol is defined in shared libraries and there
+		 *    exists a version definition for this symbol, use the
+		 *    version defined by the shared library.
+		 *
+		 * 3. If the symbol is defined in regular objects and the
+		 *    linker creates a shared library, use the version
+		 *    defined in the version script, if provided.
+		 *
+		 * 4. Otherwise, the version is *global*.
+		 */
 		if (lsb->lsb_bind == STB_LOCAL)
 			buf[i] = 0; /* Version is *local* */
 		else if (lsb->lsb_vd != NULL)
 			buf[i] = lsb->lsb_vd->svd_ndx_output;
-		else
+		else if (ld->ld_dso && ld_symbols_in_regular(lsb))
+			buf[i] = ld_symver_search_version_script(ld, lsb);
+		else {
 			buf[i] = 1; /* Version is *global* */
+		}
 		i++;
 	}
 	assert((size_t) i == ld->ld_dynsym->sy_size);
@@ -320,12 +489,12 @@ ld_symver_create_versym_section(struct ld *ld)
 	odb->odb_align = os->os_align;
 	odb->odb_type = ELF_T_HALF; /* enable libelf translation */
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER,
 	    odb, NULL);
 }
 
 void
-ld_symver_increase_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
+ld_symver_add_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_symbol_defver *dv;
 	struct ld_symver_verdef *svd;
@@ -363,18 +532,6 @@ ld_symver_increase_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
 	if (svd != NULL) {
 		svd->svd_ref++;
 		lsb->lsb_vd = svd;
-	}
-}
-
-void
-ld_symver_decrease_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
-{
-
-	(void) ld;		/* unused */
-
-	if (lsb->lsb_vd != NULL) {
-		lsb->lsb_vd->svd_ref--;
-		lsb->lsb_vd = NULL;
 	}
 }
 
@@ -454,7 +611,7 @@ _alloc_vda(struct ld *ld, const char *name, struct ld_symver_verdef *svd)
 }
 
 static struct ld_symver_verneed *
-_alloc_verneed(struct ld *ld, const char *file,
+_alloc_verneed(struct ld *ld, struct ld_input *li,
     struct ld_symver_verneed_head *head)
 {
 	struct ld_symver_verneed *svn;
@@ -463,10 +620,14 @@ _alloc_verneed(struct ld *ld, const char *file,
 	if ((svn = calloc(1, sizeof(*svn))) == NULL)
 		ld_fatal_std(ld, "calloc");
 
-	if ((bn = strrchr(file, '/')) == NULL)
-		bn = file;
-	else
-		bn++;
+	if (li->li_soname != NULL)
+		bn = li->li_soname;
+	else {
+		if ((bn = strrchr(li->li_name, '/')) == NULL)
+			bn = li->li_name;
+		else
+			bn++;
+	}
 
 	if ((svn->svn_file = strdup(bn)) == NULL)
 		ld_fatal_std(ld, "strdup");
@@ -496,7 +657,8 @@ _alloc_verdef(struct ld *ld, struct ld_symver_verdef_head *head)
 }
 
 static void
-_load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verneed)
+_load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e,
+    Elf_Scn *verneed)
 {
 	Elf_Data *d_vn;
 	Elf_Verneed *vn;
@@ -544,7 +706,8 @@ _load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verne
 }
 
 static void
-_load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef)
+_load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e,
+    Elf_Scn *verdef)
 {
 	struct ld_symver_verdef *svd;
 	Elf_Data *d_vd;
@@ -581,7 +744,8 @@ _load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef
 			vda = (Elf_Verdaux *) (uintptr_t) buf2;
 			name = elf_strptr(e, sh_vd.sh_link, vda->vda_name);
 			if (name != NULL) {
-				_add_version_name(ld, li, (int) vd->vd_ndx, name);
+				_add_version_name(ld, li, (int) vd->vd_ndx,
+				    name);
 				(void) _alloc_vda(ld, name, svd);
 			}
 			if (vda->vda_next == 0)
@@ -615,4 +779,76 @@ _load_verdef(struct ld *ld, struct ld_input *li, Elf_Verdef *vd)
 	svd->svd_hash = vd->vd_hash;
 
 	return (svd);
+}
+
+uint16_t
+ld_symver_search_version_script(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_script *lds;
+	struct ld_script_version_node *ldvn;
+	struct ld_script_version_entry *ldve, *ldve_g;
+	uint16_t ndx, ret_ndx, ret_ndx_g;
+
+	/* If the symbol version index was known, return it directly. */
+	if (lsb->lsb_vndx_known)
+		return (lsb->lsb_vndx);
+
+	/* The symbol version index will be known after searching. */
+	lsb->lsb_vndx_known = 1;
+
+	lds = ld->ld_scp;
+
+	/* If there isn't a version script, the default version is *global* */
+	if (STAILQ_EMPTY(&lds->lds_vn)) {
+		lsb->lsb_vndx = 1;
+		return (1);
+	}
+
+	/* Search for a match in the version patterns. */
+	ndx = 2;
+	ldve_g = NULL;
+	ret_ndx_g = 0;
+	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
+		STAILQ_FOREACH(ldve, ldvn->ldvn_e, ldve_next) {
+			assert(ldve->ldve_sym != NULL);
+			if (fnmatch(ldve->ldve_sym, lsb->lsb_name, 0) == 0) {
+				if (ldve->ldve_local)
+					ret_ndx = 0;
+				else if (ldvn->ldvn_name != NULL)
+					ret_ndx = ndx;
+				else
+					ret_ndx = 1;
+
+				/*
+				 * If the version name is a globbing pattern,
+				 * we only consider it is a match when there
+				 * doesn't exist a exact match.
+				 */
+				if (ldve->ldve_glob) {
+					if (ldve_g == NULL) {
+						ldve_g = ldve;
+						ret_ndx_g = ret_ndx;
+					}
+				} else {
+					lsb->lsb_vndx = ret_ndx;
+					return (ret_ndx);
+				}
+			}
+		}
+		if (ldvn->ldvn_name != NULL)
+			ndx++;
+	}
+
+	/* There is no exact match, check if there is a globbing match. */
+	if (ldve_g != NULL) {
+		lsb->lsb_vndx = ret_ndx_g;
+		return (ret_ndx_g);
+	}
+
+	/*
+	 * Symbol doesn't match any version definition, set version
+	 * to *global*.
+	 */
+	lsb->lsb_vndx = 1;
+	return (1);
 }

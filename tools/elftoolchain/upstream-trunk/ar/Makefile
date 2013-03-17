@@ -1,4 +1,4 @@
-# $Id: Makefile 2290 2011-12-04 07:20:46Z jkoshy $
+# $Id: Makefile 2741 2012-12-10 18:47:00Z jkoshy $
 
 TOP=	..
 
@@ -20,8 +20,7 @@ EXTRA_TARGETS=	ranlib
 
 CLEANFILES+= 	${EXTRA_TARGETS}
 
-MAN=	ar.1 ar.5
-MLINKS= ar.1 ranlib.1
+MAN=	ar.1 ranlib.1 ar.5
 
 all:	${EXTRA_TARGETS}
 

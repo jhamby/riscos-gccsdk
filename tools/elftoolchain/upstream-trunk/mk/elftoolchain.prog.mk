@@ -1,7 +1,7 @@
 #
 # Rules for building programs.
 #
-# $Id: elftoolchain.prog.mk 2319 2011-12-11 16:39:16Z jkoshy $
+# $Id: elftoolchain.prog.mk 2796 2012-12-19 12:44:09Z jkoshy $
 
 .if !defined(TOP)
 .error	Make variable \"TOP\" has not been defined.
@@ -71,6 +71,9 @@ ${_L:R}.o:	${_Y:R}.h
 .endif
 
 .include <bsd.prog.mk>
+
+# Note: include the M4 ruleset after bsd.prog.mk.
+.include "${TOP}/mk/elftoolchain.m4.mk"
 
 # Support a 'clobber' target.
 clobber:	clean	.PHONY

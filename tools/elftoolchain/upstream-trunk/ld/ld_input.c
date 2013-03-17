@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
 #include "ld_input.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id: ld_input.c 2566 2012-09-02 14:02:54Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_input.c 2919 2013-02-16 07:16:18Z kaiwang27 $");
 
 /*
  * Support routines for input section handling.
@@ -38,12 +38,13 @@ ELFTC_VCSID("$Id: ld_input.c 2566 2012-09-02 14:02:54Z kaiwang27 $");
 static off_t _offset_sort(struct ld_archive_member *a,
     struct ld_archive_member *b);
 
-#define _MAX_INTERNAL_SECTIONS	8
+#define _MAX_INTERNAL_SECTIONS		16
 
 void
 ld_input_init(struct ld *ld)
 {
 	struct ld_input *li;
+	struct ld_input_section *is;
 
 	assert(STAILQ_EMPTY(&ld->ld_lilist));
 
@@ -60,6 +61,19 @@ ld_input_init(struct ld *ld)
 		ld_fatal_std(ld, "calloc");
 
 	STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
+
+	/*
+	 * Create an initial SHT_NULL section for the pseudo input object,
+	 * so all the internal sections will have valid section index.
+	 * (other than SHN_UNDEF)
+	 */
+	is = &li->li_is[li->li_shnum];
+	if ((is->is_name = strdup("")) == NULL)
+		ld_fatal_std(ld, "strdup");
+	is->is_input = li;
+	is->is_type = SHT_NULL;
+	is->is_index = li->li_shnum;
+	li->li_shnum++;
 }
 
 struct ld_input_section *
@@ -72,18 +86,73 @@ ld_input_add_internal_section(struct ld *ld, const char *name)
 	assert(li != NULL);
 
 	if (li->li_shnum >= _MAX_INTERNAL_SECTIONS)
-		ld_fatal(ld, "Internal: not enough space for internal "
+		ld_fatal(ld, "Internal: not enough buffer for internal "
 		    "sections");
 
 	is = &li->li_is[li->li_shnum];
 	if ((is->is_name = strdup(name)) == NULL)
-		ld_fatal_std(ld, "calloc");
+		ld_fatal_std(ld, "strdup");
 	is->is_input = li;
 	is->is_index = li->li_shnum;
+
+	/* Use a hash table to accelerate lookup for internal sections. */
+	HASH_ADD_KEYPTR(hh, li->li_istbl, is->is_name, strlen(is->is_name),
+	    is);
 
 	li->li_shnum++;
 
 	return (is);
+}
+
+struct ld_input_section *
+ld_input_find_internal_section(struct ld *ld, const char *name)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	char _name[32];
+
+	li = STAILQ_FIRST(&ld->ld_lilist);
+	assert(li != NULL);
+
+	snprintf(_name, sizeof(_name), "%s", name);
+	HASH_FIND_STR(li->li_istbl, _name, is);
+
+	return (is);
+}
+
+uint64_t
+ld_input_reserve_ibuf(struct ld_input_section *is, uint64_t n)
+{
+	uint64_t off;
+
+	assert(is->is_entsize != 0);
+
+	off = is->is_size;
+	is->is_size += n * is->is_entsize;
+
+	return (off);
+}
+
+void
+ld_input_alloc_internal_section_buffers(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	int i;
+
+	li = STAILQ_FIRST(&ld->ld_lilist);
+	assert(li != NULL);
+
+	for (i = 0; (uint64_t) i < li->li_shnum; i++) {
+		is = &li->li_is[i];
+
+		if (is->is_type == SHT_NOBITS || is->is_size == 0 ||
+		    is->is_dynrel)
+			continue;
+
+		if ((is->is_ibuf = malloc(is->is_size)) == NULL)
+			ld_fatal_std(ld, "malloc");
+	}
 }
 
 void
@@ -112,6 +181,8 @@ ld_input_cleanup(struct ld *ld)
 			free(li->li_fullname);
 		if (li->li_name)
 			free(li->li_name);
+		if (li->li_soname)
+			free(li->li_soname);
 		free(li);
 	}
 }
@@ -236,14 +307,15 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 	assert(e != NULL);
 
 	if ((scn = elf_getscn(e, is->is_index)) == NULL)
-		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
+		ld_fatal(ld, "%s(%s): elf_getscn failed: %s", li->li_name,
+		    is->is_name, elf_errmsg(-1));
 
 	(void) elf_errno();
 	if ((d = elf_rawdata(scn, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
-			ld_fatal(ld, "elf_rawdata failed: %s",
-			    elf_errmsg(elferr));
+			ld_warn(ld, "%s(%s): elf_rawdata failed: %s",
+			    li->li_name, is->is_name, elf_errmsg(elferr));
 		return (NULL);
 	}
 
@@ -312,6 +384,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	struct ld_input_section *is;
 	Elf_Scn *scn;
+	Elf_Data *d;
 	const char *name;
 	GElf_Shdr sh;
 	size_t shstrndx, ndx;
@@ -374,9 +447,33 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 
 		if (strcmp(is->is_name, ".note.GNU-stack") == 0) {
 			ld->ld_gen_gnustack = 1;
-			if (!ld->ld_stack_exec_set)
-				ld->ld_stack_exec |= is->is_size;
+			if (is->is_flags & SHF_EXECINSTR)
+				ld->ld_stack_exec = 1;
 			is->is_discard = 1;
+		}
+
+		/*
+		 * .eh_frame section is specially treated. The content of
+		 * input .eh_frame section is preloaded for output .eh_frame
+		 * optimization.
+		 */
+		if (strcmp(is->is_name, ".eh_frame") == 0) {
+			if ((d = elf_rawdata(scn, NULL)) == NULL) {
+				elferr = elf_errno();
+				if (elferr != 0)
+					ld_warn(ld, "%s(%s): elf_rawdata "
+					    "failed: %s", li->li_name,
+					    is->is_name, elf_errmsg(elferr));
+				continue;
+			}
+
+			if (d->d_buf == NULL || d->d_size == 0)
+				continue;
+
+			if ((is->is_ibuf = malloc(d->d_size)) == NULL)
+				ld_fatal_std(ld, "malloc");
+
+			memcpy(is->is_ibuf, d->d_buf, d->d_size);
 		}
 	}
 	elferr = elf_errno();
@@ -386,47 +483,53 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 }
 
 void
-ld_input_init_common_section(struct ld *ld, struct ld_input *li)
+ld_input_alloc_common_symbol(struct ld *ld, struct ld_symbol *lsb)
 {
+	struct ld_input *li;
 	struct ld_input_section *is;
-	struct ld_symbol *lsb, *tmp;
 
-	if (li->li_file == NULL)
-		return;
+	li = lsb->lsb_input;
+	if (li == NULL)
+		return;		/* unlikely */
 
 	/*
-	 * Create a pseudo section named COMMON to keep track of common symbols.
-	 * Go through the common symbols hash table, if there are common symbols
-	 * belonging to this input object, increase the size of the pseudo COMMON
-	 * section accordingly.
+	 * Do not allocate memory for common symbols when the linker
+	 * creates a relocatable output object, unless option -d is
+	 * specified.
 	 */
+	if (ld->ld_reloc && !ld->ld_common_alloc)
+		return;
 
 	is = &li->li_is[li->li_shnum - 1];
-	if ((is->is_name = strdup("COMMON")) == NULL)
-		ld_fatal_std(ld, "%s: calloc", li->li_name);
-	is->is_off = 0;
-	is->is_size = 0;
-	is->is_entsize = 1;
-	is->is_align = 1;
-	is->is_type = SHT_NOBITS;
-	is->is_flags = SHF_ALLOC | SHF_WRITE;
-	is->is_link = 0;
-	is->is_info = 0;
-	is->is_index = SHN_COMMON;
-	is->is_input = li;
-
-	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
-		if (lsb->lsb_input != li)
-			continue;
-#if 0
-		printf("add common symbol %s to %s\n", lsb->lsb_name,
-		    li->li_name);
-#endif
-		if (lsb->lsb_size > is->is_align)
-			is->is_align = lsb->lsb_size;
-		lsb->lsb_value = is->is_size;
-		is->is_size += lsb->lsb_size;
+	if (is->is_name == NULL) {
+		/*
+		 * Create a pseudo section named COMMON to keep track of
+		 * common symbols.
+		 */
+		if ((is->is_name = strdup("COMMON")) == NULL)
+			ld_fatal_std(ld, "%s: calloc", li->li_name);
+		is->is_off = 0;
+		is->is_size = 0;
+		is->is_entsize = 0;
+		is->is_align = 1;
+		is->is_type = SHT_NOBITS;
+		is->is_flags = SHF_ALLOC | SHF_WRITE;
+		is->is_link = 0;
+		is->is_info = 0;
+		is->is_index = SHN_COMMON;
+		is->is_input = li;
 	}
+
+	/*
+	 * Allocate space for this symbol in the pseudo COMMON section.
+	 * Properly handle the alignment. (For common symbols, symbol
+	 * value stores the required alignment)
+	 */
+	if (lsb->lsb_value > is->is_align)
+		is->is_align = lsb->lsb_value;
+	is->is_size = roundup(is->is_size, is->is_align);
+	lsb->lsb_value = is->is_size;
+	is->is_size += lsb->lsb_size;
 }
 
 static off_t

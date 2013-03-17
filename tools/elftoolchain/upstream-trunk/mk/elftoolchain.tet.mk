@@ -1,4 +1,4 @@
-# $Id: elftoolchain.tet.mk 2068 2011-10-26 15:49:07Z jkoshy $
+# $Id: elftoolchain.tet.mk 2844 2012-12-31 03:30:20Z jkoshy $
 #
 # Rules for handling TET based test suites.
 #
@@ -10,10 +10,12 @@
 .include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 # Inform make(1) about the suffixes we use.
-.SUFFIXES: .lsb32 .lsb64 .m4 .msb32 .msb64 .yaml
+.SUFFIXES: .lsb32 .lsb64 .msb32 .msb64 .yaml
 
 TS_ROOT?=	${.CURDIR:H}
 TS_OBJROOT?=	${.OBJDIR:H}
+
+TS_BASE=	${TOP}/test/tet
 
 TET_LIBS=	${TET_ROOT}/lib/tet3
 TET_OBJS=	${TET_LIBS}/tcm.o
@@ -45,7 +47,7 @@ CLEANFILES+=	${_TC_SRC} ${_TC_SCN}
 
 # Generate the driver file "tc.c" from the objects comprising the test case.
 _TS_OBJS=	${_C_SRCS:S/.c$/.o/g} ${_M4_SRCS:S/.m4$/.o/g}
-_MUNGE_TS=	${TS_ROOT}/bin/munge-ts
+_MUNGE_TS=	${TS_BASE}/bin/munge-ts
 ${_TC_SRC}:	${_TS_OBJS}
 	${_MUNGE_TS} -o ${.TARGET} -p ${.CURDIR:H:T}/${.CURDIR:T:R}/${PROG} \
 	-s ${_TC_SCN} ${.ALLSRC}
@@ -53,9 +55,9 @@ ${_TC_SRC}:	${_TS_OBJS}
 .endif
 
 # M4->C translation.
-M4FLAGS+=	-I${TS_ROOT}/common
-.m4.c:
-	m4 ${M4FLAGS} ${.IMPSRC} > ${.TARGET}
+M4FLAGS+=	-I${TS_ROOT}/common -I${TS_BASE}/common
+
+.include "${TOP}/mk/elftoolchain.m4.mk"
 
 LDADD+=		${TET_OBJS} -L${TET_LIBS} -lapi
 CLEANFILES+=	tet_xres tet_captured

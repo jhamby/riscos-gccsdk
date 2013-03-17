@@ -21,7 +21,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* $Id: utarray.h 6207 2012-12-08 18:29:49Z joty $ */
+/* $Id: utarray.h 2694 2012-11-24 17:11:58Z kaiwang27 $ */
 
 /* a dynamic array implementation using macros 
  * see http://uthash.sourceforge.net/utarray
