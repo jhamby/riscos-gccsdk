@@ -1,3 +1,8 @@
+Sun Mar 24 21:31:35 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/filestack.c (CachedFile_GetLine): Properly support EOF.
+	Support <CR><LF> EOL type.
+
 Sun Mar 24 14:06:51 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/symbol.c: Fixed typo.

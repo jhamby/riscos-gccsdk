@@ -335,8 +335,12 @@ File_GetLine (char *bufP, size_t bufSize)
 static bool
 CachedFile_GetLine (char *bufP, size_t bufSize)
 {
-  PObject_CachedFile *memP = &gCurPObjP->d.memory;
+  PObject_CachedFile * const memP = &gCurPObjP->d.memory;
   const char *curP = memP->curP;
+  /* Are we at EOF ? */
+  if (curP == memP->curP)
+    return true;
+
   const char * const bufStartP = bufP;
   const char * const bufEndP = bufP + bufSize;
   while (1)
@@ -344,19 +348,25 @@ CachedFile_GetLine (char *bufP, size_t bufSize)
       /* Read one EOL terminated line.  */
       while (curP != memP->endP
              && bufP != bufEndP
-             && *curP != '\n')
+             && *curP != '\r' && *curP != '\n')
 	*bufP++ = *curP++;
-      if (curP == memP->endP || *curP == '\n')
+      if (curP == memP->endP || *curP == '\r' || *curP == '\n')
 	{
-	  if (curP != memP->endP)
+	  /* Consume EOL.  */
+	  if (curP != memP->endP && *curP == '\r')
 	    ++curP;
-	  /* EOF or EOL ? */
+	  if (curP != memP->endP && *curP == '\n')
+	    ++curP;
+
+	  /* Continuation line ? */
 	  if (bufP != bufStartP && bufP[-1] == '\\')
 	    {
 	      --bufP;
 	      gCurPObjP->lineNum++;
 	      continue;
 	    }
+
+	  /* NUL terminate what we've just read as line.  */
 	  if (bufP != bufEndP)
 	    {
 	      *bufP++ = '\0';
