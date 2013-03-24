@@ -129,45 +129,17 @@ Reloc_AOFOutput (FILE *outfile, const Symbol *area)
 	  .Offset = armword (relocs->reloc.Offset),
 	  .How = armword (relocs->reloc.How)
 	};
-      if (relocs->value.Tag == ValueSymbol)
-	{
-	  const Value *value = &relocs->value;
-
-	  assert (value->Data.Symbol.symbol->used >= 0);
-	  areloc.How |= value->Data.Symbol.symbol->used;
-	  if (!(value->Data.Symbol.symbol->type & SYMBOL_AREA))
-	    areloc.How |= HOW2_SYMBOL;
-	  areloc.How = armword (areloc.How);
-	  int loop = value->Data.Symbol.factor;
-	  assert (loop > 0 && "Reloc_Create() check on this got ignored");
-	  while (loop--)
-	    fwrite (&areloc, 1, sizeof (AofReloc), outfile);
-	}
-      else
-	{
-assert (0); /* FIXME: this code can be removed.  */
-	  assert (relocs->value.Tag == ValueCode);
-	  size_t len = relocs->value.Data.Code.len;
-	  const Code *code = relocs->value.Data.Code.c;
-	  for (size_t i = 0; i != len; ++i)
-	    {
-	      if (code->Tag == CodeValue
-	          && code->Data.value.Tag == ValueSymbol)
-		{
-		  const Value *value = &code->Data.value;
-
-		  assert (value->Data.Symbol.symbol->used >= 0);
-		  areloc.How |= value->Data.Symbol.symbol->used;
-		  if (!(value->Data.Symbol.symbol->type & SYMBOL_AREA))
-		    areloc.How |= HOW2_SYMBOL;
-		  areloc.How = armword (areloc.How);
-		  int loop = value->Data.Symbol.factor;
-		  assert (loop > 0 && "Reloc_Create() check on this got ignored");
-		  while (loop--)
-		    fwrite (&areloc, 1, sizeof (AofReloc), outfile);
-		}
-	    }
-	}
+      assert (relocs->value.Tag == ValueSymbol);
+      const Value *value = &relocs->value;
+      assert (value->Data.Symbol.symbol->used >= 0);
+      areloc.How |= value->Data.Symbol.symbol->used;
+      if (!(value->Data.Symbol.symbol->type & SYMBOL_AREA))
+	areloc.How |= HOW2_SYMBOL;
+      areloc.How = armword (areloc.How);
+      int loop = value->Data.Symbol.factor;
+      assert (loop > 0 && "Reloc_Create() check on this got ignored");
+      while (loop--)
+	fwrite (&areloc, 1, sizeof (AofReloc), outfile);
     }
 }
 
@@ -183,51 +155,27 @@ Reloc_ELFOutput (FILE *outfile, const Symbol *area)
 	  .r_offset = armword (relocs->reloc.Offset),
 	  .r_info = 0
 	};
-      if (relocs->value.Tag == ValueSymbol)
-	{
-	  const Value *value = &relocs->value;
-
-	  assert (value->Data.Symbol.symbol->used >= 0);
-	  int symbol = value->Data.Symbol.symbol->used;
-	  int type;
-	  if (relocs->reloc.How & HOW2_RELATIVE)
-	    type = R_ARM_PC24; /* FIXME: for EABI (when ELF_EABI defined), this should be R_ARM_CALL or R_ARM_JUMP24.  */
-	  else
-	    type = R_ARM_ABS32;
-	  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
-	  int loop = value->Data.Symbol.factor;
-	  assert (loop > 0 && "Reloc_Create() check on this got ignored");
-	  while (loop--)
-	    fwrite (&areloc, 1, sizeof (Elf32_Rel), outfile);
-	}
+      assert (relocs->value.Tag == ValueSymbol);
+      const Value *value = &relocs->value;
+      assert (value->Data.Symbol.symbol->used >= 0);
+      int symbol = value->Data.Symbol.symbol->used;
+      int type;
+      if (relocs->reloc.How & HOW2_RELATIVE)
+	type = R_ARM_PC24; /* FIXME: for EABI (when ELF_EABI defined), this should be R_ARM_CALL or R_ARM_JUMP24.  */
+      else if ((relocs->reloc.How & HOW2_INSTR_UNLIM) == HOW2_WORD)
+	type = R_ARM_ABS32;
+      else if ((relocs->reloc.How & HOW2_INSTR_UNLIM) == HOW2_HALF)
+	type = R_ARM_ABS16;
       else
 	{
-assert (0); /* FIXME: this code can be removed.  */
-	  assert (relocs->value.Tag == ValueCode);
-	  size_t len = relocs->value.Data.Code.len;
-	  const Code *code = relocs->value.Data.Code.c;
-	  for (size_t i = 0; i != len; ++i)
-	    {
-	      if (code->Tag == CodeValue
-	          && code->Data.value.Tag == ValueSymbol)
-		{
-		  const Value *value = &code->Data.value;
-
-		  assert (value->Data.Symbol.symbol->used >= 0);
-		  int symbol = value->Data.Symbol.symbol->used;
-		  int type;
-		  if (relocs->reloc.How & HOW2_RELATIVE)
-		    type = R_ARM_PC24; /* FIXME: for EABI (when ELF_EABI defined), this should be R_ARM_CALL or R_ARM_JUMP24.  */
-		  else
-		    type = R_ARM_ABS32;
-		  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
-		  int loop = value->Data.Symbol.factor;
-		  assert (loop > 0 && "Reloc_Create() check on this got ignored");
-		  while (loop--)
-		    fwrite (&areloc, 1, sizeof (Elf32_Rel), outfile);
-		}
-	    }
+	  assert ((relocs->reloc.How & HOW2_INSTR_UNLIM) == HOW2_BYTE);
+	  type = R_ARM_ABS8;
 	}
+      areloc.r_info = armword (ELF32_R_INFO (symbol, type));
+      int loop = value->Data.Symbol.factor;
+      assert (loop > 0 && "Reloc_Create() check on this got ignored");
+      while (loop--)
+	fwrite (&areloc, 1, sizeof (Elf32_Rel), outfile);
     }
 }
 #endif

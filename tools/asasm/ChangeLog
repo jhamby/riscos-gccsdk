@@ -1,3 +1,13 @@
+Sun Mar 24 14:06:51 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/symbol.c: Fixed typo.
+	* src/whileif.c: Likewise.
+	(If_Skip): Small simplification.
+	* src/reloc.c (Reloc_AOFOutput): Removed ValueCode support (was
+	obsolete).
+	(Reloc_ELFOutput): Likewise.  Add support for R_ARM_ABS16 and
+	R_ARM_ABS8.
+
 Sun Mar 24 14:02:52 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/targetcpu.c (oCPUArchList): Add Cortex-M0plus.

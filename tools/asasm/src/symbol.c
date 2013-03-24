@@ -1335,7 +1335,7 @@ c_leaf (void)
  *   IMPORT <symbol> { "[" <qualifier list> "]" } { ", WEAK" }
  *   IMPORT <symbol> { ", FPREGARGS" } { ", WEAK" }
  * FIXME: support ELF attributes
- * FIXME: there is a difference betweein IMPORT and EXTERN
+ * FIXME: there is a difference between IMPORT and EXTERN
  */
 bool
 c_import (void)

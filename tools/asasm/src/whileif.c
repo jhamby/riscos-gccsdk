@@ -136,20 +136,14 @@ If_Skip (IfSkip_eToDo toDo)
 
       /* Check for '[', '|', ']', 'IF', 'ELSE', 'ELIF', 'ENDIF'.  */
       enum { t_if, t_else, t_elif, t_endif } toktype;
-      if (Input_MatchKeyword ("["))
+      if (Input_MatchKeyword ("[") || Input_MatchKeyword ("IF"))
 	toktype = t_if;
-      else if (Input_MatchKeyword ("|"))
+      else if (Input_MatchKeyword ("|") || Input_MatchKeyword ("ELSE"))
 	toktype = t_else;
-      else if (Input_MatchKeyword ("]"))
+      else if (Input_MatchKeyword ("]") || Input_MatchKeyword ("ENDIF"))
 	toktype = t_endif;
-      else if (Input_MatchKeyword ("IF"))
-	toktype = t_if;
-      else if (Input_MatchKeyword ("ELSE"))
-	toktype = t_else;
       else if (Input_MatchKeyword ("ELIF"))
 	toktype = t_elif;
-      else if (Input_MatchKeyword ("ENDIF"))
-	toktype = t_endif;
       else
 	continue;
 
@@ -274,7 +268,7 @@ c_if (void)
  * the '|' or 'ELSE' clause which we have to ignore.
  * The difference between c_else() and c_elif() is that the latter has an
  * argument we should ignore.
- * Only called from decode() and c_elif().
+ * Only called from decode().
  */
 bool
 c_else (void)
@@ -287,7 +281,7 @@ c_else (void)
 	{
 	  Error (ErrorError, "Mismatched | or ELSE");
 	  Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
-		     ErrorError, "note: Maybe because of an unmatched WHILE here");
+		      ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
 	{
@@ -321,7 +315,7 @@ c_elif (void)
 	{
 	  Error (ErrorError, "Mismatched ELIF");
 	  Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
-		     ErrorError, "note: Maybe because of an unmatched WHILE here");
+		      ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
 	{
@@ -349,7 +343,7 @@ c_endif (void)
 	{
 	  Error (ErrorError, "Mismatched ] or ENDIF");
 	  Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
-		     ErrorError, "note: Maybe because of an unmatched WHILE here");
+		      ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
 	{
@@ -422,7 +416,7 @@ While_Skip (void)
      'WEND'.  */
   Error (ErrorError, "Mismatched WHILE, did you forget WEND");
   Error_Line (FS_GetCurFileName(), startLineNumber,
-	     ErrorError, "note: WHILE started here");
+	      ErrorError, "note: WHILE started here");
 
   /* In order not to confuse decode_finalcheck(), inject an empty
      (rest of the) line.  */
@@ -553,7 +547,7 @@ c_wend (void)
     {
       Error (ErrorError, "Mismatched WEND, did you forgot WHILE");
       Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.If.lineNum,
-		 ErrorError, "note: Maybe because of an unmatched IF here");
+		  ErrorError, "note: Maybe because of an unmatched IF here");
     }
   else
     {
@@ -580,7 +574,7 @@ FS_PopIfWhile (bool noCheck)
 	      {
 		Error (ErrorError, "Unmatched IF/ELSE/ELIF, did you forgot ENDIF");
 		Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.If.lineNum,
-			   ErrorError, "note: IF started here");
+			    ErrorError, "note: IF started here");
 	      }
 	    break;
 
@@ -589,7 +583,7 @@ FS_PopIfWhile (bool noCheck)
 	      {
 		Error (ErrorError, "Unmatched WHILE, did you forgot WEND");
 		Error_Line (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.While.lineNum,
-			   ErrorError, "note: WHILE started here");
+			    ErrorError, "note: WHILE started here");
 	      }
 	    break;
 
