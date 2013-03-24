@@ -5,4 +5,8 @@ if BUILDING_TOOLS
 	  isa ld nm readelf size strings
 endif
 
+pkgconfig_DATA = libelf-elftoolchain.pc libdwarf-elftoolchain.pc \
+	libelftc-elftoolchain.pc
+
 ACLOCAL_AMFLAGS = -I m4
+

@@ -199,6 +199,15 @@ AS_IF([test x"$my_cv_check___byte_order" = "xyes"],
 AS_IF([test x"$my_cv_check__byte_order" != "xyes" -a x"$my_cv_check___byte_order" != "xyes"],
       [AC_MSG_ERROR([no _BYTE_ORDER, _LITTLE_ENDIAN, _BIG_ENDIAN equivalent found])])
 
+# pkg.m4 defines PKG_INSTALLDIR since 0.27.  Provide a fallback for older
+# pkgconfig versions.
+m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR],
+         [AC_ARG_WITH([pkgconfigdir],
+                      [AS_HELP_STRING([--with-pkgconfigdir],
+                      [install directory for pkg-config files])],
+                       [],[with_pkgconfigdir='$(libdir)/pkgconfig'])
+          AC_SUBST([pkgconfigdir], [${with_pkgconfigdir}])])
+
 AC_CONFIG_FILES([GNUmakefile
                  addr2line/GNUmakefile
                  ar/GNUmakefile
@@ -217,6 +226,9 @@ AC_CONFIG_FILES([GNUmakefile
                  nm/GNUmakefile
                  readelf/GNUmakefile
                  size/GNUmakefile
-                 strings/GNUmakefile])
+                 strings/GNUmakefile
+                 libelf-elftoolchain.pc
+                 libelftc-elftoolchain.pc
+                 libdwarf-elftoolchain.pc])
 
 AC_OUTPUT

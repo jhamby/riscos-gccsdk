@@ -1,3 +1,14 @@
+Sun Mar 24 18:13:32 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	Provide pkg-config support:
+	* libelf-elftoolchain.pc.in: Add.
+	* libelftc-elftoolchain.pc.in: Add.
+	* libdwarf-elftoolchain.pc.in: Add.
+	* configure.ac (PKG_INSTALLDIR): Use when available, otherwise
+	provide --with-pkgconfigdir configure option with $(libdir)/pkgconfig
+	as default.
+	* GNUmakefile.am (pkgconfig_DATA): Add.
+
 Sun Mar 17 20:42:14 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile (distclean): Add directory existence check.
