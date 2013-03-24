@@ -268,6 +268,7 @@ static const CPUArch_ListEntry_t oCPUArchList[] =
 
   /* v6S-M */
   { "Cortex-M0", &oCPUArchList[eArch_6SM], 0, kArchFPUExt_None },
+  { "Cortex-M0plus", &oCPUArchList[eArch_6SM], 0, kArchFPUExt_None },
   { "Cortex-M1", &oCPUArchList[eArch_6SM], 0, kArchFPUExt_None },
   { "Cortex-M1.os_extension", &oCPUArchList[eArch_6SM], 0, kArchFPUExt_None },
 

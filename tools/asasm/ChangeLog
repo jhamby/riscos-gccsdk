@@ -1,3 +1,8 @@
+Sun Mar 24 14:02:52 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/targetcpu.c (oCPUArchList): Add Cortex-M0plus.
+	* unittests/compare/option_cpu/Cortex-M0plus.s: Add.
+
 Sun Mar 17 20:44:20 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	*  unittests/reloc/ref/common_aof.txt: Add.
