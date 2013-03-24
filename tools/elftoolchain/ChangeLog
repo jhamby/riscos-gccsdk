@@ -1,13 +1,19 @@
+Sun Mar 24 20:37:25 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/common/elfdefinitions.h: Fix ARM relocation issues.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/417
+
 Sun Mar 24 18:13:32 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	Provide pkg-config support:
-	* libelf-elftoolchain.pc.in: Add.
-	* libelftc-elftoolchain.pc.in: Add.
-	* libdwarf-elftoolchain.pc.in: Add.
-	* configure.ac (PKG_INSTALLDIR): Use when available, otherwise
-	provide --with-pkgconfigdir configure option with $(libdir)/pkgconfig
-	as default.
-	* GNUmakefile.am (pkgconfig_DATA): Add.
+	* current-trunk/libelf-elftoolchain.pc.in: Add.
+	* current-trunk/libelftc-elftoolchain.pc.in: Add.
+	* current-trunk/libdwarf-elftoolchain.pc.in: Add.
+	* current-trunk/configure.ac (PKG_INSTALLDIR): Use when available,
+	otherwise provide --with-pkgconfigdir configure option with
+	$(libdir)/pkgconfig as default.
+	* current-trunk/GNUmakefile.am (pkgconfig_DATA): Add.
 
 Sun Mar 17 20:42:14 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
