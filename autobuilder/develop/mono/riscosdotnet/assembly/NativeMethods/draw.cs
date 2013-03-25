@@ -16,7 +16,15 @@ namespace riscos
 							       [In] byte [] drawfile,
 							       int size,
 							       [In] OS.Matrix matrix,
-							       [In] OS.Rect clip,
+							       ref NativeOS.Rect clip,
+							       int flatness);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xdrawfile_render")]
+		internal static extern IntPtr Drawfile_Render (Drawfile.RenderFlags flags,
+							       [In] byte [] drawfile,
+							       int size,
+							       [In] OS.Matrix matrix,
+							       IntPtr clip,
 							       int flatness);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xdrawfile_bbox")]

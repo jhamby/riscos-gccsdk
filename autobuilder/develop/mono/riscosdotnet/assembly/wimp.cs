@@ -303,7 +303,7 @@ namespace riscos
 		/*! \brief Provides data for the event raised when a window's contents need updating.  */
 		public class RedrawEventArgs : Wimp.EventArgs
 		{
-			public NativeWimp.RedrawWindowBlock RedrawWimpBlock;
+			public NativeWimp.RedrawWindowBlock Redraw;
 
 			// This is filled in by the main event handler after
 			//  SWI "WIMP_RedrawWindow" has been called.
@@ -311,8 +311,8 @@ namespace riscos
 
 			public RedrawEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
-				RedrawWimpBlock = (NativeWimp.RedrawWindowBlock)Marshal.PtrToStructure (
-							unmanagedEventBlock, typeof(NativeWimp.RedrawWindowBlock));
+				Redraw = (NativeWimp.RedrawWindowBlock)Marshal.PtrToStructure (
+						unmanagedEventBlock, typeof(NativeWimp.RedrawWindowBlock));
 			}
 
 			public override uint GetWindowHandle ()

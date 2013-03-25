@@ -767,7 +767,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 				{
 					draw_file = new byte [file.BaseStream.Length];
 					file.Read (draw_file, 0, (int)file.BaseStream.Length);
-					// File is close automatically at the end of the using scope.
+					// File is closed automatically at the end of the using scope.
 				}
 
 				OS.Rect bbox = Drawfile.GetBounds (0, draw_file, null);
@@ -793,7 +793,7 @@ namespace riscos.CSharpBindings.ToolboxTest
 				// Matrix translation is used to position the drawfile on screen within
 				// the window.
 				local_matrix.Translate (e.Origin.X, e.Origin.Y);
-				Drawfile.Render (0, draw_file, local_matrix, null, 0);
+				Drawfile.Render (0, draw_file, local_matrix, ref e.Redraw.Clip, 0);
 
 				// Technically, we should call the base method to ensure that event subscribers
 				// are also notified of this event, but I don't think that's necessary in this

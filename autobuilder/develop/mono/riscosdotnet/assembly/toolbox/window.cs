@@ -571,16 +571,16 @@ namespace riscos
 			{
 				// Start the redraw. Given the window handle, the OS fills in RedrawWimpBlock
 				// with details of what needs redrawing.
-				int more = Wimp.RedrawWindow (ref e.RedrawWimpBlock);
+				int more = Wimp.RedrawWindow (ref e.Redraw);
 
 				// The origin of the window only needs to be calculated once before entering
 				// the redraw loop.
-				e.Origin = WimpWindow.GetOrigin (ref e.RedrawWimpBlock.Visible,
-								 ref e.RedrawWimpBlock.Scroll);
+				e.Origin = WimpWindow.GetOrigin (ref e.Redraw.Visible,
+								 ref e.Redraw.Scroll);
 				while (more != 0)
 				{
 					OnPaint (e);
-					more = Wimp.GetRectangle (ref e.RedrawWimpBlock);
+					more = Wimp.GetRectangle (ref e.Redraw);
 				}
 			}
 

@@ -38,14 +38,41 @@ namespace riscos
 		public static void Render (RenderFlags flags,
 					   byte [] drawfile,
 					   OS.Matrix matrix,
-					   OS.Rect clip,
+					   ref NativeOS.Rect clip,
 					   int flatness)
 		{
 			OS.ThrowOnError (NativeMethods.Drawfile_Render (flags,
 									drawfile,
 									drawfile.Length,
 									matrix,
-									clip,
+									ref clip,
+									flatness));
+		}
+
+		/*! \brief Call the Drawfile RISC OS module to render a draw file to screen.
+		 * \param [in] flags Additional rendering options.
+		 * \param [in] drawfile A byte array holding the draw file.
+		 * \param [in] matrix A standard RISC OS matrix, that allows the draw file to
+		 * be translated, rotated, scaled, etc.
+		 * \param [in] flatness A value defining how smooth curves should be rendered.
+		 * \return Nothing.
+		 * \note There is no x,y coordinate defining the position to render the draw
+		 * file. Instead, the matrix is used to translate the file to the correct
+		 * position.
+		 * \note The origin of the draw file (ie, point 0,0) is at its bottom left
+		 * hand corner.
+		 * \note The RISC OS call requires the size in bytes of the draw file. This is
+		 * assumed to be the length of the byte array that contains it.  */
+		public static void Render (RenderFlags flags,
+					   byte [] drawfile,
+					   OS.Matrix matrix,
+					   int flatness)
+		{
+			OS.ThrowOnError (NativeMethods.Drawfile_Render (flags,
+									drawfile,
+									drawfile.Length,
+									matrix,
+									IntPtr.Zero,
 									flatness));
 		}
 

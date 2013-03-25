@@ -13,17 +13,19 @@ test_toolbox_build_sources = $(addprefix $(srcdir)/, $(test_toolbox_sources))
 test_sprite_build_sources = $(addprefix $(srcdir)/, $(test_sprite_sources))
 test_gadget_build_sources = $(addprefix $(srcdir)/, $(test_gadget_sources))
 
+MCS_FLAGS = -debug -optimize
+
 test-toolbox.exe: $(test_toolbox_build_sources) ../assembly/riscos.dll
-	$(MCS) -debug -out:$@ $< -R:../assembly/riscos
+	$(MCS) $(MCS_FLAGS) -out:$@ $< -R:../assembly/riscos
 
 test-app.exe: $(test_app_build_sources) ../assembly/riscos.dll
-	$(MCS) -debug -out:$@ $< -R:../assembly/riscos
+	$(MCS) $(MCS_FLAGS) -out:$@ $< -R:../assembly/riscos
 
 test-font.exe: $(test_font_build_sources) ../assembly/riscos.dll
-	$(MCS) -debug -out:$@ $< -R:../assembly/riscos
+	$(MCS) $(MCS_FLAGS) -out:$@ $< -R:../assembly/riscos
 
 test-sprite.exe: $(test_sprite_build_sources) ../assembly/riscos.dll
-	$(MCS) -debug -out:$@ $< -R:../assembly/riscos
+	$(MCS) $(MCS_FLAGS) -out:$@ $< -R:../assembly/riscos
 
 test-gadget.exe: $(test_gadget_build_sources) ../assembly/riscos.dll
-	$(MCS) -debug -out:$@ $< -R:../assembly/riscos
+	$(MCS) $(MCS_FLAGS) -out:$@ $< -R:../assembly/riscos
