@@ -1,5 +1,5 @@
---- ld/emultempl/armelf.em.orig	2011-08-09 15:10:44.000000000 +0200
-+++ ld/emultempl/armelf.em	2011-11-21 19:49:15.584995686 +0100
+--- ld/emultempl/armelf.em.orig	2013-03-25 09:06:23.000000000 +0100
++++ ld/emultempl/armelf.em	2013-03-26 23:24:38.745493980 +0100
 @@ -43,6 +43,7 @@ static int no_wchar_size_warning = 0;
  static int pic_veneer = 0;
  static int merge_exidx_entries = -1;
@@ -8,7 +8,7 @@
  
  static void
  gld${EMULATION_NAME}_before_parse (void)
-@@ -55,6 +56,28 @@ gld${EMULATION_NAME}_before_parse (void)
+@@ -56,6 +57,28 @@ gld${EMULATION_NAME}_before_parse (void)
  }
  
  static void
@@ -37,7 +37,7 @@
  arm_elf_before_allocation (void)
  {
    bfd_elf32_arm_set_byteswap_code (&link_info, byteswap_code);
-@@ -87,8 +110,30 @@ arm_elf_before_allocation (void)
+@@ -88,8 +111,30 @@ arm_elf_before_allocation (void)
        bfd_elf32_arm_allocate_interworking_sections (& link_info);
      }
  
@@ -68,7 +68,7 @@
  }
  
  /* Fake input file for stubs.  */
-@@ -533,6 +578,9 @@ PARSE_AND_LIST_PROLOGUE='
+@@ -534,6 +579,9 @@ PARSE_AND_LIST_PROLOGUE='
  #define OPTION_NO_MERGE_EXIDX_ENTRIES   316
  #define OPTION_FIX_ARM1176		317
  #define OPTION_NO_FIX_ARM1176		318
@@ -78,7 +78,7 @@
  '
  
  PARSE_AND_LIST_SHORTOPTS=p
-@@ -557,6 +605,9 @@ PARSE_AND_LIST_LONGOPTS='
+@@ -558,6 +606,9 @@ PARSE_AND_LIST_LONGOPTS='
    { "no-merge-exidx-entries", no_argument, NULL, OPTION_NO_MERGE_EXIDX_ENTRIES },
    { "fix-arm1176", no_argument, NULL, OPTION_FIX_ARM1176 },
    { "no-fix-arm1176", no_argument, NULL, OPTION_NO_FIX_ARM1176 },
@@ -88,7 +88,7 @@
  '
  
  PARSE_AND_LIST_OPTIONS='
-@@ -586,6 +637,9 @@ PARSE_AND_LIST_OPTIONS='
+@@ -587,6 +638,9 @@ PARSE_AND_LIST_OPTIONS='
    fprintf (file, _("  --[no-]fix-cortex-a8        Disable/enable Cortex-A8 Thumb-2 branch erratum fix\n"));
    fprintf (file, _("  --no-merge-exidx-entries    Disable merging exidx entries\n"));
    fprintf (file, _("  --[no-]fix-arm1176          Disable/enable ARM1176 BLX immediate erratum fix\n"));
@@ -98,7 +98,7 @@
  '
  
  PARSE_AND_LIST_ARGS_CASES='
-@@ -677,8 +731,23 @@ PARSE_AND_LIST_ARGS_CASES='
+@@ -678,8 +732,23 @@ PARSE_AND_LIST_ARGS_CASES='
     case OPTION_NO_FIX_ARM1176:
        fix_arm1176 = 0;
        break;

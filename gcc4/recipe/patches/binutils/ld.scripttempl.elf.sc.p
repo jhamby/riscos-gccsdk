@@ -1,5 +1,5 @@
---- ld/scripttempl/elf.sc.orig	2012-09-04 14:53:47.000000000 +0200
-+++ ld/scripttempl/elf.sc	2012-11-17 15:01:09.085425342 +0100
+--- ld/scripttempl/elf.sc.orig	2013-03-25 09:06:23.000000000 +0100
++++ ld/scripttempl/elf.sc	2013-03-26 23:24:38.761493779 +0100
 @@ -316,6 +316,14 @@ else
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
@@ -32,7 +32,7 @@
    .init         ${RELOCATING-0} :
    {
      ${RELOCATING+${INIT_START}}
-@@ -517,6 +528,11 @@ cat <<EOF
+@@ -531,6 +542,11 @@ cat <<EOF
    .exception_ranges ${RELOCATING-0} : ONLY_IF_RO { *(.exception_ranges
    .exception_ranges*) }
  
@@ -44,7 +44,7 @@
    /* Adjust the address for the data segment.  We want to adjust up to
       the same address within the page on the next page up.  */
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+. = ${DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}}
-@@ -556,6 +572,11 @@ cat <<EOF
+@@ -570,6 +586,11 @@ cat <<EOF
  
    ${DATA_PLT+${PLT_BEFORE_GOT-${PLT}}}
  
@@ -56,7 +56,7 @@
    .data         ${RELOCATING-0} :
    {
      ${RELOCATING+${DATA_START_SYMBOLS}}
-@@ -581,8 +602,11 @@ cat <<EOF
+@@ -595,8 +616,11 @@ cat <<EOF
    ${BSS_PLT+${PLT}}
    .${BSS_NAME}          ${RELOCATING-0} :
    {
@@ -68,7 +68,7 @@
     *(COMMON)
     /* Align here to ensure that the .bss section occupies space up to
        _end.  Align after .bss to ensure correct alignment even if the
-@@ -590,6 +614,7 @@ cat <<EOF
+@@ -604,6 +628,7 @@ cat <<EOF
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
@@ -76,7 +76,7 @@
    }
    ${OTHER_BSS_SECTIONS}
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
-@@ -599,6 +624,7 @@ cat <<EOF
+@@ -613,6 +638,7 @@ cat <<EOF
    ${RELOCATING+${OTHER_END_SYMBOLS}}
    ${RELOCATING+${END_SYMBOLS-${USER_LABEL_PREFIX}_end = .; PROVIDE (${USER_LABEL_PREFIX}end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}

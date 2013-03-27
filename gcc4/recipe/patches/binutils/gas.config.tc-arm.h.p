@@ -1,6 +1,6 @@
---- gas/config/tc-arm.h.orig	2012-09-04 14:53:45.000000000 +0200
-+++ gas/config/tc-arm.h	2012-11-17 14:55:35.901614031 +0100
-@@ -347,6 +347,9 @@ extern int arm_elf_section_type (const c
+--- gas/config/tc-arm.h.orig	2013-03-25 09:06:21.000000000 +0100
++++ gas/config/tc-arm.h	2013-03-26 23:24:38.505496997 +0100
+@@ -350,6 +350,9 @@ extern int arm_elf_section_type (const c
  extern int tc_arm_regname_to_dw2regnum (char *regname);
  extern void tc_arm_frame_initial_instructions (void);
  

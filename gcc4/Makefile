@@ -3,7 +3,7 @@
 #
 # Build requirements:
 #   - apt-get install flex bison libgmp3-dev libmpfr-dev texinfo build-essential
-#   - binutils 2.23.1 and gcc 4.7 needs automake 1.11.1 and autoconf 2.64.
+#   - binutils 2.23.2 and gcc 4.7 needs automake 1.11.1 and autoconf 2.64.
 #     Note the required automake/autoconf sources will be fetched & built automatically.
 #   - gcc 4.7 needs at least GMP 4.3.2, MPFR 2.4.2 and MPC 0.8.1 (MPFR needs GMP, MPC needs GMP & MPFR)
 #     For MPFR/GMP/MPC version numbers, a good set can be found mentioned at gcc/contrib/download_prerequisites.

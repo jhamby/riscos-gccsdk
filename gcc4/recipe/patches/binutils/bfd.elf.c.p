@@ -1,6 +1,6 @@
---- bfd/elf.c.orig	2012-07-24 23:06:57.000000000 +0200
-+++ bfd/elf.c	2012-11-17 14:55:35.817615087 +0100
-@@ -1262,6 +1262,7 @@ _bfd_elf_print_private_bfd_data (bfd *ab
+--- bfd/elf.c.orig	2013-03-25 09:06:19.000000000 +0100
++++ bfd/elf.c	2013-03-26 23:24:38.309499460 +0100
+@@ -1242,6 +1242,7 @@ _bfd_elf_print_private_bfd_data (bfd *ab
  		}
  	      break;
  
@@ -8,7 +8,7 @@
  	    case DT_NEEDED: name = "NEEDED"; stringp = TRUE; break;
  	    case DT_PLTRELSZ: name = "PLTRELSZ"; break;
  	    case DT_PLTGOT: name = "PLTGOT"; break;
-@@ -3952,8 +3953,17 @@ _bfd_elf_map_sections_to_segments (bfd *
+@@ -3941,8 +3942,17 @@ _bfd_elf_map_sections_to_segments (bfd *
  	    }
  	  else if (! writable
  		   && (hdr->flags & SEC_READONLY) == 0
