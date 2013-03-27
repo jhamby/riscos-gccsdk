@@ -1,3 +1,8 @@
+Wed Mar 27 22:49:18 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/filestack.c (CachedFile_GetLine): Fixed typo made in previous
+	commit.
+
 Sun Mar 24 21:31:35 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/filestack.c (CachedFile_GetLine): Properly support EOF.

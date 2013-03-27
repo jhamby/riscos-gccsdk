@@ -337,8 +337,9 @@ CachedFile_GetLine (char *bufP, size_t bufSize)
 {
   PObject_CachedFile * const memP = &gCurPObjP->d.memory;
   const char *curP = memP->curP;
+
   /* Are we at EOF ? */
-  if (curP == memP->curP)
+  if (curP == memP->endP)
     return true;
 
   const char * const bufStartP = bufP;
