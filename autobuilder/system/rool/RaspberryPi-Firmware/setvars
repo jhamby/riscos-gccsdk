@@ -5,7 +5,7 @@
 AB_NOREMOTE=yes
 
 AB_PACKAGE=RaspberryPi-Firmware
-AB_MAINTAINER="RISC OS Open Ltd <info@riscosopen.org>"
+AB_MAINTAINER="RISC OS Open Ltd <packages@riscosopen.org>"
 AB_LICENCE="Non-free"
 
 # version information and git fetching is in the 'preprocess' file
@@ -74,10 +74,10 @@ ab_package () {
 
     mkdir -p $D/$AB_PACKAGE/Bootloader
     cp $GIT_LOCAL_TREE/firmware/boot/start.elf $D/$AB_PACKAGE/Bootloader/START.ELF
-    cp $GIT_LOCAL_TREE/firmware/boot/start_cd.elf $D/$AB_PACKAGE/Bootloader/START_CD.ELF
+#    cp $GIT_LOCAL_TREE/firmware/boot/start_cd.elf $D/$AB_PACKAGE/Bootloader/START_CD.ELF
     cp $GIT_LOCAL_TREE/firmware/boot/bootcode.bin $D/$AB_PACKAGE/Bootloader/BOOTCODE.BIN
     cp $GIT_LOCAL_TREE/firmware/boot/fixup.dat $D/$AB_PACKAGE/Bootloader/FIXUP.DAT
-    cp $GIT_LOCAL_TREE/firmware/boot/fixup_cd.dat $D/$AB_PACKAGE/Bootloader/FIXUP_CD.DAT
+#    cp $GIT_LOCAL_TREE/firmware/boot/fixup_cd.dat $D/$AB_PACKAGE/Bootloader/FIXUP_CD.DAT
     mkdir -p $D/$AB_PACKAGE/RiscPkg
     cp $GIT_LOCAL_TREE/firmware/boot/LICENCE.broadcom $D/$AB_PACKAGE/RiscPkg/Copyright
 

@@ -7,9 +7,14 @@ import os
 url="http://www.riscosopen.org/content/downloads/other-zipfiles"
 page=urllib2.urlopen(url)
 soup = BeautifulSoup(page.read())
+devel = os.getenv('ROOL_ROM_DEV')
+if (devel):
+  filename = "BCM2835Dev.5.19.zip"
+else:
+  filename = "BCM2835.5.19.zip"
 #print soup
 for link in soup.findAll('a'): # find all links
-  if "BCM2835.5.19.zip" in link['href']:
+  if filename in link['href']:
     url=link['href']
     
 url="http://www.riscosopen.org"+url

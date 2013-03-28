@@ -2,7 +2,12 @@
 
 GIT_LOCAL_TREE=/home/tmarkettos/raspberrypi
 
-GIT_REVISION=df923e75e5d3173234135f67050d291a13ad6b7f
+# RC6
+#GIT_REVISION=df923e75e5d3173234135f67050d291a13ad6b7f
+# RC7
+#GIT_REVISION=f90b104f4ba8acd14a622b52d1526487a83b62a4
+# RC8
+GIT_REVISION=2bcb2bc77be4ff5d9ecc79be73d527eba4e65366
 GIT_DOWNLOAD_URL=https://github.com/raspberrypi/firmware/raw/${GIT_REVISION}/boot/
 
 echo "*****************************"
@@ -19,6 +24,6 @@ git pull
 git checkout $GIT_REVISION
 GIT_UNIX_TIMESTAMP=$(git rev-list --timestamp $GIT_REVISION | head -1 | cut -d\  -f1)
 GIT_TEXT_TIMESTAMP=$(date -u -d @$GIT_UNIX_TIMESTAMP +%Y%m%d.%H%M%S)
-AB_PVERSION="0.05.$GIT_TEXT_TIMESTAMP"
+AB_PVERSION="0.08.$GIT_TEXT_TIMESTAMP"
 AB_ROVERSION=1
 popd
