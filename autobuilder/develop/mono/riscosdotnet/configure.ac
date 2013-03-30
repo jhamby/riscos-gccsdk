@@ -13,12 +13,11 @@ LT_INIT
 AC_PROG_CC
 AM_PROG_AS
 
-AC_PATH_PROG(MCS, mcs, no)
+AC_PATH_PROG(MCS, mcs, $srcdir/../../native-env/bin/mcs)
 
 AC_PROG_LIBTOOL
 AC_SUBST(enable_shared)
 AC_SUBST(enable_static)
-AC_SUBST(MCS)
 
 ###################
 # DOXYGEN SUPPORT
