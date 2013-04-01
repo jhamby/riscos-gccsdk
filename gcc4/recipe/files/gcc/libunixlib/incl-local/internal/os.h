@@ -235,7 +235,11 @@ SWI_OS_File_ReadCatInfo (const char *__filename, unsigned *__objtype,
   if (!err)
     {
       if (__objtype)
+#ifdef __TARGET_SCL__
+	*__objtype = objtype;
+#else
 	*__objtype = objtype == 3 ? (__get_feature_imagefs_is_file () ? 1 : 2) : objtype;
+#endif
       if (__loadaddr)
 	*__loadaddr = loadaddr;
       if (__execaddr)
