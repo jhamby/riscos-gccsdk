@@ -1,0 +1,49 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+3 areas
+7 symbols
+
+** Area (0x000122) "Code1", aligned at 4 bytes, [code] [readonly] [32bit] 
+   Size 16 bytes, 0 relocations
+
+000000: e3a01001 e3a02002 e3a03003 e3a04004
+
+** Area (0x000122) "Code2", aligned at 4 bytes, [code] [readonly] [32bit] 
+   Size 40 bytes, 6 relocations
+
+000000: e3a05005 e3a06006 e3a07007 e3a08008 00000000 00000008 00000000 00000008
+000020: 00000000 00000008
+
+** Relocations:
+
+At 0x000024 (flags 0x82000002): Word displaced by base of area "Code3" (type-2 reloc)
+At 0x000020 (flags 0x82000002): Word displaced by base of area "Code3" (type-2 reloc)
+At 0x00001c (flags 0x82000001): Word displaced by base of area "Code2" (type-2 reloc)
+At 0x000018 (flags 0x82000001): Word displaced by base of area "Code2" (type-2 reloc)
+At 0x000014 (flags 0x82000000): Word displaced by base of area "Code1" (type-2 reloc)
+At 0x000010 (flags 0x82000000): Word displaced by base of area "Code1" (type-2 reloc)
+
+** Area (0x000122) "Code3", aligned at 4 bytes, [code] [readonly] [32bit] 
+   Size 16 bytes, 0 relocations
+
+000000: e3a09009 e3a0a00a e3a0b00b e3a0c00c
+
+** Symbol table:
+
+Code1            (01) local at "Code1" + 0x000000
+Code2            (01) local at "Code2" + 0x000000
+Code3            (01) local at "Code3" + 0x000000
+$a               (01) local at "Code1" + 0x000000
+$a               (01) local at "Code2" + 0x000000
+$d               (101) local, cadatum at "Code2" + 0x000010
+$a               (01) local at "Code3" + 0x000000
+
+** String table:
+
+000004: Code1
+00000a: Code2
+000010: Code3
+000016: $a
+000019: $d

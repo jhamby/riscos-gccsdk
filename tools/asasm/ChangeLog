@@ -1,3 +1,10 @@
+Tue Apr  2 22:35:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	unittests/reloc:
+	* src/reloc_against_other_areas.s: Add.
+	* ref/reloc_against_other_areas_aof.txt: Add.
+	* ref/reloc_against_other_areas_elf.txt: Add.
+
 Tue Apr  2 20:42:27 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
