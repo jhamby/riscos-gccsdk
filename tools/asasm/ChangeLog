@@ -1,3 +1,7 @@
+Tue Apr  2 15:04:38 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* INSTALL: Update expected unittest output.
+
 Wed Mar 27 22:49:18 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/filestack.c (CachedFile_GetLine): Fixed typo made in previous

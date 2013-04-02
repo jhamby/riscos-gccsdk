@@ -34,7 +34,8 @@
 
    When all the tests are successful, you should see at the near end:
 
-   *** All tests were OK (do 'make clean' if you want to re-do them)
+   *** All 'compare' tests were OK (do 'make -C unittests/compare clean' first if you want to re-do them)
+   *** All 'reloc' tests were OK (do 'make -C unittests/reloc clean' first if you want to re-do them)
 
 6. Install:
 
