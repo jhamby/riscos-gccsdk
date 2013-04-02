@@ -276,7 +276,7 @@ static const decode_table_t oDecodeTable[] =
   { "SBFX", eCB_VoidPMatch, 1, 1, { .vdpm = m_sbfx } }, /* SBFX */
   /* FIXME: SEL */
   { "SET", eCB_LexPMatch, 0, 0, { .lex = c_set } }, /* SETA, SETL, SETS */
-  /* FIXME: SETEND */
+  /* FIXME: SETEND, note: deprecated for ARMv8.  */
   { "SEV", eCB_VoidPMatch, 1, 1, { .vdpm = m_sev } }, /* SEV CC */
   { "SFM", eCB_VoidPMatch, 1, 1, { .vdpm = m_sfm } }, /* SFM CC (TYPE) */
   /* FIXME: SHADD16/SHADD8 */
@@ -318,6 +318,7 @@ static const decode_table_t oDecodeTable[] =
   { "STC", eCB_VoidPMatch, 1, 1, { .vdpm = m_stc } }, /* STC CC l */
   { "STC2", eCB_VoidPMatch, 1, 1, { .vdpm = m_stc2 } }, /* STC2 CC l */
   { "STF", eCB_VoidPMatch, 1, 1, { .vdpm = m_stf } }, /* STF CC P */
+  /* FIXME: STLEX : ARMv8 only */
   { "STM", eCB_VoidPMatch, 1, 1, { .vdpm = m_stm } }, /* STM CC TYPE */
   { "STR", eCB_VoidPMatch, 1, 1, { .vdpm = m_str } }, /* STR CC BYTE */
   { "STREX", eCB_VoidPMatch, 1, 1, { .vdpm = m_strex } }, /* STREX / STREXB / STREXD / STREXH */

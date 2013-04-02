@@ -59,6 +59,8 @@
 	= "{TARGET_ARCH_7_R} : ", :STR:{TARGET_ARCH_7_R}, "\n"
 	= "{TARGET_ARCH_7_M} : ", :STR:{TARGET_ARCH_7_M}, "\n"
 	= "{TARGET_ARCH_7E_M} : ", :STR:{TARGET_ARCH_7E_M}, "\n"
+	= "{TARGET_ARCH_8} : ", :STR:{TARGET_ARCH_8}, "\n"
+	= "{TARGET_ARCH_8_A} : ", :STR:{TARGET_ARCH_8_A}, "\n"
 
 	= "{TARGET_FEATURE_CLZ} : ", :STR:{TARGET_FEATURE_CLZ}, "\n"
 	= "{TARGET_FEATURE_DIVIDE} : ", :STR:{TARGET_FEATURE_DIVIDE}, "\n"
@@ -85,6 +87,7 @@
 	= "{TARGET_FPU_VFPV2} : ", :STR:{TARGET_FPU_VFPV2}, "\n"
 	= "{TARGET_FPU_VFPV3} : ", :STR:{TARGET_FPU_VFPV3}, "\n"
 	= "{TARGET_FPU_VFPV4} : ", :STR:{TARGET_FPU_VFPV4}, "\n"
+	; FIXME: ARMv8 versions for {TARGET_FPU_...} ?
 
 	= "{TARGET_PROFILE_A} : ", :STR:{TARGET_PROFILE_A}, "\n"
 	= "{TARGET_PROFILE_M} : ", :STR:{TARGET_PROFILE_M}, "\n"

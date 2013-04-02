@@ -1,3 +1,26 @@
+Tue Apr  2 19:27:48 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpumem.c (GetBarrierType): Add support for LD, ISHLD, NSHLD,
+	OSHLD.
+	* src/target.c: Add ARMv8, Cortex-A53 and Cortex-A57 support.
+	* src/lex.c (oArchs): Add support for TARGET_ARCH_8 and TARGET_ARCH_8_A.
+	(Lex_GetBuiltinVariable): Follow Target_GetCPUFeature() return type
+	change.
+	* src/decode.c (Decode): Update comments.
+	* unittests/compare/include/output_builtin_variables.s: Add test
+	on TARGET_ARCH_8 and TARGET_ARCH_8_A.
+	* unittests/compare/option_fpu: Update with TARGET_ARCH_8,
+	TARGET_ARCH_8_A results.
+	* unittests/compare/option_device: Likewise.
+	* unittests/compare/option_cpu: Likewise.
+	* unittests/compare/option_fpu/FP-ARMv8.s: Add.
+	* unittests/compare/option_cpu/8.s: Add.
+	* unittests/compare/option_cpu/8-A.s: Add.
+	* unittests/compare/option_cpu/Cortex-A53.s: Add.
+	* unittests/compare/option_cpu/Cortex-A57.s: Add.
+	* unittests/compare/core/instr_dmb_dsb_isb.s: Add LD, ISHLD, NSHLD
+	and OSHLD cases.
+
 Tue Apr  2 15:04:38 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* INSTALL: Update expected unittest output.

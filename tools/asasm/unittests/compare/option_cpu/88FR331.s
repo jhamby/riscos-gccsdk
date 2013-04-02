@@ -39,6 +39,8 @@
 	= "{TARGET_ARCH_7_R} : F\n"
 	= "{TARGET_ARCH_7_M} : F\n"
 	= "{TARGET_ARCH_7E_M} : F\n"
+	= "{TARGET_ARCH_8} : F\n"
+	= "{TARGET_ARCH_8_A} : F\n"
 
 	= "{TARGET_FEATURE_CLZ} : T\n"
 	= "{TARGET_FEATURE_DIVIDE} : F\n"

@@ -887,7 +887,9 @@ Lex_GetBuiltinVariable (void)
       		      { "7_a}", "7-A" },
       		      { "7_r}", "7-R" },
       		      { "7_m}", "7-M" },
-      		      { "7e_m}", "7E-M" }
+      		      { "7e_m}", "7E-M" },
+		      { "8}", "8" },
+		      { "8_a}", "8-A" },
 		    };
 		  for (size_t i = 0; i != sizeof (oArchs)/sizeof (oArchs[0]); ++i)
 		    {
@@ -913,7 +915,7 @@ Lex_GetBuiltinVariable (void)
 		    {
 		      /* True when LDRD/STRD is available (P extension).
 			 So needs at least v5E architecture but not for ARMv6-M.  */
-		      unsigned features = Target_GetCPUFeatures ();
+		      uint64_t features = Target_GetCPUFeatures ();
 		      return Lex_Bool ((features & kCPUExt_v5E) != 0
 				       && ((features & (kCPUExt_v6M | kCPUExt_v7M)) != kCPUExt_v6M));
 		    }
@@ -931,7 +933,7 @@ Lex_GetBuiltinVariable (void)
 		    {
 		      /* True when long multiply instructions are available in
 			 Thumb *or* ARM (M extension).  */
-		      unsigned features = Target_GetCPUFeatures ();
+		      uint64_t features = Target_GetCPUFeatures ();
 		      return Lex_Bool ((features & (kCPUExt_v3M | kCPUExt_v7M)) != 0
 				       || features == kArchExt_v7);
 		    }
@@ -969,7 +971,7 @@ Lex_GetBuiltinVariable (void)
 		    {
 		      /* True when unaligned access is supported.
 		         From ARMv6 onwards but not for ARMv6-M.  */
-		      unsigned features = Target_GetCPUFeatures ();
+		      uint64_t features = Target_GetCPUFeatures ();
 		      return Lex_Bool ((features & kCPUExt_v6) != 0
 				       && (features & (kCPUExt_v6M | kCPUExt_v7M)) != kCPUExt_v6M);
 		    }
@@ -1059,18 +1061,21 @@ Lex_GetBuiltinVariable (void)
 		      return Lex_Bool ((features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
 				       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA));
 		    }
+		  /* FIXME: ARMv8 VFP/NEON/Crypto missing ? */
 		}
 	      else if (Input_MatchStringLower ("profile_"))
 		{
 		  if (Input_MatchStringLower ("a}")) /* {TARGET_PROFILE_A} */
 		    {
-		      /* True for ARMv7-A.  */
-		      return Lex_Bool ((Target_GetCPUFeatures () & kCPUExt_v7A) != 0);
+		      /* True for ARMv7-A and ARMv8-A.  */
+		      uint64_t features = Target_GetCPUFeatures ();
+		      return Lex_Bool ((features & (kCPUExt_v7A | kCPUExt_v8A)) != 0);
 		    }
 		  if (Input_MatchStringLower ("m}")) /* {TARGET_PROFILE_M} */
 		    {
 		      /* True for ARMv6-M or ARMv7-M.  */
-		      return Lex_Bool ((Target_GetCPUFeatures () & (kCPUExt_v6M | kCPUExt_v7M)) != 0);
+		      uint64_t features = Target_GetCPUFeatures ();
+		      return Lex_Bool ((features & (kCPUExt_v6M | kCPUExt_v7M)) != 0);
 		    }
 		  if (Input_MatchStringLower ("r}")) /* {TARGET_PROFILE_R} */
 		    {

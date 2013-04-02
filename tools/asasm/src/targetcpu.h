@@ -23,44 +23,52 @@
 #define targetcpu_header_included
 
 #include <stdbool.h>
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#elif HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
 
 /* ARM CPU extensions: */
-#define kCPUExt_v1        0x00000001U /* ARM ISA.  */
-#define kCPUExt_v2        0x00000002U /* MUL/MLA.  */
-#define kCPUExt_v2a	  0x00000004U /* SWP[B].  */
-#define kCPUExt_v3	  0x00000008U /* MSR/MRS.  */
-#define kCPUExt_v3M	  0x00000010U /* Long multiply instructions.  */
+#define kCPUExt_v1        0x0000000001ULL /* ARM ISA.  */
+#define kCPUExt_v2        0x0000000002ULL /* MUL/MLA.  */
+#define kCPUExt_v2a	  0x0000000004ULL /* SWP[B].  */
+#define kCPUExt_v3	  0x0000000008ULL /* MSR/MRS.  */
+#define kCPUExt_v3M	  0x0000000010ULL /* Long multiply instructions.  */
 
-#define kCPUExt_v4	  0x00000020U /* Half word.  */
-#define kCPUExt_v4T	  0x00000040U /* Thumb.  */
-#define kCPUExt_v5	  0x00000080U /* CLZ, BKPT.  */
-#define kCPUExt_v5T	  0x00000100U /* Improved ARM/Thumb interworking, LDC2/STC2  */
-#define kCPUExt_v5ExP	  0x00000200U /* DSP (mul/acc on 16bit, saturated arithmetic).  */
-#define kCPUExt_v5E	  0x00000400U /* LDRD/STRD, MCRR/MRRC, PLD.  */
-#define kCPUExt_v5J	  0x00000800U /* BXJ (Jazelle).  */
-#define kCPUExt_v6        0x00001000U /* ARM: CPS/SRS/RFE/REV/REV16/REVSH/SETEND/LDREX/STREX/SXTB/SXTH/UXTB/UXTH, SIMD, multiply. Thumb: CPS/CPY/REV/REV16/REVSH/SETEND/SXTB/SXTH/UXTB/UXTH. */
-#define kCPUExt_v6K       0x00002000U /* ARMv6K (multiprocessing support), memory model features.  */
+#define kCPUExt_v4	  0x0000000020ULL /* Half word.  */
+#define kCPUExt_v4T	  0x0000000040ULL /* Thumb.  */
+#define kCPUExt_v5	  0x0000000080ULL /* CLZ, BKPT.  */
+#define kCPUExt_v5T	  0x0000000100ULL /* Improved ARM/Thumb interworking, LDC2/STC2  */
+#define kCPUExt_v5ExP	  0x0000000200ULL /* DSP (mul/acc on 16bit, saturated arithmetic).  */
+#define kCPUExt_v5E	  0x0000000400ULL /* LDRD/STRD, MCRR/MRRC, PLD.  */
+#define kCPUExt_v5J	  0x0000000800ULL /* BXJ (Jazelle).  */
+#define kCPUExt_v6        0x0000001000ULL /* ARM: CPS/SRS/RFE/REV/REV16/REVSH/SETEND/LDREX/STREX/SXTB/SXTH/UXTB/UXTH, SIMD, multiply. Thumb: CPS/CPY/REV/REV16/REVSH/SETEND/SXTB/SXTH/UXTB/UXTH. */
+#define kCPUExt_v6K       0x0000002000ULL /* ARMv6K (multiprocessing support), memory model features.  */
 
-#define kCPUExt_v6T2	  0x00004000U /* Thumb-2.  */
-#define kCPUExt_v7A	  0x00008000U /* ARMv7-A.  */
-#define kCPUExt_v7R	  0x00010000U /* ARMv7-R.  */
-#define kCPUExt_v7M	  0x00020000U /* ARMv7-M.  */
-#define kCPUExt_v6M	  0x00040000U /* ARM V6M.  */
-#define kCPUExt_BARRIER	  0x00080000U /* DSB/DMB/ISB.  */
-#define kCPUExt_THUMB_MSR 0x00100000U /* Thumb MSR/MRS.  */
-#define kCPUExt_v6_DSP    0x00200000U /* ARM v6 (DSP-related), not in v7-M.  */
+#define kCPUExt_v6T2	  0x0000004000ULL /* Thumb-2.  */
+#define kCPUExt_v7A	  0x0000008000ULL /* ARMv7-A.  */
+#define kCPUExt_v7R	  0x0000010000ULL /* ARMv7-R.  */
+#define kCPUExt_v7M	  0x0000020000ULL /* ARMv7-M.  */
+#define kCPUExt_v6M	  0x0000040000ULL /* ARM V6M.  */
+#define kCPUExt_BARRIER	  0x0000080000ULL /* DSB/DMB/ISB.  */
+#define kCPUExt_THUMB_MSR 0x0000100000ULL /* Thumb MSR/MRS.  */
+#define kCPUExt_v6_DSP    0x0000200000ULL /* ARM v6 (DSP-related), not in v7-M.  */
 
-#define kCPUExt_Div	  0x00400000U /* SDIV/UDIV.  */
-#define kCPUExt_ADIV	  0x00800000U /* Integer divide extensions in ARM state.  */
-#define kCPUExt_MP        0x01000000U /* Multiprocessing Extensions.  */
-#define kCPUExt_Sec	  0x02000000U /* Security extensions (SMC/SMI).  */
-#define kCPUExt_OS	  0x04000000U /* OS Extensions.  */
-#define kCPUExt_Virt	  0x08000000U /* Virtualization extensions.  */
-#define kCPUExt_ThumbEE	  0x10000000U /* ThumbEE, optionally from ARMv7 onwards.  */
+#define kCPUExt_Div	  0x0000400000ULL /* SDIV/UDIV.  */
+#define kCPUExt_ADIV	  0x0000800000ULL /* Integer divide extensions in ARM state.  */
+#define kCPUExt_MP        0x0001000000ULL /* Multiprocessing Extensions.  */
+#define kCPUExt_Sec	  0x0002000000ULL /* Security extensions (SMC/SMI).  */
+#define kCPUExt_OS	  0x0004000000ULL /* OS Extensions.  */
+#define kCPUExt_Virt	  0x0008000000ULL /* Virtualization extensions.  */
+#define kCPUExt_ThumbEE	  0x0010000000ULL /* ThumbEE, optionally from ARMv7 onwards.  */
 
-#define kCPUExt_XScale	  0x20000000U /* XScale extensions.  */
-#define kCPUExt_iWMMXt	  0x40000000U /* Intel Wireless MMX technology coprocessor.  */
-#define kCPUExt_iWMMXt2   0x80000000U /* Intel Wireless MMX technology coprocessor v2.  */
+#define kCPUExt_v8	  0x0020000000ULL /* ARMv8 (AArch32 - A32, T32 and T32EE).  */
+#define kCPUExt_v8A	  0x0040000000ULL /* ARMv8-A */
+
+#define kCPUExt_XScale	  0x2000000000ULL /* XScale extensions.  */
+#define kCPUExt_iWMMXt	  0x4000000000ULL /* Intel Wireless MMX technology coprocessor.  */
+#define kCPUExt_iWMMXt2   0x8000000000ULL /* Intel Wireless MMX technology coprocessor v2.  */
 
 /* kCPUExt_Div : ARM DDI 0406C A4.4.8
     - ARMv7-R profile => SDIV/UDIV implemented in Thumb.
@@ -107,17 +115,15 @@
   | kCPUExt_v6T2 | kCPUExt_Div | kCPUExt_v7M \
   | kCPUExt_v6M | kCPUExt_BARRIER | kCPUExt_THUMB_MSR)
 #define kArchExt_v7EM     (kArchExt_v7M | kCPUExt_v5ExP | kCPUExt_v6_DSP)
-
-/* Base architecture bits:  */
-#define kArchExt_BaseArch (kCPUExt_v1 | kCPUExt_v2 | kCPUExt_v2s | kCPUExt_v3 \
-  | kCPUExt_v3M | kCPUExt_v4 | kCPUExt_v4T | kCPUExt_v5 | kCPUExt_v5T \
-  | kCPUExt_v5ExP | kCPUExt_v5E| kCPUExt_v5J | kCPUExt_v6 | kCPUExt_v6K \
-  | kCPUExt_v6T2 | kCPUExt_v7A | kCPUExt_v7R |kCPUExt_v7M | kCPUExt_v6M)
+#define kArchExt_v8       ((kArchExt_v7A & ~kCPUExt_v7A) | kCPUExt_MP | kCPUExt_Sec \
+  | kCPUExt_Div | kCPUExt_ADIV | kCPUExt_Virt | kCPUExt_v8) 
+#define kArchExt_v8A	  (kArchExt_v8 | kCPUExt_v8A)
 
 /* ARM FPU extension: */
 #define kFPUExt_NoEndianMismatch 0x00000001U /* Double-precision words are stored according to target endian.  */
 #define kFPUExt_FPAv1            0x00000002U /* Base FPA.  */
 #define kFPUExt_FPAv2            0x00000004U /* LFM/SFM.  */
+
 #define kFPUExt_VFPv1xD          0x00000008U /* VFP v1 single precision.  */
 #define kFPUExt_VFPv1            0x00000010U /* VFP v1 single + double precision.  */
 #define kFPUExt_VFPv2            0x00000020U /* VFP v2.  */
@@ -126,11 +132,17 @@
 #define kFPUExt_D16D32           0x00000100U /* VFP regs D16-D31.  */
 #define kFPUExt_FP16             0x00000200U /* Half precision (always shared by VFPv3, VFPv4 and NEON).  */
 #define kFPUExt_VFP_FMA          0x00000400U /* "Fused Multiply Add" VFP.  */
-#define kFPUExt_NEONv1           0x00000800U /* NEON v1.  */
-#define kFPUExt_NEON_FMA         0x00001000U /* "Fused Multiply Add" NEON.  */
+#define kFPUExt_VFP_ARMv8	 0x00000800U /* ARMv8 VFP.  */
 
-#define kFPUExt_MaskVFPFPA	 0x000007FFU /* All FPA + VFP related bits.  */
-#define kFPUExt_MaskNEON	 0x00001800U /* All NEON related bits (we don't include kFPUExt_FP16).  */
+#define kFPUExt_MaskVFPFPA	 0x00000FFFU /* All FPA + VFP related bits.  */
+
+#define kFPUExt_NEONv1           0x00001000U /* NEON v1.  */
+#define kFPUExt_NEON_FMA         0x00002000U /* "Fused Multiply Add" NEON.  */
+#define kFPUExt_NEON_ARMv8	 0x00004000U /* ARMv8 NEON.  */
+
+#define kFPUExt_MaskNEON	 0x00007000U /* All NEON related bits (we don't include kFPUExt_FP16).  */
+
+#define kFPUExt_Crypto_ARMv8	 0x00010000U /* ARMv8 Crypto.  */
 
 /* VFPv4(D16) = VFPv3(D16) + FP16 + VFP_FMA */
 /* NEON v2 = NEON v1 + FP16 + NEON_FMA */
@@ -209,6 +221,9 @@ implemented as VFPv3-D32, or as VFPv4-D32.
 #define kArchFPUExt_VFPv4D16     (kArchFPUExt_VFPv3D16 | kFPUExt_FP16 | kFPUExt_VFP_FMA) 
 #define kArchFPUExt_VFPv4        (kArchFPUExt_VFPv3 | kFPUExt_FP16 | kFPUExt_VFP_FMA)
 #define kArchFPUExt_VFPv4SPD16   (kArchFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA)
+#define kArchFPUExt_VFP_ARMv8    (kArchFPUExt_VFPv4 | kFPUExt_VFP_ARMv8)
+#define kArchFPUExt_NEON_ARMv8   (kFPUExt_NEONv1 | kFPUExt_NEON_FMA | kFPUExt_NEON_ARMv8)
+#define kArchFPUExt_Crypto_ARMv8 (kFPUExt_Crypto_ARMv8)
 
 /* Permissible NEON & VFP combinations (ARMARM A2-4):
       NEON                 VFP
@@ -229,11 +244,11 @@ const char *Target_GetFPU (void);
 unsigned Target_GetARMISAVersion (void);
 unsigned Target_GetThumbISAVersion (void);
 
-bool Target_CheckCPUFeature (unsigned features, bool warn);
-bool Target_CheckCPUFeatureDetail (unsigned features, const char *what);
+bool Target_CheckCPUFeature (uint64_t features, bool warn);
+bool Target_CheckCPUFeatureDetail (uint64_t features, const char *what);
 bool Target_CheckFPUFeature (unsigned features, bool warn);
 
-unsigned Target_GetCPUFeatures (void);
+uint64_t Target_GetCPUFeatures (void);
 unsigned Target_GetFPUFeatures (void);
 
 #endif

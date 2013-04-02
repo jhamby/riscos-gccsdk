@@ -38,7 +38,7 @@ struct CPUArch_ListEntry_s
     (when archP is non-NULL).  */
   const CPUArch_ListEntry_t *archP; /** NULL for architecture, non-NULL when
     pointed to its architecture.  */
-  unsigned cpu_features; /** For architectures, this set will be the architecture
+  uint64_t cpu_features; /** For architectures, this set will be the architecture
     features.  For CPUs, this will be the extra features compared to the
     architecture pointed via archP.  */
   unsigned fpu_features; /** FPU hardware capabilities.  */
@@ -58,7 +58,7 @@ typedef struct
 } Device_ListEntry_t;
 
 static const CPUArch_ListEntry_t *oTarget_CPU;
-static unsigned oTarget_CPUFeatures;
+static uint64_t oTarget_CPUFeatures;
 static const FPU_ListEnty_t *oTarget_FPU;
 static unsigned oTarget_FPUFeatures;
 static const Device_ListEntry_t *oTarget_Device;
@@ -94,7 +94,9 @@ typedef enum
   eArch_7A_security,
   eArch_7R,
   eArch_7EM,
-  eArch_7M
+  eArch_7M,
+  eArch_8,
+  eArch_8A
 } Arch_e;
 
 /* Maps ARM cores to architectures (including architectures themselves): */
@@ -133,6 +135,8 @@ static const CPUArch_ListEntry_t oCPUArchList[] =
   { "7-R", NULL, kArchExt_v7R, kArchFPUExt_None }, /* ARMv7 real-time profile with ARM, Thumb-2, DSP support, and 32-bit SIMD support (ThumbEE optional, VFPv3)  */
   { "7E-M", NULL, kArchExt_v7EM, kArchFPUExt_None }, /* ARMv7-M enhanced with DSP (saturating and 32-bit SIMD) instructions. Cortex-M4 */
   { "7-M", NULL, kArchExt_v7M, kArchFPUExt_None }, /* ARMv7 micro-controller profile with Thumb-2 only and hardware divide.  */
+  { "8", NULL, kArchExt_v8, kArchFPUExt_None }, /* ARMv8 AArch32 A32, T32, T32EE.  */
+  { "8-A", NULL, kArchExt_v8A, kArchFPUExt_None }, /* ARMv8 AArch32 A32, T32, T32EE - application profile.  */
   
   /* Cores and CPU names: */
   /* v1 */
@@ -301,7 +305,11 @@ static const CPUArch_ListEntry_t oCPUArchList[] =
 
   /* v7-EM */
   { "Cortex-M4", &oCPUArchList[eArch_7EM], 0, kArchFPUExt_None },
-  { "Cortex-M4.fp", &oCPUArchList[eArch_7EM], 0, kArchFPUExt_VFPv4SPD16 }
+  { "Cortex-M4.fp", &oCPUArchList[eArch_7EM], 0, kArchFPUExt_VFPv4SPD16 },
+
+  /* v8-A */
+  { "Cortex-A53", &oCPUArchList[eArch_8A], 0, kArchFPUExt_VFP_ARMv8 | kArchFPUExt_NEON_ARMv8 | kArchFPUExt_Crypto_ARMv8 },
+  { "Cortex-A57", &oCPUArchList[eArch_8A], 0, kArchFPUExt_VFP_ARMv8 | kArchFPUExt_NEON_ARMv8 | kArchFPUExt_Crypto_ARMv8 },
 };
 
 /* Optionally prefixed by "SoftFPA+" or "SoftVFP+".  */
@@ -323,7 +331,8 @@ static const FPU_ListEnty_t oFPUList[] =
   { "VFPv3-SP_FP16", kArchFPUExt_VFPv3xD | kFPUExt_FP16 }, /* Single precision variant of the VFPv3 architecture + half-precision extension.  */
   { "VFPv4", kArchFPUExt_VFPv4 }, /* FPv4 architecture.  */
   { "VFPv4_D16", kArchFPUExt_VFPv4D16 }, /* VFPv4-D16 architecture.  */
-  { "FPv4-SP", kArchFPUExt_VFPv4SPD16 } /* Single-precision variant of the FPv4 architecture.  */
+  { "FPv4-SP", kArchFPUExt_VFPv4SPD16 }, /* Single-precision variant of the FPv4 architecture.  */
+  { "FP-ARMv8", kArchFPUExt_VFP_ARMv8 }, /* FIXME: correct naming ? */
 };
 
 /* Maps SOC devices to ARM cores.  */
@@ -504,7 +513,7 @@ Target_SetCPU_FPU_Device (const char *cpu, const char *fpu, const char *device)
      defaults to "ARM7TDMI".  */
   if (cpu == NULL)
     cpu = "3";
-  unsigned cpu_features;
+  uint64_t cpu_features;
   const CPUArch_ListEntry_t *selCPUArchP = NULL;
   for (size_t i = 0; i != sizeof (oCPUArchList)/sizeof (oCPUArchList[0]); ++i)
     {
@@ -641,10 +650,12 @@ unsigned
 Target_GetARMISAVersion (void)
 {
   unsigned version;
-  unsigned features = Target_GetCPUFeatures ();
+  uint64_t features = Target_GetCPUFeatures ();
   if (!(features & kCPUExt_v1))
     version = 0; /* No ARM ISA.  */
-  else if ((features & (kCPUExt_v7A | kCPUExt_v7R)) != 0)
+  else if ((features & (kCPUExt_v8 | kCPUExt_v8A)) != 0) /* Currently all v8 architectures have ARM ISA.  */
+    version = 8; /* ARMv8-A (AArch32) : A32, T32 and T32EE.  */
+  else if ((features & (kCPUExt_v7A | kCPUExt_v7R)) != 0) /* No kCPUExt_v7 nor kCPUExt_v7M as it does not have ARM ISA for sure.  */
     version = 7; /* ARMv7-A, ARMv7-R.  */
   else if ((features & kCPUExt_v6) != 0)
     version = 6; /* ARMv6*.  */
@@ -666,7 +677,7 @@ unsigned
 Target_GetThumbISAVersion (void)
 {
   unsigned version;
-  unsigned features = Target_GetCPUFeatures ();
+  uint64_t features = Target_GetCPUFeatures ();
   if ((features & kCPUExt_v6T2) != 0)
     version = 4;
   else if ((features & kCPUExt_v6) != 0)
@@ -690,14 +701,14 @@ Target_GetThumbISAVersion (void)
  * \return true when all features are supported, false otherwise.
  */
 bool
-Target_CheckCPUFeature (unsigned features, bool warn)
+Target_CheckCPUFeature (uint64_t features, bool warn)
 {
   return Target_CheckCPUFeatureDetail (features, warn ? "Instruction" : NULL); 
 }
 
 
 bool
-Target_CheckCPUFeatureDetail (unsigned features, const char *what)
+Target_CheckCPUFeatureDetail (uint64_t features, const char *what)
 {
   bool missingFeature = (Target_GetCPUFeatures () & features) != features;
   if (what != NULL && missingFeature)
@@ -736,7 +747,7 @@ Target_CheckFPUFeature (unsigned features, bool warn)
 }
 
 
-unsigned
+uint64_t
 Target_GetCPUFeatures (void)
 {
   return oTarget_CPUFeatures;

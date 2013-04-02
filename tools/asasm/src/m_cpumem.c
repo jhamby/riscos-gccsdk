@@ -1127,8 +1127,10 @@ m_swp (bool doLowerCase)
     return true;
 
   Target_CheckCPUFeature (kCPUExt_v2a, true);
-  if (option_pedantic && Target_CheckCPUFeature (kCPUExt_v6, false))
-    Error (ErrorWarning, "The use of SWP/SWPB is deprecated from ARMv6 onwards");
+  if (Target_CheckCPUFeature (kCPUExt_v8, false))
+    Error (ErrorWarning, "The use of SWP/SWPB is obsolete for ARMv8");
+  else if (Target_CheckCPUFeature (kCPUExt_v6, false))
+    Error (ErrorWarning, "The use of SWP/SWPB is deprecated for ARMv6 and ARMv7");
 
   IT_ApplyCond (cc_b & NV, false);
 
@@ -1164,73 +1166,71 @@ typedef enum
 {
   BL_eSY = 0xF,
   BL_eST = 0xE,
+  BL_eLD = 0xD,
   BL_eISH = 0xB,
-  BL_eSH = BL_eISH,
   BL_eISHST = 0xA,
-  BL_eSHST = BL_eISHST,
+  BL_eISHLD = 0x9,
   BL_eNSH = 0x7,
-  BL_eUN = BL_eNSH,
   BL_eNSHST = 0x6,
-  BL_eUNST = BL_eNSHST,
+  BL_eNSHLD = 0x5,
   BL_eOSH = 0x3,
-  BL_eOSHST = 0x2
+  BL_eOSHST = 0x2,
+  BL_eOSHLD = 0x1
 } Barrier_eType;
 
 static Barrier_eType
 GetBarrierType (void)
 {
+  static const struct
+    {
+      const char *nameP;
+      const char *prefNameP;
+      Barrier_eType barrierType;
+      unsigned cpuFeatures; /* Minimum CPU features needed.  */
+    } oBarrierTypes[] =
+    {
+      { "sy", NULL, BL_eSY, kCPUExt_BARRIER },
+      { "st", NULL, BL_eST, kCPUExt_BARRIER },
+      { "ld", NULL, BL_eLD, kCPUExt_v8 },
+      { "ish", NULL, BL_eISH, kCPUExt_BARRIER },
+      { "sh", "ish", BL_eISH, kCPUExt_BARRIER },
+      { "ishst", NULL, BL_eISHST, kCPUExt_BARRIER },
+      { "shst", "ishst", BL_eISHST, kCPUExt_BARRIER },
+      { "ishld", NULL, BL_eISHLD, kCPUExt_v8 },
+      { "nsh", NULL, BL_eNSH, kCPUExt_BARRIER },
+      { "un", "nsh", BL_eNSH, kCPUExt_BARRIER },
+      { "nshst", NULL, BL_eNSHST, kCPUExt_BARRIER },
+      { "unst", "nshst", BL_eNSHST, kCPUExt_BARRIER },
+      { "nshld", NULL, BL_eNSHLD, kCPUExt_v8 },
+      { "osh", NULL, BL_eOSH, kCPUExt_BARRIER },
+      { "oshst", NULL, BL_eOSHST, kCPUExt_BARRIER },
+      { "oshld", NULL, BL_eOSHLD, kCPUExt_v8 }
+    };
+
   Input_SkipWS ();
 
-  Barrier_eType result;
-  if (Input_IsEolOrCommentStart ())
-    result = BL_eSY;
-  else if (Input_MatchKeywordLower ("ish"))
-    result = BL_eISH;
-  else if (Input_MatchKeywordLower ("ishst"))
-    result = BL_eISHST;
-  else if (Input_MatchKeywordLower ("nsh"))
-    result = BL_eNSH;
-  else if (Input_MatchKeywordLower ("nshst"))
-    result = BL_eNSHST;
-  else if (Input_MatchKeywordLower ("osh"))
-    result = BL_eOSH;
-  else if (Input_MatchKeywordLower ("oshst"))
-    result = BL_eOSHST;
-  else if (Input_MatchKeywordLower ("sh"))
+  Barrier_eType barrierType = BL_eSY;
+  unsigned cpuFeatures = kCPUExt_BARRIER;
+  if (!Input_IsEolOrCommentStart ())
     {
-      if (option_pedantic)
-	Error (ErrorWarning, "Use barrier type %s instead of %s", "ISH", "SH");
-      result = BL_eSH;
+      size_t i;
+      for (i = 0; i != sizeof (oBarrierTypes)/sizeof (oBarrierTypes[0]); ++i)
+	{
+	  if (Input_MatchKeywordLower (oBarrierTypes[i].nameP))
+	    {
+	      if (option_pedantic && oBarrierTypes[i].prefNameP != NULL)
+		Error (ErrorWarning, "Use barrier type %s instead of %s", oBarrierTypes[i].prefNameP, oBarrierTypes[i].nameP);
+	      barrierType = oBarrierTypes[i].barrierType;
+	      cpuFeatures = oBarrierTypes[i].cpuFeatures;
+	      break;
+	    }
+	}
+      if (i == sizeof (oBarrierTypes)/sizeof (oBarrierTypes[0]))
+	Error (ErrorError, "Unknown barrier type");
     }
-  else if (Input_MatchKeywordLower ("shst"))
-    {
-      if (option_pedantic)
-	Error (ErrorWarning, "Use barrier type %s instead of %s", "ISHST", "SHST");
-      result = BL_eSHST;
-    }
-  else if (Input_MatchKeywordLower ("sy"))
-    result = BL_eSY;
-  else if (Input_MatchKeywordLower ("st"))
-    result = BL_eST;
-  else if (Input_MatchKeywordLower ("un"))
-    {
-      if (option_pedantic)
-	Error (ErrorWarning, "Use barrier type %s instead of %s", "NSH", "UN");
-      result = BL_eUN;
-    }
-  else if (Input_MatchKeywordLower ("unst"))
-    {
-      if (option_pedantic)
-	Error (ErrorWarning, "Use barrier type %s instead of %s", "NSHST", "UNST");
-      result = BL_eUNST;
-    }
-  else
-    {
-      Error (ErrorError, "Unknown barrier type");
-      result = BL_eSY;
-    }
+  Target_CheckCPUFeature (cpuFeatures, true);
 
-  return result;
+  return barrierType;
 }
 
 /**
@@ -1240,7 +1240,6 @@ GetBarrierType (void)
 bool
 m_dmb (void)
 {
-  Target_CheckCPUFeature (kCPUExt_BARRIER, true);
   Barrier_eType bl = GetBarrierType ();
   Put_Ins (4, 0xF57FF050 | bl);
   return false;
@@ -1254,7 +1253,6 @@ m_dmb (void)
 bool
 m_dsb (void)
 {
-  Target_CheckCPUFeature (kCPUExt_BARRIER, true);
   Barrier_eType bl = GetBarrierType ();
   Put_Ins (4, 0xF57FF040 | bl);
   return false;
@@ -1268,7 +1266,6 @@ m_dsb (void)
 bool
 m_isb (void)
 {
-  Target_CheckCPUFeature (kCPUExt_BARRIER, true);
   Barrier_eType bl = GetBarrierType ();
   if (option_pedantic && bl != BL_eSY)
     Error (ErrorWarning, "Using reserved barrier type");
