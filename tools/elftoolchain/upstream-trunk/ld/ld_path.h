@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,15 +23,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_path.h 2508 2012-05-20 22:29:48Z kaiwang27 $
+ * $Id: ld_path.h 2930 2013-03-17 22:54:26Z kaiwang27 $
  */
+
+enum ld_path_type {
+	LPT_L,
+	LPT_RPATH,
+	LPT_RPATH_LINK,
+};
 
 struct ld_path {
 	char *lp_path;
 	STAILQ_ENTRY(ld_path) lp_next;
 };
 
-void	ld_path_add(struct ld *, char *);
+void	ld_path_add(struct ld *, char *, enum ld_path_type);
+void	ld_path_add_multiple(struct ld *, char *, enum ld_path_type);
 void	ld_path_cleanup(struct ld *);
+char	*ld_path_join_rpath(struct ld *);
 void	ld_path_search_file(struct ld *, struct ld_file *);
 void	ld_path_search_library(struct ld *, const char *);
+void	ld_path_search_dso_needed(struct ld *, struct ld_file *, const char *);

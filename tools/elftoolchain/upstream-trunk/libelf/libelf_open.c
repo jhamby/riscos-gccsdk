@@ -39,7 +39,7 @@
 #include <sys/mman.h>
 #endif
 
-ELFTC_VCSID("$Id: libelf_open.c 2364 2011-12-28 17:55:25Z jkoshy $");
+ELFTC_VCSID("$Id: libelf_open.c 2932 2013-03-30 01:26:04Z jkoshy $");
 
 #define	_LIBELF_INITSIZE	(64*1024)
 
@@ -172,6 +172,15 @@ _libelf_open_object(int fd, Elf_Cmd c, int reporterror)
 	m = NULL;
 	flags = 0;
 	if (S_ISREG(mode)) {
+
+		/*
+		 * Reject zero length files.
+		 */
+		if (fsize == 0) {
+			LIBELF_SET_ERROR(ARGUMENT, 0);
+			return (NULL);
+		}
+
 #if	ELFTC_HAVE_MMAP
 		/*
 		 * Always map regular files in with 'PROT_READ'

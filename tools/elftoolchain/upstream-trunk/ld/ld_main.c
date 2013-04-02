@@ -37,7 +37,7 @@
 #include "ld_path.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id: ld_main.c 2910 2013-02-03 06:06:23Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_main.c 2924 2013-03-17 22:53:36Z kaiwang27 $");
 
 static struct ld _ld;
 struct ld* ld = &_ld;
@@ -58,6 +58,8 @@ _init(void)
 	TAILQ_INIT(&ld->ld_lflist);
 	STAILQ_INIT(&ld->ld_lilist);
 	STAILQ_INIT(&ld->ld_state.ls_lplist);
+	STAILQ_INIT(&ld->ld_state.ls_rplist);
+	STAILQ_INIT(&ld->ld_state.ls_rllist);
 }
 
 static void

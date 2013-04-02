@@ -1,3 +1,8 @@
+Tue Apr  2 21:03:22 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2936
+
 Sun Mar 24 20:37:25 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/common/elfdefinitions.h: Fix ARM relocation issues.

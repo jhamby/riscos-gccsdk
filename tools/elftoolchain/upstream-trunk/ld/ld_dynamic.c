@@ -32,11 +32,12 @@
 #include "ld_input.h"
 #include "ld_layout.h"
 #include "ld_output.h"
+#include "ld_path.h"
 #include "ld_symbols.h"
 #include "ld_symver.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_dynamic.c 2918 2013-02-16 07:16:10Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_dynamic.c 2930 2013-03-17 22:54:26Z kaiwang27 $");
 
 static void _check_dso_needed(struct ld *ld, struct ld_output *lo);
 static void _create_dynamic(struct ld *ld, struct ld_output *lo);
@@ -140,11 +141,20 @@ ld_dynamic_load_dso_dynamic(struct ld *ld, struct ld_input *li, Elf *e,
 			    elf_errmsg(-1));
 			continue;
 		}
-		if (dyn.d_tag == DT_SONAME) {
+		switch (dyn.d_tag) {
+		case DT_SONAME:
 			name = elf_strptr(e, strndx, dyn.d_un.d_ptr);
 			if (name != NULL &&
 			    (li->li_soname = strdup(name)) == NULL)
 				ld_fatal_std(ld, "strdup");
+			break;
+		case DT_NEEDED:
+			name = elf_strptr(e, strndx, dyn.d_un.d_ptr);
+			if (name != NULL)
+				ld_path_search_dso_needed(ld, li->li_file,
+				    name);
+			break;
+		default:
 			break;
 		}
 	}
@@ -258,13 +268,14 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	char dynamic_name[] = ".dynamic";
 	char init_name[] = ".init";
 	char fini_name[] = ".fini";
+	char *rpath;
 	int entries;
 
 	HASH_FIND_STR(lo->lo_ostbl, dynamic_name, os);
 	if (os == NULL)
 		os = ld_layout_insert_output_section(ld, dynamic_name,
 		    SHF_ALLOC | SHF_WRITE);
-	os->os_type = SHT_PROGBITS;
+	os->os_type = SHT_DYNAMIC;
 	os->os_flags = SHF_ALLOC | SHF_WRITE;
 	if (lo->lo_ec == ELFCLASS32) {
 		os->os_entsize = 8;
@@ -308,7 +319,13 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	if (ld->ld_dynsym)
 		entries += 5;
 
-	/* TODO: DT_RPATH. */
+	/* DT_RPATH. */
+	if (!STAILQ_EMPTY(&ld->ld_state.ls_rplist)) {
+		rpath = ld_path_join_rpath(ld);
+		lo->lo_rpath_nameindex = ld_strtab_insert_no_suffix(ld,
+		    ld->ld_dynstr, rpath);
+		entries++;
+	}
 
 	/*
 	 * DT_DEBUG. dynamic linker changes this at runtime, gdb uses
@@ -447,6 +464,10 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 		    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Sym) :
 		    sizeof(Elf64_Sym));
 	}
+
+	/* DT_RPATH */
+	if (!STAILQ_EMPTY(&ld->ld_state.ls_rplist))
+		DT_ENTRY_VAL(DT_RPATH, lo->lo_rpath_nameindex);
 
 	/* DT_DEBUG */
 	if (!ld->ld_dso)

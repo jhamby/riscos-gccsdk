@@ -34,7 +34,7 @@
 #include "ld_path.h"
 #include "ld_exp.h"
 
-ELFTC_VCSID("$Id: ld_script_parser.y 2876 2013-01-09 22:46:11Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_script_parser.y 2924 2013-03-17 22:53:36Z kaiwang27 $");
 
 struct yy_buffer_state;
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
@@ -713,7 +713,7 @@ region_alias_command
 
 search_dir_command
 	: T_SEARCH_DIR '(' ident ')' {
-		ld_path_add(ld, $3);
+		ld_path_add(ld, $3, LPT_L);
 		free($3);
 	}
 	;
