@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,15 +23,46 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_path.c 2580 2012-09-14 07:05:05Z jkoshy $
+ * $Id: ld_path.c 2930 2013-03-17 22:54:26Z kaiwang27 $
  */
 
 #include "ld.h"
 #include "ld_file.h"
 #include "ld_path.h"
 
+static char *_search_file(struct ld *ld, const char *path, const char *file);
+
+static char *
+_search_file(struct ld *ld, const char *path, const char *file)
+{
+	struct dirent *dp;
+	DIR *dirp;
+	char *fp;
+
+	assert(path != NULL && file != NULL);
+
+	if ((dirp = opendir(path)) == NULL) {
+		ld_warn(ld, "opendir failed: %s", strerror(errno));
+		return (NULL);
+	}
+
+	fp = NULL;
+	while ((dp = readdir(dirp)) != NULL) {
+		if (!strcmp(dp->d_name, file)) {
+			if ((fp = malloc(PATH_MAX + 1)) == NULL)
+				ld_fatal_std(ld, "malloc");
+			fp[0] = '\0';
+			snprintf(fp, PATH_MAX + 1, "%s/%s", path, dp->d_name);
+			break;
+		}
+	}
+	(void) closedir(dirp);
+
+	return (fp);
+}
+
 void
-ld_path_add(struct ld *ld, char *path)
+ld_path_add(struct ld *ld, char *path, enum ld_path_type lpt)
 {
 	struct ld_state *ls;
 	struct ld_path *lp;
@@ -45,7 +76,31 @@ ld_path_add(struct ld *ld, char *path)
 	if ((lp->lp_path = strdup(path)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
-	STAILQ_INSERT_TAIL(&ls->ls_lplist, lp, lp_next);
+	switch (lpt) {
+	case LPT_L:
+		STAILQ_INSERT_TAIL(&ls->ls_lplist, lp, lp_next);
+		break;
+	case LPT_RPATH:
+		STAILQ_INSERT_TAIL(&ls->ls_rplist, lp, lp_next);
+		break;
+	case LPT_RPATH_LINK:
+		STAILQ_INSERT_TAIL(&ls->ls_rllist, lp, lp_next);
+		break;
+	default:
+		ld_fatal(ld, "Internal: invalid path type %d", lpt);
+		break;
+	}
+}
+
+void
+ld_path_add_multiple(struct ld *ld, char *str, enum ld_path_type lpt)
+{
+	char *p;
+
+	while ((p = strsep(&str, ":")) != NULL) {
+		if (*p != '\0')
+			ld_path_add(ld, p, lpt);
+	}
 }
 
 void
@@ -61,6 +116,47 @@ ld_path_cleanup(struct ld *ld)
 		free(lp->lp_path);
 		free(lp);
 	}
+
+	STAILQ_FOREACH_SAFE(lp, &ls->ls_rplist, lp_next, _lp) {
+		STAILQ_REMOVE(&ls->ls_rplist, lp, ld_path, lp_next);
+		free(lp->lp_path);
+		free(lp);
+	}
+
+	STAILQ_FOREACH_SAFE(lp, &ls->ls_rllist, lp_next, _lp) {
+		STAILQ_REMOVE(&ls->ls_rllist, lp, ld_path, lp_next);
+		free(lp->lp_path);
+		free(lp);
+	}
+}
+
+char *
+ld_path_join_rpath(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_path *lp;
+	char *s;
+	int len;
+
+	ls = &ld->ld_state;
+
+	if (STAILQ_EMPTY(&ls->ls_rplist))
+		return (NULL);
+
+	len = 0;
+	STAILQ_FOREACH(lp, &ls->ls_rplist, lp_next)
+		len += strlen(lp->lp_path) + 1;
+
+	if ((s = malloc(len)) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	STAILQ_FOREACH(lp, &ls->ls_rplist, lp_next) {
+		strcat(s, lp->lp_path);
+		if (lp != STAILQ_LAST(&ls->ls_rplist, ld_path, lp_next))
+			strcat(s, ":");
+	}
+
+	return (s);
 }
 
 void
@@ -68,37 +164,23 @@ ld_path_search_file(struct ld *ld, struct ld_file *lf)
 {
 	struct ld_state *ls;
 	struct ld_path *lp;
-	struct dirent *dp;
-	char fp[PATH_MAX + 1];
-	DIR *dirp;
+	char *fp;
 	int found;
 
 	assert(lf != NULL);
 	ls = &ld->ld_state;
 
-	fp[0] = '\0';
 	found = 0;
 	STAILQ_FOREACH(lp, &ls->ls_lplist, lp_next) {
-		assert(lp->lp_path != NULL);
-		if ((dirp = opendir(lp->lp_path)) == NULL) {
-			ld_warn(ld, "opendir failed: %s", strerror(errno));
-			continue;
+		if ((fp = _search_file(ld, lp->lp_path, lf->lf_name)) !=
+		    NULL) {
+			free(lf->lf_name);
+			lf->lf_name = fp;
+			found = 1;
+			break;
 		}
-
-		while ((dp = readdir(dirp)) != NULL) {
-			if (!strcmp(dp->d_name, lf->lf_name)) {
-				snprintf(fp, sizeof(fp), "%s/%s", lp->lp_path,
-				    dp->d_name);
-				free(lf->lf_name);
-				if ((lf->lf_name = strdup(fp)) == NULL)
-					ld_fatal_std(ld, "strdup");
-				found = 1;
-				goto done;
-			}
-		}
-		(void) closedir(dirp);
 	}
-done:
+
 	if (!found)
 		ld_fatal(ld, "cannot find %s", lf->lf_name);
 }
@@ -161,4 +243,53 @@ done:
 		} else
 			ld_fatal(ld, "cannot find -l%s", name);
 	}
+}
+
+void
+ld_path_search_dso_needed(struct ld *ld, struct ld_file *lf, const char *name)
+{
+	struct ld_state *ls;
+	struct ld_path *lp;
+	struct ld_file *_lf;
+	char *fp;
+
+	ls = &ld->ld_state;
+
+	/*
+	 * First check if we've seen this shared library or if it's
+	 * already listed in the input file list.
+	 */
+	TAILQ_FOREACH(_lf, &ld->ld_lflist, lf_next) {
+		if (!strcmp(_lf->lf_name, name) ||
+		    !strcmp(basename(_lf->lf_name), name))
+			return;
+	}
+
+	/* Search -rpath-link directories. */
+	STAILQ_FOREACH(lp, &ls->ls_rllist, lp_next) {
+		if ((fp = _search_file(ld, lp->lp_path, name)) != NULL)
+			goto done;
+	}
+
+	/* Search -rpath directories. */
+	STAILQ_FOREACH(lp, &ls->ls_rplist, lp_next) {
+		if ((fp = _search_file(ld, lp->lp_path, name)) != NULL)
+			goto done;
+	}
+
+	/* TODO: search additional directories and environment variables. */
+
+	/* Search /lib and /usr/lib. */
+	if ((fp = _search_file(ld, "/lib", name)) != NULL)
+		goto done;
+	if ((fp = _search_file(ld, "/usr/lib", name)) != NULL)
+		goto done;
+
+	/* Not found. */
+	ld_warn(ld, "cannot find needed shared library: %s", name);
+	return;
+
+done:
+	ld_file_add_after(ld, fp, LFT_DSO, lf);
+	free(fp);
 }

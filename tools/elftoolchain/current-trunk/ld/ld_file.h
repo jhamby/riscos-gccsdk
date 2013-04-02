@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_file.h 2520 2012-06-17 00:21:36Z kaiwang27 $
+ * $Id: ld_file.h 2930 2013-03-17 22:54:26Z kaiwang27 $
  */
 
 enum ld_file_type {
@@ -63,6 +63,8 @@ struct ld_file {
 
 void	ld_file_add(struct ld *, const char *, enum ld_file_type);
 void	ld_file_add_first(struct ld *, const char *, enum ld_file_type);
+void	ld_file_add_after(struct ld *, const char *, enum ld_file_type,
+    struct ld_file *);
 void	ld_file_cleanup(struct ld *);
 void	ld_file_load(struct ld *, struct ld_file *);
 void	ld_file_unload(struct ld *, struct ld_file *);

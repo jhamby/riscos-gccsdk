@@ -36,7 +36,7 @@
 #include "ld_strtab.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id: ld_output.c 2920 2013-02-16 07:16:27Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_output.c 2923 2013-03-17 22:53:23Z kaiwang27 $");
 
 static void _alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
     struct ld_input_section *is);
@@ -513,7 +513,7 @@ _join_and_finalize_dynamic_reloc_sections(struct ld *ld, struct ld_output *lo)
 		}
 
 		/* Sort dynamic relocations for the runtime linker. */
-		if (os->os_reloc != NULL && os->os_dynrel)
+		if (os->os_reloc != NULL && os->os_dynrel && !os->os_pltrel)
 			ld_reloc_sort(ld, os);
 
 		/* Finalize relocations. */

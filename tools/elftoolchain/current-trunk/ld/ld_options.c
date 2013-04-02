@@ -32,7 +32,7 @@
 #include "ld_options.h"
 #include "ld_output.h"
 
-ELFTC_VCSID("$Id: ld_options.c 2909 2013-02-03 06:06:09Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_options.c 2926 2013-03-17 22:53:54Z kaiwang27 $");
 
 /*
  * Support routines for parsing command line options.
@@ -356,7 +356,7 @@ _process_options(struct ld *ld, int key, char *arg)
 		ld_path_search_library(ld, arg);
 		break;
 	case 'L':
-		ld_path_add(ld, arg);
+		ld_path_add(ld, arg, LPT_L);
 		break;
 	case 'M':
 		ld->ld_print_linkmap = 1;
@@ -425,6 +425,12 @@ _process_options(struct ld *ld, int key, char *arg)
 		break;
 	case KEY_PRINT_GC_SECTIONS:
 		ld->ld_gc_print = 1;
+		break;
+	case KEY_RPATH:
+		ld_path_add_multiple(ld, arg, LPT_RPATH);
+		break;
+	case KEY_RPATH_LINK:
+		ld_path_add_multiple(ld, arg, LPT_RPATH_LINK);
 		break;
 	case KEY_SHARED:
 		ld->ld_exec = 0;

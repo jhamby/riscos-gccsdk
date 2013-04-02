@@ -28,6 +28,7 @@
 
 #include <sys/queue.h>
 
+#include <err.h>
 #include <getopt.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -37,7 +38,7 @@
 
 #include <libelftc.h>
 
-ELFTC_VCSID("$Id: isa.c 2902 2013-01-16 12:35:20Z jkoshy $");
+ELFTC_VCSID("$Id: isa.c 2934 2013-03-30 01:40:49Z jkoshy $");
 
 /*
  * Option handling.

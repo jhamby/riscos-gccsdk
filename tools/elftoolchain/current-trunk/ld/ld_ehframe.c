@@ -31,7 +31,7 @@
 #include "ld_reloc.h"
 #include "ld_utils.h"
 
-ELFTC_VCSID("$Id: ld_ehframe.c 2916 2013-02-16 07:15:52Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_ehframe.c 2928 2013-03-17 22:54:09Z kaiwang27 $");
 
 struct ld_ehframe_cie {
 	uint64_t cie_off;	/* offset in section */
@@ -302,7 +302,7 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 	struct ld_ehframe_cie *cie, *_cie;
 	struct ld_ehframe_cie_head cie_h;
 	struct ld_ehframe_fde *fde;
-	struct ld_reloc_entry *lre;
+	struct ld_reloc_entry *lre, *_lre;
 	uint64_t length, es, off, off_orig, remain, shrink, auglen;
 	uint32_t cie_id, cie_pointer, length_size;
 	uint8_t *p, *et, cie_version, *augment;
@@ -484,12 +484,26 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 	 * section content.
 	 */
 	if (shrink > 0 && is->is_ris != NULL && is->is_ris->is_reloc != NULL) {
-		STAILQ_FOREACH(lre, is->is_ris->is_reloc, lre_next) {
+		STAILQ_FOREACH_SAFE(lre, is->is_ris->is_reloc, lre_next,
+		    _lre) {
 			STAILQ_FOREACH(cie, &cie_h, cie_next) {
 				if (cie->cie_off_orig > lre->lre_offset)
 					break;
 				if (cie->cie_dup == NULL)
 					continue;
+
+				/*
+				 * Remove relocations for the duplicated CIE
+				 * entries.
+				 */
+				if (lre->lre_offset <
+				    cie->cie_off_orig + cie->cie_size) {
+					STAILQ_REMOVE(is->is_ris->is_reloc,
+					    lre, ld_reloc_entry, lre_next);
+					break;
+				}
+
+				/* Adjust relocation offset for FDE entries. */
 				lre->lre_offset -= cie->cie_size;
 			}
 		}

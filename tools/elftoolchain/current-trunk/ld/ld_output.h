@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_output.h 2917 2013-02-16 07:16:02Z kaiwang27 $
+ * $Id: ld_output.h 2926 2013-03-17 22:53:54Z kaiwang27 $
  */
 
 enum ld_output_element_type {
@@ -104,6 +104,7 @@ struct ld_output {
 	int lo_endian;			 /* outout object endianess */
 	int lo_osabi;			 /* output object osabi */
 	int lo_soname_nameindex;	 /* string index for DT_SONAME */
+	int lo_rpath_nameindex;		 /* string index for DT_RPATH */
 	unsigned lo_phdr_num;		 /* num of phdrs */
 	unsigned lo_phdr_note;		 /* create PT_NOTE */
 	unsigned lo_dso_needed;		 /* num of DSO referenced */

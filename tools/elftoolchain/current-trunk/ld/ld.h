@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld.h 2913 2013-02-16 07:15:24Z kaiwang27 $
+ * $Id: ld.h 2924 2013-03-17 22:53:36Z kaiwang27 $
  */
 
 #include "_elftc.h"
@@ -81,6 +81,8 @@ struct ld_state {
 	uint64_t ls_loc_counter;	/* location counter */
 	uint64_t ls_offset;		/* cur. output section file offset */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
+	STAILQ_HEAD(, ld_path) ls_rplist; /* rpath list */
+	STAILQ_HEAD(, ld_path) ls_rllist; /* rpath-link list */
 	unsigned ls_arch_conflict;	/* input arch conflict with output */
 	unsigned ls_first_elf_object;	/* first ELF object to process */
 	unsigned ls_rerun;		/* ld(1) restarted */
