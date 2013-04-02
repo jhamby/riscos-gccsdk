@@ -36,7 +36,8 @@ symlink (const char *ux_targetfile, const char *ux_newfile)
   debug_printf("-- Symlinking %s --> %s\n", ux_newfile, ux_targetfile);
 #endif
 
-  int fd = -1, result = 0;
+  unsigned fd = 0;
+  int result = 0;
 
   /* Use one buffer for both paths.  */
   char *paths = NULL;
@@ -72,30 +73,25 @@ symlink (const char *ux_targetfile, const char *ux_newfile)
     }
 
   const unsigned int symlink_id = SYMLINK_ID;
-  unsigned link_len = strlen (ro_targetfile);
+  const unsigned link_len = strlen (ro_targetfile);
   const _kernel_oserror *err;
-  int regs[5];
-  if ((err = __os_fopen (OSFILE_OPENOUT, ro_newfile, &fd)) == NULL
+  if ((err = SWI_OS_Find_Open (OSFIND_OPENOUT, ro_newfile, &fd)) == NULL
       /* Write the symlink file ID - ASCII representation of LINK.  */
-   && (err = __os_fwrite (fd, &symlink_id, 4, regs)) == NULL
+      && (err = SWI_OS_GBPB_WriteBytes (fd, &symlink_id, 4, NULL)) == NULL
       /* Write the length of the target pathname - 4 bytes.  */
-   && (err = __os_fwrite (fd, &link_len, 4, regs)) == NULL
+      && (err = SWI_OS_GBPB_WriteBytes (fd, &link_len, 4, NULL)) == NULL
       /* Write the target pathname.  */
-   && (err = __os_fwrite (fd, ro_targetfile, link_len, regs)) == NULL)
-    {
+      && (err = SWI_OS_GBPB_WriteBytes (fd, ro_targetfile, link_len, NULL)) == NULL
       /* Set the filetype of the symlink file.  */
-      if ((err = SWI_OS_File_WriteCatInfoFileType (ro_newfile, SYMLINK_FILETYPE)) != NULL)
-	result = __ul_seterr (err, EIO);
-    }
-  else
+      && (err = SWI_OS_File_WriteCatInfoFileType (ro_newfile, SYMLINK_FILETYPE)) != NULL)
     result = __ul_seterr (err, EIO);
 
   /* Fall through. */
 exit:
   free (paths);
 
-  if (fd != -1)
-    __os_fclose (fd);
+  if (fd != 0)
+    SWI_OS_Find_Close (fd);
 
   return result;
 #else

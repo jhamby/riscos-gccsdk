@@ -1,3 +1,29 @@
+Tue Apr  2 16:31:46 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/os.h (__os_fopen, __os_fclose, __os_fread,
+	__os_fwrite): Remove.
+	(SWI_OS_Find_Open, SWI_OS_Find_Close, SWI_OS_GBPB_ReadBytes,
+	SWI_OS_GBPB_WriteBytes): Add.
+	(SWI_OS_Args_GetFilePtr, SWI_OS_Args_SetFilePtr, SWI_OS_Args_GetExtent,
+	SWI_OS_Args_SetExtent, SWI_OS_Args_GetFileHandleStatus,
+	SWI_OS_Args_Flush): Use __off_t for file offset type, use unsigned
+	for RISC OS file handle type.
+	Add unixlib/types.h include.
+	* sys/_os.s (__os_fopen, __os_fclose, __os_fread, __os_fwrite): Remove.
+	* incl-local/internal/unix.h (struct ul_global): Use __off_t as type
+	for rewindpipeoffset.
+	* incl-local/internal/swiparams.h (OSFILE_READCATINFO): Remove.
+	(OSFILE_OPENIN, OSFILE_OPENOUT, OSFILE_OPENUP): Use OSFIND_ prefix
+	instead.
+	* unix/dev.c (__fsopen, __fsclose, __fsread, __fswrite): Follow
+	incl-local/internal/os.h and sys/_os.s changes.
+	* unistd/symlink.c (symlink): Likewise.
+	* common/symlinks.c: Likewise.
+	* sys/exec.c: Likewise.
+	* sys/vfork.c: Likewise.
+	* unix/truncate.c (ftruncate, truncate): Support __TARGET_SCL__.
+	* Makefile.am (unix/truncate.c): Add to SCL build.
+
 Mon Apr  1 17:27:38 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/os.h (SWI_OS_File_ReadCatInfo): Don't call

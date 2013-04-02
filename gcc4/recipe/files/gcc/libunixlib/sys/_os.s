@@ -1,5 +1,5 @@
 @ __os_*
-@ Copyright (c) 2000-2012 UnixLib Developers
+@ Copyright (c) 2000-2013 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -207,60 +207,6 @@ __os_nl:
 	MOVVC	a1, #0
 	MOV	pc, lr
 	DECLARE_FUNCTION __os_nl
-
-	.global	__os_fopen
-	NAME	__os_fopen
-__os_fopen:
-	MOV	ip, a3
-	SWI	XOS_Find
-	STR	a1, [ip]
-	MOVVC	a1, #0
-	MOV	pc, lr
-	DECLARE_FUNCTION __os_fopen
-
-	.global	__os_fclose
-	NAME	__os_fclose
-__os_fclose:
-	MOV	a2, a1
-	MOV	a1, #0
-	SWI	XOS_Find
-	MOVVC	a1, #0
-	MOV	pc, lr
-	DECLARE_FUNCTION __os_fclose
-
-	.global	__os_fread
-	NAME	__os_fread
-__os_fread:
-	STMFD	sp!, {v1, lr}
-	MOV	ip, a4
-	MOV	a4, a3
-	MOV	a3, a2
-	MOV	a2, a1
-	MOV	a1, #4
-	SWI	XOS_GBPB
-	LDMVSFD	sp!, {v1, pc}
-	TEQ	ip, #0
-	STMNEIA	ip, {a1, a2, a3, a4, v1}
-	MOV	a1, #0
-	LDMFD	sp!, {v1, pc}
-	DECLARE_FUNCTION __os_fread
-
-	.global	__os_fwrite
-	NAME	__os_fwrite
-__os_fwrite:
-	STMFD	sp!, {v1, lr}
-	MOV	ip, a4
-	MOV	a4, a3
-	MOV	a3, a2
-	MOV	a2, a1
-	MOV	a1, #2
-	SWI	XOS_GBPB
-	LDMVSFD	sp!, {v1, pc}
-	TEQ	ip, #0
-	STMNEIA	ip, {a1, a2, a3, a4, v1}
-	MOV	a1, #0
-	LDMFD	sp!, {v1, pc}
-	DECLARE_FUNCTION __os_fwrite
 
 	.global	__os_swi
 	NAME	__os_swi

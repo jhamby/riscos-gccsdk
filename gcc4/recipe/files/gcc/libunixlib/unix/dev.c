@@ -173,7 +173,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
   int objtype, attr;
   if ((err = SWI_OS_File_ReadCatInfo (ro_filename, &objtype, NULL, NULL,
 				      NULL, &attr)) != NULL)
-    goto os_err;
+    return (void *) __ul_seterr (err, EOPSYS);
   if (objtype)
     {
       /* Some sort of object exists.  */
@@ -275,32 +275,32 @@ __fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
 	      /* No parent directory - throw Unix error.  */
 	    }
 	  /* Parent directory exists - implies OS problem creating file.  */
-	  goto os_err;
+	  return (void *) __ul_seterr (err, EOPSYS);
 	}
     }
 
   /* Open the file.  */
   int openmode;
   if (fflag & O_TRUNC)
-    openmode = OSFILE_OPENOUT;
+    openmode = OSFIND_OPENOUT;
   else
     {
       switch (fflag & O_ACCMODE)
 	{
 	  case O_RDWR:
 	  case O_WRONLY:
-	    openmode = OSFILE_OPENUP;
+	    openmode = OSFIND_OPENUP;
 	    break;
 	  case O_RDONLY:
-	    openmode = OSFILE_OPENIN;
+	    openmode = OSFIND_OPENIN;
 	    break;
 	  default:
 	    return (void *) __set_errno (EINVAL);
 	}
     }
-  int fd;
-  if ((err = __os_fopen (openmode, ro_filename, &fd)) != NULL)
-    goto os_err;
+  unsigned fd;
+  if ((err = SWI_OS_Find_Open (openmode, ro_filename, &fd)) != NULL)
+    return (void *) __ul_seterr (err, EOPSYS);
 
   /* Now set the protection. This must be done after the file is opened,
      so that the file can be created for writing but set to read only.
@@ -316,13 +316,10 @@ __fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
       if (SWI_OS_File_WriteCatInfoAttr (ro_filename, attr))
 	{
 	  /* Now try closing it first if that failed */
-	  __os_fclose (fd);
-
-	  if ((err = SWI_OS_File_WriteCatInfoAttr (ro_filename, attr)) != NULL)
-	    goto os_err;
-
-	  if ((err = __os_fopen (openmode, ro_filename, &fd)) != NULL)
-	    goto os_err;
+	  if ((err = SWI_OS_Find_Close (fd)) != NULL
+	      || (err = SWI_OS_File_WriteCatInfoAttr (ro_filename, attr)) != NULL
+	      || (err = SWI_OS_Find_Open (openmode, ro_filename, &fd)) != NULL)
+	    return (void *) __ul_seterr (err, EOPSYS);
 	}
     }
 
@@ -332,15 +329,12 @@ __fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
   if ((err = SWI_OS_Args_GetFileHandleStatus (fd, &status)) != NULL
       || (status & (1 << 11)) != 0)
     {
-      __os_fclose (fd);
+      SWI_OS_Find_Close (fd);
       /* Trying again *might* fix the problem.  */
       return (void *) __set_errno (EAGAIN);
     }
 
   return (void *) fd;
-
-os_err:
-  return (void *) __ul_seterr (err, EOPSYS);
 }
 
 int
@@ -356,7 +350,7 @@ __fsclose (struct __unixlib_fd *file_desc)
   /* Check if RISC OS file handle is in use by OS_ChangeRedirection.  If so,
      detach it.  */
   const _kernel_oserror *err;
-  int prev_fh_in, prev_fh_out;
+  unsigned prev_fh_in, prev_fh_out;
   if ((err = SWI_OS_ChangeRedirection (-1, -1, &prev_fh_in, &prev_fh_out)) != NULL)
     return __ul_seterr (err, EOPSYS);
 
@@ -379,7 +373,7 @@ __fsclose (struct __unixlib_fd *file_desc)
 #endif
 
   /* Close file.  */
-  err = __os_fclose (fhandle);
+  err = SWI_OS_Find_Close (fhandle);
   if (!err && buffer)
     {
       err = SWI_OS_File_DeleteObject (buffer);
@@ -413,32 +407,30 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
     }
   else
     {
-      _kernel_oserror *err;
-      int regs[5];
-
-      if ((err = __os_fread ((int) file_desc->devicehandle->handle,
-			     data, nbyte, regs)) != NULL)
+      const _kernel_oserror *err;
+      unsigned not_read;
+      if ((err = SWI_OS_GBPB_ReadBytes ((int) file_desc->devicehandle->handle,
+					data, nbyte, &not_read)) != NULL)
 	return __ul_seterr (err, EOPSYS);
 
-      return nbyte - regs[3];
+      return nbyte - not_read;
     }
 }
 
 int
 __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 {
-  _kernel_oserror *err;
-  int regs[5];
-
 #ifdef DEBUG
   debug_printf ("-- __fswrite(%p, nbyte=%d)\n", file_desc->devicehandle->handle,
 		nbyte);
 #endif
-  if ((err = __os_fwrite ((int) file_desc->devicehandle->handle,
-			  data, nbyte, regs)) != NULL)
+  const _kernel_oserror *err;
+  unsigned not_written;
+  if ((err = SWI_OS_GBPB_WriteBytes ((int) file_desc->devicehandle->handle,
+				     data, nbyte, not_written)) != NULL)
     return __ul_seterr (err, EOPSYS);
 
-  return nbyte - regs[3];
+  return nbyte - not_written;
 }
 
 __off_t
@@ -450,15 +442,14 @@ __fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
   const _kernel_oserror *err;
   int handle = (int) file_desc->devicehandle->handle;
   if (whence == SEEK_SET)
-    err = SWI_OS_Args_SetFilePtr (handle, (int) lpos);
+    err = SWI_OS_Args_SetFilePtr (handle, lpos);
   else if (whence == SEEK_CUR)
     {
-      int fileptr;
+      __off_t fileptr;
       err = SWI_OS_Args_GetFilePtr (handle, &fileptr);
       if (!err)
 	{
 	  __off_t old_lpos = lpos;
-
 	  lpos += fileptr;
 	  if (old_lpos)
 	    err = SWI_OS_Args_SetFilePtr (handle, lpos);
@@ -466,7 +457,7 @@ __fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
     }
   else if (whence == SEEK_END)
     {
-      int extent;
+      __off_t extent;
       if ((err = SWI_OS_Args_GetExtent (handle, &extent)) == NULL)
 	{
 	  lpos += extent;
@@ -643,11 +634,11 @@ __pipewrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
   int handle = (int) file_desc->devicehandle->handle;
   const _kernel_oserror *err;
   /* Read current file position.  */
-  int fileptr;
+  __off_t fileptr;
   if ((err = SWI_OS_Args_GetFilePtr (handle, &fileptr)) == NULL)
     {
       /* Read extent && set file pointer to end of file.  */
-      int extent;
+      __off_t extent;
       if ((err = SWI_OS_Args_GetExtent (handle, &extent)) == NULL
 	  && (fileptr == extent
 	      || (err = SWI_OS_Args_SetFilePtr (handle, extent)) == NULL))
@@ -674,11 +665,11 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
   if (pread)
     {
       /* Read current file position.  */
-      int pos;
+      __off_t pos;
       if (!SWI_OS_Args_GetFilePtr ((int) file_desc->devicehandle->handle, &pos))
 	{
 	  /* Read extent.  */
-	  int extent;
+	  __off_t extent;
 	  if (!SWI_OS_Args_GetExtent ((int) file_desc->devicehandle->handle,
 				      &extent)
               && pos != extent)

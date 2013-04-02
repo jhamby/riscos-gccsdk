@@ -1181,7 +1181,6 @@ unix_src = \
 	unix/sync.c \
 	unix/sysconf.c \
 	unix/syslog.c \
-	unix/truncate.c \
 	unix/tty.c \
 	unix/ttyname.c \
 	unix/ttyname_r.c \
@@ -1203,6 +1202,7 @@ unix_src += \
 	unix/setdomain.c \
 	unix/seterr.c \
 	unix/sethostnam.c \
+	unix/truncate.c \
 	unix/utime.c
 
 if UNIXLIB_BUILDING_SCL

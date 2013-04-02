@@ -5,15 +5,19 @@
 #define __INTERNAL_OS_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <features.h>
+# include <features.h>
 #endif
 
 #ifndef __KERNEL_H
-#include <kernel.h>
+# include <kernel.h>
 #endif
 
 #ifndef __SWIS_H
-#  include <swis.h>
+# include <swis.h>
+#endif
+
+#ifndef __UNIXLIB_TYPES_H
+# include <unixlib/types.h>
 #endif
 
 __BEGIN_DECLS
@@ -46,18 +50,6 @@ extern int __os_423break (int) __THROW;
 
 extern _kernel_oserror *__os_swi (int swinum, int *regs /* 10 reg */ )
      __THROW __nonnull ((2));
-
-extern _kernel_oserror *__os_fopen (int, const char *, int * /* 1 reg */ )
-     __THROW __nonnull ((2, 3)) __wur;
-
-extern _kernel_oserror *__os_fclose (int) __THROW;
-
-extern _kernel_oserror *__os_fread (int, void *, int, int * /* 5 reg */ )
-     __THROW __nonnull ((2)) __wur;
-
-extern _kernel_oserror *__os_fwrite (int, const void *, int,
-                                     int * /* 5 reg */ )
-     __THROW __nonnull ((2)) __wur;
 
 extern _kernel_oserror *__os_word (int, void *)
      __THROW __nonnull ((2)) __wur;
@@ -103,6 +95,38 @@ SWI_OS_CLI (const char *__cmd)
 		    : "r" (cmd), [SWI_XOS_CLI] "i" (OS_CLI | (1<<17))
 		    : "r14", "cc");
 
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Find_Open (unsigned __reason, const char *__filename, unsigned *__fhandle)
+{
+  register unsigned reason __asm ("r0") = __reason;
+  register const char *filename __asm ("r1") = __filename;
+  register const _kernel_oserror *err __asm ("r0");
+  register unsigned fhandle __asm ("r1");
+  __asm__ volatile ("SWI\t%[SWI_XOS_Find]\n\t"
+		    "MOV\tr1, r0\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (fhandle)
+		    : "r" (reason), "r" (filename),
+		      [SWI_XOS_Find] "i" (OS_Find | (1<<17))
+		    : "r14", "cc");
+  *__fhandle = !err ? fhandle : 0;
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Find_Close (unsigned __fhandle)
+{
+  register unsigned fhandle __asm ("r1") = __fhandle;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #0\n\t"
+		    "SWI\t%[SWI_XOS_Find]\n\t"
+		    : "=r" (err)
+		    : "r" (fhandle),
+		      [SWI_XOS_Find] "i" (OS_Find | (1<<17))
+		    : "r14", "cc");
   return err;
 }
 
@@ -265,6 +289,48 @@ SWI_OS_File_WriteCatInfoFileType (const char *__filename, unsigned __filetype)
 		    : "r" (filename), "r" (filetype),
 		      [SWI_XOS_File] "i" (OS_File | (1<<17))
 		    : "r14", "cc");
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_GBPB_ReadBytes (unsigned __fhandle, void *__buf, unsigned __to_read,
+		       unsigned *__not_read)
+{
+  register unsigned fhandle __asm ("r1") = __fhandle;
+  register void *buf __asm ("r2") = __buf;
+  register unsigned to_read __asm ("r3") = __to_read;
+  register const _kernel_oserror *err __asm ("r0");
+  register unsigned not_read __asm ("r3");
+  __asm__ volatile ("MOV\tr0, #4\n\t"
+		    "SWI\t%[SWI_XOS_GBPB]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (not_read)
+		    : "r" (fhandle), "r" (buf), "r" (to_read),
+		      [SWI_XOS_GBPB] "i" (OS_GBPB | (1<<17))
+		    : "r4", "r14", "cc", "memory");
+  if (__not_read && !err)
+    *__not_read = not_read;
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_GBPB_WriteBytes (unsigned __fhandle, void *__buf, unsigned __to_write,
+			unsigned *__not_written)
+{
+  register unsigned fhandle __asm ("r1") = __fhandle;
+  register void *buf __asm ("r2") = __buf;
+  register unsigned to_write __asm ("r3") = __to_write;
+  register const _kernel_oserror *err __asm ("r0");
+  register unsigned not_written __asm ("r3");
+  __asm__ volatile ("MOV\tr0, #2\n\t"
+		    "SWI\t%[SWI_XOS_GBPB]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (not_written)
+		    : "r" (fhandle), "r" (buf), "r" (to_write),
+		      [SWI_XOS_GBPB] "i" (OS_GBPB | (1<<17))
+		    : "r4", "r14", "cc");
+  if (__not_written && !err)
+    *__not_written = not_written;
   return err;
 }
 
@@ -441,9 +507,9 @@ SWI_OS_FSControl_Canonicalise (const char *__pathname, const char *__pathvar,
 
 /* Read filehandle's sequential file pointer.  */
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_Args_GetFilePtr (int __fhandle, int *__fileptr)
+SWI_OS_Args_GetFilePtr (unsigned __fhandle, __off_t *__fileptr)
 {
-  register int fhandle __asm ("r1") = __fhandle;
+  register unsigned fhandle __asm ("r1") = __fhandle;
   register const _kernel_oserror *err __asm ("r0");
   register int fileptr __asm ("r2");
   __asm__ volatile ("MOV\tr0, #0\n\t"
@@ -460,9 +526,9 @@ SWI_OS_Args_GetFilePtr (int __fhandle, int *__fileptr)
 
 /* Write filehandle's sequential file pointer.  */
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_Args_SetFilePtr (int __fhandle, int __fileptr)
+SWI_OS_Args_SetFilePtr (unsigned __fhandle, __off_t __fileptr)
 {
-  register int fhandle __asm ("r1") = __fhandle;
+  register unsigned fhandle __asm ("r1") = __fhandle;
   register int fileptr __asm ("r2") = __fileptr;
   register const _kernel_oserror *err __asm ("r0");
   __asm__ volatile ("MOV\tr0, #1\n\t"
@@ -477,9 +543,9 @@ SWI_OS_Args_SetFilePtr (int __fhandle, int __fileptr)
 
 /* Read filehandle's extent.  */
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_Args_GetExtent (int __fhandle, int *__extent)
+SWI_OS_Args_GetExtent (unsigned __fhandle, __off_t *__extent)
 {
-  register int fhandle __asm ("r1") = __fhandle;
+  register unsigned fhandle __asm ("r1") = __fhandle;
   register const _kernel_oserror *err __asm ("r0");
   register int extent __asm ("r2");
   __asm__ volatile ("MOV\tr0, #2\n\t"
@@ -496,9 +562,9 @@ SWI_OS_Args_GetExtent (int __fhandle, int *__extent)
 
 /* Write filehandle's extent.  */
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_Args_SetExtent (int __fhandle, int __extent)
+SWI_OS_Args_SetExtent (unsigned __fhandle, __off_t __extent)
 {
-  register int fhandle __asm ("r1") = __fhandle;
+  register unsigned fhandle __asm ("r1") = __fhandle;
   register int extent __asm ("r2") = __extent;
   register const _kernel_oserror *err __asm ("r0");
   __asm__ volatile ("MOV\tr0, #3\n\t"
@@ -513,10 +579,10 @@ SWI_OS_Args_SetExtent (int __fhandle, int __extent)
 
 /* Canonicalise file handle.  */
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_Args_Canonicalise (int __fhandle, char *__buf, size_t __bufsize,
+SWI_OS_Args_Canonicalise (unsigned __fhandle, char *__buf, size_t __bufsize,
 			  size_t *__req_xtrabufsize)
 {
-  register int fhandle __asm ("r1") = __fhandle;
+  register unsigned fhandle __asm ("r1") = __fhandle;
   register char *buf __asm ("r2") = __buf;
   register size_t bufsize __asm ("r5") = __bufsize;
   register const _kernel_oserror *err __asm ("r0");
@@ -534,9 +600,9 @@ SWI_OS_Args_Canonicalise (int __fhandle, char *__buf, size_t __bufsize,
 }
 
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_Args_GetFileHandleStatus (int __fhandle, int *__status)
+SWI_OS_Args_GetFileHandleStatus (unsigned __fhandle, int *__status)
 {
-  register int fhandle __asm ("r1") = __fhandle;
+  register unsigned fhandle __asm ("r1") = __fhandle;
   register const _kernel_oserror *err __asm ("r0");
   register int status __asm ("r2");
   __asm__ volatile ("MOV\tr0, #254\n\t"
@@ -554,9 +620,9 @@ SWI_OS_Args_GetFileHandleStatus (int __fhandle, int *__status)
 
 /* Flush filehandle(s).  */
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_Args_Flush (int __fhandle)
+SWI_OS_Args_Flush (unsigned __fhandle)
 {
-  register int fhandle __asm ("r1") = __fhandle;
+  register unsigned fhandle __asm ("r1") = __fhandle;
   register const _kernel_oserror *err __asm ("r0");
   __asm__ volatile ("MOV\tr0, #255\n\t"
 		    "SWI\t%[SWI_XOS_Args]\n\t"

@@ -1,5 +1,5 @@
 /* Structures for UnixLib's internal process management.
-   Copyright (c) 2002-2012 UnixLib Developers.  */
+   Copyright (c) 2002-2013 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_UNIX_H
 #define __UNIXLIB_UNIX_H 1
@@ -146,7 +146,7 @@ struct ul_global
 {
   const char *cli; /* CLI from OS_GetEnv */
   unsigned int time[2]; /* low word, high byte */
-  int rewindpipeoffset;
+  __off_t rewindpipeoffset;
   int taskwindow; /* Non-zero if executing in a TaskWindow.  This value is
     always up-to-date as we can't become a TaskWindow task if we aren't one
     at startup. So no need for __get_task_window () something similar.  */

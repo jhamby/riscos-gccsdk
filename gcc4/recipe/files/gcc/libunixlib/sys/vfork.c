@@ -1,5 +1,5 @@
 /* Implementation of fork.
-   Copyright (c) 2004-2011 UnixLib Developers.  */
+   Copyright (c) 2004-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <unistd.h>
@@ -140,12 +140,12 @@ __fork_post (pid_t pid, int isfork)
 	    {
 	      if (prev_fh_out == 0)
 		{
-		  (void) __os_fopen (OSFILE_OPENUP, gbl->ul_out_pathname,
-				     &prev_fh_out);
+		  (void) SWI_OS_Find_Open (OSFIND_OPENUP, gbl->ul_out_pathname,
+					   &prev_fh_out);
 		  /* FIXME: is getfd (1)->devicehandle valid ? I.e. no need for
 		     BADF (1) test ? */
 		  getfd (1)->devicehandle->handle = (void *) prev_fh_out;
-		  int extent;
+		  __off_t extent;
 		  if (SWI_OS_Args_GetExtent (prev_fh_out, &extent) == NULL)
 		    (void) SWI_OS_Args_SetFilePtr (prev_fh_out, extent);
 

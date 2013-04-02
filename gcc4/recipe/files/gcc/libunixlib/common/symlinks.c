@@ -1,6 +1,6 @@
 /* symlinks.c
  *
- * Copyright 2007-2010 UnixLib Developers
+ * Copyright 2007-2013 UnixLib Developers
  *
  * Given a filename, determine if it is a symlink file. If so extract the
  * target file and check again. Repeat until the target filename is not a
@@ -16,6 +16,7 @@
 
 #include <internal/os.h>
 #include <internal/symlinks.h>
+#include <internal/swiparams.h>
 
 #if __UNIXLIB_SYMLINKS
 
@@ -53,8 +54,7 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 
   strcpy (filename_out, filename_in);
 
-  int fd = -1;
-  int regs[10];
+  unsigned fd = 0;
   int link_count = 0;
   while (1)
     {
@@ -71,8 +71,10 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	  break;
 	}
 
-      _kernel_oserror *err;
-      if ((err = __os_fopen (0x4F, filename_out, &fd)) != NULL)
+      const _kernel_oserror *err;
+      if ((err = SWI_OS_Find_Open (OSFIND_OPENIN | OSFIND_OPEN_ERRORIFDIR
+				     | OSFIND_OPEN_ERRORIFABSENT,
+				   filename_out, &fd)) != NULL)
 	{
 	  __ul_seterr (err, ENOENT);
 	  break;
@@ -80,9 +82,9 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 
       size_t size;
       char id[4];
-      if ((err = __os_fread (fd, id, 4, regs)) != NULL
+      if ((err = SWI_OS_GBPB_ReadBytes (fd, id, 4, NULL)) != NULL
 	  || *(unsigned int *)id != SYMLINK_ID
-	  || (err = __os_fread (fd, &size, 4, regs)) != NULL)
+	  || (err = SWI_OS_GBPB_ReadBytes (fd, &size, 4, NULL)) != NULL)
 	{
 	  __ul_seterr (err, EIO);
 	  break;
@@ -107,14 +109,14 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	    }
 	}
 
-      if ((err = __os_fread (fd, buffer, size, regs)) != NULL)
+      if ((err = SWI_OS_GBPB_ReadBytes (fd, buffer, size, NULL)) != NULL)
 	{
 	  __ul_seterr (err, EIO);
 	  break;
 	}
 
-      __os_fclose (fd);
-      fd = -1;
+      SWI_OS_Find_Close (fd);
+      fd = 0;
 
       buffer[size] = '\0';
 
@@ -130,7 +132,7 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
       char *sep;
       if (strchr (buffer, ':') != NULL
           || (sep = strrchr (filename_out, '.')) == NULL
-	     && (sep = strrchr (filename_out, ':')) == NULL)
+	      && (sep = strrchr (filename_out, ':')) == NULL)
 	{
 	  /* symlink contains absolute file path
 	     or the symlink contains a relative file path but filename_out
@@ -160,8 +162,8 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
     }
 
   /* Error happened.  */
-  if (fd != -1)
-    __os_fclose (fd);
+  if (fd != 0)
+    SWI_OS_Find_Close (fd);
 
   return -1;
 }

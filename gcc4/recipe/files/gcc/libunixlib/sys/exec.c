@@ -1,5 +1,5 @@
 /* Execute a new program.
-   Copyright (c) 2002-2012 UnixLib Developers.  */
+   Copyright (c) 2002-2013 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -394,7 +394,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	  if ((err = SWI_OS_Args_GetFilePtr (handle,
 					     &gbl->rewindpipeoffset)) != NULL)
             return __ul_seterr (err, EOPSYS);
-	  int extent;
+	  __off_t extent;
 	  if ((err = SWI_OS_Args_GetExtent (handle, &extent)) != NULL
 	      || (err = SWI_OS_Args_SetFilePtr (handle, extent)) != NULL)
             return __ul_seterr (err, EOPSYS);
