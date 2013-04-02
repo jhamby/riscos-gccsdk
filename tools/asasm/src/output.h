@@ -39,12 +39,17 @@ void Output_ELF (void);
 extern const char *idfn_text;
 #define DEFAULT_IDFN "GCCSDK ASASM AOF/ELF Assembler " VERSION " (" GCCSDK_REVISION ", " __DATE__ ")"
 
+static inline ARMWord
+armword (ARMWord val)
+{
 #if defined(WORDS_BIGENDIAN)
-ARMWord armword (ARMWord val);
-ARMWord ourword (ARMWord val);
+  return (val >> 24)
+	   | ((val >> 8) & 0xff00)
+	   | ((val << 8) & 0xff0000)
+	   | (val << 24);
 #else
-#define armword(x) (x)
-#define ourword(x) (x)
+  return val;
 #endif
+}
 
 #endif

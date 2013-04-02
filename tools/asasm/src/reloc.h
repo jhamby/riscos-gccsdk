@@ -31,8 +31,9 @@
 #include <inttypes.h>
 #endif
 
+#include "libelf.h"
+
 #include "aoffile.h"
-#include "elf.h"
 #include "symbol.h"
 #include "value.h"
 

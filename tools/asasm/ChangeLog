@@ -1,3 +1,24 @@
+Tue Apr  2 20:42:27 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* elf.h: Remove.
+	* symbol.c: Include libelf.h instead of elf.h.
+	* reloc.c: Likewise.
+	* reloc.h: Likewise.
+	* output.c (armword): Move to output.h
+	(ourword): Remove.
+	(Output_Open): Add.
+	(Output_OpenOutput): Make use of Output_Open.
+	(writeElfSH): Remove.
+	(Output_ELF): Use ELF Tool Chain library.
+	* output.h (armword): Moved from output.c.
+	* Makefile.am (asasm_CFLAGS): Add ELF Tool Chain header files.
+	(asasm_LDFLAGS): Add -static.
+	(asasm_LDADD): Add.
+	* configure.ac (AC_USE_SYSTEM_EXTENSIONS, LT_INIT): Add.
+
+	* unittests/reloc/ref/*_elf.txt: Update.
+
 Tue Apr  2 19:48:51 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

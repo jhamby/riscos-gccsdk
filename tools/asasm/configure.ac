@@ -5,6 +5,9 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SUBDIRS([elftoolchain decaof])
 
+AC_USE_SYSTEM_EXTENSIONS
+LT_INIT
+
 AC_PROG_CC
 AC_GNU_SOURCE
 

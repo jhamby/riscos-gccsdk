@@ -10,7 +10,7 @@ ELF Header:
   Version:                           0x1
   Entry point address:               0
   Start of program headers:          0 (bytes into file)
-  Start of section headers:          52 (bytes into file)
+  Start of section headers:          1020 (bytes into file)
   Flags:                             0, GNU EABI
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
@@ -20,44 +20,44 @@ ELF Header:
   Section header string table index: 33
 
 There are no program headers in this file.
-There are 34 section headers, starting at offset 0x34:
+There are 34 section headers, starting at offset 0x3fc:
 
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
   [ 0] (null)            NULL            00000000 000000 000000 00      0   0  0
-  [ 1] .symtab           SYMTAB          00000000 000584 0001f0 10      2  31  4
-  [ 2] .strtab           STRTAB          00000000 000774 000001 00      0   0  1
-  [ 3] Code01_DefaultAtt PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [ 4] Code02_ABS        PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [ 5] Code03_REL        PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [ 6] Code04_PIC        PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [ 7] Code05_READONLY   PROGBITS        00000000 000778 000000 00  AX  0   0  4
-  [ 8] Code06_READWRITE  PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [ 9] Code07_COMDEF     PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [10] Code08_COMMON     PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [11] Code09_NOINIT     NOBITS          00000000 000778 000000 00 WAX  0   0  4
-  [12] Code10_ALIGN5     PROGBITS        00000000 000778 000000 00 WAX  0   0 32
-  [13] Code11_VFP        PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [14] Code12_REENTRANT  PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [15] Code13_INTERWORK  PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [16] Code14_HALFWORD   PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [17] Code15_NOSWSTACKC PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [18] Code16_CODEALIGN  PROGBITS        00000000 000778 000000 00 WAX  0   0  4
-  [19] Data01_DefaultAtt PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [20] Data02_DATA       PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [21] Data03_ABS        PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [22] Data04_REL        PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [23] Data05_PIC        PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [24] Data06_READONLY   PROGBITS        00000000 000778 000000 00   A  0   0  4
-  [25] Data07_READWRITE  PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [26] Data08_COMDEF     PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [27] Data09_COMMON     PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [28] Data10_NOINIT     NOBITS          00000000 000778 000000 00  WA  0   0  4
-  [29] Data11_ALIGN7     PROGBITS        00000000 000778 000000 00  WA  0   0 128
-  [30] Data12_VFP        PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [31] Data13_DEBUG      PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [32] Data14_BASEDR7    PROGBITS        00000000 000778 000000 00  WA  0   0  4
-  [33] .shstrtab         STRTAB          00000000 000778 0001d6 00      0   0  1
+  [ 1] .symtab           SYMTAB          00000000 000034 0001f0 10      2  31  4
+  [ 2] .strtab           STRTAB          00000000 000224 000001 00      0   0  1
+  [ 3] Code01_DefaultAtt PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [ 4] Code02_ABS        PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [ 5] Code03_REL        PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [ 6] Code04_PIC        PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [ 7] Code05_READONLY   PROGBITS        00000000 000228 000000 00  AX  0   0  4
+  [ 8] Code06_READWRITE  PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [ 9] Code07_COMDEF     PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [10] Code08_COMMON     PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [11] Code09_NOINIT     NOBITS          00000000 000000 000000 00 WAX  0   0  0
+  [12] Code10_ALIGN5     PROGBITS        00000000 000240 000000 00 WAX  0   0 32
+  [13] Code11_VFP        PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [14] Code12_REENTRANT  PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [15] Code13_INTERWORK  PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [16] Code14_HALFWORD   PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [17] Code15_NOSWSTACKC PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [18] Code16_CODEALIGN  PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [19] Data01_DefaultAtt PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [20] Data02_DATA       PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [21] Data03_ABS        PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [22] Data04_REL        PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [23] Data05_PIC        PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [24] Data06_READONLY   PROGBITS        00000000 000228 000000 00   A  0   0  4
+  [25] Data07_READWRITE  PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [26] Data08_COMDEF     PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [27] Data09_COMMON     PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [28] Data10_NOINIT     NOBITS          00000000 000000 000000 00  WA  0   0  0
+  [29] Data11_ALIGN7     PROGBITS        00000000 000280 000000 00  WA  0   0 128
+  [30] Data12_VFP        PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [31] Data13_DEBUG      PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [32] Data14_BASEDR7    PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [33] .shstrtab         STRTAB          00000000 000225 0001d6 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
   I (info), L (link order), G (group), x (unknown)

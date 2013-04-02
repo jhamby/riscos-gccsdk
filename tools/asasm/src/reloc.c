@@ -32,10 +32,11 @@
 #endif
 #include <string.h>
 
+#include "libelf.h"
+
 #include "aoffile.h"
 #include "area.h"
 #include "code.h"
-#include "elf.h"
 #include "error.h"
 #include "expr.h"
 #include "eval.h"

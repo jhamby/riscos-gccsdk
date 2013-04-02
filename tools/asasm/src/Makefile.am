@@ -19,15 +19,21 @@ asasm_CFLAGS = -std=c99 \
 	-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
 	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wwrite-strings \
 	-DGCCSDK_REVISION="\"$(SVN_REV)\"" \
-	-DASASM_VERSION=$(ASASM_VERSION)
-asasm_LDFLAGS = -lm
+	-DASASM_VERSION=$(ASASM_VERSION) \
+	-I${top_srcdir}/elftoolchain/common \
+	-I${top_srcdir}/elftoolchain/libelftc \
+	-I${top_srcdir}/elftoolchain/libelf \
+	-I${top_srcdir}/elftoolchain/libdwarf
+# -static because we don't install the elftoolchain libraries.
+asasm_LDFLAGS = -static -lm
+asasm_LDADD = ../elftoolchain/libelftc/libelftc.la \
+	../elftoolchain/libelf/libelf.la \
+	../elftoolchain/libdwarf/libdwarf.la
 asasm_SOURCES=area.c asm.c code.c decode.c depend.c \
 	directive_data.c directive_file.c directive_misc.c \
-	directive_storagemap.c directive_symbol.c \
-	error.c \
+	directive_storagemap.c directive_symbol.c error.c \
 	eval.c expr.c filename.c filestack.c fix.c frame.c get.c help_cop.c \
-	help_cpu.c \
-	include.c input.c it.c lex.c lit.c \
+	help_cpu.c include.c input.c it.c lex.c lit.c \
 	local.c macros.c main.c m_cop.c m_copmem.c m_cpu.c m_cpuctrl.c \
 	m_cpumem.c m_fpe.c opt.c option.c os.c output.c phase.c \
 	predef_reg.c put.c reloc.c state.c \

@@ -10,7 +10,7 @@ ELF Header:
   Version:                           0x1
   Entry point address:               0
   Start of program headers:          0 (bytes into file)
-  Start of section headers:          52 (bytes into file)
+  Start of section headers:          640 (bytes into file)
   Flags:                             0, GNU EABI
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
@@ -20,18 +20,18 @@ ELF Header:
   Section header string table index: 7
 
 There are no program headers in this file.
-There are 8 section headers, starting at offset 0x34:
+There are 8 section headers, starting at offset 0x280:
 
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
   [ 0] (null)            NULL            00000000 000000 000000 00      0   0  0
-  [ 1] .symtab           SYMTAB          00000000 000174 000170 10      2  23  4
-  [ 2] .strtab           STRTAB          00000000 0002e4 000063 00      0   0  1
-  [ 3] AreaData          PROGBITS        00000000 000348 00000c 00  WA  0   0  4
-  [ 4] AreaCode          PROGBITS        00000000 000354 00000c 00 WAX  0   0  4
-  [ 5] AreaBased         PROGBITS        00000000 000360 000010 00  WA  0   0  4
-  [ 6] AreaABS           PROGBITS        00000000 000370 000010 00 WAX  0   0  4
-  [ 7] .shstrtab         STRTAB          00000000 000380 00003f 00      0   0  1
+  [ 1] .symtab           SYMTAB          00000000 000034 000170 10      2  23  4
+  [ 2] .strtab           STRTAB          00000000 0001a4 000063 00      0   0  1
+  [ 3] AreaData          PROGBITS        00000000 000208 00000c 00  WA  0   0  4
+  [ 4] AreaCode          PROGBITS        00000000 000214 00000c 00 WAX  0   0  4
+  [ 5] AreaBased         PROGBITS        00000000 000220 000010 00  WA  0   0  4
+  [ 6] AreaABS           PROGBITS        00000000 000230 000010 00 WAX  0   0  4
+  [ 7] .shstrtab         STRTAB          00000000 000240 00003f 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
   I (info), L (link order), G (group), x (unknown)

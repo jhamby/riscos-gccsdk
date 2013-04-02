@@ -36,18 +36,20 @@
 #ifdef __riscos__
 #  include <swis.h>
 #endif
-
 #if !defined(__riscos__) || defined(__TARGET_UNIXLIB__)
 #  include <sys/param.h>		/* for MAXPATHLEN */
 #else
 #  define MAXPATHLEN 1024
 #endif
+#include <fcntl.h>
+#include <unistd.h>
+
+#include "libelf.h"
 
 #include "aoffile.h"
 #include "area.h"
 #include "chunkfile.h"
 #include "depend.h"
-#include "elf.h"
 #include "error.h"
 #include "filename.h"
 #include "main.h"
@@ -57,6 +59,7 @@
 #include "symbol.h"
 
 static FILE *oFHandle;
+static int oFHandleELF = -1;
 
 #define FIX(n) ((3+(int)(n))&~3)
 #define EXTRA(n) (FIX(n)-(n))
@@ -66,33 +69,25 @@ const char *idfn_text = NULL; /**< Identifier, when NULL use DEFAULT_IDFN; this 
 
 static char outname[MAXPATHLEN];
 
-#if defined(WORDS_BIGENDIAN)
-/* Convert to ARM byte-sex.  */
-ARMWord
-armword (ARMWord val)
-{
-  return (val >> 24) |
-         ((val >> 8) & 0xff00)   |
-         ((val << 8) & 0xff0000) |
-          (val << 24);
-}
 
-/* Convert from ARM byte-sex.  */
-ARMWord
-ourword (ARMWord val)
+/**
+ * Opens the AOF/ELF file for output.
+ * \return true in case of error.
+ */
+static bool
+Output_Open (const char *fname)
 {
-  return  (val >> 24) |
-         ((val >> 8) & 0xff00)   |
-         ((val << 8) & 0xff0000) |
-          (val << 24);
+  if (option_aof)
+    return (oFHandle = fopen (fname, "wb")) == NULL;
+  return (oFHandleELF = open (fname, O_WRONLY | O_CREAT, 0777)) < 0;
 }
-#endif
 
 
 const char *
 Output_OpenOutput (const char *outfile)
 {
   oFHandle = NULL;
+  oFHandleELF = -1;
   for (unsigned pathidx = 0; /* */; ++pathidx)
     {
       const char *out[3];
@@ -102,17 +97,17 @@ Output_OpenOutput (const char *outfile)
 	{
 	  out[0] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
 				   &state[0], eA_Dot_B);
-	  if (out[0] && (oFHandle = fopen (out[0], "wb")) != NULL)
+	  if (out[0] && !Output_Open (out[0]))
 	    return outname;
 
 	  out[1] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
 				   &state[1], eB_DirSep_A);
-	  if (out[1] && (oFHandle = fopen (out[1], "wb")) != NULL)
+	  if (out[1] && !Output_Open (out[1]))
 	    return outname;
 
 	  out[2] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
 				   &state[2], eA_Slash_B);
-	  if (out[2] && (oFHandle = fopen (out[2], "wb")) != NULL)
+	  if (out[2] && !Output_Open (out[2]))
 	    return outname;
 
 	  assert (state[0] == state[1] && state[0] == state[2]);
@@ -146,20 +141,37 @@ Output_PrepareForPhase (Phase_e phase)
 
       case eCleanUp:
 	{
+#ifdef __riscos__
+	  bool doFileType = false;
+#endif
 	  if (oFHandle != NULL)
 	    {
 	      fclose (oFHandle);
 	      oFHandle = NULL;
 #ifdef __riscos__
+	      doFileType = true;
+#endif
+	    }
+	  if (oFHandleELF >= 0)
+	    {
+	      close (oFHandleELF);
+	      oFHandleELF = -1;
+#ifdef __riscos__
+	      doFileType = true;
+#endif
+	    }
+#ifdef __riscos__
+	  if (doFileType)
+	    {
 	      /* Set filetype to 0xE1F (ELF, ELF output) or 0xFFD (Data, AOF output).  */
 	      _kernel_swi_regs regs;
 	      regs.r[0] = 18;
 	      regs.r[1] = (int) outname;
 	      regs.r[2] = (option_aof) ? 0xFFD : 0xE1F;
 
-	      _kernel_swi(OS_File, &regs, &regs);
-#endif
+	      _kernel_swi (OS_File, &regs, &regs);
 	    }
+#endif
 	  break;
 	}
     }
@@ -173,6 +185,11 @@ Output_Remove (void)
     {
       fclose (oFHandle);
       oFHandle = NULL;
+    }
+  if (oFHandleELF >= 0)
+    {
+      close (oFHandleELF);
+      oFHandleELF = -1;
     }
   if (outname[0])
     remove (outname);
@@ -309,88 +326,32 @@ Output_AOF (void)
   Symbol_FreeSymbolOut (&symOut);
 }
 
-static void
-writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
-	    unsigned int addr,
-	    unsigned int size, unsigned int link, unsigned int info,
-	    unsigned int addralign, unsigned int entsize, size_t *offset)
-{
-  const Elf32_Shdr sect_hdr =
-    {
-      .sh_name = nmoffset,
-      .sh_type = type,
-      .sh_flags = flags,
-      .sh_addr = addr,
-      .sh_offset = type == SHT_NULL ? 0 : *offset,
-      .sh_size = size,
-      .sh_link = link,
-      .sh_info = info,
-      .sh_addralign = addralign,
-      .sh_entsize = entsize
-    };
-  if (type != SHT_NOBITS)
-    *offset += FIX (size);
-  if (fwrite (&sect_hdr, sizeof (sect_hdr), 1, oFHandle) != 1)
-    Error_AbortLine (NULL, 0, "Internal writeElfSH: error when writing chunk file header");
-}
-
 void
 Output_ELF (void)
 {
-  /* We must call Reloc_GetNumberRelocs() before anything else.  */
-  uint32_t numAreas = 0;
-  uint32_t numRelocs = 0;
-  uint32_t areaSectionID = 3;
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
-    {
-      /* Skip the implicit area.  */
-      if (Area_IsImplicit (ap))
-	continue;
+  if (elf_version (EV_CURRENT) == EV_NONE)
+    Error_Abort ("elf_version() failed");
 
-      ++numAreas;
+  Elf *elfHandle;
+  if ((elfHandle = elf_begin (oFHandleELF, ELF_C_WRITE, NULL)) == NULL)
+    Error_Abort ("Failed to get ELF handle");
 
-      ap->area->number = areaSectionID++;
-      bool anyRelocData = Reloc_PrepareRelocOutPart1 (ap); 
-      if (anyRelocData)
-	{
-	  ++areaSectionID;
-	  ++numRelocs;
-	}
-    }
+  Elf32_Ehdr *ehdr;
+  if ((ehdr = elf32_newehdr (elfHandle)) == NULL)
+    Error_Abort ("elf32_newehdr() failed");
 
-  Elf32_Ehdr elf_head;
-  elf_head.e_ident[EI_MAG0] = ELFMAG0;
-  elf_head.e_ident[EI_MAG1] = ELFMAG1;
-  elf_head.e_ident[EI_MAG2] = ELFMAG2;
-  elf_head.e_ident[EI_MAG3] = ELFMAG3;
-  elf_head.e_ident[EI_CLASS] = ELFCLASS32;
-  elf_head.e_ident[EI_DATA] = ELFDATA2LSB;
-  elf_head.e_ident[EI_VERSION] = EV_CURRENT;
-  elf_head.e_ident[EI_OSABI] = ELFOSABI_ARM;
-  elf_head.e_ident[EI_ABIVERSION] = 0;
-  for (int i = EI_PAD; i < EI_NIDENT; i++)
-    elf_head.e_ident[i] = 0;
-  elf_head.e_type = ET_REL;
-  elf_head.e_machine = EM_ARM;
-  elf_head.e_version = EV_CURRENT;
-  elf_head.e_entry = areaEntrySymbol ? areaEntryOffset : 0;
-  elf_head.e_phoff = 0;
-  elf_head.e_shoff = sizeof (elf_head);
+  ehdr->e_ident[EI_CLASS] = ELFCLASS32;
+  ehdr->e_ident[EI_DATA] = ELFDATA2LSB;
+  ehdr->e_ident[EI_VERSION] = EV_CURRENT;
+  ehdr->e_ident[EI_OSABI] = ELFOSABI_ARM;
+  ehdr->e_ident[EI_ABIVERSION] = 0;
+  ehdr->e_type = ET_REL;
+  ehdr->e_machine = EM_ARM;
+  ehdr->e_version = EV_CURRENT;
+  ehdr->e_entry = areaEntrySymbol ? areaEntryOffset : 0;
 #ifdef ELF_EABI
-  elf_head.e_flags = EF_ARM_EABI_VER5;
-#else
-  elf_head.e_flags = 0;
+  ehdr->e_flags = EF_ARM_EABI_VER5;
 #endif
-  /* Softfloat:  elf_head.e_flags |= 0x200; */
-  if (areaEntrySymbol)
-    elf_head.e_flags |= EF_ARM_HASENTRY;
-  elf_head.e_ehsize = sizeof (elf_head);
-  elf_head.e_phentsize = 0;
-  elf_head.e_phnum = 0;
-  elf_head.e_shentsize = sizeof (Elf32_Shdr);
-  elf_head.e_shnum = numAreas + numRelocs + 4; /* 4 = "" (SHT_NULL) + ".symtab" (SHT_SYMTAB) + ".strtab" (SHT_STRTAB) + ".shstrtab" (SHT_STRTAB) */
-  elf_head.e_shstrndx = numAreas + numRelocs + 3;
-  fwrite (&elf_head, 1, sizeof (elf_head), oFHandle);
 
   /* Section order:
        "" (SHT_NULL)
@@ -402,127 +363,197 @@ Output_ELF (void)
        ".shstrtab" (SHT_STRTAB) - string table containing section names
 
      When an area has no relocations, its SHT_REL section is not emitted.  */
-  
-  size_t offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
-  Elf32_Word shstrsize = 0;
-  
-  /* Section headers - index 0 */
-  writeElfSH (shstrsize, SHT_NULL, 0, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
-  shstrsize += sizeof ("");
 
-  /* Symbol table - index 1 */
-  SymbolOut_t symOut = Symbol_CreateSymbolOut ();
-  writeElfSH (shstrsize, SHT_SYMTAB, 0, 0,
-	      symOut.symDataSize,
-	      2 /* The section header index of the associated string table.  */,
-	      symOut.numLocalSymbols,
-	      4 /* Align. */,
-	      sizeof (Elf32_Sym) /* Entry size.  */,
-	      &offset);
-  shstrsize += sizeof (".symtab");
-
-  /* String table - index 2 */
-  writeElfSH (shstrsize, SHT_STRTAB, 0, 0, symOut.strDataSize, 0, 0, 1, 0, &offset);
-  shstrsize += sizeof (".strtab");
-
-  /* Area headers - index 3 */
-  int elfIndex = 3;
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+  Elf_Scn *symTabScnP, *strTabScnP;
+  if ((symTabScnP = elf_newscn (elfHandle)) == NULL
+      || (strTabScnP = elf_newscn (elfHandle)) == NULL)
+    Error_Abort ("elf_newscn() failed");
+  size_t shStrTabScnSize = sizeof ("") + sizeof (".symtab") + sizeof (".strtab");
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
-      
-      int areaFlags = 0;
+
+      Elf_Scn *areaScnP;
+      if ((areaScnP = elf_newscn (elfHandle)) == NULL)
+	Error_Abort ("elf_newscn() failed");
+      ap->area->number = elf_ndxscn (areaScnP);
+      shStrTabScnSize += ap->len + 1;
+      bool anyRelocData = Reloc_PrepareRelocOutPart1 (ap);
+      assert (!anyRelocData || !Area_IsNoInit (ap->area));
+      if (anyRelocData)
+	{
+	  Elf_Scn *areaRelScnP;
+	  if ((areaRelScnP = elf_newscn (elfHandle)) == NULL)
+	    Error_Abort ("elf_newscn() failed");
+	  shStrTabScnSize += sizeof (".rel.")-1 + (ap->str[0] == '.' ? -1 : 0) + ap->len + 1;
+	}
+    }
+  Elf_Scn *shStrTabScnP;
+  if ((shStrTabScnP = elf_newscn (elfHandle)) == NULL)
+    Error_Abort ("elf_newscn() failed");
+  shStrTabScnSize += sizeof (".shstrtab");
+
+  if (elf_setshstrndx (elfHandle , elf_ndxscn (shStrTabScnP)) == 0)
+    Error_Abort ("elf_setshstrndx() failed");
+
+  SymbolOut_t symOut = Symbol_CreateSymbolOut ();
+
+  char *shStrTabBufP; /* Will contain the .shstrtab data.  */
+  if ((shStrTabBufP = malloc (shStrTabScnSize)) == NULL)
+    Error_OutOfMem ();
+  Elf32_Word scnNameIdx = 0; /* Section name index in .shstrtab section.  */
+  memcpy (&shStrTabBufP[scnNameIdx], "", sizeof (""));
+  scnNameIdx += sizeof ("");
+  
+  /* Write .symtab section data.  */
+  Elf_Data *symTabDataP;
+  if ((symTabDataP = elf_newdata (symTabScnP)) == NULL)
+    Error_Abort ("elf_newdata() failed");
+  symTabDataP->d_align = 4;
+  symTabDataP->d_buf = symOut.symDataP;
+  /* symTabDataP->d_off */
+  symTabDataP->d_size = symOut.symDataSize;
+  symTabDataP->d_type = ELF_T_SYM;
+  /* symTabDataP->d_version */
+
+  Elf32_Shdr *symTabSHdrP;
+  if ((symTabSHdrP = elf32_getshdr (symTabScnP)) == NULL)
+    Error_Abort ("elf32_getshdr() failed");
+  symTabSHdrP->sh_name = scnNameIdx;
+  symTabSHdrP->sh_type = SHT_SYMTAB;
+  symTabSHdrP->sh_link = elf_ndxscn (strTabScnP);
+  symTabSHdrP->sh_info = symOut.numLocalSymbols;
+  symTabSHdrP->sh_entsize = sizeof (Elf32_Sym);
+
+  memcpy (&shStrTabBufP[scnNameIdx], ".symtab", sizeof (".symtab"));
+  scnNameIdx += sizeof (".symtab");
+
+  /* Write .strtab section data.  */
+  Elf_Data *strTabDataP;
+  if ((strTabDataP = elf_newdata (strTabScnP)) == NULL)
+    Error_Abort ("elf_newdata() failed");
+  strTabDataP->d_align = 1;
+  strTabDataP->d_buf = symOut.strDataP;
+  /* strTabDataP->d_off */
+  strTabDataP->d_size = symOut.strDataSize;
+  strTabDataP->d_type = ELF_T_BYTE;
+  /* strTabDataP->d_version */
+
+  Elf32_Shdr *strTabSHdrP;
+  if ((strTabSHdrP = elf32_getshdr (strTabScnP)) == NULL)
+    Error_Abort ("elf32_getshdr() failed");
+  strTabSHdrP->sh_name = scnNameIdx;
+  strTabSHdrP->sh_type = SHT_STRTAB;
+
+  memcpy (&shStrTabBufP[scnNameIdx], ".strtab", sizeof (".strtab"));
+  scnNameIdx += sizeof (".strtab");
+
+  /* Write area data and their relocs as separate sections.  */
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+    {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+
+      Elf32_Word scnFlags = 0;
       if (ap->area->type & AREA_CODE)
-        areaFlags |= SHF_EXECINSTR;
+        scnFlags |= SHF_EXECINSTR;
       if (!(ap->area->type & AREA_READONLY))
-        areaFlags |= SHF_WRITE;
+        scnFlags |= SHF_WRITE;
       if (ap->area->type & AREA_COMMONDEF)
-        areaFlags |= SHF_COMDEF;
+        scnFlags |= SHF_COMDEF;
       if (ap == areaEntrySymbol)
-        areaFlags |= SHF_ENTRYSECT;
-      areaFlags |= SHF_ALLOC;
-      unsigned int sectionSize = FIX (ap->area->maxIdx);
-      unsigned int sectionType = !Area_IsNoInit (ap->area) ? SHT_PROGBITS : SHT_NOBITS;
-      writeElfSH (shstrsize, sectionType, areaFlags,
-		  ap->value.Data.Int.i,
-		  sectionSize,
-                  0,
-		  0,
-		  1 << (ap->area->type & AREA_ALIGN_MASK),
-		  0,
-		  &offset);
-      shstrsize += ap->len + 1;
+        scnFlags |= SHF_ENTRYSECT;
+      scnFlags |= SHF_ALLOC;
+
+      Elf_Scn *areaScnP;
+      if ((areaScnP = elf_getscn (elfHandle, ap->area->number)) == NULL)
+	Error_Abort ("elf_getscn() failed");
+      Elf_Data *areaDataP;
+      if ((areaDataP = elf_newdata (areaScnP)) == NULL)
+	Error_Abort ("elf_newdata() failed");
+      areaDataP->d_align = 1 << (ap->area->type & AREA_ALIGN_MASK);
+      areaDataP->d_buf = ap->area->image; /* For AREA_UDATA, this is NULL.  */
+      /* areaDataP->d_off */
+      areaDataP->d_size = FIX (ap->area->maxIdx); /* FIXME: do we always need to round up area section size ? */
+      areaDataP->d_type = ELF_T_BYTE;
+      /* areaDataP->d_version */
+
+      Elf32_Shdr *areaSHdrP;
+      if ((areaSHdrP = elf32_getshdr (areaScnP)) == NULL)
+	Error_Abort ("elf32_getshdr() failed");
+      areaSHdrP->sh_name = scnNameIdx;
+      areaSHdrP->sh_type = !Area_IsNoInit (ap->area) ? SHT_PROGBITS : SHT_NOBITS;
+      areaSHdrP->sh_flags = scnFlags;
+      areaSHdrP->sh_addr = ap->value.Data.Int.i;
+
+      memcpy (&shStrTabBufP[scnNameIdx], ap->str, ap->len + 1);
+      scnNameIdx += ap->len + 1;
 
       if (ap->area->relocOutP->num)
         {
-          /* Relocations.  */
-          writeElfSH (shstrsize, SHT_REL, 0, 0,
-	              ap->area->relocOutP->num * sizeof(Elf32_Rel),
-	              1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
-          shstrsize += sizeof (".rel.")-1 + (ap->str[0] == '.' ? -1 : 0) + ap->len + 1;
-          elfIndex++;
-        }
-      elfIndex++;
-    }
+	  Reloc_PrepareRelocOutPart2 (ap); 
 
-  /* Section head string table.  */
-  shstrsize += sizeof (".shstrtab");
-  writeElfSH (shstrsize - sizeof (".shstrtab"), SHT_STRTAB, 0, 0, shstrsize, 0, 0, 1, 0, &offset);
+	  Elf_Scn *areaRelScnP;
+	  if ((areaRelScnP = elf_getscn (elfHandle, ap->area->number + 1)) == NULL)
+	    Error_Abort ("elf_getscn() failed");
+	  Elf_Data *areaRelDataP;
+	  if ((areaRelDataP = elf_newdata (areaRelScnP)) == NULL)
+	    Error_Abort ("elf_newdata() failed");
+	  areaRelDataP->d_align = 4;
+	  areaRelDataP->d_buf = ap->area->relocOutP->relocs.rawP;
+	  /* areaRelDataP->d_off */
+	  areaRelDataP->d_size = ap->area->relocOutP->size;
+	  areaRelDataP->d_type = ELF_T_REL;
+	  /* areaRelDataP->d_version */
 
-  /* Symbol table (.symtab).  */
-  if (fwrite (symOut.symDataP, 1, symOut.symDataSize, oFHandle) != symOut.symDataSize) 
-    Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing .symtab");    
+	  Elf32_Shdr *areaRelSHdrP;
+	  if ((areaRelSHdrP = elf32_getshdr (areaRelScnP)) == NULL)
+	    Error_Abort ("elf32_getshdr() failed");
+	  areaRelSHdrP->sh_name = scnNameIdx;
+	  areaRelSHdrP->sh_type = SHT_REL;
+	  areaRelSHdrP->sh_link = 1;
+	  areaRelSHdrP->sh_info = ap->area->number; /* section number of area contents.  */
+	  areaRelSHdrP->sh_entsize = sizeof (Elf32_Rel);
 
-  /* String table (.strtab).  */
-  if (fwrite (symOut.strDataP, 1, symOut.strDataSize, oFHandle) != symOut.strDataSize) 
-    Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing .strtab");    
-  for (unsigned pad = EXTRA (symOut.strDataSize); pad; pad--)
-    fputc (0, oFHandle);
-
-  /* Areas */
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
-    {
-      /* Skip the implicit area.  */
-      if (Area_IsImplicit (ap))
-	continue;
-      
-      if (!Area_IsNoInit (ap->area))
-        {
-          if (fwrite (ap->area->image, 1, ap->area->maxIdx, oFHandle) != ap->area->maxIdx)
-            Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing data for area %s", ap->str);
-	  /* Word align the written area.  */
-	  for (unsigned pad = EXTRA (ap->area->curIdx); pad; --pad)
-	    fputc (0, oFHandle);
-	  Reloc_PrepareRelocOutPart2 (ap);
-	  if (fwrite (ap->area->relocOutP->relocs.rawP,
-		      1, ap->area->relocOutP->size, oFHandle) != ap->area->relocOutP->size)
-	    Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing reloc for area %s", ap->str);
+	  size_t len = sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0);
+	  memcpy (&shStrTabBufP[scnNameIdx], ".rel.", len);
+	  scnNameIdx += len;
+	  memcpy (&shStrTabBufP[scnNameIdx], ap->str, ap->len + 1);
+	  scnNameIdx += ap->len + 1;
 	}
     }
 
-  /* Section head string table (.shstrtab).  */
-  fputc (0, oFHandle);
-  fwrite (".symtab", 1, sizeof(".symtab"), oFHandle);
-  fwrite (".strtab", 1, sizeof(".strtab"), oFHandle);
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
-    {
-      /* Skip the implicit area.  */
-      if (Area_IsImplicit (ap))
-	continue;
-      
-      fwrite (ap->str, 1, ap->len + 1, oFHandle);
-      if (ap->area->relocOutP->num)
-        {
-          fwrite (".rel.", 1, sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0), oFHandle);
-          fwrite (ap->str, 1, ap->len + 1, oFHandle);
-        }
-    }
-  fwrite (".shstrtab", 1, sizeof(".shstrtab"), oFHandle);
-  for (unsigned pad = EXTRA (shstrsize); pad; pad--)
-    fputc (0, oFHandle);
+  /* Write .shstrtab section data.  */
+  Elf_Data *shStrTabDataP;
+  if ((shStrTabDataP = elf_newdata (shStrTabScnP)) == NULL)
+    Error_Abort ("elf_newdata() failed");
+  shStrTabDataP->d_align = 1;
+  shStrTabDataP->d_buf = shStrTabBufP;
+  /* shStrTabDataP->d_off */
+  shStrTabDataP->d_size = shStrTabScnSize;
+  shStrTabDataP->d_type = ELF_T_BYTE;
+  /* shStrTabDataP->d_version */
+
+  Elf32_Shdr *shStrTabSHdrP;
+  if ((shStrTabSHdrP = elf32_getshdr (shStrTabScnP)) == NULL)
+    Error_Abort ("elf32_getshdr() failed");
+  shStrTabSHdrP->sh_name = scnNameIdx;
+  shStrTabSHdrP->sh_type = SHT_STRTAB;
+
+  memcpy (&shStrTabBufP[scnNameIdx], ".shstrtab", sizeof (".shstrtab"));
+  scnNameIdx += sizeof (".shstrtab");
+  assert (scnNameIdx == shStrTabScnSize);
+
+  /* Flush all data to file.  */
+  if (elf_update (elfHandle, ELF_C_WRITE) < 0)
+    Error_Abort ("elf_update() failed");
+
+  /* We're done.  */
+  elf_end (elfHandle);
 
   Symbol_FreeSymbolOut (&symOut);
-#endif
+  free (shStrTabBufP);
 }
