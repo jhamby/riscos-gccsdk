@@ -26,7 +26,6 @@
 #include <ctype.h>
 #include <limits.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
@@ -60,6 +59,9 @@ static bool oKeepAllSymbols;
 static bool oExportAllSymbols;
 static bool oAllExportSymbolsAreWeak;
 
+static void Symbol_BuildStringData (Symbol **allSymbolsPP, SymbolOut_t *symOutP);
+static void Symbol_BuildSymbolDataForAOF (Symbol **allSymbolsPP, SymbolOut_t *symOutP);
+static void Symbol_BuildSymbolDataForELF (Symbol **allSymbolsPP, SymbolOut_t *symOutP);
 static void Symbol_Free (Symbol **symPP);
 
 void
@@ -427,20 +429,23 @@ Symbol_CreateSymbolOut (void)
 {
   SymbolOut_t result =
     {
-      .allSymbolsPP = NULL,
       .numAllSymbols = 0,
       .numLocalSymbols = 0,
-      .stringSize = 0
+      .strDataSize = option_aof ? 4 : 1,
+      .strDataP = NULL,
+      .symDataSize = 0,
+      .symDataP = NULL
     };
 
-  /* Figure out how many symbols we want to output.  */
+  /* Figure out how many symbols we have to output.  */
   for (unsigned i = 0; i != SYMBOL_TABLESIZE; ++i)
     {
       for (Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
-	  /* At this point sym->used is -1 when it is not needed for
+	  /* For area symbols, sym->used is -1.
+	     For non-area symbols, sym->used is -1 when it is not needed for
 	     relocation, either is 0 when used for relocation.  */
-	  assert (sym->used == -1 || sym->used == 0);
+	  assert (sym->used == -1 || ((sym->type & SYMBOL_AREA) == 0 && sym->used == 0));
 	  if (sym->type & SYMBOL_AREA)
 	    {
 	      /* All AREA symbols are local ones.  */
@@ -473,14 +478,29 @@ Symbol_CreateSymbolOut (void)
 	}
     }
 
-  /* Claim space.  */
-  if ((result.allSymbolsPP = malloc (result.numAllSymbols * sizeof (Symbol *))) == NULL)
+  /* For ELF, we always output an undefined local symbol as first symbol.  */
+  if (!option_aof)
+    {
+      ++result.numLocalSymbols;
+      ++result.numAllSymbols;
+    }
+  
+  /* Claim space for an array containing the symbol ptrs of all symbols we're
+     going to output.
+     ELF : ordered first local then global (ELF requirement), then alphabetically.
+     AOF : ordered first global then local, then alphabetically.  */
+  Symbol **allSymbolsPP;
+  if ((allSymbolsPP = malloc (result.numAllSymbols * sizeof (Symbol *))) == NULL)
     Error_OutOfMem ();
 
   /* Run over symbols again, and start assigning them in our symbol output
      array.  */
-  const unsigned localSymbolIndexStart = (option_aof) ? result.numAllSymbols - result.numLocalSymbols : 0;
+  if (!option_aof)
+    allSymbolsPP[0] = NULL;
+  const unsigned localSymbolIndexStart = (option_aof) ? result.numAllSymbols - result.numLocalSymbols : 1;
+  const unsigned localSymbolIndexEnd = (option_aof) ? result.numAllSymbols : result.numLocalSymbols;
   const unsigned globalSymbolIndexStart = (option_aof) ? 0 : result.numLocalSymbols;
+  const unsigned globalSymbolIndexEnd = (option_aof) ? result.numAllSymbols - result.numLocalSymbols : result.numAllSymbols; 
   unsigned localSymbolIndex = localSymbolIndexStart;
   unsigned globalSymbolIndex = globalSymbolIndexStart;
   for (unsigned i = 0; i != SYMBOL_TABLESIZE; ++i)
@@ -490,17 +510,16 @@ Symbol_CreateSymbolOut (void)
 	  if (sym->used < 0)
 	    continue;
 	  if ((sym->type & SYMBOL_AREA) || SYMBOL_KIND (sym->type) == SYMBOL_LOCAL)
-	    result.allSymbolsPP[localSymbolIndex++] = sym;
+	    allSymbolsPP[localSymbolIndex++] = sym;
 	  else
-	    result.allSymbolsPP[globalSymbolIndex++] = sym;
+	    allSymbolsPP[globalSymbolIndex++] = sym;
 	}
     }
-  assert ((option_aof && localSymbolIndex == result.numAllSymbols && globalSymbolIndex == localSymbolIndexStart)
-          ^ (!option_aof && localSymbolIndex == globalSymbolIndexStart && globalSymbolIndex == result.numAllSymbols));
+  assert (localSymbolIndex == localSymbolIndexEnd && globalSymbolIndex == globalSymbolIndexEnd);  
 
   /* Sort local and global symbols individually.  */
-  qsort (&result.allSymbolsPP[localSymbolIndexStart], result.numLocalSymbols, sizeof (Symbol *), SymbolCompare);
-  qsort (&result.allSymbolsPP[globalSymbolIndexStart], result.numAllSymbols - result.numLocalSymbols, sizeof (Symbol *), SymbolCompare);
+  qsort (&allSymbolsPP[localSymbolIndexStart], localSymbolIndexEnd - localSymbolIndexStart, sizeof (Symbol *), SymbolCompare);
+  qsort (&allSymbolsPP[globalSymbolIndexStart], globalSymbolIndexEnd - globalSymbolIndexStart, sizeof (Symbol *), SymbolCompare);
 
   /* Assign Symbol::offset.
      We want to limit output the strings of mapping symbol to the first two
@@ -518,9 +537,9 @@ Symbol_CreateSymbolOut (void)
       { UINT_MAX, sizeof ("$t") }, /* $t */
       { UINT_MAX, sizeof ("$t.x") } /* $t.x */
     };
-  for (unsigned symbolIndex = 0; symbolIndex != result.numAllSymbols; ++symbolIndex)
+  for (unsigned symIdx = (option_aof ? 0 : 1); symIdx != result.numAllSymbols; ++symIdx)
     {
-      Symbol *sym = result.allSymbolsPP[symbolIndex];
+      Symbol *sym = allSymbolsPP[symIdx];
       Area_eEntryType type = Area_IsMappingSymbol (sym->str);
       if (type != eInvalid)
 	{
@@ -547,22 +566,22 @@ Symbol_CreateSymbolOut (void)
 	  if (mapSymbols[mappingSymbolindex].offset == UINT_MAX)
 	    {
 	      /* First time we see this particular mapping symbol.  */
-	      mapSymbols[mappingSymbolindex].offset = sym->offset = result.stringSize;
-	      result.stringSize += mapSymbols[mappingSymbolindex].len;
+	      mapSymbols[mappingSymbolindex].offset = sym->offset = result.strDataSize;
+	      result.strDataSize += mapSymbols[mappingSymbolindex].len;
 	    }
 	  else
 	    sym->offset = mapSymbols[mappingSymbolindex].offset;
 	}
       else
 	{
-	  /* For ELF, section names are not mentioned in the string table
-	     but part of the section header.  */
+	  /* For ELF, section names are not mentioned in the string table .strtab
+	     but part of the section header .shstrtab.  */
 	  if ((sym->type & SYMBOL_AREA) && !option_aof)
 	    sym->offset = 0;
 	  else
 	    {
-	      sym->offset = result.stringSize;
-	      result.stringSize += sym->len + 1;
+	      sym->offset = result.strDataSize;
+	      result.strDataSize += sym->len + 1;
 	    }
 	}
       /* Symbol::used now contains a number which can be used (for the choosen
@@ -573,47 +592,82 @@ Symbol_CreateSymbolOut (void)
 	          symbols also have an entry in the symbol table as
 	          STT_SECTION).  */
       if (option_aof)
-	sym->used = (sym->type & SYMBOL_AREA) ? sym->area->number : symbolIndex;
+	sym->used = (sym->type & SYMBOL_AREA) ? sym->area->number : symIdx;
       else
-	sym->used = symbolIndex + 1;
+	sym->used = symIdx;
     }
+
+  Symbol_BuildStringData (allSymbolsPP, &result);
+  if (option_aof)
+    Symbol_BuildSymbolDataForAOF (allSymbolsPP, &result);
+  else
+    Symbol_BuildSymbolDataForELF (allSymbolsPP, &result);
+   
+  free ((void *)allSymbolsPP);
   return result;
 }
 
 
-void
-Symbol_OutputStrings (FILE *outfile, const SymbolOut_t *symOutP)
+/**
+ * Build string data for both AOF/ELF (OBJ_STRT / .strtab).
+ */
+static void
+Symbol_BuildStringData (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
 {
-  unsigned count = 0;
-  for (unsigned i = 0; i != symOutP->numAllSymbols; ++i)
+  assert (symOutP->strDataP == NULL);
+  if ((symOutP->strDataP = malloc (symOutP->strDataSize)) == NULL)
+    Error_OutOfMem ();
+
+  const char * const strStartP = (char *)symOutP->strDataP;
+  char *strP = (char *)symOutP->strDataP;
+  unsigned symIdx;
+  if (option_aof)
     {
-      const Symbol *sym = symOutP->allSymbolsPP[i];
-      Area_eEntryType type = Area_IsMappingSymbol (sym->str);
+      /* AOF : write length of OBJ_STRT.  */
+      assert (symOutP->strDataSize >= 4);
+      unsigned len = symOutP->strDataSize;// - 4;
+      *strP++ = (char)((len >>  0) & 0xFF);
+      *strP++ = (char)((len >>  8) & 0xFF);
+      *strP++ = (char)((len >> 16) & 0xFF);
+      *strP++ = (char)((len >> 24) & 0xFF);
+      symIdx = 0;
+    }
+  else
+    {
+      /* ELF : write empty string.  */
+      *strP++ = '\0';
+      symIdx = 1;
+    }
+  for (/* */; symIdx != symOutP->numAllSymbols; ++symIdx)
+    {
+      const Symbol *symP = allSymbolsPP[symIdx];
+      Area_eEntryType type = Area_IsMappingSymbol (symP->str);
       if (type != eInvalid)
 	{
-	  if (sym->offset >= count)
+	  /* Only output the prefix part of a mapping symbol once.  */
+	  assert (strStartP + symP->offset <= strP);
+	  if (strStartP + symP->offset  == strP)
 	    {
-	      assert (sym->offset == count);
-	      fputc ('$', outfile);
-	      fputc (sym->str[1], outfile);
+	      *strP++ = '$';
+	      *strP++ = symP->str[1]; /* Write 'a', 'd' or 't'.  */
 	      if (type == eThumbEE)
-		fputs (".x", outfile);
-	      fputc ('\0', outfile);
-	      if (type == eThumbEE)
-		count += sizeof ("$t.x");
-	      else
-		count += sizeof ("$d"); /* sizeof ("$d") == sizeof ("$a") == sizeof ("$t") */
+		{
+		  *strP++ = '.';
+		  *strP++ = 'x';
+		}
+	      *strP++ = '\0';
 	    }
 	}
-      else if ((sym->type & SYMBOL_AREA) && !option_aof)
-	assert (sym->offset == 0);
+      else if ((symP->type & SYMBOL_AREA) && !option_aof)
+	assert (symP->offset == 0);
       else
 	{
-	  assert (sym->offset == count);
-	  count += fwrite (sym->str, 1, sym->len + 1, outfile);
+	  assert (strStartP + symP->offset == strP);
+	  memcpy (strP, symP->str, symP->len + 1);
+	  strP += symP->len + 1;
 	}
     }
-  assert (count == symOutP->stringSize);
+  assert (strStartP + symOutP->strDataSize == strP);
 }
 
 
@@ -631,41 +685,46 @@ ApplyDefaultSymbolTypeForExportOrImport (unsigned type, unsigned mask)
 }
 
 
-void
-Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
+/**
+ * Build symbol data (OBJ_SYMT / .symtab).
+ */
+static void
+Symbol_BuildSymbolDataForAOF (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
 {
-  for (unsigned i = 0; i != symOutP->numAllSymbols; ++i)
-    {
-      const Symbol *sym = symOutP->allSymbolsPP[i];
+  assert (symOutP->symDataP == NULL);
+  size_t symDataSize = symOutP->numAllSymbols * sizeof (AofSymbol);
+  if ((symOutP->symDataP = malloc (symDataSize)) == NULL)
+    Error_OutOfMem ();
+  symOutP->symDataSize = (unsigned)symDataSize;
 
-      if (sym->type & SYMBOL_AREA)
+  AofSymbol *aofSymP = (AofSymbol *)symOutP->symDataP;
+  for (unsigned symIdx = 0; symIdx != symOutP->numAllSymbols; ++symIdx, ++aofSymP)
+    {
+      const Symbol *symP = allSymbolsPP[symIdx];
+
+      aofSymP->Name = armword (symP->offset);
+      if (symP->type & SYMBOL_AREA)
 	{
-	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area->type & AREA_ABS) != 0));
-	  const AofSymbol asym =
-	    {
-	      .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
-	      .Type = armword (SYMBOL_LOCAL | (sym->type & SYMBOL_ABSOLUTE)),
-	      .Value = armword ((sym->area->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0),
-	      .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
-	    };
-	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
+	  assert (((symP->type & SYMBOL_ABSOLUTE) != 0) == ((symP->area->type & AREA_ABS) != 0));
+	  aofSymP->Type = armword (SYMBOL_LOCAL | (symP->type & SYMBOL_ABSOLUTE));
+	  aofSymP->Value = armword ((symP->area->type & AREA_ABS) ? Area_GetBaseAddress (symP) : 0);
+	  aofSymP->AreaName = armword (symP->offset);
 	}
       else
 	{
-	  AofSymbol asym;
-	  if (sym->type & SYMBOL_DEFINED)
+	  if (symP->type & SYMBOL_DEFINED)
 	    {
 	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
-assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: is codeEvalLow still needed ? */
+assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol); /* FIXME: is codeEvalLow still needed ? */
 	      const Value *valueP;
-	      if (sym->value.Tag == ValueCode)
+	      if (symP->value.Tag == ValueCode)
 		{
 		  Code_Init ();
-		  valueP = Code_EvalLow (ValueAll, sym->value.Data.Code.len,
-					 sym->value.Data.Code.c);
+		  valueP = Code_EvalLow (ValueAll, symP->value.Data.Code.len,
+					 symP->value.Data.Code.c);
 		}
 	      else
-		valueP = &sym->value;
+		valueP = &symP->value;
 
 	      /* We can only have Int and Symbol here.  */
 	      int v;
@@ -687,14 +746,14 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 		         labels).  */
 		      if ((relToAreaSymP->type & SYMBOL_AREA) != 0
 			  && (relToAreaSymP->area->type & AREA_ABS) != 0
-		          && !Area_IsMappingSymbol (sym->str))
+		          && !Area_IsMappingSymbol (symP->str))
 			{
 			  v += valueP->Data.Symbol.factor * Area_GetBaseAddress (relToAreaSymP);
 			  relToAreaSymP = NULL;
 			}
 		      else if (valueP->Data.Symbol.factor != 1)
 			{
-			  Error_Line (sym->fileName, sym->lineNumber, ErrorError, "Unable to export symbol %s", sym->str);
+			  Error_Line (symP->fileName, symP->lineNumber, ErrorError, "Unable to export symbol %s", symP->str);
 			  continue;
 			}
 		      break;
@@ -708,80 +767,85 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 		}
 	      /* Note, no support for oAllExportSymbolsAreWeak as this is
 		 not possible for AOF.  */
-	      uint32_t type = sym->type & SYMBOL_SUPPORTED_AOF_BITS;
-	      if (oExportAllSymbols && !Area_IsMappingSymbol (sym->str))
+	      uint32_t type = symP->type & SYMBOL_SUPPORTED_AOF_BITS;
+	      if (oExportAllSymbols && !Area_IsMappingSymbol (symP->str))
 		type = ApplyDefaultSymbolTypeForExportOrImport (type | SYMBOL_EXPORT, 0);
-	      asym.Type = armword (type);
-	      asym.Value = armword (v);
+	      aofSymP->Type = armword (type);
+	      aofSymP->Value = armword (v);
 	      /* When it is a non-absolute symbol, we need to specify the
 	         area name to which this symbol is relative to.  */
-	      assert (((sym->type & SYMBOL_ABSOLUTE) == 0) == (relToAreaSymP != NULL)); 
+	      assert (((symP->type & SYMBOL_ABSOLUTE) == 0) == (relToAreaSymP != NULL)); 
 	      assert (relToAreaSymP == NULL || (relToAreaSymP->type & SYMBOL_AREA) != 0);
-	      asym.AreaName = armword (relToAreaSymP != NULL ? relToAreaSymP->offset + 4 : 0);
+	      aofSymP->AreaName = armword (relToAreaSymP != NULL ? relToAreaSymP->offset : 0);
 	    }
 	  else
 	    {
 	      /* SYMBOL_REFERENCE */
-	      asym.Type = armword ((sym->type | SYMBOL_REFERENCE) & SYMBOL_SUPPORTED_AOF_BITS);
-	      asym.Value = armword ((sym->type & SYMBOL_COMMON) ? sym->value.Data.Int.i : 0);
-	      asym.AreaName = armword (0);
+	      aofSymP->Type = armword ((symP->type | SYMBOL_REFERENCE) & SYMBOL_SUPPORTED_AOF_BITS);
+	      aofSymP->Value = armword ((symP->type & SYMBOL_COMMON) ? symP->value.Data.Int.i : 0);
+	      aofSymP->AreaName = armword (0);
 	    }
-	  asym.Name = armword (sym->offset + 4); /* + 4 to skip the initial length */
-	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
 	}
     }
+  assert ((char *)symOutP->symDataP + symDataSize == (char *)aofSymP);
 }
 
 
-#ifndef NO_ELF_SUPPORT
-void
-Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
+/**
+ * Build symbol data (.symtab section data).
+ */
+static void
+Symbol_BuildSymbolDataForELF (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
 {
+  assert (symOutP->symDataP == NULL);
+  size_t symDataSize = symOutP->numAllSymbols * sizeof (Elf32_Sym);
+  if ((symOutP->symDataP = malloc (symDataSize)) == NULL)
+    Error_OutOfMem ();
+  symOutP->symDataSize = (unsigned)symDataSize;
+
+  Elf32_Sym *elfSymP = (Elf32_Sym *)symOutP->symDataP;
+  
   /* Output the undefined symbol.  */
-  Elf32_Sym asym =
-    {
-      .st_name = 0,
-      .st_value = 0,
-      .st_size = 0,
-      .st_info = 0,
-      .st_other = 0,
-      .st_shndx = 0
-    };
-  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+  elfSymP->st_name = 0;
+  elfSymP->st_value = 0;
+  elfSymP->st_size = 0;
+  elfSymP->st_info = 0;
+  elfSymP->st_other = 0;
+  elfSymP->st_shndx = 0;
+  ++elfSymP;
 
-  for (unsigned i = 0; i != symOutP->numAllSymbols; ++i)
+  for (unsigned symIdx = 1; symIdx != symOutP->numAllSymbols; ++symIdx, ++elfSymP)
     {
-      const Symbol *sym = symOutP->allSymbolsPP[i];
+      const Symbol *symP = allSymbolsPP[symIdx];
 
-      if (sym->type & SYMBOL_AREA)
+      if (symP->type & SYMBOL_AREA)
 	{
-	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area->type & AREA_ABS) != 0));
-	  assert (SYMBOL_KIND (sym->type) == 0);
-          asym.st_name = 0;
-	  asym.st_value = (sym->area->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0;
-	  asym.st_size = 0; /* No the area size.  */
-	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
-	  asym.st_other = sym->visibility;
-	  asym.st_shndx = sym->area->number;
-	  assert (asym.st_shndx >= 3);
-	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+	  assert (((symP->type & SYMBOL_ABSOLUTE) != 0) == ((symP->area->type & AREA_ABS) != 0));
+	  assert (SYMBOL_KIND (symP->type) == 0);
+          elfSymP->st_name = 0;
+	  elfSymP->st_value = (symP->area->type & AREA_ABS) ? Area_GetBaseAddress (symP) : 0;
+	  elfSymP->st_size = 0; /* No the area size.  */
+	  elfSymP->st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
+	  elfSymP->st_other = symP->visibility;
+	  elfSymP->st_shndx = symP->area->number;
+	  assert (elfSymP->st_shndx >= 3); /* FIXME: watch out, this is an assumption made concerning section idx.  */
 	}
       else
 	{
-	  asym.st_name = sym->offset + 1; /* + 1 to skip the initial & extra NUL */
-	  if (sym->type & SYMBOL_DEFINED)
+	  elfSymP->st_name = symP->offset;
+	  if (symP->type & SYMBOL_DEFINED)
 	    {
 	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
-assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: is codeEvalLow still needed ? */
+assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol); /* FIXME: is codeEvalLow still needed ? */
 	      const Value *valueP;
-	      if (sym->value.Tag == ValueCode)
+	      if (symP->value.Tag == ValueCode)
 		{
 		  Code_Init ();
-		  valueP = Code_EvalLow (ValueAll, sym->value.Data.Code.len,
-					 sym->value.Data.Code.c);
+		  valueP = Code_EvalLow (ValueAll, symP->value.Data.Code.len,
+					 symP->value.Data.Code.c);
 		}
 	      else
-		valueP = &sym->value;
+		valueP = &symP->value;
 
 	      /* We can only have Int and Symbol here.  */
 	      int v;
@@ -803,14 +867,14 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 		         labels).  */
 		      if ((relToAreaSymP->type & SYMBOL_AREA) != 0
 			  && (relToAreaSymP->area->type & AREA_ABS) != 0
-		          && !Area_IsMappingSymbol (sym->str))
+		          && !Area_IsMappingSymbol (symP->str))
 			{
 			  v += valueP->Data.Symbol.factor * Area_GetBaseAddress (relToAreaSymP);
 			  relToAreaSymP = NULL;
 			}
 		      else if (valueP->Data.Symbol.factor != 1)
 			{
-			  Error_Line (sym->fileName, sym->lineNumber, ErrorError, "Unable to export symbol %s", sym->str);
+			  Error_Line (symP->fileName, symP->lineNumber, ErrorError, "Unable to export symbol %s", symP->str);
 			  continue;
 			}
 		      break;
@@ -822,26 +886,26 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 		    v = 0;
 		    break;
 		}
-	      asym.st_value = v;
-	      assert (((sym->type & SYMBOL_ABSOLUTE) == 0) == (relToAreaSymP != NULL));
+	      elfSymP->st_value = v;
+	      assert (((symP->type & SYMBOL_ABSOLUTE) == 0) == (relToAreaSymP != NULL));
 	      assert (relToAreaSymP == NULL || (relToAreaSymP->type & SYMBOL_AREA) != 0);
-	      asym.st_shndx = relToAreaSymP != NULL ? relToAreaSymP->area->number : SHN_ABS;
+	      elfSymP->st_shndx = relToAreaSymP != NULL ? relToAreaSymP->area->number : SHN_ABS;
 	    }
 	  else
 	    {
 	      /* SYMBOL_REFERENCE */
-	      asym.st_value = (sym->type & SYMBOL_COMMON) ? sym->aligned : 0;
-	      asym.st_shndx = (sym->type & SYMBOL_COMMON) ? SHN_COMMON : SHN_UNDEF;
+	      elfSymP->st_value = (symP->type & SYMBOL_COMMON) ? symP->aligned : 0;
+	      elfSymP->st_shndx = (symP->type & SYMBOL_COMMON) ? SHN_COMMON : SHN_UNDEF;
 	    }
-	  asym.st_size = sym->codeSize;
-	  asym.st_other = sym->visibility;
+	  elfSymP->st_size = symP->codeSize;
+	  elfSymP->st_other = symP->visibility;
 
 	  int bind;
-	  if (((sym->type & SYMBOL_WEAK) != 0 || oAllExportSymbolsAreWeak) && !Area_IsMappingSymbol (sym->str))
+	  if (((symP->type & SYMBOL_WEAK) != 0 || oAllExportSymbolsAreWeak) && !Area_IsMappingSymbol (symP->str))
 	    bind = STB_WEAK;
 	  else
 	    {
-	      uint32_t type = oExportAllSymbols && !Area_IsMappingSymbol (sym->str) ? SYMBOL_GLOBAL : SYMBOL_KIND (sym->type);
+	      uint32_t type = oExportAllSymbols && !Area_IsMappingSymbol (symP->str) ? SYMBOL_GLOBAL : SYMBOL_KIND (symP->type);
 	      switch (type)
 		{
 		  default:
@@ -856,22 +920,23 @@ assert (sym->value.Tag == ValueInt || sym->value.Tag == ValueSymbol); /* FIXME: 
 		    break;
 		}
 	    }
-	  asym.st_info = ELF32_ST_INFO (bind, (sym->type & SYMBOL_COMMON) ? STT_OBJECT : STT_NOTYPE);
-	  if (asym.st_shndx == (Elf32_Half)-1)
-	    Error_Abort ("Internal symbolSymbolELFOutput: unable to find section id for symbol %s", sym->str);
-	  else
-	    fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+	  uint32_t type = (symP->type & SYMBOL_COMMON) ? STT_OBJECT : STT_NOTYPE;
+	  /* Mapping symbols need to be STB_LOCAL, STT_NOTYPE and size 0.  */
+	  assert (!Area_IsMappingSymbol (symP->str) || (bind == STB_LOCAL && type == STT_NOTYPE && elfSymP->st_size == 0));
+	  elfSymP->st_info = ELF32_ST_INFO (bind, type);
 	}
     }
+  assert ((char *)symOutP->symDataP + symDataSize == (char *)elfSymP);
 }
-#endif
 
 
 void
 Symbol_FreeSymbolOut (SymbolOut_t *symOutP)
 {
-  free ((void *)symOutP->allSymbolsPP);
-  symOutP->allSymbolsPP = NULL;
+  free ((void *)symOutP->strDataP);
+  symOutP->strDataP = NULL;
+  free ((void *)symOutP->symDataP);
+  symOutP->symDataP = NULL;
 }
 
 

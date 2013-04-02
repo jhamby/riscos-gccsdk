@@ -1,3 +1,25 @@
+Tue Apr  2 19:48:51 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* predef_reg.c: Add stdio.h include.
+	* reloc.c (Reloc_BuildForAOF, Reloc_BuildForELF): Add.
+	(Reloc_RemoveRelocs): Delete Area::relocOutP.
+	(Reloc_PrepareRelocOutPart1, Reloc_PrepareRelocOutPart2): Add.
+	(Reloc_GetNumberRelocs, Reloc_AOFOutput, Reloc_ELFOutput): Remove.
+	(NO_ELF_SUPPORT): Remove test.
+	* reloc.h: Likewise.
+	(struct RelocOut): Add.
+	* main.c (NO_ELF_SUPPORT): Remove.
+	* symbol.c (Symbol_BuildStringData, Symbol_BuildSymbolDataForAOF,
+	Symbol_BuildSymbolDataForELF): Add.
+	(NO_ELF_SUPPORT): Remove.
+	(Symbol_OutputStrings, Symbol_OutputForAOF, Symbol_OutputForELF): Remove.
+	* area.c (Area_Create): Init Area::relocOutP.
+	(areaImage): Add assert on AREA_UDATA.
+	* area.h (Area): Add relocOutputP, remove numRelocs.
+	* output.c (Output_AOF, Output_ELF): Follow reloc & symbol API changes.
+	* output.h (NO_ELF_SUPPORT): Remove.
+
 Tue Apr  2 19:27:48 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/m_cpumem.c (GetBarrierType): Add support for LD, ISHLD, NSHLD,

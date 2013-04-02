@@ -288,9 +288,7 @@ asasm_help (void)
 	   "-regnames=none             No predefined registers.\n"
            "         =callstd          Standard set of predefined registers (depending on --apcs option).\n"
            "         =all              Full set of predefined registers.\n"
-#ifndef NO_ELF_SUPPORT
 	   "-elf                       Output ELF file [default].\n"
-#endif
 	   "-aof                       Output AOF file.\n"
            "-16                        Start processing Thumb instructions (pre-UAL syntax).\n"
            "-32                        Synonym for -arm.\n"
@@ -573,10 +571,8 @@ main (int argc, char **argv)
 	}
       else if (!strcasecmp (arg, "absolute") || !strcasecmp (arg, "abs"))
 	option_abs = true;
-#ifndef NO_ELF_SUPPORT
       else if (!strcasecmp (arg, "elf"))
 	set_option_aof (0);
-#endif
       else if (!strcasecmp (arg, "aof"))
 	set_option_aof (1);
       else if (!strcasecmp (arg, "16"))
@@ -629,11 +625,7 @@ main (int argc, char **argv)
     }
 
   if (option_aof == -1)
-#ifndef NO_ELF_SUPPORT
     option_aof = 0;
-#else
-    option_aof = 1;
-#endif
 	    
   if (Target_SetCPU_FPU_Device (cpu, fpu, device))
     return EXIT_FAILURE;
@@ -708,11 +700,9 @@ main (int argc, char **argv)
 	      asmContinueValid = true;
 	      /* Write the ELF/AOF output.  */
 	      Phase_PrepareFor (eOutput);
-#ifndef NO_ELF_SUPPORT
 	      if (!option_aof)
 		Output_ELF ();
 	      else
-#endif
 		Output_AOF ();
 	    }
 	  asmContinueValid = false;

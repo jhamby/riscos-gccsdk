@@ -32,6 +32,7 @@
 #endif
 
 #include "aoffile.h"
+#include "elf.h"
 #include "symbol.h"
 #include "value.h"
 
@@ -43,12 +44,22 @@ typedef struct RELOC
 } Reloc;
 
 void Reloc_RemoveRelocs (Symbol *areaSymbolP);
-unsigned Reloc_GetNumberRelocs (const Symbol *area);
-void Reloc_AOFOutput (FILE *outfile, const Symbol *area);
-#ifndef NO_ELF_SUPPORT
-void Reloc_ELFOutput (FILE *outfile, const Symbol *area);
-#endif
 
 Reloc *Reloc_Create (uint32_t how, uint32_t offset, const Value *value);
+
+bool Reloc_PrepareRelocOutPart1 (const Symbol *area);
+void Reloc_PrepareRelocOutPart2 (const Symbol *area);
+
+typedef struct RelocOut
+{
+  unsigned num; /** Number of relocations to output.  */
+  union
+    {
+      void *rawP;
+      AofReloc *aofP;
+      Elf32_Rel *elfP;
+    } relocs; /* Only accessable after Reloc_PrepareRelocOutPart2().  */ 
+  uint32_t size; /** Reloc data size.  */
+} RelocOut;
 
 #endif

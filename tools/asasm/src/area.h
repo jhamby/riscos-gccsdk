@@ -93,6 +93,7 @@ typedef enum
 } Area_eEntryType;
 
 struct RELOC;
+struct RelocOut;
 struct LITPOOL;
 
 typedef struct AREA
@@ -100,7 +101,7 @@ typedef struct AREA
   Symbol *next;			/** The next area symbol.  */
   uint32_t type;		/* See AREA_ #defines */
   size_t imagesize;
-  uint8_t *image;
+  uint8_t *image;		/** Ptr to area data or is NULL when flag AREA_UDATA is set.  */
 
   uint32_t curIdx;
   uint32_t maxIdx;
@@ -108,6 +109,7 @@ typedef struct AREA
   Area_eEntryType entryType;
   
   struct RELOC *relocs;
+  struct RelocOut *relocOutP;
 
   struct LITPOOL *litPool;	/** The current literal pool waiting to be assembled. */
 
@@ -115,7 +117,6 @@ typedef struct AREA
 
   /* For output: */
   uint32_t number; /** AOF: area number (from 0 onwards).  ELF: section ID (from 3 onwards).  Determined start of Output_AOF()/Output_ELF().  */
-  uint32_t numRelocs;
 } Area;
 
 static inline bool

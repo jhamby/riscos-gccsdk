@@ -24,7 +24,6 @@
 #define symbol_header_included
 
 #include <stdbool.h>
-#include <stdio.h>
 
 #include "lex.h"
 #include "phase.h"
@@ -151,16 +150,15 @@ const char *Symbol_GetDescription (const Symbol *symbol);
 
 typedef struct
 {
-  Symbol **allSymbolsPP; /**< Array of symbol ptrs to output.  Ordered first local then global (ELF requirement), then alphabetically (fun).  */
   unsigned numAllSymbols;
   unsigned numLocalSymbols;
-  unsigned stringSize;
+  unsigned strDataSize; /* For AOF : size of OBJ_STRT (incl. its area length); for ELF : size of .strtab section.  */
+  void *strDataP; /* For AOF : OBJ_STRT data to write; for ELF : .strtab section data to write.  */
+  unsigned symDataSize;
+  void *symDataP; /* For AOF : OBJ_SYMT data to write; for ELF : .symtab section data to write.  */
 } SymbolOut_t;
 
 SymbolOut_t Symbol_CreateSymbolOut (void);
-void Symbol_OutputStrings (FILE *outfile, const SymbolOut_t *symOutP);
-void Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP);
-void Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP);
 void Symbol_FreeSymbolOut (SymbolOut_t *symOutP);
 
 bool c_common (void);

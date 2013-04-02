@@ -196,10 +196,8 @@ writeEntry (int ID, int type, size_t size, size_t *offset)
 void
 Output_AOF (void)
 {
-  /* We must call Reloc_GetNumberRelocs() before anything else.  */
   size_t totalAreaSize = 0;
   uint32_t numAreas = 0;
-  /* avoid problems with no areas.  */
   for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
     {
       /* Skip the implicit area.  */
@@ -207,10 +205,10 @@ Output_AOF (void)
 	continue;
 
       ap->area->number = numAreas++;
-      ap->area->numRelocs = Reloc_GetNumberRelocs (ap);
+      Reloc_PrepareRelocOutPart1 (ap);
       if (!Area_IsNoInit (ap->area))
 	totalAreaSize += FIX (ap->area->maxIdx)
-			   + ap->area->numRelocs * sizeof (AofReloc);
+			   + ap->area->relocOutP->num * sizeof (AofReloc);
     }
 
   SymbolOut_t symOut = Symbol_CreateSymbolOut ();
@@ -242,19 +240,16 @@ Output_AOF (void)
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_IDFN, idfn_size, &offset);
 
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_STRT,
-                         FIX (symOut.stringSize) + 4, &offset);
+                         FIX (symOut.strDataSize), &offset);
 
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_SYMT,
-                         ourword (aof_head.noSymbols)*sizeof (AofSymbol), &offset);
+                         symOut.symDataSize, &offset);
 
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_AREA,
                          totalAreaSize, &offset);
 
   if (written != sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry))
-    {
-      Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing chunk file header");
-      return;
-    }
+    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing chunk file header");
 
   /* Chunk 0 Header (OBJ_HEAD).  */
   fwrite (&aof_head, 1, sizeof (aof_head), oFHandle);
@@ -266,37 +261,29 @@ Output_AOF (void)
 
       const AofEntry aof_entry =
 	{
-	  .Name = armword (ap->offset + 4), /* +4 because of extra length entry */
+	  .Name = armword (ap->offset),
           .Type = armword (ap->area->type & AREA_INT_AOFMASK),
           .Size = armword (FIX (ap->area->maxIdx)),
-          .noRelocations = armword (ap->area->numRelocs),
+          .noRelocations = armword (ap->area->relocOutP->num),
           .BaseAddr = armword ((ap->area->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
 	};
-      if (aof_entry.noRelocations != 0 && Area_IsNoInit (ap->area))
-	Error_AbortLine (NULL, 0, "Internal Output_AOF: relocations in uninitialised area");
+      assert (ap->area->relocOutP->num == 0 || !Area_IsNoInit (ap->area));
       fwrite (&aof_entry, 1, sizeof (aof_entry), oFHandle);
     }
 
   /* Chunk 1 Identification (OBJ_IDFN).  */
-  if (idfn_size != fwrite (GET_IDFN, 1, idfn_size, oFHandle))
-    {
-      Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing identification");
-      return;
-    }
+  if (fwrite (GET_IDFN, 1, idfn_size, oFHandle) != idfn_size)
+    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing identification");
 
   /* Chunk 2 String Table (OBJ_STRT).  */
-  unsigned int strt_size = armword (symOut.stringSize + 4);
-  if (fwrite (&strt_size, 1, 4, oFHandle) != sizeof (strt_size))
-    {
-      Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing string table size");
-      return;
-    }
-  Symbol_OutputStrings (oFHandle, &symOut);
-  for (unsigned pad = EXTRA (symOut.stringSize); pad; pad--)
+  if (fwrite (symOut.strDataP, 1, symOut.strDataSize, oFHandle) != symOut.strDataSize)
+    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing OBJ_STRT");    
+  for (unsigned pad = EXTRA (symOut.strDataSize); pad; pad--)
     fputc (0, oFHandle);
 
   /* Chunk 3 Symbol Table (OBJ_SYMT).  */
-  Symbol_OutputForAOF (oFHandle, &symOut);
+  if (fwrite (symOut.symDataP, 1, symOut.symDataSize, oFHandle) != symOut.symDataSize)
+    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing OBJ_SYMT");    
 
   /* Chunk 4 Area (OBJ_AREA).  */
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
@@ -307,20 +294,21 @@ Output_AOF (void)
       
       if (!Area_IsNoInit (ap->area))
 	{
-	  if (fwrite (ap->area->image, 1, ap->area->maxIdx, oFHandle)
-	      != ap->area->maxIdx)
-	    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing %s image", ap->str);
+	  if (fwrite (ap->area->image, 1, ap->area->maxIdx, oFHandle) != ap->area->maxIdx)
+	    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing data for area %s", ap->str);
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area->maxIdx); pad; --pad)
 	    fputc (0, oFHandle);
-	  Reloc_AOFOutput (oFHandle, ap);
+	  Reloc_PrepareRelocOutPart2 (ap);
+	  if (fwrite (ap->area->relocOutP->relocs.rawP,
+		      1, ap->area->relocOutP->size, oFHandle) != ap->area->relocOutP->size)
+	    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing reloc for area %s", ap->str);
 	}
     }
 
   Symbol_FreeSymbolOut (&symOut);
 }
 
-#ifndef NO_ELF_SUPPORT
 static void
 writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
 	    unsigned int addr,
@@ -362,8 +350,8 @@ Output_ELF (void)
       ++numAreas;
 
       ap->area->number = areaSectionID++;
-      ap->area->numRelocs = Reloc_GetNumberRelocs (ap);
-      if (ap->area->numRelocs)
+      bool anyRelocData = Reloc_PrepareRelocOutPart1 (ap); 
+      if (anyRelocData)
 	{
 	  ++areaSectionID;
 	  ++numRelocs;
@@ -385,7 +373,7 @@ Output_ELF (void)
   elf_head.e_type = ET_REL;
   elf_head.e_machine = EM_ARM;
   elf_head.e_version = EV_CURRENT;
-  elf_head.e_entry = areaEntrySymbol?areaEntryOffset:0;
+  elf_head.e_entry = areaEntrySymbol ? areaEntryOffset : 0;
   elf_head.e_phoff = 0;
   elf_head.e_shoff = sizeof (elf_head);
 #ifdef ELF_EABI
@@ -404,16 +392,16 @@ Output_ELF (void)
   elf_head.e_shstrndx = numAreas + numRelocs + 3;
   fwrite (&elf_head, 1, sizeof (elf_head), oFHandle);
 
-  /* Order of sections:
-       "" (SHT_NULL),
-       ".symtab" (SHT_SYMTAB),
-       [ "<AreaName>" (SHT_PROGBITS / SHT_NOBITS),
-         [ ".rel.<AreaName>" (SHT_REL) ]
-       ]*,
-       ".shstrtab" (SHT_STRTAB)
+  /* Section order:
+       "" (SHT_NULL)
+       ".symtab" (SHT_SYMTAB)
+       ".strtab" (SHT_STRTAB) - string table containing the symbol names
+       [ "<AreaName>" (SHT_PROGBITS / SHT_NOBITS)
+         [ ".rel.<AreaName without leading dot character>" (SHT_REL) ]
+       ]*
+       ".shstrtab" (SHT_STRTAB) - string table containing section names
 
-     When an area has no relocations, its SHT_REL section is not emitted.
-   */
+     When an area has no relocations, its SHT_REL section is not emitted.  */
   
   size_t offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
   Elf32_Word shstrsize = 0;
@@ -425,18 +413,16 @@ Output_ELF (void)
   /* Symbol table - index 1 */
   SymbolOut_t symOut = Symbol_CreateSymbolOut ();
   writeElfSH (shstrsize, SHT_SYMTAB, 0, 0,
-	      (symOut.numAllSymbols + 1) * sizeof (Elf32_Sym),
+	      symOut.symDataSize,
 	      2 /* The section header index of the associated string table.  */,
-	      symOut.numLocalSymbols + 1 /* One greater than the symbol table index of the last local symbol (binding STB_LOCAL). */,
+	      symOut.numLocalSymbols,
 	      4 /* Align. */,
 	      sizeof (Elf32_Sym) /* Entry size.  */,
 	      &offset);
   shstrsize += sizeof (".symtab");
 
-  size_t strsize = symOut.stringSize + 1; /* Add extra NUL terminator at start. */
-
   /* String table - index 2 */
-  writeElfSH (shstrsize, SHT_STRTAB, 0, 0, strsize, 0, 0, 1, 0, &offset);
+  writeElfSH (shstrsize, SHT_STRTAB, 0, 0, symOut.strDataSize, 0, 0, 1, 0, &offset);
   shstrsize += sizeof (".strtab");
 
   /* Area headers - index 3 */
@@ -469,11 +455,11 @@ Output_ELF (void)
 		  &offset);
       shstrsize += ap->len + 1;
 
-      if (ap->area->numRelocs)
+      if (ap->area->relocOutP->num)
         {
           /* Relocations.  */
           writeElfSH (shstrsize, SHT_REL, 0, 0,
-	              ap->area->numRelocs * sizeof(Elf32_Rel),
+	              ap->area->relocOutP->num * sizeof(Elf32_Rel),
 	              1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
           shstrsize += sizeof (".rel.")-1 + (ap->str[0] == '.' ? -1 : 0) + ap->len + 1;
           elfIndex++;
@@ -486,12 +472,13 @@ Output_ELF (void)
   writeElfSH (shstrsize - sizeof (".shstrtab"), SHT_STRTAB, 0, 0, shstrsize, 0, 0, 1, 0, &offset);
 
   /* Symbol table (.symtab).  */
-  Symbol_OutputForELF (oFHandle, &symOut);
+  if (fwrite (symOut.symDataP, 1, symOut.symDataSize, oFHandle) != symOut.symDataSize) 
+    Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing .symtab");    
 
   /* String table (.strtab).  */
-  fputc (0, oFHandle);
-  Symbol_OutputStrings (oFHandle, &symOut);
-  for (unsigned pad = EXTRA (strsize); pad; pad--)
+  if (fwrite (symOut.strDataP, 1, symOut.strDataSize, oFHandle) != symOut.strDataSize) 
+    Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing .strtab");    
+  for (unsigned pad = EXTRA (symOut.strDataSize); pad; pad--)
     fputc (0, oFHandle);
 
   /* Areas */
@@ -503,21 +490,19 @@ Output_ELF (void)
       
       if (!Area_IsNoInit (ap->area))
         {
-          if (fwrite (ap->area->image, 1, ap->area->maxIdx, oFHandle)
-	      != ap->area->maxIdx)
-            {
-              Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing %s image", ap->str);
-              return;
-            }
+          if (fwrite (ap->area->image, 1, ap->area->maxIdx, oFHandle) != ap->area->maxIdx)
+            Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing data for area %s", ap->str);
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area->curIdx); pad; --pad)
 	    fputc (0, oFHandle);
-          if (ap->area->numRelocs)
-            Reloc_ELFOutput (oFHandle, ap);
-        }
+	  Reloc_PrepareRelocOutPart2 (ap);
+	  if (fwrite (ap->area->relocOutP->relocs.rawP,
+		      1, ap->area->relocOutP->size, oFHandle) != ap->area->relocOutP->size)
+	    Error_AbortLine (NULL, 0, "Internal Output_ELF: error when writing reloc for area %s", ap->str);
+	}
     }
 
-  /* Section head string table.  */
+  /* Section head string table (.shstrtab).  */
   fputc (0, oFHandle);
   fwrite (".symtab", 1, sizeof(".symtab"), oFHandle);
   fwrite (".strtab", 1, sizeof(".strtab"), oFHandle);
@@ -528,7 +513,7 @@ Output_ELF (void)
 	continue;
       
       fwrite (ap->str, 1, ap->len + 1, oFHandle);
-      if (ap->area->numRelocs)
+      if (ap->area->relocOutP->num)
         {
           fwrite (".rel.", 1, sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0), oFHandle);
           fwrite (ap->str, 1, ap->len + 1, oFHandle);
@@ -539,5 +524,5 @@ Output_ELF (void)
     fputc (0, oFHandle);
 
   Symbol_FreeSymbolOut (&symOut);
-}
 #endif
+}

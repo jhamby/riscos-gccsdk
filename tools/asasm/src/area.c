@@ -113,13 +113,13 @@ Area_Create (Symbol *sym, uint32_t type)
   newAreaP->entryType = eInvalid;
   
   newAreaP->relocs = NULL;
+  newAreaP->relocOutP = NULL;
 
   newAreaP->litPool = NULL;
 
   IT_InitializeState (&newAreaP->it);
   
   newAreaP->number = 0;
-  newAreaP->numRelocs = 0;
   
   areaHeadSymbol = sym;
 
@@ -130,6 +130,7 @@ Area_Create (Symbol *sym, uint32_t type)
 static bool
 areaImage (Area *area, size_t newsize)
 {
+  assert ((area->type & AREA_UDATA) == 0);
   uint8_t *newImage;
   if (area->imagesize)
     newImage = realloc (area->image, newsize);

@@ -40,9 +40,13 @@
 #include "expr.h"
 #include "eval.h"
 #include "global.h"
+#include "main.h"
 #include "output.h"
 #include "reloc.h"
 #include "symbol.h"
+
+static void Reloc_BuildForAOF (const Symbol *area);
+static void Reloc_BuildForELF (const Symbol *area);
 
 Reloc *
 Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
@@ -71,6 +75,7 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
 
 /**
  * Removes all the relocations associated with given area.
+ * Part of the cleanup phase.
  */
 void
 Reloc_RemoveRelocs (Symbol *areaSymbolP)
@@ -82,15 +87,27 @@ Reloc_RemoveRelocs (Symbol *areaSymbolP)
       relocP = nextRelocP;
     }
   areaSymbolP->area->relocs = NULL;
+  if (areaSymbolP->area->relocOutP)
+    {
+      free ((void *)areaSymbolP->area->relocOutP->relocs.rawP);
+      free ((void *)areaSymbolP->area->relocOutP);
+    }
 }
 
 
 /**
- * \return The number of relocations associated with given area.
+ * Creates Area::relocOutP for given area.
  */
-unsigned
-Reloc_GetNumberRelocs (const Symbol *area)
+bool
+Reloc_PrepareRelocOutPart1 (const Symbol *area)
 {
+  assert ((area->type & SYMBOL_AREA) != 0);
+  assert (!area->area->relocOutP);
+  if ((area->area->relocOutP = malloc (sizeof (RelocOut))) == NULL)
+    Error_OutOfMem ();
+  RelocOut *relocOutP = area->area->relocOutP;
+  relocOutP->relocs.rawP = NULL;
+
   /* Calculate the number of relocations, i.e. per Reloc object, count all
      ValueSymbols.  */
   unsigned norelocs = 0;
@@ -98,64 +115,70 @@ Reloc_GetNumberRelocs (const Symbol *area)
        relocs != NULL;
        relocs = relocs->next)
     {
-      if (relocs->value.Tag == ValueSymbol)
-	norelocs += relocs->value.Data.Symbol.factor;
-      else
-	{
-assert (0); /* FIXME: this code can be removed.  */
-	  assert (relocs->value.Tag == ValueCode);
-	  size_t len = relocs->value.Data.Code.len;
-	  const Code *code = relocs->value.Data.Code.c;
-	  for (size_t i = 0; i != len; ++i)
-	    {
-	      if (code->Tag == CodeValue
-	          && code->Data.value.Tag == ValueSymbol)
-		norelocs += code->Data.value.Data.Symbol.factor;
-	    }
-	}
+      assert (relocs->value.Tag == ValueSymbol && relocs->value.Data.Symbol.factor > 0);
+      norelocs += relocs->value.Data.Symbol.factor;
     }
+  relocOutP->num = norelocs;
 
-  return norelocs;
+  relocOutP->size = norelocs * (option_aof ? sizeof (AofReloc) : sizeof (Elf32_Rel));
+  return relocOutP->num != 0;
 }
 
 
+/**
+ * Creates Area::relocOutP for given area.
+ */
 void
-Reloc_AOFOutput (FILE *outfile, const Symbol *area)
+Reloc_PrepareRelocOutPart2 (const Symbol *area)
 {
-  for (const Reloc *relocs = area->area->relocs; relocs != NULL; relocs = relocs->next)
+  RelocOut *relocOutP = area->area->relocOutP;
+  assert (relocOutP != NULL);
+  if ((relocOutP->relocs.rawP = malloc (relocOutP->size)) == NULL)
+    Error_OutOfMem ();
+  if (option_aof)
+    Reloc_BuildForAOF (area);
+  else
+    Reloc_BuildForELF (area);
+}
+
+
+static void
+Reloc_BuildForAOF (const Symbol *area)
+{
+  RelocOut *relocOutP = area->area->relocOutP;
+  AofReloc *relP = relocOutP->relocs.aofP;
+  for (const Reloc *relocs = area->area->relocs; relocs != NULL; relocs = relocs->next, ++relP)
     {
-      AofReloc areloc =
-	{
-	  .Offset = armword (relocs->reloc.Offset),
-	  .How = armword (relocs->reloc.How)
-	};
-      assert (relocs->value.Tag == ValueSymbol);
+      relP->Offset = armword (relocs->reloc.Offset);
+      relP->How = relocs->reloc.How;
+      assert (relocs->value.Tag == ValueSymbol && !Area_IsMappingSymbol (relocs->value.Data.Symbol.symbol->str));
       const Value *value = &relocs->value;
       assert (value->Data.Symbol.symbol->used >= 0);
-      areloc.How |= value->Data.Symbol.symbol->used;
+      relP->How |= value->Data.Symbol.symbol->used;
       if (!(value->Data.Symbol.symbol->type & SYMBOL_AREA))
-	areloc.How |= HOW2_SYMBOL;
-      areloc.How = armword (areloc.How);
+	relP->How |= HOW2_SYMBOL;
+      relP->How = armword (relP->How);
       int loop = value->Data.Symbol.factor;
-      assert (loop > 0 && "Reloc_Create() check on this got ignored");
-      while (loop--)
-	fwrite (&areloc, 1, sizeof (AofReloc), outfile);
+      assert (loop > 0 && "Reloc_CreateRelocsForOutput() check on this got ignored");
+      while (--loop)
+	{
+	  relP[1] = *relP;
+	  ++relP;
+	}
     }
+  assert ((char *)relocOutP->relocs.aofP + relocOutP->size == (char *)relP);
 }
 
 
-#ifndef NO_ELF_SUPPORT
-void
-Reloc_ELFOutput (FILE *outfile, const Symbol *area)
+static void
+Reloc_BuildForELF (const Symbol *area)
 {
-  for (const Reloc *relocs = area->area->relocs; relocs != NULL; relocs = relocs->next)
+  RelocOut *relocOutP = area->area->relocOutP;
+  Elf32_Rel *relP = relocOutP->relocs.elfP;
+  for (const Reloc *relocs = area->area->relocs; relocs != NULL; relocs = relocs->next, ++relP)
     {
-      Elf32_Rel areloc =
-	{
-	  .r_offset = armword (relocs->reloc.Offset),
-	  .r_info = 0
-	};
-      assert (relocs->value.Tag == ValueSymbol);
+      relP->r_offset = relocs->reloc.Offset;
+      assert (relocs->value.Tag == ValueSymbol && !Area_IsMappingSymbol (relocs->value.Data.Symbol.symbol->str));
       const Value *value = &relocs->value;
       assert (value->Data.Symbol.symbol->used >= 0);
       int symbol = value->Data.Symbol.symbol->used;
@@ -171,11 +194,14 @@ Reloc_ELFOutput (FILE *outfile, const Symbol *area)
 	  assert ((relocs->reloc.How & HOW2_INSTR_UNLIM) == HOW2_BYTE);
 	  type = R_ARM_ABS8;
 	}
-      areloc.r_info = armword (ELF32_R_INFO (symbol, type));
+      relP->r_info = ELF32_R_INFO (symbol, type);
       int loop = value->Data.Symbol.factor;
-      assert (loop > 0 && "Reloc_Create() check on this got ignored");
-      while (loop--)
-	fwrite (&areloc, 1, sizeof (Elf32_Rel), outfile);
+      assert (loop > 0 && "Reloc_CreateRelocsForOutput() check on this got ignored");
+      while (--loop)
+	{
+	  relP[1] = *relP;
+	  ++relP;
+	}
     }
+  assert ((char *)relocOutP->relocs.elfP + relocOutP->size == (char *)relP);
 }
-#endif
