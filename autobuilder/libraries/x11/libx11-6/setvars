@@ -10,6 +10,9 @@ if [ ! -d man/man3 ] ; then
   ln -s . man/man3
 fi
 
+if [ ! -d man/man5 ] ; then
+  ln -s . man/man5
+fi
 
 # Use this to perform post-processing
 ab_package() {

@@ -1,8 +1,7 @@
-#AB_ZIPNAME=libmysqlclient
 
 AB_INSTALL=yes
 
-AB_URL=http://mirror.services.wisc.edu/mysql/Downloads/MySQL-5.0/mysql-5.0.96.tar.gz
+AB_URL=http://mysql.mirrors.pair.com/Downloads/MySQL-5.0/mysql-5.0.96.zip
 
 AB_CONFLAGS="--without-server --without-docs --without-debug"
 
