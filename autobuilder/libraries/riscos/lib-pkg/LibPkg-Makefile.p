@@ -1,34 +1,14 @@
---- !LibPkg/Makefile.orig	2010-03-15 20:48:41.000000000 +0000
-+++ !LibPkg/Makefile	2010-03-16 21:25:10.000000000 +0000
-@@ -3,7 +3,7 @@
- # Distribution and use are subject to the GNU Lesser General Public License,
- # a copy of which may be found in the file !LibPkg.Copyright.
- 
--AR = libfile
-+AR = ar
- 
- DOXYFILES = \
-  Doxyfile \
-@@ -20,12 +20,19 @@
- all: bin doc
- 
- libpkg.a: libpkg/timestamp
--	mkdir -p a
--	$(AR) -c a.libpkg libpkg.o.*
--	$(AR) -o a.libpkg
-+#	mkdir -p a
-+	$(AR) cr libpkg.a libpkg/*.o
-+#	$(AR) -o a.libpkg
- 
- libpkg/timestamp: always
- 	make -C libpkg
- 
- html/index.html: libpkg/timestamp $(DOXYFILES)
- 	doxygen
+--- !LibPkg/Makefile.orig	2013-04-05 13:51:32.266274002 +0100
++++ !LibPkg/Makefile	2013-04-05 13:53:06.009941200 +0100
+@@ -34,3 +34,11 @@
+ clean:
+ 	make -C libpkg clean
+ 	make -C libpkg/os clean
 +
 +install:
 +
 +	cp libpkg.a $(GCCSDK_INSTALL_ENV)/lib/
-+	mkdir -p $(GCCSDK_INSTALL_ENV)/include/libpkg
-+	cp libpkg/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg
++	mkdir -p $(GCCSDK_INSTALL_ENV)/include/libpkg/os
++	cp libpkg/*.h libpkg/os/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg
++	cp libpkg/os/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg/os
 +
