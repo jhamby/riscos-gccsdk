@@ -38,20 +38,20 @@ namespace riscos
 
 			public static class ComponentType
 			{
-				public const uint ActionButton = 128;
-				public const uint OptionButton = 192;
-				public const uint LabelledBox = 256;
-				public const uint Label = 320;
-				public const uint RadioButton = 384;
-				public const uint DisplayField = 448;
-				public const uint WritableField = 512;
-				public const uint Slider = 576;
-				public const uint Draggable = 640;
-				public const uint PopupMenu = 704;
-				public const uint AdjusterArrow = 768;
-				public const uint NumberRange = 832;
-				public const uint StringSet = 896;
-				public const uint Button = 960;
+				public const int ActionButton = 128;
+				public const int OptionButton = 192;
+				public const int LabelledBox = 256;
+				public const int Label = 320;
+				public const int RadioButton = 384;
+				public const int DisplayField = 448;
+				public const int WritableField = 512;
+				public const int Slider = 576;
+				public const int Draggable = 640;
+				public const int PopupMenu = 704;
+				public const int AdjusterArrow = 768;
+				public const int NumberRange = 832;
+				public const int StringSet = 896;
+				public const int Button = 960;
 			}
 
 			/*! \brief The window/menu containing this gadget.  */
@@ -199,7 +199,7 @@ namespace riscos
 			 * \param [in] ObjectID The Toolbox ID of the object.
 			 * \param [in] cmpID The Toolbox ID of the gadget component.
 			 * \return The type of the given gadget.  */
-			public static uint GetType (uint ObjectID, uint cmpID)
+			public static int GetType (uint ObjectID, uint cmpID)
 			{
 				uint type;
 
@@ -208,7 +208,7 @@ namespace riscos
 												Method.GetType,
 												cmpID,
 												out type));
-				return type;
+				return (int)type;
 			}
 
 			/* Generic functions that implement common methods used by gadgets.

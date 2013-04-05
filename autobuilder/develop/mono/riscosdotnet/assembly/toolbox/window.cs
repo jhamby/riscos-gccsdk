@@ -41,13 +41,13 @@ namespace riscos
 			}
 
 			/*! \brief %Flags used in a %Window %Toolbox template.  */
-			public static class Flags
+			public enum Flags
 			{
-				public const int GenerateAboutToBeShown = (1 << 0);
-				public const int AutoOpenWindow = (1 << 1);
-				public const int AutoCloseWindow = (1 << 2);
-				public const int GenerateHasBeenHidden = (1 << 3);
-				public const int ToolbarTemplate = (1 << 4);
+				GenerateAboutToBeShown = (1 << 0),
+				AutoOpenWindow = (1 << 1),
+				AutoCloseWindow = (1 << 2),
+				GenerateHasBeenHidden = (1 << 3),
+				ToolbarTemplate = (1 << 4)
 			}
 
 			public enum Toolbar
@@ -64,31 +64,6 @@ namespace riscos
 			{
 				public const int AboutToBeShown = 0x82880;
 				public const int HasBeenHidden = 0x82890;
-			}
-
-			private static class TemplateOffset
-			{
-				public const int Flags = 36;
-				public const int HelpMessage = 40;
-				public const int MaxHelp = 44;
-				public const int PointerShape = 48;
-				public const int MaxPointerShape = 52;
-				public const int PointerXHot = 56;
-				public const int PointerYHot = 60;
-				public const int Menu = 64;
-				public const int NumKeyboardShortcuts = 68;
-				public const int KeyboardShortCuts = 72;
-				public const int NumGadgets = 76;
-				public const int Gadgets = 80;
-				public const int DefaultFocus = 84;
-				public const int ShowEvent = 88;
-				public const int HideEvent = 92;
-				public const int InternalBL = 96;
-				public const int InternalTL = 100;
-				public const int ExternalBL = 104;
-				public const int ExternalTL = 108;
-				public const int Window = 112;
-				public const int Data = 200;
 			}
 
 			/*! \brief Used when setting the \e DefaultFocus property of the Window to
@@ -122,6 +97,15 @@ namespace riscos
 				Create (templateData);
 				WimpWindow = new Wimp.WindowHandle (WimpHandle);
 				RetrieveEventCodes (templateData);
+			}
+
+			//! \brief Create a toolbox window from the template object given.
+			public Window (WindowTemplate template)
+			{
+				template.CreateBuffer ();
+				Create (template.Buffer);
+				WimpWindow = new Wimp.WindowHandle (WimpHandle);
+				RetrieveEventCodes (template.Buffer);
 			}
 
 			/*! \brief Create a Toolbox Window from an object that already exists.
@@ -670,19 +654,19 @@ namespace riscos
 
 			private void RetrieveEventCodes (IntPtr template)
 			{
-				int flags = Marshal.ReadInt32 (template, TemplateOffset.Flags);
-				if ((flags & Flags.GenerateAboutToBeShown) != 0)
+				int flags = Marshal.ReadInt32 (template, WindowTemplateOffset.Flags);
+				if ((flags & (int)Flags.GenerateAboutToBeShown) != 0)
 				{
 					var show_event = Marshal.ReadInt32 (template,
-									    TemplateOffset.ShowEvent);
+									    WindowTemplateOffset.ShowEvent);
 					AboutToBeShownEventCode = (show_event != 0) ?
 								   show_event :
 								   EventCode.AboutToBeShown;
 				}
-				if ((flags & Flags.GenerateHasBeenHidden) != 0)
+				if ((flags & (int)Flags.GenerateHasBeenHidden) != 0)
 				{
 					var hide_event = Marshal.ReadInt32 (template,
-									    TemplateOffset.HideEvent);
+									    WindowTemplateOffset.HideEvent);
 					HasBeenHiddenEventCode = (hide_event != 0) ?
 								  hide_event :
 								  EventCode.HasBeenHidden;

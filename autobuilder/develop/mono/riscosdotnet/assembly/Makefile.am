@@ -41,6 +41,8 @@ riscos_dll_sources = \
 	toolbox/print-dialogue.cs \
 	toolbox/dcs-dialogue.cs \
 	toolbox/toolbox-task.cs \
+	toolbox/object-template.cs \
+	toolbox/window-template.cs \
 	wimp.cs \
 	icon.cs \
 	task.cs \

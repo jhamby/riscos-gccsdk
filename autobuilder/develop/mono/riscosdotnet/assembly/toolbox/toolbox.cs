@@ -58,17 +58,6 @@ namespace riscos
 			public const int Flags = 12;
 		}
 
-		public static class TemplateOffset
-		{
-			public const int Class = 0;
-			public const int Flags = 4;
-			public const int Version = 8;
-			public const int Name = 12;
-			public const int Size = 24;
-			public const int BodyOffset = 28;
-			public const int BodySize = 32;
-		}
-
 		//! \brief The numbers of the possible events that the Toolbox can raise.
 		public static class EventCode
 		{
@@ -895,7 +884,7 @@ namespace riscos
 			return id;
 		}
 
-		/*! \brief Create a Toolbox object a template held in memory.
+		/*! \brief Create a Toolbox object from a template held in memory.
 		 * \param resData Pointer to the data required to create the object.
 		 * \return The Toolbox id of the created object.  */
 		public static uint CreateObject (IntPtr resData)

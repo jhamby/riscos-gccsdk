@@ -6,6 +6,7 @@
  
 using System;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
@@ -92,23 +93,20 @@ namespace riscos
 			}
 
 			/*! \brief The text which is displayed in the action button.  */
-			public string Text
-			{
+			public string Text {
 				set { SetText (Method.SetText, value); }
 				get { return GetText (Method.GetText); }
 			}
 
 			/*! \brief The event which will be raised when the action button is clicked.  */
-			public uint Event
-			{
+			public uint Event {
 				set { Object.MiscOp_SetR3R4 (0, Method.SetEvent, ComponentID, value); }
 				get { return Object.MiscOp_SetR3GetR0 (0, Method.GetEvent, ComponentID); }
 			}
 
 			/*! \brief The Toolbox object to show and flags to use when the action
 			 * button is clicked.  */
-			public Toolbox.ClickShow ClickShow
-			{
+			public Toolbox.ClickShow ClickShow {
 				set { SetClickShow (Method.SetClickShow, value); }
 				get { return GetClickShow (Method.GetClickShow); }
 			}
@@ -124,6 +122,119 @@ namespace riscos
 				if (e.Header.EventCode == Event) {
 					OnClick (new ClickEventArgs (e.RawEventData));
 				}
+			}
+		}
+
+		public static class ActionButtonTemplateOffset
+		{
+			public const int Text = 36;
+			public const int MaxTextLen = 40;
+			public const int ClickShow = 44;
+			public const int Event = 48;
+			public const int TemplateSize = 52;
+		}
+
+		/*! \brief Encapsulate the data required to create a Toolbox ActionButton gadget
+		 * template.  */
+		public sealed class ActionButtonTemplate : GadgetTemplate
+		{
+			/*! \brief The text to be shown in the gadget.  */
+			string _text = "";
+			public string Text {
+				get { return _text; }
+				set { _text = value; }
+			}
+
+			/*! \brief The maximum buffer size for the text. Leave as 0 to indicate that
+			 * the length of the text itself should be used.  */
+			int _max_text_len = 0;
+			public int MaxText {
+				get { return _max_text_len; }
+				set { _max_text_len = value; }
+			}
+
+			/*! \brief The name of a template to create and show when the gadget is clicked.  */
+			string _click_show = "";
+			public string ClickShow {
+				get { return _click_show; }
+				set { _click_show = value; }
+			}
+
+			/*! \brief The event that should be rasied when the gadget is clicked.  */
+			uint _event = 0;
+			public uint Event {
+				get { return _event; }
+				set { _event = value; }
+			}
+
+			/*! \brief Create a template for an action button where the text (if any)
+			 * will be set later.  */
+			public ActionButtonTemplate () : base (Gadget.ComponentType.ActionButton)
+			{
+			}
+
+			//! \brief Create a template for an action button using the given text.
+			public ActionButtonTemplate (string text) : base (Gadget.ComponentType.ActionButton)
+			{
+				_text = text;
+			}
+
+			/*! \brief Create a template for an action button using the given text and maximum
+			 * text buffer size.  */
+			public ActionButtonTemplate (string text, int maxTextLen) :
+							base (Gadget.ComponentType.ActionButton)
+			{
+				_text = text;
+				// If this is smaller than the actual text, then it'll be corrected when
+				// the template is written to memory.
+				_max_text_len = maxTextLen;
+			}
+
+			public override int CalculateBufferSize (ref int strStart, ref int msgStart)
+			{
+				int size = base.CalculateBufferSize (ref strStart, ref msgStart);
+
+				if (!string.IsNullOrEmpty (_text))
+					size += Math.Max (_text.Length + 1, _max_text_len);
+				if (!string.IsNullOrEmpty (_click_show))
+				{
+					int length = _click_show.Length + 1;
+					size += length;
+					msgStart += length;
+				}
+
+				return size;
+			}
+
+			public override void BuildBuffer (IntPtr buffer,
+							  int offset,
+							  ref int strOffset,
+							  ref int msgOffset)
+			{
+				base.BuildBuffer (buffer, offset, ref strOffset, ref msgOffset);
+
+				msgOffset = ObjectTemplate.WriteString (_text,
+									_max_text_len,
+									buffer,
+									offset + ActionButtonTemplateOffset.Text,
+									msgOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + ActionButtonTemplateOffset.MaxTextLen,
+						    string.IsNullOrEmpty (_text) ? 0 :
+							Math.Max (_text.Length + 1, _max_text_len));
+				strOffset = ObjectTemplate.WriteString (_click_show,
+									0,
+									buffer,
+									offset + ActionButtonTemplateOffset.ClickShow,
+									strOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + ActionButtonTemplateOffset.Event,
+						    (int)_event);
+			}
+
+			public override int GetTemplateSize ()
+			{
+				return ActionButtonTemplateOffset.TemplateSize;
 			}
 		}
 	}

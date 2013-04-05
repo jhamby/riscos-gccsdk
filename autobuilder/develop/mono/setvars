@@ -175,6 +175,11 @@ ab_package() {
   svn export $H/riscosdotnet/test/\!MonoTestGadget $tests_installdir/\!MonoTestGadget
   cp -T $S/libriscosdotnet/build/test/test-gadget.exe $tests_installdir/\!MonoTestGadget/test-gadget.exe,A7D
   cp -T $S/libriscosdotnet/build/test/test-gadget.exe.mdb $tests_installdir/\!MonoTestGadget/test-gadget.exe.mdb
+
+  # Copy !TBTemplate
+  svn export $H/riscosdotnet/test/\!TBTemplate $tests_installdir/\!TBTemplate
+  cp -T $S/libriscosdotnet/build/test/tb-template.exe $tests_installdir/\!TBTemplate/tb-template.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/tb-template.exe.mdb $tests_installdir/\!TBTemplate/tb-template.exe.mdb
 }
 
 # Regenerate configure from the patched configure.in
