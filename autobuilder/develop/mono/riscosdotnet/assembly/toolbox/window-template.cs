@@ -178,7 +178,7 @@ namespace riscos
 		/*! \brief Encapsulates the data required to add a gadget to a window template.  */
 		public class GadgetTemplate
 		{
-			uint _flags;
+			protected uint _flags;
 			public uint Flags {
 				get { return _flags; }
 				set { _flags = value; }

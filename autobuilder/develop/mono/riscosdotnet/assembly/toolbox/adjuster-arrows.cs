@@ -85,5 +85,38 @@ namespace riscos
 					OnClick (new ClickEventArgs (e.RawEventData));
 			}
 		}
+
+		/*! \brief Encapsulate the data required to create a Toolbox AdjusterArrow gadget
+		 * template.  */
+		public sealed class AdjusterArrowTemplate : GadgetTemplate
+		{
+			public enum Direction
+			{
+				Decrement,
+				Increment
+			}
+
+			public enum Orientation
+			{
+				LeftRight,
+				UpDown
+			}
+
+			//! \brief Create a template for an adjuster arrow.
+			public AdjusterArrowTemplate () : base (Gadget.ComponentType.AdjusterArrow)
+			{
+			}
+
+			//! \brief Set the direction and orientation of the adjuster arrow.
+			public void SetType (Direction d, Orientation o)
+			{
+				_flags = (d == Direction.Decrement) ?
+					 _flags & ~(uint)1 :
+					 _flags | 1;
+				_flags = (o == Orientation.LeftRight) ?
+					 _flags & ~(uint)2 :
+					 _flags | 2;
+			}
+		}
 	}
 }

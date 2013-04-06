@@ -46,8 +46,14 @@ namespace riscos.CSharpBindings.TBTemplateTest
 						     Toolbox.Window.Flags.GenerateHasBeenHidden;
 
 				// Define an ActionButton gadget in the window template
-				var gadget = new Toolbox.ActionButtonTemplate ("Ok");
+				Toolbox.GadgetTemplate gadget = new Toolbox.ActionButtonTemplate ("Ok");
 				gadget.BoundingBox = new OS.Rect (50, 100, 200, 160);
+				win_template.AddGadget (gadget);
+
+				gadget = new Toolbox.AdjusterArrowTemplate ();
+				gadget.BoundingBox = new OS.Rect (250, 100, 300, 160);
+				((Toolbox.AdjusterArrowTemplate)gadget).SetType (Toolbox.AdjusterArrowTemplate.Direction.Increment,
+										 Toolbox.AdjusterArrowTemplate.Orientation.LeftRight);
 				win_template.AddGadget (gadget);
 
 				// Define a keyboard shortcut in the window template.
