@@ -56,6 +56,13 @@ namespace riscos.CSharpBindings.TBTemplateTest
 										 Toolbox.AdjusterArrowTemplate.Orientation.LeftRight);
 				win_template.AddGadget (gadget);
 
+				gadget = new Toolbox.ButtonTemplate ("Button", "R5,3");
+				gadget.BoundingBox = new OS.Rect (50, 850, 150, 950);
+				((Toolbox.ButtonTemplate)gadget).ButtonFlags.ButtonType = Wimp.IconButtonType.Click;
+				((Toolbox.ButtonTemplate)gadget).ButtonFlags.FGColour = OS.DesktopColour.Black;
+				((Toolbox.ButtonTemplate)gadget).ButtonFlags.BGColour = OS.DesktopColour.Grey1;
+				win_template.AddGadget (gadget);
+
 				// Define a keyboard shortcut in the window template.
 				var shortcut = new Toolbox.KeyboardShortcutTemplate ('A', 0x1234);
 				win_template.AddKeyboardShortcut (shortcut);

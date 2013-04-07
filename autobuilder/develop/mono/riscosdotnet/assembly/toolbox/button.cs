@@ -5,6 +5,7 @@
 //
  
 using System;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
@@ -75,6 +76,144 @@ namespace riscos
 							 ComponentID,
 							 clearWord,
 							 eorWord);
+			}
+		}
+
+		public static class ButtonTemplateOffset
+		{
+			public const int ButtonFlags = 36;
+			public const int Text = 40;
+			public const int MaxTextLen = 44;
+			public const int Validation = 48;
+			public const int MaxValidation = 52;
+			public const int TemplateSize = 56;
+		}
+
+		public sealed class ButtonTemplate : GadgetTemplate
+		{
+			//! \brief The Wimp icon flags that will be used in this button gadget template.
+			public Wimp.IconFlagsValue ButtonFlags =
+					new Wimp.IconFlagsValue (Wimp.IconFlags.Text |
+								 Wimp.IconFlags.Border |
+								 Wimp.IconFlags.FilledBackground |
+								 Wimp.IconFlags.Indirected |
+								 Wimp.IconFlags.VCentred |
+								 Wimp.IconFlags.HCentred);
+
+			string _text = "";
+			//! \brief The text or sprite name that will be used in this gadget template.
+			public string Text {
+				get { return _text; }
+				set { _text = value; }
+			}
+
+			int _max_text_len = 0;
+			//! \brief The maximum length of the text.
+			public int MaxTextLen {
+				get { return _max_text_len; }
+				set { _max_text_len = value; }
+			}
+
+			string _validation = "";
+			/*! \brief The validation string (e.g. sprite name) that will be used in this
+			 * gadget template.  */
+			public string Validation {
+				get { return _validation; }
+				set { _validation = value; }
+			}
+
+			int _max_validation_len = 0;
+			//! \brief The maximum length of the validation string.
+			public int MaxValidationLen {
+				get { return _max_validation_len; }
+				set { _max_validation_len = value; }
+			}
+
+			/*! \brief Create a template for a button where the text (if any)
+			 * will be set later.  */
+			public ButtonTemplate () : base (Gadget.ComponentType.Button)
+			{
+			}
+
+			/*! \brief Create a template for a button with the given text.  */
+			public ButtonTemplate (string text) : base (Gadget.ComponentType.Button)
+			{
+				_text = text;
+			}
+
+			/*! \brief Create a template for a button with the given text.  */
+			public ButtonTemplate (string text, string validation) :
+							base (Gadget.ComponentType.Button)
+			{
+				_text = text;
+				_validation = validation;
+			}
+
+			/*! \brief Create a template for a button with the given text.  */
+			public ButtonTemplate (string text, int maxTextLen) : base (Gadget.ComponentType.Button)
+			{
+				_text = text;
+				_max_text_len = maxTextLen;
+			}
+
+			/*! \brief Create a template for a button with the given text and validation string.  */
+			public ButtonTemplate (string text, int maxTextLen,
+					       string validation, int maxValidationLen) :
+							base (Gadget.ComponentType.Button)
+			{
+				_text = text;
+				_max_text_len = maxTextLen;
+				_validation = validation;
+				_max_validation_len = maxValidationLen;
+			}
+
+			public override int CalculateBufferSize (ref int strStart, ref int msgStart)
+			{
+				int size = base.CalculateBufferSize (ref strStart, ref msgStart);
+
+				if (!string.IsNullOrEmpty (_text))
+					size += Math.Max (_text.Length + 1, _max_text_len);
+				if (!string.IsNullOrEmpty (_validation))
+				{
+					int length = _validation.Length + 1;
+					size += length;
+					msgStart += length;
+				}
+
+				return size;
+			}
+
+			public override void BuildBuffer (IntPtr buffer,
+							  int offset,
+							  ref int strOffset,
+							  ref int msgOffset)
+			{
+				base.BuildBuffer (buffer, offset, ref strOffset, ref msgOffset);
+
+				Marshal.WriteInt32 (buffer,
+						    offset + ButtonTemplateOffset.ButtonFlags,
+						    ButtonFlags);
+				msgOffset = ObjectTemplate.WriteString (_text,
+									_max_text_len,
+									buffer,
+									offset + ButtonTemplateOffset.Text,
+									msgOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + ButtonTemplateOffset.MaxTextLen,
+						    Math.Max (_text.Length + 1, _max_text_len));
+				strOffset = ObjectTemplate.WriteString (_validation,
+									_max_validation_len,
+									buffer,
+									offset + ButtonTemplateOffset.Validation,
+									strOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + ButtonTemplateOffset.MaxValidation,
+						    Math.Max (_validation.Length + 1, _max_validation_len));
+			}
+
+			public override int GetTemplateSize ()
+			{
+				return ButtonTemplateOffset.TemplateSize;
 			}
 		}
 	}

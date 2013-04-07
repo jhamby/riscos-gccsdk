@@ -227,13 +227,13 @@ public class MyTask : WimpTask
 		var icon_attr = new Wimp.IconAttributes ("C# Button", "R5,3");
 
 		icon_attr.BoundingBox = new OS.Rect (150, 12, 350, 60);
-		icon_attr.ButtonType = Wimp.IconButtonType.Click;
+		icon_attr.Flags.ButtonType = Wimp.IconButtonType.Click;
 		Button = window.CreateIcon (icon_attr);
 
 		icon_attr = new Wimp.IconAttributes ("", 30);
 		icon_attr.BoundingBox = new OS.Rect (400, 12, 700, 60);
-		icon_attr.ButtonType = Wimp.IconButtonType.GainInputFocus;
-		icon_attr.BGColour = OS.DesktopColour.White;
+		icon_attr.Flags.ButtonType = Wimp.IconButtonType.GainInputFocus;
+		icon_attr.Flags.BGColour = OS.DesktopColour.White;
 		WritableField = window.CreateIcon (icon_attr);
 
 		window.Open (new OS.Rect (100, 100, 1000, 1000),	// Visible area

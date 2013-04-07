@@ -133,18 +133,281 @@ namespace riscos
 			}
 		}
 
+		/*! \brief The flags word used in a Wimp icon.
+		 * Properties are used to read and write the individual fields.  */
+		public struct IconFlagsValue
+		{
+			IconFlags _flags;
+
+			public IconFlagsValue (IconFlags flags)
+			{
+				_flags = flags;
+			}
+
+			public static implicit operator int (IconFlagsValue value)
+			{
+				return (int)value._flags;
+			}
+
+			public static implicit operator uint (IconFlagsValue value)
+			{
+				return (uint)value._flags;
+			}
+
+			/*! \brief Sets or gets whether the icon contains text.  */
+			public bool ContainsText {
+				set {
+					_flags = value ? _flags |  IconFlags.Text :
+							 _flags & ~IconFlags.Text;
+				}
+				get {
+					return (_flags & IconFlags.Text) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon contains a sprite.  */
+			public bool ContainsSprite {
+				set {
+					_flags = value ? _flags |  IconFlags.Sprite :
+							 _flags & ~IconFlags.Sprite;
+				}
+				get {
+					return (_flags & IconFlags.Sprite) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon has a border.  */
+			public bool HasBorder {
+				set {
+					_flags = value ? _flags |  IconFlags.Border :
+							 _flags & ~IconFlags.Border;
+				}
+				get {
+					return (_flags & IconFlags.Border) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon contents are horizontally centred.  */
+			public bool CentredHorizontally {
+				set {
+					_flags = value ? _flags | IconFlags.HCentred :
+							 _flags & ~IconFlags.HCentred;
+				}
+				get {
+					return (_flags & IconFlags.HCentred) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon contents are vertically centred.  */
+			public bool CentredVertically {
+				set {
+					_flags = value ? _flags | IconFlags.VCentred :
+							 _flags & ~IconFlags.VCentred;
+				}
+				get {
+					return (_flags & IconFlags.VCentred) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon has a filled background.  */
+			public bool FilledBackground {
+				set {
+					_flags = value ? _flags | IconFlags.FilledBackground :
+							 _flags & ~IconFlags.FilledBackground;
+				}
+				get {
+					return (_flags & IconFlags.FilledBackground) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon text is anti aliased.  */
+			public bool AntiAliased {
+				set {
+					_flags = value ? _flags | IconFlags.AntiAliased :
+							 _flags & ~IconFlags.AntiAliased;
+				}
+				get {
+					return (_flags & IconFlags.AntiAliased) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon requires the task's help to be redrawn.  */
+			public bool RedrawnByTask {
+				set {
+					_flags = value ? _flags | IconFlags.RedrawnByTask :
+							 _flags & ~IconFlags.RedrawnByTask;
+				}
+				get {
+					return (_flags & IconFlags.RedrawnByTask) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon data is indirected.  */
+			public bool IndirectedData {
+				set {
+					_flags = value ? _flags | IconFlags.Indirected :
+							 _flags & ~IconFlags.Indirected;
+				}
+				get {
+					return (_flags & IconFlags.Indirected) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon is right justified.  */
+			public bool RightJustified {
+				set {
+					_flags = value ? _flags | IconFlags.RightJustified :
+							 _flags & ~IconFlags.RightJustified;
+				}
+				get {
+					return (_flags & IconFlags.RightJustified) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether a selection with Adjust should not cancel
+			 * others in the same ESG.  */
+			public bool DontCancelSameESG {
+				set {
+					_flags = value ? _flags | IconFlags.DontCancelSameESG :
+							 _flags & ~IconFlags.DontCancelSameESG;
+				}
+				get {
+					return (_flags & IconFlags.DontCancelSameESG) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether to display the sprite (if any) at half size.  */
+			public bool HalfSizeSprite {
+				set {
+					_flags = value ? _flags | IconFlags.HalfSizeSprite :
+							 _flags & ~IconFlags.HalfSizeSprite;
+				}
+				get {
+					return (_flags & IconFlags.HalfSizeSprite) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon is selected by the user and is inverted.  */
+			public bool Selected {
+				set {
+					_flags = value ? _flags | IconFlags.Selected :
+							 _flags & ~IconFlags.Selected;
+				}
+				get {
+					return (_flags & IconFlags.Selected) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets whether the icon is shaded and cannot be selected.  */
+			public bool Shaded {
+				set {
+					_flags = value ? _flags | IconFlags.Shaded :
+							 _flags & ~IconFlags.Shaded;
+				}
+				get {
+					return (_flags & IconFlags.Shaded) != 0;
+				}
+			}
+
+			/*! \brief Gets whether the icon has been deleted.  */
+			public bool Deleted {
+				get {
+					return (_flags & IconFlags.Deleted) != 0;
+				}
+			}
+
+			/*! \brief Sets or gets the button type of the icon.  */
+			public IconButtonType ButtonType {
+				set {
+					// Clear all the button type bits first.
+					_flags &= (IconFlags)~(0xf << 12);
+					// Now insert the required button type.
+					_flags |= (IconFlags)(((int)value & 0xf) << 12);
+				}
+				get {
+					return (IconButtonType)(((int)_flags >> 12) & 0xf);
+				}
+			}
+
+			/*! \brief Sets or gets the Exclusive Selection Group for the icon.  */
+			public int ESG {
+				set {
+					// Clear all the ESG bits first.
+					_flags &= (IconFlags)~(0x1f << 16);
+					// Now insert the required ESG.
+					_flags |= (IconFlags)((value & 0x1f) << 16);
+				}
+				get {
+					return ((int)_flags >> 16) & 0x1f;
+				}
+			}
+
+			/*! \brief Sets or gets the handle of the font used for this icon.
+			 * \note The \e AntiAliased bit is automatically set.
+			 * \throw InvalidOperationException Thrown if the icon is not anti-aliased when read.  */
+			public uint Font {
+				set {
+					AntiAliased = true;
+					// Clear all the font bits first
+					_flags &= (IconFlags)~(0xff << 24);
+					// Now insert the required font handle.
+					_flags |= (IconFlags)((value & 0xff) << 24);
+				}
+				get {
+					if (!AntiAliased)
+						throw new InvalidOperationException ("Icon is not anti-aliased.");
+
+					return ((uint)_flags >> 24) & 0xff;
+				}
+			}
+
+			/*! \brief Sets or gets the foreground colour of the icon.
+			 * \note The \e AntiAliased bit is automatically cleared.
+			 * \throw InvalidOperationException Thrown if the icon is anti-aliased when read.  */
+			public OS.DesktopColour FGColour {
+				set {
+					AntiAliased = false;
+					// Clear all the foreground colour bits first.
+					_flags &= (IconFlags)~(0xf << 24);
+					// Now insert the required colour.
+					_flags |= (IconFlags)(((int)value & 0xf) << 24);
+				}
+				get {
+					if (AntiAliased)
+						throw new InvalidOperationException ("Icon is anti-aliased; use validation string to set colours.");
+
+					return (OS.DesktopColour)(((int)_flags >> 24) & 0xf);
+				}
+			}
+
+			/*! \brief Sets or gets the background colour of the icon.
+			 * \note The \e AntiAliased bit is automatically cleared.
+			 * \throw InvalidOperationException Thrown if the icon is anti-aliased when read.  */
+			public OS.DesktopColour BGColour {
+				set {
+					AntiAliased = false;
+					// Clear all the background colour bits first.
+					_flags &= (IconFlags)~(0xf << 28);
+					// Now insert the required colour.
+					_flags |= (IconFlags)(((int)value & 0xf) << 28);
+				}
+				get {
+					if (AntiAliased)
+						throw new InvalidOperationException ("Icon is anti-aliased; use validation string to set colours.");
+
+					return (OS.DesktopColour)(((int)_flags >> 28) & 0xf);
+				}
+			}
+		}
+
 		public class IconAttributes
 		{
-			IconFlags _Flags = IconFlags.Text |
-					   IconFlags.Border |
-					   IconFlags.FilledBackground |
-					   IconFlags.Indirected |
-					   IconFlags.VCentred |
-					   IconFlags.HCentred;
-			public uint Flags
-			{
-				get { return (uint)_Flags; }
-			}
+			public IconFlagsValue Flags = new IconFlagsValue (IconFlags.Text |
+									  IconFlags.Border |
+									  IconFlags.FilledBackground |
+									  IconFlags.Indirected |
+									  IconFlags.VCentred |
+									  IconFlags.HCentred);
 
 			public OS.Rect BoundingBox = new OS.Rect ();
 			public IconData Data;
@@ -197,254 +460,10 @@ namespace riscos
 
 			void DefaultColours ()
 			{
-				FGColour = OS.DesktopColour.Black;
-				BGColour = OS.DesktopColour.Grey2;
+				Flags.FGColour = OS.DesktopColour.Black;
+				Flags.BGColour = OS.DesktopColour.Grey2;
 			}
 
-			/*! \brief Sets or gets whether the icon contains text.  */
-			public bool ContainsText {
-				set {
-					_Flags = value ? _Flags |  IconFlags.Text :
-							 _Flags & ~IconFlags.Text;
-				}
-				get {
-					return (_Flags & IconFlags.Text) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon contains a sprite.  */
-			public bool ContainsSprite {
-				set {
-					_Flags = value ? _Flags |  IconFlags.Sprite :
-							 _Flags & ~IconFlags.Sprite;
-				}
-				get {
-					return (_Flags & IconFlags.Sprite) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon has a border.  */
-			public bool HasBorder {
-				set {
-					_Flags = value ? _Flags |  IconFlags.Border :
-							 _Flags & ~IconFlags.Border;
-				}
-				get {
-					return (_Flags & IconFlags.Border) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon contents are horizontally centred.  */
-			public bool CentredHorizontally {
-				set {
-					_Flags = value ? _Flags | IconFlags.HCentred :
-							 _Flags & ~IconFlags.HCentred;
-				}
-				get {
-					return (_Flags & IconFlags.HCentred) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon contents are vertically centred.  */
-			public bool CentredVertically {
-				set {
-					_Flags = value ? _Flags | IconFlags.VCentred :
-							 _Flags & ~IconFlags.VCentred;
-				}
-				get {
-					return (_Flags & IconFlags.VCentred) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon has a filled background.  */
-			public bool FilledBackground {
-				set {
-					_Flags = value ? _Flags | IconFlags.FilledBackground :
-							 _Flags & ~IconFlags.FilledBackground;
-				}
-				get {
-					return (_Flags & IconFlags.FilledBackground) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon text is anti aliased.  */
-			public bool AntiAliased {
-				set {
-					_Flags = value ? _Flags | IconFlags.AntiAliased :
-							 _Flags & ~IconFlags.AntiAliased;
-				}
-				get {
-					return (_Flags & IconFlags.AntiAliased) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon requires the task's help to be redrawn.  */
-			public bool RedrawnByTask {
-				set {
-					_Flags = value ? _Flags | IconFlags.RedrawnByTask :
-							 _Flags & ~IconFlags.RedrawnByTask;
-				}
-				get {
-					return (_Flags & IconFlags.RedrawnByTask) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon data is indirected.  */
-			public bool IndirectedData {
-				set {
-					_Flags = value ? _Flags | IconFlags.Indirected :
-							 _Flags & ~IconFlags.Indirected;
-				}
-				get {
-					return (_Flags & IconFlags.Indirected) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon is right justified.  */
-			public bool RightJustified {
-				set {
-					_Flags = value ? _Flags | IconFlags.RightJustified :
-							 _Flags & ~IconFlags.RightJustified;
-				}
-				get {
-					return (_Flags & IconFlags.RightJustified) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether a selection with Adjust should not cancel
-			 * others in the same ESG.  */
-			public bool DontCancelSameESG {
-				set {
-					_Flags = value ? _Flags | IconFlags.DontCancelSameESG :
-							 _Flags & ~IconFlags.DontCancelSameESG;
-				}
-				get {
-					return (_Flags & IconFlags.DontCancelSameESG) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether to display the sprite (if any) at half size.  */
-			public bool HalfSizeSprite {
-				set {
-					_Flags = value ? _Flags | IconFlags.HalfSizeSprite :
-							 _Flags & ~IconFlags.HalfSizeSprite;
-				}
-				get {
-					return (_Flags & IconFlags.HalfSizeSprite) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon is selected by the user and is inverted.  */
-			public bool Selected {
-				set {
-					_Flags = value ? _Flags | IconFlags.Selected :
-							 _Flags & ~IconFlags.Selected;
-				}
-				get {
-					return (_Flags & IconFlags.Selected) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets whether the icon is shaded and cannot be selected.  */
-			public bool Shaded {
-				set {
-					_Flags = value ? _Flags | IconFlags.Shaded :
-							 _Flags & ~IconFlags.Shaded;
-				}
-				get {
-					return (_Flags & IconFlags.Shaded) != 0;
-				}
-			}
-
-			/*! \brief Gets whether the icon has been deleted.  */
-			public bool Deleted {
-				get {
-					return (_Flags & IconFlags.Deleted) != 0;
-				}
-			}
-
-			/*! \brief Sets or gets the button type of the icon.  */
-			public IconButtonType ButtonType {
-				set {
-					// Clear all the button type bits first.
-					_Flags &= (IconFlags)~(0xf << 12);
-					// Now insert the required button type.
-					_Flags |= (IconFlags)(((int)value & 0xf) << 12);
-				}
-				get {
-					return (IconButtonType)(((int)_Flags >> 12) & 0xf);
-				}
-			}
-
-			/*! \brief Sets or gets the Exclusive Selection Group for the icon.  */
-			public int ESG {
-				set {
-					// Clear all the ESG bits first.
-					_Flags &= (IconFlags)~(0x1f << 16);
-					// Now insert the required ESG.
-					_Flags |= (IconFlags)((value & 0x1f) << 16);
-				}
-				get {
-					return ((int)_Flags >> 16) & 0x1f;
-				}
-			}
-
-			/*! \brief Sets or gets the handle of the font used for this icon.
-			 * \note The \e AntiAliased bit is automatically set.
-			 * \throw InvalidOperationException Thrown if the icon is not anti-aliased when read.  */
-			public uint Font {
-				set {
-					AntiAliased = true;
-					// Clear all the font bits first
-					_Flags &= (IconFlags)~(0xff << 24);
-					// Now insert the required font handle.
-					_Flags |= (IconFlags)((value & 0xff) << 24);
-				}
-				get {
-					if (!AntiAliased)
-						throw new InvalidOperationException ("Icon is not anti-aliased.");
-
-					return ((uint)_Flags >> 24) & 0xff;
-				}
-			}
-
-			/*! \brief Sets or gets the foreground colour of the icon.
-			 * \note The \e AntiAliased bit is automatically cleared.
-			 * \throw InvalidOperationException Thrown if the icon is anti-aliased when read.  */
-			public OS.DesktopColour FGColour {
-				set {
-					AntiAliased = false;
-					// Clear all the foreground colour bits first.
-					_Flags &= (IconFlags)~(0xf << 24);
-					// Now insert the required colour.
-					_Flags |= (IconFlags)(((int)value & 0xf) << 24);
-				}
-				get {
-					if (AntiAliased)
-						throw new InvalidOperationException ("Icon is anti-aliased; use validation string to set colours.");
-
-					return (OS.DesktopColour)(((int)_Flags >> 24) & 0xf);
-				}
-			}
-
-			/*! \brief Sets or gets the background colour of the icon.
-			 * \note The \e AntiAliased bit is automatically cleared.
-			 * \throw InvalidOperationException Thrown if the icon is anti-aliased when read.  */
-			public OS.DesktopColour BGColour {
-				set {
-					AntiAliased = false;
-					// Clear all the background colour bits first.
-					_Flags &= (IconFlags)~(0xf << 28);
-					// Now insert the required colour.
-					_Flags |= (IconFlags)(((int)value & 0xf) << 28);
-				}
-				get {
-					if (AntiAliased)
-						throw new InvalidOperationException ("Icon is anti-aliased; use validation string to set colours.");
-
-					return (OS.DesktopColour)(((int)_Flags >> 28) & 0xf);
-				}
-			}
 		}
 
 		/*! \brief Encapsulate a Wimp icon.  */
