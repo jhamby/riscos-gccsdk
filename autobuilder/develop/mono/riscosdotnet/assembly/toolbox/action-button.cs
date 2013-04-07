@@ -138,30 +138,30 @@ namespace riscos
 		 * template.  */
 		public sealed class ActionButtonTemplate : GadgetTemplate
 		{
-			/*! \brief The text to be shown in the gadget.  */
 			string _text = "";
+			/*! \brief The text to be shown in the gadget.  */
 			public string Text {
 				get { return _text; }
 				set { _text = value; }
 			}
 
+			int _max_text_len = 0;
 			/*! \brief The maximum buffer size for the text. Leave as 0 to indicate that
 			 * the length of the text itself should be used.  */
-			int _max_text_len = 0;
-			public int MaxText {
+			public int MaxTextLen {
 				get { return _max_text_len; }
 				set { _max_text_len = value; }
 			}
 
-			/*! \brief The name of a template to create and show when the gadget is clicked.  */
 			string _click_show = "";
+			/*! \brief The name of a template to create and show when the gadget is clicked.  */
 			public string ClickShow {
 				get { return _click_show; }
 				set { _click_show = value; }
 			}
 
-			/*! \brief The event that should be rasied when the gadget is clicked.  */
 			uint _event = 0;
+			/*! \brief The event that should be rasied when the gadget is clicked.  */
 			public uint Event {
 				get { return _event; }
 				set { _event = value; }

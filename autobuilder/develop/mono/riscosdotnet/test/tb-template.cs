@@ -50,17 +50,24 @@ namespace riscos.CSharpBindings.TBTemplateTest
 				gadget.BoundingBox = new OS.Rect (50, 100, 200, 160);
 				win_template.AddGadget (gadget);
 
+				// Define an AdjusterArrow gadget in the window template
 				gadget = new Toolbox.AdjusterArrowTemplate ();
 				gadget.BoundingBox = new OS.Rect (250, 100, 300, 160);
 				((Toolbox.AdjusterArrowTemplate)gadget).SetType (Toolbox.AdjusterArrowTemplate.Direction.Increment,
 										 Toolbox.AdjusterArrowTemplate.Orientation.LeftRight);
 				win_template.AddGadget (gadget);
 
+				// Define a Button gadget in the window template
 				gadget = new Toolbox.ButtonTemplate ("Button", "R5,3");
-				gadget.BoundingBox = new OS.Rect (50, 850, 150, 950);
+				gadget.BoundingBox = new OS.Rect (50, 880, 150, 980);
 				((Toolbox.ButtonTemplate)gadget).ButtonFlags.ButtonType = Wimp.IconButtonType.Click;
 				((Toolbox.ButtonTemplate)gadget).ButtonFlags.FGColour = OS.DesktopColour.Black;
 				((Toolbox.ButtonTemplate)gadget).ButtonFlags.BGColour = OS.DesktopColour.Grey1;
+				win_template.AddGadget (gadget);
+
+				// Define a DisplayField gadget in the window template
+				gadget = new Toolbox.DisplayFieldTemplate ("Display field");
+				gadget.BoundingBox = new OS.Rect (50, 800, 350, 860);
 				win_template.AddGadget (gadget);
 
 				// Define a keyboard shortcut in the window template.

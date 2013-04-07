@@ -225,8 +225,7 @@ namespace riscos
 				Type = type;
 			}
 
-			/*! \brief Calculate the number of bytes required to store the part of a gadget
-			 * template that is common to all gadgets.
+			/*! \brief Calculate the number of bytes required to store the gadget template.
 			 * \param [in,out] strStart The offset from the start of the template where the
 			 * string table starts. Updated to accommodate the gadget template.
 			 * \param [in,out] msgStart The offset from the start of the template where the
@@ -290,7 +289,7 @@ namespace riscos
 							Math.Max (_help_message.Length + 1, _max_help));
 			}
 
-			/*! \brief Return the number of bytes that the gadget template header occupies.  */
+			/*! \brief Return the number of bytes that the gadget template occupies.  */
 			public virtual int GetTemplateSize ()
 			{
 				return GadgetTemplateOffset.TemplateHeaderSize;
