@@ -217,5 +217,231 @@ namespace riscos
 				}
 			}
 		}
+
+		public static class DraggableTemplateOffset
+		{
+			public const int Text = 36;
+			public const int MaxTextLen = 40;
+			public const int Sprite = 44;
+			public const int MaxSpriteLen = 48;
+			public const int TemplateSize = 52;
+		}
+
+		public enum DraggableType
+		{
+			DragOnly,
+			ClickDragDoubleClick,
+			ClickSelectsDoubleClickDrag
+		}
+
+		/*! \brief The Toolbox flags that help to define the behaviour of a draggable.  */
+		public static class DraggableFlags
+		{
+			public const int WarnDragStart = (1 << 0);
+			public const int ContainsSprite = (1 << 1);
+			public const int ContainsText = (1 << 2);
+			public const int Type = (1 << 3);
+			public const int ToolboxIDs = (1 << 6);
+			public const int DropShadow = (1 << 7);
+			public const int NoDither = (1 << 8);
+		}
+
+		/*! \brief Encapsulate the data required to create a Toolbox Draggable gadget
+		 * template.  */
+		public class DraggableTemplate : GadgetTemplate
+		{
+			string _text = "";
+			/*! \brief The text to be shown in the gadget.  */
+			public string Text {
+				get { return _text; }
+				set { _text = value; }
+			}
+
+			int _max_text_len = 0;
+			/*! \brief The maximum buffer size for the text. Leave as 0 to indicate that
+			 * the length of the text itself should be used.  */
+			public int MaxTextLen {
+				get { return _max_text_len; }
+				set { _max_text_len = value; }
+			}
+
+			string _sprite = "";
+			/*! \brief The name of the sprite to be shown in the gadget.  */
+			public string Sprite {
+				get { return _sprite; }
+				set { _sprite = value; }
+			}
+
+			int _max_sprite_len = 0;
+			/*! \brief The maximum buffer size for the sprite name. Leave as 0 to
+			 * indicate that the length of the sprite name itself should be used.  */
+			public int MaxSpriteLen {
+				get { return _max_sprite_len; }
+				set { _max_sprite_len = value; }
+			}
+
+			/*! \brief Create a template for a draggable where the text (if any)
+			 * and sprite will be set later.  */
+			public DraggableTemplate () : base (Gadget.ComponentType.Draggable)
+			{
+			}
+
+			/*! \brief Create a template for a draggable with the given text.  */
+			public DraggableTemplate (string text) : base (Gadget.ComponentType.Draggable)
+			{
+				_text = text;
+				ContainsText = true;
+			}
+
+			/*! \brief Create a template for a draggable with the given text.  */
+			public DraggableTemplate (string text, string sprite) :
+							base (Gadget.ComponentType.Draggable)
+			{
+				_text = text;
+				_sprite = sprite;
+				ContainsText = true;
+				ContainsSprite = true;
+			}
+
+			/*! \brief Create a template for a draggable with the given text.  */
+			public DraggableTemplate (string text, int maxTextLen) :
+							base (Gadget.ComponentType.Draggable)
+			{
+				_text = text;
+				_max_text_len = maxTextLen;
+				ContainsText = true;
+			}
+
+			/*! \brief Create a template for a draggable with the given text and sprite.  */
+			public DraggableTemplate (string text, int maxTextLen,
+						  string sprite, int maxSpriteLen) :
+							base (Gadget.ComponentType.Draggable)
+			{
+				_text = text;
+				_max_text_len = maxTextLen;
+				_sprite = sprite;
+				_max_sprite_len = maxSpriteLen;
+				ContainsText = true;
+				ContainsSprite = true;
+			}
+
+			// Not sure that the getters for these properties are very useful, but they're
+			// included for completeness.
+
+			/*! \brief Set or get whether a draggable created from this template will raise
+			 * an event when the drag starts.  */
+			public bool WarnDragStart {
+				get { return (_flags & ~DraggableFlags.WarnDragStart) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  DraggableFlags.WarnDragStart :
+								_flags & ~DraggableFlags.WarnDragStart);
+				}
+			}
+
+			/*! \brief Set or get whether a draggable created from this template will contain
+			 * text.  */
+			public bool ContainsText {
+				get { return (_flags & ~DraggableFlags.ContainsText) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  DraggableFlags.ContainsText :
+								_flags & ~DraggableFlags.ContainsText);
+				}
+			}
+
+			/*! \brief Set or get whether a draggable created from this template will contain
+			 * a sprite.  */
+			public bool ContainsSprite {
+				get { return (_flags & ~DraggableFlags.ContainsSprite) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  DraggableFlags.ContainsSprite :
+								_flags & ~DraggableFlags.ContainsSprite);
+				}
+			}
+
+			/*! \brief Set or get the type of draggable created from this template.  */
+			public DraggableType Type {
+				get { return (DraggableType)((_flags >> DraggableFlags.Type) & 7); }
+				set {
+					_flags &= ~(uint)(7 << DraggableFlags.Type);
+					_flags |= (uint)value << DraggableFlags.Type;
+				}
+			}
+
+			/*! \brief Set or get whether a draggable created from this template will
+			 * return Toolbox IDs instead of Wimp handles.  */
+			public bool ReturnToolboxIDs {
+				get { return (_flags & ~DraggableFlags.ToolboxIDs) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  DraggableFlags.ToolboxIDs :
+								_flags & ~DraggableFlags.ToolboxIDs);
+				}
+			}
+
+			/*! \brief Set or get whether a draggable created from this template will
+			 * display a drop shadow when dragging.  */
+			public bool DropShadow {
+				get { return (_flags & ~DraggableFlags.DropShadow) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  DraggableFlags.DropShadow :
+								_flags & ~DraggableFlags.DropShadow);
+				}
+			}
+
+			/*! \brief Set or get whether a draggable created from this template will
+			 * be displayed dithered when dragging.  */
+			public bool NoDither {
+				get { return (_flags & ~DraggableFlags.NoDither) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  DraggableFlags.NoDither :
+								_flags & ~DraggableFlags.NoDither);
+				}
+			}
+
+			public override int CalculateBufferSize (ref int strStart, ref int msgStart)
+			{
+				int size = base.CalculateBufferSize (ref strStart, ref msgStart);
+
+				if (!string.IsNullOrEmpty (_text))
+					size += Math.Max (_text.Length + 1, _max_text_len);
+				if (!string.IsNullOrEmpty (_sprite))
+				{
+					int length = Math.Max (_sprite.Length + 1, _max_sprite_len);
+					size += length;
+					msgStart += length;
+				}
+
+				return size;
+			}
+
+			public override void BuildBuffer (IntPtr buffer,
+							  int offset,
+							  ref int strOffset,
+							  ref int msgOffset)
+			{
+				base.BuildBuffer (buffer, offset, ref strOffset, ref msgOffset);
+
+				msgOffset = ObjectTemplate.WriteString (_text,
+									_max_text_len,
+									buffer,
+									offset + DraggableTemplateOffset.Text,
+									msgOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + DraggableTemplateOffset.MaxTextLen,
+						    Math.Max (_text.Length + 1, _max_text_len));
+				strOffset = ObjectTemplate.WriteString (_sprite,
+									_max_sprite_len,
+									buffer,
+									offset + DraggableTemplateOffset.Sprite,
+									strOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + DraggableTemplateOffset.MaxSpriteLen,
+						    Math.Max (_sprite.Length + 1, _max_sprite_len));
+			}
+
+			public override int GetTemplateSize ()
+			{
+				return DraggableTemplateOffset.TemplateSize;
+			}
+		}
 	}
 }

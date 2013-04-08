@@ -70,6 +70,12 @@ namespace riscos.CSharpBindings.TBTemplateTest
 				gadget.BoundingBox = new OS.Rect (50, 800, 350, 860);
 				win_template.AddGadget (gadget);
 
+				// Define a Draggable gadget in the window template.
+				gadget = new Toolbox.DraggableTemplate ("Draggable", "file_ff9");
+				gadget.BoundingBox = new OS.Rect (200, 880, 350, 980);
+				((Toolbox.DraggableTemplate)gadget).DropShadow = true;
+				win_template.AddGadget (gadget);
+
 				// Define a keyboard shortcut in the window template.
 				var shortcut = new Toolbox.KeyboardShortcutTemplate ('A', 0x1234);
 				win_template.AddKeyboardShortcut (shortcut);
