@@ -1,9 +1,4 @@
 
-AB_SVN=svn://svn.icculus.org/smpeg/trunk
-
 AB_INSTALL=env
+
 AB_CONFLAGS="-disable-sdltest -disable-gtk-player"
-
-./autogen.sh
-
-
