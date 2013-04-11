@@ -12,6 +12,13 @@ namespace riscos
 {
 	public static partial class Toolbox
 	{
+		//! \brief The Toolbox flags that can be applied to all types of gadget.
+		public static class GadgetFlags
+		{
+			public const uint CreatedFirst = (1 << 30);
+			public const uint Faded = (1U << 31);
+		}
+
 		/*! \class Gadget
 		 * \brief Base object of all gadget types.  */
 		public class Gadget
@@ -27,13 +34,6 @@ namespace riscos
 				new public const int GetType = 70;
 				public const int MoveGadget = 71;
 				public const int GetBBox = 72;
-			}
-
-			/*! \brief The flags that can be applied to all types of gadget.  */
-			public static class GadgetFlags
-			{
-				public const uint CreatedFirst = (1 << 30);
-				public const uint Faded = (1U << 31);
 			}
 
 			public static class ComponentType

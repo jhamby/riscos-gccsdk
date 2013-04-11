@@ -225,6 +225,25 @@ namespace riscos
 				Type = type;
 			}
 
+			/*! \brief Set or get whether this gadget is created before all others gadgets
+			 * so that when displayed, it is behind them.  */
+			public bool CreatedFirst {
+				get { return (_flags & GadgetFlags.CreatedFirst) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  GadgetFlags.CreatedFirst :
+								_flags & ~GadgetFlags.CreatedFirst);
+				}
+			}
+
+			/*! \brief Set of get whether this gadget is faded.  */
+			public bool Faded {
+				get { return (_flags & GadgetFlags.Faded) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  GadgetFlags.Faded :
+								_flags & ~GadgetFlags.Faded);
+				}
+			}
+
 			/*! \brief Calculate the number of bytes required to store the gadget template.
 			 * \param [in,out] strStart The offset from the start of the template where the
 			 * string table starts. Updated to accommodate the gadget template.
