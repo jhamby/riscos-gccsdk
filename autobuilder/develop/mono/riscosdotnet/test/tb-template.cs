@@ -81,8 +81,10 @@ namespace riscos.CSharpBindings.TBTemplateTest
 				gadget.BoundingBox = new OS.Rect (50, 600, 350, 780);
 				win_template.AddGadget (gadget);
 
+				// Define a Label gadget in the window template.
 				gadget = new Toolbox.LabelTemplate ("Label");
 				gadget.BoundingBox = new OS.Rect (70, 640, 330, 720);
+				((Toolbox.LabelTemplate)gadget).Justify = Toolbox.LabelJustify.Right;
 				win_template.AddGadget (gadget);
 
 				// Define a keyboard shortcut in the window template.

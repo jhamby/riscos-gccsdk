@@ -360,10 +360,10 @@ namespace riscos
 
 			/*! \brief Set or get the type of draggable created from this template.  */
 			public DraggableType Type {
-				get { return (DraggableType)((_flags >> DraggableFlags.Type) & 7); }
+				get { return (DraggableType)((_flags >> 3) & 7); }
 				set {
-					_flags &= ~(uint)(7 << DraggableFlags.Type);
-					_flags |= (uint)value << DraggableFlags.Type;
+					_flags &= ~(uint)(7 << 3);
+					_flags |= (uint)value << 3;
 				}
 			}
 

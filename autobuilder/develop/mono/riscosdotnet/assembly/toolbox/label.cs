@@ -74,10 +74,10 @@ namespace riscos
 
 			/*! \brief Set or get the justification of the text in this label.  */
 			public LabelJustify Justify {
-				get { return (LabelJustify)((_flags >> LabelFlags.Justify) & 3); }
+				get { return (LabelJustify)((_flags >> 1) & 3); }
 				set {
-					_flags &= (3 << LabelFlags.Justify);
-					_flags |= (uint)value << LabelFlags.Justify;
+					_flags &= ~(uint)(3 << 1);
+					_flags |= (uint)value << 1;
 				}
 			}
 
