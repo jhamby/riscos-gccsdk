@@ -33,7 +33,8 @@ namespace riscos
 		public static class LabelFlags
 		{
 			public const int NoBoundingBox = (1 << 0);
-			public const int Justify = (1 << 1);
+			public const int JustifyShift = 1;
+			public const int JustifyMask = 3;
 		}
 
 		public enum LabelJustify
@@ -74,10 +75,10 @@ namespace riscos
 
 			/*! \brief Set or get the justification of the text in this label.  */
 			public LabelJustify Justify {
-				get { return (LabelJustify)((_flags >> 1) & 3); }
+				get { return (LabelJustify)((_flags >> LabelFlags.JustifyShift) & LabelFlags.JustifyMask); }
 				set {
-					_flags &= ~(uint)(3 << 1);
-					_flags |= (uint)value << 1;
+					_flags &= ~(uint)(LabelFlags.JustifyMask << LabelFlags.JustifyShift);
+					_flags |= (uint)value << LabelFlags.JustifyShift;
 				}
 			}
 

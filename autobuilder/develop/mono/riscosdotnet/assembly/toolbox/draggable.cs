@@ -240,7 +240,8 @@ namespace riscos
 			public const int WarnDragStart = (1 << 0);
 			public const int ContainsSprite = (1 << 1);
 			public const int ContainsText = (1 << 2);
-			public const int Type = (1 << 3);
+			public const int TypeShift = 3;
+			public const int TypeMask = 7;
 			public const int ToolboxIDs = (1 << 6);
 			public const int DropShadow = (1 << 7);
 			public const int NoDither = (1 << 8);
@@ -331,7 +332,7 @@ namespace riscos
 			/*! \brief Set or get whether a draggable created from this template will raise
 			 * an event when the drag starts.  */
 			public bool WarnDragStart {
-				get { return (_flags & ~DraggableFlags.WarnDragStart) != 0; }
+				get { return (_flags & DraggableFlags.WarnDragStart) != 0; }
 				set {
 					_flags = (uint)(value ? _flags |  DraggableFlags.WarnDragStart :
 								_flags & ~DraggableFlags.WarnDragStart);
@@ -341,7 +342,7 @@ namespace riscos
 			/*! \brief Set or get whether a draggable created from this template will contain
 			 * text.  */
 			public bool ContainsText {
-				get { return (_flags & ~DraggableFlags.ContainsText) != 0; }
+				get { return (_flags & DraggableFlags.ContainsText) != 0; }
 				set {
 					_flags = (uint)(value ? _flags |  DraggableFlags.ContainsText :
 								_flags & ~DraggableFlags.ContainsText);
@@ -351,7 +352,7 @@ namespace riscos
 			/*! \brief Set or get whether a draggable created from this template will contain
 			 * a sprite.  */
 			public bool ContainsSprite {
-				get { return (_flags & ~DraggableFlags.ContainsSprite) != 0; }
+				get { return (_flags & DraggableFlags.ContainsSprite) != 0; }
 				set {
 					_flags = (uint)(value ? _flags |  DraggableFlags.ContainsSprite :
 								_flags & ~DraggableFlags.ContainsSprite);
@@ -360,17 +361,17 @@ namespace riscos
 
 			/*! \brief Set or get the type of draggable created from this template.  */
 			public DraggableType Type {
-				get { return (DraggableType)((_flags >> 3) & 7); }
+				get { return (DraggableType)((_flags >> DraggableFlags.TypeShift) & DraggableFlags.TypeMask); }
 				set {
-					_flags &= ~(uint)(7 << 3);
-					_flags |= (uint)value << 3;
+					_flags &= ~(uint)(DraggableFlags.TypeMask << DraggableFlags.TypeShift);
+					_flags |= (uint)value << DraggableFlags.TypeShift;
 				}
 			}
 
 			/*! \brief Set or get whether a draggable created from this template will
 			 * return Toolbox IDs instead of Wimp handles.  */
 			public bool ReturnToolboxIDs {
-				get { return (_flags & ~DraggableFlags.ToolboxIDs) != 0; }
+				get { return (_flags & DraggableFlags.ToolboxIDs) != 0; }
 				set {
 					_flags = (uint)(value ? _flags |  DraggableFlags.ToolboxIDs :
 								_flags & ~DraggableFlags.ToolboxIDs);
@@ -380,7 +381,7 @@ namespace riscos
 			/*! \brief Set or get whether a draggable created from this template will
 			 * display a drop shadow when dragging.  */
 			public bool DropShadow {
-				get { return (_flags & ~DraggableFlags.DropShadow) != 0; }
+				get { return (_flags & DraggableFlags.DropShadow) != 0; }
 				set {
 					_flags = (uint)(value ? _flags |  DraggableFlags.DropShadow :
 								_flags & ~DraggableFlags.DropShadow);
@@ -390,7 +391,7 @@ namespace riscos
 			/*! \brief Set or get whether a draggable created from this template will
 			 * be displayed dithered when dragging.  */
 			public bool NoDither {
-				get { return (_flags & ~DraggableFlags.NoDither) != 0; }
+				get { return (_flags & DraggableFlags.NoDither) != 0; }
 				set {
 					_flags = (uint)(value ? _flags |  DraggableFlags.NoDither :
 								_flags & ~DraggableFlags.NoDither);
