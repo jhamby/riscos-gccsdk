@@ -161,7 +161,7 @@ namespace riscos
 			}
 
 			uint _event = 0;
-			/*! \brief The event that should be rasied when the gadget is clicked.  */
+			/*! \brief The event that should be raised when the gadget is clicked.  */
 			public uint Event {
 				get { return _event; }
 				set { _event = value; }

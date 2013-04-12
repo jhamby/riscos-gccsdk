@@ -95,6 +95,11 @@ namespace riscos.CSharpBindings.TBTemplateTest
 				((Toolbox.NumberRangeTemplate)gadget).Type = Toolbox.NumberRangeType.SliderRight;
 				win_template.AddGadget (gadget);
 
+				// Define an OptionButton gadget in the window template.
+				gadget = new Toolbox.OptionButtonTemplate ("Option Button");
+				gadget.BoundingBox = new OS.Rect (400, 850, 650, 900);
+				win_template.AddGadget (gadget);
+
 				// Define a keyboard shortcut in the window template.
 				var shortcut = new Toolbox.KeyboardShortcutTemplate ('A', 0x1234);
 				win_template.AddKeyboardShortcut (shortcut);
