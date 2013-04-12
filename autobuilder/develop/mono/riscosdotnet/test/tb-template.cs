@@ -87,6 +87,14 @@ namespace riscos.CSharpBindings.TBTemplateTest
 				((Toolbox.LabelTemplate)gadget).Justify = Toolbox.LabelJustify.Right;
 				win_template.AddGadget (gadget);
 
+				// Define a NumberRange gadget in the window template.
+				gadget = new Toolbox.NumberRangeTemplate ();
+				gadget.BoundingBox = new OS.Rect (400, 928, 900, 980);
+				((Toolbox.NumberRangeTemplate)gadget).Justify = Toolbox.NumberRangeJustify.Right;
+				((Toolbox.NumberRangeTemplate)gadget).HasAdjusterArrows = true;
+				((Toolbox.NumberRangeTemplate)gadget).Type = Toolbox.NumberRangeType.SliderRight;
+				win_template.AddGadget (gadget);
+
 				// Define a keyboard shortcut in the window template.
 				var shortcut = new Toolbox.KeyboardShortcutTemplate ('A', 0x1234);
 				win_template.AddKeyboardShortcut (shortcut);
