@@ -123,6 +123,12 @@ namespace riscos.CSharpBindings.TBTemplateTest
 				((Toolbox.SliderTemplate)gadget).Draggable = true;
 				win_template.AddGadget (gadget);
 
+				// Define a StringSet gadget in the window template.
+				gadget = new Toolbox.StringSetTemplate ("One,Two,Three", "Two", 12);
+				gadget.BoundingBox = new OS.Rect (400, 700, 650, 750);
+				((Toolbox.StringSetTemplate)gadget).IsWritable = true;
+				win_template.AddGadget (gadget);
+
 				// Define a keyboard shortcut in the window template.
 				var shortcut = new Toolbox.KeyboardShortcutTemplate ('A', 0x1234);
 				win_template.AddKeyboardShortcut (shortcut);

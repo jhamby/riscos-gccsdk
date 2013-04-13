@@ -227,5 +227,256 @@ namespace riscos
 				}
 			}
 		}
+
+		public static class StringSetFlags
+		{
+			public const int InformClient = (1 << 0);
+			// Note bit 1 not used.
+			// User Interface Toolbox Manual Page 403 - Writable flag is given as
+			// bit 1, but is actually bit 2.
+			public const int Writable = (1 << 2);
+			public const int InformAboutToBeShown = (1 << 3);
+			public const int NoDisplayField = (1 << 4);
+			public const int JustifyShift = 5;
+			public const int JustifyMask = 3;
+		}
+
+		public static class StringSetTemplateOffset
+		{
+			public const int StringSet = 36;
+			// User Interface Toolbox Manual Page 410 - Menu title field missing
+			// from template layout.
+			public const int MenuTitle = 40;
+			public const int InitialSelectedString = 44;
+			public const int MaxSelectedStringLen = 48;
+			public const int Allowable = 52;
+			public const int MaxAllowable = 56;
+			public const int Before = 60;
+			public const int After = 64;
+			public const int TemplateSize = 68;
+		}
+
+		public enum StringSetJustify
+		{
+			Left,
+			Right,
+			Centre
+		}
+
+		/*! \brief Encapsulate the data required to create a Toolbox StringSet gadget
+		 * template.  */
+		public class StringSetTemplate : GadgetTemplate
+		{
+			string _string_set = "";
+			/*! \brief Get or set the comma separated set of strings that are available
+			 * for selection.  */
+			public string StringSet {
+				get { return _string_set; }
+				set { _string_set = value; }
+			}
+
+			string _menu_title = "Items";
+			/*! \brief Get or set the title of the StringSet menu.
+			 * \note Default value: "Items".  */
+			public string MenuTitle {
+				get { return _menu_title; }
+				set { _menu_title = value; }
+			}
+
+			string _initial_selected_string = "";
+			/*! \brief Get or set the string that is initially selected.  */
+			public string InitialSelectedString {
+				get { return _initial_selected_string; }
+				set { _initial_selected_string = value; }
+			}
+
+			int _max_selected_string_len = 0;
+			/*! \brief The maximum buffer size for the string that is currently selected.
+			 * Leave as 0 to indicate that the length of InitialSelectedString should be used.  */
+			public int MaxSelectedStringLen {
+				get { return _max_selected_string_len; }
+				set { _max_selected_string_len = value; }
+			}
+
+			string _allowable = "";
+			/*! \brief Get or set the set of allowable characters which can be typed into a
+			 * writable string set.  */
+			public string Allowable {
+				get { return _allowable; }
+				set { _allowable = value; }
+			}
+
+
+			int _max_allowable = 0;
+			/*! \brief The maximum buffer size reserved for the set of allowable characters.
+			 * Leave as 0 to indicate that the length of the text itself should be used.  */
+			public int MaxAllowable {
+				get { return _max_allowable; }
+				set { _max_allowable = value; }
+			}
+
+			int _before = -1;
+			/*! \brief The ID of a gadget before this one that will gain the input focus
+			 * when navigating with the keyboard.
+			 * \note Default value: -1 (None).  */
+			public int Before {
+				get { return _before; }
+				set { _before = value; }
+			}
+
+			int _after = -1;
+			/*! \brief The ID of a gadget after this one that will gain the input focus
+			 * when navigating with the keyboard.
+			 * \note Default value: -1 (None).  */
+			public int After {
+				get { return _after; }
+				set { _after = value; }
+			}
+
+			/*! \brief Create a Toolbox StringSet gadget template.  */
+			public StringSetTemplate (string stringSet,
+						  string initial,
+						  int maxInitial,
+						  string allowable,
+						  int maxAllowable) : base (Gadget.ComponentType.StringSet)
+			{
+				_string_set = stringSet;
+				_initial_selected_string = initial;
+				_max_selected_string_len = maxInitial;
+				_allowable = allowable;
+				_max_allowable = maxAllowable;
+			}
+
+			/*! \brief Create a Toolbox StringSet gadget template.  */
+			public StringSetTemplate (string stringSet,
+						  string initial,
+						  int maxInitial) : base (Gadget.ComponentType.StringSet)
+			{
+				_string_set = stringSet;
+				_initial_selected_string = initial;
+				_max_selected_string_len = maxInitial;
+			}
+
+			/*! \brief Set or get whether a StringSet gadget created from this template
+			 * will inform clients of value changes using StringSet_ValueChanged events.
+			 * \note Default value: false.  */
+			public bool InformClient {
+				get { return (_flags & StringSetFlags.InformClient) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  StringSetFlags.InformClient :
+								_flags & ~StringSetFlags.InformClient);
+				}
+			}
+
+			/*! \brief Set or get whether the StringSet gadget will have a writable field.
+			 * \note Default value: false.  */
+			public bool IsWritable {
+				get { return (_flags & StringSetFlags.Writable) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  StringSetFlags.Writable :
+								_flags & ~StringSetFlags.Writable);
+				}
+			}
+
+			/*! \brief Set or get whether a StringSet gadget created from this template
+			 * will inform clients just before showing the menu.
+			 * \note Default value: false.  */
+			public bool InformAboutToBeShown {
+				get { return (_flags & StringSetFlags.InformAboutToBeShown) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  StringSetFlags.InformAboutToBeShown :
+								_flags & ~StringSetFlags.InformAboutToBeShown);
+				}
+			}
+
+			/*! \brief Set or get whether the StringSet gadget will have a display field or writable.
+			 * \note Default value: true.  */
+			public bool HasDisplayField {
+				get { return (_flags & StringSetFlags.NoDisplayField) == 0; }
+				set {
+					// Note the logic is reversed here because the flag is set
+					// when there is no display field.
+					_flags = (uint)(value ? _flags & ~StringSetFlags.NoDisplayField :
+								_flags |  StringSetFlags.NoDisplayField);
+				}
+			}
+
+			/*! \brief Set or get the justification of the text in this StringSet.  */
+			public StringSetJustify Justify {
+				get {
+					return (StringSetJustify)((_flags >> StringSetFlags.JustifyShift) &
+									     StringSetFlags.JustifyMask);
+				}
+				set {
+					_flags &= ~(uint)(StringSetFlags.JustifyMask << StringSetFlags.JustifyShift);
+					_flags |= (uint)value << StringSetFlags.JustifyShift;
+				}
+			}
+
+			public override int CalculateBufferSize (ref int strStart, ref int msgStart)
+			{
+				int size = base.CalculateBufferSize (ref strStart, ref msgStart);
+
+				// The string set buffer has a fixed length; there is no max buffer size
+				// variable.
+				if (!string.IsNullOrEmpty (_string_set))
+					size += _string_set.Length + 1;
+				if (!string.IsNullOrEmpty (_menu_title))
+					size += _menu_title.Length + 1;
+				if (!string.IsNullOrEmpty (_initial_selected_string))
+					size += Math.Max (_initial_selected_string.Length + 1,
+							  _max_selected_string_len);
+				if (!string.IsNullOrEmpty (_allowable))
+					size += Math.Max (_allowable.Length + 1,
+							  _max_allowable);
+				return size;
+			}
+
+			public override void BuildBuffer (IntPtr buffer,
+							  int offset,
+							  ref int strOffset,
+							  ref int msgOffset)
+			{
+				base.BuildBuffer (buffer, offset, ref strOffset, ref msgOffset);
+
+				msgOffset = ObjectTemplate.WriteString (_string_set,
+									0,
+									buffer,
+									offset + StringSetTemplateOffset.StringSet,
+									msgOffset);
+				msgOffset = ObjectTemplate.WriteString (_menu_title,
+									0,
+									buffer,
+									offset + StringSetTemplateOffset.MenuTitle,
+									msgOffset);
+				msgOffset = ObjectTemplate.WriteString (_initial_selected_string,
+									_max_selected_string_len,
+									buffer,
+									offset + StringSetTemplateOffset.InitialSelectedString,
+									msgOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + StringSetTemplateOffset.MaxSelectedStringLen,
+						    Math.Max (_initial_selected_string.Length + 1, _max_selected_string_len));
+				msgOffset = ObjectTemplate.WriteString (_allowable,
+									_max_allowable,
+									buffer,
+									offset + StringSetTemplateOffset.Allowable,
+									msgOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + StringSetTemplateOffset.MaxAllowable,
+						    Math.Max (_allowable.Length + 1, _max_allowable));
+				Marshal.WriteInt32 (buffer,
+						    offset + StringSetTemplateOffset.Before,
+						    _before);
+				Marshal.WriteInt32 (buffer,
+						    offset + StringSetTemplateOffset.After,
+						    _after);
+			}
+
+			public override int GetTemplateSize ()
+			{
+				return StringSetTemplateOffset.TemplateSize;
+			}
+		}
 	}
 }

@@ -258,7 +258,7 @@ namespace riscos
 				}
 			}
 
-			/*! \brief Set or get whether the NumberRange gadget will be writable.
+			/*! \brief Set or get whether the NumberRange gadget has a display area.
 			 * \note Default value: true.  */
 			public bool HasDisplayArea {
 				get { return (_flags & NumberRangeFlags.NoDisplayArea) == 0; }
