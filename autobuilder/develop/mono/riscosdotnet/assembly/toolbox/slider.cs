@@ -270,5 +270,189 @@ namespace riscos
 					OnValueChange (new ValueChangeEventArgs (e.RawEventData));
 			}
 		}
+
+		/*! \brief The Toolbox flags that define the behaviour of an Slider gadget.  */
+		public static class SliderFlags
+		{
+			public const int InformClient = (1 << 0);
+			public const int InformClientConstantly = (1 << 1);
+			// Note bit 2 not used.
+			public const int Vertical = (1 << 3);
+			public const int Draggable = (1 << 4);
+			public const int BarColourShift = 12;
+			public const int BGColourShift = 16;
+			public const int ColourMask = 15;
+		}
+
+		public static class SliderTemplateOffset
+		{
+			public const int LowerBound = 36;
+			public const int UpperBound = 40;
+			public const int StepSize = 44;
+			public const int InitialValue = 48;
+			public const int TemplateSize = 52;
+		}
+
+		/*! \brief Encapsulates the data required to create a template for a Slider
+		 * gadget.  */
+		public class SliderTemplate : GadgetTemplate
+		{
+			int _lower_bound = 0;
+			/*! \brief The lower bound that a slider gadget created from this
+			 * template will have.
+			 * \note Default value: 0  */
+			public int LowerBound {
+				get { return _lower_bound; }
+				set { _lower_bound = value; }
+			}
+
+			int _upper_bound = 100;
+			/*! \brief The upper bound that a slider gadget created from this
+			 * template will have.
+			 * \note Default value: 100  */
+			public int UpperBound {
+				get { return _upper_bound; }
+				set { _upper_bound = value; }
+			}
+
+			int _step_size = 1;
+			/*! \brief The step size that a slider gadget created from this
+			 * template will have.
+			 * \note Default value: 1  */
+			public int StepSize {
+				get { return _step_size; }
+				set { _step_size = value; }
+			}
+
+			int _initial_value = 0;
+			/*! \brief The initial value that a slider gadget created from this
+			 * template will have.
+			 * \note Default value: 0  */
+			public int InitialValue {
+				get { return _initial_value; }
+				set { _initial_value = value; }
+			}
+
+			/*! \brief Create a slider template with default values.  */
+			public SliderTemplate () : base (Gadget.ComponentType.Slider)
+			{
+				BarColour = OS.DesktopColour.Grey4;
+				BGColour = OS.DesktopColour.White;
+			}
+
+			/*! \brief Create a Toolbox Slider template using the value given.
+			 * \param [in] lower The lower bound of the slider.
+			 * \param [in] upper The upper bound of the slider.
+			 * \param [in] step The step size of the slider.
+			 * \param [in] initial The initial value of the slider.  */
+			public SliderTemplate (int lower, int upper, int step, int initial) :
+								base (Gadget.ComponentType.Slider)
+			{
+				_lower_bound = lower;
+				_upper_bound = upper;
+				_step_size = step;
+				_initial_value = initial;
+
+				BarColour = OS.DesktopColour.Grey4;
+				BGColour = OS.DesktopColour.White;
+			}
+
+			/*! \brief Set or get whether a slider gadget created from this template
+			 * will inform clients of value changes using Slider_ValueChanged events.
+			 * \note Default value: false.  */
+			public bool InformClient {
+				get { return (_flags & SliderFlags.InformClient) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  SliderFlags.InformClient :
+								_flags & ~SliderFlags.InformClient);
+				}
+			}
+
+			/*! \brief Set or get whether a slider gadget created from this template
+			 * will inform clients of value changes constantly whilst dragging or just
+			 * at start/end.
+			 * \note Default value: false.  */
+			public bool InformClientConstantly {
+				get { return (_flags & SliderFlags.InformClientConstantly) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  SliderFlags.InformClientConstantly :
+								_flags & ~SliderFlags.InformClientConstantly);
+				}
+			}
+
+			/*! \brief Set or get whether the Slider gadget will be vertical.
+			 * \note Default value: false (Slider will be horizontal).  */
+			public bool Vertical {
+				get { return (_flags & SliderFlags.Vertical) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  SliderFlags.Vertical :
+								_flags & ~SliderFlags.Vertical);
+				}
+			}
+
+			/*! \brief Set or get whether the Slider gadget will be draggable.
+			 * \note Default value: false (Slider is for display only).  */
+			public bool Draggable {
+				get { return (_flags & SliderFlags.Draggable) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  SliderFlags.Draggable :
+								_flags & ~SliderFlags.Draggable);
+				}
+			}
+
+			/*! \brief Set or get the desktop colour of the slider bar.
+			 * \note Default value: 4 (Grey4). */
+			public OS.DesktopColour BarColour {
+				get {
+					return (OS.DesktopColour)((_flags >> SliderFlags.BarColourShift) &
+								   SliderFlags.ColourMask);
+				}
+				set {
+					_flags &= ~(uint)(SliderFlags.ColourMask <<
+							  SliderFlags.BarColourShift);
+					_flags |= (uint)value << SliderFlags.BarColourShift;
+				}
+			}
+
+			/*! \brief Set or get the desktop colour of the slider background.
+			 * \note Default value: 0 (White). */
+			public OS.DesktopColour BGColour {
+				get {
+					return (OS.DesktopColour)((_flags >> SliderFlags.BGColourShift) &
+								   SliderFlags.ColourMask);
+				}
+				set {
+					_flags &= ~(uint)(SliderFlags.ColourMask <<
+							  SliderFlags.BGColourShift);
+					_flags |= (uint)value << SliderFlags.BGColourShift;
+				}
+			}
+
+			public override void BuildBuffer (IntPtr buffer,
+							  int offset,
+							  ref int strOffset,
+							  ref int msgOffset)
+			{
+				base.BuildBuffer (buffer, offset, ref strOffset, ref msgOffset);
+
+				Marshal.WriteInt32 (buffer,
+						    offset + SliderTemplateOffset.LowerBound,
+						    _lower_bound);
+				Marshal.WriteInt32 (buffer,
+						    offset + SliderTemplateOffset.UpperBound,
+						    _upper_bound);
+				Marshal.WriteInt32 (buffer,
+						    offset + SliderTemplateOffset.StepSize,
+						    _step_size);
+				Marshal.WriteInt32 (buffer,
+						    offset + SliderTemplateOffset.InitialValue,
+						    _initial_value);
+			}
+
+			public override int GetTemplateSize ()
+			{
+				return SliderTemplateOffset.TemplateSize;
+			}
+		}
 	}
 }

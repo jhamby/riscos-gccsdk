@@ -326,13 +326,6 @@ namespace riscos
 				}
 			}
 
-			public override int CalculateBufferSize (ref int strStart, ref int msgStart)
-			{
-				int size = base.CalculateBufferSize (ref strStart, ref msgStart);
-
-				return size;
-			}
-
 			public override void BuildBuffer (IntPtr buffer,
 							  int offset,
 							  ref int strOffset,

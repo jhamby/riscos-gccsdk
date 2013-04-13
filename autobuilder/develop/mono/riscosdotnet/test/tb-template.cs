@@ -115,6 +115,14 @@ namespace riscos.CSharpBindings.TBTemplateTest
 				gadget.BoundingBox = new OS.Rect (700, 850, 950, 900);
 				win_template.AddGadget (gadget);
 
+				// Define a Slider gadget in the window template.
+				// Lower bound = 0, upper bound = 1000, step size = 10, initial
+				// value = 500.
+				gadget = new Toolbox.SliderTemplate (0, 1000, 10, 500);
+				gadget.BoundingBox = new OS.Rect (700, 780, 950, 830);
+				((Toolbox.SliderTemplate)gadget).Draggable = true;
+				win_template.AddGadget (gadget);
+
 				// Define a keyboard shortcut in the window template.
 				var shortcut = new Toolbox.KeyboardShortcutTemplate ('A', 0x1234);
 				win_template.AddKeyboardShortcut (shortcut);
