@@ -14,7 +14,7 @@ namespace riscos.CSharpBindings.TBTemplateTest
 	public class TBTemplateTask : ToolboxTask
 	{
 		Dialogue dialogue;
-		const string Version = "V1.0 (5th April 2013)";
+		const string Version = "V1.0 (13th April 2013)";
 
 		public void Init ()
 		{
@@ -97,7 +97,22 @@ namespace riscos.CSharpBindings.TBTemplateTest
 
 				// Define an OptionButton gadget in the window template.
 				gadget = new Toolbox.OptionButtonTemplate ("Option Button");
+				gadget.BoundingBox = new OS.Rect (400, 780, 650, 830);
+				win_template.AddGadget (gadget);
+
+				// Define two RadioButton gadgets in the window template.
+				// Need more than one for selection/deselection to work.
+				// They are linked together by giving them the same group ID,
+				// which must be none zero.
+				gadget = new Toolbox.RadioButtonTemplate ("Radio Button 1");
 				gadget.BoundingBox = new OS.Rect (400, 850, 650, 900);
+				((Toolbox.RadioButtonTemplate)gadget).Group = 1;
+				win_template.AddGadget (gadget);
+
+				gadget = new Toolbox.RadioButtonTemplate ("Radio Button 2");
+				((Toolbox.RadioButtonTemplate)gadget).Group = 1;
+				((Toolbox.RadioButtonTemplate)gadget).OnWhenCreated = true;
+				gadget.BoundingBox = new OS.Rect (700, 850, 950, 900);
 				win_template.AddGadget (gadget);
 
 				// Define a keyboard shortcut in the window template.
