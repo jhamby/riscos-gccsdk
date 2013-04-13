@@ -205,14 +205,30 @@ namespace riscos
 						       int bodyOffset,
 						       int tableOffset)
 			{
+				IntPtr dst_addr = (IntPtr)((int)buffer + tableOffset);
+
 				if (string.IsNullOrEmpty (s))
 				{
-					Marshal.WriteInt32 (buffer, bodyOffset, 0);
+					// Even if no string is given, an empty buffer may still be
+					// required.
+					if (sMaxLen == 0)
+					{
+						// If the maximum size of the buffer is zero, then there really
+						// is no string.
+						dst_addr = IntPtr.Zero;
+					}
+					else
+					{
+						// No string given, but the maximum buffer size is greater than
+						// zero. Reserve that much space and write a zero byte to it.
+						Marshal.WriteByte (dst_addr, 0);
+						tableOffset += sMaxLen;
+					}
+
+					Marshal.WriteInt32 (buffer, bodyOffset, (int)dst_addr);
 				}
 				else
 				{
-					IntPtr dst_addr = (IntPtr)((int)buffer + tableOffset);
-
 					Marshal.WriteInt32 (buffer, bodyOffset, (int)dst_addr);
 
 					byte[] strbuf = Encoding.UTF8.GetBytes (s);
@@ -226,7 +242,7 @@ namespace riscos
 
 					tableOffset = (sMaxLen == 0) ?
 						      tableOffset + s.Length + 1 :
-						      tableOffset + sMaxLen;
+						      tableOffset + Math.Max (s.Length + 1, sMaxLen);
 				}
 
 				return tableOffset;
