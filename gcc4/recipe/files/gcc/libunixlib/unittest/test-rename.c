@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "include/expect-rename.c"
+#include "include/expect-symlink.c"
 #include "include/check.c"
 
 #ifdef __riscos__
@@ -113,17 +114,67 @@ Test_002_BasicRenameDir (void)
 }
 
 /**
- * Test rename file '003_src' to '003_dst' with '003_dst' preexisting.
+ * Test rename symlink '001_src' to '001_dst' (most basic case).
+ * Test rename symlink '001_xxx' to '001_XXX' (i.e. change case).
+ * Test rename symlink '001_foo' to '001_foo' (i.e. no change).
  */
 static bool
-Test_003_RenameFileAndDstExists (void)
+Test_003_BasicRenameSymLink (void)
 {
   STEP(Check_DirEmpty);
 
-  STEP(Create_File, "003_src");
-  STEP(Create_File, "003_dst");
+  STEP(Create_SymLink, "non-existing-object", "003_src");
   STEP(ExpectCall_Rename, "003_src", "003_dst", 0);
-  static const char *fnames[] = { "003_dst" };
+  static const char * const fnames1[] = { "003_dst" };
+  STEP(Check_DirContents, fnames1, sizeof (fnames1)/sizeof (fnames1[0]));
+  STEP(Clean_CurDir);
+  STEP(Check_DirEmpty);
+
+  STEP(Create_SymLink, "non-existing-object", "003_src");
+  STEP(ExpectCall_Rename, "./003_src", "./003_dst", 0);
+  STEP(Check_DirContents, fnames1, sizeof (fnames1)/sizeof (fnames1[0]));
+  STEP(Clean_CurDir);
+  STEP(Check_DirEmpty);
+
+  STEP(Create_SymLink, "non-existing-object", "003_xxx");
+  STEP(ExpectCall_Rename, "003_xxx", "003_XXX", 0);
+  static const char * const fnames2[] = { "003_XXX" };
+  STEP(Check_DirContents, fnames2, sizeof (fnames2)/sizeof (fnames2[0]));
+  STEP(Clean_CurDir);
+  STEP(Check_DirEmpty);
+
+  STEP(Create_SymLink, "non-existing-object", "003_foo");
+  STEP(ExpectCall_Rename, "003_foo", "003_foo", 0);
+  static const char * const fnames3[] = { "003_foo" };
+  STEP(Check_DirContents, fnames3, sizeof (fnames3)/sizeof (fnames3[0]));
+  STEP(Clean_CurDir);
+  STEP(Check_DirEmpty);
+
+  /* rename() shouldn't generate ELOOP (or some other error) when we have
+     symlink loop.  */
+  STEP(Create_SymLink, "symlink2", "symlink1");
+  STEP(Create_SymLink, "symlink3", "symlink2");
+  STEP(Create_SymLink, "symlink1", "symlink3");
+  STEP(ExpectCall_Rename, "symlink1", "foo", 0);
+  STEP(ExpectCall_Rename, "foo", "symlink1", 0);
+  STEP(Clean_CurDir);
+  STEP(Check_DirEmpty);
+
+  return false;
+}
+
+/**
+ * Test rename file '003_src' to '003_dst' with '003_dst' preexisting.
+ */
+static bool
+Test_004_RenameFileAndDstExists (void)
+{
+  STEP(Check_DirEmpty);
+
+  STEP(Create_File, "004_src");
+  STEP(Create_File, "004_dst");
+  STEP(ExpectCall_Rename, "004_src", "004_dst", 0);
+  static const char *fnames[] = { "004_dst" };
   STEP(Check_DirContents, fnames, sizeof (fnames)/sizeof (fnames[0]));
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
@@ -135,14 +186,14 @@ Test_003_RenameFileAndDstExists (void)
  * Test rename dir '004_src' to '004_dst' with '004_dst' preexisting.
  */
 static bool
-Test_004_RenameDirAndDstExists (void)
+Test_005_RenameDirAndDstExists (void)
 {
   STEP(Check_DirEmpty);
 
-  STEP(Create_Dir, "004_src");
-  STEP(Create_Dir, "004_dst");
-  STEP(ExpectCall_Rename, "004_src", "004_dst", 0);
-  static const char *fnames[] = { "004_dst" };
+  STEP(Create_Dir, "005_src");
+  STEP(Create_Dir, "005_dst");
+  STEP(ExpectCall_Rename, "005_src", "005_dst", 0);
+  static const char *fnames[] = { "005_dst" };
   STEP(Check_DirContents, fnames, sizeof (fnames)/sizeof (fnames[0]));
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
@@ -154,14 +205,14 @@ Test_004_RenameDirAndDstExists (void)
  * Test rename file '005_file' to existing '005_dir' -> EISDIR.
  */
 static bool
-Test_005_GenerationOfEISDIR (void)
+Test_006_GenerationOfEISDIR (void)
 {
   STEP(Check_DirEmpty);
 
-  STEP(Create_File, "005_file");
-  STEP(Create_Dir, "005_dir");
-  STEP(ExpectCall_Rename, "005_file", "005_dir", EISDIR);
-  static const char *fnames[] = { "005_file", "005_dir" };
+  STEP(Create_File, "006_file");
+  STEP(Create_Dir, "006_dir");
+  STEP(ExpectCall_Rename, "006_file", "006_dir", EISDIR);
+  static const char *fnames[] = { "006_file", "006_dir" };
   STEP(Check_DirContents, fnames, sizeof (fnames)/sizeof (fnames[0]));
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
@@ -176,7 +227,7 @@ Test_005_GenerationOfEISDIR (void)
  *  - src or dst is empty string.
  */
 static bool
-Test_006_GenerationOfENOENT (void)
+Test_007_GenerationOfENOENT (void)
 {
   STEP(Check_DirEmpty);
 
@@ -222,10 +273,11 @@ Test_006_GenerationOfENOENT (void)
  *  - src is a directory but dst is a file.
  */
 static bool
-Test_007_GenerationOfENOTDIR (void)
+Test_008_GenerationOfENOTDIR (void)
 {
   STEP(Check_DirEmpty);
 
+  /* FIXME: this ENOTDIR case is not yet properly supported in UnixLib.  */
   STEP(Create_File, "file");
   STEP(ExpectCall_Rename, "file/nofile", "other_file", ENOTDIR);
   static const char *fnames1[] = { "file" };
@@ -257,7 +309,7 @@ Test_007_GenerationOfENOTDIR (void)
  *   - src or dst being an illegal address.
  */
 static bool
-Test_008_GenerationOfEFAULT (void)
+Test_009_GenerationOfEFAULT (void)
 {
   STEP(Check_DirEmpty);
 
@@ -279,7 +331,7 @@ Test_008_GenerationOfEFAULT (void)
  *   - src being a parent dir of dst.
  */
 static bool
-Test_009_GenerationOfEINVAL (void)
+Test_010_GenerationOfEINVAL (void)
 {
   STEP(Check_DirEmpty);
 
@@ -310,7 +362,7 @@ Test_009_GenerationOfEINVAL (void)
  * Test rename() ENAMETOOLONG error generation.
  */
 static bool
-Test_010_GenerationOfENAMETOOLONG (void)
+Test_011_GenerationOfENAMETOOLONG (void)
 {
   STEP(Check_DirEmpty);
 
@@ -335,7 +387,7 @@ Test_010_GenerationOfENAMETOOLONG (void)
  * changes.
  */
 static bool
-Test_011_RenameWithFiletypeSuffix (void)
+Test_012_RenameWithFiletypeSuffix (void)
 {
   STEP(Check_DirEmpty);
 
@@ -392,7 +444,7 @@ Test_011_RenameWithFiletypeSuffix (void)
 }
 
 static bool
-Test_012_RenameWithExtension (void)
+Test_013_RenameWithExtension (void)
 {
   STEP(Check_DirEmpty);
 
@@ -424,10 +476,6 @@ Test_012_RenameWithExtension (void)
   return false;
 }
 
-/* FIXME: Add tests:
-     - symlink test
- */
-
 #define TESTER_ENTRY(a) \
   { __STRING(a), a }
 typedef bool (*Tester)(void);
@@ -439,16 +487,17 @@ static const struct
 {
   TESTER_ENTRY(Test_001_BasicRenameFile),
   TESTER_ENTRY(Test_002_BasicRenameDir),
-  TESTER_ENTRY(Test_003_RenameFileAndDstExists),
-  TESTER_ENTRY(Test_004_RenameDirAndDstExists),
-  TESTER_ENTRY(Test_005_GenerationOfEISDIR),
-  TESTER_ENTRY(Test_006_GenerationOfENOENT),
-  TESTER_ENTRY(Test_007_GenerationOfENOTDIR),
-  TESTER_ENTRY(Test_008_GenerationOfEFAULT),
-  TESTER_ENTRY(Test_009_GenerationOfEINVAL),
-  TESTER_ENTRY(Test_010_GenerationOfENAMETOOLONG),
-  TESTER_ENTRY(Test_011_RenameWithFiletypeSuffix),
-  TESTER_ENTRY(Test_012_RenameWithExtension),
+  TESTER_ENTRY(Test_003_BasicRenameSymLink),
+  TESTER_ENTRY(Test_004_RenameFileAndDstExists),
+  TESTER_ENTRY(Test_005_RenameDirAndDstExists),
+  TESTER_ENTRY(Test_006_GenerationOfEISDIR),
+  TESTER_ENTRY(Test_007_GenerationOfENOENT),
+  TESTER_ENTRY(Test_008_GenerationOfENOTDIR),
+  TESTER_ENTRY(Test_009_GenerationOfEFAULT),
+  TESTER_ENTRY(Test_010_GenerationOfEINVAL),
+  TESTER_ENTRY(Test_011_GenerationOfENAMETOOLONG),
+  TESTER_ENTRY(Test_012_RenameWithFiletypeSuffix),
+  TESTER_ENTRY(Test_013_RenameWithExtension),
 };
 
 #include "include/main.c"

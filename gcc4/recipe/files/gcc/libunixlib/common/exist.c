@@ -12,6 +12,7 @@
    ImageFS image when __feature_imagefs_is_file is 1; 2 if it  an
    existing directory or an ImageFS image when __feature_imagefs_is_file
    is 0.  */
+/* FIXME: use __object_get_attrs/__object_get_lattrs instead. */
 int
 __object_exists_ux (const char *ux_obj)
 {
@@ -22,7 +23,7 @@ __object_exists_ux (const char *ux_obj)
 
 #if __UNIXLIB_SYMLINKS
   char target[_POSIX_PATH_MAX];
-  if (__resolve_symlinks (obj, target, _POSIX_PATH_MAX) != 0)
+  if (__resolve_symlinks (obj, target, _POSIX_PATH_MAX, 0) != 0)
     return 0;
 
   return __object_exists_ro (target);

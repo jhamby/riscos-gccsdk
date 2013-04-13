@@ -1,3 +1,43 @@
+Sun Apr 14 01:37:22 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	Based on bug analysis and readlink implementation work by Dave
+	<buzby@kdmsc.plus.com>:
+	* common/symlinks.c (__resolve_symlinks): Add one_step_only parameter.
+	Return ELOOP instead of EMLINK.
+	* incl-local/internal/symlinks.h (__resolve_symlinks): Add
+	one_step_only parameter.
+	(SYMLINK_ID_STR): Add.
+	* common/exist.c (__object_exists_ux): Follow __resolve_symlinks API
+	change.
+	* sys/exec.c (execve): Likewise.
+	* unix/dev.c (__fsopen): Likewise.
+	(__fsfstat): Fix compiler warning.
+	(__fslstat): Fix stat::st_mode value.
+	* common/objattr.c (get_attrs): Add.  When following symlinks, return
+	the destination, not the first symlink.
+	(__object_get_attrs, __object_get_lattrs): Use get_attrs.
+	(__object_set_attrs): Follow __resolve_symlinks API change.
+	* common/unixify.c (add_filetype): Don't add filetype for symlink files.
+	(add_directory_name): Remove "@" case.
+	(__unixify): Support "@", "^" and "%" on its own.
+	* unix/dirent.c (readdir_r): Don't add filetype for symlink files.
+	* unix/unlink.c (unlink): Don't follow symlinks.
+	* unistd/symlink.c (symlink): Add more parameter checks.
+	Fix error checking of symlink file writing.
+	* unistd/readlink.c (readlink): Add real implementation.
+	* incl-local/internal/os.h (SWI_OS_GBPB_WriteBytes): Constify buf
+	parameter.
+
+	unittest:
+	* test-utime.c: Add filetype, symlink, ENAMETOOLONG sub-tests.
+	* test-utimes.c: Likewise.
+	* test-rename.c: Add symlink sub-test.
+	* test-fopen.c: Add symlink, ELOOP, ENAMETOOLONG sub-tests.
+	* include/check.c (DirContents_Get): Use lstat instead of stat.
+	* test-readlink.c, test-stat.c, test-lstat.c, test-symlink.c,
+	include/expect-lstat.c, include/expect-readlink.c,
+	include/expect-symlink.c, include/expect-stat.c: Add.
+
 Tue Apr  2 16:31:46 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/os.h (__os_fopen, __os_fclose, __os_fread,

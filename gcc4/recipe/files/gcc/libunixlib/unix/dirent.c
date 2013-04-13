@@ -17,6 +17,8 @@
 #include <internal/os.h>
 #include <internal/swiparams.h>
 #include <internal/local.h>
+#include <internal/symlinks.h>
+
 #include <pthread.h>
 
 /* #define DEBUG */
@@ -443,10 +445,17 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                   int filetype;
 
                   filetype = (stream->dir_cache_index->load_address >> 8) & 0xfff;
-                  if (filetype != 0xfff && str+4 <= end)
+		  /* Following code is similar to
+		     add_filetype() @ common/unixify.c  */
+                  if (filetype != 0xfff
+#if __UNIXLIB_SYMLINKS
+		      /* Do not add the symlink filetype.  We keep that hidden
+			 from the UnixLib public API.  */
+		      && filetype != SYMLINK_FILETYPE
+#endif
+		      && str+4 <= end)
                     {
                       int ft_extension_needed = 1;
-
                       if (!(riscosify_ctl & __RISCOSIFY_FILETYPE_NOT_SET))
                         {
                           char *fn_extension;

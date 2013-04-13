@@ -76,7 +76,7 @@ DirContents_Get (const char *dir, DirContents_t *dirContents)
           dirContents->objInfos = newObjInfos;
         }
       strcpy (tmpPath + dirLen, dirEntry->d_name);
-      if (stat (tmpPath, &dirContents->objInfos[dirContents->numEntries].stat) != 0)
+      if (lstat (tmpPath, &dirContents->objInfos[dirContents->numEntries].stat) != 0)
         {
           fprintf (stderr, "stat() failed for %s\n", tmpPath);
           closedir(dhandle);
@@ -214,6 +214,9 @@ Check_ROFileType (const char *fpath, unsigned roftype)
 #endif
 }
 
+/**
+ * Does follow any symbolic links.
+ */
 static bool
 Check_FileSize (const char *fname, off_t fsize)
 {
@@ -234,6 +237,9 @@ Check_FileSize (const char *fname, off_t fsize)
 }
 
 
+/**
+ * Does follow any symbolic links.
+ */
 static bool
 Check_FileModDate (const char *fname, time_t mtime_sec, unsigned mtime_csec)
 {

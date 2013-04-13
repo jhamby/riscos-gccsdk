@@ -1,5 +1,5 @@
 /* Delete a file from disk.
-   Copyright (c) 2005-2012 UnixLib Developers.  */
+   Copyright (c) 2005-2013 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -40,8 +40,8 @@ unlink (const char *ux_file)
 {
   int objtype, attr;
   char file[_POSIX_PATH_MAX];
-  if (__object_get_attrs (ux_file, file, sizeof (file),
-                          &objtype, NULL, NULL, NULL, NULL, &attr))
+  if (__object_get_lattrs (ux_file, file, sizeof (file),
+			   &objtype, NULL, NULL, NULL, NULL, &attr))
     return -1;
 
   if (objtype == 2

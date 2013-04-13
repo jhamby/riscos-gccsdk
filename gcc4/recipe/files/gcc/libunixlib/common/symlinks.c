@@ -44,7 +44,7 @@ read_link_file_info (const char *filename, int *filetype, int *type)
 /* Filenames passed and the symlinks itself are always RISC OS filenames.  */
 int
 __resolve_symlinks (const char *filename_in, char *filename_out,
-		    size_t fn_out_size)
+		    size_t fn_out_size, int one_step_only)
 {
   static char *buffer = NULL; /* We're reusing our buffer.  */
   static size_t bufsize = 0;
@@ -67,7 +67,8 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 
       if (link_count >= SYMLINK_MAX_LINKS)
 	{
-	  __set_errno (EMLINK);	/* or ELOOP? */
+	  /* Note, EMLINK is FreeBSD'ism while ELOOP is POSIX.  */
+	  __set_errno (ELOOP);
 	  break;
 	}
 
@@ -159,6 +160,9 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	}
 
       link_count++;
+
+      if (one_step_only)
+	return 0;
     }
 
   /* Error happened.  */

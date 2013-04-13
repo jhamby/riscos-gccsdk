@@ -14,6 +14,7 @@
 #include "include/expect-fputc.c"
 #include "include/expect-fseek.c"
 #include "include/expect-feof.c"
+#include "include/expect-symlink.c"
 #include "include/check.c"
 
 static bool
@@ -242,35 +243,45 @@ Test_001_BasicFileOpen (void)
 {
   STEP(Check_DirEmpty);
 
-  for (size_t idx = 0; idx != sizeof (oValidModeTests)/sizeof (oValidModeTests[0]); ++idx)
+  bool via_symlink = false;
+  do
     {
-      for (size_t subIdx = 0; subIdx != 6; ++subIdx)
+      for (size_t idx = 0; idx != sizeof (oValidModeTests)/sizeof (oValidModeTests[0]); ++idx)
         {
-          if (gVerbose)
-            fprintf (stderr, "  Mode test %u \"%s\", sub test %u\n",
-                     (unsigned)idx, oValidModeTests[idx].mode, (unsigned)subIdx);
-
-          bool createFile = subIdx >= 3;
-          bool readByte = (subIdx % 3) == 1;
-          bool writeByte = (subIdx % 3) == 2;
-
-	  STEP(Check_DirEmpty);
-          if (createFile)
-            Create_FileWithSize ("foo", INITIAL_FILESIZE);
-          FILE *fh;
-          STEP(ExpectCall_FOpen, &fh, "foo", oValidModeTests[idx].mode, oValidModeTests[idx].results[subIdx].errFOpen);
-          if (fh != NULL)
+          for (size_t subIdx = 0; subIdx != 6; ++subIdx)
             {
-              if (readByte)
-                STEP(ExpectCall_FGetC, fh, oValidModeTests[idx].results[subIdx].byteRead, oValidModeTests[idx].results[subIdx].errFGetC);
-              if (writeByte)
-                STEP(ExpectCall_FPutC, '@', fh, oValidModeTests[idx].results[subIdx].errFPutC);
-              STEP(ExpectCall_FClose, fh, 0);
-              STEP(Check_FileSize, "foo", oValidModeTests[idx].results[subIdx].fileSize);
+              if (gVerbose)
+                fprintf (stderr, "  Mode test %u \"%s\", sub test %u\n",
+                         (unsigned)idx, oValidModeTests[idx].mode, (unsigned)subIdx);
+
+              const char real_filename[] = "foo";
+              const char *fopen_filename = via_symlink ? "symlink" : real_filename;
+              if (via_symlink)
+                STEP(Create_SymLink, real_filename, "symlink");
+
+              bool createFile = subIdx >= 3;
+              bool readByte = (subIdx % 3) == 1;
+              bool writeByte = (subIdx % 3) == 2;
+
+	      STEP(Check_DirEmpty);
+              if (createFile)
+                Create_FileWithSize (real_filename, INITIAL_FILESIZE);
+              FILE *fh;
+              STEP(ExpectCall_FOpen, &fh, fopen_filename, oValidModeTests[idx].mode, oValidModeTests[idx].results[subIdx].errFOpen);
+              if (fh != NULL)
+                {
+                  if (readByte)
+                    STEP(ExpectCall_FGetC, fh, oValidModeTests[idx].results[subIdx].byteRead, oValidModeTests[idx].results[subIdx].errFGetC);
+                  if (writeByte)
+                    STEP(ExpectCall_FPutC, '@', fh, oValidModeTests[idx].results[subIdx].errFPutC);
+                  STEP(ExpectCall_FClose, fh, 0);
+                  STEP(Check_FileSize, real_filename, oValidModeTests[idx].results[subIdx].fileSize);
+                }
+              STEP(Clean_CurDir);
             }
-          STEP(Clean_CurDir);
         }
-    }
+      via_symlink = !via_symlink;
+    } while (!via_symlink);
   STEP(Check_DirEmpty);
 
   return false;
@@ -373,11 +384,38 @@ Test_004_SameFileOpenTwice (void)
 }
 
 /**
+ * Check symlink capability of fopen.
+ */
+static bool
+Test_005_FileOpenViaSymLink (void)
+{
+  STEP(Check_DirEmpty);
+
+  /* fopen() should follow symlinks.  */
+  STEP(Create_FileWithSize, "file", 16);
+  STEP(Create_SymLink, "symlink2", "symlink1");
+  STEP(Create_SymLink, "symlink3", "symlink2");
+  STEP(Create_SymLink, "file", "symlink3");
+  FILE *fh;
+  STEP(ExpectCall_FOpen, &fh, "symlink1", "a+", 0);
+  STEP(ExpectCall_FPutC, 'A', fh, 0);
+  STEP(ExpectCall_FPutC, 'B', fh, 0);
+  STEP(ExpectCall_FPutC, 'C', fh, 0);
+  STEP(ExpectCall_FClose, fh, 0);
+  STEP(Check_FileSize, "file", 16 + 3);
+  STEP(Clean_CurDir);
+
+  STEP(Check_DirEmpty);
+
+  return false;
+}
+
+/**
  * Test fopen() EINVAL error generation.
  *   - mode description is not correct.
  */
 static bool
-Test_005_GenerationOfEINVAL (void)
+Test_006_GenerationOfEINVAL (void)
 {
   STEP(Check_DirEmpty);
 
@@ -400,7 +438,7 @@ Test_005_GenerationOfEINVAL (void)
  *   - fname being NULL (mode being NULL is not required to return EFAULT).
  */
 static bool
-Test_006_GenerationOfEFAULT (void)
+Test_007_GenerationOfEFAULT (void)
 {
   STEP(Check_DirEmpty);
 
@@ -416,7 +454,7 @@ Test_006_GenerationOfEFAULT (void)
  *   - fname being an empty string.
  */
 static bool
-Test_007_GenerationOfENOENT (void)
+Test_008_GenerationOfENOENT (void)
 {
   STEP(Check_DirEmpty);
 
@@ -427,9 +465,45 @@ Test_007_GenerationOfENOENT (void)
   return false;
 }
 
-/* FIXME: Add tests:
-     - symlink test
+/**
+ * Test fopen() ELOOP error generation.
  */
+static bool
+Test_009_GenerationELOOP (void)
+{
+  STEP(Check_DirEmpty);
+
+  STEP(Create_SymLink, "symlink2", "symlink1");
+  STEP(Create_SymLink, "symlink3", "symlink2");
+  STEP(Create_SymLink, "symlink1", "symlink3");
+  FILE *fh;
+  STEP(ExpectCall_FOpen, &fh, "symlink1", "r", ELOOP);
+  STEP(Clean_CurDir);
+  STEP(Check_DirEmpty);
+
+  return false;
+}
+
+/**
+ * Test fopen() ENAMETOOLONG error generation.
+ */
+static bool
+Test_010_GenerationENAMETOOLONG (void)
+{
+  STEP(Check_DirEmpty);
+
+  /* Assuming RISC OS isn't supporting 32K long filenames.  */
+  char *longFileName = malloc (32*1024);
+  for (size_t i = 0; i != 32*1024; ++i)
+    longFileName[i] = '0' + (i % 10);
+  FILE *fh;
+  STEP(ExpectCall_FOpen, &fh, longFileName, "w", ENAMETOOLONG);
+  STEP(Check_DirEmpty);
+
+  free (longFileName);
+
+  return false;
+}
 
 #define TESTER_ENTRY(a) \
   { __STRING(a), a }
@@ -444,9 +518,12 @@ static const struct
   TESTER_ENTRY(Test_002_BasicDirOpen),
   TESTER_ENTRY(Test_003_FOpenAppend),
   TESTER_ENTRY(Test_004_SameFileOpenTwice),
-  TESTER_ENTRY(Test_005_GenerationOfEINVAL),
-  TESTER_ENTRY(Test_006_GenerationOfEFAULT),
-  TESTER_ENTRY(Test_007_GenerationOfENOENT),
+  TESTER_ENTRY(Test_005_FileOpenViaSymLink),
+  TESTER_ENTRY(Test_006_GenerationOfEINVAL),
+  TESTER_ENTRY(Test_007_GenerationOfEFAULT),
+  TESTER_ENTRY(Test_008_GenerationOfENOENT),
+  TESTER_ENTRY(Test_009_GenerationELOOP),
+  TESTER_ENTRY(Test_010_GenerationENAMETOOLONG),
 };
 
 #include "include/main.c"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
 #include <errno.h>
@@ -13,14 +13,21 @@
 #include <internal/local.h>
 #include <internal/swiparams.h>
 #include <internal/os.h>
+#include <internal/symlinks.h>
 
 /* #define DEBUG */
 
 static int
 add_filetype (char *buffer, char *out, char *out_end, int filetype, int unixify_flags)
 {
-  int ft_extension_needed = 1;
+#if __UNIXLIB_SYMLINKS
+  /* Do not add the symlink filetype.  We keep that hidden from the UnixLib
+     public API.  */
+  if (filetype == SYMLINK_FILETYPE)
+    return 1;
+#endif
 
+  int ft_extension_needed = 1;
   if (!(unixify_flags & __RISCOSIFY_FILETYPE_NOT_SET))
     {
       const char *fn_extension;
@@ -70,8 +77,6 @@ add_filetype (char *buffer, char *out, char *out_end, int filetype, int unixify_
 static int
 get_directory_name (const char *input, char *output)
 {
-  const char *t = NULL;
-
   if (*input == '\0')
     {
       *output = '\0';
@@ -80,7 +85,7 @@ get_directory_name (const char *input, char *output)
 
   /* RISC OS directory names are delimited by a '.'.
      We must check for a few Unix styles though.  */
-  t = strchr (input, '.');
+  const char *t = strchr (input, '.');
   if (t != NULL)
     {
       if (input[0] == '.')
@@ -107,13 +112,13 @@ get_directory_name (const char *input, char *output)
     }
   else
     {
-    /* If we reach here, we have four possibilities:
-       1. fname
-       2. directory/fname
-       3. .
-       4. ..
-       none of which need any conversion. No.1 has both compatible with
-       RISC OS and Unix, and nos. 2-4 are already in Unix form.  */
+      /* If we reach here, we have four possibilities:
+	   1. fname
+	   2. directory/fname
+	   3. .
+	   4. ..
+	 none of which need any conversion. No.1 has both compatible with
+	 RISC OS and Unix, and nos. 2-4 are already in Unix form.  */
       strcpy (output, input);
       return 0;
     }
@@ -127,23 +132,23 @@ add_directory_name (char *o, const char *i)
 #endif
 
   /* Root directory ($) can be ignored since output is only a '/'.
-     The backslash is automatically output at the end of the string.  */
+     The backslash is automatically output at the end of the string.
+     "@" has been dealt with elsewhere.  */
   if (i[0] != '\0' && i[1] == '\0')
     {
       switch (i[0])
 	{
 	case '$':
-	  /* Do nothing for the root directory becuase a '/' is
+	  /* Do nothing for the root directory because a '/' is
 	     automatically added at the end.  */
 	  break;
 	case '^':
-	  /* Parent directory. In Unix this is '../' */
+	  /* Parent directory. In Unix this is '..' */
 	  *o++ = '.';
 	  *o++ = '.';
 	  break;
-	case '@':
 	case '.':
-	  /* Currently selected directory. In Unix this is './' */
+	  /* Currently selected directory. In Unix this is '.' */
 	  *o++ = '.';
 	  break;
 	case '%':
@@ -247,26 +252,26 @@ char *
 __unixify_ext (const char *name, char *buffer, size_t buflen,
                int filetype, const char *ext)
 {
-  int namelen = strlen(name);
-  int extlen  = strlen(ext);
+  size_t namelen = strlen (name);
+  size_t extlen  = strlen (ext);
 
-  if (extlen < namelen && strcmp(name + namelen - extlen, ext) == 0)
+  if (extlen < namelen && strcmp (name + namelen - extlen, ext) == 0)
     {
 
       if (name[namelen - extlen - 1] == '.' && !strchr(name, '/'))
-        return __unixify(name, __RISCOSIFY_NO_PROCESS, buffer, buflen,
-                         filetype);
+        return __unixify (name, __RISCOSIFY_NO_PROCESS, buffer, buflen,
+			  filetype);
 
-      if (name[namelen - extlen - 1] == '/' && !strchr(name, '.'))
+      if (name[namelen - extlen - 1] == '/' && !strchr (name, '.'))
         {
-          char *extname = alloca(namelen + 3);
+          char *extname = alloca (namelen + 3);
 
-          strcpy(extname, "@.");
-          strcat(extname, name);
+          strcpy (extname, "@.");
+          strcat (extname, name);
 
           name = extname;
         }
-      }
+    }
 
   return __unixify (name, __get_riscosify_control (), buffer, buflen,
 		    filetype);
@@ -280,12 +285,7 @@ char *
 __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	   size_t buf_len, int filetype)
 {
-  char tempbuf[256];
-  char *out_end, *out;
-  char *temp;
-  int flag;
   const char *const in_buf = buffer; /* = NULL if we malloc the buffer.  */
-  const char *input;
 
 #ifdef DEBUG
   printf("__unixfy(%s, 0x%x, %p, %d, 0x%x)\n", ro_path, unixify_flags, buffer, buf_len, filetype);
@@ -323,10 +323,10 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       return (char *) memcpy (buffer, ro_path, len + 1);
     }
 
-  input = ro_path;
-  out = buffer;
+  const char *input = ro_path;
+  char *out = buffer;
   buffer[0] = '\0';
-  out_end = buffer + buf_len;
+  char *out_end = buffer + buf_len;
 
   /* Fast case. Look for a `.', `..', '../', '/' or `./'.  */
   if (ro_path[0] == '.')
@@ -365,32 +365,44 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       return buffer;
     }
 
-  /* If we take a file name like:
-     IDEFS::HD.$.Work.gcc.gcc-272.config.arm.c.rname
-     we would like to convert it to:
-     /IDEFS::HD.$/Work/gcc/gcc-272/config/arm/rname.c
-
-     Firstly try and locate a '.$'. Anything before this just specifies
-     a file system.  */
-  temp = strstr (ro_path, ".$");
-  if (temp != NULL)
+  /* "@" => "."
+     "@.foo" => "foo"  */
+  if (ro_path[0] == '@')
     {
-      /* We've found a '.$' */
-      if (*input != '/')
-        *out++ = '/';
-      temp += 2;
-      while (input != temp)
-	*out++ = *input++;
-
-       /* Terminate only if there's no more.  Otherwise, get_directory_name
-          gets it wrong for files in the root */
-      if (*input == '\0')
-        *out++ = '/';
+      if (ro_path[1] == '\0')
+	{
+	  *out++ = '.';
+	  *out = '\0';
+	  return buffer;
+	}
+      if (ro_path[1] == '.')
+	ro_path += sizeof ("@.")-1;
     }
   else
     {
-      temp = strchr (ro_path, ':');
-      if (temp)
+      /* If we take a file name like:
+	 IDEFS::HD.$.Work.gcc.gcc-272.config.arm.c.rname
+	 we would like to convert it to:
+	 /IDEFS::HD.$/Work/gcc/gcc-272/config/arm/rname.c
+
+	 Firstly try and locate a '.$'. Anything before this just specifies
+	 a file system.  */
+      const char *temp;
+      if ((temp = strstr (ro_path, ".$")) != NULL)
+	{
+	  /* We've found a '.$' */
+	  if (*input != '/')
+	    *out++ = '/';
+	  temp += 2;
+	  while (input != temp)
+	    *out++ = *input++;
+
+	  /* Terminate only if there's no more.  Otherwise, get_directory_name
+	     gets it wrong for files in the root */
+	  if (*input == '\0')
+	    *out++ = '/';
+	}
+      else if ((temp = strchr (ro_path, ':')) != NULL)
 	{
 	  /* Add a / to the start to remove any ambiguity when converting back
 	     to RISC OS format */
@@ -399,7 +411,8 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	}
     }
 
-  flag = 0;
+  int flag = 0;
+  char tempbuf[256];
   while (get_directory_name (input, tempbuf) != 0)
     {
 #ifdef DEBUG
@@ -460,17 +473,38 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 
   if (!flag)
     {
-      strcpy (out, tempbuf);
-      out += strlen(out);
+      if (tempbuf[0] != '\0' && tempbuf[1] == '\0')
+	{
+	  switch (tempbuf[0])
+	    {
+	      case '^':
+		*out++ = '.';
+		*out++ = '.';
+		break;
+	      case '%':
+		memcpy (out, "/lib", sizeof ("/lib")-1);
+		out += sizeof ("/lib")-1;
+		break;
+	      default:
+		*out++ = tempbuf[0];
+		break;
+	    }
+	  *out++ = '\0';
+	}
+      else
+	{
+	  strcpy (out, tempbuf);
+	  out += strlen(out);
+	}
     }
 #ifdef DEBUG
   printf ("input = '%s'\noutput = '%s'\n", ro_path, buffer);
 #endif
 
    /* Do filetype extension, if needed.  */
-  if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) == 0 ||
-       filetype == __RISCOSIFY_FILETYPE_NOTSPECIFIED ||
-       add_filetype(buffer, out, out_end, filetype, unixify_flags))
+  if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) == 0
+      || filetype == __RISCOSIFY_FILETYPE_NOTSPECIFIED
+      || add_filetype (buffer, out, out_end, filetype, unixify_flags))
     return buffer;
 
 buf_overflow:

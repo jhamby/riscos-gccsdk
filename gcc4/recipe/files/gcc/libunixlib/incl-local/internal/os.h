@@ -314,11 +314,11 @@ SWI_OS_GBPB_ReadBytes (unsigned __fhandle, void *__buf, unsigned __to_read,
 }
 
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_GBPB_WriteBytes (unsigned __fhandle, void *__buf, unsigned __to_write,
+SWI_OS_GBPB_WriteBytes (unsigned __fhandle, const void *__buf, unsigned __to_write,
 			unsigned *__not_written)
 {
   register unsigned fhandle __asm ("r1") = __fhandle;
-  register void *buf __asm ("r2") = __buf;
+  register const void *buf __asm ("r2") = __buf;
   register unsigned to_write __asm ("r3") = __to_write;
   register const _kernel_oserror *err __asm ("r0");
   register unsigned not_written __asm ("r3");

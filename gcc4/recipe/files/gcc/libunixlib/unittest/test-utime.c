@@ -15,6 +15,7 @@
 #include <utime.h>
 
 #include "include/expect-utime.c"
+#include "include/expect-symlink.c"
 #include "include/check.c"
 
 static bool gVerbose = false;
@@ -36,30 +37,62 @@ Test_001_BasicUTime (void)
 {
   STEP(Check_DirEmpty);
 
-  /* Only test the change in modification date.  */
-  STEP(Create_File, "file");
-  struct utimbuf times = { .actime = 0, .modtime = 0 };
-  for (unsigned mi = 0; mi != 17; ++mi)
+  const char * const testFiles[] =
     {
-      STEP(ExpectCall_UTime, "file", &times, 0);
-      STEP(Check_FileModDate, "file", times.modtime, 0);
-      times.modtime = 4*times.modtime + 3;
+      "file",
+      "file,abc",
+      "file,fff"
+    };
+
+  /* Only test the change in modification date.  */
+  for (size_t idx = 0; idx != sizeof (testFiles)/sizeof (testFiles[0]); ++idx)
+    {
+      STEP(Create_File, testFiles[idx]);
+      struct utimbuf times = { .actime = 0, .modtime = 0 };
+      for (unsigned mi = 0; mi != 17; ++mi)
+        {
+          STEP(ExpectCall_UTime, testFiles[idx], &times, 0);
+          STEP(Check_FileModDate, testFiles[idx], times.modtime, 0);
+          times.modtime = 4*times.modtime + 3;
+        }
+      STEP(Clean_CurDir);
+      STEP(Check_DirEmpty);
     }
-  STEP(Clean_CurDir);
-  STEP(Check_DirEmpty);
+
+  /* Same, but now via a symlink.  */
+  for (size_t idx = 0; idx != sizeof (testFiles)/sizeof (testFiles[0]); ++idx)
+    {
+      STEP(Create_File, testFiles[idx]);
+      STEP(Create_SymLink, testFiles[idx], "symlink");
+      struct utimbuf times = { .actime = 0, .modtime = 0 };
+      for (unsigned mi = 0; mi != 17; ++mi)
+        {
+          STEP(ExpectCall_UTime, "symlink", &times, 0);
+          STEP(Check_FileModDate, testFiles[idx], times.modtime, 0);
+          times.modtime = 4*times.modtime + 3;
+        }
+      STEP(Clean_CurDir);
+      STEP(Check_DirEmpty);
+    }
 
   /* Check NULL ptr for times parameter.  */
-  STEP(Create_File, "file");
-  struct timespec tp;
-  STEP(clock_gettime, CLOCK_REALTIME, &tp);
-  STEP(ExpectCall_UTime, "file", NULL, 0);
-  STEP(Check_FileModDate, "file", tp.tv_sec, tp.tv_nsec / 10000000);
-  STEP(Clean_CurDir);
-  STEP(Check_DirEmpty);
+  for (size_t idx = 0; idx != sizeof (testFiles)/sizeof (testFiles[0]); ++idx)
+    {
+      STEP(Create_File, testFiles[idx]);
+      struct timespec tp;
+      STEP(clock_gettime, CLOCK_REALTIME, &tp);
+      STEP(ExpectCall_UTime, testFiles[idx], NULL, 0);
+      STEP(Check_FileModDate, testFiles[idx], tp.tv_sec, tp.tv_nsec / 10000000);
+      STEP(Clean_CurDir);
+      STEP(Check_DirEmpty);
+    }
 
   return false;
 }
 
+/**
+ * Test utime() ENOENT error generation.
+ */
 static bool
 Test_002_GenerationOfENOENT (void)
 {
@@ -83,9 +116,18 @@ Test_002_GenerationOfENOENT (void)
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
 
+  /* Dangling symlink.  */
+  STEP(Create_SymLink, "non-existing-object", "symlink");
+  STEP(ExpectCall_UTime, "symlink", &times, ENOENT);
+  STEP(Clean_CurDir);
+  STEP(Check_DirEmpty);
+
   return false;
 }
 
+/**
+ * Test utime() EFAULT error generation.
+ */
 static bool
 Test_003_GenerationOfEFAULT (void)
 {
@@ -94,6 +136,27 @@ Test_003_GenerationOfEFAULT (void)
   struct utimbuf times = { .actime = 0, .modtime = 0 };
   STEP(ExpectCall_UTime, NULL, &times, EFAULT);
   STEP(Check_DirEmpty);
+
+  return false;
+}
+
+/**
+ * Test utime() ENAMETOOLONG error generation.
+ */
+static bool
+Test_004_GenerationOfENAMETOOLONG (void)
+{
+  STEP(Check_DirEmpty);
+
+  /* Assuming RISC OS isn't supporting 32K long filenames.  */
+  char *longFileName = malloc (32*1024);
+  for (size_t i = 0; i != 32*1024; ++i)
+    longFileName[i] = '0' + (i % 10);
+  struct utimbuf times = { .actime = 0, .modtime = 0 };
+  STEP(ExpectCall_UTime, longFileName, &times, ENAMETOOLONG);
+  STEP(Check_DirEmpty);
+
+  free (longFileName);
 
   return false;
 }
@@ -114,6 +177,7 @@ static const struct
   TESTER_ENTRY(Test_001_BasicUTime),
   TESTER_ENTRY(Test_002_GenerationOfENOENT),
   TESTER_ENTRY(Test_003_GenerationOfEFAULT),
+  TESTER_ENTRY(Test_004_GenerationOfENAMETOOLONG),
 };
 
 #include "include/main.c"

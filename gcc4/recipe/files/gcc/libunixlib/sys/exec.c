@@ -126,7 +126,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
       else
 	{
 	  if (__resolve_symlinks (pathname, respathname,
-				  sizeof (respathname)) != 0)
+				  sizeof (respathname), 0) != 0)
 	    return -1;
 	  program_name = respathname;
 	}
@@ -200,7 +200,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
       else
 	{
 	  if (__resolve_symlinks (pathname, respathname,
-				  sizeof (respathname)) != 0)
+				  sizeof (respathname), 0) != 0)
 	    return -1;
 	  program_name = respathname;
 	}

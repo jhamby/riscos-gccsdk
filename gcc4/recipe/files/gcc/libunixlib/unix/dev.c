@@ -160,7 +160,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
   const char *ro_filename;
 #if __UNIXLIB_SYMLINKS
   char target[MAXPATHLEN + 2];
-  if (__resolve_symlinks (file, target, MAXPATHLEN) != 0)
+  if (__resolve_symlinks (file, target, MAXPATHLEN, 0) != 0)
     return (void *) -1;
 
   ro_filename = target;
@@ -547,7 +547,7 @@ __fsfstat (int fd, struct stat *buf)
       /* OS_File ReadCatInfo returns the allocated size of the file,
          but we want the current extent of the file */
       if ((err = SWI_OS_Args_GetExtent ((int) file_desc->devicehandle->handle,
-					&objlen)) != NULL)
+					(__off_t *)&objlen)) != NULL)
 	return __ul_seterr (err, EIO);
     }
 
@@ -602,8 +602,8 @@ __fslstat (const char *ux_filename, struct stat *buf)
 #if __UNIXLIB_SYMLINKS
   if (ftype == SYMLINK_FILETYPE)
     {
+      buf->st_mode &= ~S_IFMT;
       buf->st_mode |= S_IFLNK;
-      buf->st_mode &= ~S_IFREG;
     }
 #endif
 
