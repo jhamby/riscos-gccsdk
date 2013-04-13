@@ -101,5 +101,85 @@ namespace riscos
 					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 			}
 		}
+
+		public static class PopupMenuTemplateOffset
+		{
+			public const int Menu = 36;
+			public const int TemplateSize = 40;
+		}
+
+		/*! \brief The Toolbox flags that help to define the behaviour of a Pop-up menu gadget.  */
+		public static class PopupMenuFlags
+		{
+			public const int InformAboutToBeShown = (1 << 0);
+		}
+
+		/*! \brief Encapsulates the data required to create a template for a PopupMenu
+		 * gadget.  */
+		public class PopupMenuTemplate : GadgetTemplate
+		{
+			string _menu = "";
+			/*! \brief Set or get the name of the template which will be used to create
+			 * the menu (can also be a dialogue box).  */
+			public string Menu {
+				get { return _menu; }
+				set { _menu = value; }
+			}
+
+			/*! \brief Create a Toolbox PopupMenu gadget template.  */
+			public PopupMenuTemplate (string menu) : base (Gadget.ComponentType.PopupMenu)
+			{
+				if (string.IsNullOrEmpty (menu))
+					throw new ArgumentException ("Name of menu/dialogue template is not valid", "menu");
+				_menu = menu;
+			}
+
+			/*! \brief Create a Toolbox PopupMenu gadget template where the menu template
+			   * name will be set later.  */
+			public PopupMenuTemplate () : base (Gadget.ComponentType.PopupMenu)
+			{
+			}
+
+			/*! \brief Set or get whether a PopupMenu gadget created from this template
+			 * will inform clients just before showing the menu.
+			 * \note Default value: false.  */
+			public bool InformAboutToBeShown {
+				get { return (_flags & PopupMenuFlags.InformAboutToBeShown) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  PopupMenuFlags.InformAboutToBeShown :
+								_flags & ~PopupMenuFlags.InformAboutToBeShown);
+				}
+			}
+
+			public override int CalculateBufferSize (ref int strStart, ref int msgStart)
+			{
+				int size = base.CalculateBufferSize (ref strStart, ref msgStart);
+				int length = _menu.Length + 1;
+
+				size += length;
+				msgStart += length;
+
+				return size;
+			}
+
+			public override void BuildBuffer (IntPtr buffer,
+							  int offset,
+							  ref int strOffset,
+							  ref int msgOffset)
+			{
+				base.BuildBuffer (buffer, offset, ref strOffset, ref msgOffset);
+
+				strOffset = ObjectTemplate.WriteString (_menu,
+									0,
+									buffer,
+									offset + PopupMenuTemplateOffset.Menu,
+									strOffset);
+			}
+
+			public override int GetTemplateSize ()
+			{
+				return PopupMenuTemplateOffset.TemplateSize;
+			}
+		}
 	}
 }
