@@ -129,6 +129,11 @@ namespace riscos.CSharpBindings.TBTemplateTest
 				((Toolbox.StringSetTemplate)gadget).IsWritable = true;
 				win_template.AddGadget (gadget);
 
+				// Define a Writable gadget in the window template.
+				gadget = new Toolbox.WritableFieldTemplate ("Writable Gadget", 30);
+				gadget.BoundingBox = new OS.Rect (400, 630, 650, 680);
+				win_template.AddGadget (gadget);
+
 				// Define a keyboard shortcut in the window template.
 				var shortcut = new Toolbox.KeyboardShortcutTemplate ('A', 0x1234);
 				win_template.AddKeyboardShortcut (shortcut);

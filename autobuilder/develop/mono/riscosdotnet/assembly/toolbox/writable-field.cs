@@ -128,5 +128,195 @@ namespace riscos
 					OnValueChange (new ValueChangeEventArgs (e.RawEventData));
 			}
 		}
+
+		public static class WritableFieldTemplateOffset
+		{
+			public const int Text = 36;
+			public const int MaxTextLen = 40;
+			public const int Allowable = 44;
+			public const int MaxAllowableLen = 48;
+			public const int Before = 52;
+			public const int After = 56;
+			public const int TemplateSize = 60;
+		}
+
+		/*! \brief The Toolbox flags that help to define the behaviour of a WritableField gadget.  */
+		public static class WritableFieldFlags
+		{
+			public const int InformClient = (1 << 0);
+			// Note bit 1 not used.
+			public const int JustifyShift = 2;
+			public const int JustifyMask = 3;
+			public const int Password = (1 << 4);
+		}
+
+		/*! \brief Values used to determine how the WritableField gadget is justified.  */
+		public enum WritableFieldJustify
+		{
+			Left,
+			Right,
+			Centre
+		}
+
+		/*! \brief Encapsulates the data required to create a template for a WritableField
+		 * gadget.  */
+		public class WritableFieldTemplate : GadgetTemplate
+		{
+			string _text = "";
+			/*! \brief The initial text to be shown in the writableField gadget.
+			 * \note Default value: Empty string.  */
+			public string Text {
+				get { return _text; }
+				set { _text = value; }
+			}
+
+			int _max_text_len = 0;
+			/*! \brief The maximum buffer size for the text. Leave as 0 to indicate that
+			 * the length of the initial text should be used.  */
+			public int MaxTextLen {
+				get { return _max_text_len; }
+				set { _max_text_len = value; }
+			}
+
+			string _allowable = "";
+			/*! \brief Get or set the set of allowable characters which can be typed into a
+			 * WritableField gadget.
+			 * \note Default value: Empty string.  */
+			public string Allowable {
+				get { return _allowable; }
+				set { _allowable = value; }
+			}
+
+			int _max_allowable_len = 0;
+			/*! \brief The maximum buffer size reserved for the set of allowable characters.
+			 * Leave as 0 to indicate that the length of the text itself should be used.  */
+			public int MaxAllowableLen {
+				get { return _max_allowable_len; }
+				set { _max_allowable_len = value; }
+			}
+
+			int _before = -1;
+			/*! \brief The ID of a gadget before this one that will gain the input focus
+			 * when navigating with the keyboard.
+			 * \note Default value: -1 (None).  */
+			public int Before {
+				get { return _before; }
+				set { _before = value; }
+			}
+
+			int _after = -1;
+			/*! \brief The ID of a gadget after this one that will gain the input focus
+			 * when navigating with the keyboard.
+			 * \note Default value: -1 (None).  */
+			public int After {
+				get { return _after; }
+				set { _after = value; }
+			}
+
+			/*! \brief Create a Toolbox WritableField gadget template.  */
+			public WritableFieldTemplate (string text, int maxTextLen) :
+								base (Gadget.ComponentType.WritableField)
+			{
+				if (string.IsNullOrEmpty (text) && maxTextLen == 0)
+					throw new ArgumentException ("Writable gadget text buffer must be greater than 0 in size.");
+
+				_text = text;
+				_max_text_len = maxTextLen;
+			}
+
+			/*! \brief Create a Toolbox WritableField gadget template.  */
+			public WritableFieldTemplate (string text, int maxTextLen,
+						      string allowable, int maxAllowableLen) :
+								base (Gadget.ComponentType.WritableField)
+			{
+				_text = text;
+				_max_text_len = maxTextLen;
+				_allowable = allowable;
+				_max_allowable_len = maxAllowableLen;
+			}
+
+			/*! \brief Set or get whether a WritableField gadget created from this template
+			 * will inform clients of value changes using WritableField_ValueChanged events.
+			 * \note Default value: false.  */
+			public bool InformClient {
+				get { return (_flags & WritableFieldFlags.InformClient) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  WritableFieldFlags.InformClient :
+								_flags & ~WritableFieldFlags.InformClient);
+				}
+			}
+
+			/*! \brief Set or get the justification of the text in this WritableField.  */
+			public WritableFieldJustify Justify {
+				get {
+					return (WritableFieldJustify)((_flags >> WritableFieldFlags.JustifyShift) &
+									     WritableFieldFlags.JustifyMask);
+				}
+				set {
+					_flags &= ~(uint)(WritableFieldFlags.JustifyMask << WritableFieldFlags.JustifyShift);
+					_flags |= (uint)value << WritableFieldFlags.JustifyShift;
+				}
+			}
+
+			/*! \brief Set or get whether a WritableField gadget created from this template
+			 * will use '-' for each character instead of displaying text.
+			 * \note Default value: false.  */
+			public bool AsPassword {
+				get { return (_flags & WritableFieldFlags.Password) != 0; }
+				set {
+					_flags = (uint)(value ? _flags |  WritableFieldFlags.Password :
+								_flags & ~WritableFieldFlags.Password);
+				}
+			}
+
+			public override int CalculateBufferSize (ref int strStart, ref int msgStart)
+			{
+				int size = base.CalculateBufferSize (ref strStart, ref msgStart);
+
+				if (!string.IsNullOrEmpty (_text))
+					size += Math.Max (_text.Length + 1,
+							  _max_text_len);
+				if (!string.IsNullOrEmpty (_allowable))
+					size += Math.Max (_allowable.Length + 1,
+							  _max_allowable_len);
+				return size;
+			}
+
+			public override void BuildBuffer (IntPtr buffer,
+							  int offset,
+							  ref int strOffset,
+							  ref int msgOffset)
+			{
+				base.BuildBuffer (buffer, offset, ref strOffset, ref msgOffset);
+
+				msgOffset = ObjectTemplate.WriteString (_text,
+									_max_text_len,
+									buffer,
+									offset + WritableFieldTemplateOffset.Text,
+									msgOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + WritableFieldTemplateOffset.MaxTextLen,
+						    Math.Max (_text.Length + 1, _max_text_len));
+				msgOffset = ObjectTemplate.WriteString (_allowable,
+									_max_allowable_len,
+									buffer,
+									offset + WritableFieldTemplateOffset.Allowable,
+									msgOffset);
+				Marshal.WriteInt32 (buffer,
+						    offset + WritableFieldTemplateOffset.MaxAllowableLen,
+						    Math.Max (_allowable.Length + 1, _max_allowable_len));
+				Marshal.WriteInt32 (buffer,
+						    offset + WritableFieldTemplateOffset.Before,
+						    _before);
+				Marshal.WriteInt32 (buffer,
+						    offset + WritableFieldTemplateOffset.After,
+						    _after);
+			}
+
+			public override int GetTemplateSize ()
+			{
+				return WritableFieldTemplateOffset.TemplateSize;
+			}
+		}
 	}
 }
