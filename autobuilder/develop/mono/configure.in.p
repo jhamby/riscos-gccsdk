@@ -1,5 +1,5 @@
---- configure.in.orig	2013-02-27 16:56:35.000000000 +0000
-+++ configure.in	2013-03-03 19:07:17.000000000 +0000
+--- configure.in.orig	2013-03-08 04:31:06.000000000 +0000
++++ configure.in	2013-04-14 14:47:27.000000000 +0100
 @@ -339,6 +339,14 @@
  		libgc_threads=pthreads
  		use_sigposix=yes
@@ -15,7 +15,7 @@
  	*)
  		AC_MSG_WARN([*** Please add $host to configure.in checks!])
  		host_win32=no
-@@ -2565,6 +2573,16 @@
+@@ -2558,6 +2566,16 @@
  		   NESTED_LIBGC_FLAGS="$NESTED_LIBGC_FLAGS -DHAVE_ARMV6"
    		fi
  		;;
@@ -32,7 +32,7 @@
  	s390-*-linux*)
  		TARGET=S390;
  		arch_target=s390;
-@@ -3078,7 +3096,8 @@
+@@ -3076,7 +3094,8 @@
  dnl
  dnl Consistency settings
  dnl
@@ -42,7 +42,7 @@
     DISABLE_MCS_DOCS=yes
     with_profile2=no
     with_profile4=no
-@@ -3095,7 +3114,8 @@
+@@ -3093,7 +3112,8 @@
  AC_SUBST(docs_dir)
  
  ## Maybe should also disable if mcsdir is invalid.  Let's punt the issue for now.
@@ -52,7 +52,7 @@
  
  AM_CONDITIONAL(HAVE_OPROFILE, test x$OPROFILE = xyes)
  AC_SUBST(OPROFILE_CFLAGS)
-@@ -3411,18 +3431,21 @@
+@@ -3408,18 +3428,21 @@
    # any existing config.make.  This allows people to share the same source tree
    # with different build directories, one native and one cross
    #
@@ -77,7 +77,7 @@
  
      case $INSTALL in
      [[\\/$]]* | ?:[[\\/]]* ) mcs_INSTALL=$INSTALL ;;
-@@ -3491,7 +3514,9 @@
+@@ -3488,7 +3511,9 @@
        echo "BCL_OPTIMIZE = 1" >> $srcdir/$mcsdir/build/config.make
      fi
  
