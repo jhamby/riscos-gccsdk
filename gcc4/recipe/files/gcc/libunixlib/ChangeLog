@@ -1,3 +1,11 @@
+Sun Apr 14 02:36:45 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/dev.c (__fswrite): Fix return value.
+	(__nullstat): Don't reset S_IF* flags.
+	* common/__stat.c (__stat): Add support for DEV_NULL, DEV_ZERO and
+	DEV_RANDOM.
+	* unittest/test-stat.c (Test_001_BasicStat): Add S_IFCHR sub-test.
+
 Sun Apr 14 01:37:22 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	Based on bug analysis and readlink implementation work by Dave

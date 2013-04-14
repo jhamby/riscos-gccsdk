@@ -427,7 +427,7 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
   const _kernel_oserror *err;
   unsigned not_written;
   if ((err = SWI_OS_GBPB_WriteBytes ((int) file_desc->devicehandle->handle,
-				     data, nbyte, not_written)) != NULL)
+				     data, nbyte, &not_written)) != NULL)
     return __ul_seterr (err, EOPSYS);
 
   return nbyte - not_written;
@@ -764,7 +764,7 @@ __nullstat (const char *filename, struct stat *buf)
 
   __stat (0, 0, 0, 0, 0, buf);
 
-  buf->st_mode = S_IRUSR | S_IWUSR;
+  buf->st_mode |= S_IRUSR | S_IWUSR;
 
   return 0;
 }

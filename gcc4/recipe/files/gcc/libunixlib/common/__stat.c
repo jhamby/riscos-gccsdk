@@ -85,14 +85,20 @@ __stat (unsigned objtype, unsigned loadaddr, unsigned execaddr,
 #ifndef __TARGET_SCL__
   switch (buf->st_dev)
     {
+      /* FIXME: What about DEV_DSP, DEV_CUSTOM ? */
       case DEV_TTY:
+      case DEV_NULL:
+      case DEV_ZERO:
+      case DEV_RANDOM:
 	/* Terminal type device file.  */
 	mode |= S_IFCHR;
 	break;
+
       case DEV_PIPE:
 	/* Pipe or a FIFO port.  */
 	mode |= S_IFIFO;
 	break;
+
       case DEV_SOCKET:
 	/* Socket.  */
 	mode |= S_IFSOCK;

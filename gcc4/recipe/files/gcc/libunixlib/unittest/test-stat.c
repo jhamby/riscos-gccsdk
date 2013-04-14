@@ -71,6 +71,15 @@ IsLink (const struct stat *buf)
             && !S_ISSOCK(buf->st_mode));
 }
 
+static bool
+IsChr (const struct stat *buf)
+{
+  return !(!S_ISREG(buf->st_mode) && !S_ISDIR(buf->st_mode)
+            && S_ISCHR(buf->st_mode) && !S_ISBLK(buf->st_mode)
+            && !S_ISFIFO(buf->st_mode) && !S_ISLNK(buf->st_mode)
+            && !S_ISSOCK(buf->st_mode));
+}
+
 /**
  * Test basic stat() functionality.
  */
@@ -93,6 +102,26 @@ Test_001_BasicStat (void)
 #else
     STEP(IsFile, &buf);
 #endif
+
+    const char *chr_dev_files[] =
+      {
+#ifdef __riscos__
+        "/dev/tty",
+#else
+        "/proc/self/fd/1",
+#endif
+        "/dev/null",
+        "/dev/zero",
+        "/dev/random"
+      };
+    for (size_t idx = 0; idx != sizeof (chr_dev_files)/sizeof (chr_dev_files[0]); ++idx)
+      {
+        STEP(EXPECTCALL_STAT_OR_LSTAT, chr_dev_files[idx], &buf, 0);
+        STEP(IsChr, &buf);
+      }
+
+    /* We can't check SIFIFO/S_IFSOCK as we can't create those using a
+       filename.  */
 
     STEP(Clean_CurDir);
     STEP(Check_DirEmpty);
