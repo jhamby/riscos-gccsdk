@@ -1,3 +1,7 @@
+Mon Apr 15 23:10:21 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unistd/readlink.c (readlink): Remove free call for NULL ptr.
+
 Sun Apr 14 02:36:45 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/dev.c (__fswrite): Fix return value.

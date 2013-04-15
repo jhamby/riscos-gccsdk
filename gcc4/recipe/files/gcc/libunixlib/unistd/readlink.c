@@ -45,10 +45,8 @@ readlink (const char *ux_linkfile, char *ux_target, size_t ux_target_bufsz)
   char *ux_buf = __unixify_std (ro_target, NULL, 0,
 				__RISCOSIFY_FILETYPE_NOTSPECIFIED);
   if (ux_buf == NULL)
-    {
-      free (ux_buf);
-      return __set_errno (ENAMETOOLONG);
-    }
+    return __set_errno (ENAMETOOLONG);
+
   /* Do not copy terminating \0 char.
      If to_copy is bigger than SSIZE_MAX then the caller will probably
      incorrectly assume this call has been failed, but that means more than
