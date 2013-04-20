@@ -33,16 +33,16 @@ all: etc
 install: etc-install
 
 etc: $(BUILDDIR)/etc/GNUmakefile $(ETCROOT)/configure
-	make -C $(BUILDDIR)/etc
+	$(MAKE) -C $(BUILDDIR)/etc
 
 etc-install: etc $(INSTALLDIR)
-	make -C $(BUILDDIR)/etc install
+	$(MAKE) -C $(BUILDDIR)/etc install
 
 test: $(BUILDDIRTEST)/Makefile
-	make -C $(BUILDDIRTEST)
+	$(MAKE) -C $(BUILDDIRTEST)
 
 clean:
-	make -C $(BUILDDIR)/etc clean
+	$(MAKE) -C $(BUILDDIR)/etc clean
 
 distclean:
 	-rm -rf $(BUILDDIR) $(BUILDDIRTEST) $(INSTALLDIR)

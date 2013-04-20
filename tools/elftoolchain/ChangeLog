@@ -1,3 +1,15 @@
+Sun Apr 21 00:14:18 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	current-trunk:
+	* libelftc/GNUmakefile.am: Add missing man pages.  Don't prefix man
+	pages with target name at install time.  Use $(LN_S) instead of cp for
+	man page aliases.
+	* libdwarf/GNUmakefile.am: Likewise.
+	* libelf/GNUmakefile.am: Likewise.
+	* ar/GNUmakefile.am: Use $(LN_S) instead of cp for man page aliases.
+
+	* Makfile: use $(MAKE) instead of make.
+
 Tue Apr  2 21:10:10 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Merged from upstream-trunk.

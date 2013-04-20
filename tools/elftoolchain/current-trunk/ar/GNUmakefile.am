@@ -22,5 +22,5 @@ dist_man5_MANS = ar.5
 man1_MANS = ranlib.1
 
 ranlib.1: ar.1
-	cp $< $@
+	$(LN_S) $< $@
 
