@@ -1,6 +1,6 @@
---- pixman/pixman-arm-simd.c.orig	2009-09-25 07:38:50.000000000 -0700
-+++ pixman/pixman-arm-simd.c	2009-11-16 12:59:38.000000000 -0800
-@@ -162,18 +162,18 @@
+--- pixman/pixman-arm-simd.c.orig	2012-05-14 18:40:58.000000000 +0100
++++ pixman/pixman-arm-simd.c	2013-04-21 16:11:02.000000000 +0100
+@@ -143,18 +143,18 @@
  	    "sub r8, %[alpha_mask], r5, lsr #24\n\t"
  #endif
  	    "uxtb16 r6, r4\n\t"
@@ -25,16 +25,16 @@
  
  	    "uqadd8 r5, r6, r5\n\t"
  
-@@ -189,7 +189,7 @@
+@@ -170,7 +170,7 @@
  	    : [w] "+r" (w), [dest] "+r" (dst), [src] "+r" (src)
  	    : [component_half] "r" (component_half), [upper_component_mask] "r" (upper_component_mask),
- 	    [alpha_mask] "r" (alpha_mask)
+ 	      [alpha_mask] "r" (alpha_mask)
 -	    : "r4", "r5", "r6", "r7", "r8", "cc", "memory"
 +			: "r4", "r5", "r6", "r8", "r9", "cc", "memory"
  	    );
      }
  }
-@@ -251,39 +251,39 @@
+@@ -219,39 +219,39 @@
  	    "ldr r4, [%[dest]] \n\t"
  
  	    "uxtb16 r6, r5\n\t"
@@ -84,16 +84,16 @@
  
  	    "uqadd8 r5, r6, r5\n\t"
  
-@@ -299,7 +299,7 @@
+@@ -267,7 +267,7 @@
  	    : [w] "+r" (w), [dest] "+r" (dst), [src] "+r" (src)
  	    : [component_half] "r" (component_half), [mask_alpha] "r" (mask),
- 	    [alpha_mask] "r" (alpha_mask)
+ 	      [alpha_mask] "r" (alpha_mask)
 -	    : "r4", "r5", "r6", "r7", "r8", "r9", "cc", "memory"
 +			: "r4", "r5", "r6", "r8", "r9", "r10", "cc", "memory"
  	    );
      }
  }
-@@ -367,21 +367,24 @@
+@@ -321,21 +321,24 @@
  #endif
  	    "ldr r4, [%[dest]] \n\t"
  
@@ -123,8 +123,8 @@
 +			"uxtb16 r9, r4, ror #8\n\t"
  
  	    /* we could simplify this to use 'sub' if we were
- 	    * willing to give up a register for alpha_mask */
-@@ -389,17 +392,17 @@
+ 	     * willing to give up a register for alpha_mask
+@@ -344,17 +347,17 @@
  	    "mov r8, r8, lsr #24\n\t"
  
  	    /* multiply by alpha (r8) then by 257 and divide by 65536 */
@@ -147,7 +147,7 @@
  
  	    "uqadd8 r5, r6, r5\n\t"
  
-@@ -415,7 +418,7 @@
+@@ -370,7 +373,7 @@
  	    : [w] "+r" (w), [dest] "+r" (dst), [src] "+r" (src), [mask] "+r" (mask)
  	    : [component_half] "r" (component_half),
  	      [src_hi] "r" (src_hi), [src_lo] "r" (src_lo)
