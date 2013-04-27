@@ -1,3 +1,8 @@
+Sat Apr 27 14:58:00 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2938
+
 Sun Apr 21 01:54:10 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/Makefile (MAN): Add missing dwarf.3 and
