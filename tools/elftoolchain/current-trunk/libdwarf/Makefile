@@ -85,7 +85,7 @@ WARNS?=	6
 
 LDADD+=		-lelf
 
-MAN=	dwarf.3						\
+MAN=	dwarf.3                                         \
 	dwarf_add_arange.3				\
 	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_AT_const_value_string.3		\
