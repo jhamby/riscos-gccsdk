@@ -114,7 +114,7 @@ c_incbin (void)
   *cptr = '\0';
 
   ASFile asFile;
-  FILE *binfp = !Include_Find (fileNameP, &asFile, true) ? Include_OpenForRead (fileNameP, &asFile) : NULL;
+  FILE *binfp = !Include_Find (fileNameP, &asFile) ? Include_OpenForRead (fileNameP, &asFile) : NULL;
   if (!binfp)
     Error (ErrorError, "Cannot open file \"%s\"", fileNameP);
   else

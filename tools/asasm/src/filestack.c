@@ -233,7 +233,7 @@ FS_PushFilePObject (const char *fileNameP)
     Error_Abort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
 
   ASFile asFile;
-  if (Include_Find (fileNameP, &asFile, true))
+  if (Include_Find (fileNameP, &asFile))
     {
       Error (ErrorError, "Cannot find file \"%s\"", fileNameP);
       ASFile_Free (&asFile);

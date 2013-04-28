@@ -1,3 +1,12 @@
+Sun Apr 28 14:49:40 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* include.c (Include_Find): Drop inc parameter.
+	* include.h (Include_Find): Likewise.
+	* directive_file.c (c_incbin): Drop Include_Find inc parameter.
+	* filestack.c (FS_PushFilePObject): Likewise.
+	* eval.c (Eval_Unop): Likewise.
+
 Tue Apr  2 22:35:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	unittests/reloc:

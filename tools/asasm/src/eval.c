@@ -679,7 +679,7 @@ Eval_Unop (Operator_e op, const Value *value)
 
 	      uint32_t i;
 	      ASFile asFile;
-	      if (Include_Find (s, &asFile, true))
+	      if (Include_Find (s, &asFile))
 		{
 		  Error (ErrorError, "Cannot access file \"%s\"", s);
 		  i = 0;
@@ -705,7 +705,7 @@ Eval_Unop (Operator_e op, const Value *value)
 
 	      uint32_t i;
 	      ASFile asFile;
-	      if (Include_Find (s, &asFile, true))
+	      if (Include_Find (s, &asFile))
 		{
 		  Error (ErrorError, "Cannot access file \"%s\"", s);
 		  i = 0;
@@ -731,7 +731,7 @@ Eval_Unop (Operator_e op, const Value *value)
 
 	      uint32_t i;
 	      ASFile asFile;
-	      if (Include_Find (s, &asFile, true))
+	      if (Include_Find (s, &asFile))
 		{
 		  Error (ErrorError, "Cannot access file \"%s\"", s);
 		  i = 0;
@@ -765,7 +765,7 @@ Eval_Unop (Operator_e op, const Value *value)
 
 	      uint32_t i;
 	      ASFile asFile;
-	      if (Include_Find (s, &asFile, true))
+	      if (Include_Find (s, &asFile))
 		{
 		  Error (ErrorError, "Cannot access file \"%s\"", s);
 		  i = 0;

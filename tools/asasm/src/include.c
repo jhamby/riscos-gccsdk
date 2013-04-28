@@ -112,13 +112,14 @@ Include_Add (const char *inclDirP)
 
 /**
  * Returns ASFile structure of given filename (possibly via suffix swapping).
+ * User supplied include paths are always taken into account in order to
+ * find the given filename.
  * \param fileName Filename of file which needs to be opened.
  * \param asFileP ASFile object to be filled in for given filename.
- * \param inc When true, consider user support include paths.
  * \return false for success, true otherwise (like unexisting file).
  */
 bool
-Include_Find (const char *fileName, ASFile *asFileP, bool inc)
+Include_Find (const char *fileName, ASFile *asFileP)
 {
   char outBuf[MAXPATHLEN];
   for (unsigned pathidx = 0; /* */; ++pathidx)
@@ -152,7 +153,7 @@ Include_Find (const char *fileName, ASFile *asFileP, bool inc)
 
   /* We're done when we can't use user supplied include paths or when in
      given filename there is a path (like "Hdr:APCS.Common.").  */
-  if (!inc || strchr (fileName, ':'))
+  if (strchr (fileName, ':'))
     return true;
 
   /* Try to find the file via the user supplied include paths.  */

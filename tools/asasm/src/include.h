@@ -32,7 +32,7 @@
 void Include_PrepareForPhase (Phase_e phase);
 
 void Include_Add (const char *inclDirP);
-bool Include_Find (const char *fileName, ASFile *asFileP, bool inc);
+bool Include_Find (const char *fileName, ASFile *asFileP);
 FILE *Include_OpenForRead (const char *fileNameP, const ASFile *asFileP);
 
 #endif
