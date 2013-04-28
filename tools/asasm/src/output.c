@@ -25,6 +25,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -35,11 +36,6 @@
 #endif
 #ifdef __riscos__
 #  include <swis.h>
-#endif
-#if !defined(__riscos__) || defined(__TARGET_UNIXLIB__)
-#  include <sys/param.h>		/* for MAXPATHLEN */
-#else
-#  define MAXPATHLEN 1024
 #endif
 #include <fcntl.h>
 #include <unistd.h>
@@ -67,7 +63,7 @@ static int oFHandleELF = -1;
 #define GET_IDFN ((idfn_text) ? idfn_text : DEFAULT_IDFN)
 const char *idfn_text = NULL; /**< Identifier, when NULL use DEFAULT_IDFN; this is a malloced string.  */
 
-static char outname[MAXPATHLEN];
+static char outname[PATH_MAX];
 
 
 /**

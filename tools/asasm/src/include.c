@@ -25,16 +25,11 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#if !defined(__riscos__) || defined(__TARGET_UNIXLIB__)
-#  include <sys/param.h>		/* for MAXPATHLEN */
-#else
-#  define MAXPATHLEN 1024
-#endif
 
 #include "error.h"
 #include "filename.h"
@@ -121,7 +116,7 @@ Include_Add (const char *inclDirP)
 bool
 Include_Find (const char *fileName, ASFile *asFileP)
 {
-  char outBuf[MAXPATHLEN];
+  char outBuf[PATH_MAX];
   for (unsigned pathidx = 0; /* */; ++pathidx)
     {
       bool state[3] = { false, false, false };
@@ -159,7 +154,7 @@ Include_Find (const char *fileName, ASFile *asFileP)
   /* Try to find the file via the user supplied include paths.  */
   for (const IncludeDir_t *incDirP = oIncludeDirListP; incDirP != NULL; incDirP = incDirP->nextP)
     {
-      char incpath[MAXPATHLEN];
+      char incpath[PATH_MAX];
       bool state[3] = { false, false, false };
       const char *out[3];
 
