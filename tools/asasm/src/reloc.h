@@ -60,7 +60,7 @@ typedef struct RelocOut
       AofReloc *aofP;
       Elf32_Rel *elfP;
     } relocs; /* Only accessable after Reloc_PrepareRelocOutPart2().  */ 
-  uint32_t size; /** Reloc data size.  */
+  uint32_t size; /** Reloc data size in bytes.  */
 } RelocOut;
 
 #endif

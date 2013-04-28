@@ -1,3 +1,25 @@
+Sun Apr 28 17:17:46 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* reloc.h (RelocOut): Update comments.
+	* os.c (OS_GetCWD): Add.
+	* os.h (OS_GetCWD): Likewise.
+	* main.c (asasm_help): Add -G option explanation.
+	(option_debug): Add.
+	(main): Support -g option.
+	* main.h (option_debug): Add.
+	* output.c (shstrtab_t, DWARF_UserState_t, oDWUserStateP,
+	shstrtab_add, shstrtab_finish, DWARF_Callback_CreateSection,
+	DWARF_CreateAreasAndSections, DWARF_OutputSectionData, DWARF_Finish):
+	Add.
+	(Output_ELF): Add basic DWARF support.
+	* Makefile.am (asasm_CFLAGS): Add __STDC_FORMAT_MACROS definition.
+	(-pedantic): Remove.
+	* area.c (Area_CreateDWARF): Add.
+	* area.h (AREA_*): Make unsigned.
+	(AREA_INT_DWARF): Add.
+	(Area_IsDWARF, Area_CreateDWARF): Add.
+
 Sun Apr 28 17:14:06 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/area.c (areaImage): Rename to..

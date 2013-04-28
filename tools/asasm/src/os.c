@@ -24,6 +24,7 @@
 
 #include "config.h"
 
+#include <limits.h>
 #include <stdlib.h>
 
 #include "error.h"
@@ -33,6 +34,7 @@
 /* RISC OS version.  */
 
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -271,4 +273,29 @@ void
 ASFile_Free (ASFile *asFileP)
 {
   free ((void *)asFileP->canonName);
+}
+
+/**
+ * \return malloc'd block holding the current working directory.  Caller gets
+ * ownership.
+ */
+const char *
+OS_GetCWD (void)
+{
+#ifndef __riscos
+  size_t curBufSize = 32;
+  char *bufP = malloc (curBufSize);
+  if (bufP == NULL)
+    Error_OutOfMem ();
+  while (getcwd (bufP, curBufSize) == NULL)
+    {
+      free (bufP);
+      curBufSize *= 2;
+      if (curBufSize > PATH_MAX || (bufP = malloc (curBufSize)) == NULL)
+	Error_OutOfMem ();
+    }
+  return bufP;
+#else
+  return CanonicalisePath ("@");
+#endif
 }

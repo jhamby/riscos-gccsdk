@@ -12,9 +12,9 @@ ASASM_VERSION := $(shell echo -n "@VERSION@" | sed -e "s/\([0-9]\)\.\([0-9][0-9]
 
 # Add -DDEBUG if you want to enable the debug routines.
 asasm_CFLAGS = -std=c99 \
-	-D_LARGEFILE_SOURCE \
+	-D_LARGEFILE_SOURCE -D__STDC_FORMAT_MACROS \
 	-fstrict-aliasing -Wstrict-aliasing \
-	-W -Wall -pedantic -Wbad-function-cast -Wcast-align \
+	-W -Wall -Wbad-function-cast -Wcast-align \
 	-Wchar-subscripts -Winline \
 	-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
 	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wwrite-strings \

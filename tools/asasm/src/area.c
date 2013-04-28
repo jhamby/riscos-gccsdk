@@ -127,6 +127,30 @@ Area_Create (Symbol *sym, uint32_t type)
 }
 
 
+/**
+ * Only to be used to create dummy area which represents DWARF section data.
+ */
+Symbol *
+Area_CreateDWARF (const char *name)
+{
+  assert (!strncmp (name, ".debug_", sizeof (".debug_")-1));
+
+  size_t nameLen = strlen (name);
+  const Lex lex = Lex_Id (name, nameLen);
+  Symbol *sym = Symbol_Find (&lex);
+  if (sym != NULL)
+    {
+      Error (ErrorError, "DWARF section has same name as an existing area or symbol");
+      return NULL;
+    }
+  sym = Symbol_Get (&lex);
+  sym->type = SYMBOL_AREA;
+  sym->value = Value_Int (0, eIntType_PureInt);
+  sym->area = Area_Create (sym, AREA_INT_DWARF);
+  return sym;
+}
+
+
 static bool
 Area_Resize (Area *area, size_t newsize)
 {

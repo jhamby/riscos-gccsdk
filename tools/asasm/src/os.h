@@ -42,6 +42,8 @@ typedef struct
 bool ASFile_Create (const char *fileName, ASFile *asFileP);
 void ASFile_Free (ASFile *asFileP);
 
+const char *OS_GetCWD (void);
+
 #ifdef __riscos__
 
 #include <kernel.h>

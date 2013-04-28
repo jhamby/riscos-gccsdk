@@ -70,6 +70,7 @@ int option_pedantic = 0;
 int option_throwback = 0;
 bool option_uppercase = false;
 int option_verbose = 0;
+bool option_debug = false;
 
 static const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
@@ -265,6 +266,7 @@ asasm_help (void)
 	   "-i<directory>              Search 'directory' for included assembler files.\n"
 	   "-PreDefine=<value>         Predefine a value using SETA/SETS/SETL syntax.\n"
 	   "-no_code_gen               No output file generated, nor 2nd assembler pass done.\n"
+           "-G                         Generate DWARF debugging information (ELF output only).\n"
 	   "-Uppercase                 Recognise instruction mnemonics in upper case only.\n"
 	   "-Pedantic                  Display extra warnings.\n"
 	   "-Verbose                   Display progress information.\n"
@@ -446,6 +448,8 @@ main (int argc, char **argv)
 	}
       else if (!strcasecmp (arg, "no_code_gen"))
 	option_no_code_gen = true;
+      else if (!strcasecmp (arg, "g"))
+	option_debug = true;
 #ifdef __riscos__
       else if (!strcasecmp (arg, "throwback") || !strcasecmp (arg, "tb"))
 	option_throwback++;

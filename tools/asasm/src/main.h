@@ -68,6 +68,7 @@ extern int option_pedantic;
 extern int option_throwback;
 extern bool option_uppercase;
 extern int option_verbose;
+extern bool option_debug;
 
 extern const char *SourceFileName;
 

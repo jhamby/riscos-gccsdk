@@ -33,30 +33,30 @@
 
 /* Lowest 8 bits encode the alignment of the start of the area as a power
    of 2 and has a value between 2 and 32.  */
-#define AREA_ALIGN_MASK		0x000000FF
-#define AREA_ABS		0x00000100
-#define AREA_CODE		0x00000200
-#define AREA_COMMONDEF		0x00000400 /* Common block definition */
-#define AREA_COMMONREF		0x00000800 /* Common block reference */
-#define AREA_UDATA		0x00001000 /* Uninitialised (0-initialised) */
-#define AREA_READONLY		0x00002000
-#define AREA_PIC		0x00004000
-#define AREA_DEBUG		0x00008000
-#define AREA_32BITAPCS		0x00010000 /* Code area only, complies with the 32-bit APCS */
-#define AREA_REENTRANT		0x00020000 /* Code area only, complies with a reentrant variant of the APCS */
-#define AREA_EXTFPSET		0x00040000 /* Code area only, uses extended FP instruction set.  */
-#define AREA_NOSWSTACKCHECK	0x00080000 /* Code area only, no software stack checking.  */
-#define AREA_THUMB		0x00100000 /* Code area only, all relocations are of Thumb code, same value as AREA_BASED.  */
-#define AREA_HALFWORD		0x00200000 /* Code area only, area may contain ARM halfword instructions, same value as AREA_STUBDATA.  */
-#define AREA_INTERWORK		0x00400000 /* Code area only, area suitable for ARM/Thumb interworking.  */
-#define AREA_BASED		0x00100000 /* Data area only, same value as AREA_THUMB.  */
-#define AREA_STUBDATA		0x00200000 /* Data area only, same value as AREA_HALFWORD.  */
-#define AREA_RESERVED23		0x00800000
-#define AREA_MASKBASEREG	0x0F000000 /* Base reg, data area only */
-#define AREA_RESERVED28		0x10000000
-#define AREA_RESERVED29		0x20000000
-#define AREA_RESERVED30		0x40000000
-#define AREA_VFP		0x80000000
+#define AREA_ALIGN_MASK		0x000000FFu
+#define AREA_ABS		0x00000100u
+#define AREA_CODE		0x00000200u
+#define AREA_COMMONDEF		0x00000400u /* Common block definition */
+#define AREA_COMMONREF		0x00000800u /* Common block reference */
+#define AREA_UDATA		0x00001000u /* Uninitialised (0-initialised) */
+#define AREA_READONLY		0x00002000u
+#define AREA_PIC		0x00004000u
+#define AREA_DEBUG		0x00008000u
+#define AREA_32BITAPCS		0x00010000u /* Code area only, complies with the 32-bit APCS */
+#define AREA_REENTRANT		0x00020000u /* Code area only, complies with a reentrant variant of the APCS */
+#define AREA_EXTFPSET		0x00040000u /* Code area only, uses extended FP instruction set.  */
+#define AREA_NOSWSTACKCHECK	0x00080000u /* Code area only, no software stack checking.  */
+#define AREA_THUMB		0x00100000u /* Code area only, all relocations are of Thumb code, same value as AREA_BASED.  */
+#define AREA_HALFWORD		0x00200000u /* Code area only, area may contain ARM halfword instructions, same value as AREA_STUBDATA.  */
+#define AREA_INTERWORK		0x00400000u /* Code area only, area suitable for ARM/Thumb interworking.  */
+#define AREA_BASED		0x00100000u /* Data area only, same value as AREA_THUMB.  */
+#define AREA_STUBDATA		0x00200000u /* Data area only, same value as AREA_HALFWORD.  */
+#define AREA_RESERVED23		0x00800000u
+#define AREA_MASKBASEREG	0x0F000000u /* Base reg, data area only */
+#define AREA_RESERVED28		0x10000000u
+#define AREA_RESERVED29		0x20000000u
+#define AREA_RESERVED30		0x40000000u
+#define AREA_VFP		0x80000000u
 
 /* New since DDE Rel 21 
 
@@ -76,10 +76,11 @@
    the attribute.  */
 
 /* Internal area flags: */
-#define AREA_INT_CODEALIGN	0x40000000
-#define AREA_INT_AOFMASK	0x8F7FFFFF /* Mask for the area attributes which need to written in AOF file format.  */
-#define AREA_INT_DATAMASK	0x8F30FFFF /* Mask for DATA areas.  */
-#define AREA_INT_CODEMASK	0xC7FFFFFF /* Mask for CODE areas.  */
+#define AREA_INT_DWARF		0x20000000u /* Area is a DWARF debug area.  */
+#define AREA_INT_CODEALIGN	0x40000000u
+#define AREA_INT_AOFMASK	0x8F7FFFFFu /* Mask for the area attributes which need to written in AOF file format.  */
+#define AREA_INT_DATAMASK	0x8F30FFFFu /* Mask for DATA areas.  */
+#define AREA_INT_CODEMASK	0xC7FFFFFFu /* Mask for CODE areas.  */
 
 #define AREA_DEFAULT_ALIGNMENT	0x00000002
 
@@ -125,6 +126,12 @@ Area_IsNoInit (const Area *area)
   return (area->type & AREA_UDATA) != 0;
 }
 
+static inline bool
+Area_IsDWARF (const Area *area)
+{
+  return (area->type & AREA_INT_DWARF) != 0;
+}
+
 static inline unsigned
 Area_GetBaseReg (const Area *area)
 {
@@ -147,6 +154,8 @@ extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols 
 void Area_PrepareForPhase (Phase_e phase);
 
 void Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow);
+
+Symbol *Area_CreateDWARF (const char *name);
 
 bool Area_IsImplicit (const Symbol *sym);
 uint32_t Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const char *msg);
