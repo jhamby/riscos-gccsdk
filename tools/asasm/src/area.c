@@ -128,14 +128,11 @@ Area_Create (Symbol *sym, uint32_t type)
 
 
 static bool
-areaImage (Area *area, size_t newsize)
+Area_Resize (Area *area, size_t newsize)
 {
   assert ((area->type & AREA_UDATA) == 0);
-  uint8_t *newImage;
-  if (area->imagesize)
-    newImage = realloc (area->image, newsize);
-  else
-    newImage = malloc (newsize);
+  assert (newsize > area->imagesize);
+  uint8_t *newImage = realloc (area->image, newsize);
   if (!newImage)
     return false;
 
@@ -181,9 +178,9 @@ Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow)
     inc = GROWSIZE;
   if (inc < mingrow)
     inc = mingrow;
-  while (inc > mingrow && !areaImage (areaSym->area, areaSym->area->imagesize + inc))
+  while (inc > mingrow && !Area_Resize (areaSym->area, areaSym->area->imagesize + inc))
     inc /= 2;
-  if (inc <= mingrow && !areaImage (areaSym->area, areaSym->area->imagesize + mingrow))
+  if (inc <= mingrow && !Area_Resize (areaSym->area, areaSym->area->imagesize + mingrow))
     Error_OutOfMem ();
 }
 
