@@ -1,3 +1,7 @@
+Wed May  1 00:41:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/output.c (Output_ELF): Restore ELF_EABI build.
+
 Wed May  1 00:30:37 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/eval.c (Eval_Unop): Case eOp_CCEnc, return 4 bit CC value in
