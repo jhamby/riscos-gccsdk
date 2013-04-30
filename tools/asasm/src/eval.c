@@ -1079,7 +1079,7 @@ Eval_Unop (Operator_e op, const Value *value)
 		}
 	      if (ccode >= 16)
 		ccode += -16 + 2;
-	      result = Value_Int (ccode, eIntType_PureInt);
+	      result = Value_Int (ccode << 24, eIntType_PureInt);
 	    }
 	  break;
 	}

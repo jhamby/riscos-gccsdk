@@ -1,3 +1,9 @@
+Wed May  1 00:30:37 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/eval.c (Eval_Unop): Case eOp_CCEnc, return 4 bit CC value in
+ 	bits 28-31 (incl).  Bug report by Ben Avison.
+	* unittests/compare/core/operator_cc_encoding.s: Adjust test result.
+
 Sun Apr 28 17:17:46 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
