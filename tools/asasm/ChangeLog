@@ -1,3 +1,8 @@
+Wed May  1 14:05:44 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/output.c (Output_ELF): Switch back to use EF_ARM_EABI_VER5
+	after fix in elftoolchain.
+
 Wed May  1 13:11:57 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* INSTALL: Update build and install instructions.

@@ -587,7 +587,7 @@ Output_ELF (void)
   ehdr->e_version = EV_CURRENT;
   ehdr->e_entry = areaEntrySymbol ? areaEntryOffset : 0;
 #ifdef ELF_EABI
-  ehdr->e_flags = 5<<24; /* FIXME: was EF_ARM_EABI_VER5; */
+  ehdr->e_flags = EF_ARM_EABI_VER5;
 #endif
 
   /* Section order:
