@@ -29,17 +29,27 @@
 
 5. Test:
 
-   $ cd ../asasm/regression
-   $ make check
+   $ make check-minimal
 
    When all the tests are successful, you should see at the near end:
 
    *** All 'compare' tests were OK (do 'make -C unittests/compare clean' first if you want to re-do them)
    *** All 'reloc' tests were OK (do 'make -C unittests/reloc clean' first if you want to re-do them)
 
+   Tests can be rerun after performing a clean (not necessairy if you want to
+   rerun a particular test after having changed its source file):
+
+   $ make -C unittests/compare clean
+   $ make -C unittests/reloc clean
+   $ make check-minimal
+
 6. Install:
 
-   $ cd ../../build-output/asasm
+   $ make install
+
+   If you do the installation in a system directory, you might need an
+   additional `sudo'.
+
    $ sudo make install
 
 *** Build instructions for cross-compiled asasm:
@@ -67,8 +77,10 @@
    $ ../asasm/configure --host=arm-unknown-riscos --target=arm-unknown-riscos \
    --disable-building-tools
 
-   Also you can specify --prefix=<installdir> with <installdir> a full path
-   of the intended installation directory (used when 'make install' is done).
+   Also you probably want to specify --prefix=<installdir> with <installdir> a
+   full path of the intended installation directory (used when 'make install'
+   is done) as otherwise you will use a system directoy where you don't want
+   to overwrite any files with RISC OS binaries.
 
 5. Cross-compile and link asasm:
 
@@ -76,7 +88,11 @@
 
    You have now a RISC OS version of asasm:
 
-   $ file asasm
-   asasm: RISC OS AIF executable
+   $ file ./src/asasm
+   ./src/asasm: RISC OS AIF executable
+
+6. Install:
+
+   $ make install
 
 -EOF-
