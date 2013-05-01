@@ -1,3 +1,10 @@
+Wed May  1 13:44:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/common/elfdefinitions.h (EF_ARM_EABI_UNKNOWN): Define.
+	(EF_ARM_EABI_VER1 ... EF_ARM_EABI_VER5): Likewise.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/422
+
 Sat Apr 27 15:00:08 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Merged from upstream-trunk.
@@ -12,7 +19,7 @@ Sun Apr 21 01:54:10 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 	* current-trunk/libdwarf/Makefile (MAN): Add missing dwarf.3 and
 	dwarf_add_AT_comp_dir.3 entries.
 	Sent patch upstream as:
-	https://sourceforge.net/apps/trac/elftoolchain/ticket/419
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/419
 	* current-trunk/libdwarf/GNUmakefile.am (notrans_dist_man3_MANS):
 	Likewise.
 
