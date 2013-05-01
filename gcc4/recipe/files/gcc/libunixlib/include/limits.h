@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.14/2.2.4.2: Limits of integral types <limits.h>
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2013 UnixLib Developers
  */
 
 #ifndef __LIMITS_H
@@ -125,7 +125,7 @@
 #define NAME_MAX _POSIX_NAME_MAX
 
 /* Number of bytes in a pathname.  */
-#define	_POSIX_PATH_MAX		256
+#define	_POSIX_PATH_MAX		1024
 #define PATH_MAX _POSIX_PATH_MAX
 
 /* Number of bytes than can be written atomically to a pipe.  */

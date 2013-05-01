@@ -1,3 +1,7 @@
+Wed May  1 15:27:44 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/limits.h (PATH_MAX): Increased to 1024.
+
 Mon Apr 15 23:10:21 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unistd/readlink.c (readlink): Remove free call for NULL ptr.
