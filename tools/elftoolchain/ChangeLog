@@ -1,3 +1,11 @@
+Thu May  2 23:49:54 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libdwarf/dwarf_pro_lineno.c (dwarf_add_file_decl):
+	Fix off-by-one return value.
+	(dwarf_add_directory_decl): Likewise.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/423
+
 Thu May  2 23:19:08 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/libdwarf_info.c (_dwarf_info_pro_cleanup):
