@@ -1,3 +1,10 @@
+Thu May  2 23:19:08 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libdwarf/libdwarf_info.c (_dwarf_info_pro_cleanup):
+	Avoid crash when no CU has been created.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/420
+
 Wed May  1 13:44:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/common/elfdefinitions.h (EF_ARM_EABI_UNKNOWN): Define.
