@@ -1,3 +1,12 @@
+Sat May  4 19:43:09 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libdwarf/libdwarf_lineno.c (_dwarf_get_minlen): Add
+	missing support for DW_ISA_ARM.
+	* current-trunk/libdwarf/libdwarf_reloc.c (_dwarf_get_reloc_type,
+	_dwarf_get_reloc_size): Likewise.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/425
+
 Sat May  4 19:33:48 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/libdwarf_lineno.c (_dwarf_lineno_gen_program):
