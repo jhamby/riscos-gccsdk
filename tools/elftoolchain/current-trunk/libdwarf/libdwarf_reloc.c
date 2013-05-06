@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_reloc.c 2070 2011-10-27 03:05:32Z jkoshy $");
+ELFTC_VCSID("$Id: libdwarf_reloc.c 2941 2013-05-04 22:57:19Z kaiwang27 $");
 
 Dwarf_Unsigned
 _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
@@ -42,9 +42,9 @@ _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
 	case DW_ISA_SPARC:
 		return (is64 ? R_SPARC_UA64 : R_SPARC_UA32);
 	case DW_ISA_PPC:
-		return R_PPC_ADDR32;
+		return (R_PPC_ADDR32);
 	case DW_ISA_ARM:
-		return R_ARM_ABS32;
+		return (R_ARM_ABS32);
 	case DW_ISA_MIPS:
 		return (is64 ? R_MIPS_64 : R_MIPS_32);
 	case DW_ISA_IA64:

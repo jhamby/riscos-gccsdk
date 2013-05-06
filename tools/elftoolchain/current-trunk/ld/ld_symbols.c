@@ -34,7 +34,7 @@
 #include "ld_script.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_symbols.c 2918 2013-02-16 07:16:10Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_symbols.c 2940 2013-05-04 22:22:10Z kaiwang27 $");
 
 #define	_INIT_SYMTAB_SIZE	128
 
@@ -1162,6 +1162,10 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 			    elf_errmsg(-1));
 		_add_elf_symbol(ld, li, e, &sym, strndx, i);
 	}
+
+	/* Process section groups. */
+	if (li->li_sg_exist)
+		ld_input_process_section_group(ld, li, e);
 }
 
 static void
