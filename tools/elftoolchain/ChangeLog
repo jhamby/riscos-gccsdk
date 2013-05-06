@@ -1,3 +1,8 @@
+Mon May  6 23:06:33 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2942
+
 Sat May  4 19:43:09 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/libdwarf_lineno.c (_dwarf_get_minlen): Add
