@@ -86,14 +86,14 @@ OS_SWINameToNum (const char *swiname)
   return _kernel_swi (OS_SWINumberFromString, &regs, &regs) ? -1 : regs.r[0];
 }
 
-_kernel_oserror *
+const _kernel_oserror *
 OS_ThrowbackStart (void)
 {
   _kernel_swi_regs regs;
   return _kernel_swi (DDEUtils_ThrowbackStart, &regs, &regs);
 }
 
-_kernel_oserror *
+const _kernel_oserror *
 OS_ThrowbackSendStart (const char *fileName)
 {
   oThrowbackErrorFile = fileName;
@@ -107,7 +107,7 @@ OS_ThrowbackSendStart (const char *fileName)
  * \param level 0 for warning, 1 for error, 2 for serious error.
  * \param errstr nul terminated description of error
  */
-_kernel_oserror *
+const _kernel_oserror *
 OS_ThrowbackSendError (int level, unsigned lineNum, const char *errstr)
 {
   _kernel_swi_regs regs;
@@ -120,46 +120,12 @@ OS_ThrowbackSendError (int level, unsigned lineNum, const char *errstr)
   return _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
 }
 
-_kernel_oserror *
+const _kernel_oserror *
 OS_ThrowbackEnd (void)
 {
   oThrowbackErrorFile = NULL;
   _kernel_swi_regs regs;
   return _kernel_swi (DDEUtils_ThrowbackEnd, &regs, &regs);
-}
-
-static int
-OSCanonicalisePath (const char *path, char *buffer, int buffersize,
-		    char *systemvar, char *defaultpath)
-{
-  _kernel_swi_regs regs;
-
-  regs.r[0] = 37;
-  regs.r[1] = (int) path;
-  regs.r[2] = (int) buffer;
-  regs.r[3] = (int) systemvar;
-  regs.r[4] = (int) defaultpath;
-  regs.r[5] = buffersize;
-  _kernel_swi (OS_FSControl, &regs, &regs); /* TODO: error handling */
-  return regs.r[5];
-}
-
-/**
- * Canonicalise filename.
- * \param path Filename.
- * \returns When non-NULL, pointer to malloced buffer holding the canonicalised
- * filename (caller needs to free).  NULL in case of an error.
- */
-static const char *
-CanonicalisePath (const char *path)
-{
-  int size = 1 - OSCanonicalisePath (path, 0, 0, 0, 0);
-  char *buffer;
-  if ((buffer = malloc (size)) == NULL)
-    Error_OutOfMem ();
-  size = OSCanonicalisePath (path, buffer, size, 0, 0);
-  assert (size == 1);
-  return buffer;
 }
 
 #else
@@ -171,15 +137,6 @@ CanonicalisePath (const char *path)
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #  include <unistd.h>
-
-static const char *
-CanonicalisePath (const char *path)
-{
-  const char *rsltP;
-  if ((rsltP = strdup (path)) == NULL)
-    Error_OutOfMem ();
-  return rsltP;
-}
 
 #endif
 
@@ -203,7 +160,7 @@ ASFile_Create (const char *fileName, ASFile *asFileP)
   regs.r[1] = (int) fileName;
   if (_kernel_swi (OS_File, &regs, &regs) || (regs.r[0] != 1 && regs.r[0] != 3))
     return true;
-  asFileP->canonName = CanonicalisePath (fileName);
+  asFileP->canonName = realpath (fileName, NULL);
   asFileP->size = (off_t) regs.r[4];
   asFileP->attribs = (uint8_t) regs.r[5];
   asFileP->execAddress = (uint32_t) regs.r[3];
@@ -239,11 +196,11 @@ ASFile_Create (const char *fileName, ASFile *asFileP)
 	  globfree (&ginfo);
 	  return true;
 	}
-      asFileP->canonName = CanonicalisePath (ginfo.gl_pathv[0]);
+      asFileP->canonName = realpath (ginfo.gl_pathv[0], NULL);
       globfree (&ginfo);
     }
   else
-    asFileP->canonName = CanonicalisePath (fileName);
+    asFileP->canonName = realpath (fileName, NULL);
   asFileP->size = sinfo.st_size;
   asFileP->attribs = ((sinfo.st_mode & S_IRUSR) ? (1<<0) : 0)
 		       | ((sinfo.st_mode & S_IWUSR) ? (1<<1) : 0)
@@ -296,6 +253,6 @@ OS_GetCWD (void)
     }
   return bufP;
 #else
-  return CanonicalisePath ("@");
+  return realpath ("@", NULL);
 #endif
 }

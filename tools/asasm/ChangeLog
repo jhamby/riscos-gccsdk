@@ -1,3 +1,14 @@
+Tue May  7 23:52:52 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/os.c (OS_ThrowbackStart): Make return value ptr const.
+	(OS_ThrowbackSendStart, OS_ThrowbackSendError, OS_ThrowbackEnd):
+	Likewise.
+	(OSCanonicalisePath): Remove.
+	(ASFile_Create): Use realpath i.s.o. OSCanonicalisePath.
+	(OS_GetCWD): Likewise.
+	* src/os.h (OS_Throwback*): Likewise.
+	* src/error.c: Follow OS_Throwback* changes.
+
 Wed May  1 14:05:44 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/output.c (Output_ELF): Switch back to use EF_ARM_EABI_VER5

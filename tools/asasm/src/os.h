@@ -50,10 +50,10 @@ const char *OS_GetCWD (void);
 
 int OS_SWINameToNum (const char *swi);
 
-_kernel_oserror *OS_ThrowbackStart (void);
-_kernel_oserror *OS_ThrowbackSendStart (const char *fileName);
-_kernel_oserror *OS_ThrowbackSendError (int level, unsigned lineNum, const char *error);
-_kernel_oserror *OS_ThrowbackEnd (void);
+const _kernel_oserror *OS_ThrowbackStart (void);
+const _kernel_oserror *OS_ThrowbackSendStart (const char *fileName);
+const _kernel_oserror *OS_ThrowbackSendError (int level, unsigned lineNum, const char *error);
+const _kernel_oserror *OS_ThrowbackEnd (void);
 
 #define Throwback_ReasonProcessing	0
 #define Throwback_ReasonErrorDetails	1

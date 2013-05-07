@@ -81,7 +81,7 @@ Error_PrepareForPhase (Phase_e phase)
 #ifdef __riscos__
 	  if (oThrowbackStarted == eTB_SuccessfullyStarted)
 	    {
-	      _kernel_oserror *err;
+	      const _kernel_oserror *err;
 	      if ((err = OS_ThrowbackEnd ()) != NULL && option_verbose > 1)
 		fprintf (stderr, "OS_ThrowbackEnd error: %s\n", err->errmess);
 	      oThrowbackStarted = eTB_Ended;
@@ -105,7 +105,7 @@ DoThrowback (int level, unsigned lineNum, const char *errstr, const char *fileNa
 
   if (oThrowbackStarted == eTB_SuccessfullyStarted)
     {
-      _kernel_oserror *err;
+      const _kernel_oserror *err;
       if ((err = OS_ThrowbackSendStart (fileName)) != NULL && option_verbose > 1)
         fprintf (stderr, "OS_ThrowbackSendStart error: %s\n", err->errmess);
       if ((err = OS_ThrowbackSendError (level, lineNum, errstr)) != NULL && option_verbose > 1)
