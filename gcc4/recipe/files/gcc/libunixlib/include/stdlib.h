@@ -147,11 +147,9 @@ extern int system (const char *__command) __THROW __wur;
 __END_NAMESPACE_STD
 
 #if defined __USE_BSD || defined __USE_XOPEN_EXTENDED
-#  ifndef __TARGET_SCL__
 /* Canonicalise a filename */
 extern char *realpath (const char *__file_name, char *__resolved_name)
      __THROW __wur;
-#  endif
 #endif
 
 __BEGIN_NAMESPACE_STD

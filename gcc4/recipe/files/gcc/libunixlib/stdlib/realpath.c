@@ -1,48 +1,112 @@
 /* realpath ()
- * Copyright 2002-2011 UnixLib Developers
+ * Copyright 2002-2013 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdlib.h>
-#include <kernel.h>
 #include <limits.h>
 
-#include <unixlib/local.h>
 #include <internal/os.h>
 
-/* Canonicalise a filename */
-/* resolved_name points to a buffer of at least PATH_MAX bytes */
+#ifndef __TARGET_SCL__
+#include <unixlib/local.h>
+
 char *
 realpath (const char *file_name, char *resolved_name)
 {
-  if (file_name == NULL || resolved_name == NULL)
+  if (file_name == NULL)
     {
       __set_errno (EINVAL);
       return NULL;
     }
 
+  char *out_resolved_name;
+  if (resolved_name == NULL)
+    {
+      if ((out_resolved_name = malloc (PATH_MAX)) == NULL)
+	return NULL;
+    }
+  else
+    out_resolved_name = resolved_name;
+
   int filetype;
-  if (__riscosify_std (file_name, 0, resolved_name, PATH_MAX, &filetype) == NULL)
+  if (__riscosify_std (file_name, 0, out_resolved_name, PATH_MAX, &filetype) == NULL)
     {
       __set_errno (ENAMETOOLONG);
-      return NULL;
+      goto error;
     }
+
+  const char *ro_filename;
+# if __UNIXLIB_SYMLINKS
+  char target[PATH_MAX];
+  if (__resolve_symlinks (out_resolved_name, target, PATH_MAX, 0) != 0)
+    goto error;
+
+  ro_filename = target;
+# else
+  ro_filename = out_resolved_name;
+# endif
 
   char buffer[PATH_MAX];
   const _kernel_oserror *err;
-  if ((err = SWI_OS_FSControl_Canonicalise (resolved_name, NULL,
+  if ((err = SWI_OS_FSControl_Canonicalise (ro_filename, NULL,
 					    buffer, sizeof (buffer),
 					    NULL)) != NULL)
     {
-      __ul_seterr (err, EIO);
-      return NULL;
+      __ul_seterr (err, ENOENT);
+      goto error;
     }
 
-  if (__unixify_std (buffer, resolved_name, PATH_MAX, filetype) == NULL)
+  if (__unixify_std (buffer, out_resolved_name, PATH_MAX, filetype) == NULL)
     {
       __set_errno (ENAMETOOLONG);
+      goto error;
+    }
+
+  return out_resolved_name;
+
+error:
+  if (resolved_name == NULL)
+    free (out_resolved_name);
+  return NULL;
+}
+
+#else
+
+char *
+realpath (const char *file_name, char *resolved_name)
+{
+  if (file_name == NULL)
+    {
+      __set_errno (EINVAL);
       return NULL;
     }
 
-  return resolved_name;
+  char *out_resolved_name;
+  size_t out_size;
+  if (resolved_name == NULL)
+    {
+      SWI_OS_FSControl_Canonicalise (file_name, NULL, NULL, 0, &out_size);
+      if ((out_resolved_name = malloc (out_size)) == NULL)
+	return NULL;
+    }
+  else
+    {
+      out_resolved_name = resolved_name;
+      out_size = PATH_MAX;
+    }
+
+  const _kernel_oserror *err;
+  if ((err = SWI_OS_FSControl_Canonicalise (file_name, NULL,
+					    out_resolved_name, out_size,
+					    NULL)) != NULL)
+    {
+      __ul_seterr (err, ENOENT);
+      if (resolved_name == NULL)
+	free (out_resolved_name);
+      return NULL;
+    }
+
+  return out_resolved_name;
 }
+#endif

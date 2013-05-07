@@ -945,7 +945,6 @@ stdlib_src = \
 	stdlib/nrand48.c \
 	stdlib/rand.c \
 	stdlib/random.c \
-	stdlib/realpath.c \
 	stdlib/seed48.c \
 	stdlib/srand48.c \
 	stdlib/strtol.c \
@@ -957,6 +956,8 @@ stdlib_src = \
 	stdlib/xpg_basename.c \
 	stdlib/_rand48.c
 endif
+stdlib_src += \
+	stdlib/realpath.c
 
 if UNIXLIB_BUILDING_SCL
 string_src =
