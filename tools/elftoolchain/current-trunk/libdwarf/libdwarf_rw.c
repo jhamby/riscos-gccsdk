@@ -287,6 +287,7 @@ int
 _dwarf_write_sleb128(uint8_t *data, uint8_t *end, int64_t val)
 {
 	uint8_t *p;
+	int64_t sign_ext = -(val < 0);
 
 	p = data;
 
@@ -295,7 +296,7 @@ _dwarf_write_sleb128(uint8_t *data, uint8_t *end, int64_t val)
 			return (-1);
 		*p = val & 0x7f;
 		val >>= 7;
-		if (val == 0 || (val == -1 && (*p & 0x40) == 0x40)) {
+		if (val == sign_ext && (*p & 0x40) == (sign_ext & 0x40)) {
 			p++;
 			break;
 		}

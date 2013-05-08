@@ -1,3 +1,10 @@
+Thu May  9 00:19:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libdwarf/libdwarf_rw.c (_dwarf_write_sleb128): Fix
+	encoding problem.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/attachment/ticket/426
+
 Mon May  6 23:09:38 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Merged from upstream-trunk.
