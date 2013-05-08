@@ -1,3 +1,23 @@
+Wed May  8 02:56:00 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* include.c (IncludeDir_t): Use zero size dirP array.
+	(Include_Add): Follow IncludeDir_t change.
+	(Include_OpenForRead): Update comments.
+	* filestack.h (FileNameList): Use zero size fileName array.
+	(PObject): Update comments.
+	* filestack.c (CachedFile_t): Use zero size bufP array.
+	(StoreFileName): Follow FileNameList change.
+	(CachedFile_Lookup): Follow CachedFile_t change.
+	(FS_GetCurFileName): Return gSourceFileName_Canone i.s.o.
+	gSourceFileName when there are no parsable object files.
+	* symbol.h (Symbol): Use zero size str array.
+	* symbol.c (Symbol_New): Follow Symbole change.
+	* main.c (SourceFileName): Rename to gSourceFileName.
+	(gSourceFileName_Canon): Add.
+	* main.h: Likewise.
+	* asm.c (ASM_DoPass): Initialize gSourceFileName_Canon.
+
 Tue May  7 23:52:52 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/os.c (OS_ThrowbackStart): Make return value ptr const.

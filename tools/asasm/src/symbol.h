@@ -131,7 +131,7 @@ typedef struct Symbol
 
   /* Symbol name: */
   size_t len;		/** length of str[] without its NUL terminator.  */
-  char str[1];		/** symbol name as NUL terminated string */
+  char str[];		/** symbol name as NUL terminated string */
 } Symbol;
 
 /* Prefix of all internal AsAsm symbols.  */

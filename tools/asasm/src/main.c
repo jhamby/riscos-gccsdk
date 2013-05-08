@@ -73,7 +73,8 @@ int option_verbose = 0;
 bool option_debug = false;
 
 static const char *ObjFileName = NULL;
-const char *SourceFileName = NULL;
+const char *gSourceFileName = NULL;
+const char *gSourceFileName_Canon = NULL;
 
 static unsigned oOptionSrcCacheSize = 8;
 
@@ -550,12 +551,12 @@ main (int argc, char **argv)
 	{
 	  if (--argc)
 	    {
-	      if (SourceFileName != NULL)
+	      if (gSourceFileName != NULL)
 	        {
-	          fprintf (stderr, PACKAGE_NAME ": Only one input file allowed (%s & %s specified)\n", SourceFileName, *++argv);
+	          fprintf (stderr, PACKAGE_NAME ": Only one input file allowed (%s & %s specified)\n", gSourceFileName, *++argv);
 	          return EXIT_FAILURE;
 	        }
-	      SourceFileName = *++argv;
+	      gSourceFileName = *++argv;
 	    }
 	  else
 	    {
@@ -658,10 +659,10 @@ main (int argc, char **argv)
 	  return EXIT_FAILURE;
 	}
     }
-  if (SourceFileName == NULL)
+  if (gSourceFileName == NULL)
     {
       if (numFileNames)
-	SourceFileName = fileNames[--numFileNames];
+	gSourceFileName = fileNames[--numFileNames];
       else
 	{
 	  fprintf (stderr, PACKAGE_NAME ": No input filename specified\n");
@@ -688,7 +689,7 @@ main (int argc, char **argv)
 
       /* Initialize and do the one or two assembly passes.  */
       Phase_PrepareFor (eStartUp);
-      ASM_Assemble (SourceFileName, option_no_code_gen);
+      ASM_Assemble (gSourceFileName, option_no_code_gen);
 
       /* Don't try to output anything when we have assemble errors.  */
       const char *canonOutFileName;

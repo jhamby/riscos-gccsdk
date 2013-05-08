@@ -79,6 +79,7 @@ ASM_DoPass (const char *asmFile)
 {
   assert (gCurPObjP == NULL);
   FS_PushFilePObject (asmFile);
+  gSourceFileName_Canon = FS_GetCurFileName ();
 
   // FIXME: this will be wrong when we're skipping if/while contents.
   if (setjmp (asmContinue) == 0)

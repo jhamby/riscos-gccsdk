@@ -70,7 +70,9 @@ extern bool option_uppercase;
 extern int option_verbose;
 extern bool option_debug;
 
-extern const char *SourceFileName;
+extern const char *gSourceFileName; /**< Source filename specified on the
+  command line.  */
+extern const char *gSourceFileName_Canon; /**< Canonicalized source filename.  */
 
 extern jmp_buf asmContinue;
 extern bool asmContinueValid;

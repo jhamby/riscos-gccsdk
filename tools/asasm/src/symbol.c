@@ -94,7 +94,7 @@ static Symbol *
 Symbol_New (const char *str, size_t len)
 {
   Symbol *result;
-  if ((result = (Symbol *) malloc (sizeof (Symbol) + len)) == NULL)
+  if ((result = (Symbol *) malloc (sizeof (Symbol) + len + 1)) == NULL)
     Error_OutOfMem ();
   result->next = NULL;
   result->type = result->offset = 0;

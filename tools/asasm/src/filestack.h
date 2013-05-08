@@ -35,7 +35,7 @@
 typedef struct FileNameList
 {
   struct FileNameList *nextP;
-  char fileName[1]; /**< Canonicalised path in host's OS filename format.  */
+  char fileName[]; /**< Canonicalised path in host's OS filename format.  */
 } FileNameList;
 extern FileNameList *gFileNameListP;
 
@@ -53,14 +53,14 @@ typedef struct
 
 #define PARSEOBJECT_STACK_SIZE (32)
 
-/* The object to parse, either file or macro (latter basically assembler stored
-   in memory.  */
 typedef enum
 {
   POType_eFile,
   POType_eCachedFile,
   POType_eMacro
 } POType_e;
+
+/* Object to parse, either file, cached file or macro.  */
 typedef struct
 {
   POType_e type;
@@ -71,10 +71,11 @@ typedef struct
       PObject_Macro macro;
     } d;
 
-  const char *fileName; /**< Current file name, or file name of current macro
-    definition we're executing.
-    Can be NULL. Prefer FS_GetCurFileName() to read. */
-  unsigned lineNum; /**< Current line number. Prefer FS_GetCurLineNumber() to read. */
+  const char *fileName; /**< Canonicalized current file name, or file name of
+    current macro definition we're executing.
+    Prefer FS_GetCurFileName() to read this field. */
+  unsigned lineNum; /**< Current line number. Prefer FS_GetCurLineNumber()
+    to read this field. */
 
   unsigned int whileIfCurDepth; /**< The current index in the while/if array for this object.  */
   unsigned int whileIfStartDepth; /**< The start index in the while/if array for this object.  */

@@ -48,7 +48,7 @@
 typedef struct IncludeDir
 {
   struct IncludeDir *nextP;
-  char dirP[1];
+  char dirP[];
 } IncludeDir_t;
 
 static IncludeDir_t *oIncludeDirListP;
@@ -92,7 +92,7 @@ Include_Add (const char *inclDirP)
 
   /* Need to add to the include directory list.  */
   size_t inclDirSize = strlen (inclDirP) + 1;
-  IncludeDir_t *newInclDirP = malloc (offsetof (IncludeDir_t, dirP) + inclDirSize);
+  IncludeDir_t *newInclDirP = malloc (sizeof (IncludeDir_t) + inclDirSize);
   if (newInclDirP == NULL)
     Error_OutOfMem ();
   newInclDirP->nextP = NULL;
@@ -202,6 +202,8 @@ Include_Find (const char *fileName, ASFile *asFileP)
 
 /**
  * Opens file for read.
+ * \param fileNameP Filename as specified by user or in assembler source.
+ * This is before any translation to a real existing filename.
  * \param asFileP ASFile object to open a read-only std C FILE for.
  * \return When non-NULL, a std C file stream pointer.
  */

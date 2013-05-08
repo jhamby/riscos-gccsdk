@@ -47,9 +47,9 @@
 typedef struct CachedFile
 {
   const struct CachedFile *nextP;
-  const char *fileNameP; /** Filename of this cached file.  */
+  const char *fileNameP; /** Canonicalized filename of this cached file.  */
   size_t size; /** Size of this cached file.  */
-  char bufP[1]; /** Pointer to cached file in memory.  */
+  char bufP[]; /** Pointer to cached file in memory.  */
 } CachedFile_t;
 
 static size_t oFileCacheSize; /* In bytes.  */
@@ -103,9 +103,9 @@ FS_PrepareForPhase (Phase_e phase)
 
 
 /**
- * In order to have permanent storage of filenames.
- * \param fileNameP Pointer to malloced filename.
- * \return pointer to same filename, no ownership.
+ * Put given filename in a permanent storage of filenames.
+ * \param fileNameP Pointer to malloced and canonicalized filename.
+ * \return pointer to same filename, no ownership anymore.
  */
 static const char *
 StoreFileName (const char *fileNameP)
@@ -121,7 +121,7 @@ StoreFileName (const char *fileNameP)
     /* */;
   if (resultP == NULL)
     {
-      if ((resultP = malloc (offsetof (FileNameList, fileName) + strlen (fileNameP) + 1)) == NULL)
+      if ((resultP = malloc (sizeof (FileNameList) + strlen (fileNameP) + 1)) == NULL)
 	Error_OutOfMem ();
       resultP->nextP = gFileNameListP;
       strcpy (resultP->fileName, fileNameP);
@@ -147,7 +147,7 @@ CachedFile_Lookup (const char *fileNameP, const ASFile *asFileP)
      the cache.  */
   if ((size_t)asFileP->size <= oFileCacheSize)
     {
-      CachedFile_t *cachedFileP = malloc (offsetof (CachedFile_t, bufP) + asFileP->size);
+      CachedFile_t *cachedFileP = malloc (sizeof (CachedFile_t) + asFileP->size);
       if (cachedFileP == NULL)
 	return NULL; /* Don't give an error, just read the file from disc.  */
       FILE *fhandle = Include_OpenForRead (fileNameP, asFileP);
@@ -416,13 +416,14 @@ FS_PopPObject (bool noCheck)
 
 
 /**
- * \return A non-NULL pointer of filename of the current parsing object.
+ * \return A non-NULL pointer of canonicalized filename of the current parsing
+ * object.
  */
 const char *
 FS_GetCurFileName (void)
 {
   if (gCurPObjP == NULL)
-    return SourceFileName;
+    return gSourceFileName_Canon;
   return gCurPObjP->fileName;
 }
 
