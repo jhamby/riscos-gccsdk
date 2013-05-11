@@ -574,7 +574,6 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 		if (line0 != 0) {
 			RCHECK(WRITE_VALUE(DW_LNS_advance_line, 1));
 			RCHECK(WRITE_SLEB128(line0));
-			goto next_line;
 		}
 
 		if (addr0 > 0) {

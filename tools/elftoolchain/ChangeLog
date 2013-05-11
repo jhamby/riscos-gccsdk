@@ -1,3 +1,7 @@
+Sat May 11 14:18:56 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libdwarf/libdwarf_lineno.c: Fix wrong merge.
+
 Sat May 11 14:01:29 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Merged from upstream-trunk.
