@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: dwarf_pro_lineno.c 2074 2011-10-27 03:34:33Z jkoshy $");
+ELFTC_VCSID("$Id: dwarf_pro_lineno.c 2943 2013-05-11 03:54:33Z kaiwang27 $");
 
 Dwarf_Unsigned
 dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
@@ -162,7 +162,7 @@ dwarf_add_directory_decl(Dwarf_P_Debug dbg, char *name, Dwarf_Error *error)
 		return (DW_DLV_NOCOUNT);
 	}
 
-	return (li->li_inclen++);
+	return (++li->li_inclen);
 }
 
 Dwarf_Unsigned
@@ -194,5 +194,5 @@ dwarf_add_file_decl(Dwarf_P_Debug dbg, char *name, Dwarf_Unsigned dirndx,
 	lf->lf_size = size;
 	STAILQ_INSERT_TAIL(&li->li_lflist, lf, lf_next);
 
-	return (li->li_lflen++);
+	return (++li->li_lflen);
 }

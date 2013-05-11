@@ -1,3 +1,8 @@
+Sat May 11 13:59:53 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2945
+
 Thu May  9 00:19:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/libdwarf_rw.c (_dwarf_write_sleb128): Fix
