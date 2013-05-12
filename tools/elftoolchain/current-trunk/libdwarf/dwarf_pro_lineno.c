@@ -56,7 +56,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 
 	ln = STAILQ_LAST(&li->li_lnlist, _Dwarf_Line, ln_next);
 
-	if (ln->ln_addr > ln0->ln_addr + code_offset) {
+	if (ln->ln_addr > code_offset) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
@@ -66,7 +66,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 		return (DW_DLV_NOCOUNT);
 	}
 	ln->ln_li     = li;
-	ln->ln_addr   = ln0->ln_addr + code_offset;
+	ln->ln_addr   = code_offset;
 	ln->ln_symndx = 0;
 	ln->ln_fileno = file;
 	ln->ln_lineno = lineno;

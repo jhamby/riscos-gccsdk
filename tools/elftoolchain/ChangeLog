@@ -1,3 +1,10 @@
+Sun May 12 20:34:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libdwarf/dwarf_pro_lineno.c (dwarf_add_line_entry):
+	code_offset is not an offset compared to last dwarf_lne_set_address.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/427
+
 Sun May 12 19:42:43 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/libdwarf_lineno.c (_dwarf_lineno_gen_program):
