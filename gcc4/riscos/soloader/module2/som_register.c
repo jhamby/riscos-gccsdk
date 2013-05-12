@@ -1,6 +1,6 @@
 /* som_register.c
  *
- * Copyright 2007-2011 GCCSDK Developers
+ * Copyright 2007-2013 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -414,6 +414,7 @@ som_deregister_client (void)
   linklist_remove (&global.client_list, &client->link);
 
   somarray_fini (&client->runtime_array);
+  somarray_fini (&client->gott_base);
 
   som_free (client);
 

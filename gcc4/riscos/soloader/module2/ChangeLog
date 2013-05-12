@@ -1,3 +1,10 @@
+Sun May 12 17:42:11 BST 2013  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c (som_deregister_client): Fix memory leak;
+	free the gott_base array when the client exits.
+	* som_array.c (som_generate_runtime_array): Fix memory leak;
+	free the old gott_base array before allocating a new one.
+
 Mon Apr 30 19:46:47 BST 2012  Lee Noar  <leenoar@sky.com>
 
 	* som_runcom.c(register_dynamic_loader): When copying the R/W

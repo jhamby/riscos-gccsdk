@@ -1,6 +1,6 @@
 /* som_array.c
  *
- * Copyright 2007-2011 GCCSDK Developers
+ * Copyright 2007-2013 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -113,8 +113,8 @@ som_generate_runtime_array (void)
   if ((client = FIND_CLIENT ()) == NULL)
     return somerr_unknown_client;
 
-  if (client->runtime_array.rt_base)
-    som_free (client->runtime_array.rt_base);
+  somarray_fini (&client->gott_base);
+  somarray_fini (&client->runtime_array);
   
   if ((err = somarray_init (&client->gott_base, sizeof (void *),
 			    object_array->elem_count)) != NULL
