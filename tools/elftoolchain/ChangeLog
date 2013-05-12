@@ -1,3 +1,12 @@
+Sun May 12 19:42:43 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libdwarf/libdwarf_lineno.c (_dwarf_lineno_gen_program):
+	Take address into account at DW_LNE_end_sequence emit.  Emit DW_LNS_copy
+	when standard opcode(s) but no special opcodes are used.  Fix underflow
+	problem causing wrong DW_LNS_const_add_pc emit.
+	Patch added to:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/424
+
 Sat May 11 14:18:56 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/libdwarf_lineno.c: Fix wrong merge.
