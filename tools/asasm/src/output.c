@@ -40,13 +40,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "dwarf.h"
 #include "libelf.h"
-#include "libdwarf.h"
 
 #include "aoffile.h"
 #include "area.h"
 #include "chunkfile.h"
+#include "debug_dwarf.h"
 #include "depend.h"
 #include "error.h"
 #include "filename.h"
@@ -59,33 +58,13 @@
 static FILE *oFHandle;
 static int oFHandleELF = -1;
 
-#define FIX(n) ((3+(int)(n))&~3)
+#define FIX(n) ((3 + (n)) & ~3)
 #define EXTRA(n) (FIX(n)-(n))
 
 #define GET_IDFN (idfn_text ? idfn_text : DEFAULT_IDFN)
 const char *idfn_text = NULL; /**< Identifier, when NULL use DEFAULT_IDFN; this is a malloced string.  */
 
 static char outname[PATH_MAX];
-
-typedef struct
-{
-  size_t idx;
-  size_t size;
-  char *bufP;
-} shstrtab_t;
-
-typedef struct
-{
-  Dwarf_P_Debug dwHandle;
-  Dwarf_Signed numDWSections;
-  Elf *elfHandle;
-  size_t symTabScnIdx;
-  shstrtab_t *shStrTabDataP;
-  Elf32_Word shStrTabSizeForDWARF;
-} DWARF_UserState_t;
-
-static DWARF_UserState_t *oDWUserStateP; /* Temporary points to DWARF user state
-  data, only valid during the dwarf_transform_to_disk_form() call.  */
 
 /**
  * Opens the AOF/ELF file for output.
@@ -344,225 +323,6 @@ Output_AOF (void)
 }
 
 
-/**
- * Add given string to the .shstrtab section data.
- * \param strLen Length of the string *including* terminating \0 if
- * necessary.
- */
-static void
-shstrtab_add (shstrtab_t *shStrTabP, const char *str, size_t strLen)
-{
-  if (shStrTabP->idx + strLen > shStrTabP->size)
-    {
-      size_t newSize = 2*shStrTabP->size + 32;
-      char *newBufP = realloc (shStrTabP->bufP, newSize);
-      if (newBufP == NULL)
-	Error_OutOfMem ();
-      shStrTabP->size = newSize;
-      shStrTabP->bufP = newBufP;
-    }
-  memcpy (&shStrTabP->bufP[shStrTabP->idx], str, strLen);
-  shStrTabP->idx += strLen;
-}
-
-static void
-shstrtab_finish (shstrtab_t *shStrTabP)
-{
-  free (shStrTabP->bufP);
-  shStrTabP->idx = 0;
-  shStrTabP->size = 0;
-  shStrTabP->bufP = NULL;
-}
-
-/**
- * DWARF library callback.
- */
-static int
-DWARF_Callback_CreateSection (char *name, int size, Dwarf_Unsigned type,
-			      Dwarf_Unsigned flags, Dwarf_Unsigned link,
-			      Dwarf_Unsigned info, Dwarf_Unsigned *index,
-			      int *error)
-{
-  bool isRelocSection = !strncmp (name, ".rel.debug_", sizeof (".rel.debug_")-1);
-
-  /* Create ELF section.  */
-  Elf_Scn *scn = elf_newscn (oDWUserStateP->elfHandle);
-  if (scn == NULL)
-    Error_Abort ("elf_newscn() failed");
-  Elf32_Shdr *shdr = elf32_getshdr (scn);
-  if (shdr == NULL)
-    Error_Abort ("elf32_getshdr() failed");
-  shdr->sh_name   = oDWUserStateP->shStrTabDataP->idx;
-  shdr->sh_type   = type;
-  shdr->sh_flags  = flags;
-  //shdr->sh_addr   = 0;
-  //shdr->sh_offset = 0;
-  shdr->sh_size   = size;
-  shdr->sh_link   = isRelocSection ? oDWUserStateP->symTabScnIdx : link;
-  shdr->sh_info   = info;
-  shdr->sh_addralign = 1;
-  shdr->sh_entsize = isRelocSection ? sizeof (Elf32_Rel) : 0;
-  
-  shstrtab_add (oDWUserStateP->shStrTabDataP, name, strlen (name) + 1);
-  oDWUserStateP->shStrTabSizeForDWARF += strlen (name) + 1;
-  
-  /* Create AREA holding the DWARF data, only for ".debug_*"  */
-  if (!isRelocSection)
-    {
-      Symbol *areaSymP = Area_CreateDWARF (name);
-      areaSymP->area->number = elf_ndxscn (scn);
-    
-      /* Return as symbol index the our area symbol ptr.  At reloc enumeration
-         time, we will convert this to the real symbol index which only gets
-         determined at Symbol_CreateSymbolOut() time.  */
-      *index = (Dwarf_Unsigned) areaSymP;
-    }
-  else
-    *index = 0;
-
-  /* Return ELF section idx.  */
-  return elf_ndxscn (scn);
-}
-
-static void
-DWARF_CreateAreasAndSections (DWARF_UserState_t *dwUserStateP)
-{
-  Dwarf_Unsigned flags = DW_DLC_SIZE_32 /* | DW_DLC_STREAM_RELOCATIONS */ | DW_DLC_SYMBOLIC_RELOCATIONS | DW_DLC_TARGET_LITTLEENDIAN | DW_DLC_WRITE;
-  Dwarf_Error dwErr;
-  Dwarf_P_Debug dwHandle = dwarf_producer_init_b (flags, DWARF_Callback_CreateSection, NULL, NULL, &dwErr);
-  if (dwHandle == DW_DLV_BADADDR)
-    Error_Abort ("dwarf_producer_init_b() failed: %s", dwarf_errmsg (dwErr));
-
-  if (dwarf_producer_set_isa (dwHandle, DW_ISA_ARM, &dwErr) != DW_DLV_OK)
-    Error_Abort ("dwarf_producer_set_isa() failed: %s", dwarf_errmsg (dwErr));
-
-  /* Create top level DIE.   */
-  Dwarf_P_Die compileUnitDieP = dwarf_new_die (dwHandle, DW_TAG_compile_unit, NULL, NULL, NULL, NULL, &dwErr);
-  if (compileUnitDieP == DW_DLV_BADADDR)
-    Error_Abort ("dwarf_new_die() failed: %s", dwarf_errmsg (dwErr));
-
-  /* Write DW_AT_comp_dir.  */
-  const char *cwd = OS_GetCWD ();
-  if (dwarf_add_AT_comp_dir (compileUnitDieP, (char * /* yuck! */)cwd, &dwErr) == DW_DLV_BADADDR)
-    Error_Abort ("dwarf_add_AT_comp_dir() failed: %s", dwarf_errmsg (dwErr));
-  free ((void *)cwd);
-
-  /* Write DW_AT_name.  */
-  /* FIXME: the input file can be found via an user supplied include path.  In
-     that case we better give the fully resolved input filename.  */
-  if (dwarf_add_AT_name (compileUnitDieP, (char * /* yuck! */)gSourceFileName, &dwErr) == DW_DLV_BADADDR)
-    Error_Abort ("dwarf_add_AT_name() failed: %s", dwarf_errmsg (dwErr));
-
-  /* Write DW_AT_producer.  */
-  if (dwarf_add_AT_producer (compileUnitDieP, (char * /* yuck! */)DEFAULT_IDFN, &dwErr) == DW_DLV_BADADDR)
-    Error_Abort ("dwarf_add_AT_producer() failed: %s", dwarf_errmsg (dwErr));
-
-  /* Write DW_AT_language.  */
-#ifndef DW_LANG_Mips_Assembler
-# define DW_LANG_Mips_Assembler 0x8001
-#endif
-  if (dwarf_add_AT_unsigned_const (dwHandle, compileUnitDieP, DW_AT_language, DW_LANG_Mips_Assembler, &dwErr) == DW_DLV_BADADDR)
-    Error_Abort ("dwarf_add_AT_const_value_unsignedint() failed: %s", dwarf_errmsg (dwErr));
-  
-  if (dwarf_add_die_to_debug (dwHandle, compileUnitDieP, &dwErr) != 0)
-    Error_Abort ("dwarf_add_die_to_debug() failed: %s", dwarf_errmsg (dwErr));
-
-  /* This will trigger our DWARF callback.  */
-  dwUserStateP->dwHandle = dwHandle;
-  oDWUserStateP = dwUserStateP;
-  dwUserStateP->numDWSections = dwarf_transform_to_disk_form (dwHandle, &dwErr);
-  oDWUserStateP = NULL;
-  if (dwUserStateP->numDWSections == DW_DLV_NOCOUNT)
-    Error_Abort ("dwarf_transform_to_disk_form() failed: %s", dwarf_errmsg (dwErr));
-}
-
-static void
-DWARF_OutputSectionData (DWARF_UserState_t *dwUserStateP)
-{
-  Dwarf_P_Debug dwHandle = dwUserStateP->dwHandle;
-  Dwarf_Error dwErr;
-  for (Dwarf_Signed dwSectIdx = 0; dwSectIdx != dwUserStateP->numDWSections; ++dwSectIdx)
-    {
-      Dwarf_Signed elfSectIdx;
-      Dwarf_Unsigned elfSectLen;
-      Dwarf_Ptr ptr = dwarf_get_section_bytes (dwHandle, dwSectIdx, &elfSectIdx,
-					       &elfSectLen, &dwErr);
-      assert (ptr != NULL);
-
-      /* Link DWARF section data into ELF data structure.  */
-      Elf_Scn *dwScnP;
-      if ((dwScnP = elf_getscn (dwUserStateP->elfHandle, elfSectIdx)) == NULL)
-	Error_Abort ("elf_getscn() failed");
-      Elf_Data *dwDataP;
-      if ((dwDataP = elf_newdata (dwScnP)) == NULL)
-	Error_Abort ("elf_newdata() failed");
-      dwDataP->d_align = 1;
-      dwDataP->d_buf = ptr;
-      /* dwDataP->d_off */
-      dwDataP->d_size = elfSectLen;
-      dwDataP->d_type = ELF_T_BYTE;
-      /* dwDataP->d_version */
-    }
-
-  /* Relocation DWARF sections.  */
-  Dwarf_Unsigned numRelocSections;
-  int drdVersion;
-  if (dwarf_get_relocation_info_count (dwHandle, &numRelocSections, &drdVersion, &dwErr) != DW_DLV_OK
-      || drdVersion != 2) 
-    Error_Abort ("dwarf_get_relocation_info_count() failed: %s", dwarf_errmsg (dwErr));
-  for (Dwarf_Unsigned i = 0; i != numRelocSections; ++i)
-    {
-      /* DWARF section 'elfSectLinkIdx' gets one or more relocations based on
-         its relocation section 'elfRelocSectIdx'.  */
-      Dwarf_Signed elfRelocSectIdx;
-      Dwarf_Signed elfSectLinkIdx; /* not used.  */
-      Dwarf_Unsigned relocCount;
-      Dwarf_Relocation_Data relocData;
-      if (dwarf_get_relocation_info (dwHandle, &elfRelocSectIdx, &elfSectLinkIdx,
-				     &relocCount, &relocData, &dwErr) != DW_DLV_OK)
-	Error_Abort ("dwarf_get_relocation_info() failed: %s", dwarf_errmsg (dwErr));
-
-      const size_t elfRelocDataSize = relocCount * sizeof (Elf32_Rel);
-      Elf32_Rel *elfRelocDataP = malloc (elfRelocDataSize); // FIXME: leaks !
-      if (elfRelocDataP == NULL)
-	Error_OutOfMem ();
-      for (Dwarf_Unsigned relocIdx = 0; relocIdx != relocCount; ++relocIdx)
-	{
-	  struct Dwarf_Relocation_Data_s *relocRecordP = &relocData[relocIdx];
-	  /* drd_type can be dwarf_drt_none, dwarf_drt_data_reloc, dwarf_drt_segment_rel,
-	     dwarf_drt_first_of_length_pair, dwarf_drt_second_of_length_pair.  */
-	  assert (relocRecordP->drd_type == dwarf_drt_data_reloc && relocRecordP->drd_length == 4);
-	  const Symbol *relocSymP = (const Symbol *)relocRecordP->drd_symbol_index;
-	  assert (relocSymP->used >= 0);
-	  elfRelocDataP[relocIdx].r_offset = relocRecordP->drd_offset;
-	  elfRelocDataP[relocIdx].r_info = ELF32_R_INFO (relocSymP->used, R_ARM_ABS32);
-	}
-
-      /* Link DWARF relocation section data into ELF data structure.  */
-      Elf_Scn *dwRelScnP;
-      if ((dwRelScnP = elf_getscn (dwUserStateP->elfHandle, elfRelocSectIdx)) == NULL)
-	Error_Abort ("elf_getscn() failed");
-      Elf_Data *dwRelScnDataP;
-      if ((dwRelScnDataP = elf_newdata (dwRelScnP)) == NULL)
-	Error_Abort ("elf_newdata() failed");
-      dwRelScnDataP->d_align = 4;
-      dwRelScnDataP->d_buf = elfRelocDataP;
-      /* dwRelScnDataP->d_off */
-      dwRelScnDataP->d_size = elfRelocDataSize;
-      dwRelScnDataP->d_type = ELF_T_REL;
-      /* dwRelScnDataP->d_version */
-    }
-}
-
-static void
-DWARF_Finish (DWARF_UserState_t *dwUserStateP)
-{
-  Dwarf_Error dwErr;
-  if (dwarf_producer_finish (dwUserStateP->dwHandle, &dwErr) == (Dwarf_Unsigned)DW_DLV_NOCOUNT)
-    Error_Abort ("dwarf_producer_finish() failed: %s", dwarf_errmsg (dwErr));
-  dwUserStateP->dwHandle = 0;
-}
-
 void
 Output_ELF (void)
 {
@@ -606,7 +366,7 @@ Output_ELF (void)
      When an area has no relocations, its SHT_REL section is not emitted.  */
 
   /* Section 0 : "".  */
-  shstrtab_t shStrTabData = { .idx = 0, .size = 0, .bufP = NULL };
+  shstrtab_t shStrTabData = SHSTRTAB_INIT_VALUE;
   shstrtab_add (&shStrTabData, "", sizeof (""));
 
   /* Section 1 & 2 : ".symtab", ".strtab".  */
@@ -684,8 +444,10 @@ Output_ELF (void)
     Error_Abort ("elf32_getshdr() failed");
   symTabSHdrP->sh_name = scnNameIdx;
   symTabSHdrP->sh_type = SHT_SYMTAB;
-  symTabSHdrP->sh_link = elf_ndxscn (strTabScnP);
-  symTabSHdrP->sh_info = symOut.numLocalSymbols;
+  symTabSHdrP->sh_link = elf_ndxscn (strTabScnP); /* Section header index of
+    the assocated string table.  */
+  symTabSHdrP->sh_info = symOut.numLocalSymbols; /* Index of the first global
+    symbol.  */
   symTabSHdrP->sh_entsize = sizeof (Elf32_Sym);
 
   scnNameIdx += sizeof (".symtab");
@@ -747,7 +509,7 @@ Output_ELF (void)
       areaSHdrP->sh_name = scnNameIdx;
       areaSHdrP->sh_type = !Area_IsNoInit (ap->area) ? SHT_PROGBITS : SHT_NOBITS;
       areaSHdrP->sh_flags = scnFlags;
-      areaSHdrP->sh_addr = ap->value.Data.Int.i;
+      areaSHdrP->sh_addr = 0; /* FIXME: ORG should be implemented differently then ap->value.Data.Int.i; */
 
       scnNameIdx += ap->len + 1;
 
@@ -773,8 +535,10 @@ Output_ELF (void)
 	    Error_Abort ("elf32_getshdr() failed");
 	  areaRelSHdrP->sh_name = scnNameIdx;
 	  areaRelSHdrP->sh_type = SHT_REL;
-	  areaRelSHdrP->sh_link = elf_ndxscn (symTabScnP);
-	  areaRelSHdrP->sh_info = ap->area->number; /* section number of area contents.  */
+	  areaRelSHdrP->sh_link = elf_ndxscn (symTabScnP); /* Section header
+	    index of the associated symbol table.  */
+	  areaRelSHdrP->sh_info = ap->area->number; /* The section header index
+	    of the section to which the relocation applies.  */
 	  areaRelSHdrP->sh_entsize = sizeof (Elf32_Rel);
 
 	  scnNameIdx += sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0) + ap->len + 1; 
@@ -819,4 +583,34 @@ Output_ELF (void)
   elf_end (elfHandle);
 
   Symbol_FreeSymbolOut (&symOut);
+}
+
+/**
+ * Add given string to the .shstrtab section data.
+ * \param strLen Length of the string *including* terminating \0 if
+ * necessary.
+ */
+void
+shstrtab_add (shstrtab_t *shStrTabP, const char *str, size_t strLen)
+{
+  if (shStrTabP->idx + strLen > shStrTabP->size)
+    {
+      size_t newSize = 2*shStrTabP->size + 32;
+      char *newBufP = realloc (shStrTabP->bufP, newSize);
+      if (newBufP == NULL)
+	Error_OutOfMem ();
+      shStrTabP->size = newSize;
+      shStrTabP->bufP = newBufP;
+    }
+  memcpy (&shStrTabP->bufP[shStrTabP->idx], str, strLen);
+  shStrTabP->idx += strLen;
+}
+
+void
+shstrtab_finish (shstrtab_t *shStrTabP)
+{
+  free (shStrTabP->bufP);
+  shStrTabP->idx = 0;
+  shStrTabP->size = 0;
+  shStrTabP->bufP = NULL;
 }

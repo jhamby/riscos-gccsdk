@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "debug_dwarf.h"
 #include "phase.h"
 #include "it.h"
 #include "symbol.h"
@@ -102,22 +103,29 @@ typedef struct AREA
   Symbol *next;			/** The next area symbol.  */
   uint32_t type;		/* See AREA_ #defines */
   size_t imagesize;
-  uint8_t *image;		/** Ptr to area data or is NULL when flag AREA_UDATA is set.  */
+  uint8_t *image;		/** Ptr to area data or is and remains NULL
+    when flag AREA_UDATA is set.  */
 
   uint32_t curIdx;
   uint32_t maxIdx;
 
   Area_eEntryType entryType;
-  
-  struct RELOC *relocs;
-  struct RelocOut *relocOutP;
 
-  struct LITPOOL *litPool;	/** The current literal pool waiting to be assembled. */
+  /* From here onwards, non area code are using these fields:  */
 
-  IT_State_t it;
+  DWARF_State_t dwarf;		/* Managed by debug_dwarf.c  */
 
-  /* For output: */
-  uint32_t number; /** AOF: area number (from 0 onwards).  ELF: section ID (from 3 onwards).  Determined start of Output_AOF()/Output_ELF().  */
+  struct RELOC *relocs;		/* Managed by reloc.c.  */
+  struct RelocOut *relocOutP;   /* Managed by reloc.c.  */
+
+  struct LITPOOL *litPool;	/** The current literal pool waiting to be
+    assembled.  Managed by lit.c.  */
+
+  IT_State_t it;		/* Managed by it.c.  */
+
+  uint32_t number;		/** AOF: area number (from 0 onwards).
+    ELF: section ID (from 3 onwards).  Managed by output.c.  Determined at
+    the start of Output_AOF()/Output_ELF().  */
 } Area;
 
 static inline bool
@@ -142,7 +150,7 @@ static inline uint32_t
 Area_GetBaseAddress (const Symbol *symP)
 {
   assert ((symP->type & SYMBOL_AREA) != 0 && (symP->area->type & AREA_ABS) != 0);
-  assert (symP->value.Tag == ValueInt);
+  assert (symP->value.Tag == ValueInt && symP->value.Data.Int.type == eIntType_PureInt);
   return symP->value.Data.Int.i;
 }
 
@@ -180,7 +188,8 @@ extern bool gArea_Preserve8Guessed;
 bool c_preserve8 (void);
 bool c_require8 (void);
 
-void Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType type);
+void Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset,
+                       Area_eEntryType type);
 Area_eEntryType Area_GetCurrentEntryType (void);
 Area_eEntryType Area_IsMappingSymbol (const char *symStr);
 

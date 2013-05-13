@@ -35,6 +35,7 @@
 #include "area.h"
 #include "asm.h"
 #include "code.h"
+#include "debug_dwarf.h"
 #include "decode.h"
 #include "directive_data.h"
 #include "directive_file.h"
@@ -42,6 +43,7 @@
 #include "directive_storagemap.h"
 #include "directive_symbol.h"
 #include "error.h"
+#include "filestack.h"
 #include "frame.h"
 #include "input.h"
 #include "it.h"
@@ -553,8 +555,14 @@ Decode (const Lex *label)
       if (!IsPartiallyMatched (&oDecodeTable[indexFound]))
         Input_SkipWS ();
 
+      /* Take snapshots of current area, its current offset and current file
+         and its current line number.  Executing the next instruction,
+         mnemonic and directive can change any of those 'current' value.  */
       uint32_t startOffset = areaCurrentSymbol->area->curIdx;
       Symbol * const startAreaSymbol = areaCurrentSymbol;
+      const char * const startFileNameP = FS_GetCurFileName ();
+      const unsigned startLineNumber = FS_GetCurLineNumber ();
+
       Value startStorage = Value_Copy (StorageMap_Value ());
 
       Symbol *labelSymbol;
@@ -669,6 +677,9 @@ Decode (const Lex *label)
 	      else
 		entryType = eData;
 	      Area_MarkStartAs (startAreaSymbol, startOffset, entryType);
+	      if (entryType != eData)
+		DWARF_MarkAs (startAreaSymbol, startOffset,
+			      startFileNameP, startLineNumber);
 
 	      /* Give warning when ARM/Thumb instructions are being used in
 	         DATA areas.  */

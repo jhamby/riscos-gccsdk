@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2012 GCCSDK Developers
+ * Copyright (c) 2012-2013 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,6 +45,10 @@ typedef struct
 bool m_it (bool doLowerCase);
 
 void IT_InitializeState (IT_State_t *state);
+static inline void
+IT_FinalizeState (IT_State_t *state __attribute__ ((unused)))
+{
+}
 void IT_PrepareForPhase (Phase_e phase);
 void IT_ApplyCond (uint32_t cc, bool isThumb);
 

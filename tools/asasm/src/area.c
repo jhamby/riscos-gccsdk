@@ -29,10 +29,10 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#elif HAVE_INTTYPES_H
+#ifdef HAVE_INTTYPES_H
 #  include <inttypes.h>
+#elif HAVE_STDINT_H
+#  include <stdint.h>
 #endif
 
 #include "area.h"
@@ -111,7 +111,9 @@ Area_Create (Symbol *sym, uint32_t type)
   newAreaP->maxIdx = 0;
 
   newAreaP->entryType = eInvalid;
-  
+
+  DWARF_InitializeState (&newAreaP->dwarf);
+
   newAreaP->relocs = NULL;
   newAreaP->relocOutP = NULL;
 
@@ -241,7 +243,7 @@ Area_PrepareForPhase (Phase_e phase)
 	    }
 
 	  Area_ResetPrivateVars ();
-	  Area_Ensure ();
+	  Area_Ensure (); /* FIXME: why needed ? */
 	  break;
 	}
 
@@ -308,8 +310,12 @@ Area_PrepareForPhase (Phase_e phase)
               Area *areaP = areaSymbolP->area;
 	      free (areaP->image);
 	      areaP->image = NULL;
+
+	      DWARF_FinalizeState (&areaP->dwarf);
 	      Reloc_RemoveRelocs (areaSymbolP);
 	      Lit_RemoveLiterals (areaSymbolP);
+	      IT_FinalizeState (&areaP->it);
+
 	      free (areaP);
 	      areaSymbolP->area = NULL;
 	      areaSymbolP = nextAreaSymbolP;
@@ -917,7 +923,8 @@ c_require8 (void)
  * Used to implement mapping symbols.
  */
 void
-Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType type)
+Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset,
+                  Area_eEntryType type)
 {
   assert (type != eInvalid);
 

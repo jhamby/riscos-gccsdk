@@ -29,7 +29,7 @@ asasm_LDFLAGS = -static -lm
 asasm_LDADD = ../elftoolchain/libelftc/libelftc.la \
 	../elftoolchain/libelf/libelf.la \
 	../elftoolchain/libdwarf/libdwarf.la
-asasm_SOURCES=area.c asm.c code.c decode.c depend.c \
+asasm_SOURCES=area.c asm.c code.c debug_dwarf.c decode.c depend.c \
 	directive_data.c directive_file.c directive_misc.c \
 	directive_storagemap.c directive_symbol.c error.c \
 	eval.c expr.c filename.c filestack.c fix.c frame.c get.c help_cop.c \

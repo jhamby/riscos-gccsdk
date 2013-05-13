@@ -36,6 +36,17 @@ void Output_Remove (void);
 void Output_AOF (void);
 void Output_ELF (void);
 
+typedef struct
+{
+  size_t idx;
+  size_t size;
+  char *bufP;
+} shstrtab_t;
+
+#define SHSTRTAB_INIT_VALUE  { .idx = 0, .size = 0, .bufP = NULL }
+void shstrtab_add (shstrtab_t *shStrTabP, const char *str, size_t strLen);
+void shstrtab_finish (shstrtab_t *shStrTabP);
+
 extern const char *idfn_text;
 #define DEFAULT_IDFN "GCCSDK ASASM AOF/ELF Assembler " VERSION " (" GCCSDK_REVISION ", " __DATE__ ")"
 

@@ -488,7 +488,9 @@ Symbol_CreateSymbolOut (void)
   
   /* Claim space for an array containing the symbol ptrs of all symbols we're
      going to output.
-     ELF : ordered first local then global (ELF requirement), then alphabetically.
+     ELF : ordered first local then global (ELF requirement, the sh_info field
+           of the .symtab is the symbol idx of the first global symbol), then
+           alphabetically.
      AOF : ordered first global then local, then alphabetically.  */
   Symbol **allSymbolsPP;
   if ((allSymbolsPP = malloc (result.numAllSymbols * sizeof (Symbol *))) == NULL)
@@ -812,7 +814,7 @@ Symbol_BuildSymbolDataForELF (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
   elfSymP->st_size = 0;
   elfSymP->st_info = 0;
   elfSymP->st_other = 0;
-  elfSymP->st_shndx = 0;
+  elfSymP->st_shndx = SHN_UNDEF;
   ++elfSymP;
 
   for (unsigned symIdx = 1; symIdx != symOutP->numAllSymbols; ++symIdx, ++elfSymP)
@@ -824,7 +826,7 @@ Symbol_BuildSymbolDataForELF (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
 	  assert (((symP->type & SYMBOL_ABSOLUTE) != 0) == ((symP->area->type & AREA_ABS) != 0));
 	  assert (SYMBOL_KIND (symP->type) == 0);
           elfSymP->st_name = 0;
-	  elfSymP->st_value = (symP->area->type & AREA_ABS) ? Area_GetBaseAddress (symP) : 0;
+	  elfSymP->st_value = 0; /* FIXME: should be implemented differently: (symP->area->type & AREA_ABS) ? Area_GetBaseAddress (symP) : 0; */
 	  elfSymP->st_size = 0; /* No the area size.  */
 	  elfSymP->st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
 	  elfSymP->st_other = symP->visibility;

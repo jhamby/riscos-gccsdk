@@ -1,3 +1,29 @@
+Tue May 14 00:16:01 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* output.c (Output_ELF): Update comments. Don't assign non-zero sh_addr
+	section header values.
+	(DWARF code): Move to...
+	* debug_dwarf.c, debug_dwarf.h: ...here.
+	(DWARF_InitializeState, DWARF_FinalizeState): Add.
+	(DWARF_MarkData_Store, DWARF_MarkData_Load, DWARF_MarkAs,
+	FSObjTree_CreateFileEntry, FSObjTree_CreateDirEntry,
+	DWARF_FSObjTree_Init, DWARF_FSObjTree_Finalize, DWARF_FSObjTree_GetIdx,
+	DWARF_DumpDebugLine): Add.
+	(DWARF_CreateAreasAndSections): Add .debug_line support.
+	* output.h (shstrtab_t, SHSTRTAB_INIT_VALUE, shstrtab_add,
+	shstrtab_finish): Add.
+	* symbol.c (Symbol_BuildSymbolDataForELF): No longer assign non-zero
+	symbol value for absolute area symbols.
+	* area.c (Area_Create): Add DWARF_InitializeState call.
+	(Area_PrepareForPhase): Add DWARF_FinalizeState and IT_FinalizeState
+	calls.
+	* area.h (Area): Add dwarf field.  Update comments.
+	(Area_GetBaseAddress): Tighten assert.
+	* decode.c (decode): Add DWARF_MarkAs call.
+	* it.h (IT_FinalizeState): Add.
+	* Makefile.am (asasm_SOURCES): Add debug_dwarf.c.
+
 Mon May 13 22:15:10 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/output.c (DWARF_CreateAreasAndSections): Fix build after previous
