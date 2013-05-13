@@ -450,7 +450,7 @@ DWARF_CreateAreasAndSections (DWARF_UserState_t *dwUserStateP)
   /* Write DW_AT_name.  */
   /* FIXME: the input file can be found via an user supplied include path.  In
      that case we better give the fully resolved input filename.  */
-  if (dwarf_add_AT_name (compileUnitDieP, (char * /* yuck! */)SourceFileName, &dwErr) == DW_DLV_BADADDR)
+  if (dwarf_add_AT_name (compileUnitDieP, (char * /* yuck! */)gSourceFileName, &dwErr) == DW_DLV_BADADDR)
     Error_Abort ("dwarf_add_AT_name() failed: %s", dwarf_errmsg (dwErr));
 
   /* Write DW_AT_producer.  */
