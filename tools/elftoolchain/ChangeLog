@@ -1,3 +1,14 @@
+Wed May 15 00:01:49 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libdwarf/libdwarf_init.c (_dwarf_producer_deinit): Fix
+	memory leak.
+	* current-trunk/libdwarf/libdwarf_reloc.c (_dwarf_reloc_cleanup):
+	Likewise.
+	* current-trunk/libdwarf/libdwarf_die.c (_dwarf_die_pro_cleanup):
+	Likewise.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/428
+
 Sun May 12 20:34:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/dwarf_pro_lineno.c (dwarf_add_line_entry):
