@@ -130,28 +130,52 @@ Area_Create (Symbol *sym, uint32_t type)
 
 
 /**
- * Only to be used to create dummy area which represents DWARF section data.
+ * Only to be used to create dummy area which represents DWARF section data
+ * (.debug_*, not .rel.debug_*).
+ * \param name Section name (starting with ".debug_")
+ * \param scnIdx ELF section index.
  */
 Symbol *
-Area_CreateDWARF (const char *name)
+Area_CreateDWARF (const char *name, uint32_t scnIdx)
 {
   assert (!strncmp (name, ".debug_", sizeof (".debug_")-1));
 
   size_t nameLen = strlen (name);
   const Lex lex = Lex_Id (name, nameLen);
-  Symbol *sym = Symbol_Find (&lex);
-  if (sym != NULL)
+  Symbol *areaSymP = Symbol_Find (&lex);
+  if (areaSymP != NULL)
     {
       Error (ErrorError, "DWARF section has same name as an existing area or symbol");
       return NULL;
     }
-  sym = Symbol_Get (&lex);
-  sym->type = SYMBOL_AREA;
-  sym->value = Value_Int (0, eIntType_PureInt);
-  sym->area = Area_Create (sym, AREA_INT_DWARF);
-  return sym;
+  areaSymP = Symbol_Get (&lex);
+  areaSymP->type = SYMBOL_AREA;
+  areaSymP->value = Value_Int (0, eIntType_PureInt);
+  areaSymP->area = Area_Create (areaSymP, AREA_INT_DWARF);
+
+  areaSymP->area->number = scnIdx;
+  return areaSymP;
 }
 
+
+/**
+ * Retries area symbol for DWARF area created using Area_CreateDWARF.
+ */
+Symbol *
+Area_FindDWARF (uint32_t scnIdx)
+{
+  for (Symbol *areaSymP = areaHeadSymbol; areaSymP != NULL; areaSymP = areaSymP->area->next)
+    {
+      if (areaSymP->area->number == scnIdx)
+	{
+	  assert ((areaSymP->area->type & AREA_INT_DWARF) != 0);
+	  return areaSymP;
+	}
+    }
+  assert (0);
+  return NULL;
+}
+  
 
 static bool
 Area_Resize (Area *area, size_t newsize)

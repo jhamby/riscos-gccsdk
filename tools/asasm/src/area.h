@@ -77,7 +77,7 @@
    the attribute.  */
 
 /* Internal area flags: */
-#define AREA_INT_DWARF		0x20000000u /* Area is a DWARF debug area.  */
+#define AREA_INT_DWARF		0x20000000u /* Area is a DWARF debug area ".debug_*".  */
 #define AREA_INT_CODEALIGN	0x40000000u
 #define AREA_INT_AOFMASK	0x8F7FFFFFu /* Mask for the area attributes which need to written in AOF file format.  */
 #define AREA_INT_DATAMASK	0x8F30FFFFu /* Mask for DATA areas.  */
@@ -163,7 +163,8 @@ void Area_PrepareForPhase (Phase_e phase);
 
 void Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow);
 
-Symbol *Area_CreateDWARF (const char *name);
+Symbol *Area_CreateDWARF (const char *name, uint32_t scnIdx);
+Symbol *Area_FindDWARF (uint32_t scnIdx);
 
 bool Area_IsImplicit (const Symbol *sym);
 uint32_t Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const char *msg);

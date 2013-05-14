@@ -1,3 +1,16 @@
+Tue May 14 22:08:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* README: Update on DWARF status.
+	* src/area.c (Area_CreateDWARF): Add section index argument.
+	(Area_FindDWARF): Add.
+	* src/area.h: Likewise.
+	* src/debug_dwarf.c (DWARF_InitializeState): Initialize
+	DWARF_State_t::elfRelocDataP.
+	(DWARF_FinalizeState): Free DWARF_State_t::elfRelocDataP.
+	(DWARF_OutputSectionData): Assign DWARF reloc section data to DWARF
+	section's DWARF_State_t::elfRelocDataP so it can properly free'd.
+	* src/debug_dwarf.h (DWARF_State_t::elfRelocDataP): Add.
+
 Tue May 14 00:16:01 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

@@ -35,20 +35,23 @@
 #include "output.h" /* for shstrtab_t */
 #include "symbol.h"
 
-/* For each (code) area.  */
+/* For each area.  */
 typedef struct
 {
-  /* For DWARF line debug data.  */
+  /* For DWARF line debug data (for CODE areas).  */
   const char *lastFileNameP;	/** Last filename being marked.  */
   unsigned lastLineNumber;	/** Last linenumber being marked.  */
   uint32_t lastOffset;		/** Last Area offset being marked.  */
   size_t lineDataIdx;
   size_t lineDataSize;
   uint8_t *lineDataBufP;
+
+  /* ELF relocations (for DWARF .debug_* areas).  */
+  void *elfRelocDataP;
 } DWARF_State_t;
 
-void DWARF_InitializeState (DWARF_State_t *state);
-void DWARF_FinalizeState (DWARF_State_t *state);
+void DWARF_InitializeState (DWARF_State_t *stateP);
+void DWARF_FinalizeState (DWARF_State_t *stateP);
 
 void DWARF_MarkAs (const Symbol *areaSymP, uint32_t offset,
 		   const char *fileNameP, unsigned lineNumber);

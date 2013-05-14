@@ -47,13 +47,14 @@ Releases:
     At the time of its release, ROOL RISC OS 5 ROM builds for IOMD and IYONIX
     branches could be done using asasm instead of objasm.  The OMAP3 branch
     needs NEON and SSAT support which hasn't been implemented yet.
-  - Adoption of several new semantics found in ARM Compiler toolchain v5.0
+  - Adoption of several new semantics found in ARM Compiler toolchain v5.0.
+- vX.XX:
+  - DWARF debugging support (ELF output only).
 
 Future development:
 
 - NEON/VFP support.
 - Rework of the relocation code.
-- DWARF debugging info in ELF output.
 - Thumb support.
 - Better way to enable/disable info/warning messages.
 

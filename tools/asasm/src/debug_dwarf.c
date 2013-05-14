@@ -87,21 +87,24 @@ static DWARF_UserState_t *oDWUserStateP; /* Temporary points to DWARF user state
 
 
 void
-DWARF_InitializeState (DWARF_State_t *state)
+DWARF_InitializeState (DWARF_State_t *stateP)
 {
-  state->lastFileNameP = NULL;
-  state->lastLineNumber = 0;
-  state->lastOffset = UINT32_MAX; /* Not 0 as we want a mark for first instruction/data entry in area.  */
-  state->lineDataIdx = 0;
-  state->lineDataSize = 0;
-  state->lineDataBufP = NULL;
+  stateP->lastFileNameP = NULL;
+  stateP->lastLineNumber = 0;
+  stateP->lastOffset = UINT32_MAX; /* Not 0 as we want a mark for first instruction/data entry in area.  */
+  stateP->lineDataIdx = 0;
+  stateP->lineDataSize = 0;
+  stateP->lineDataBufP = NULL;
+
+  stateP->elfRelocDataP = NULL;
 }
 
 
 void
-DWARF_FinalizeState (DWARF_State_t *state)
+DWARF_FinalizeState (DWARF_State_t *stateP)
 {
-  free (state->lineDataBufP);
+  free (stateP->lineDataBufP);
+  free (stateP->elfRelocDataP);
 }
 
 
@@ -420,8 +423,7 @@ DWARF_Callback_CreateSection (char *name, int size, Dwarf_Unsigned type,
   /* Create AREA holding the DWARF data, only for ".debug_*"  */
   if (!isRelocSection)
     {
-      Symbol *areaSymP = Area_CreateDWARF (name);
-      areaSymP->area->number = elf_ndxscn (scn);
+      Symbol *areaSymP = Area_CreateDWARF (name, elf_ndxscn (scn));
     
       /* Return as symbol index the our area symbol ptr.  At reloc enumeration
          time, we will convert this to the real symbol index which only gets
@@ -577,9 +579,12 @@ DWARF_OutputSectionData (DWARF_UserState_t *dwUserStateP)
 	Error_Abort ("dwarf_get_relocation_info() failed: %s", dwarf_errmsg (dwErr));
 
       const size_t elfRelocDataSize = relocCount * sizeof (Elf32_Rel);
-      Elf32_Rel *elfRelocDataP = malloc (elfRelocDataSize); // FIXME: leaks !
+      Elf32_Rel *elfRelocDataP = malloc (elfRelocDataSize);
       if (elfRelocDataP == NULL)
 	Error_OutOfMem ();
+      /* Store copy of elfRelocDataP so it can get deallocated at the end.  */
+      Symbol *dwarfAreaP = Area_FindDWARF (elfSectLinkIdx);
+      dwarfAreaP->area->dwarf.elfRelocDataP = elfRelocDataP;
       for (Dwarf_Unsigned relocIdx = 0; relocIdx != relocCount; ++relocIdx)
 	{
 	  struct Dwarf_Relocation_Data_s *relocRecordP = &relocData[relocIdx];
