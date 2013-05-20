@@ -1,3 +1,8 @@
+Mon May 20 19:13:50 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/predef_reg.c (PreDefReg_PrepareForPhase): Define FPA registers
+	only when FPA/FPE is selected or when --regnames=all is specified.
+
 Mon May 20 18:52:56 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

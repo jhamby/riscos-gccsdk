@@ -29,6 +29,7 @@
 #include "main.h"
 #include "predef_reg.h"
 #include "symbol.h"
+#include "targetcpu.h"
 
 typedef struct
 {
@@ -164,7 +165,10 @@ PreDefReg_PrepareForPhase (Phase_e phase)
 	PreDefReg_One ("v8", sizeof ("v8")-1, 11, eIntType_CPU);
     }
 
-  if (1 /* FIXME: only when FPA is selected.  */ || gOptionRegNames == eAll)
+  /* Define the FPA register only when kFPUExt_FPAv1 is specified, or
+     when "-regnames=all" is specified.  */
+  if ((Target_GetFPUFeatures () & kFPUExt_FPAv1) != 0
+      || gOptionRegNames == eAll)
     PreDefReg_Range ('f', 8, eIntType_FPU, true);
 
   /* FIXME: define single/double precision VFP registers based on chosen arch/fpu etc.
