@@ -142,7 +142,7 @@ DWARF_MarkData_Load (uint8_t *rawP, const uint8_t *bufP, size_t size)
 
 /**
  * For DWARF .debug_line generation.
- * Only to be called for code.
+ * Does nothing for non-CODE areas.
  */
 void
 DWARF_MarkAs (const Symbol *areaSymP, uint32_t offset,
@@ -151,7 +151,8 @@ DWARF_MarkAs (const Symbol *areaSymP, uint32_t offset,
   /* Record DWARF debug line data.
      Only for ELF output, when debug is specified, for code and this during
      phase 2.  */
-  assert ((areaSymP->area->type & AREA_CODE) != 0);
+  if ((areaSymP->area->type & AREA_CODE) == 0)
+    return;
   if (option_debug && !option_aof && gPhase == ePassTwo)
     {
       DWARF_State_t *dwarfStateP = &areaSymP->area->dwarf;

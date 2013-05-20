@@ -1,3 +1,7 @@
+Mon May 20 17:14:29 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/debug_dwarf.c (DWARF_MarkAs): Don't assert for non-CODE areas.
+
 Tue May 14 22:08:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* README: Update on DWARF status.
