@@ -1416,6 +1416,21 @@ m_pkh (bool doLowerCase)
       instrWidth = eInstrWidth_NotSpecified;
     }
 
+  InstrType_e instrState = State_GetInstrType ();
+
+  /* These ARM instructions are available in ARMv6 and above.
+     These 32-bit Thumb instructions are available in ARMv6T2 and above. For
+     the ARMv7-M architecture, they are only available in an ARMv7E-M
+     implementation.  */
+  uint64_t cpuFeatures;
+  if (instrState == eInstrType_ARM)
+    cpuFeatures = kCPUExt_v6;
+  else if ((Target_GetCPUFeatures () & kCPUExt_v7M) == 0)
+    cpuFeatures = kCPUExt_v6T2;
+  else
+    cpuFeatures = kCPUExt_v6_DSP;
+  Target_CheckCPUFeature (cpuFeatures, true);
+
   ARMWord regs[3];
   const unsigned maxNumRegs = 3;
   unsigned regIndex = 0;
@@ -1426,6 +1441,7 @@ m_pkh (bool doLowerCase)
       if (regs[regIndex] == INVALID_REG)
 	break;
       ++regIndex;
+      Input_SkipWS ();
       pendingComma = Input_Match (',', true);
       if (!pendingComma)
 	break;
@@ -1441,6 +1457,7 @@ m_pkh (bool doLowerCase)
     {
       /* We expect to parse a LSL#<value> (isTB = false) or ASR#<value>
 	 (isTB = true).  */
+      Input_SkipWS ();
       const char * const shiftType = isTB ? "ASR" : "LSL";
       if (!Input_MatchString (shiftType))
 	Error (ErrorError, "%s expected", shiftType);
@@ -1463,6 +1480,16 @@ m_pkh (bool doLowerCase)
 	    }
 	}
     }
+
+  /* Determine <Rn>, <Rm> and <Rd>. 
+     PKHTB{<c>}{<q>} {<Rd>,} <Rn>, <Rm> becomes
+     PKHBT{<c>}{<q>} {<Rd>,} <Rm>, <Rn> (i.e. <Rn> and <Rm> swapped).  */
+  const ARMWord rm = regs[isTB && shift == 0 ? regIndex - 2 : regIndex - 1];
+  const ARMWord rn = regs[isTB && shift == 0 ? regIndex - 1 : regIndex - 2];
+  regIndex -= 2;
+  const ARMWord rd = regIndex == 0 ? rn : regs[--regIndex];
+  assert (regIndex == 0);
+
   if (isTB)
     {
       if (shift == 0)
@@ -1471,12 +1498,6 @@ m_pkh (bool doLowerCase)
 	shift = 0;
     }
 
-  const ARMWord rm = regs[--regIndex];
-  const ARMWord rn = regs[--regIndex];
-  const ARMWord rd = regIndex == 0 ? regs[regIndex] : regs[--regIndex];
-  assert (regIndex == 0);
-
-  InstrType_e instrState = State_GetInstrType ();
   IT_ApplyCond (cc, instrState != eInstrType_ARM);
 
   if (instrState == eInstrType_ARM)
@@ -1491,7 +1512,6 @@ m_pkh (bool doLowerCase)
       if (rd == 15 || rd == 13 || rn == 15 || rn == 13 || rm == 15 || rm == 13)
 	Error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
       const ARMWord baseInstr = 0xEAC00000;
-      /* FIXME: condition code.  */
       Put_Ins (4, baseInstr | (rn << 16) | ((shift & 0x1C) << 10) | (rd << 8) | ((shift & 3) << 6) | (isTB ? (1<<5) : 0) | rm);
     }
 

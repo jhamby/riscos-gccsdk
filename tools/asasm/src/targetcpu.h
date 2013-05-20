@@ -53,7 +53,7 @@
 #define kCPUExt_v6M	  0x0000040000ULL /* ARM V6M.  */
 #define kCPUExt_BARRIER	  0x0000080000ULL /* DSB/DMB/ISB.  */
 #define kCPUExt_THUMB_MSR 0x0000100000ULL /* Thumb MSR/MRS.  */
-#define kCPUExt_v6_DSP    0x0000200000ULL /* ARM v6 (DSP-related), not in v7-M.  */
+#define kCPUExt_v6_DSP    0x0000200000ULL /* ARM v6 (DSP-related), not in v7-M.  Thumb: PKH.  */
 
 #define kCPUExt_Div	  0x0000400000ULL /* SDIV/UDIV.  */
 #define kCPUExt_ADIV	  0x0000800000ULL /* Integer divide extensions in ARM state.  */

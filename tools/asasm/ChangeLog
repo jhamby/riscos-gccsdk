@@ -1,3 +1,11 @@
+Mon May 20 17:41:38 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpu.c (m_pkh): Be more whitespace tolerant.  Add CPU minimum
+	version check.
+	Fix case PKHTB without ASR being specified (bug report by Ben Avison).
+	* src/targetcpu.h (kCPUExt_v6_DSP): Update comment.
+	* unittests/compare/core/instr_pkhbt_pkhtb.s: Enhanced.
+
 Mon May 20 17:14:29 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/debug_dwarf.c (DWARF_MarkAs): Don't assert for non-CODE areas.
