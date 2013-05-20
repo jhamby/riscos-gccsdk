@@ -8,10 +8,10 @@ ELF Header:
   Type:                              REL (Relocatable file)
   Machine:                           ARM
   Version:                           0x1
-  Entry point address:               0
+  Entry point address:               0x0
   Start of program headers:          0 (bytes into file)
   Start of section headers:          1020 (bytes into file)
-  Flags:                             0, GNU EABI
+  Flags:                             0x0
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
   Number of program headers:         0
@@ -19,12 +19,9 @@ ELF Header:
   Number of section headers:         34
   Section header string table index: 33
 
-There are no program headers in this file.
-There are 34 section headers, starting at offset 0x3fc:
-
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
-  [ 0] (null)            NULL            00000000 000000 000000 00      0   0  0
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
   [ 1] .symtab           SYMTAB          00000000 000034 0001f0 10      2  31  4
   [ 2] .strtab           STRTAB          00000000 000224 000001 00      0   0  1
   [ 3] Code01_DefaultAtt PROGBITS        00000000 000228 000000 00 WAX  0   0  4
@@ -33,7 +30,7 @@ Section Headers:
   [ 6] Code04_PIC        PROGBITS        00000000 000228 000000 00 WAX  0   0  4
   [ 7] Code05_READONLY   PROGBITS        00000000 000228 000000 00  AX  0   0  4
   [ 8] Code06_READWRITE  PROGBITS        00000000 000228 000000 00 WAX  0   0  4
-  [ 9] Code07_COMDEF     PROGBITS        00000000 000228 000000 00 WAX  0   0  4
+  [ 9] Code07_COMDEF     PROGBITS        00000000 000228 000000 00 WAXE  0   0  4
   [10] Code08_COMMON     PROGBITS        00000000 000228 000000 00 WAX  0   0  4
   [11] Code09_NOINIT     NOBITS          00000000 000000 000000 00 WAX  0   0  0
   [12] Code10_ALIGN5     PROGBITS        00000000 000240 000000 00 WAX  0   0 32
@@ -50,7 +47,7 @@ Section Headers:
   [23] Data05_PIC        PROGBITS        00000000 000228 000000 00  WA  0   0  4
   [24] Data06_READONLY   PROGBITS        00000000 000228 000000 00   A  0   0  4
   [25] Data07_READWRITE  PROGBITS        00000000 000228 000000 00  WA  0   0  4
-  [26] Data08_COMDEF     PROGBITS        00000000 000228 000000 00  WA  0   0  4
+  [26] Data08_COMDEF     PROGBITS        00000000 000228 000000 00 WAE  0   0  4
   [27] Data09_COMMON     PROGBITS        00000000 000228 000000 00  WA  0   0  4
   [28] Data10_NOINIT     NOBITS          00000000 000000 000000 00  WA  0   0  0
   [29] Data11_ALIGN7     PROGBITS        00000000 000280 000000 00  WA  0   0 128
@@ -60,42 +57,49 @@ Section Headers:
   [33] .shstrtab         STRTAB          00000000 000225 0001d6 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
-  I (info), L (link order), G (group), x (unknown)
+  I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
   O (extra OS processing required) o (OS specific), p (processor specific)
 
-There is no dynamic section in this file.
-Symbol table (.symtab) contains 31 entries:
-   Num:    Value          Size Type    Bind   Vis      Ndx Name
-     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
-     1: 0000000000000000     0 SECTION LOCAL  DEFAULT    3 
-     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    4 
-     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    5 
-     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    6 
-     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    7 
-     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    8 
-     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    9 
-     8: 0000000000000000     0 SECTION LOCAL  DEFAULT   10 
-     9: 0000000000000000     0 SECTION LOCAL  DEFAULT   11 
-    10: 0000000000000000     0 SECTION LOCAL  DEFAULT   12 
-    11: 0000000000000000     0 SECTION LOCAL  DEFAULT   13 
-    12: 0000000000000000     0 SECTION LOCAL  DEFAULT   14 
-    13: 0000000000000000     0 SECTION LOCAL  DEFAULT   15 
-    14: 0000000000000000     0 SECTION LOCAL  DEFAULT   16 
-    15: 0000000000000000     0 SECTION LOCAL  DEFAULT   17 
-    16: 0000000000000000     0 SECTION LOCAL  DEFAULT   18 
-    17: 0000000000000000     0 SECTION LOCAL  DEFAULT   19 
-    18: 0000000000000000     0 SECTION LOCAL  DEFAULT   20 
-    19: 0000000000000000     0 SECTION LOCAL  DEFAULT   21 
-    20: 0000000000000000     0 SECTION LOCAL  DEFAULT   22 
-    21: 0000000000000000     0 SECTION LOCAL  DEFAULT   23 
-    22: 0000000000000000     0 SECTION LOCAL  DEFAULT   24 
-    23: 0000000000000000     0 SECTION LOCAL  DEFAULT   25 
-    24: 0000000000000000     0 SECTION LOCAL  DEFAULT   26 
-    25: 0000000000000000     0 SECTION LOCAL  DEFAULT   27 
-    26: 0000000000000000     0 SECTION LOCAL  DEFAULT   28 
-    27: 0000000000000000     0 SECTION LOCAL  DEFAULT   29 
-    28: 0000000000000000     0 SECTION LOCAL  DEFAULT   30 
-    29: 0000000000000000     0 SECTION LOCAL  DEFAULT   31 
-    30: 0000000000000000     0 SECTION LOCAL  DEFAULT   32 
+There are no section groups in this file.
 
-elf checksum: 0
+There are no program headers in this file.
+
+There are no relocations in this file.
+
+There are no unwind sections in this file.
+
+Symbol table '.symtab' contains 31 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 00000000     0 SECTION LOCAL  DEFAULT    3 
+     2: 00000000     0 SECTION LOCAL  DEFAULT    4 
+     3: 00000000     0 SECTION LOCAL  DEFAULT    5 
+     4: 00000000     0 SECTION LOCAL  DEFAULT    6 
+     5: 00000000     0 SECTION LOCAL  DEFAULT    7 
+     6: 00000000     0 SECTION LOCAL  DEFAULT    8 
+     7: 00000000     0 SECTION LOCAL  DEFAULT    9 
+     8: 00000000     0 SECTION LOCAL  DEFAULT   10 
+     9: 00000000     0 SECTION LOCAL  DEFAULT   11 
+    10: 00000000     0 SECTION LOCAL  DEFAULT   12 
+    11: 00000000     0 SECTION LOCAL  DEFAULT   13 
+    12: 00000000     0 SECTION LOCAL  DEFAULT   14 
+    13: 00000000     0 SECTION LOCAL  DEFAULT   15 
+    14: 00000000     0 SECTION LOCAL  DEFAULT   16 
+    15: 00000000     0 SECTION LOCAL  DEFAULT   17 
+    16: 00000000     0 SECTION LOCAL  DEFAULT   18 
+    17: 00000000     0 SECTION LOCAL  DEFAULT   19 
+    18: 00000000     0 SECTION LOCAL  DEFAULT   20 
+    19: 00000000     0 SECTION LOCAL  DEFAULT   21 
+    20: 00000000     0 SECTION LOCAL  DEFAULT   22 
+    21: 00000000     0 SECTION LOCAL  DEFAULT   23 
+    22: 00000000     0 SECTION LOCAL  DEFAULT   24 
+    23: 00000000     0 SECTION LOCAL  DEFAULT   25 
+    24: 00000000     0 SECTION LOCAL  DEFAULT   26 
+    25: 00000000     0 SECTION LOCAL  DEFAULT   27 
+    26: 00000000     0 SECTION LOCAL  DEFAULT   28 
+    27: 00000000     0 SECTION LOCAL  DEFAULT   29 
+    28: 00000000     0 SECTION LOCAL  DEFAULT   30 
+    29: 00000000     0 SECTION LOCAL  DEFAULT   31 
+    30: 00000000     0 SECTION LOCAL  DEFAULT   32 
+
+No version information found in this file.

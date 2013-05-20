@@ -8,10 +8,10 @@ ELF Header:
   Type:                              REL (Relocatable file)
   Machine:                           ARM
   Version:                           0x1
-  Entry point address:               0
+  Entry point address:               0x0
   Start of program headers:          0 (bytes into file)
   Start of section headers:          572 (bytes into file)
-  Flags:                             0, GNU EABI
+  Flags:                             0x0
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
   Number of program headers:         0
@@ -19,12 +19,9 @@ ELF Header:
   Number of section headers:         10
   Section header string table index: 9
 
-There are no program headers in this file.
-There are 10 section headers, starting at offset 0x23c:
-
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
-  [ 0] (null)            NULL            00000000 000000 000000 00      0   0  0
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
   [ 1] .symtab           SYMTAB          00000000 000034 000100 10      2   7  4
   [ 2] .strtab           STRTAB          00000000 000134 00003d 00      0   0  1
   [ 3] Code1             PROGBITS        00000000 000174 000010 00 WAX  0   0  4
@@ -36,45 +33,50 @@ Section Headers:
   [ 9] .shstrtab         STRTAB          00000000 0001ec 00004e 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
-  I (info), L (link order), G (group), x (unknown)
+  I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
   O (extra OS processing required) o (OS specific), p (processor specific)
 
-There is no dynamic section in this file.
+There are no section groups in this file.
 
-Relocation section (.rel.Code1):
-r_offset r_info   r_type              st_value st_name
-0000000c 900000001 R_ARM_PC24          00000000 Imp13
-00000008 800000001 R_ARM_PC24          00000000 Imp12
-00000004 700000001 R_ARM_PC24          00000000 Imp11
+There are no program headers in this file.
 
-Relocation section (.rel.Code2):
-r_offset r_info   r_type              st_value st_name
-0000000c c00000001 R_ARM_PC24          00000000 Imp23
-00000008 b00000001 R_ARM_PC24          00000000 Imp22
-00000004 a00000001 R_ARM_PC24          00000000 Imp21
+Relocation section '.rel.Code1' at offset 0x184 contains 3 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0000000c  00000901 R_ARM_PC24        00000000   Imp13
+00000008  00000801 R_ARM_PC24        00000000   Imp12
+00000004  00000701 R_ARM_PC24        00000000   Imp11
 
-Relocation section (.rel.Data3):
-r_offset r_info   r_type              st_value st_name
-0000000c f00000002 R_ARM_ABS32         00000000 Imp33
-00000008 e00000002 R_ARM_ABS32         00000000 Imp32
-00000004 d00000002 R_ARM_ABS32         00000000 Imp31
-Symbol table (.symtab) contains 16 entries:
-   Num:    Value          Size Type    Bind   Vis      Ndx Name
-     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
-     1: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    3 $a
-     2: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    5 $a
-     3: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    7 $d
-     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3 
-     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5 
-     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    7 
-     7: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp11
-     8: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp12
-     9: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp13
-    10: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp21
-    11: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp22
-    12: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp23
-    13: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp31
-    14: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp32
-    15: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp33
+Relocation section '.rel.Code2' at offset 0x1ac contains 3 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0000000c  00000c01 R_ARM_PC24        00000000   Imp23
+00000008  00000b01 R_ARM_PC24        00000000   Imp22
+00000004  00000a01 R_ARM_PC24        00000000   Imp21
 
-elf checksum: 0x1a70
+Relocation section '.rel.Data3' at offset 0x1d4 contains 3 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0000000c  00000f02 R_ARM_ABS32       00000000   Imp33
+00000008  00000e02 R_ARM_ABS32       00000000   Imp32
+00000004  00000d02 R_ARM_ABS32       00000000   Imp31
+
+There are no unwind sections in this file.
+
+Symbol table '.symtab' contains 16 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 00000000     0 NOTYPE  LOCAL  DEFAULT    3 $a
+     2: 00000000     0 NOTYPE  LOCAL  DEFAULT    5 $a
+     3: 00000000     0 NOTYPE  LOCAL  DEFAULT    7 $d
+     4: 00000000     0 SECTION LOCAL  DEFAULT    3 
+     5: 00000000     0 SECTION LOCAL  DEFAULT    5 
+     6: 00000000     0 SECTION LOCAL  DEFAULT    7 
+     7: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp11
+     8: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp12
+     9: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp13
+    10: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp21
+    11: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp22
+    12: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp23
+    13: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp31
+    14: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp32
+    15: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp33
+
+No version information found in this file.

@@ -1,3 +1,9 @@
+Mon May 20 20:23:29 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	unittest/reloc:
+	* Makefile.in: Use binutils' readelf.
+	* *_elf.txt: Update.
+
 Mon May 20 19:13:50 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/predef_reg.c (PreDefReg_PrepareForPhase): Define FPA registers

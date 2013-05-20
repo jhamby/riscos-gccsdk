@@ -8,10 +8,10 @@ ELF Header:
   Type:                              REL (Relocatable file)
   Machine:                           ARM
   Version:                           0x1
-  Entry point address:               0
+  Entry point address:               0x0
   Start of program headers:          0 (bytes into file)
   Start of section headers:          364 (bytes into file)
-  Flags:                             0, GNU EABI
+  Flags:                             0x0
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
   Number of program headers:         0
@@ -19,12 +19,9 @@ ELF Header:
   Number of section headers:         8
   Section header string table index: 7
 
-There are no program headers in this file.
-There are 8 section headers, starting at offset 0x16c:
-
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
-  [ 0] (null)            NULL            00000000 000000 000000 00      0   0  0
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
   [ 1] .symtab           SYMTAB          00000000 000034 000080 10      2   8  4
   [ 2] .strtab           STRTAB          00000000 0000b4 000007 00      0   0  1
   [ 3] Code1             PROGBITS        00000000 0000bc 000010 00  AX  0   0  4
@@ -34,28 +31,33 @@ Section Headers:
   [ 7] .shstrtab         STRTAB          00000000 000134 000038 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
-  I (info), L (link order), G (group), x (unknown)
+  I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
   O (extra OS processing required) o (OS specific), p (processor specific)
 
-There is no dynamic section in this file.
+There are no section groups in this file.
 
-Relocation section (.rel.Code2):
-r_offset r_info   r_type              st_value st_name
-00000024 700000002 R_ARM_ABS32         00000000 Code3
-00000020 700000002 R_ARM_ABS32         00000000 Code3
-0000001c 600000002 R_ARM_ABS32         00000000 Code2
-00000018 600000002 R_ARM_ABS32         00000000 Code2
-00000014 500000002 R_ARM_ABS32         00000000 Code1
-00000010 500000002 R_ARM_ABS32         00000000 Code1
-Symbol table (.symtab) contains 8 entries:
-   Num:    Value          Size Type    Bind   Vis      Ndx Name
-     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
-     1: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    3 $a
-     2: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    4 $a
-     3: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    6 $a
-     4: 0000000000000010     0 NOTYPE  LOCAL  DEFAULT    4 $d
-     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    3 
-     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    4 
-     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    6 
+There are no program headers in this file.
 
-elf checksum: 0x176a
+Relocation section '.rel.Code2' at offset 0xf4 contains 6 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+00000024  00000702 R_ARM_ABS32       00000000   Code3
+00000020  00000702 R_ARM_ABS32       00000000   Code3
+0000001c  00000602 R_ARM_ABS32       00000000   Code2
+00000018  00000602 R_ARM_ABS32       00000000   Code2
+00000014  00000502 R_ARM_ABS32       00000000   Code1
+00000010  00000502 R_ARM_ABS32       00000000   Code1
+
+There are no unwind sections in this file.
+
+Symbol table '.symtab' contains 8 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 00000000     0 NOTYPE  LOCAL  DEFAULT    3 $a
+     2: 00000000     0 NOTYPE  LOCAL  DEFAULT    4 $a
+     3: 00000000     0 NOTYPE  LOCAL  DEFAULT    6 $a
+     4: 00000010     0 NOTYPE  LOCAL  DEFAULT    4 $d
+     5: 00000000     0 SECTION LOCAL  DEFAULT    3 
+     6: 00000000     0 SECTION LOCAL  DEFAULT    4 
+     7: 00000000     0 SECTION LOCAL  DEFAULT    6 
+
+No version information found in this file.

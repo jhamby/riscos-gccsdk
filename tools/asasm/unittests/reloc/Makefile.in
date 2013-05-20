@@ -7,16 +7,14 @@
 
 ASASM := @top_builddir@/src/asasm
 DECAOF := @top_builddir@/decaof/decaof
-# FIXME: as soon as it is available, we should use objdump instead of
-# readelf and elfdump, so we can properly dump all ELF details with one command
-READELF := @top_builddir@/elftoolchain/readelf/readelf
-ELFDUMP := @top_builddir@/elftoolchain/elfdump/elfdump
+# Use binutils readelf (target arm-unknown-eabi) instead of elftoolchain's
+# tools as those are not supporting all the options we want.
+READELF := arm-unknown-eabi-readelf
 
 ASASMFLAGS_AOF := -aof -i@srcdir@/src
 ASASMFLAGS_ELF := -elf -i@srcdir@/src
 DECAOFFLAGS := -a -d -r -s -t
 READELFFLAGS := -a
-ELFDUMPFLAGS := -k
 
 ECHO := echo
 MKDIR := mkdir
@@ -50,7 +48,7 @@ out/%_elf.o: %.s @srcdir@/ref/%_elf.txt
 	@$(ECHO) +++ Checking ELF relocations for $<
 	$(V)$(MKDIR) -p out
 	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -o $@ $<
-	$(V)($(READELF) $(READELFFLAGS) $@ && $(ELFDUMP) $(ELFDUMPFLAGS) $@) > $(@:%.o=%.txt)
+	$(V)$(READELF) $(READELFFLAGS) $@ > $(@:%.o=%.txt)
 	$(V)$(DIFF) $(DIFFFLAGS) $(@:out/%_elf.o=@srcdir@/ref/%_elf.txt) $(@:%.o=%.txt) || (mv $@ $(@:%_elf.o=%_elf_failed.o) && false)
 
 # When there is no reference file, create an empty one.  Needs to be overwritten
