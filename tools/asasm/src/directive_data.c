@@ -417,7 +417,7 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
       case 4:
 	allowedTypes = ValueInt;
 	/* For size 2 and 4, one byte strings are automatically supported
-	   by Code_EvalLow.  */
+	   by Code_Eval.  */
 	if (size == 1)
 	  allowedTypes |= ValueString;
 	/* Only during pass two we will emit symbols.  */

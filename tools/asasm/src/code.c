@@ -379,19 +379,11 @@ Code_EvalLowest (size_t size, const Code *program, int *sp)
 const Value *
 Code_Eval (ValueTag legal)
 {
-  return Code_EvalLow (legal, FirstFreeIns, Program);
-}
+  size_t size = FirstFreeIns;
+  const Code *program = Program;
 
-
-/**
- * \return Result of evaluation.  Only to be used before next evaluation.
- * Use Value_Assign()/Value_Copy() to keep a non-temporary copy of it.
- */
-const Value *
-Code_EvalLow (ValueTag legal, size_t size, const Code *program)
-{
 #ifdef DEBUG_CODE
-  printf ("*** codeEvalLow(): program is: ");
+  printf ("*** Code_Eval(): program is: ");
   Code_Print (size, program);
   printf ("\n");
 #endif
@@ -452,7 +444,7 @@ Code_EvalLow (ValueTag legal, size_t size, const Code *program)
   if ((Stack[0].value.Tag & legal) == 0)
     {
 #ifdef DEBUG_CODE
-      printf ("XXX codeEvalLow(): resulting object (tag 0x%x) is not wanted (allowed tags 0x%x).\n", Stack[0].value.Tag, legal);
+      printf ("XXX Code_Eval(): resulting object (tag 0x%x) is not wanted (allowed tags 0x%x).\n", Stack[0].value.Tag, legal);
 #endif
       if (Stack[0].owns)
         Value_Free (&Stack[0].value);
@@ -460,7 +452,7 @@ Code_EvalLow (ValueTag legal, size_t size, const Code *program)
 	Stack[0].value = Value_Illegal ();
     }
 #ifdef DEBUG_CODE
-  printf ("--- codeEvalLow() result: [");
+  printf ("--- Code_Eval() result: [");
   Value_Print (&Stack[0].value);
   printf ("]\n\n");
 #endif

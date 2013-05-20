@@ -58,7 +58,6 @@ void Code_Bool (bool value);
 void Code_Addr (unsigned reg, int offset);
 void Code_Value (const Value *value, bool expCode);
 
-const Value *Code_EvalLow (ValueTag legal, size_t size, const Code *program);
 const Value *Code_Eval (ValueTag legal);
 
 void Code_Free (Code *code, size_t len);

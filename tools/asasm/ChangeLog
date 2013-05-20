@@ -1,3 +1,13 @@
+Mon May 20 18:52:56 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* code.c (Code_EvalLow): Merge into...
+	(Code_Eval): ...this.
+	* code.h (Code_EvalLow): Remove.
+	* directive_data.c (DefineInt): Update comment.
+	* symbolc (Symbol_BuildSymbolDataForAOF): Remove calls to Code_EvalLow.
+	(Symbol_BuildSymbolDataForELF): Likewise.
+
 Mon May 20 17:41:38 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/m_cpu.c (m_pkh): Be more whitespace tolerant.  Add CPU minimum

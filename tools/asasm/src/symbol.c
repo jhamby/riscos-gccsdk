@@ -718,16 +718,7 @@ Symbol_BuildSymbolDataForAOF (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
 	  if (symP->type & SYMBOL_DEFINED)
 	    {
 	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
-assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol); /* FIXME: is codeEvalLow still needed ? */
-	      const Value *valueP;
-	      if (symP->value.Tag == ValueCode)
-		{
-		  Code_Init ();
-		  valueP = Code_EvalLow (ValueAll, symP->value.Data.Code.len,
-					 symP->value.Data.Code.c);
-		}
-	      else
-		valueP = &symP->value;
+	      const Value *valueP = &symP->value;
 
 	      /* We can only have Int and Symbol here.  */
 	      int v;
@@ -839,16 +830,7 @@ Symbol_BuildSymbolDataForELF (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
 	  if (symP->type & SYMBOL_DEFINED)
 	    {
 	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
-assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol); /* FIXME: is codeEvalLow still needed ? */
-	      const Value *valueP;
-	      if (symP->value.Tag == ValueCode)
-		{
-		  Code_Init ();
-		  valueP = Code_EvalLow (ValueAll, symP->value.Data.Code.len,
-					 symP->value.Data.Code.c);
-		}
-	      else
-		valueP = &symP->value;
+	      const Value *valueP = &symP->value;
 
 	      /* We can only have Int and Symbol here.  */
 	      int v;
