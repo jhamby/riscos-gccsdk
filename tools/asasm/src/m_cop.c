@@ -59,7 +59,9 @@ CopInt (int max, const char *msg)
   return i->Data.Int.i;
 }
 
-/* Parses: p#,cpop,cpdst,cplhs,cprhs {,info} */
+/**
+ * Parses: p#, CPopc1, CPd, CPn, CPm {,{#}<CPopc2>}
+ */
 static void
 coprocessor (bool CopOnly, ARMWord ir, int maxop)
 {
@@ -69,7 +71,7 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)
   if (cop == CP_NUMBER (1) || cop == CP_NUMBER (2))
     {
       if (option_pedantic)
-	Error (ErrorInfo, "Coprocessor 1 is the floating point unit (FPA). Use a floating point mnemonic if possible");
+	Error (ErrorInfo, "Coprocessor 1 and 2 are FPA floating point unit. Use FPA mnemonics if possible");
     }
   ir |= cop;
 
@@ -94,13 +96,16 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)
   ir |= CPRHS_OP (Get_CopReg ());
   Input_SkipWS ();
   if (Input_Match (',', true))
-    ir |= CP_INFO (CopInt (7, "coprocessor info"));
+    {
+      (void) Input_Match ('#', true);
+      ir |= CP_INFO (CopInt (7, "coprocessor info"));
+    }
   Put_Ins (4, ir);
 }
 
 /**
  * Implements CDP.
- *   CDP<cond> p#, CPop, CPd, CPn, CPm {,<info>}
+ *   CDP<cond> p#, CPopc1, CPd, CPn, CPm {,{#}<CPopc2>}
  */
 bool
 m_cdp (bool doLowerCase)

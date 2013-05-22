@@ -1,3 +1,9 @@
+Wed May 22 22:25:14 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cop.c (coprocessor): Process optional hash character for opc2.
+	* unittests/compare/core/instr_cdp_mcr_mrc_ldc_stc.s: Enhance test
+	case.
+
 Mon May 20 20:23:29 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	unittest/reloc:

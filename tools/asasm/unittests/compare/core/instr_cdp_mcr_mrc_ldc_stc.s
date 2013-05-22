@@ -5,33 +5,47 @@
 		; Coprocessor instructions
 
 	[ :LNOT: REFERENCE
-		CDP	p0,0,c0,c1,c2,0
-		CDP2	p0,0,c0,c1,c2,0
+		CDP	p8, 9, c7, c4, c12
+		CDP	p8 , 9 , c7 , c4 , c12 , 4
+		CDP	p8 ,9 ,c7 ,c4 ,c12 , # 7
+		CDP2	p8, 9, c7, c4, c12
+		CDP2	p8 , 9 , c7 , c4 , c12 , 4
+		CDP2	p8 ,9 ,c7 ,c4 ,c12 , # 7
 
-		MCR	p6,2,r1,c3,c4,5		; opcode1 test
-		MCR	p0,0,r0,c0,c0
-		MCR	p0,0,r0,c0,c0,2
-		MCR2	p0,0,r0,c0,c0
-		MCR2	p0,0,r0,c0,c0,2
+		MCR	p8, 5, r7, c4, c12
+		MCR	p8 , 5 , r7 , c4 , c12 , 4
+		MCR	p8 ,5 ,r7 ,c4 ,c12 , # 7
+		MCR2	p8, 5, r7, c4, c12
+		MCR2	p8 , 5 , r7 , c4 , c12 , 4
+		MCR2	p8 ,5 ,r7 ,c4 ,c12 , # 7
 
-		MRC	p0,0,r0,c0,c0
-		MRC	p0,0,r0,c0,c0,2
-		MRC2	p0,0,r0,c0,c0
-		MRC2	p0,0,r0,c0,c0,2
+		MRC	p8, 5, r7, c4, c12
+		MRC	p8 , 5 , r7 , c4 , c12 , 4
+		MRC	p8 ,5 ,r7 ,c4 ,c12 , # 7
+		MRC2	p8, 5, r7, c4, c12
+		MRC2	p8 , 5 , r7 , c4 , c12 , 4
+		MRC2	p8 ,5 ,r7 ,c4 ,c12 , # 7
 	|
-		DCI	&EE010002
-		DCI	&FE010002
+		DCI	&EE94780c
+		DCI	&EE94788c
+		DCI	&EE9478Ec
+		DCI	&FE94780c
+		DCI	&FE94788c
+		DCI	&FE9478Ec
 
-		DCI	&EE4316B4
-		DCI	&EE000010
-		DCI	&EE000050
-		DCI	&FE000010
-		DCI	&FE000050
+		DCI	&EEa4781c
+		DCI	&EEa4789c
+		DCI	&EEa478Fc
+		DCI	&FEa4781c
+		DCI	&FEa4789c
+		DCI	&FEa478Fc
 
-		DCI	&EE100010
-		DCI	&EE100050
-		DCI	&FE100010
-		DCI	&FE100050
+		DCI	&EEb4781c
+		DCI	&EEb4789c
+		DCI	&EEb478Fc
+		DCI	&FEb4781c
+		DCI	&FEb4789c
+		DCI	&FEb478Fc
 	]
 
 
