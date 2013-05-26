@@ -373,6 +373,11 @@ Macro_GetKeyword (void)
 static void
 AddMacroArg (Macro *macro, const char *arg, size_t argLen, const char *defValue)
 {
+  for (size_t i = 0; i != macro->numArgs; ++i)
+    {
+      if (!strncmp (macro->args[i], arg, argLen) && macro->args[i][argLen] == '\0')
+	Error (ErrorError, "Macro argument %s is already in use", macro->args[i]);
+    }
   assert (macro->numArgs < MACRO_ARG_LIMIT);
   if ((macro->args[macro->numArgs] = strndup (arg, argLen)) == NULL)
     Error_OutOfMem ();
