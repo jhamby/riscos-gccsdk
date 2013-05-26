@@ -1,3 +1,8 @@
+Sun May 26 13:48:33 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2946
+
 Wed May 15 00:01:49 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libdwarf/libdwarf_init.c (_dwarf_producer_deinit): Fix
