@@ -29,7 +29,7 @@
 	MVFS	f1, #2
 	MVFS	f1, #3
 	MVFS	f1, #4
-	MVFS	f1, #5.
+	MVFS	f1, #5
 	; MVFS	r1, #.5
 	MVFS	f1, #10
 	|
