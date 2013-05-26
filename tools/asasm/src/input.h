@@ -37,7 +37,14 @@ bool Input_MatchKeyword (const char *keyword);
 bool Input_MatchKeywordLower (const char *keyword);
 bool Input_MatchString (const char *str);
 bool Input_MatchStringLower (const char *str);
-bool Input_IsEndOfKeyword (void);
+
+bool Input_IsEndOfKeywordN (size_t n);
+static inline bool
+Input_IsEndOfKeyword (void)
+{
+  return Input_IsEndOfKeywordN (0);
+}
+
 
 typedef enum
 {

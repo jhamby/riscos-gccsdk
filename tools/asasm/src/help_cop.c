@@ -56,7 +56,7 @@
  *   ", [Rx, #<expression>]!" (not allowed when stack is true)
  * Post-indexed:
  *   ", [Rx], #<expression>"  (not allowed when stack is true)
- *   ", [Rx], {<expression>}" (ObjAsm compatibility, not allowed when stack is true)
+ *   ", [Rx], {<expression>}" (not allowed when stack is true)
  * Other:
  *   ", =<literal>" (only allowed when literal is true and stack is false)
  *   ", <label>" (not allowed when stack is true)
@@ -221,15 +221,15 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
 	    }
 	  /* We're dealing with one of the following:
 	   *
-	   * 1) a PC-relative label
-	   * 2) a field in a register-based map
-	   * 3) a label in a register-based area
+	   * 1) a PC-relative label : ValueInt (ABS area), ValueAddr or ValueSymbol.
+	   * 2) a field in a register-based map : ValueAddr
+	   * 3) a label in a register-based area : ValueAddr
 	   */
 
 	  /* Whatever happens, this must be a pre-increment.  */
 	  ir |= P_FLAG;
 
-	  valP = Expr_BuildAndEval (ValueFloat | ValueAddr | ValueSymbol);
+	  valP = Expr_BuildAndEval (ValueInt | ValueAddr | ValueSymbol);
 	  break;
 	}
     }

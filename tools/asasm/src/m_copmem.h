@@ -25,8 +25,6 @@
 #include <stdbool.h>
 
 bool m_ldc (bool doLowerCase);
-bool m_ldc2 (bool doLowerCase);
 bool m_stc (bool doLowerCase);
-bool m_stc2 (bool doLowerCase);
 
 #endif

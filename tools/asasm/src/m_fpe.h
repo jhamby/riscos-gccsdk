@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef m_fpu_header_included
-#define m_fpu_header_included
+#ifndef m_fpe_header_included
+#define m_fpe_header_included
 
 #include <stdbool.h>
 

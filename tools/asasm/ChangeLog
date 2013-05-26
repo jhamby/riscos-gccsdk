@@ -1,3 +1,32 @@
+Sun May 26 21:25:42 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cop.c (m_cdp2, m_mcr2, m_mrc2): Merge into m_cdp, m_mcr and m_mrc.
+	(m_cdp, m_mcr, m_mrc, coprocessor): Support Thumb.
+	* m_cop.h (m_cdp2, m_mcr2, m_mrc2): Remove.
+	* m_copmem.c (m_ldc2, m_stc2): Merge into m_ldc and m_stc.
+	(m_ldc, m_stc, dstmem): Support Thumb.
+	* m_copmem.h (m_ldc2, m_stc2): Remove.
+	* decode.c (oDecodeTable): Follow the m_cdp2, m_mcr2, m_mrc2, m_ldc2,
+	m_stc2 removal.
+	* help_cop.c (HelpCop_Addr): Label case must support ValueInt, not
+	ValueFloat.
+	* m_fpe.c (dstmem): Use CPDST_OP instead of DST_OP.
+	* m_fpe.h: Fix preprocessor double include test.
+	* input.c (Input_IsEndOfKeywordN): Reworked from Input_IsEndOfKeyword.
+	* input.h (Input_IsEndOfKeyword): Make inline.
+	(Input_IsEndOfKeywordN): Add.
+	* m_cpumem.c (m_swp): Drop the cc masking for IT_ApplyCond call.
+	* option.c (GetCCodeIfThere): Factor out from Option_GetCCodeIfThere
+	and add skipChars parameter.
+	(ParseState*): Add.
+	(Option_CondL): Implement using ParseState* supporint UAL syntax as
+	well.
+
+	unittests/compare/core:
+	* fpe_memory.s: Fix comment.
+	* instr_cdp_mcr_mrc_ldc_stc.s: Test Thumb and UAL support.
+
 Sun May 26 14:02:26 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/compare/core/fpe_immediate.s: Fix typo.

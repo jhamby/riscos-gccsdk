@@ -35,24 +35,28 @@
 #include "state.h"
 #include "targetcpu.h"
 
+
 /**
  * Try to parse a 2 character condition code.
- * \return Parsed condition code.  When there is no condition code,
- * kOption_NotRecognized is returned instead.
+ * \param doLowerCase When true, try to match on lowercase condition code,
+ * uppercase otherwise.
+ * \param skipChars Number of characters to skip before starting to match.
+ * \return Parsed condition code.
+ * When there is no condition code, kOption_NotRecognized is returned instead.
  */
-ARMWord
-Option_GetCCodeIfThere (bool doLowerCase)
+static ARMWord
+GetCCodeIfThere (bool doLowerCase, unsigned skipChars)
 {
   ARMWord cc = kOption_NotRecognized;
-  const char c1 = Input_Look ();
+  const char c1 = Input_LookN (skipChars + 0);
+  const char c2 = c1 != '\0' ? Input_LookN (skipChars + 1) : '\0';
   if (c1 == (doLowerCase ? 'a' : 'A'))
     {
-      if (Input_LookN (1) == (doLowerCase ? 'l' : 'L'))
+      if (c2 == (doLowerCase ? 'l' : 'L'))
 	cc = AL;
     }
   else if (c1 == (doLowerCase ? 'c' : 'C'))
     {
-      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'c' : 'C'))
 	cc = CC;
       else if (c2 == (doLowerCase ? 's' : 'S'))
@@ -60,12 +64,11 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'e' : 'E'))
     {
-      if (Input_LookN (1) == (doLowerCase ? 'q' : 'Q'))
+      if (c2 == (doLowerCase ? 'q' : 'Q'))
 	cc = EQ;
     }
   else if (c1 == (doLowerCase ? 'g' : 'G'))
     {
-      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'e' : 'E'))
 	cc = GE;
       else if (c2 == (doLowerCase ? 't' : 'T'))
@@ -73,7 +76,6 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'h' : 'H'))
     {
-      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'i' : 'I'))
 	cc = HI;
       else if (c2 == (doLowerCase ? 's' : 'S'))
@@ -81,7 +83,6 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'l' : 'L'))
     {
-      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'e' : 'E'))
 	cc = LE;
       else if (c2 == (doLowerCase ? 'o' : 'O'))
@@ -93,12 +94,11 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'm' : 'M'))
     {
-      if (Input_LookN (1) == (doLowerCase ? 'i' : 'I'))
+      if (c2 == (doLowerCase ? 'i' : 'I'))
 	cc = MI;
     }
   else if (c1 == (doLowerCase ? 'n' : 'N'))
     {
-      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'e' : 'E'))
 	cc = NE;
       else if (c2 == (doLowerCase ? 'v' : 'V'))
@@ -121,18 +121,33 @@ Option_GetCCodeIfThere (bool doLowerCase)
     }
   else if (c1 == (doLowerCase ? 'p' : 'P'))
     {
-      if (Input_LookN (1) == (doLowerCase ? 'l' : 'L'))
+      if (c2 == (doLowerCase ? 'l' : 'L'))
 	cc = PL;
     }
   else if (c1 == (doLowerCase ? 'v' : 'V'))
     {
-      const char c2 = Input_LookN (1);
       if (c2 == (doLowerCase ? 'c' : 'C'))
 	cc = VC;
       else if (c2 == (doLowerCase ? 's' : 'S'))
 	cc = VS;
     }
 
+  return cc;
+}
+
+
+/**
+ * Try to parse a 2 character condition code.
+ * \param doLowerCase When true, try to match on lowercase condition code,
+ * uppercase otherwise.
+ * \return Parsed condition code.  On success, skipChars + number of
+ * parsed condition code characters are skipped in the input stream.
+ * When there is no condition code, kOption_NotRecognized is returned instead.
+ */
+ARMWord
+Option_GetCCodeIfThere (bool doLowerCase)
+{
+  ARMWord cc = GetCCodeIfThere (doLowerCase, 0);
   if (cc != kOption_NotRecognized)
     Input_SkipN (2);
   return cc;
@@ -155,7 +170,7 @@ GetCCode (bool doLowerCase)
 
 
 /**
- * When in non-pre-UAL mode, try to read the instruction width indicator
+ * When in non-pre-UAL only mode, try to read the instruction width indicator
  * (".W"/".w" or ".N"/".n").
  * \param doLowerCase When true, instruction width indication should be
  * lowercase, uppercase otherwise.
@@ -280,7 +295,7 @@ IsEndOfKeyword (ARMWord option)
 
 
 /**
- * Try to parse condition code.
+ * Try to parse condition code at the end of a keyword.
  */
 ARMWord
 Option_Cond (bool doLowerCase)
@@ -542,19 +557,102 @@ Option_CondPrec_P (bool doLowerCase)
   return IsEndOfKeyword (option);
 }
 
+typedef struct
+{
+  size_t idx;
+  ARMWord cc;
+  bool doLowerCase;
+} ParseState;
 
+static void
+ParseState_Init (ParseState *stateP, bool doLowerCase)
+{
+  stateP->idx = 0;
+  stateP->cc = 0;
+  stateP->doLowerCase = doLowerCase;
+}
+
+/**
+ * Tries to parse an optional 'L' or 'l'.
+ */
+static bool
+ParseState_IsOptL (ParseState *stateP, ARMWord value)
+{
+  if (Input_LookN (stateP->idx) == (stateP->doLowerCase ? 'l' : 'L'))
+    {
+      stateP->cc |= value;
+      ++stateP->idx;
+    }
+  return true;
+}
+
+/**
+ * Tries to parse optional condition code.
+ */
+static bool
+ParseState_IsOptCC (ParseState *stateP)
+{
+  ARMWord cc = GetCCodeIfThere (stateP->doLowerCase, stateP->idx);
+  if (cc != kOption_NotRecognized)
+    {
+      stateP->cc |= cc;
+      stateP->idx += 2;
+    }
+  else
+    stateP->cc |= AL;
+  return true;
+}
+
+/**
+ * Check whether we're at the end of a keyword (there might still be a
+ * qualifier following).
+ */
+static bool
+ParseState_IsEndOfKeyword (ParseState *stateP)
+{
+  if (Input_IsEndOfKeywordN (stateP->idx) || Input_LookN (stateP->idx) == '.')
+    {
+      Input_SkipN (stateP->idx);
+      return true;
+    }
+  return false;
+}
+
+/**
+ * Tries to parse [<cc>]["L"] (pre-UAL) and/or [<"L">][<cc>] (UAL).
+ */
 ARMWord
 Option_CondL (bool doLowerCase)
 {
-  ARMWord option = GetCCode (doLowerCase);
-  if (Input_Match (doLowerCase ? 'l' : 'L', false))
-    option |= N_FLAG;
-  return IsEndOfKeyword (option);
+  ParseState state;
+  ParseState_Init (&state, doLowerCase);
+  bool ok;
+  if (!(ok = ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state)))
+    {
+      ParseState_Init (&state, doLowerCase);
+      switch (State_GetSyntax ())
+	{
+	  case eSyntax_PreUALOnly:
+	    ok = ParseState_IsOptCC (&state) && ParseState_IsOptL (&state, N_FLAG)
+	           && ParseState_IsEndOfKeyword (&state);
+	    break;
+
+	  case eSyntax_Both:
+	    ok = ParseState_IsOptCC (&state) && ParseState_IsOptL (&state, N_FLAG)
+	           && ParseState_IsEndOfKeyword (&state);
+	    if (ok)
+	      break;
+	    ParseState_Init (&state, doLowerCase);
+	    /* Fall through.  */
+
+	  case eSyntax_UALOnly:
+	    ok = ParseState_IsOptL (&state, N_FLAG) && ParseState_IsOptCC (&state)
+	           && ParseState_IsEndOfKeyword (&state);
+	    break;
+	}
+    }
+  return ok ? state.cc : kOption_NotRecognized;
 }
-
-
-/****** Trouble mnemonics **********/
-
 
 
 ARMWord
@@ -572,7 +670,7 @@ Option_LinkCond (bool doLowerCase)
   /* bl.CC or b.l ?  */
   if (!Input_Match (doLowerCase ? 'l' : 'L', false))
     return IsEndOfKeyword (GetCCode (doLowerCase)); /* Only b.CC possible  */
-	
+
   if (Input_Match (doLowerCase ? 'e' : 'E', false))
     {
       /* b.le or bl.eq */

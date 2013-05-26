@@ -661,9 +661,9 @@ Input_MatchStringLower (const char *str)
  * Checks if the end of the current keyword has been reached.
  */
 bool
-Input_IsEndOfKeyword (void)
+Input_IsEndOfKeywordN (size_t n)
 {
-  unsigned char c = *input_pos;
+  unsigned char c = input_pos[n];
   return c == '\0' || isspace (c) || c == ';';
 }
 

@@ -827,7 +827,7 @@ m_rfc (bool doLowerCase)
 static void
 dstmem (ARMWord ir, bool literal)
 {
-  ir |= DST_OP (Get_FPUReg ());
+  ir |= CPDST_OP (Get_FPUReg ());
   HelpCop_Addr (ir, literal, false);
 }
 

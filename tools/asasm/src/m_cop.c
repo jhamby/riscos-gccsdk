@@ -32,11 +32,13 @@
 #include "get.h"
 #include "help_cop.h"
 #include "input.h"
+#include "it.h"
 #include "main.h"
 #include "m_cop.h"
 #include "option.h"
 #include "put.h"
 #include "reloc.h"
+#include "state.h"
 #include "targetcpu.h"
 
 static int
@@ -62,9 +64,24 @@ CopInt (int max, const char *msg)
 /**
  * Parses: p#, CPopc1, CPd, CPn, CPm {,{#}<CPopc2>}
  */
-static void
-coprocessor (bool CopOnly, ARMWord ir, int maxop)
+static bool
+coprocessor (const char *descr, bool doLowerCase, bool two,
+             bool CopOnly, ARMWord ir, int maxop)
 {
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (ir, instrState != eInstrType_ARM); 
+
+  /* For Thumb2, we need at least ARMv6T2.
+     CDP2, MCR2, MRC2 for ARM need at least ARMv5T.  */
+  if (instrState != eInstrType_ARM)
+    Target_CheckCPUFeature (kCPUExt_v6T2, true);
+  else if (two)
+    Target_CheckCPUFeature (kCPUExt_v5T, true);
+
   int cop = CP_NUMBER (Get_CopNum ());
 
   /* FPA uses coprocessor 1 and 2 (the latter only for LFM/SFM).  */
@@ -85,7 +102,7 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)
   Input_SkipWS ();
   if (!Input_Match (',', true))
     Error (ErrorError, "%sdata operand", InsertCommaAfter);
-  ir |= CopOnly ? CPDST_OP (Get_CopReg ()) : CPDST_OP (Get_CPUReg ());
+  ir |= CPDST_OP (CopOnly ? Get_CopReg () : Get_CPUReg ());
   Input_SkipWS ();
   if (!Input_Match (',', true))
     Error (ErrorError, "%sdst", InsertCommaAfter);
@@ -100,82 +117,65 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)
       (void) Input_Match ('#', true);
       ir |= CP_INFO (CopInt (7, "coprocessor info"));
     }
+
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_Enforce16bit)
+    Error (ErrorError, "Instruction %s is not supported for Thumb", descr);
+
+  /* Instructions bits for ARM and Thumb2 are the same.  Some cc fiddling
+     is still needed.  */
+  if (two)
+    ir |= 0xf0000000;
+  else if (instrState != eInstrType_ARM)
+    ir = (ir & 0x0fffffff) | 0xe0000000;
   Put_Ins (4, ir);
+  return false;
 }
 
 /**
- * Implements CDP.
+ * Implements CDP and CDP2.
  *   CDP<cond> p#, CPopc1, CPd, CPn, CPm {,{#}<CPopc2>}
  */
 bool
 m_cdp (bool doLowerCase)
 {
+  if (Input_Match ('2', false))
+    return coprocessor ("CDP2", doLowerCase, true, true, 0xe0000000 | 0x0e000000, 15);
+
   ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  coprocessor (true, cc | 0x0e000000, 15);
-  return false;
-}
-
-/**
- * Implements CDP2.
- */
-bool
-m_cdp2 (void)
-{
-  Target_CheckCPUFeature (kCPUExt_v5T, true);
-  coprocessor (true, 0xfe000000, 15);
-  return false;
+  return coprocessor ("CDP", doLowerCase, false, true, cc | 0x0e000000, 15);
 }
 
 /** REGISTER TRANSFER **/
 
 /**
- * Implements MCR.
+ * Implements MCR and MCR2.
  */
 bool
 m_mcr (bool doLowerCase)
 {
+  if (Input_Match ('2', false))
+    return coprocessor ("MCR2", doLowerCase, true, false, 0xe0000000 | 0x0e000010, 7);
+
   ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  coprocessor (false, cc | 0x0e000010, 7);
-  return false;
+  return coprocessor ("MCR", doLowerCase, false, false, cc | 0x0e000010, 7);
 }
 
 /**
- * Implements MCR2.
- */
-bool
-m_mcr2 (void)
-{
-  Target_CheckCPUFeature (kCPUExt_v5T, true);
-  coprocessor (false, 0xfe000010, 7);
-  return false;
-}
-
-/**
- * Implements MRC.
+ * Implements MRC and MRC2.
  */
 bool
 m_mrc (bool doLowerCase)
 {
+  if (Input_Match ('2', false))
+    return coprocessor ("MRC2", doLowerCase, true, false, 0xe0000000 | 0x0e100010, 7);
   ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  coprocessor (false, cc | 0x0e100010, 7);
-  return false;
-}
-
-/**
- * Implements MRC2.
- */
-bool
-m_mrc2 (void)
-{
-  Target_CheckCPUFeature (kCPUExt_v5T, true);
-  coprocessor (false, 0xfe100010, 7);
-  return false;
+  return coprocessor ("MRC", doLowerCase, false, false, cc | 0x0e100010, 7);
 }
 
 static void

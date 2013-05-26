@@ -1,4 +1,4 @@
-; FPE (FPA10/FPA11/FPASC) memory access : LDF/STF/LFM/SFM
+; Tests FPE (FPA10/FPA11/FPASC) memory access : LDF/STF/LFM/SFM
 
 		AREA |C$$code|, CODE, READONLY
 

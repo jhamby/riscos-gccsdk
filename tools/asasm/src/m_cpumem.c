@@ -1132,7 +1132,7 @@ m_swp (bool doLowerCase)
   else if (Target_CheckCPUFeature (kCPUExt_v6, false))
     Error (ErrorWarning, "The use of SWP/SWPB is deprecated for ARMv6 and ARMv7");
 
-  IT_ApplyCond (cc_b & NV, false);
+  IT_ApplyCond (cc_b, false);
 
   int ir = cc_b | 0x01000090;
   unsigned rt = Get_CPUReg ();
