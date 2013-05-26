@@ -1,4 +1,4 @@
-; FPE (FPA10/FPA11/FPASC) memory access : LDF/STF/LFM/SFM
+; Tests FPE (FPA10/FPA11/FPASC) LDF literal support
 
 		AREA |C$$code|, CODE, READONLY
 
@@ -61,6 +61,19 @@ AnInt		*	42
 		LDFD	F2, lit2
 lit1		DCFD	3.14
 lit2		DCFD	42.
+	]
+
+		; Literals via LDC{2}{L} : coprocessor 1 is FPA
+	[ :LNOT: REFERENCE
+		LDC	p1, c1, =14.56	; Single precision
+		LDC	p1, c10, =24.56	; Double precision
+		LDCL	p1, c3, =34.56	; Extended precision
+		LDCL	p1, c12, =44.56	; Packed precision
+	|
+		LDFS	F1, =14.56
+		LDFD	F2, =24.56
+		LDFE	F3, =34.56
+		LDFP	F4, =44.56
 	]
 
 		END

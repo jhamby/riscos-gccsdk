@@ -205,7 +205,7 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
 	    Error (ErrorError, "Wrong literal type");
 	  else
 	    {
-	      value = Lit_RegisterFloat (literalP, litSize);
+	      value = Lit_RegisterFloat (literalP, litSize, eLitAddr5, eInstrType_ARM);
 	      valP = &value;
 	    }
 	  break;

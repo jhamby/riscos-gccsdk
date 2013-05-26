@@ -207,7 +207,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  Input_Skip ();
 	  /* Is LDRD ? */
 	  if ((ir & 0x0E1000D0) == 0xD0)
-	    Error_Abort ("No support for LDRD and literal");
+	    Error_Abort ("No support for LDRD and literal"); /* FIXME: */
 	  /* This is only allowed for LDR.  */
 	  else if ((ir & L_FLAG) == 0)
 	    Error_Abort ("You can't store into a constant");
@@ -218,17 +218,37 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  /* This is always pre-increment.  */
 	  ir |= P_FLAG;
 
+	  /* FIXME: ARM LDR{B}T can only use post-indexing, so =<expression>
+	     can not be supported.  Thumb LDR{B}T + literal is in fact
+	     LDR{B} + literal.
+	     So LDR+T + literal -> error.  */
 	  Lit_eSize litSize;
-	  if ((ir & 0x0C500000) == 0x04100000)
-	    litSize = eLitIntWord;
+	  Lit_eAddrType addrType;
+	  if ((ir & 0x0C500000) == 0x04100000) /* LDR */
+	    {
+	      litSize = eLitIntWord;
+	      addrType = eLitAddr2;
+	    }
 	  else if ((ir & 0x0C500000) == 0x04500000)
-	    litSize = eLitIntUByte; /* LDRB, LDRBT */
+	    {
+	      litSize = eLitIntUByte; /* LDRB, LDRBT */
+	      addrType = eLitAddr2;
+	    }
 	  else if ((ir & 0x0E1000F0) == 0x001000B0)
-	    litSize = eLitIntUHalfWord; /* LDRH */
+	    {
+	      litSize = eLitIntUHalfWord; /* LDRH */
+	      addrType = eLitAddr3;
+	    }
 	  else if ((ir & 0x0E1000F0) == 0x001000D0)
-	    litSize = eLitIntSByte; /* LDRSB */
+	    {
+	      litSize = eLitIntSByte; /* LDRSB */
+	      addrType = eLitAddr3;
+	    }
 	  else if ((ir & 0x0E1000F0) == 0x001000F0)
-	    litSize = eLitIntSHalfWord; /* LDRSH */
+	    {
+	      litSize = eLitIntSHalfWord; /* LDRSH */
+	      addrType = eLitAddr3;
+	    }
 	  else
 	    assert (0);
 
@@ -239,7 +259,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    Error (ErrorError, "Wrong literal type");
 	  else
 	    {
-	      value = Lit_RegisterInt (literalP, litSize);
+	      value = Lit_RegisterInt (literalP, litSize, addrType, eInstrType_ARM);
 	      valP = &value;
 	      movOptAllowed = true;
 	    }

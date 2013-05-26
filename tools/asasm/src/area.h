@@ -96,7 +96,7 @@ typedef enum
 
 struct RELOC;
 struct RelocOut;
-struct LITPOOL;
+struct LitPool;
 
 typedef struct AREA
 {
@@ -118,7 +118,7 @@ typedef struct AREA
   struct RELOC *relocs;		/* Managed by reloc.c.  */
   struct RelocOut *relocOutP;   /* Managed by reloc.c.  */
 
-  struct LITPOOL *litPool;	/** The current literal pool waiting to be
+  struct LitPool *litPool;	/** The current literal pool waiting to be
     assembled.  Managed by lit.c.  */
 
   IT_State_t it;		/* Managed by it.c.  */

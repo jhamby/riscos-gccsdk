@@ -1,3 +1,19 @@
+Sun May 26 21:35:06 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* help_cop.c (HelpCop_Addr): Follow Lit_RegisterFloat API change.
+	* m_cpumem.c (dstmem): Follow Lit_RegisterInt API change.
+	* area.h: Follow struct LITPOOL rename.
+	* lit.c: Likewise.
+	(LitAddrRange, oLitAddrRange): Add.
+	(Lit_RegisterInt): Add address and instruction type parameters.
+	(Lit_RegisterFloat): Likewise.
+	* lit.h (Lit_eAddrType): Add.
+	(Lit_RegisterInt, Lit_RegisterFloat): Add address and instruction type
+	parameters.
+
+	* unittests/compare/core/fpe_literal.s: Add LDC literal test case.
+
 Sun May 26 21:25:42 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

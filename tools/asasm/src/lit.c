@@ -45,6 +45,7 @@
 #include "phase.h"
 #include "put.h"
 #include "reloc.h"
+#include "targetcpu.h"
 #include "value.h"
 
 #ifdef DEBUG
@@ -59,9 +60,9 @@ typedef enum
   eAssembledPassTwo
 } Status_e;
 
-typedef struct LITPOOL
+typedef struct LitPool
 {
-  struct LITPOOL *next;
+  struct LitPool *next;
   const char *file;	/** Assembler filename where this literal got requested for the first time.  */
   unsigned lineNum;	/** Assembler file linenumber where this literal got requested for the first time.  */
 
@@ -71,6 +72,20 @@ typedef struct LITPOOL
   Lit_eSize size;
   Status_e status;	/** Literal's status whether it already got assembled or not.  */
 } LitPool;
+
+typedef struct
+{
+  int32_t min;		/* Min address range (incl.).  */
+  /* uint32_t max; */	/* Max address range (incl.).  */
+  uint32_t alignMinOne;	/* Minimum align required.  */
+} LitAddrRange;
+static const LitAddrRange oLitAddrRange[] =
+{
+  { -4095, /* +4095, */ 0 },	/* eLitAddr2 : [PC, #+/-<offset_12>].  */
+  { -255, /* +255, */ 0 },	/* eLitAddr3 : [PC, #+/-<offset_8>].  */
+  { -1020, /* +1020, */ 3 },	/* eLitAddr5 : [PC, #+/-<offset_8>*4].  */
+  { 0, /* +1020, */ 0 },	/* eLitFormat3 : [PC, #<offset_8>*4].  */
+};
 
 static Symbol *Lit_GetLitOffsetAsSymbol (const LitPool *literal);
 
@@ -190,7 +205,8 @@ Lit_RemoveLiterals (Symbol *areaSymbolP)
  * or ValueInt when given literal integer is representable via MOV/MVN/MOVW.
  */
 Value
-Lit_RegisterInt (const Value *valueP, Lit_eSize size)
+Lit_RegisterInt (const Value *valueP,
+                 Lit_eSize size, Lit_eAddrType addrType, InstrType_e instrType)
 {
   assert (valueP->Tag == ValueInt || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
 
@@ -200,23 +216,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
   printf ("\n");
 #endif
 
-  bool isAddrMode3;
-  switch (size)
-    {
-      case eLitIntUByte:
-      case eLitIntSByte:
-      case eLitIntUHalfWord:
-      case eLitIntSHalfWord:
-	isAddrMode3 = true;
-	break;
-
-      case eLitIntWord:
-	isAddrMode3 = false;
-	break;
-
-      default:
-	assert (false && "Incorrect literal size for this routine");
-    }
+  const uint32_t pcVal = (areaCurrentSymbol->area->curIdx & -4) + (instrType == eInstrType_ARM ? 8 : 4);
 
   /* Upfront truncate ValueInt value to what we're really going to have
      in our register after loading, before we wrongly match to the untruncated
@@ -267,7 +267,10 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
     }
   
   /* Check if we already have the literal assembled in an range of up to
-     4095 (address mode 2) or 255 (address mode 3) bytes ago.  */
+     oLitAddrRange[addrType].min bytes ago and with alignment
+     oLitAddrRange[addrType].align.  */
+  /* FIXME: we would beter scan the literal list backward and abort when litPoolP->offset
+     becomes too low.  */
   for (const LitPool *litPoolP = areaCurrentSymbol->area->litPool;
        litPoolP != NULL;
        litPoolP = litPoolP->next)
@@ -350,7 +353,8 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 	    {
 	      assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol);
 	      assert (gPhase == ePassTwo || areaCurrentSymbol->area->curIdx >= litPoolP->offset);
-	      if (areaCurrentSymbol->area->curIdx + 8 > litPoolP->offset + offset + ((isAddrMode3) ? 255 : 4095))
+	      if (pcVal > litPoolP->offset - oLitAddrRange[addrType].min
+	          || (pcVal & oLitAddrRange[addrType].alignMinOne) != 0)
 		continue;
 
 	      Value_Free (&truncValue);
@@ -381,7 +385,8 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
  * or ValueFloat when literal float is representable via MVF/MNF.
  */
 Value
-Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
+Lit_RegisterFloat (const Value *valueP, Lit_eSize size,
+                   Lit_eAddrType addrType, InstrType_e instrType)
 {
   assert (valueP->Tag == ValueInt || valueP->Tag == ValueFloat || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
   assert ((size == eLitFloat || size == eLitDouble) && "Incorrect literal size for this routine");
@@ -392,12 +397,15 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
   printf ("\n");
 #endif
 
+  const uint32_t pcVal = (areaCurrentSymbol->area->curIdx & -4) + (instrType == eInstrType_ARM ? 8 : 4);
+
   /* Convert given integer value to float.  */
   const Value value = (valueP->Tag == ValueInt) ? Value_Float ((ARMFloat)valueP->Data.Int.i) : *valueP;
   valueP = &value;
 
   /* Is it one of the well known FPE constants we can encode using MVF/MNF ? */
   if (valueP->Tag == ValueFloat
+      && (Target_GetFPUFeatures () & kFPUExt_FPAv1) != 0
       && (FPE_ConvertImmediate (valueP->Data.Float.f) != (ARMWord)-1
 	  || FPE_ConvertImmediate (-valueP->Data.Float.f) != (ARMWord)-1))
     return value;
@@ -405,7 +413,10 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
   Value truncValue = Value_Copy (valueP);
 
   /* Check if we already have the literal assembled in an range of up to
-     1020 bytes ago.  */
+     oLitAddrRange[addrType].min bytes ago and with alignment
+     oLitAddrRange[addrType].align.  */
+  /* FIXME: we would beter scan the literal list backward and abort when litPoolP->offset
+     becomes too low.  */
   for (const LitPool *litPoolP = areaCurrentSymbol->area->litPool;
        litPoolP != NULL;
        litPoolP = litPoolP->next)
@@ -426,7 +437,8 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 	    {
 	      assert (symP->value.Tag == ValueFloat || symP->value.Tag == ValueSymbol);
 	      assert (gPhase == ePassTwo || areaCurrentSymbol->area->curIdx >= litPoolP->offset);
-	      if (areaCurrentSymbol->area->curIdx + 8 > litPoolP->offset + 1020)
+	      if (pcVal > litPoolP->offset - oLitAddrRange[addrType].min
+	          || (pcVal & oLitAddrRange[addrType].alignMinOne) != 0)
 		continue;
 	      /* A literal with the same value got already assembled and is in
 	         our range to refer to.  */
@@ -444,6 +456,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
   assert (gPhase == ePassOne);
   return Lit_CreateLiteralSymbol (&truncValue, size);
 }
+
 
 /**
  * Dump (assemble) the literal pool of the current area.
@@ -534,7 +547,7 @@ Lit_DumpPool (void)
 			   "Constant %d has been truncated to %d by the used mnemonic",
 			   litP->value.Data.Int.i, constant);
 
-	      /* Value representable using MOV or MVN ? */
+	      /* Value representable using MOV, MVN or MOVW ? */
 	      if (isImmediate
 		  && (HelpCPU_Imm8s4 (constant) != UINT32_MAX
 		      || HelpCPU_Imm8s4 (~constant) != UINT32_MAX
@@ -572,10 +585,11 @@ Lit_DumpPool (void)
 
 	  case ValueFloat:
 	    {
-	      /* Value representable using MVF or MNF ? */ /* FIXME: do this only when FPA is selected. */
+	      /* Value representable using MVF or MNF ? */
 	      ARMFloat constant = litP->value.Data.Float.f;
-	      if (FPE_ConvertImmediate (constant) != (ARMWord)-1
-		  || FPE_ConvertImmediate (-constant) != (ARMWord)-1)
+	      if ((Target_GetFPUFeatures () & kFPUExt_FPAv1) != 0
+	          && (FPE_ConvertImmediate (constant) != (ARMWord)-1
+		      || FPE_ConvertImmediate (-constant) != (ARMWord)-1))
 		{
 		  if (gPhase == ePassOne)
 		    {
