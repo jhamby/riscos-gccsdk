@@ -34,7 +34,7 @@ asasm_SOURCES=area.c asm.c code.c debug_dwarf.c decode.c depend.c \
 	directive_storagemap.c directive_symbol.c error.c \
 	eval.c expr.c filename.c filestack.c fix.c frame.c get.c help_cop.c \
 	help_cpu.c include.c input.c it.c lex.c lit.c \
-	local.c macros.c main.c m_cop.c m_copmem.c m_cpu.c m_cpuctrl.c \
+	local.c macros.c main.c m_coprocessor.c m_cpu.c m_cpuctrl.c \
 	m_cpumem.c m_fpe.c opt.c option.c os.c output.c phase.c \
 	predef_reg.c put.c reloc.c state.c \
 	strdup.c symbol.c targetcpu.c \

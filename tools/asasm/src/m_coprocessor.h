@@ -16,11 +16,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * m_cop.h
+ * m_coprocessor.h
  */
 
-#ifndef m_cop_header_included
-#define m_cop_header_included
+#ifndef m_coprocessor_header_included
+#define m_coprocessor_header_included
 
 #include <stdbool.h>
 
@@ -31,5 +31,7 @@ bool m_mcr (bool doLowerCase);
 bool m_mcrr (bool doLowerCase);
 bool m_mrc (bool doLowerCase);
 bool m_mrrc (bool doLowerCase);
+bool m_ldc (bool doLowerCase);
+bool m_stc (bool doLowerCase);
 
 #endif

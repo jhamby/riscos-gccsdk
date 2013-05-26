@@ -1,3 +1,12 @@
+Sun May 26 21:54:20 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cop.c, m_cop.h: Rename to...
+	* m_coprocessor.c, m_coprocessor.h: ...this.
+	* m_copmem.c, m_copmem.h: Merge with m_coprocessor.c, m_coprocessor.h.
+	* decode.c: Follow header file changes.
+	* Makefile.am (asasm_SOURCES): Follow.
+
 Sun May 26 21:35:06 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
