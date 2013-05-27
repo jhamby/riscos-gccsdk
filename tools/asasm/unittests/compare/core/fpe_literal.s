@@ -1,6 +1,6 @@
 ; Tests FPE (FPA10/FPA11/FPASC) LDF literal support
 
-		AREA |C$$code|, CODE, READONLY
+		AREA Code1, CODE, READONLY
 
 		; Literal test : simple case
 	[ :LNOT: REFERENCE
@@ -63,6 +63,8 @@ lit1		DCFD	3.14
 lit2		DCFD	42.
 	]
 
+		AREA Code2, CODE, READONLY
+
 		; Literals via LDC{2}{L} : coprocessor 1 is FPA
 	[ :LNOT: REFERENCE
 		LDC	p1, c1, =14.56	; Single precision
@@ -74,6 +76,28 @@ lit2		DCFD	42.
 		LDFD	F2, =24.56
 		LDFE	F3, =34.56
 		LDFP	F4, =44.56
+	]
+
+	[ :LNOT: REFERENCE
+		LDC	p1, c1, =.5
+		LDC	p1, c10, =2.
+		;LDCL	p1, c3, =4
+		;LDCL	p1, c12, =1.
+
+		LDC	p1, c1, =-.5
+		LDC	p1, c10, =-2.
+		;LDCL	p1, c3, =-4
+		;LDCL	p1, c12, =-1.
+	|
+		MVFS	F1, #.5
+		MVFD	F2, #2.
+		;MVFE	F3, #4.
+		;MVFP	R4, #1.
+
+		MNFS	F1, #.5
+		MNFD	F2, #2.
+		;MNFE	F3, #4.
+		;MNFP	R4, #1.
 	]
 
 		END

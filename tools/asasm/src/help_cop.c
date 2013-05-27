@@ -65,7 +65,7 @@
  * Similar to dstmem() @ m_cpumem.c.
  */
 void
-HelpCop_Addr (ARMWord ir, bool literal, bool stack)
+HelpCop_Addr (ARMWord ir, bool literal, bool stack, bool isThumb)
 {
   Input_SkipWS ();
   if (!Input_Match (',', true))
@@ -82,7 +82,7 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
       case '[':
         {
           Input_Skip ();
-          ir |= LHS_OP (Get_CPUReg ());	/* Base register */
+          ir |= CPLHS_OP (Get_CPUReg ());	/* Base register */
           Input_SkipWS ();
 	  bool preIndexed = !Input_Match (']', true);
           bool offValue = false;
@@ -158,7 +158,7 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
 
       case '=':
 	{
-	  /* <floating pointer/integer literal> */
+	  /* <floating point literal> */
           Input_Skip ();
 	  if (CP_GET_NUMBER (ir) != 1) /* FPE coprocessor is 1 (LFM/STM are using coprocessor 2).  */
 	    {
@@ -205,7 +205,8 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
 	    Error (ErrorError, "Wrong literal type");
 	  else
 	    {
-	      value = Lit_RegisterFloat (literalP, litSize, eLitAddr5, eInstrType_ARM);
+	      value = Lit_RegisterFloat (literalP, litSize, eLitAddr5,
+	                                 isThumb ? eInstrType_Thumb : eInstrType_ARM);
 	      valP = &value;
 	    }
 	  break;
@@ -256,7 +257,7 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
 	         into PC relative one for the current instruction.  */
 	      assert (areaCurrentSymbol->area->type & AREA_ABS);
 	      ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
-	      ir |= LHS_OP (15);
+	      ir |= CPLHS_OP (15);
 	      ir = Fix_CopOffset (ir, newOffset);
 	      break;
 	    }
@@ -307,7 +308,7 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
 
 	  case ValueAddr:
 	    {
-	      ir |= LHS_OP (valP->Data.Addr.r);
+	      ir |= CPLHS_OP (valP->Data.Addr.r);
 	      ir = Fix_CopOffset (ir, valP->Data.Addr.i);
 	      break;
 	    }
@@ -317,6 +318,8 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack)
 	    break;
 	}
     }
-    
+
+  if (isThumb && (ir & P_FLAG) == 0 && CP_GET_LHS(ir) == 15)
+    Error (ErrorWarning, "The use of PC as base register in unindexed form is UNPREDICTABLE in Thumb mode");
   Put_Ins (4, ir);
 }

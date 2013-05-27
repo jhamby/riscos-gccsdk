@@ -36,7 +36,8 @@
 #define CP_INFO(n)   ((n)<< 5) /* CP */
 
 #define CP_GET_NUMBER(ir) (((ir)>>8) & 0xF) /**< Get coprocessor number.  */
+#define CP_GET_LHS(ir) (((ir)>>16) & 0xF)
 
-void HelpCop_Addr (ARMWord ir, bool literal, bool stack);
+void HelpCop_Addr (ARMWord ir, bool literal, bool stack, bool isThumb);
 
 #endif

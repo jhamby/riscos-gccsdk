@@ -1,3 +1,14 @@
+Mon May 27 21:34:07 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* help_cop.c (HelpCop_Addr): Add isThumb parameter.  Add UNPREDICTABLE
+	test.
+	* help_cop.h (HelpCop_Addr): Add isThumb parameter.
+	* m_coprocessor.c (dstmem): Follow HelpCop_Addr API change.
+	* src/m_fpe.s (CheckFPUsageIsAllowed): Add test on Thumb mode.
+	(dstmem, dstmemx): Follow HelpCop_Addr API change.
+	* unittests/compare/core/fpe_literal.s: Add LDC to MVF{S|D}/MNF{S|D}
+	conversion tests.
+
 Sun May 26 22:46:52 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* macros.c (AddMacroArg): Add check on macro argument uniqueness.

@@ -41,9 +41,10 @@
 #include "option.h"
 #include "put.h"
 #include "reloc.h"
-#include "value.h"
-#include "main.h"
+#include "state.h"
 #include "targetcpu.h"
+#include "main.h"
+#include "value.h"
 
 typedef enum
 {
@@ -85,6 +86,9 @@ CheckFPUsageIsAllowed (void)
 	Error_Line (oFPUsageNOFP_FileName, oFPUsageNOFP_LineNum, ErrorError, "note: NOFP was mentioned here");
 	break;
     }
+
+  if (State_GetInstrType () != eInstrType_ARM)
+    Error (ErrorError, "FPA instructions are not supported in Thumb mode");
 
   return false;
 }
@@ -828,7 +832,7 @@ static void
 dstmem (ARMWord ir, bool literal)
 {
   ir |= CPDST_OP (Get_FPUReg ());
-  HelpCop_Addr (ir, literal, false);
+  HelpCop_Addr (ir, literal, false, false);
 }
 
 /**
@@ -926,7 +930,7 @@ dstmemx (ARMWord ir, bool doLowerCase)
     }
   ir |= (im->Data.Int.i & 1) << 15;
   ir |= (im->Data.Int.i & 2) << (22 - 1);
-  HelpCop_Addr (ir, isLoad, stack);
+  HelpCop_Addr (ir, isLoad, stack, false);
   return false;
 }
 

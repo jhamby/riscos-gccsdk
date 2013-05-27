@@ -273,7 +273,7 @@ dstmem (const char *descr, bool doLowerCase, bool two,
     ir |= 0xf0000000;
   else if (instrState != eInstrType_ARM)
     ir = (ir & 0x0fffffff) | 0xe0000000;
-  HelpCop_Addr (ir, literal, false);
+  HelpCop_Addr (ir, literal, false, instrState != eInstrType_ARM);
   return false;
 }
 
