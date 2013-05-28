@@ -1,3 +1,10 @@
+Wed May 29 00:59:10 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* strdup.c: Rename to...
+	* common.c: ...this.
+	* Makefile.am (asasm_SOURCES): Follow strdup.c rename.
+
 Tue May 28 22:41:32 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* COPYING: Update FSF address.

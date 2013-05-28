@@ -29,7 +29,7 @@ asasm_LDFLAGS = -static -lm
 asasm_LDADD = ../elftoolchain/libelftc/libelftc.la \
 	../elftoolchain/libelf/libelf.la \
 	../elftoolchain/libdwarf/libdwarf.la
-asasm_SOURCES=area.c asm.c code.c debug_dwarf.c decode.c depend.c \
+asasm_SOURCES=area.c asm.c code.c common.c debug_dwarf.c decode.c depend.c \
 	directive_data.c directive_file.c directive_misc.c \
 	directive_storagemap.c directive_symbol.c error.c \
 	eval.c expr.c filename.c filestack.c fix.c frame.c get.c help_cop.c \
@@ -37,5 +37,5 @@ asasm_SOURCES=area.c asm.c code.c debug_dwarf.c decode.c depend.c \
 	local.c macros.c main.c m_coprocessor.c m_cpu.c m_cpuctrl.c \
 	m_cpumem.c m_fpe.c opt.c option.c os.c output.c phase.c \
 	predef_reg.c put.c reloc.c state.c \
-	strdup.c symbol.c targetcpu.c \
+	symbol.c targetcpu.c \
 	value.c variables.c whileif.c
