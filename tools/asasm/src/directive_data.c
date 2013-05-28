@@ -1,5 +1,5 @@
 /*
- * AS an assembler for ARM
+ * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Darren Salt
  * Copyright (c) 2000-2013 GCCSDK Developers
@@ -16,9 +16,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * directive_data.c
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA  02110-1301, USA.
  */
 
 #include "config.h"

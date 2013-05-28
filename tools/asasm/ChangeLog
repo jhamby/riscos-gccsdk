@@ -1,3 +1,8 @@
+Tue May 28 22:41:32 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* COPYING: Update FSF address.
+	* src/{*.c,*h}: Likewise.  Use AsAsm as name, instead of AS.
+
 Mon May 27 21:34:07 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* help_cop.c (HelpCop_Addr): Add isThumb parameter.  Add UNPREDICTABLE
