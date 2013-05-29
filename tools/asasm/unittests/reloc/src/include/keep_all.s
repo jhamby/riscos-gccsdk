@@ -49,4 +49,11 @@ AreaABS1	MOV	r3, #0
 AreaABS2	DCD	5
 IgnAreaABS3	EQU	AreaABS2	; NOT kept in output, FIXME: this is however happening.
 
+		; Local labels should never be exported.
+		AREA	AreaCode, CODE
+01
+		BEQ	%b01
+		BNE	%f01
+01
+
 	END

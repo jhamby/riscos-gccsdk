@@ -10,7 +10,7 @@ ELF Header:
   Version:                           0x1
   Entry point address:               0x0
   Start of program headers:          0 (bytes into file)
-  Start of section headers:          640 (bytes into file)
+  Start of section headers:          664 (bytes into file)
   Flags:                             0x0
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
@@ -22,13 +22,13 @@ ELF Header:
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            00000000 000000 000000 00      0   0  0
-  [ 1] .symtab           SYMTAB          00000000 000034 000170 10      2  23  4
-  [ 2] .strtab           STRTAB          00000000 0001a4 000063 00      0   0  1
-  [ 3] AreaData          PROGBITS        00000000 000208 00000c 00  WA  0   0  4
-  [ 4] AreaCode          PROGBITS        00000000 000214 00000c 00 WAX  0   0  4
-  [ 5] AreaBased         PROGBITS        00000000 000220 000010 00  WA  0   0  4
-  [ 6] AreaABS           PROGBITS        00000000 000230 000010 00 WAX  0   0  4
-  [ 7] .shstrtab         STRTAB          00000000 000240 00003f 00      0   0  1
+  [ 1] .symtab           SYMTAB          00000000 000034 000180 10      2  24  4
+  [ 2] .strtab           STRTAB          00000000 0001b4 000063 00      0   0  1
+  [ 3] AreaData          PROGBITS        00000000 000218 00000c 00  WA  0   0  4
+  [ 4] AreaCode          PROGBITS        00000000 000224 000014 00 WAX  0   0  4
+  [ 5] AreaBased         PROGBITS        00000000 000238 000010 00  WA  0   0  4
+  [ 6] AreaABS           PROGBITS        00000000 000248 000010 00 WAX  0   0  4
+  [ 7] .shstrtab         STRTAB          00000000 000258 00003f 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
   I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
@@ -42,30 +42,31 @@ There are no relocations in this file.
 
 There are no unwind sections in this file.
 
-Symbol table '.symtab' contains 23 entries:
+Symbol table '.symtab' contains 24 entries:
    Num:    Value  Size Type    Bind   Vis      Ndx Name
      0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
      1: 00000004     0 NOTYPE  LOCAL  DEFAULT    6 $a
      2: 00000004     0 NOTYPE  LOCAL  DEFAULT    5 $a
      3: 00000000     0 NOTYPE  LOCAL  DEFAULT    4 $a
-     4: 00000000     0 NOTYPE  LOCAL  DEFAULT    6 $d
-     5: 0000000c     0 NOTYPE  LOCAL  DEFAULT    6 $d
-     6: 00000000     0 NOTYPE  LOCAL  DEFAULT    5 $d
-     7: 0000000c     0 NOTYPE  LOCAL  DEFAULT    5 $d
-     8: 00000004     0 NOTYPE  LOCAL  DEFAULT    4 $d
-     9: 00000000     0 NOTYPE  LOCAL  DEFAULT    3 $d
-    10: 00000000     0 SECTION LOCAL  DEFAULT    6 
-    11: 00000008     4 NOTYPE  LOCAL  DEFAULT  ABS AreaABS1
-    12: 0000000c     4 NOTYPE  LOCAL  DEFAULT  ABS AreaABS2
-    13: 00000000     0 SECTION LOCAL  DEFAULT    5 
-    14: 00000008     4 NOTYPE  LOCAL  DEFAULT    5 AreaBased1
-    15: 0000000c     4 NOTYPE  LOCAL  DEFAULT    5 AreaBased2
-    16: 00000000     0 SECTION LOCAL  DEFAULT    4 
-    17: 00000004     4 NOTYPE  LOCAL  DEFAULT    4 AreaCode1
-    18: 00000008     4 NOTYPE  LOCAL  DEFAULT    4 AreaCode2
-    19: 00000000     0 SECTION LOCAL  DEFAULT    3 
-    20: 00000004     4 NOTYPE  LOCAL  DEFAULT    3 AreaData1
-    21: 00000008     4 NOTYPE  LOCAL  DEFAULT    3 AreaData2
-    22: 0000000c     0 NOTYPE  LOCAL  DEFAULT  ABS IgnAreaABS3
+     4: 0000000c     0 NOTYPE  LOCAL  DEFAULT    4 $a
+     5: 00000000     0 NOTYPE  LOCAL  DEFAULT    6 $d
+     6: 0000000c     0 NOTYPE  LOCAL  DEFAULT    6 $d
+     7: 00000000     0 NOTYPE  LOCAL  DEFAULT    5 $d
+     8: 0000000c     0 NOTYPE  LOCAL  DEFAULT    5 $d
+     9: 00000004     0 NOTYPE  LOCAL  DEFAULT    4 $d
+    10: 00000000     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    11: 00000000     0 SECTION LOCAL  DEFAULT    6 
+    12: 00000008     4 NOTYPE  LOCAL  DEFAULT  ABS AreaABS1
+    13: 0000000c     4 NOTYPE  LOCAL  DEFAULT  ABS AreaABS2
+    14: 00000000     0 SECTION LOCAL  DEFAULT    5 
+    15: 00000008     4 NOTYPE  LOCAL  DEFAULT    5 AreaBased1
+    16: 0000000c     4 NOTYPE  LOCAL  DEFAULT    5 AreaBased2
+    17: 00000000     0 SECTION LOCAL  DEFAULT    4 
+    18: 00000004     4 NOTYPE  LOCAL  DEFAULT    4 AreaCode1
+    19: 00000008     4 NOTYPE  LOCAL  DEFAULT    4 AreaCode2
+    20: 00000000     0 SECTION LOCAL  DEFAULT    3 
+    21: 00000004     4 NOTYPE  LOCAL  DEFAULT    3 AreaData1
+    22: 00000008     4 NOTYPE  LOCAL  DEFAULT    3 AreaData2
+    23: 0000000c     0 NOTYPE  LOCAL  DEFAULT  ABS IgnAreaABS3
 
 No version information found in this file.

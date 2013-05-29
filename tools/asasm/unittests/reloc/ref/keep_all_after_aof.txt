@@ -3,7 +3,7 @@
 
 AOF version: 310
 4 areas
-22 symbols
+23 symbols
 
 ** Area (0x000000) "AreaData", aligned at 4 bytes, [data] 
    Size 12 bytes, 0 relocations
@@ -11,9 +11,9 @@ AOF version: 310
 000000: 00000000 00000001 00000002
 
 ** Area (0x000102) "AreaCode", aligned at 4 bytes, [code] [32bit] 
-   Size 12 bytes, 0 relocations
+   Size 20 bytes, 0 relocations
 
-000000: e3a00000 00000001 00000002
+000000: e3a00000 00000001 00000002 0afffffe 1affffff
 
 ** Area (0x061000) "AreaBased", aligned at 4 bytes, [data] [based r6] 
    Size 16 bytes, 0 relocations
@@ -49,6 +49,7 @@ $a               (01) local at "AreaBased" + 0x000004
 $d               (01) local at "AreaBased" + 0x00000c
 $a               (01) local at "AreaCode" + 0x000000
 $d               (101) local, cadatum at "AreaCode" + 0x000004
+$a               (01) local at "AreaCode" + 0x00000c
 $d               (01) local at "AreaData" + 0x000000
 
 ** String table:

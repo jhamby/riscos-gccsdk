@@ -144,8 +144,8 @@ ASM_Assemble (const char *asmFile, bool doOnePassOnly)
 
 /**
  * Defines a label being at offset of the current AREA.
- * \param isMapping true when it is an area mapping symbol (i.e. $a, $d, $t)
- * This will ensure we make the mapping symbol relative to its area
+ * \param isMapping true when it is an area mapping symbol (i.e. $a, $d, $t
+ * or $t.x).  This will ensure we make the mapping symbol relative to its area
  * (even for ABS areas).
  * \return NULL when give Lex object can not be a label or has been defined
  * as label before.
@@ -158,8 +158,9 @@ ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping)
   assert (label->tag == LexId || label->tag == LexLocalLabel);
 
   /* Turn LexLocalLabel into LexId (assuming no errors).  */
+  bool isLocalLabel = label->tag == LexLocalLabel;
   Lex localLabel;
-  if (label->tag == LexLocalLabel)
+  if (isLocalLabel)
     {
       localLabel = Lex_DefineLocalLabel (label);
       if (localLabel.tag == LexNone)
@@ -179,6 +180,9 @@ ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping)
   if ((areaCurrentSymbol->area->type & AREA_CODE) != 0
       && Area_GetCurrentEntryType () == eData)
     symbolType |= SYMBOL_DATUM;
+  /* Don't ever export local labels.  */
+  if (isLocalLabel)
+    symbolType |= SYMBOL_NO_EXPORT;
 
   Symbol *symbol = Symbol_Get (label);
   if (Symbol_Define (symbol, symbolType, &value))
