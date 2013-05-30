@@ -1,5 +1,17 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS="--disable-gnome-vfs --enable-introspection=no"
+AB_MANPAGE="rsvg-convert.1"
 
+AB_CONFLAGS="--enable-introspection=no"
 
+ab_package() {
+  # Package programs
+  ab_create_command_app RSVG-Convert Apps/Graphics
+  ab_add_commands $S/rsvg-convert$AB_EXEEXT
+
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/COPYING.LIB $S/NEWS $S/README  $S/TODO $A
+  mv $D/*,faf $A/\!Help,faf
+
+  $AB_HOME/add-riscpkg -package RSVG-Convert -unixlib
+  
+}

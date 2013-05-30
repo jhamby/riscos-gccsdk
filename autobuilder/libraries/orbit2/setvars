@@ -1,6 +1,6 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS="--disable-nls --with-idl-compiler=$GCCSDK_INSTALL_ENV/bin/orbit-idl-2"
+AB_CONFLAGS="--disable-nls --disable-maintainer-mode --with-idl-compiler=$GCCSDK_INSTALL_ENV/bin/orbit-idl-2"
 
 if ! [ -e /usr/bin/glib-genmarshal ] || ! [ -e /usr/include/popt.h ] ; then
   echo "Please install native libglib2.0-dev, libidl-dev and libpopt-dev packages"

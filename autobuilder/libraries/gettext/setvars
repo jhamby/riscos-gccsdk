@@ -8,11 +8,13 @@ AB_CONFLAGS="--with-included-gettext --enable-nls --disable-java --disable-nativ
 
 ab_package()
 {
-  ab_create_app LibGetText Apps/Library
+  ab_create_app LibGetText Apps/Library libgettext-dev
 
   # Run time libraries
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
   slibdir=$D/libgettext/Resources/\!SharedLibs/lib
   mkdir -p $slibdir
+  fi
 
   HERE=`pwd`
   cd $A
@@ -40,8 +42,11 @@ ab_package()
   find . -maxdepth 1 -type f -execdir mv {} {},faf \;
 
   cd $HERE
-  $AB_HOME/add-riscpkg -package libgettext-dev -unixlib \
+  
+  $AB_HOME/add-riscpkg -name LibGetText-Dev -unixlib \
        -copyrightfile $S/COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
   rm -rf $A
 
   cd $slibdir
@@ -55,7 +60,7 @@ ab_package()
      LNAME=`echo $SLIB | cut -d '.' -f 1-4`
      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
   done
-
+  
   cd $HERE
 
   $AB_HOME/add-riscpkg -package libgettext -unixlib \
@@ -64,4 +69,6 @@ ab_package()
   # Need to add description to library package
   mkdir -p $D/libgettext/RiscPkg
   echo "Description: Runtime shared libraries for gettext" >> $D/libgettext/RiscPkg/Control,fff
+  fi
+
 }

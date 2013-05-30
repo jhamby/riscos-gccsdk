@@ -1,4 +1,9 @@
-AB_PACKAGES="libglib2.0-0 libglib2.0-dev libglib2.0-doc"
+if [ "$RO_SHAREDLIBS" == "yes" ]; then
+  AB_PACKAGES="libglib2.0-0 libglib2.0-dev libglib2.0-doc"
+else
+  AB_PACKAGES="libglib2.0-dev libglib2.0-doc"
+fi
+
 AB_CATEGORY=Library
 AB_LICENSE=Free
 
@@ -8,13 +13,18 @@ export glib_cv_uscore=no
 export glib_cv_monotonic_clock=yes 
 export ac_cv_func_posix_getgrgid_r=no
 export glib_cv_have_qsort_r=yes
+export ac_cv_gnu_library_2_1=yes
+export glib_cv_g_atomic_lock_free=no
+export glib_flag_works=no
 
-AB_CONFLAGS="--with-pcre=system --with-threads=posix"
+AB_CONFLAGS="--with-pcre=system --with-threads=posix --enable-modular_tests=no"
  
 # build for local system to build local tools
-CC=$HOST_CC CXX=$HOST_CXX ./configure --prefix=$GCCSDK_INSTALL_CROSS
-make install
-make clean
+if [ ! -f "$GCCSDK_INSTALL_CROSSBIN/glib-genmarshal" ] ; then
+  CC=$HOST_CC CXX=$HOST_CXX ./configure --prefix=$GCCSDK_INSTALL_CROSS
+  make install
+  make clean
+fi
 
 mkdir -p $D/bin
 
@@ -24,8 +34,10 @@ mkdir -p $D/bin
 ab_package() {
 
   # Shared libraries package
-  slibdir=$D/libglib2.0-0/Resources/\!SharedLibs/lib
-  mkdir -p $slibdir
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    slibdir=$D/libglib2.0-0/Resources/\!SharedLibs/lib
+    mkdir -p $slibdir
+  fi
 
   # Developer package
   devdir=$D/libglib2.0-dev/Apps/Library
@@ -93,11 +105,33 @@ ab_package() {
   mkdir -p $docdir/gobject
   cp $S/docs/reference/gobject/html/* $docdir/gobject
 
-  $AB_HOME/add-riscpkg -package "libglib2.0-0" \
-    -depends SharedLibs
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
 
-  $AB_HOME/add-riscpkg -package "libglib2.0-dev" \
-    -unixlib 
+    $AB_HOME/add-riscpkg -package "libglib2.0-0" \
+      -depends SharedLibs -copyrightfile $S/COPYING
+  fi
 
-  $AB_HOME/add-riscpkg -package "libglib2.0-doc"
+  $AB_HOME/add-riscpkg -package "libglib2.0-dev" -name LibGLib2.0-Dev \
+    -unixlib -copyrightfile $S/COPYING
+     
+  mkdir -p $D/libglib2.0-dev/RiscPkg
+  echo "Description: Development files for the GLib library" >> $D/libglib2.0-dev/RiscPkg/Control,fff
+  echo " GLib is a library containing many useful C routines for things such" >> $D/libglib2.0-dev/RiscPkg/Control,fff
+  echo " as trees, hashes, lists, and strings.  It is a useful general-purpose" >> $D/libglib2.0-dev/RiscPkg/Control,fff
+  echo " C library used by projects such as GTK+, GIMP, and GNOME." >> $D/libglib2.0-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libglib2.0-dev/RiscPkg/Control,fff
+  echo " This package is needed to compile programs against libglib2.0-0," >> $D/libglib2.0-dev/RiscPkg/Control,fff
+  echo " as only it includes the header files and static libraries (optionally)" >> $D/libglib2.0-dev/RiscPkg/Control,fff
+  echo " needed for compiling." >> $D/libglib2.0-dev/RiscPkg/Control,fff
+
+  $AB_HOME/add-riscpkg -package "libglib2.0-doc -name LibGLib2.0-Doc -depends LibGLib2.0-Dev -copyrightfile $S/COPYING"
+  
+  mkdir -p $D/libglib2.0-doc/RiscPkg
+  echo "Description: Documentation files for the GLib library" >> $D/libglib2.0-doc/RiscPkg/Control,fff
+  echo " GLib is a library containing many useful C routines for things such" >> $D/libglib2.0-doc/RiscPkg/Control,fff
+  echo " as trees, hashes, lists, and strings.  It is a useful general-purpose" >> $D/libglib2.0-doc/RiscPkg/Control,fff
+  echo " C library used by projects such as GTK+, GIMP, and GNOME." >> $D/libglib2.0-doc/RiscPkg/Control,fff
+  echo " ." >> $D/libglib2.0-doc/RiscPkg/Control,fff
+  echo " This package contains the HTML documentation for the GLib library" >> $D/libglib2.0-doc/RiscPkg/Control,fff
+  
 }

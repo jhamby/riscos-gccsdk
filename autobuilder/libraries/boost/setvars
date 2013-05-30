@@ -1,5 +1,7 @@
 AB_CATEGORY=Library
 
+AB_URL=http://ftp.de.debian.org/debian/pool/main/b/boost1.42/boost1.42_1.42.0.orig.tar.bz2
+
 # Just install into env
 # Installation is done by hand in ab_make below
 AB_INSTALL=no
