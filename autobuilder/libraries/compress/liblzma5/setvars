@@ -1,0 +1,6 @@
+
+AB_INSTALL=yes
+
+AB_CONFLAGS='--enable-encoders=lzma1,lzma2,delta,arm --enable-decoders=lzma1,lzma2,delta,arm --enable-liblzma2-compat'
+
+./autogen.sh

@@ -1,5 +1,7 @@
 AB_INSTALL=yes
 
+AB_MAKE="$AB_MAKE -j1"
+
 if [ "$AB_ELFBUILD" == "yes" ] ; then
   perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads no-shared no-idea no-mdc2 no-rc5
 else

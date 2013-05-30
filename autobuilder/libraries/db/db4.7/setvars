@@ -12,4 +12,4 @@ export RO_CPATH=../dist
 export LN=ln
 
 rm -f $GCCSDK_INSTALL_ENV/lib/libdb-4.a
-ln -s libdb-4.6.a $GCCSDK_INSTALL_ENV/lib/libdb-4.a
+ln -s libdb-4.7.a $GCCSDK_INSTALL_ENV/lib/libdb-4.a
