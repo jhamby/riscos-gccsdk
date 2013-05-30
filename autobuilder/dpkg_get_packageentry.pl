@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-
 # return a Debian packages file entry
 # parameters: <package_name> <file_to_look_in>
 # output: package entry
