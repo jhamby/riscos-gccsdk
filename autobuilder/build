@@ -3,7 +3,7 @@
 AB_PACKAGES=""
 export AB_DEBUG=no     # Leave source
 export AB_NOFETCH=no   # Using existing source fetched from last time
-AB_VERBOSE=no          # Echo output
+export AB_VERBOSE=no          # Echo output
 AB_DEPS=yes            # Build dependencies first
 AB_ALLDEPS=false       # Force build of all dependencies
 export AB_TARGET=      # Name added to packages and logs
@@ -74,7 +74,7 @@ check_dependencies() {
        popd
     fi
   fi
-  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext unzip autoconf2.13 flex bison gperf glib-genmarshal xsltproc intltoolize automake-1.7 ; do
+  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext unzip autoconf2.13 flex bison gperf glib-genmarshal xsltproc intltoolize automake-1.9 ; do
     if ! type $build_prog > /dev/null 2>&1 ; then
       echo "Autobuilder: $build_prog not found; is it installed on your path?"
       exit 1;

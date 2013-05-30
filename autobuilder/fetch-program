@@ -7,7 +7,10 @@ function zip_tidy ()
 #  rename 's/,fff//' *  # 'rename isn't in all unix distros
 	find . -name '*,fff' -exec sh -c 'mv "$0" "${0%,fff}"' {} \;
 }
-
+AB_WGET="wget -nv"
+if [ "$AB_VERBOSE" == "yes" ] ; then
+  AB_WGET="wget"
+fi
 AB_CVS_ROOT=$(grep ^AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_CVS_MODULE=$(grep ^AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_CVS_TAGORBRANCH=$(grep ^AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
@@ -106,7 +109,7 @@ else
 
           rm -f $Sources
 
-          wget -nv $debarchive/dists/${dist}/${section}/source/Sources.bz2 -O $Sources
+          $AB_WGET $debarchive/dists/${dist}/${section}/source/Sources.bz2 -O $Sources
           touch $Sources
 
         else
@@ -120,29 +123,8 @@ else
         Sources=../Sources-${dist}-${section}.bz2
 
         dist_format=""
-        if [ "$dist" = "stable" ] ; then
-          bzgrep_options="-A4"
-          dist_format="stable"
-        else
-          bzgrep_options="-B30"
-        fi
-        if bzgrep "$bzgrep_options" "^Directory.*/$AB_PACKAGE$" $Sources > files ; then
-          # Found ok
-          if grep '^$' files ; then
-            sed --in-place '0,/^$/d' files
-          fi
-          break
-        else
-          echo "Autobuilder: Directory name not found in Sources.bz2 (${dist}/${section})"
-          echo "Autobuilder: Trying Binary entry"
-          if bzgrep -A100 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
-            sed --in-place -e '/^$/q' files
-            break
-          else
-            bzgrep -A100 "Binary:.* $AB_PACKAGE," $Sources > files || true
-            sed --in-place -e '/^$/q' files
-          fi
-        fi
+        echo "Autobuilder: Searching for $AB_PACKAGE in $Sources..."
+        $AB_HOME/dpkg_get_packageentry.pl "$AB_PACKAGE" "$Sources" > files
 
         if [ -s files ] ; then break; fi
       done
@@ -165,13 +147,13 @@ else
 
     orig=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4)
     if [ -z "$orig" ] ; then
-      orig=$((grep \.orig\.tar\.xz files || grep \.tar\.xz files) | cut -d ' ' -f 4)
-    fi
-    if [ -z "$orig" ] ; then
       orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
     fi
+    if [ -z "$orig" ] ; then
+      orig=$((grep \.orig\.tar\.xz files || grep \.tar\.xz files) | cut -d ' ' -f 4)
+    fi
     if [ -n "$orig" ] ; then
-      wget -nv $debdir/$orig
+      $AB_WGET $debdir/$orig
 
       deb=$(grep \.debian\.tar\.gz files | cut -d ' ' -f 4)
       if [ -z "$deb" ] ; then
@@ -185,10 +167,10 @@ else
         fi
       fi
       if [ ! -z "$deb" ] ; then
-        wget -nv $debdir/$deb
+        $AB_WGET $debdir/$deb
       fi
 
-      tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz || tar xfz *.orig.tar.gz || tar xfJ *.tar.xz
+      tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz || tar xfz *.orig.tar.gz || tar xfJ *.tar.xz 
       subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
       if [ ! -z "$deb" ] ; then
         tar xfz $deb -C $subdir || tar xfj $deb -C $subdir || tar xfJ $deb -C $subdir
@@ -211,11 +193,11 @@ else
         else
           archtype="xz"  
         fi
-        wget -nv $debdir/$file -O $orig
+        $AB_WGET $debdir/$file -O $orig
       else
         archtype="gz"
-        wget -nv $debdir/$orig
-        wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
+        $AB_WGET $debdir/$orig
+        $AB_WGET $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
       fi
 
       if [ $archtype = "gz" ] ; then
