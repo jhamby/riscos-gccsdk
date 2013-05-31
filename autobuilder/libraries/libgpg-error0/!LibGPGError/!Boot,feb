@@ -1,0 +1,6 @@
+| Boot file for LibGPGError
+|
+If "<LibGPGError$Dir>" = "" Then Set LibGPGError$Dir <Obey$Dir>
+If "<LibGPGError$Path>" = "" Then Set LibGPGError$Path <Obey$Dir>.
+
+IconSprites <LibGPGError$Dir>.!Sprites

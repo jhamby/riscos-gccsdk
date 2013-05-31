@@ -1,3 +1,27 @@
 AB_INSTALL=yes
+AB_PVERSION=`echo "$AB_PVERSION" | sed -e "s/error-//"`
 
-#AB_CONFLAGS=--enable-nls
+ab_package() {
+  ab_create_app LibGPGError Apps/Library libgpg-error-dev
+
+  HERE=`pwd`
+
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+  
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -name LibGPG-Error-Dev -unixlib -copyrightfile $S/COPYING
+}

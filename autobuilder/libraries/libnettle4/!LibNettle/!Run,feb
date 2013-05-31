@@ -1,0 +1,6 @@
+| Run file for LibNettle
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibNettle$Dir <Obey$Dir>
+Set LibNettle$Path <Obey$Dir>.

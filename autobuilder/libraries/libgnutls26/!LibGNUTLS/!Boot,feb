@@ -1,0 +1,6 @@
+| Boot file for LibGNUTLS
+|
+If "<LibGNUTLS$Dir>" = "" Then Set LibGNUTLS$Dir <Obey$Dir>
+If "<LibGNUTLS$Path>" = "" Then Set LibGNUTLS$Path <Obey$Dir>.
+
+IconSprites <LibGNUTLS$Dir>.!Sprites

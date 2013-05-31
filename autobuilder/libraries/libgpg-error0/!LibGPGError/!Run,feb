@@ -1,0 +1,6 @@
+| Run file for LibGPGError
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibGPGError$Dir <Obey$Dir>
+Set LibGPGError$Path <Obey$Dir>.

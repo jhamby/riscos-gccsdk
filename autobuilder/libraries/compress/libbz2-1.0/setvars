@@ -1,5 +1,6 @@
 AB_INSTALL=yes
 AB_PRECONF=:
+AB_ROVERSION=2
 
 ab_package() {
   cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
@@ -34,7 +35,7 @@ ab_package() {
   $AB_HOME/add-riscpkg -package libbz2-dev -name LibBZ2-Dev -section Library -unixlib -copyrightfile $S/LICENSE
 
   mkdir -p $D/libbz2-dev/RiscPkg
-  echo "Desciption: high-quality block-sorting file compressor library - development" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo "Description: high-quality block-sorting file compressor library - development" >> $D/libbz2-dev/RiscPkg/Control,fff
   echo " Static libraries and include files for the bzip2 compressor library." >> $D/libbz2-dev/RiscPkg/Control,fff
   echo " ." >> $D/libbz2-dev/RiscPkg/Control,fff
   echo " bzip2 is a freely available, patent free, high-quality data compressor." >> $D/libbz2-dev/RiscPkg/Control,fff

@@ -1,0 +1,6 @@
+| Run file for LibTASN1
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibTASN1$Dir <Obey$Dir>
+Set LibTASN1$Path <Obey$Dir>.

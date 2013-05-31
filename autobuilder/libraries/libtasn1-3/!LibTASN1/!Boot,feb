@@ -1,0 +1,6 @@
+| Boot file for LibTASN1
+|
+If "<LibTASN1$Dir>" = "" Then Set LibTASN1$Dir <Obey$Dir>
+If "<LibTASN1$Path>" = "" Then Set LibTASN1$Path <Obey$Dir>.
+
+IconSprites <LibTASN1$Dir>.!Sprites
