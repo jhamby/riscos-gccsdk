@@ -1,1 +1,32 @@
 AB_INSTALL=yes
+
+ab_package()
+{
+  ab_create_app LibLcms1 Apps/Library liblcms1-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  # Move static libs to correct place in static package
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd ../man
+  find . -maxdepth 1 -type f -execdir mv {} {},faf \;
+
+  cd $HERE
+  
+  $AB_HOME/add-riscpkg -name LibLcms1-Dev -unixlib \
+       -copyrightfile $S/COPYING
+
+}

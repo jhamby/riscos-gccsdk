@@ -1,0 +1,8 @@
+Description: pixel-manipulation library for X and cairo (development files)
+ A library for manipulating pixel regions -- a set of Y-X banded
+ rectangles, image compositing using the Porter/Duff model
+ and implicit mask generation for geometric primitives including
+ trapezoids, triangles, and rectangles.
+ .
+ Development libraries, header files and documentation needed by
+ programs that want to compile with the Cairo/X pixman library.

@@ -4,3 +4,24 @@ AB_INSTALL=yes
 export FONTCONFIG_LIBS="-lfontconfig -lfreetype -lexpat -lz"
 AB_CONFLAGS="--enable-xlib=yes --enable-xcb=no --enable-xcb-shm=no --enable-png=yes --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=yes"
 
+ab_package() {
+  ab_create_app LibCairo2 Apps/Library libcairo2-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+  
+  mv include/cairo cairo
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibCairo2-Dev -copyrightfile COPYING
+}

@@ -1,4 +1,8 @@
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
 AB_PACKAGES="libgee libgee-dev"
+else
+AB_PACKAGES="libgee-dev"
+fi
 AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
 AB_LICENSE=Free
 
@@ -6,9 +10,13 @@ AB_INSTALL=yes
 
 ab_package() {
 
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+
   # Shared libraries package
   slibdir=$D/libgee/Resources/\!SharedLibs/lib
   mkdir -p $slibdir
+  
+  fi
 
   # Developer package
   ab_create_app LibGee Apps/Library libgee-dev
@@ -59,13 +67,14 @@ ab_package() {
     done
 
     cd $HERE
-  fi
-
-  $AB_HOME/add-riscpkg -package "libgee" \
-    -depends SharedLibs -depends libglib2.0-0 \
+  
+  $AB_HOME/add-riscpkg -package "LibGee" \
+    -depends SharedLibs -depends LibGLib2.0-0 \
     -copyrightfile COPYING
-
-  $AB_HOME/add-riscpkg -package "libgee-dev" \
-    -unixlib -depends libglib2.0-dev \
+    
+  fi
+  
+  $AB_HOME/add-riscpkg -package "LibGee-Dev" \
+    -unixlib -depends LibGLib2.0-Dev \
     -copyrightfile COPYING
 }

@@ -1,0 +1,4 @@
+Set DeskLib$Dir <Obey$Dir>
+Set Alias$URLOpen_DeskLibHTMLAction Run <DeskLib$Dir>.Docs.DeskLibHTMLAction %%*0
+If "<Alias$@RunType_FAF>" <> "" Then Filer_Run <DeskLib$Dir>.Docs.Introduction Else Filer_Run <DeskLib$Dir>.Docs.TextHelp
+

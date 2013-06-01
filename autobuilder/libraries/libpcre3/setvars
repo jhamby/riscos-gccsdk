@@ -1,4 +1,8 @@
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
 AB_PACKAGES="libpcre3-dev libpcre3"
+else
+AB_PACKAGES="libpcre3-dev"
+fi
 AB_INSTALL=yes
 AB_LICENCE=Free
 AB_CONFLAGS="$AB_CONFLAGS --enable-utf8 --enable-unicode-properties"
@@ -8,9 +12,11 @@ ab_package()
   # Developer package
   ab_create_app LibPcre3 Apps/Library libpcre3-dev
 
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
   # Shared libraries
   slibdir=$D/libpcre3/Resources/\!SharedLibs/lib
   mkdir -p $slibdir
+  fi
 
   HERE=`pwd`
   cd $A
@@ -54,9 +60,10 @@ ab_package()
     done
 
     cd $HERE
+
+    $AB_HOME/add-riscpkg -package libpcre3 -unixlib \
+         -depends SharedLibs -copyrightfile $S/COPYING
   fi
 
-  $AB_HOME/add-riscpkg -package libpcre3-dev -unixlib
-  $AB_HOME/add-riscpkg -package libpcre3 -unixlib \
-       -depends SharedLibs
+  $AB_HOME/add-riscpkg -package LibPcre3-Dev -copyrightfile $S/COPYING -unixlib
 }

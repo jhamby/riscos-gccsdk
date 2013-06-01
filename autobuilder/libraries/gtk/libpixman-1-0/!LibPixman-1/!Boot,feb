@@ -1,0 +1,6 @@
+| Boot file for LibPixman-1
+|
+If "<LibPixman-1$Dir>" = "" Then Set LibPixman-1$Dir <Obey$Dir>
+If "<LibPixman-1$Path>" = "" Then Set LibPixman-1$Path <Obey$Dir>.
+
+IconSprites <LibPixman-1$Dir>.!Sprites

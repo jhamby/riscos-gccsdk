@@ -1,0 +1,6 @@
+| Boot file for LibCurl3
+|
+If "<LibCurl3$Dir>" = "" Then Set LibCurl3$Dir <Obey$Dir>
+If "<LibCurl3$Path>" = "" Then Set LibCurl3$Path <Obey$Dir>.
+
+IconSprites <LibCurl3$Dir>.!Sprites

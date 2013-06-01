@@ -1,0 +1,6 @@
+| Boot file for LibCairo2
+|
+If "<LibCairo2$Dir>" = "" Then Set LibCairo2$Dir <Obey$Dir>
+If "<LibCairo2$Path>" = "" Then Set LibCairo2$Path <Obey$Dir>.
+
+IconSprites <LibCairo2$Dir>.!Sprites

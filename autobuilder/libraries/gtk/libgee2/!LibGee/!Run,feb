@@ -1,4 +1,6 @@
-| Run file for libgee
+| Run file for LibGee
+
+IconSprites <Obey$Dir>.!Sprites
 
 Set LibGee$Dir <Obey$Dir>
 Set LibGee$Path <Obey$Dir>.

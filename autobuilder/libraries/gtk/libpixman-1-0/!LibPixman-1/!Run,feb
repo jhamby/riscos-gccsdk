@@ -1,0 +1,6 @@
+| Run file for LibPixman-1
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibPixman-1$Dir <Obey$Dir>
+Set LibPixman-1$Path <Obey$Dir>.

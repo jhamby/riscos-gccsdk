@@ -1,3 +1,31 @@
 
 AB_INSTALL=yes
 
+ab_package() {
+  ab_create_app LibExpat1 Apps/Library libexpat1-dev
+
+  HERE=`pwd`
+  cd $A
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  # Need to retype the converted manual files
+  MANFILES=$(find man -type f)
+  for FILE in $MANFILES ; do
+     mv $FILE $FILE,faf
+  done
+
+  # Move headers libs and docs up one directory
+  mv include/h h
+  rm -rf include
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibExpat1-Dev -copyrightfile COPYING
+}

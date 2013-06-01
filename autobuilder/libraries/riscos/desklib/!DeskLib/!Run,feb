@@ -1,0 +1,17 @@
+| !Run file for !DeskLib (DeskLib compile resources)
+| Jason Williams 93
+| Julian Smith 18 May 1995
+
+| Set up the DeskLib paths etc
+Set DeskLib$Path DeskLib_User:,DeskLib_Core:
+
+Set DeskLib$Dir <Obey$Dir>
+Set DeskLib_Core$Path <DeskLib$Dir>.,<DeskLib$Dir>.include.,<DeskLib$Dir>.oldinclude.
+
+| Open the .h directory with Filer_OpenDir.
+| The settings used give a small-icon alphabetically sorted list
+| which appears in the top right corner of the screen, which I
+| find is more convenient than most other possible settings.
+
+WimpSlot -min 32k -max 32k
+Run <DeskLib$Dir>.OpenDirH

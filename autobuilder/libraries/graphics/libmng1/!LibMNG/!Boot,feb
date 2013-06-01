@@ -1,0 +1,6 @@
+| Boot file for LibMNG
+|
+If "<LibMNG$Dir>" = "" Then Set LibMNG$Dir <Obey$Dir>
+If "<LibMNG$Path>" = "" Then Set LibMNG$Path <Obey$Dir>.
+
+IconSprites <LibMNG$Dir>.!Sprites

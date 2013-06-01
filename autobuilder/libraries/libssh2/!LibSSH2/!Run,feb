@@ -1,0 +1,6 @@
+| Run file for LibSSH2
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibSSH2$Dir <Obey$Dir>
+Set LibSSH2$Path <Obey$Dir>.

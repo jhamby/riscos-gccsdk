@@ -1,0 +1,10 @@
+Description: C Wimp Library for RISC OS
+ DeskLib is a general-purpose freeware C library for writing desktop
+ applications for RISC OS.
+ .
+ It provides comprehensive support for window and icon manipulation, menu
+ creation, graphics routines, message handling, filing operations, font
+ handling, string manipulation and much more. High level event management
+ functions are provided in order to build coherent and powerful code. DeskLib
+ provides numerous examples for novice programmers, and avoids having to worry
+ about details of low-level RISC OS programming. 

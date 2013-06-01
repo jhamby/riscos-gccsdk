@@ -8,9 +8,30 @@ else
   perl Configure --prefix=$GCCSDK_INSTALL_ENV riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
 fi
 
-
 ln -s ssl/ssl.pod doc/ssl.pod
 ln -s crypto/crypto.pod doc/crypto.pod
 ln -s apps/openssl.pod doc/openssl.pod
 
 AB_CONFIG='make depend'
+
+ab_package() {
+  ab_create_app LibSSL Apps/Library libssl-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+  
+  mv include/openssl openssl
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibSSL-Dev -copyrightfile LICENSE
+}

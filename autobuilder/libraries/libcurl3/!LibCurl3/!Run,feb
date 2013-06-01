@@ -1,0 +1,6 @@
+| Run file for LibCurl3
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibCurl3$Dir <Obey$Dir>
+Set LibCurl3$Path <Obey$Dir>.

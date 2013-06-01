@@ -1,0 +1,6 @@
+| Run file for LibExpat1
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibExpat1$Dir <Obey$Dir>
+Set LibExpat1$Path <Obey$Dir>.

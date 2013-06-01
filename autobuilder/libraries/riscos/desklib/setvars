@@ -1,3 +1,4 @@
+
 AB_SVN=svn://svn.riscos.info/DeskLib/trunk/
 AB_SVN_AOF=svn://svn.riscos.info/DeskLib/branches/aof/
 AB_PVERSION=svn-$(date +%Y%m%d)
@@ -6,3 +7,13 @@ AB_INSTALL=yes
 
 AB_MAKE="cd $PWD/\!DLSources; $AB_MAKE -f Makefile.unix"
 
+ab_package() {
+
+  ab_create_app DeskLib Apps/Library desklib
+
+  rsync -av --exclude='*/.svn*' ../\!DLUser $A/..
+  rsync -av --exclude='*/.svn*' ../\!DeskLib $A/..
+  rsync -av --exclude='*/.svn*' ../Examples $A/../\!DeskLib
+
+  $AB_HOME/add-riscpkg -name DeskLib -unixlib
+}

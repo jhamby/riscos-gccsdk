@@ -3,3 +3,35 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--disable-gopher --disable-ldap --disable-dict --disable-telnet --disable-manual"
 
+ab_package() {
+  ab_create_app LibCurl3 Apps/Library libcurl3-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+  
+  # Need to retype the converted manual files
+  MANFILES=$(find man -type f)
+  for FILE in $MANFILES ; do
+     mv $FILE $FILE,faf
+  done
+
+  mv include/curl curl
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+  
+echo "clean:" > include/Makefile
+echo "clean:" > tests/Makefile
+echo "clean:" > docs/Makefile
+
+  $AB_HOME/add-riscpkg -unixlib -name LibCurl3-Dev -copyrightfile COPYING
+}
+
