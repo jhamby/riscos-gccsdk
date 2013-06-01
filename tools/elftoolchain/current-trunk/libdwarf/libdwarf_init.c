@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_init.c 2379 2012-01-05 02:08:20Z jkoshy $");
+ELFTC_VCSID("$Id: libdwarf_init.c 2948 2013-05-30 21:25:52Z kaiwang27 $");
 
 static int
 _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)

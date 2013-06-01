@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_reloc.c 2941 2013-05-04 22:57:19Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_reloc.c 2948 2013-05-30 21:25:52Z kaiwang27 $");
 
 Dwarf_Unsigned
 _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
