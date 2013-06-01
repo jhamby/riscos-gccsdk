@@ -1,3 +1,9 @@
+Sat Jun  1 13:29:26 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac (AC_INIT): Increase version to 2.02.
+	* decode.c (decode): Fix NOINIT area + relocation case.
+	* *.c, *.h, COPYING: Update FSF address.
+
 Sun Oct 14 00:20:38 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decaof.h (AREA_*): Copied AREA_* definitions from asasm.
