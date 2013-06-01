@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_init.c 2379 2012-01-05 02:08:20Z jkoshy $");
+ELFTC_VCSID("$Id: libdwarf_init.c 2948 2013-05-30 21:25:52Z kaiwang27 $");
 
 static int
 _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
@@ -253,6 +253,7 @@ _dwarf_producer_deinit(Dwarf_P_Debug dbg)
 	_dwarf_frame_pro_cleanup(dbg);
 	_dwarf_arange_pro_cleanup(dbg);
 	_dwarf_macinfo_pro_cleanup(dbg);
+	_dwarf_strtab_cleanup(dbg);
 	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_pubs);
 	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_weaks);
 	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_funcs);

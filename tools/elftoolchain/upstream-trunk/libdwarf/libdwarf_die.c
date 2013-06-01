@@ -27,7 +27,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_die.c 2070 2011-10-27 03:05:32Z jkoshy $");
+ELFTC_VCSID("$Id: libdwarf_die.c 2948 2013-05-30 21:25:52Z kaiwang27 $");
 
 int
 _dwarf_die_alloc(Dwarf_Debug dbg, Dwarf_Die *ret_die, Dwarf_Error *error)
@@ -450,5 +450,6 @@ _dwarf_die_pro_cleanup(Dwarf_P_Debug dbg)
 			    at_next);
 			free(at);
 		}
+		free(die);
 	}
 }

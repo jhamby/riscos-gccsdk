@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_lineno.c 2945 2013-05-11 04:25:10Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_lineno.c 2949 2013-05-30 21:36:43Z kaiwang27 $");
 
 static int
 _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
@@ -152,6 +152,7 @@ _dwarf_lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p,
 			case DW_LNE_end_sequence:
 				p++;
 				end_sequence = 1;
+				APPEND_ROW;
 				RESET_REGISTERS;
 				break;
 			case DW_LNE_set_address:
@@ -479,6 +480,7 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 	Dwarf_Unsigned addr0, maddr;
 	Dwarf_Signed line0, column;
 	int is_stmt, basic_block, end_sequence;
+	int need_copy;
 	int ret;
 
 #define	RESET_REGISTERS						\
@@ -512,6 +514,12 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 			address = ln->ln_addr;
 			continue;
 		} else if (ln->ln_endseq) {
+			addr0 = (ln->ln_addr - address) / li->li_minlen;
+			if (addr0 != 0) {
+				RCHECK(WRITE_VALUE(DW_LNS_advance_pc, 1));
+				RCHECK(WRITE_ULEB128(addr0));
+			}
+
 			/*
 			 * Generate DW_LNE_end_sequence.
 			 */
@@ -574,23 +582,28 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 		if (line0 != 0) {
 			RCHECK(WRITE_VALUE(DW_LNS_advance_line, 1));
 			RCHECK(WRITE_SLEB128(line0));
-		}
+			line0 = 0;
+			need_copy = 1;
+		} else
+			need_copy = basic_block;
 
-		if (addr0 > 0) {
+		if (addr0 != 0) {
 			/* See if it can be handled by DW_LNS_const_add_pc. */
 			spc = (line0 - li->li_lbase) +
 			    (li->li_lrange * (addr0 - maddr)) + li->li_opbase;
-			if (spc <= 255) {
+			if (addr0 >= maddr && spc <= 255) {
 				RCHECK(WRITE_VALUE(DW_LNS_const_add_pc, 1));
 				RCHECK(WRITE_VALUE(spc, 1));
-				basic_block = 0;
 			} else {
 				/* Otherwise we use DW_LNS_advance_pc. */
 				RCHECK(WRITE_VALUE(DW_LNS_advance_pc, 1));
 				RCHECK(WRITE_ULEB128(addr0));
-				RCHECK(WRITE_VALUE(DW_LNS_copy, 1));
-				basic_block = 0;
 			}
+		}
+
+		if (need_copy) {
+			RCHECK(WRITE_VALUE(DW_LNS_copy, 1));
+			basic_block = 0;
 		}
 
 	next_line:

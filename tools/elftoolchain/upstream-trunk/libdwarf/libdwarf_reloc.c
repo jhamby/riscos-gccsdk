@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_reloc.c 2941 2013-05-04 22:57:19Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_reloc.c 2948 2013-05-30 21:25:52Z kaiwang27 $");
 
 Dwarf_Unsigned
 _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
@@ -456,6 +456,7 @@ _dwarf_reloc_cleanup(Dwarf_P_Debug dbg)
 	STAILQ_FOREACH_SAFE(drs, &dbg->dbgp_drslist, drs_next, tdrs) {
 		STAILQ_REMOVE(&dbg->dbgp_drslist, drs, _Dwarf_Rel_Section,
 		    drs_next);
+		free(drs->drs_drd);
 		STAILQ_FOREACH_SAFE(dre, &drs->drs_dre, dre_next, tdre) {
 			STAILQ_REMOVE(&drs->drs_dre, dre, _Dwarf_Rel_Entry,
 			    dre_next);
