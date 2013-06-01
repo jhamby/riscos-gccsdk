@@ -33,33 +33,76 @@
 #include "libelf.h"
 
 #include "aoffile.h"
+#include "main.h"
 #include "symbol.h"
 #include "value.h"
 
-typedef struct RELOC
+typedef struct
 {
-  struct RELOC *next;
-  AofReloc reloc;
-  Value value;		/**< ValueSymbol.   */
-} Reloc;
+  /* AsAsm internal relocation data.  */
+  size_t numRelocsInt;
+  size_t maxNumRelocsInt;
+  struct RelocInt
+    {
+      uint32_t how; /* AOF: HOW2_* bits.  ELF: R_ARM_* value.  */
+      uint32_t offset; /* Area offset.  */
+      const Symbol *symP;
+    } *relocIntP;
 
-void Reloc_RemoveRelocs (Symbol *areaSymbolP);
-
-Reloc *Reloc_Create (uint32_t how, uint32_t offset, const Value *value);
-
-bool Reloc_PrepareRelocOutPart1 (const Symbol *area);
-void Reloc_PrepareRelocOutPart2 (const Symbol *area);
-
-typedef struct RelocOut
-{
-  unsigned num; /** Number of relocations to output.  */
+  /* Raw AOF/ELF reloc structures.  */
   union
     {
       void *rawP;
       AofReloc *aofP;
       Elf32_Rel *elfP;
-    } relocs; /* Only accessable after Reloc_PrepareRelocOutPart2().  */ 
-  uint32_t size; /** Reloc data size in bytes.  */
-} RelocOut;
+    } raw; 
+} Reloc_State_t;
+
+void Reloc_InitializeState (Reloc_State_t *stateP);
+void Reloc_FinalizeState (Reloc_State_t *stateP);
+
+void Reloc_CreateInternal (uint32_t how, uint32_t offset, const Value *value);
+
+/**
+ * Create AOF relocation.
+ */
+static inline void
+Reloc_CreateAOF (uint32_t how, uint32_t offset, const Value *value)
+{
+  if (option_aof)
+    Reloc_CreateInternal (how, offset, value);
+}
+
+/**
+ * Create ELF relocation.
+ */
+static inline void
+Reloc_CreateELF (uint32_t how, uint32_t offset, const Value *value)
+{
+  if (!option_aof)
+    Reloc_CreateInternal (how, offset, value);
+}
+
+/**
+ * \return Number of relocactions associated with given area's Reloc_State_t
+ * object.
+ */
+static inline size_t
+Reloc_GetNumRelocs (const Reloc_State_t *stateP)
+{
+  return stateP->numRelocsInt;
+}
+
+/**
+ * \return Size of relocaction AOF/ELF data associated with given area's
+ * Reloc_State_t object.
+ */
+static inline size_t
+Reloc_GetRawRelocSize (const Reloc_State_t *stateP)
+{
+  return stateP->numRelocsInt * (option_aof ? sizeof (AofReloc) : sizeof (Elf32_Rel));
+}
+
+void *Reloc_GetRawRelocData (Reloc_State_t *stateP);
 
 #endif

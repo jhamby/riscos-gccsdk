@@ -12,10 +12,10 @@ AOF version: 310
 
 ** Relocations:
 
-At 0x00000c (flags 0x8f000005): Unlimited number of instructions PC-relative to symbol "ImpWithHARDFP_WEAK" (type-2 reloc)
-At 0x000008 (flags 0x8f000004): Unlimited number of instructions PC-relative to symbol "ImpWithHARDFP" (type-2 reloc)
-At 0x000004 (flags 0x8f000007): Unlimited number of instructions PC-relative to symbol "ImpWithSOFTFP_WEAK" (type-2 reloc)
 At 0x000000 (flags 0x8f000006): Unlimited number of instructions PC-relative to symbol "ImpWithSOFTFP" (type-2 reloc)
+At 0x000004 (flags 0x8f000007): Unlimited number of instructions PC-relative to symbol "ImpWithSOFTFP_WEAK" (type-2 reloc)
+At 0x000008 (flags 0x8f000004): Unlimited number of instructions PC-relative to symbol "ImpWithHARDFP" (type-2 reloc)
+At 0x00000c (flags 0x8f000005): Unlimited number of instructions PC-relative to symbol "ImpWithHARDFP_WEAK" (type-2 reloc)
 
 ** Symbol table:
 

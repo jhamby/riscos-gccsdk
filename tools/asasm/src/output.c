@@ -217,10 +217,9 @@ Output_AOF (void)
 	continue;
 
       ap->area->number = numAreas++;
-      Reloc_PrepareRelocOutPart1 (ap);
       if (!Area_IsNoInit (ap->area))
-	totalAreaSize += FIX (ap->area->maxIdx)
-			   + ap->area->relocOutP->num * sizeof (AofReloc);
+	totalAreaSize += FIX (ap->area->maxIdx);
+      totalAreaSize += Reloc_GetRawRelocSize (&ap->area->reloc);
     }
 
   SymbolOut_t symOut = Symbol_CreateSymbolOut ();
@@ -276,10 +275,9 @@ Output_AOF (void)
 	  .Name = armword (ap->offset),
           .Type = armword (ap->area->type & AREA_INT_AOFMASK),
           .Size = armword (FIX (ap->area->maxIdx)),
-          .noRelocations = armword (ap->area->relocOutP->num),
+          .noRelocations = armword (Reloc_GetNumRelocs (&ap->area->reloc)),
           .BaseAddr = armword ((ap->area->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
 	};
-      assert (ap->area->relocOutP->num == 0 || !Area_IsNoInit (ap->area));
       fwrite (&aof_entry, 1, sizeof (aof_entry), oFHandle);
     }
 
@@ -311,9 +309,12 @@ Output_AOF (void)
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area->maxIdx); pad; --pad)
 	    fputc (0, oFHandle);
-	  Reloc_PrepareRelocOutPart2 (ap);
-	  if (fwrite (ap->area->relocOutP->relocs.rawP,
-		      1, ap->area->relocOutP->size, oFHandle) != ap->area->relocOutP->size)
+	}
+      void *rawRelocP = Reloc_GetRawRelocData (&ap->area->reloc);
+      if (rawRelocP != NULL)
+	{
+	  size_t len = Reloc_GetRawRelocSize (&ap->area->reloc);
+	  if (fwrite (rawRelocP, 1, len, oFHandle) != len)
 	    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing reloc for area %s", ap->str);
 	}
     }
@@ -390,9 +391,7 @@ Output_ELF (void)
 	Error_Abort ("elf_newscn() failed");
       ap->area->number = elf_ndxscn (areaScnP);
       shstrtab_add (&shStrTabData, ap->str, ap->len + 1); 
-      bool anyRelocData = Reloc_PrepareRelocOutPart1 (ap);
-      assert (!anyRelocData || !Area_IsNoInit (ap->area));
-      if (anyRelocData)
+      if (Reloc_GetNumRelocs (&ap->area->reloc) != 0)
 	{
 	  Elf_Scn *areaRelScnP;
 	  if ((areaRelScnP = elf_newscn (elfHandle)) == NULL)
@@ -512,10 +511,9 @@ Output_ELF (void)
 
       scnNameIdx += ap->len + 1;
 
-      if (ap->area->relocOutP->num)
+      void *rawRelocP = Reloc_GetRawRelocData (&ap->area->reloc);
+      if (rawRelocP != NULL)
         {
-	  Reloc_PrepareRelocOutPart2 (ap); 
-
 	  Elf_Scn *areaRelScnP;
 	  if ((areaRelScnP = elf_getscn (elfHandle, ap->area->number + 1)) == NULL)
 	    Error_Abort ("elf_getscn() failed");
@@ -523,9 +521,9 @@ Output_ELF (void)
 	  if ((areaRelDataP = elf_newdata (areaRelScnP)) == NULL)
 	    Error_Abort ("elf_newdata() failed");
 	  areaRelDataP->d_align = 4;
-	  areaRelDataP->d_buf = ap->area->relocOutP->relocs.rawP;
+	  areaRelDataP->d_buf = rawRelocP;
 	  /* areaRelDataP->d_off */
-	  areaRelDataP->d_size = ap->area->relocOutP->size;
+	  areaRelDataP->d_size = Reloc_GetRawRelocSize (&ap->area->reloc);
 	  areaRelDataP->d_type = ELF_T_REL;
 	  /* areaRelDataP->d_version */
 

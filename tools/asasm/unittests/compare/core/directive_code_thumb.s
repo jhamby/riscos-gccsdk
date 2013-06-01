@@ -33,7 +33,7 @@
 	DCB	0xFF
 	DCB	0	; Alignment by CODE16
 	DCB	0xEE
-	DCB	0	; Alignmnet by THUMB
+	DCB	0	; Alignment by THUMB
 	DCB	0xDD
 	DCB	0	; Alignment by THUMBX
 	DCB	0xCC

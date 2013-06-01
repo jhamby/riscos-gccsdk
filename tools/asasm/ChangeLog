@@ -1,3 +1,30 @@
+Sat Jun  1 13:41:22 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* reloc.c (Reloc_Create): Replaced by Reloc_CreateAOF, Reloc_CreateELF.
+	(Reloc_InitializeState, Reloc_FinalizeState): Add.
+	(Reloc_CreateInternal): Add.
+	(Reloc_GetRawRelocData): Add.  Have relocations sorted by offset.
+	(Reloc_PrepareRelocOutPart1, Reloc_PrepareRelocOutPart2,
+	Reloc_BuildForAOF, Reloc_BuildForELF): Remove.
+	* reloc.h (Reloc_State_t): Add.
+	(RelocOut): Remove.
+	* area.c (Area_Create): Call Reloc_InitializeState.
+	(Area_PrepareForPhase): Drop test on presence of relocations for
+	NOINIT suggestion.  Call Reloc_FinializeState.
+	* area.h (Area): Remove relocs and relocOutP.  Add reloc field.
+	* output.c (Output_AOF): Use Reloc_GetRawRelocSize, Reloc_GetNumRelocs,
+	Reloc_GetRawRelocData.  Support NOINIT areas with relocations.
+	* m_cpuctrl.c (branch_shared): Follow Reloc API change.  Use
+	R_ARM_JUMP24 and R_ARM_CALL instead of R_ARM_PC24.
+	* help_cop.c (HelpCop_Addr): Likewise.
+	* m_cpumem.c (dstmem): Likewise.
+	* directive_data.c (DefineInt_HandleSymbols): Likewise.
+
+	unittest/reloc:
+	* src/import_label.s: Add NOINIT test case.
+	* ref/*.txt: Update.
+
 Wed May 29 01:58:32 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/asm.c (ASM_DefineLabel): Mark local labels not to export at all.
@@ -5061,7 +5088,7 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 2005-06-22 21:40  John Tytgat  <John.Tytgat@aaug.net>
 
-	* fix.c: fix.c(fixImm8s4): fix for previous version which wrongly
+	* fix.c (fixImm8s4): fix for previous version which wrongly
 	assumed that MOV vs MVN and AND vs BIC immediate constants differ in
 	sign (they differ in two-complement).
 

@@ -12,13 +12,13 @@ AOF version: 310
 
 ** Relocations:
 
-At 0x000018 (flags 0x8a000006): Word displaced by symbol "cVis3" (type-2 reloc)
-At 0x000014 (flags 0x8a000005): Word displaced by symbol "cVis2" (type-2 reloc)
-At 0x000010 (flags 0x8a000004): Word displaced by symbol "cVis1" (type-2 reloc)
-At 0x00000c (flags 0x8a000003): Word displaced by symbol "cVis0" (type-2 reloc)
-At 0x000008 (flags 0x8a000000): Word displaced by symbol "cAlign32" (type-2 reloc)
-At 0x000004 (flags 0x8a000002): Word displaced by symbol "cSize16" (type-2 reloc)
 At 0x000000 (flags 0x8a000001): Word displaced by symbol "cNoArg" (type-2 reloc)
+At 0x000004 (flags 0x8a000002): Word displaced by symbol "cSize16" (type-2 reloc)
+At 0x000008 (flags 0x8a000000): Word displaced by symbol "cAlign32" (type-2 reloc)
+At 0x00000c (flags 0x8a000003): Word displaced by symbol "cVis0" (type-2 reloc)
+At 0x000010 (flags 0x8a000004): Word displaced by symbol "cVis1" (type-2 reloc)
+At 0x000014 (flags 0x8a000005): Word displaced by symbol "cVis2" (type-2 reloc)
+At 0x000018 (flags 0x8a000006): Word displaced by symbol "cVis3" (type-2 reloc)
 
 ** Symbol table:
 

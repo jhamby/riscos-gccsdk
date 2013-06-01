@@ -296,8 +296,8 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack, bool isThumb)
 	      if (valP->Data.Symbol.symbol != areaCurrentSymbol)
 		{
 		  assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
-		  if (Reloc_Create (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP) == NULL)
-		    Error (ErrorError, "Relocation failed");
+		  Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP);
+		  // FIXME: Reloc_CreateELF
 		  break;
 		}
 	      value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));

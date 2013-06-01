@@ -38,10 +38,10 @@ There are no program headers in this file.
 
 Relocation section '.rel.Code' at offset 0x178 contains 4 entries:
  Offset     Info    Type            Sym.Value  Sym. Name
-0000000c  00000801 R_ARM_PC24        00000000   ImpWithHARDFP_WEAK
-00000008  00000701 R_ARM_PC24        00000000   ImpWithHARDFP
-00000004  00000a01 R_ARM_PC24        00000000   ImpWithSOFTFP_WEAK
-00000000  00000901 R_ARM_PC24        00000000   ImpWithSOFTFP
+00000000  0000091c R_ARM_CALL        00000000   ImpWithSOFTFP
+00000004  00000a1c R_ARM_CALL        00000000   ImpWithSOFTFP_WEAK
+00000008  0000071c R_ARM_CALL        00000000   ImpWithHARDFP
+0000000c  0000081c R_ARM_CALL        00000000   ImpWithHARDFP_WEAK
 
 There are no unwind sections in this file.
 

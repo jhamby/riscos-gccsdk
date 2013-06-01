@@ -338,17 +338,20 @@ DefineInt_HandleSymbols (unsigned size, bool allowUnaligned, bool swapHalfwords,
 	      case ValueSymbol:
 		{
 		  armValue += factor * value.Data.Symbol.offset;
-		  int how;
+		  uint32_t howAOF, howELF;
 		  switch (size)
 		    {
 		      case 1:
-			how = HOW2_INIT | HOW2_BYTE;
+			howAOF = HOW2_INIT | HOW2_BYTE;
+			howELF = R_ARM_ABS8;
 			break;
 		      case 2:
-			how = HOW2_INIT | HOW2_HALF;
+			howAOF = HOW2_INIT | HOW2_HALF;
+			howELF = R_ARM_ABS16;
 			break;
 		      case 4:
-			how = HOW2_INIT | HOW2_WORD;
+			howAOF = HOW2_INIT | HOW2_WORD;
+			howELF = R_ARM_ABS32;
 			break;
 		      default:
 			assert (0);
@@ -372,16 +375,16 @@ DefineInt_HandleSymbols (unsigned size, bool allowUnaligned, bool swapHalfwords,
 		    }
 		  while (numRelocs--)
 		    {
-		      int how2;
+		      uint32_t how2AOF;
 		      if (relative < 0)
 			{
 			  ++relative;
-			  how2 = how | HOW2_RELATIVE;
+			  how2AOF = howAOF | HOW2_RELATIVE;
 			}
 		      else
-			how2 = how;
-		      if (Reloc_Create (how2, relocOffset, &value) == NULL)
-			return true;
+			how2AOF = howAOF;
+		      Reloc_CreateAOF (how2AOF, relocOffset, &value);
+		      Reloc_CreateELF (howELF, relocOffset, &value);
 		    }
 		  break;
 		}

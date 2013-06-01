@@ -100,12 +100,17 @@ branch_shared (ARMWord cc, bool isBLX)
   assert (valP->Data.Symbol.factor == 1);
   if (valP->Data.Symbol.symbol != areaCurrentSymbol)
     {
-      if (Reloc_Create (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP) == NULL)
-	Error (ErrorError, "Relocation failed");
+      Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP);
+      /* BL and BLX use R_ARM_CALL (the linker can change BL to BLX when it
+	 notices a jump to Thumb code).
+         B and BL<cond> use R_ARM_JUMP24 (a linker can create a veneer to
+ 	 jump to Thumb code).  */
+      Reloc_CreateELF (isBLX || ((cc & LINK_BIT) != 0 && (cc & NV) == AL) ? R_ARM_CALL : R_ARM_JUMP24,
+                       offset, valP);
 
-      /* The R_ARM_PC24 ELF reloc needs to happen for a "B {PC}" instruction,
-  	 while in AOF this needs to happen for a "B -<area origin>"
-	 instruction.  */
+      /* The R_ARM_CALL/R_ARM_JUMP24 ELF reloc needs to happen for a
+ 	 "B {PC}" instruction, while in AOF this needs to happen for a
+	 "B -<area origin>" instruction.  */
       if (!option_aof)
 	branchInstrValue += offset;
     }
@@ -566,8 +571,8 @@ m_adr (bool doLowerCase)
 
       case ValueSymbol:
 	assert (valP->Data.Symbol.factor == 1);
-	if (Reloc_Create (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP) == NULL)
-	  Error (ErrorError, "Relocation failed");
+	Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP);
+	// FIXME: Reloc_CreateELF() missing.
 	constant = valP->Data.Symbol.offset - (areaOffset + offset + 8);
 	baseReg = 15;
 	break;

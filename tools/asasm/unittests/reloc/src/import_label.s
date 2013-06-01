@@ -36,4 +36,16 @@
 
 	DCD	Imp33	; Not declared as IMPORT, asasm will implicitly do this and warn about it.
 
+	; DATA area with NOINIT
+	AREA	Data4, NOINIT
+
+	DCD	0
+	IMPORT	Imp41
+	DCD	Imp41
+
+	DCD	Imp42
+	IMPORT	Imp42
+
+	DCD	Imp43	; Not declared as IMPORT, asasm will implicitly do this and warn about it.
+
 	END

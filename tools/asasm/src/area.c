@@ -113,8 +113,7 @@ Area_Create (Symbol *sym, uint32_t type)
 
   DWARF_InitializeState (&newAreaP->dwarf);
 
-  newAreaP->relocs = NULL;
-  newAreaP->relocOutP = NULL;
+  Reloc_InitializeState (&newAreaP->reloc);
 
   newAreaP->litPool = NULL;
 
@@ -158,7 +157,7 @@ Area_CreateDWARF (const char *name, uint32_t scnIdx)
 
 
 /**
- * Retries area symbol for DWARF area created using Area_CreateDWARF.
+ * Retrieves area symbol for a DWARF area created with Area_CreateDWARF().
  */
 Symbol *
 Area_FindDWARF (uint32_t scnIdx)
@@ -208,28 +207,31 @@ ValidateORGValue (uint32_t alignValue, uint32_t org)
  * Ensures the current area has at least \t mingrow bytes free.
  */
 void
-Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow)
+Area_EnsureExtraSize (Symbol *areaSymP, size_t mingrow)
 {
-  if (areaSym->area->curIdx + mingrow <= areaSym->area->imagesize)
+  if ((areaSymP->area->type & AREA_UDATA) != 0)
+    return;
+
+  if (areaSymP->area->curIdx + mingrow <= areaSymP->area->imagesize)
     return;
 
   assert (gPhase == ePassOne);
   
   /* When we want to grow an implicit area, it is time to give an error as
      this is not something we want to output.  */
-  if (areaSym->area->imagesize == 0 && Area_IsImplicit (areaSym))
+  if (areaSymP->area->imagesize == 0 && Area_IsImplicit (areaSymP))
     Error (ErrorError, "No area defined");
 
   size_t inc;
-  if (areaSym->area->imagesize && areaSym->area->imagesize < DOUBLE_UP_TO)
-    inc = areaSym->area->imagesize;
+  if (areaSymP->area->imagesize && areaSymP->area->imagesize < DOUBLE_UP_TO)
+    inc = areaSymP->area->imagesize;
   else
     inc = GROWSIZE;
   if (inc < mingrow)
     inc = mingrow;
-  while (inc > mingrow && !Area_Resize (areaSym->area, areaSym->area->imagesize + inc))
+  while (inc > mingrow && !Area_Resize (areaSymP->area, areaSymP->area->imagesize + inc))
     inc /= 2;
-  if (inc <= mingrow && !Area_Resize (areaSym->area, areaSym->area->imagesize + mingrow))
+  if (inc <= mingrow && !Area_Resize (areaSymP->area, areaSymP->area->imagesize + mingrow))
     Error_OutOfMem ();
 }
 
@@ -292,11 +294,9 @@ Area_PrepareForPhase (Phase_e phase)
 	      /* Skip suggestion when:
 	          - READONLY area, as NOINIT can not be combined with READONLY.
 	          - zero size area
-	          - any relocs FIXME:
 	          - non-zero data is in area.
 	       */
 	      if ((areaP->type & (AREA_READONLY | AREA_UDATA)) == 0
-	          && areaP->relocs == NULL
 	          && areaP->maxIdx != 0)
 		{
 		  uint32_t i;
@@ -335,7 +335,7 @@ Area_PrepareForPhase (Phase_e phase)
 	      areaP->image = NULL;
 
 	      DWARF_FinalizeState (&areaP->dwarf);
-	      Reloc_RemoveRelocs (areaSymbolP);
+	      Reloc_FinalizeState (&areaP->reloc);
 	      Lit_RemoveLiterals (areaSymbolP);
 	      IT_FinalizeState (&areaP->it);
 

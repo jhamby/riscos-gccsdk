@@ -2,8 +2,8 @@
 ** AOF Header: Relocatable object format:
 
 AOF version: 310
-3 areas
-15 symbols
+4 areas
+20 symbols
 
 ** Area (0x000102) "Code1", aligned at 4 bytes, [code] [32bit] 
    Size 16 bytes, 3 relocations
@@ -12,9 +12,9 @@ AOF version: 310
 
 ** Relocations:
 
-At 0x00000c (flags 0x8f000002): Unlimited number of instructions PC-relative to symbol "Imp13" (type-2 reloc)
-At 0x000008 (flags 0x8f000001): Unlimited number of instructions PC-relative to symbol "Imp12" (type-2 reloc)
 At 0x000004 (flags 0x8f000000): Unlimited number of instructions PC-relative to symbol "Imp11" (type-2 reloc)
+At 0x000008 (flags 0x8f000001): Unlimited number of instructions PC-relative to symbol "Imp12" (type-2 reloc)
+At 0x00000c (flags 0x8f000002): Unlimited number of instructions PC-relative to symbol "Imp13" (type-2 reloc)
 
 ** Area (0x000103) "Code2", aligned at 4 bytes, [code] [abs] [32bit] 
    Base address 0x0
@@ -24,9 +24,9 @@ At 0x000004 (flags 0x8f000000): Unlimited number of instructions PC-relative to 
 
 ** Relocations:
 
-At 0x00000c (flags 0x8f000005): Unlimited number of instructions PC-relative to symbol "Imp23" (type-2 reloc)
-At 0x000008 (flags 0x8f000004): Unlimited number of instructions PC-relative to symbol "Imp22" (type-2 reloc)
 At 0x000004 (flags 0x8f000003): Unlimited number of instructions PC-relative to symbol "Imp21" (type-2 reloc)
+At 0x000008 (flags 0x8f000004): Unlimited number of instructions PC-relative to symbol "Imp22" (type-2 reloc)
+At 0x00000c (flags 0x8f000005): Unlimited number of instructions PC-relative to symbol "Imp23" (type-2 reloc)
 
 ** Area (0x041000) "Data3", aligned at 4 bytes, [data] [based r4] 
    Size 16 bytes, 3 relocations
@@ -35,9 +35,18 @@ At 0x000004 (flags 0x8f000003): Unlimited number of instructions PC-relative to 
 
 ** Relocations:
 
-At 0x00000c (flags 0x8a000008): Word displaced by symbol "Imp33" (type-2 reloc)
-At 0x000008 (flags 0x8a000007): Word displaced by symbol "Imp32" (type-2 reloc)
 At 0x000004 (flags 0x8a000006): Word displaced by symbol "Imp31" (type-2 reloc)
+At 0x000008 (flags 0x8a000007): Word displaced by symbol "Imp32" (type-2 reloc)
+At 0x00000c (flags 0x8a000008): Word displaced by symbol "Imp33" (type-2 reloc)
+
+** Area (0x000010) "Data4", aligned at 4 bytes, [data] [noinit] 
+   Size 16 bytes, 3 relocations
+
+** Relocations:
+
+At 0x000004 (flags 0x8a000009): Word displaced by symbol "Imp41" (type-2 reloc)
+At 0x000008 (flags 0x8a00000a): Word displaced by symbol "Imp42" (type-2 reloc)
+At 0x00000c (flags 0x8a00000b): Word displaced by symbol "Imp43" (type-2 reloc)
 
 ** Symbol table:
 
@@ -50,12 +59,17 @@ Imp23            (02) extern
 Imp31            (02) extern
 Imp32            (02) extern
 Imp33            (02) extern
+Imp41            (02) extern
+Imp42            (02) extern
+Imp43            (02) extern
 Code1            (01) local at "Code1" + 0x000000
 Code2            (05) local, absolute = 0x00000000
 Data3            (01) local at "Data3" + 0x000000
+Data4            (01) local at "Data4" + 0x000000
 $a               (01) local at "Code1" + 0x000000
 $a               (01) local at "Code2" + 0x000000
 $d               (01) local at "Data3" + 0x000000
+$d               (01) local at "Data4" + 0x000000
 
 ** String table:
 
@@ -68,8 +82,12 @@ $d               (01) local at "Data3" + 0x000000
 000028: Imp31
 00002e: Imp32
 000034: Imp33
-00003a: Code1
-000040: Code2
-000046: Data3
-00004c: $a
-00004f: $d
+00003a: Imp41
+000040: Imp42
+000046: Imp43
+00004c: Code1
+000052: Code2
+000058: Data3
+00005e: Data4
+000064: $a
+000067: $d

@@ -40,12 +40,12 @@ There are no program headers in this file.
 
 Relocation section '.rel.Code2' at offset 0xf4 contains 6 entries:
  Offset     Info    Type            Sym.Value  Sym. Name
-00000024  00000702 R_ARM_ABS32       00000000   Code3
-00000020  00000702 R_ARM_ABS32       00000000   Code3
-0000001c  00000602 R_ARM_ABS32       00000000   Code2
-00000018  00000602 R_ARM_ABS32       00000000   Code2
-00000014  00000502 R_ARM_ABS32       00000000   Code1
 00000010  00000502 R_ARM_ABS32       00000000   Code1
+00000014  00000502 R_ARM_ABS32       00000000   Code1
+00000018  00000602 R_ARM_ABS32       00000000   Code2
+0000001c  00000602 R_ARM_ABS32       00000000   Code2
+00000020  00000702 R_ARM_ABS32       00000000   Code3
+00000024  00000702 R_ARM_ABS32       00000000   Code3
 
 There are no unwind sections in this file.
 

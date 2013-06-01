@@ -18,12 +18,12 @@ AOF version: 310
 
 ** Relocations:
 
-At 0x000024 (flags 0x82000002): Word displaced by base of area "Code3" (type-2 reloc)
-At 0x000020 (flags 0x82000002): Word displaced by base of area "Code3" (type-2 reloc)
-At 0x00001c (flags 0x82000001): Word displaced by base of area "Code2" (type-2 reloc)
-At 0x000018 (flags 0x82000001): Word displaced by base of area "Code2" (type-2 reloc)
-At 0x000014 (flags 0x82000000): Word displaced by base of area "Code1" (type-2 reloc)
 At 0x000010 (flags 0x82000000): Word displaced by base of area "Code1" (type-2 reloc)
+At 0x000014 (flags 0x82000000): Word displaced by base of area "Code1" (type-2 reloc)
+At 0x000018 (flags 0x82000001): Word displaced by base of area "Code2" (type-2 reloc)
+At 0x00001c (flags 0x82000001): Word displaced by base of area "Code2" (type-2 reloc)
+At 0x000020 (flags 0x82000002): Word displaced by base of area "Code3" (type-2 reloc)
+At 0x000024 (flags 0x82000002): Word displaced by base of area "Code3" (type-2 reloc)
 
 ** Area (0x000122) "Code3", aligned at 4 bytes, [code] [readonly] [32bit] 
    Size 16 bytes, 0 relocations

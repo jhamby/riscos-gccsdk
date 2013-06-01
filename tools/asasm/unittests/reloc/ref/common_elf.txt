@@ -38,13 +38,13 @@ There are no program headers in this file.
 
 Relocation section '.rel.Data' at offset 0x124 contains 7 entries:
  Offset     Info    Type            Sym.Value  Sym. Name
-00000018  00000902 R_ARM_ABS32       00000004   cVis3
-00000014  00000802 R_ARM_ABS32       00000004   cVis2
-00000010  00000702 R_ARM_ABS32       00000004   cVis1
-0000000c  00000602 R_ARM_ABS32       00000004   cVis0
-00000008  00000302 R_ARM_ABS32       00000020   cAlign32
-00000004  00000502 R_ARM_ABS32       00000004   cSize16
 00000000  00000402 R_ARM_ABS32       00000004   cNoArg
+00000004  00000502 R_ARM_ABS32       00000004   cSize16
+00000008  00000302 R_ARM_ABS32       00000020   cAlign32
+0000000c  00000602 R_ARM_ABS32       00000004   cVis0
+00000010  00000702 R_ARM_ABS32       00000004   cVis1
+00000014  00000802 R_ARM_ABS32       00000004   cVis2
+00000018  00000902 R_ARM_ABS32       00000004   cVis3
 
 There are no unwind sections in this file.
 

@@ -30,6 +30,7 @@
 #include "phase.h"
 #include "it.h"
 #include "symbol.h"
+#include "reloc.h"
 
 /* Lowest 8 bits encode the alignment of the start of the area as a power
    of 2 and has a value between 2 and 32.  */
@@ -93,8 +94,6 @@ typedef enum
   eThumbEE = 4
 } Area_eEntryType;
 
-struct RELOC;
-struct RelocOut;
 struct LitPool;
 
 typedef struct AREA
@@ -114,8 +113,7 @@ typedef struct AREA
 
   DWARF_State_t dwarf;		/* Managed by debug_dwarf.c  */
 
-  struct RELOC *relocs;		/* Managed by reloc.c.  */
-  struct RelocOut *relocOutP;   /* Managed by reloc.c.  */
+  Reloc_State_t reloc;		/* Managed by reloc.c.  */
 
   struct LitPool *litPool;	/** The current literal pool waiting to be
     assembled.  Managed by lit.c.  */
