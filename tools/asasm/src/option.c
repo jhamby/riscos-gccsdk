@@ -618,7 +618,8 @@ ParseState_IsEndOfKeyword (ParseState *stateP)
 }
 
 /**
- * Tries to parse [<cc>]["L"] (pre-UAL) and/or [<"L">][<cc>] (UAL).
+ * For LDC/STC instructions.
+ * Try to parse [<cc>]["L"] (pre-UAL) and/or [<"L">][<cc>] (UAL).
  */
 ARMWord
 Option_CondL (bool doLowerCase)
@@ -662,29 +663,23 @@ Option_CondOptRound (bool doLowerCase)
 }
 
 
-/* 'B' is matched before call */
+/**
+ * For B/BL instructions.
+ * Try to parse [<cc>]["L"].
+ */
 ARMWord
 Option_LinkCond (bool doLowerCase)
 {
-  /* bl.CC or b.l ?  */
-  if (!Input_Match (doLowerCase ? 'l' : 'L', false))
-    return IsEndOfKeyword (GetCCode (doLowerCase)); /* Only b.CC possible  */
-
-  if (Input_Match (doLowerCase ? 'e' : 'E', false))
+  ParseState state;
+  ParseState_Init (&state, doLowerCase);
+  bool ok;
+  if (!(ok = ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state)))
     {
-      /* b.le or bl.eq */
-      if (Input_Match (doLowerCase ? 'q' : 'Q', false))
-	return IsEndOfKeyword (EQ | LINK_BIT);
-      return IsEndOfKeyword (LE);
+      ParseState_Init (&state, doLowerCase);
+      ok = ParseState_IsOptL (&state, LINK_BIT)
+	     && ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state);
     }
-  if (Input_Match (doLowerCase ? 'o' : 'O', false))
-    return IsEndOfKeyword (CC); /* Only b.lo possible.  LO == CC */
-  if (Input_Match (doLowerCase ? 's' : 'S', false))
-    return IsEndOfKeyword (LS); /* Only b.ls possible */
-  if (Input_Match (doLowerCase ? 't' : 'T', false))
-    return IsEndOfKeyword (LT); /* Only b.lt possible */
-  /* Only bl.CC possible */
-  return IsEndOfKeyword (GetCCode (doLowerCase) | LINK_BIT);
+  return ok ? state.cc : kOption_NotRecognized;
 }
 
 

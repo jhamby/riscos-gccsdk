@@ -179,6 +179,11 @@ m_bx (bool doLowerCase)
   if (dst == 15)
     Error (ErrorWarning, "Use of PC with BX is discouraged");
 
+  /* Output R_ARM_V4BX with nul symbol so that linker can create ARMv4
+     compatible images by changing this BX instruction into MOV PC, Rx.  */
+  if (gPhase == ePassTwo)
+    Reloc_CreateELF (R_ARM_V4BX, areaCurrentSymbol->area->curIdx, NULL);
+
   Put_Ins (4, cc | 0x012fff10 | dst);
   return false;
 }

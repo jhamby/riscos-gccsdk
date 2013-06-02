@@ -1,3 +1,13 @@
+Sun Jun  2 23:12:53 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* option.c (Option_LinkCond): Reimplement using ParseState code.
+	* m_cpuctrl.c (m_bx): Emit R_ARM_V4BX.
+
+	unittests/compare:
+	* Makefile.in: Run tests with ELF output as well.
+	* core/instr_b_bx_bxj_bl_blx.s: Add R_ARM_V4BX relocs in reference.
+
 Sun Jun  2 18:46:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
