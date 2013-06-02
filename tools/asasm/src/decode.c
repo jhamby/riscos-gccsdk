@@ -99,7 +99,7 @@ typedef struct
     } parse_opcode;
 } decode_table_t;
 
-/* This table is alphabetically ordered
+/* This table is sorted alphabetically.
    Adjust kDecodeTableIndex_* values when necessary after updating
    oDecodeTable.  */
 #define kDecodeTableIndex_RELOC (143)

@@ -103,6 +103,8 @@ void FS_SetFileCacheSize (unsigned sizeMByte);
 
 unsigned FS_GetMacroDepth (void);
 
+const char *FS_StoreFileName (const char *fileNameP);
+
 bool FS_PushFilePObject (const char *fileName);
 void FS_PopPObject (bool noCheck);
 

@@ -34,6 +34,7 @@
 #include "common.h"
 #include "error.h"
 #include "eval.h"
+#include "filestack.h"
 #include "global.h"
 #include "include.h"
 #include "main.h"
@@ -684,7 +685,13 @@ Eval_Unop (Operator_e op, const Value *value)
 		  i = 0;
 		}
 	      else
-		i = asFile.loadAddress;
+		{
+		  /* Register canonicalised filename so that it gets output
+		     in the depends file.  */
+		  (void) FS_StoreFileName (asFile.canonName);
+
+		  i = asFile.loadAddress;
+		}
 	      result = Value_Int (i, eIntType_PureInt);
 	      ASFile_Free (&asFile);
 	      free (s);
@@ -710,7 +717,13 @@ Eval_Unop (Operator_e op, const Value *value)
 		  i = 0;
 		}
 	      else
-		i = asFile.execAddress;
+		{
+		  /* Register canonicalised filename so that it gets output
+		     in the depends file.  */
+		  (void) FS_StoreFileName (asFile.canonName);
+
+		  i = asFile.execAddress;
+		}
 	      result = Value_Int (i, eIntType_PureInt);
 	      ASFile_Free (&asFile);
 	      free (s);
@@ -737,6 +750,10 @@ Eval_Unop (Operator_e op, const Value *value)
 		}
 	      else
 		{
+		  /* Register canonicalised filename so that it gets output
+		     in the depends file.  */
+		  (void) FS_StoreFileName (asFile.canonName);
+
 		  if (asFile.size > UINT32_MAX)
 		    {
 		      Error (ErrorWarning, "File size of \"%s\" is bigger than unsigned 32-bit integer", s);
@@ -770,7 +787,13 @@ Eval_Unop (Operator_e op, const Value *value)
 		  i = 0;
 		}
 	      else
-		i = asFile.attribs;
+		{
+		  /* Register canonicalised filename so that it gets output
+		     in the depends file.  */
+		  (void) FS_StoreFileName (asFile.canonName);
+
+		  i = asFile.attribs;
+		}
 	      result = Value_Int (i, eIntType_PureInt);
 	      ASFile_Free (&asFile);
 	      free (s);

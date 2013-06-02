@@ -1,3 +1,16 @@
+Sun Jun  2 18:46:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* decode.c: Drop include main.h.
+	* filestack.c (StoreFileName): Rename to FS_StoreFileName.
+	(CachedFile_Lookup): Follow StoreFileName rename.
+	(FS_PushFilePObject): Likewise.
+	* filestack.h (FS_StoreFileName): Add.
+	* directive_file.c (c_incbin): Add call FS_StoreFileName.
+	* eval.c (Eval_Unop): Likewise for eOp_FLoad, eOp_FExec, eOp_FSize
+	and eOp_FAttr.
+	* decode.c: Update comment.
+
 Sun Jun  2 18:09:07 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

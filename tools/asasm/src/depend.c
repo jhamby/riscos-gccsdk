@@ -26,7 +26,6 @@
 #include "depend.h"
 #include "error.h"
 #include "filestack.h"
-#include "main.h"
 
 const char *DependFileName = NULL;
 

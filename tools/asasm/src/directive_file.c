@@ -118,6 +118,10 @@ c_incbin (void)
     Error (ErrorError, "Cannot open file \"%s\"", fileNameP);
   else
     {
+      /* Register canonicalised filename so that it gets output in the
+	 depends file.  */
+      (void) FS_StoreFileName (asFile.canonName);
+
       /* Include binary file.  */
       int c;
       while ((c = getc (binfp)) != EOF)

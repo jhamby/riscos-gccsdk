@@ -103,11 +103,12 @@ FS_PrepareForPhase (Phase_e phase)
 
 /**
  * Put given filename in a permanent storage of filenames.
- * \param fileNameP Pointer to malloced and canonicalized filename.
- * \return pointer to same filename, no ownership anymore.
+ * \param fileNameP Pointer to canonicalized filename.  No ownership is
+ * taken.
+ * \return pointer to same filename, no ownership transfered.
  */
-static const char *
-StoreFileName (const char *fileNameP)
+const char *
+FS_StoreFileName (const char *fileNameP)
 {
   if (fileNameP == NULL)
     return NULL;
@@ -164,7 +165,7 @@ CachedFile_Lookup (const char *fileNameP, const ASFile *asFileP)
       fclose (fhandle);
 
       cachedFileP->nextP = oCachedFileListP;
-      cachedFileP->fileNameP = StoreFileName (asFileP->canonName);
+      cachedFileP->fileNameP = FS_StoreFileName (asFileP->canonName);
       cachedFileP->size = asFileP->size;
       
       oFileCacheSize -= asFileP->size;
@@ -259,7 +260,7 @@ FS_PushFilePObject (const char *fileNameP)
 	}
       newPObjP->GetLine = File_GetLine;
     }
-  newPObjP->fileName = StoreFileName (asFile.canonName);
+  newPObjP->fileName = FS_StoreFileName (asFile.canonName);
   newPObjP->lineNum = 0;
   newPObjP->whileIfCurDepth = newPObjP->whileIfStartDepth = prevWhileIfDepth;
   newPObjP->lastLineSize = 0;
