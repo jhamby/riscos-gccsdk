@@ -46,8 +46,11 @@ typedef struct
     {
       uint32_t how; /* AOF: HOW2_* bits.  ELF: R_ARM_* value.  */
       uint32_t offset; /* Area offset.  */
-      const Symbol *symP;
+      Symbol *symP; /* For ELF, this can be NULL (= relocation against
+        anonymous symbol, i.e. symbol 0 of the symbol table).  */
     } *relocIntP;
+  uint32_t offsetForExplicitReloc; /* When non-UINT32_MAX, RELOC can be used
+    to add an explicit relocation (possibly replacing existing relocations).  */
 
   /* Raw AOF/ELF reloc structures.  */
   union
@@ -61,7 +64,26 @@ typedef struct
 void Reloc_InitializeState (Reloc_State_t *stateP);
 void Reloc_FinalizeState (Reloc_State_t *stateP);
 
-void Reloc_CreateInternal (uint32_t how, uint32_t offset, const Value *value);
+/**
+ * Enable the use of RELOC for given offset.
+ */
+static inline void
+Reloc_EnableExplicitReloc (Reloc_State_t *stateP, uint32_t offset)
+{
+  stateP->offsetForExplicitReloc = offset;
+}
+
+/**
+ * Disable the use of RELOC (until Reloc_EnableExplicitReloc is called).
+ */
+static inline void
+Reloc_DisableExplicitReloc (Reloc_State_t *stateP)
+{
+  stateP->offsetForExplicitReloc = UINT32_MAX;
+}
+
+void Reloc_CreateInternal (uint32_t how, uint32_t offset, const Value *value,
+                           bool replace);
 
 /**
  * Create AOF relocation.
@@ -70,7 +92,7 @@ static inline void
 Reloc_CreateAOF (uint32_t how, uint32_t offset, const Value *value)
 {
   if (option_aof)
-    Reloc_CreateInternal (how, offset, value);
+    Reloc_CreateInternal (how, offset, value, false);
 }
 
 /**
@@ -80,7 +102,7 @@ static inline void
 Reloc_CreateELF (uint32_t how, uint32_t offset, const Value *value)
 {
   if (!option_aof)
-    Reloc_CreateInternal (how, offset, value);
+    Reloc_CreateInternal (how, offset, value, false);
 }
 
 /**
@@ -104,5 +126,7 @@ Reloc_GetRawRelocSize (const Reloc_State_t *stateP)
 }
 
 void *Reloc_GetRawRelocData (Reloc_State_t *stateP);
+
+bool c_reloc (void);
 
 #endif

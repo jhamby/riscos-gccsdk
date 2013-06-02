@@ -117,16 +117,16 @@ typedef struct Symbol
   int used; /** Has several usages:
     At start of Output_AOF()/Output_ELF():
       either -1 (no relocation needed),
-      either 0 (relocation needed, see Reloc_Create()).
+      either 0 (relocation needed, see Reloc_CreateInternal()).
 
     At end of Symbol_CreateSymbolOut(): an index suited for choosen output
       format to refer to this symbol.
       For AOF: For area symbols, this index is the area number.  For non area
-               symbols, this index is an index in the symbol table.
-               From 0 onwards.
+	       symbols, this index is an index in the symbol table.
+	       From 0 onwards.
       For ELF: Index in the symbol table (area symbols also have an entry there).
-	       From 3 (for area symbols) or 0 (for non area symbols) onwards.
-      Is -1 when the symbol is not mentioned in the symbol table.  */
+	       From 0 onwards.
+      Is -1 when the symbol is not to be mentioned in the symbol table.  */
 
   /* Symbol name: */
   size_t len;		/** length of str[] without its NUL terminator.  */
@@ -159,6 +159,8 @@ typedef struct
 
 SymbolOut_t Symbol_CreateSymbolOut (void);
 void Symbol_FreeSymbolOut (SymbolOut_t *symOutP);
+
+void Symbol_MarkToOutput (Symbol *symP);
 
 bool c_common (void);
 bool c_export (void);

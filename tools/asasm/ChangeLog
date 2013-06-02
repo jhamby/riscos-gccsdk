@@ -1,3 +1,30 @@
+Sun Jun  2 18:09:07 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* reloc.c (ARM_Reloc_Types, oARMRelocTypes, Reloc_GetRelocValue,
+	c_reloc): Add.
+	(Reloc_CreateInternal): Support relocation replacement.  Add more
+	asserts.
+	* reloc.h (Reloc_State_t): Add offsetForExplicitReloc field.
+	(Reloc_EnableExplicitReloc, Reloc_DisableExplicitReloc): Add.
+	(c_reloc): Add.
+	* Makefile.am (asasm_CFLAGS): Add -Wno-switch.
+	* symbol.c (Symbol_MarkToOutput): Add.
+	(Symbol_CreateSymbolOut): Remove test on implicit import.
+	* symbol.h (Symbol): Update comments.
+	(Symbol_MarkToOutput): Add.
+	* decode.c (oDecodeTable): Add RELOC entry.
+	(Decode): Add Reloc_DisableExplicitReloc and Reloc_EnableExplicitReloc
+	calls.
+	* directive_data.c (DefineInt): Add Reloc_EnableExplicitReloc call.
+	* area.c (Area_PrepareForPhase): Add test on CODE area for NOINIT
+	suggestion.
+
+	unittests/reloc:
+	* src/directive_reloc.s: Add.
+	* src/directive_reloc_all.s: Add.
+	* ref/directive_reloc_*: Add.
+
 Sat Jun  1 13:41:22 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

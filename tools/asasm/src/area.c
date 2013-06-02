@@ -293,10 +293,11 @@ Area_PrepareForPhase (Phase_e phase)
 	      const Area *areaP = areaSymP->area;
 	      /* Skip suggestion when:
 	          - READONLY area, as NOINIT can not be combined with READONLY.
+		  - CODE area
 	          - zero size area
 	          - non-zero data is in area.
 	       */
-	      if ((areaP->type & (AREA_READONLY | AREA_UDATA)) == 0
+	      if ((areaP->type & (AREA_CODE | AREA_READONLY | AREA_UDATA)) == 0
 	          && areaP->maxIdx != 0)
 		{
 		  uint32_t i;

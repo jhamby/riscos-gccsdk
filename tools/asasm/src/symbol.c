@@ -363,6 +363,30 @@ Symbol_RemoveVariables (void)
 }
 
 
+/**
+ * Mark we want this symbol to be present in the output (in AOF/ELF)
+ * symbol table so we can output relocations against it.
+ * Not needed to be called for symbols which are marked to be exported or
+ * imported (those are handled automatically so we can check for unused
+ * exported or imported symbols), or for area symbols.
+ */
+void
+Symbol_MarkToOutput (Symbol *symP)
+{
+  assert (gPhase == ePassTwo);
+  if ((symP->type & SYMBOL_AREA) == 0)
+    {
+      symP->used = 0;
+      if (SYMBOL_KIND (symP->type) == 0)
+	{
+	  /* Make it a reference symbol.  */
+	  symP->type |= SYMBOL_REFERENCE;
+	  Error (ErrorWarning, "Symbol %s is implicitly imported", symP->str);
+	}
+    }
+}
+
+
 static bool
 NeedToOutputSymbol (const Symbol *sym)
 {
@@ -459,12 +483,8 @@ Symbol_CreateSymbolOut (void)
 		  if (SYMBOL_KIND (sym->type) == SYMBOL_REFERENCE)
 		    Error_Line (sym->fileName, sym->lineNumber, ErrorWarning, "Symbol %s is imported but not used, or exported but not defined", sym->str);
 		}
-	      else if (SYMBOL_KIND (sym->type) == 0)
-		{
-		  /* Make it a reference symbol.  */
-		  sym->type |= SYMBOL_REFERENCE;
-		  Error_Line (sym->fileName, sym->lineNumber, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
-		}
+	      else
+		assert (SYMBOL_KIND (sym->type) != 0);
 	    }
 	  if (NeedToOutputSymbol (sym))
 	    {

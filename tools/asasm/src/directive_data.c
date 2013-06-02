@@ -417,11 +417,11 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
       case 1:
       case 2:
       case 4:
-	allowedTypes = ValueInt;
 	/* For size 2 and 4, one byte strings are automatically supported
-	   by Code_Eval.  */
-	if (size == 1)
-	  allowedTypes |= ValueString;
+	   by Code_Eval.
+	   For size 1, we need an explicit ValueString as we want to
+	   support string lengths bigger than 1.  */
+	allowedTypes = size == 1 ? ValueInt | ValueString : ValueInt;
 	/* Only during pass two we will emit symbols.  */
 	if (gPhase != ePassOne)
 	  allowedTypes |= ValueSymbol | ValueCode;
@@ -437,6 +437,7 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
 	break;
     }
 
+  uint32_t prevOffset;
   do
     {
       const uint32_t offset = areaCurrentSymbol->area->curIdx;
@@ -453,6 +454,8 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
 	      for (size_t i = 0; i != len; ++i)
 		Put_AlignDataWithOffset (offset + i, size, (unsigned char)str[i],
 					 1, !allowUnaligned);
+	      prevOffset = len == 1 ? offset : UINT32_MAX; /* No RELOC possible
+	        for strings longer than 1 byte.  */
 	      break;
 	    }
 
@@ -462,8 +465,8 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
 	      ARMWord armValue = size != 8 ? Fix_Int (size, valP->Data.Int.i) : (ARMWord)valP->Data.Int.i;
 	      if (size == 4 && swapHalfwords)
 		armValue = (armValue >> 16) | (armValue << 16);
-	      Put_AlignDataWithOffset (offset, size, armValue,
-				       1, !allowUnaligned);
+	      Put_AlignDataWithOffset (offset, size, armValue, 1, !allowUnaligned);
+	      prevOffset = offset;
 	      break;
 	    }
 
@@ -473,6 +476,7 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
 	      const uint64_t val = valP->Data.Int64.i;
 	      Put_AlignDataWithOffset (offset + 0, 4, (uint32_t)val, 1, !allowUnaligned);
 	      Put_AlignDataWithOffset (offset + 4, 4, (uint32_t)(val >> 32), 1, !allowUnaligned);
+	      prevOffset = UINT32_MAX; /* No RELOC possible.  */
 	      break;
 	    }
 
@@ -494,15 +498,18 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
 		    }
 		};
 	      failed = DefineInt_HandleSymbols (size, allowUnaligned, swapHalfwords, offset, &valueCode);
+	      prevOffset = offset;
 	      break;
 	    }
 
 	  case ValueCode:
 	    failed = DefineInt_HandleSymbols (size, allowUnaligned, swapHalfwords, offset, valP);
+	    prevOffset = offset;
 	    break;
 
 	  default:
 	    failed = true;
+	    prevOffset = UINT32_MAX;
 	    break;
 	}
       if (failed)
@@ -515,6 +522,10 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
       Input_SkipWS ();
     }
   while (Input_Match (',', false));
+
+  /* Only the last DC* entry is applicable for RELOC.  */
+  if (prevOffset != UINT32_MAX)
+    Reloc_EnableExplicitReloc (&areaCurrentSymbol->area->reloc, prevOffset);
 }
 
 

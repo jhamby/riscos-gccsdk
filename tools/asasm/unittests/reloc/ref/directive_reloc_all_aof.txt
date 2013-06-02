@@ -1,0 +1,19 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+2 symbols
+
+** Area (0x000010) "Data", aligned at 4 bytes, [data] [noinit] 
+   Size 536 bytes, 0 relocations
+
+** Symbol table:
+
+Data             (01) local at "Data" + 0x000000
+$d               (01) local at "Data" + 0x000000
+
+** String table:
+
+000004: Data
+000009: $d

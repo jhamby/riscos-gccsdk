@@ -18,6 +18,7 @@ asasm_CFLAGS = -std=c99 \
 	-Wchar-subscripts -Winline \
 	-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
 	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wwrite-strings \
+	-Wno-switch \
 	-DGCCSDK_REVISION="\"$(SVN_REV)\"" \
 	-DASASM_VERSION=$(ASASM_VERSION) \
 	-I${top_srcdir}/elftoolchain/common \

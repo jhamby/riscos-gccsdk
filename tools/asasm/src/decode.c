@@ -56,6 +56,7 @@
 #include "m_fpe.h"
 #include "opt.h"
 #include "main.h"
+#include "reloc.h"
 #include "state.h"
 #include "whileif.h"
 
@@ -98,7 +99,10 @@ typedef struct
     } parse_opcode;
 } decode_table_t;
 
-/* This table is alphabetically ordered.  */
+/* This table is alphabetically ordered
+   Adjust kDecodeTableIndex_* values when necessary after updating
+   oDecodeTable.  */
+#define kDecodeTableIndex_RELOC (143)
 static const decode_table_t oDecodeTable[] =
 {
   { "!", eCB_NoLex, 0, 0, { .nolex = c_info } }, /* INFO shorthand */
@@ -251,6 +255,7 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: RBIT */
   /* FIXME: REV, REV16, REVSH */
   { "RDF", eCB_VoidPMatch, 1, 1, { .vdpm = m_rdf } }, /* RDF CC P R */
+  { "RELOC", eCB_NoLex, 0, 0, { .nolex = c_reloc } }, /* RELOC */
   { "REQUIRE8", eCB_NoLex, 0, 0, { .nolex = c_require8 } }, /* REQUIRE8 {TRUE}/{FALSE} */
   { "RFC", eCB_VoidPMatch, 1, 1, { .vdpm = m_rfc } }, /* RFC CC */
   { "RFE", eCB_VoidPMatch, 1, 1, { .vdpm = m_rfe } }, /* RFE MODE */
@@ -420,6 +425,7 @@ Decode (const Lex *label)
   /* Check that all entries in oDecodeTable are sorted.  */
   for (size_t i = 1; i != DECODE_ENTRIES; ++i)
     assert (strcmp (oDecodeTable[i - 1].mnemonic, oDecodeTable[i].mnemonic) < 0);
+  assert (!strcmp (oDecodeTable[kDecodeTableIndex_RELOC].mnemonic, "RELOC"));
 #endif
   assert (label->tag == LexNone || label->tag == LexId || label->tag == LexLocalLabel);
 
@@ -558,6 +564,10 @@ Decode (const Lex *label)
 
       Value startStorage = Value_Copy (StorageMap_Value ());
 
+      /* Unless it's RELOC, disable the use of RELOC until further notice.  */
+      if (indexFound != kDecodeTableIndex_RELOC)
+	Reloc_DisableExplicitReloc (&areaCurrentSymbol->area->reloc);
+      
       Symbol *labelSymbol;
       switch (oDecodeTable[indexFound].cb_type)
 	{
@@ -646,6 +656,10 @@ Decode (const Lex *label)
 		 instruction in Put_InsWithOffset().  */
 	      unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
 	      startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, NULL);
+
+	      /* Mark all ARM/Thumb instructions applicable for an explicit
+	         RELOC.  */
+	      Reloc_EnableExplicitReloc (&startAreaSymbol->area->reloc, startOffset);
 	    }
 
 	  if (oDecodeTable[indexFound].updateMap)
