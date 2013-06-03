@@ -1,7 +1,9 @@
 
+AB_ROVERSION=2
+
 ab_package() {
   ab_create_app AirStrike Apps/Games
-  ab_makerun $S/src/airstrike
+  ab_makerun $S/airstrike
 
   cp -av $S/ChangeLog $S/COPYING $S/LICENSE $S/README $S/data $A
   sed s#datapath.*\$#"datapath \"<AirStrike\$Dir>/data/\""# < $S/airstrikerc > $A/airstrikerc

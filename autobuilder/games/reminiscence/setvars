@@ -1,13 +1,10 @@
 
-AB_URL=http://cyxdown.free.fr/reminiscence/REminiscence-0.1.9.tar.bz2
-#AB_ZIPNAME=REminiscence-0.1.9
 
 ab_package() {
   ab_create_app RS Apps/Games
   ab_makerun $S/rs
 
   cp README $A/\!Help
-  cp COPYING $A
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -copyrightfile $S/COPYING
+  $AB_HOME/add-riscpkg -name Reminiscence -unixlib -unixsound
 }
