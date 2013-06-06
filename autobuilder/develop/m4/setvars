@@ -13,7 +13,7 @@ export ac_cv_func_lchown=yes
 
 
 ab_package() {
- ab_create_command_app Apps/Develop
+ ab_create_command_app Apps/Development
  ab_add_commands $S/src/*$AB_EXEEXT
 
  rman -f HTML $S/doc/m4.1 > $A/\!Help,faf

@@ -1,2 +1,2 @@
-tar xfz bash-*.tar.gz
+tar xfJ bash-*.tar.xz
 mv bash-*/* .

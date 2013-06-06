@@ -1,15 +1,20 @@
 
-AB_CATEGORY=Develop
+AB_CATEGORY=Development
 
 ab_package() {
 
-  mkdir -p $D/Apps/$AB_CATEGORY/\!GCC/bin/
-  mkdir -p $D/Apps/$AB_CATEGORY/\!GCC/docs/
+  A=$D/$AB_PACKAGE/Apps/$AB_CATEGORY/\!GCC
+  mkdir -p $A/bin/
+  mkdir -p $A/docs/
 
-  cp $S/src/bison$AB_EXEEXT $D/Apps/$AB_CATEGORY\/!GCC/bin/
-  rman -f HTML $S/doc/bison.1 > $D/Apps/$AB_CATEGORY/\!GCC/docs/bison.html,faf
+
+  cp $S/src/bison$AB_EXEEXT $A/bin
+  rman -f HTML $S/doc/bison.1 > $A/docs/bison.html,faf
+
+  export AB_SUBPACKAGE=$AB_PACKAGE
 
   $AB_HOME/add-riscpkg -unixlib
+
 }
 
 touch --date="Jan 01 2000" \
