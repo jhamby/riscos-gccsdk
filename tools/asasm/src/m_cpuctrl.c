@@ -995,41 +995,82 @@ m_dbg (bool doLowerCase)
 
 
 /**
- * Implements SMC (and pre-UAL SMI).
- *   SMC<c> #<imm4>
+ * Implements SMC/SMI
+ *   SMC[<c>] ["#"]<imm4>
+ *   SMI[<c>] ["#"]<imm4>
  */
-bool
-m_smc (bool doLowerCase)
+static bool
+core_smc_smi (bool doLowerCase)
 {
   ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
-  /* Note that the security extensions are optional.  */
-  Target_CheckCPUFeature (kCPUExt_Sec, true);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
 
+  unsigned smcValue = 0;
   Input_SkipWS ();
-  if (!Input_Match ('#', false))
-    Error (ErrorError, "SMC value missing");
-  else
+  if (!Input_IsEolOrCommentStart ())
     {
+      /* Skip optional '#'.  */
+      (void) Input_Match ('#', false);
       const Value *im = Expr_BuildAndEval (ValueInt);
       switch (im->Tag)
 	{
 	  case ValueInt:
-	    {
-	      int smcValue = im->Data.Int.i;
-	      if (smcValue < 0 || smcValue >= 16)
-		Error (ErrorError, "SMC value needs to be between 0 and 15");
-	      else
-		Put_Ins (4, cc | 0x01600070 | smcValue);
-	      break;
-	    }
+	    smcValue = im->Data.Int.i;
+	    break;
 	  default:
 	    Error (ErrorError, "Unknown SMC value type");
 	    break;
 	}
+      if (smcValue >= 16)
+	{
+	  Error (ErrorError, "SMC value needs to be between 0 and 15");
+	  smcValue = 0;
+	}
+    }
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  /* Note that the security extensions are optional.  */
+  Target_CheckCPUFeature (kCPUExt_Sec, true);
+
+  if (instrState == eInstrType_ARM)
+    Put_Ins (4, cc | 0x01600070 | smcValue);
+  else
+    {
+      if (instrWidth == eInstrWidth_Enforce16bit)
+	Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+      Put_Ins (4, 0xf7f08000 | (smcValue << 16));
     }
 
   return false;
+}
+
+
+/**
+ * Implements SMC (UAL).
+ */
+bool
+m_smc (bool doLowerCase)
+{
+  if (State_GetSyntax () == eSyntax_PreUALOnly)
+    return true;
+  return core_smc_smi (doLowerCase);
+}
+
+
+/**
+ * Implements SMI (pre-UAL).
+ */
+bool
+m_smi (bool doLowerCase)
+{
+  if (State_GetSyntax () == eSyntax_UALOnly)
+    return true;
+  return core_smc_smi (doLowerCase);
 }

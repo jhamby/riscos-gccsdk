@@ -41,5 +41,6 @@ bool m_yield (bool doLowerCase);
 bool m_cps (bool doLowerCase);
 bool m_dbg (bool doLowerCase);
 bool m_smc (bool doLowerCase);
+bool m_smi (bool doLowerCase);
 
 #endif

@@ -285,7 +285,7 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: SHSUB16/SHSUB8 */
   { "SIN", eCB_VoidPMatch, 1, 1, { .vdpm = m_sin } }, /* SIN CC P R */
   { "SMC", eCB_VoidPMatch, 1, 1, { .vdpm = m_smc } }, /* SMC CC */
-  { "SMI", eCB_VoidPMatch, 1, 1, { .vdpm = m_smc } }, /* SMI CC (pre-UAL) */
+  { "SMI", eCB_VoidPMatch, 1, 1, { .vdpm = m_smi } }, /* SMI CC */
   { "SMLABB", eCB_VoidPMatch, 1, 1, { .vdpm = m_smlabb } }, /* SMLABB CC */
   { "SMLABT", eCB_VoidPMatch, 1, 1, { .vdpm = m_smlabt } }, /* SMLABT CC */
   /* FIXME: SMLAD */

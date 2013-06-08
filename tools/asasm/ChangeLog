@@ -1,3 +1,14 @@
+Sat Jun  8 22:30:20 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* decode.c (oDecodeTable): Use m_smi for SMI.
+	* m_cpuctrl.c (m_smc): Factor out to...
+	(core_smc_smi): ...this.  Add Thumb2 support.  Parse # optionally.
+	(m_smi): Add.
+	* m_cpuctrl.h (m_smi): Add.
+
+	* unittests/compare/core/instr_smc_smi.s: Enhance.
+
 Sat Jun  8 19:14:11 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
