@@ -1,3 +1,9 @@
+Sat Jun  8 17:56:35 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/compare/Makefile.in: Let asasm generate dependency file
+	and use it.  Use vpath instead of VPATH.
+	* unittests/reloc/Makefile.in: Likewise.
+
 Sun Jun  2 23:12:53 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

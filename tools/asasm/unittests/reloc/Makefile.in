@@ -27,10 +27,12 @@ check_OUT_ELF_FILES := $(check_SRC_FILES:%.s=out/%_elf.o)
 check_OUT_AOF_FILES := $(check_SRC_FILES:%.s=out/%_aof.o)
 check_REF_ELF_FILES := $(check_SRC_FILES:%.s=ref/%_elf)
 check_REF_AOF_FILES := $(check_SRC_FILES:%.s=ref/%_aof)
+check_dep := $(check_OUT_ELF_FILES:%.o=%.d) $(check_OUT_AOF_FILES:%.o=%.d)
 
 V := @
 
-VPATH = @srcdir@/src
+vpath %.s @srcdir@/src
+-include $(check_dep)
 
 all:
 
@@ -47,7 +49,7 @@ distclean: clean
 out/%_elf.o: %.s @srcdir@/ref/%_elf.txt
 	@$(ECHO) +++ Checking ELF relocations for $<
 	$(V)$(MKDIR) -p out
-	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -o $@ $<
+	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -depend $(@:%.o=%.d) -o $@ $<
 	$(V)$(READELF) $(READELFFLAGS) $@ > $(@:%.o=%.txt)
 	$(V)$(DIFF) $(DIFFFLAGS) $(@:out/%_elf.o=@srcdir@/ref/%_elf.txt) $(@:%.o=%.txt) || (mv $@ $(@:%_elf.o=%_elf_failed.o) && false)
 
@@ -59,7 +61,7 @@ out/%_elf.o: %.s @srcdir@/ref/%_elf.txt
 out/%_aof.o: %.s @srcdir@/ref/%_aof.txt
 	@$(ECHO) +++ Checking AOF relocations for $<
 	$(V)$(MKDIR) -p out
-	$(V)$(ASASM) $(ASASMFLAGS_AOF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -o $@ $<
+	$(V)$(ASASM) $(ASASMFLAGS_AOF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -depend $(@:%.o=%.d) -o $@ $<
 	$(V)$(DECAOF) $(DECAOFFLAGS) $@ > $(@:%.o=%.txt)
 	$(V)$(DIFF) $(DIFFFLAGS) $(@:out/%_aof.o=@srcdir@/ref/%_aof.txt) $(@:%.o=%.txt) || (mv $@ $(@:%_aof.o=%_aof_failed.o) && false)
 
