@@ -58,7 +58,7 @@ export GCCSDK_RISCOS_PREFIX=$GCCSDK_RELEASE_AREA/full
 export GCCSDK_BUILDDIR=$GCCSDK_ROOT/builddir
 
 # Currently supported versions of gcc and binutils:
-export GCCSDK_SUPPORTED_GCC_RELEASE=4.7.3
+export GCCSDK_SUPPORTED_GCC_RELEASE=4.7.4
 export GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.23.2
 
 # Release name:
