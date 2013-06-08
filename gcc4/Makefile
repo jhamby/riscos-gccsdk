@@ -40,8 +40,6 @@ GCC_USE_PPL_CLOOG=yes
 PPL_VERSION=0.11.2
 CLOOG_VERSION=0.15.10
 GCC_USE_LTO=yes
-# FIXME: libelf is currently not used but maybe it will by asasm one day.
-LIBELF_VERSION=0.8.13
 
 # Notes:
 #   1) Configure options are explained at http://gcc.gnu.org/install/configure.html
@@ -175,10 +173,6 @@ RONATIVE_PPL_CONFIG_ARGS := --disable-shared --disable-watchdog --with-gnu-ld --
 # Configure arguments CLooG:
 CROSS_CLOOG_CONFIG_ARGS := --disable-shared --with-gmp=$(PREFIX_CROSSGCC_LIBS) --with-bits=gmp --with-ppl=$(PREFIX_CROSSGCC_LIBS) --with-host-libstdcxx='-lstdc++' --prefix=$(PREFIX_CROSSGCC_LIBS)
 RONATIVE_CLOOG_CONFIG_ARGS := --disable-shared --with-gmp=$(PREFIX_RONATIVEGCC_LIBS) --with-bits=gmp --with-ppl=$(PREFIX_RONATIVEGCC_LIBS) --with-host-libstdcxx='-lstdc++' --host=$(TARGET) --prefix=$(PREFIX_RONATIVEGCC_LIBS)
-
-# Configure arguments libelf:
-CROSS_LIBELF_CONFIG_ARGS := --disable-shared --prefix=$(PREFIX_CROSSGCC_LIBS)
-RONATIVE_LIBELF_CONFIG_ARGS := --disable-shared --host=$(TARGET) --prefix=$(PREFIX_RONATIVEGCC_LIBS)
 
 # To respawn Makefile with setup-gccsdk-param environment loaded.
 GCCSDK_INTERNAL_GETENV=getenv
@@ -422,20 +416,6 @@ ronative-cloog-built: cross-gcc-built src-cloog-copied ronative-gmp-built ronati
 	cd $(BUILDDIR)/ronative-cloog && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/cloog/configure $(RONATIVE_CLOOG_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
 	touch $(BUILDSTEPSDIR)/ronative-cloog-built
 
-# Configure & build libelf cross:
-cross-libelf-built: src-libelf-copied
-	-rm -rf $(BUILDDIR)/cross-libelf
-	mkdir -p $(BUILDDIR)/cross-libelf
-	cd $(BUILDDIR)/cross-libelf && PATH="$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/libelf/configure $(CROSS_LIBELF_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
-	touch $(BUILDSTEPSDIR)/cross-libelf-built
-
-# Configure & build libelf ronative:
-ronative-libelf-built: cross-gcc-built src-libelf-copied
-	-rm -rf $(BUILDDIR)/ronative-libelf
-	mkdir -p $(BUILDDIR)/ronative-libelf
-	cd $(BUILDDIR)/ronative-libelf && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/libelf/configure $(RONATIVE_LIBELF_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
-	touch $(BUILDSTEPSDIR)/ronative-libelf-built
-
 # Configure & build gdb cross:
 cross-gdb-built: src-gdb-copied
 	-rm -rf $(BUILDDIR)/cross-gdb
@@ -570,14 +550,6 @@ src-cloog-copied: $(SRCORIGDIR)/cloog-ppl-$(CLOOG_VERSION).tar.gz
 	cd $(SRCDIR)/cloog && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 	touch $(BUILDSTEPSDIR)/src-cloog-copied
 
-# Unpack libelf source:
-src-libelf-copied: $(SRCORIGDIR)/libelf-$(LIBELF_VERSION).tar.gz
-	-rm -rf $(SRCORIGDIR)/libelf-$(LIBELF_VERSION) $(SRCDIR)/libelf
-	cd $(SRCORIGDIR) && tar xfz libelf-$(LIBELF_VERSION).tar.gz
-	-mkdir -p $(SRCDIR)/libelf
-	cp -T -p -r $(SRCORIGDIR)/libelf-$(LIBELF_VERSION) $(SRCDIR)/libelf
-	touch $(BUILDSTEPSDIR)/src-libelf-copied
-
 # Unpack newlib source:
 ifeq "$(NEWLIB_USE_SCM)" "yes"
 src-newlib-copied:
@@ -683,12 +655,6 @@ $(SRCORIGDIR)/cloog-ppl-$(CLOOG_VERSION).tar.gz:
 	-mkdir -p $(SRCORIGDIR)
 	cd $(SRCORIGDIR) && wget -c ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-ppl-$(CLOOG_VERSION).tar.gz
 	touch $(SRCORIGDIR)/cloog-ppl-$(CLOOG_VERSION).tar.gz
-
-# Download libelf source:
-$(SRCORIGDIR)/libelf-$(LIBELF_VERSION).tar.gz:
-	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && wget -c http://www.mr511.de/software/libelf-$(LIBELF_VERSION).tar.gz
-	touch $(SRCORIGDIR)/libelf-$(LIBELF_VERSION).tar.gz
 
 # Download newlib source:
 $(SRCORIGDIR)/newlib-$(NEWLIB_VERSION).tar.gz:
