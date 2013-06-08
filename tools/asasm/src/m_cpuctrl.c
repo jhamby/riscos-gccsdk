@@ -955,7 +955,7 @@ m_cps (bool doLowerCase)
 
 /**
  * Implements DBG.
- *   DBG<cond> #<option>
+ *   DBG[<cc>][<q>] ["#"]<option>
  */
 bool
 m_dbg (bool doLowerCase)
@@ -964,30 +964,53 @@ m_dbg (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  if (!Target_CheckCPUFeature (kArchExt_v7, true))
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
     return true;
 
+  unsigned dbgValue = 0;
   Input_SkipWS ();
-  if (!Input_Match ('#', false))
-    Error (ErrorError, "DBG option value missing");
+  if (Input_IsEolOrCommentStart ())
+    Error (ErrorError, "%s value missing", "DBG");
   else
     {
+      /* Skip optional '#'.  */
+      (void) Input_Match ('#', false);
       const Value *im = Expr_BuildAndEval (ValueInt);
       switch (im->Tag)
 	{
 	  case ValueInt:
-	    {
-	      int optValue = im->Data.Int.i;
-	      if (optValue < 0 || optValue >= 16)
-		Error (ErrorError, "DBG option value needs to be between 0 and 15");
-	      else
-		Put_Ins (4, cc | 0x0320F0F0 | optValue);
-	      break;
-	    }
+	    dbgValue = im->Data.Int.i;
+	    break;
 	  default:
-	    Error (ErrorError, "Unknown DBG option value type");
+	    Error (ErrorError, "Unknown %s value type", "DBG");
 	    break;
 	}
+      if (dbgValue >= 16)
+	{
+	  Error (ErrorError, "%s value needs to be between 0 and 15 (incl)", "DBG");
+	  dbgValue = 0;
+	}
+    }
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  /* DBG executes as a NOP instruction in ARMv6K and ARMv6T2.  */
+  uint64_t cpuFeatures = Target_GetCPUFeatures ();
+  if ((cpuFeatures & kArchExt_v7) != kArchExt_v7
+      && (cpuFeatures & (kCPUExt_v6K | kCPUExt_v6T2)) != 0)
+    Error (ErrorWarning, "On ARMv6K and ARMv6T2 DBG will execute as NOP");
+  else
+    Target_CheckCPUFeature (kArchExt_v7, true);
+
+  if (instrState == eInstrType_ARM)
+    Put_Ins (4, cc | 0x0320F0F0 | dbgValue);
+  else
+    {
+      if (instrWidth == eInstrWidth_Enforce16bit)
+	Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+      Put_Ins (4, 0xf3af80f0 | dbgValue);
     }
 
   return false;
@@ -996,11 +1019,11 @@ m_dbg (bool doLowerCase)
 
 /**
  * Implements SMC/SMI
- *   SMC[<c>] ["#"]<imm4>
- *   SMI[<c>] ["#"]<imm4>
+ *   SMC[<cc>][<q>] ["#"]<imm4>
+ *   SMI[<cc>][<q>] ["#"]<imm4>
  */
 static bool
-core_smc_smi (bool doLowerCase)
+core_smc_smi (bool doLowerCase, const char *instr)
 {
   ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
@@ -1012,7 +1035,9 @@ core_smc_smi (bool doLowerCase)
 
   unsigned smcValue = 0;
   Input_SkipWS ();
-  if (!Input_IsEolOrCommentStart ())
+  if (Input_IsEolOrCommentStart ())
+    Error (ErrorError, "%s value missing", instr);
+  else
     {
       /* Skip optional '#'.  */
       (void) Input_Match ('#', false);
@@ -1023,12 +1048,12 @@ core_smc_smi (bool doLowerCase)
 	    smcValue = im->Data.Int.i;
 	    break;
 	  default:
-	    Error (ErrorError, "Unknown SMC value type");
+	    Error (ErrorError, "Unknown %s value type", instr);
 	    break;
 	}
       if (smcValue >= 16)
 	{
-	  Error (ErrorError, "SMC value needs to be between 0 and 15");
+	  Error (ErrorError, "%s value needs to be between 0 and 15 (incl)", instr);
 	  smcValue = 0;
 	}
     }
@@ -1060,7 +1085,7 @@ m_smc (bool doLowerCase)
 {
   if (State_GetSyntax () == eSyntax_PreUALOnly)
     return true;
-  return core_smc_smi (doLowerCase);
+  return core_smc_smi (doLowerCase, "SMC");
 }
 
 
@@ -1072,5 +1097,5 @@ m_smi (bool doLowerCase)
 {
   if (State_GetSyntax () == eSyntax_UALOnly)
     return true;
-  return core_smc_smi (doLowerCase);
+  return core_smc_smi (doLowerCase, "SMI");
 }

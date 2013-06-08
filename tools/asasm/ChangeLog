@@ -1,3 +1,13 @@
+Sat Jun  8 23:24:16 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cpuctrl (m_dbg): Add Thumb2 support.
+	(core_smc_smi): Value should be present.  Add instr parameter.
+	(m_smc): Follow core_smc_smi API change.
+	(m_smi): Likewise.
+
+	* unittests/compare/core/instr_dbg.s: Enhance.
+
 Sat Jun  8 22:30:20 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
