@@ -1,3 +1,21 @@
+Sat Jun  8 19:14:11 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cputctrl.c (ADR_RelocUpdaterCore): Use minus sign for register base
+	with negative offset.  Use NOP instruction for second instruction of
+	ADRL when possible.
+	* option.c (GetOptCCodeAndOptChar): Add.
+	(GetCCodeIfThere): Reimplement using switch.
+	(Option_CondS): Make use of GetOptCCodeAndOptChar.
+	(Option_CondB): Likewise.
+	(Option_CondL): Likewise.
+	(Option_ADRL): Likewise.
+	(Option_CondSP): Add (pre-)UAL checks.  Only warn about P variant when
+	keyword is fully detected.
+
+	* unittests/compare/core/include/adr.s: Update for NOP changes.
+	Add condition code UAL test.
+
 Sat Jun  8 17:56:35 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/compare/Makefile.in: Let asasm generate dependency file

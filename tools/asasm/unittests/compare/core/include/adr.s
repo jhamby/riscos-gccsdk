@@ -194,7 +194,7 @@ tstlbl6	#	32
 	ADD r4, r3, #20	;ADR
 	ADD r5, r7, #20	;ADR
 	ADD r6, r7, #20	;ADRL
-	ADD r6, r6, #0
+	NOP
 	]
 	]
 
@@ -209,7 +209,7 @@ tstlbl6	#	32
 01
 	DCD	1
 	ADR	r1, %b01		; SUB r1, pc, #...
-	ADRL	r2, %f02		; ADD r2, pc, #... + ADD r2, r2, #0, generates "ADR instead of ADRL can be used" alike warning"
+	ADRL	r2, %f02		; ADD r2, pc, #... + NOP, generates "ADR instead of ADRL can be used" alike warning"
 02
 	DCD	2
 
@@ -250,7 +250,7 @@ tstlbl6	#	32
 	DCD	1
 	ADD r1, pc, #-8 - 4		; MOV r1, #&210 would also be possible but less preferred.
 	ADD r2, pc, #-8 + 8		; MOV r2, #&220 would also be possible but less preferred.
-	ADD	r2, r2, #0
+	NOP
 	DCD	2
 
 	DCD	3
@@ -298,6 +298,141 @@ Code13lbl
 	]
 	]
 
+	] ; Absolute area
+
+
+	; Test ADR(L) + condition code.
+	[ {TRUE}
+	AREA	Code14, CODE
+	[ :LNOT: REFERENCE
+	MACRO
+	Inject	$i
+	;INFO 0, "\t$i"
+	$i
+	MEND
+
+	; <base>			; no conditional code (pre-UAL, UAL)
+	; <base> "L"			; no conditional code (pre-UAL, UAL)
+	; <base> <cond code>		: no L variant (pre-UAL, UAL)
+	; <base> <cond code> "L"	; pre-UAL only
+	; <base> "L" <cond code>	; UAL only
+	MACRO
+	Invoke
+	Inject	"ADR r1, ."
+	Inject	"ADRL r2, ."
+
+	LCLS	instr0
+	LCLS	instr1
+	LCLS	instr2
+	LCLA	cnt
+cnt	SETA	0
+	WHILE	cnt < 17
+	; 17 condition codes to be tested:
+	;   - Condition code NV is left out from this test.
+	;   - HS and LO are equivalents for CS and CC.
+instr0	SETS	"ADR" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2)
+instr1	SETS	"ADR" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2) :CC: "L"	; Pre-UAL
+instr2	SETS	"ADRL" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2)	; UAL
+	Inject	"$instr0 r3, ."
+	Inject	"$instr1 r4, ."
+	Inject	"$instr2 r5, ."
+cnt	SETA	cnt + 1
+	WEND
+	MEND
+
+	ARM
+	Invoke
+	|
+	ARM
+	DCI &e24f1008	; sub	r1, pc, #8
+	DCI &e24f2008	; sub	r2, pc, #8
+	NOP
+	DCI &024f3008	; subeq	r3, pc, #8
+	DCI &024f4008	; subeq	r4, pc, #8
+	NOP
+	DCI &024f5008	; subeq	r5, pc, #8
+	NOP
+	DCI &124f3008	; subne	r3, pc, #8
+	DCI &124f4008	; subne	r4, pc, #8
+	NOP
+	DCI &124f5008	; subne	r5, pc, #8
+	NOP
+	DCI &224f3008	; subcs	r3, pc, #8
+	DCI &224f4008	; subcs	r4, pc, #8
+	NOP
+	DCI &224f5008	; subcs	r5, pc, #8
+	NOP
+	DCI &324f3008	; subcc	r3, pc, #8
+	DCI &324f4008	; subcc	r4, pc, #8
+	NOP
+	DCI &324f5008	; subcc	r5, pc, #8
+	NOP
+	DCI &424f3008	; submi	r3, pc, #8
+	DCI &424f4008	; submi	r4, pc, #8
+	NOP
+	DCI &424f5008	; submi	r5, pc, #8
+	NOP
+	DCI &524f3008	; subpl	r3, pc, #8
+	DCI &524f4008	; subpl	r4, pc, #8
+	NOP
+	DCI &524f5008	; subpl	r5, pc, #8
+	NOP
+	DCI &624f3008	; subvs	r3, pc, #8
+	DCI &624f4008	; subvs	r4, pc, #8
+	NOP
+	DCI &624f5008	; subvs	r5, pc, #8
+	NOP
+	DCI &724f3008	; subvc	r3, pc, #8
+	DCI &724f4008	; subvc	r4, pc, #8
+	NOP
+	DCI &724f5008	; subvc	r5, pc, #8
+	NOP
+	DCI &824f3008	; subhi	r3, pc, #8
+	DCI &824f4008	; subhi	r4, pc, #8
+	NOP
+	DCI &824f5008	; subhi	r5, pc, #8
+	NOP
+	DCI &924f3008	; subls	r3, pc, #8
+	DCI &924f4008	; subls	r4, pc, #8
+	NOP
+	DCI &924f5008	; subls	r5, pc, #8
+	NOP
+	DCI &a24f3008	; subge	r3, pc, #8
+	DCI &a24f4008	; subge	r4, pc, #8
+	NOP
+	DCI &a24f5008	; subge	r5, pc, #8
+	NOP
+	DCI &b24f3008	; sublt	r3, pc, #8
+	DCI &b24f4008	; sublt	r4, pc, #8
+	NOP
+	DCI &b24f5008	; sublt	r5, pc, #8
+	NOP
+	DCI &c24f3008	; subgt	r3, pc, #8
+	DCI &c24f4008	; subgt	r4, pc, #8
+	NOP
+	DCI &c24f5008	; subgt	r5, pc, #8
+	NOP
+	DCI &d24f3008	; suble	r3, pc, #8
+	DCI &d24f4008	; suble	r4, pc, #8
+	NOP
+	DCI &d24f5008	; suble	r5, pc, #8
+	NOP
+	DCI &e24f3008	; sub	r3, pc, #8
+	DCI &e24f4008	; sub	r4, pc, #8
+	NOP
+	DCI &e24f5008	; sub	r5, pc, #8
+	NOP
+	DCI &224f3008	; subcs	r3, pc, #8
+	DCI &224f4008	; subcs	r4, pc, #8
+	NOP
+	DCI &224f5008	; subcs	r5, pc, #8
+	NOP
+	DCI &324f3008	; subcc	r3, pc, #8
+	DCI &324f4008	; subcc	r4, pc, #8
+	NOP
+	DCI &324f5008	; subcc	r5, pc, #8
+	NOP
+	]
 	]
 
 	END

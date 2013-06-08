@@ -34,6 +34,117 @@
 #include "state.h"
 #include "targetcpu.h"
 
+typedef struct
+{
+  size_t idx;
+  ARMWord cc;
+  bool doLowerCase;
+} ParseState;
+
+static ARMWord GetCCodeIfThere (bool doLowerCase, unsigned skipChars);
+
+
+static void
+ParseState_Init (ParseState *stateP, bool doLowerCase)
+{
+  stateP->idx = 0;
+  stateP->cc = 0;
+  stateP->doLowerCase = doLowerCase;
+}
+
+
+/**
+ * Try to parse an optional character (like 'L'/'l', or 'E'/'e').
+ * \param c Upcase character to match.
+ */
+static bool
+ParseState_IsOptChar (ParseState *stateP, ARMWord value, char c)
+{
+  if (Input_LookN (stateP->idx) == (stateP->doLowerCase ? c | 32 : c))
+    {
+      stateP->cc |= value;
+      ++stateP->idx;
+    }
+  return true;
+}
+
+
+/**
+ * Try to parse optional condition code.
+ */
+static bool
+ParseState_IsOptCC (ParseState *stateP)
+{
+  ARMWord cc = GetCCodeIfThere (stateP->doLowerCase, stateP->idx);
+  if (cc != kOption_NotRecognized)
+    {
+      stateP->cc |= cc;
+      stateP->idx += 2;
+    }
+  else
+    stateP->cc |= AL;
+  return true;
+}
+
+
+/**
+ * Check whether we're at the end of a keyword (there might still be a
+ * qualifier following).
+ */
+static bool
+ParseState_IsEndOfKeyword (ParseState *stateP)
+{
+  if (Input_IsEndOfKeywordN (stateP->idx) || Input_LookN (stateP->idx) == '.')
+    {
+      Input_SkipN (stateP->idx);
+      return true;
+    }
+  return false;
+}
+
+
+/**
+ * Try to parse [<cc>][<c>] (pre-UAL) and/or [<c>][<cc>] (UAL) + end-of-keyword.
+ * \param doLowerCase Whether the lowercase or uppercase version of c needs to
+ * be parsed.
+ * \param c Optional <c> to parse (uppercase).
+ * \param cval Instruction value when <c> has been parsed.
+ * \return kOption_NotRecognized when parsing failed.  Otherwise the
+ * corresponding ARM instruction value for parsed elements.
+ */
+static ARMWord
+GetOptCCodeAndOptChar (bool doLowerCase, char c, ARMWord cval)
+{
+  ParseState state;
+  ParseState_Init (&state, doLowerCase);
+  bool ok;
+  if (!(ok = ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state)))
+    {
+      ParseState_Init (&state, doLowerCase);
+      switch (State_GetSyntax ())
+	{
+	  case eSyntax_PreUALOnly:
+	    ok = ParseState_IsOptCC (&state) && ParseState_IsOptChar (&state, cval, c)
+	           && ParseState_IsEndOfKeyword (&state);
+	    break;
+
+	  case eSyntax_Both:
+	    ok = ParseState_IsOptCC (&state) && ParseState_IsOptChar (&state, cval, c)
+	           && ParseState_IsEndOfKeyword (&state);
+	    if (ok)
+	      break;
+	    ParseState_Init (&state, doLowerCase);
+	    /* Fall through.  */
+
+	  case eSyntax_UALOnly:
+	    ok = ParseState_IsOptChar (&state, cval, c) && ParseState_IsOptCC (&state)
+	           && ParseState_IsEndOfKeyword (&state);
+	    break;
+	}
+    }
+  return ok ? state.cc : kOption_NotRecognized;
+}
+
 
 /**
  * Try to parse a 2 character condition code.
@@ -47,88 +158,112 @@ static ARMWord
 GetCCodeIfThere (bool doLowerCase, unsigned skipChars)
 {
   ARMWord cc = kOption_NotRecognized;
-  const char c1 = Input_LookN (skipChars + 0);
-  const char c2 = c1 != '\0' ? Input_LookN (skipChars + 1) : '\0';
-  if (c1 == (doLowerCase ? 'a' : 'A'))
+  const char c1 = Input_LookN (skipChars + 0) ^ (doLowerCase ? 0 : 32);
+  const char c2 = c1 != '\0' ? Input_LookN (skipChars + 1) ^ (doLowerCase ? 0 : 32) : '\0';
+  switch (c1)
     {
-      if (c2 == (doLowerCase ? 'l' : 'L'))
-	cc = AL;
-    }
-  else if (c1 == (doLowerCase ? 'c' : 'C'))
-    {
-      if (c2 == (doLowerCase ? 'c' : 'C'))
-	cc = CC;
-      else if (c2 == (doLowerCase ? 's' : 'S'))
-	cc = CS;
-    }
-  else if (c1 == (doLowerCase ? 'e' : 'E'))
-    {
-      if (c2 == (doLowerCase ? 'q' : 'Q'))
-	cc = EQ;
-    }
-  else if (c1 == (doLowerCase ? 'g' : 'G'))
-    {
-      if (c2 == (doLowerCase ? 'e' : 'E'))
-	cc = GE;
-      else if (c2 == (doLowerCase ? 't' : 'T'))
-	cc = GT;
-    }
-  else if (c1 == (doLowerCase ? 'h' : 'H'))
-    {
-      if (c2 == (doLowerCase ? 'i' : 'I'))
-	cc = HI;
-      else if (c2 == (doLowerCase ? 's' : 'S'))
-	cc = CS; /* HS == CS */
-    }
-  else if (c1 == (doLowerCase ? 'l' : 'L'))
-    {
-      if (c2 == (doLowerCase ? 'e' : 'E'))
-	cc = LE;
-      else if (c2 == (doLowerCase ? 'o' : 'O'))
-	cc = CC; /* LO == CC */
-      else if (c2 == (doLowerCase ? 's' : 'S'))
-	cc = LS;
-      else if (c2 == (doLowerCase ? 't' : 'T'))
-	cc = LT;
-    }
-  else if (c1 == (doLowerCase ? 'm' : 'M'))
-    {
-      if (c2 == (doLowerCase ? 'i' : 'I'))
-	cc = MI;
-    }
-  else if (c1 == (doLowerCase ? 'n' : 'N'))
-    {
-      if (c2 == (doLowerCase ? 'e' : 'E'))
-	cc = NE;
-      else if (c2 == (doLowerCase ? 'v' : 'V'))
+      case 'a':
 	{
-	  /* Pre-ARMv4, NV is supported.
-	     ARMv4, NV is UNPREDICTABLE.
-	     ARMv5 and later, used for "Unconditional instruction extension space"  */
-	  if (Target_CheckCPUFeature (kCPUExt_v5, false))
-	    {
-	      /* cc already is kOption_NotRecognized.  */
-	    }
-	  else if (Target_CheckCPUFeature (kCPUExt_v4, false))
-	    {
-	      Error (ErrorWarning, "For ARMv4, use of NV condition code is UNPREDICTABLE");
-	      cc = NV;
-	    }
-	  else
-	    cc = NV;
+	  if (c2 == 'l')
+	    cc = AL;
+	  break;
 	}
-    }
-  else if (c1 == (doLowerCase ? 'p' : 'P'))
-    {
-      if (c2 == (doLowerCase ? 'l' : 'L'))
-	cc = PL;
-    }
-  else if (c1 == (doLowerCase ? 'v' : 'V'))
-    {
-      if (c2 == (doLowerCase ? 'c' : 'C'))
-	cc = VC;
-      else if (c2 == (doLowerCase ? 's' : 'S'))
-	cc = VS;
+
+      case 'c':
+	{
+	  if (c2 == 'c')
+	    cc = CC;
+	  else if (c2 == 's')
+	    cc = CS;
+	  break;
+	}
+
+      case 'e':
+	{
+	  if (c2 == 'q')
+	    cc = EQ;
+	  break;
+	}
+
+      case 'g':
+	{
+	  if (c2 == 'e')
+	    cc = GE;
+	  else if (c2 == 't')
+	    cc = GT;
+	  break;
+	}
+      case 'h':
+	{
+	  if (c2 == 'i')
+	    cc = HI;
+	  else if (c2 == 's')
+	    cc = CS; /* HS == CS */
+	  break;
+	}
+
+      case 'l':
+	{
+	  if (c2 == 'e')
+	    cc = LE;
+	  else if (c2 == 'o')
+	    cc = CC; /* LO == CC */
+	  else if (c2 == 's')
+	    cc = LS;
+	  else if (c2 == 't')
+	    cc = LT;
+	  break;
+	}
+
+      case 'm':
+	{
+	  if (c2 == 'i')
+	    cc = MI;
+	  break;
+	}
+
+      case 'n':
+	{
+	  if (c2 == 'e')
+	    cc = NE;
+	  else if (c2 == 'v')
+	    {
+	      /* Pre-ARMv4, NV is supported.
+		 ARMv4, NV is UNPREDICTABLE.
+		 ARMv5 and later, used for "Unconditional instruction extension space"  */
+	      if (Target_CheckCPUFeature (kCPUExt_v5, false))
+		{
+		  /* cc already is kOption_NotRecognized.  */
+		}
+	      else if (Target_CheckCPUFeature (kCPUExt_v4, false))
+		{
+		  Error (ErrorWarning, "For ARMv4, use of NV condition code is UNPREDICTABLE");
+		  cc = NV;
+		}
+	      else
+		cc = NV;
+	    }
+	  break;
+	}
+
+      case 'p':
+	{
+	  if (c2 == 'l')
+	    cc = PL;
+	  break;
+	}
+
+      case 'v':
+	{
+	  if (c2 == 'c')
+	    cc = VC;
+	  else if (c2 == 's')
+	    cc = VS;
+	  break;
+	}
+
+      default:
+	break;
     }
 
   return cc;
@@ -139,9 +274,8 @@ GetCCodeIfThere (bool doLowerCase, unsigned skipChars)
  * Try to parse a 2 character condition code.
  * \param doLowerCase When true, try to match on lowercase condition code,
  * uppercase otherwise.
- * \return Parsed condition code.  On success, skipChars + number of
- * parsed condition code characters are skipped in the input stream.
- * When there is no condition code, kOption_NotRecognized is returned instead.
+ * \return Parsed condition code.  When there is no condition code to parse,
+ * kOption_NotRecognized is returned instead.
  */
 ARMWord
 Option_GetCCodeIfThere (bool doLowerCase)
@@ -170,7 +304,8 @@ GetCCode (bool doLowerCase)
 
 /**
  * When in non-pre-UAL only mode, try to read the instruction width indicator
- * (".W"/".w" or ".N"/".n").
+ * (".W"/".w" or ".N"/".n") + real end-of-keyword.
+ * When in pre-UAL only mode, only the real end-of-keyword is checked.
  * \param doLowerCase When true, instruction width indication should be
  * lowercase, uppercase otherwise.
  * \return Instruction qualifier when specified, or indication if there wasn't
@@ -202,9 +337,9 @@ Option_GetInstrWidth (bool doLowerCase)
 
 
 /**
- * Try to read stackmode for LDM/STM/RFE/SRS.
- * \return kOption_NotRecognized is no stackmode can be read, otherwise the stackmode
- * bits.
+ * Try to read stackmode for LDM/STM/RFE/SRS instructions.
+ * \return kOption_NotRecognized is no stackmode can be read, otherwise the
+ * stackmode bits.
  */
 static ARMWord
 GetStackMode (bool isLoad, bool doLowerCase)
@@ -280,11 +415,14 @@ GetFPARounding (bool doLowerCase)
 
 
 /**
- * Checks if the end of the current keyword has been reached.
+ * Checks if the end of the current keyword has been reached or the
+ * start of an instruction qualifier (i.e. the dot of ".N" or ".W")
+ * The validness of the instruction qualifier (if there) is NOT checked.
  * \param option Value to return when the end of current keyword has been
  * reached.  Might already be kOption_NotRecognized as well.
- * \return kOption_NotRecognized when end of current keyword has not been
- * reached, otherwise the given option value.
+ * \return kOption_NotRecognized when end of current keyword or start of
+ * an instruciton qualifier has not been found, otherwise the given option
+ * value.
  */
 static ARMWord
 IsEndOfKeyword (ARMWord option)
@@ -304,29 +442,19 @@ Option_Cond (bool doLowerCase)
 
 
 /**
- * Try to parse condition code and "S" (both optionally and in any order)
- * and that should terminate the keyword.
- * I.e. support pre-UAL and UAL syntax.
+ * For ADC, ADD, AND, BIC, EOR, MOV, MVN, ORR, RSB, RSC, SBC, SUB instructions.
+ * Try to parse [<cc>]["S"] (pre-UAL) and/or ["S"][<cc>] (UAL) + end-of-keyword.
  */
 ARMWord
 Option_CondS (bool doLowerCase)
 {
-  ARMWord option;
-  if (Input_Match (doLowerCase ? 's' : 'S', false))
-    option = PSR_S_FLAG | GetCCode (doLowerCase);
-  else
-    {
-      option = GetCCode (doLowerCase);
-      if (Input_Match (doLowerCase ? 's' : 'S', false))
-	option |= PSR_S_FLAG;
-    }
-  return IsEndOfKeyword (option);
+  return GetOptCCodeAndOptChar (doLowerCase, 'S', PSR_S_FLAG);
 }
 
 
 /**
- * Tries to parse "S" (optionally) followed by condition code (i.e. strictly
- * UAL syntax only) and that should terminate the keyword.
+ * Try to parse ["S"][<cc>] + end-of-keyword.
+ * Strictly UAL syntax only.
  */
 ARMWord
 Option_SCond (bool doLowerCase)
@@ -337,60 +465,49 @@ Option_SCond (bool doLowerCase)
 
 
 /**
- * Used for CMN, CMP, TEQ and TST.
- *   <condition code> "S" ["P"] : pre-UAL
- *   <condition code> "P" ["S"] : pre-UAL
- *   "S" <condition code> : UAL
- * Support pre-UAL and UAL syntax (order of (deprecated) "S" and condition
- * code is irrelevant).
+ * For CMN, CMP, TEQ and TST instructions.
+ *   [<cc>]["S"]["P"] : pre-UAL
+ *   [<cc>]["P"]["S"] : pre-UAL
+ *   [<cc>] : UAL
+ *   + end-of-keyword.
  */
 ARMWord
 Option_CondSP (bool doLowerCase)
 {
-  bool gotS = Input_Match (doLowerCase ? 's' : 'S', false);
+  Syntax_e syntax = State_GetSyntax ();
+  bool gotS = syntax == eSyntax_UALOnly;
+
+  if (!gotS)
+    gotS = Input_Match (doLowerCase ? 's' : 'S', false);
   ARMWord option = GetCCode (doLowerCase) | PSR_S_FLAG;
   if (!gotS)
     gotS = Input_Match (doLowerCase ? 's' : 'S', false);
-  bool gotP = Input_Match (doLowerCase ? 'p' : 'P', false);
+  bool gotP = syntax != eSyntax_UALOnly
+		&& Input_Match (doLowerCase ? 'p' : 'P', false);
   if (!gotS)
     gotS = Input_Match (doLowerCase ? 's' : 'S', false);
 
   if (gotS && option_pedantic)
     Error (ErrorInfo, "%c suffix on comparison instruction is DEPRECATED", doLowerCase ? 's' : 'S');
   if (gotP)
-    {
-      option |= PSR_P_FLAG;
-      if (gOptionAPCS & APCS_OPT_32BIT)
-	Error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
-    }
+    option |= PSR_P_FLAG;
 
-  return IsEndOfKeyword (option);
+  ARMWord result = IsEndOfKeyword (option);
+  if (result != kOption_NotRecognized
+      && gotP && (gOptionAPCS & APCS_OPT_32BIT) != 0)
+    Error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
+  return result;
 }
 
 
 /**
- * Try to parse <CC><B> (pre-UAL) and/or <B><CC> (UAL).
- * For SWPB<CC> / SWP<CC>B parsing.
+ * For SWP(B) instructions.
+ * Try to parse [<cc>]["B"] (pre-UAL) and/or ["B"][<cc>] (UAL) + end-of-keyword.
  */
 ARMWord
 Option_CondB (bool doLowerCase)
 {
-  Syntax_e syntax = State_GetSyntax ();
-
-  ARMWord option;
-  if ((syntax == eSyntax_UALOnly || syntax == eSyntax_Both)
-      && Input_Match (doLowerCase ? 'b' : 'B', false))
-    option = B_FLAG | GetCCode (doLowerCase);
-  else if (syntax == eSyntax_PreUALOnly || syntax == eSyntax_Both)
-    {
-      option = GetCCode (doLowerCase);
-      if (Input_Match (doLowerCase ? 'b' : 'B', false))
-	option |= B_FLAG;
-    }
-  else
-    option = kOption_NotRecognized;
-
-  return IsEndOfKeyword (option);
+  return GetOptCCodeAndOptChar (doLowerCase, 'B', B_FLAG);
 }
 
 
@@ -401,14 +518,14 @@ Option_LdrStrType (bool isStore, bool doLowerCase)
   if (Input_Match (doLowerCase ? 's' : 'S', false))
     {
       if (isStore)
-	option = kOption_NotRecognized; /* "STR<cond>S<...>" is not possible.  */
+	option = kOption_NotRecognized; /* "STR<cc>S<...>" is not possible.  */
       else
 	{
-	  /* "LDR<cond>SB" or "LDR<cond>SH".  */
+	  /* "LDR<cc>SB" or "LDR<cc>SH".  */
 	  if (Input_Match (doLowerCase ? 'h' : 'H', false))
-	    option = H_FLAG | 0x90 | S_FLAG | L_FLAG; /* "LDR<cond>SH".  */
+	    option = H_FLAG | 0x90 | S_FLAG | L_FLAG; /* "LDR<cc>SH".  */
 	  else if (Input_Match (doLowerCase ? 'b' : 'B', false))
-	    option = 0x90 | S_FLAG | L_FLAG; /* "LDR<cond>SB".  */
+	    option = 0x90 | S_FLAG | L_FLAG; /* "LDR<cc>SB".  */
 	  else
 	    option = kOption_NotRecognized;
 	}
@@ -450,14 +567,16 @@ Option_LdrStrType (bool isStore, bool doLowerCase)
 }
 
 /**
- * Pre-UAL:
- *   Supports {<cond>} [ "" | "T" | "B" | "BT" | "D" | "H" | "SB" | "SH" ]
- *   in LDR and STR.
- *   Note STR<cond>SB and STR<cond>SH are not supported, use STR<cond>B and
- *   STR<cond>H instead.
- * UAL:
- *   Supports [ "" | "T" | "B" | "BT" | "D" | "H" | "SB" | "SH" ] {<cond>}
- *   in LDR and STR.
+ * Try to parse:
+ *   Pre-UAL:
+ *     Supports [<cc>] [ "" | "T" | "B" | "BT" | "D" | "H" | "SB" | "SH" ]
+ *     in LDR and STR.
+ *     Note STR<cc>SB and STR<cc>SH are not supported, use STR<cc>B and
+ *     STR<cc>H instead.
+ *   UAL:
+ *     Supports [ "" | "T" | "B" | "BT" | "D" | "H" | "SB" | "SH" ] [<cc>]
+ *     in LDR and STR.
+ *   + end-of-keyword.
  */
 ARMWord
 Option_LdrStrCondAndType (bool isStore, bool doLowerCase)
@@ -465,7 +584,7 @@ Option_LdrStrCondAndType (bool isStore, bool doLowerCase)
   ARMWord option = Option_GetCCodeIfThere (doLowerCase);
   if (option == kOption_NotRecognized)
     {
-      /* No condition code recognised, try to parse <type> + [ <cond> ]
+      /* No condition code recognised, try to parse <type> + [ <cc> ]
 	 instead.  */
       option = Option_LdrStrType (isStore, doLowerCase);
       if (option != kOption_NotRecognized)
@@ -479,7 +598,8 @@ Option_LdrStrCondAndType (bool isStore, bool doLowerCase)
 
 
 /**
- * Tries to parse address mode used in RFE and SRS.
+ * For RFE/SRS instructions.
+ * Try to parse address mode used in RFE and SRS + end-of-keyword.
  * Note, no condition code are read (that's only possible with Thumb-2).
  */
 ARMWord
@@ -493,7 +613,8 @@ Option_CondRfeSrs (bool isLoad, bool doLowerCase)
 
 
 /**
- * Tries to parse [<cc>]<stackmode> (pre-UAL) and/or [<stackmode>][<cc>] (UAL).
+ * Try to parse [<cc>]<stackmode> (pre-UAL) and/or [<stackmode>][<cc>] (UAL)
+ * + end-of-keyword.
  */
 ARMWord
 Option_CondLdmStm (bool isLDM, bool doLowerCase)
@@ -524,6 +645,10 @@ Option_CondLdmStm (bool isLDM, bool doLowerCase)
 }
 
 
+/**
+ * For LFM/SFM instructions.
+ * Try to parse [<cc>].  NO end-of-keyword check.
+ */
 ARMWord
 Option_CondLfmSfm (bool doLowerCase)
 {
@@ -532,7 +657,9 @@ Option_CondLfmSfm (bool doLowerCase)
 
 
 /**
- * For all FPA (except LDF/STF) implementations.
+ * For all FPA (except LDF/STF/LFM/SFM) instructions.
+ * Try to parse [<cc>]["S" | "D" | "E" | "P"]["" | "P" | "M" | "Z"]
+ * + end-of-keyword.
  */
 ARMWord
 Option_CondPrecRound (bool doLowerCase)
@@ -545,7 +672,8 @@ Option_CondPrecRound (bool doLowerCase)
 
 
 /**
- * For LDF/STF implementation.
+ * For LDF/STF instructions.
+ * Try to parse [<cc>]["S" | "D" | "E" | "P"] + end-of-keyword.
  */
 ARMWord
 Option_CondPrec_P (bool doLowerCase)
@@ -556,105 +684,22 @@ Option_CondPrec_P (bool doLowerCase)
   return IsEndOfKeyword (option);
 }
 
-typedef struct
-{
-  size_t idx;
-  ARMWord cc;
-  bool doLowerCase;
-} ParseState;
-
-static void
-ParseState_Init (ParseState *stateP, bool doLowerCase)
-{
-  stateP->idx = 0;
-  stateP->cc = 0;
-  stateP->doLowerCase = doLowerCase;
-}
-
-/**
- * Tries to parse an optional 'L' or 'l'.
- */
-static bool
-ParseState_IsOptL (ParseState *stateP, ARMWord value)
-{
-  if (Input_LookN (stateP->idx) == (stateP->doLowerCase ? 'l' : 'L'))
-    {
-      stateP->cc |= value;
-      ++stateP->idx;
-    }
-  return true;
-}
-
-/**
- * Tries to parse optional condition code.
- */
-static bool
-ParseState_IsOptCC (ParseState *stateP)
-{
-  ARMWord cc = GetCCodeIfThere (stateP->doLowerCase, stateP->idx);
-  if (cc != kOption_NotRecognized)
-    {
-      stateP->cc |= cc;
-      stateP->idx += 2;
-    }
-  else
-    stateP->cc |= AL;
-  return true;
-}
-
-/**
- * Check whether we're at the end of a keyword (there might still be a
- * qualifier following).
- */
-static bool
-ParseState_IsEndOfKeyword (ParseState *stateP)
-{
-  if (Input_IsEndOfKeywordN (stateP->idx) || Input_LookN (stateP->idx) == '.')
-    {
-      Input_SkipN (stateP->idx);
-      return true;
-    }
-  return false;
-}
 
 /**
  * For LDC/STC instructions.
- * Try to parse [<cc>]["L"] (pre-UAL) and/or [<"L">][<cc>] (UAL).
+ * Try to parse [<cc>]["L"] (pre-UAL) and/or ["L"][<cc>] (UAL) + end-of-keyword.
  */
 ARMWord
 Option_CondL (bool doLowerCase)
 {
-  ParseState state;
-  ParseState_Init (&state, doLowerCase);
-  bool ok;
-  if (!(ok = ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state)))
-    {
-      ParseState_Init (&state, doLowerCase);
-      switch (State_GetSyntax ())
-	{
-	  case eSyntax_PreUALOnly:
-	    ok = ParseState_IsOptCC (&state) && ParseState_IsOptL (&state, N_FLAG)
-	           && ParseState_IsEndOfKeyword (&state);
-	    break;
-
-	  case eSyntax_Both:
-	    ok = ParseState_IsOptCC (&state) && ParseState_IsOptL (&state, N_FLAG)
-	           && ParseState_IsEndOfKeyword (&state);
-	    if (ok)
-	      break;
-	    ParseState_Init (&state, doLowerCase);
-	    /* Fall through.  */
-
-	  case eSyntax_UALOnly:
-	    ok = ParseState_IsOptL (&state, N_FLAG) && ParseState_IsOptCC (&state)
-	           && ParseState_IsEndOfKeyword (&state);
-	    break;
-	}
-    }
-  return ok ? state.cc : kOption_NotRecognized;
+  return GetOptCCodeAndOptChar (doLowerCase, 'L', N_FLAG);
 }
 
 
+/**
+ * For the FIX instruction.
+ * Try to parse [<cc>]["" | "P" | "M" | "Z"] + end-of-keyword.
+ */
 ARMWord
 Option_CondOptRound (bool doLowerCase)
 {
@@ -665,7 +710,7 @@ Option_CondOptRound (bool doLowerCase)
 
 /**
  * For B/BL instructions.
- * Try to parse [<cc>]["L"].
+ * Try to parse ["L"][<cc>] + end-of-keyword.
  */
 ARMWord
 Option_LinkCond (bool doLowerCase)
@@ -676,33 +721,41 @@ Option_LinkCond (bool doLowerCase)
   if (!(ok = ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state)))
     {
       ParseState_Init (&state, doLowerCase);
-      ok = ParseState_IsOptL (&state, LINK_BIT)
+      ok = ParseState_IsOptChar (&state, LINK_BIT, 'L')
 	     && ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state);
     }
   return ok ? state.cc : kOption_NotRecognized;
 }
 
 
+/**
+ * For CMF(E)/CNF(E) FPE instructions.
+ * Try to parse ["E"][<cc>] + end-of-keyword.
+ */
 ARMWord
 Option_ExceptionCond (bool doLowerCase)
 {
-  if (!Input_Match (doLowerCase ? 'e' : 'E', false))
-    return IsEndOfKeyword (GetCCode (doLowerCase)); /* Only cmf.CC possible  */
-  /* cmf.eq or cmfe.CC */
-  if (Input_Match (doLowerCase ? 'q' : 'Q', false))
-    return IsEndOfKeyword (EQ); /* Only cmf.eq */
-  /* Only cmfe.CC */
-  return IsEndOfKeyword (GetCCode (doLowerCase) | EXCEPTION_BIT);
+  ParseState state;
+  ParseState_Init (&state, doLowerCase);
+  bool ok;
+  if (!(ok = ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state)))
+    {
+      ParseState_Init (&state, doLowerCase);
+      ok = ParseState_IsOptChar (&state, EXCEPTION_BIT, 'E')
+	     && ParseState_IsOptCC (&state) && ParseState_IsEndOfKeyword (&state);
+    }
+  return ok ? state.cc : kOption_NotRecognized;
 }
 
 
+/**
+ * For the ADR instruction and ADRL pseudo-instruction.
+ * Try to parse [<cc>]["L"] (pre-UAL) and/or ["L"][<cc>] (UAL) + end-of-keyword.
+ */
 ARMWord
 Option_ADRL (bool doLowerCase)
 {
-  ARMWord option = GetCCode (doLowerCase);
-  if (Input_Match (doLowerCase ? 'l' : 'L', false))
-    option |= 1;
-  return IsEndOfKeyword (option);
+  return GetOptCCodeAndOptChar (doLowerCase, 'L', 1);
 }
 
 

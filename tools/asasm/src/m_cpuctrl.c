@@ -402,7 +402,12 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
   if (baseRegUnspecified)
     sprintf (toEncode, "&%x", constant);
   else
-    sprintf (toEncode, "[r%d, #&%x]", baseReg, constant);
+    {
+      if (constant > INT32_MAX)
+	sprintf (toEncode, "[r%d, #-&%x]", baseReg, ~constant + 1);
+      else
+	sprintf (toEncode, "[r%d, #&%x]", baseReg, constant);
+    }
   if (bestScore >= 3 || (bestScore == 2 && !isADRL))
     {
       if ((areaCurrentSymbol->area->type & AREA_ABS) != 0)
@@ -433,8 +438,6 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
 	  else
 	    Error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x to encode %s",
 		   offset, toEncode);
-	  bestScore = 2;
-	  split[bestIndex].try[1] = 0;
 	}
     }
   else if (bestScore == 2 && !isADRL && canSwitch)
@@ -494,9 +497,20 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
       uint32_t destReg = GET_DST_OP(baseInstr);
       Put_Ins_MOVW_MOVT (cc, destReg, split[bestIndex].try[0], false);
       if (bestScore == 2)
-	Put_Ins_MOVW_MOVT (cc, destReg, split[bestIndex].try[1], true);
+	{
+	  assert (split[bestIndex].try[1] != 0);
+	  Put_Ins_MOVW_MOVT (cc, destReg, split[bestIndex].try[1], true);
+	}
+    }
+  if (bestScore == 1  && isADRL && !canSwitch)
+    {
+      /* We need to output two instructions.  Use NOP (its value depends
+         on architecture support v6K and v6T2).  */
+      Put_Ins (4, Target_CheckCPUFeature (kCPUExt_v6K, false)
+                    || Target_CheckCPUFeature (kCPUExt_v6T2, false) ? 0xe320F000 : 0xe1a00000);
     }
 }
+
 
 /**
  * Implements ADR / ADRL.
