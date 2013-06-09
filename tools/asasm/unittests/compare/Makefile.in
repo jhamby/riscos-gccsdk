@@ -68,7 +68,7 @@ vpath %.s @srcdir@/core:@srcdir@/option_apcs:@srcdir@/option_cpu:@srcdir@/option
 
 all:
 
-check: $(check_AOF_OUTPUT) $(check_ELF_OUTPUT)
+check: $(check_ELF_OUTPUT) $(check_AOF_OUTPUT)
 	@$(ECHO) "*** All 'compare' tests were OK (do 'make -C `echo @abs_builddir@ | sed -e s#^@abs_top_builddir@/##` clean' first if you want to re-do them)"
 
 install:

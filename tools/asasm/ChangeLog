@@ -1,3 +1,13 @@
+Sun Jun  9 14:47:48 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpuctrl.c (m_sev): Add Thumb and Thumb2 support.
+	(m_wfe): Likewise.
+	(m_wfi): Likewise.
+	(m_yield): Likewise.
+
+	* unittests/compare/Makefile.in: Swap ELF/AOF order.
+	* unittests/compare/core/instr_sev_wfe_wfi_yield.s: Enhance.
+
 Sun Jun  9 13:45:49 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

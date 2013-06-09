@@ -797,7 +797,7 @@ m_mrs (bool doLowerCase)
 
 /**
  * Implements SEV.
- *   SEV<cond>
+ *   SEV[<cc>][<q>]
  */
 bool
 m_sev (bool doLowerCase)
@@ -806,16 +806,38 @@ m_sev (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v6K, true);
-  
-  Put_Ins (4, cc | 0x0320F004);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
+    instrWidth = eInstrWidth_Enforce16bit;
+
+  /* SEV executes as a NOP instruction in ARMv6T2.  */
+  uint64_t cpuFeatures = Target_GetCPUFeatures ();
+  if ((cpuFeatures & kArchExt_v7) != kArchExt_v7
+      && (cpuFeatures & kCPUExt_v6T2) != 0)
+    Error (ErrorWarning, "On ARMv6T2 %s will execute as NOP", "SEV");
+  else
+    Target_CheckCPUFeature (instrState == eInstrType_ARM ? kArchExt_v6K : kArchExt_v7, true);
+
+  if (instrState == eInstrType_ARM)
+    Put_Ins (4, cc | 0x0320F004);
+  else if (instrWidth == eInstrWidth_Enforce16bit)
+    Put_Ins (2, 0xBF40);
+  else
+    Put_Ins (4, 0xF3AF8004);
+
   return false;
 }
 
 
 /**
  * Implements WFE.
- *   WFE<cond>
+ *   WFE[<cc>][<q>]
  */
 bool
 m_wfe (bool doLowerCase)
@@ -824,16 +846,38 @@ m_wfe (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v6K, true);
-  
-  Put_Ins (4, cc | 0x0320F002);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
+    instrWidth = eInstrWidth_Enforce16bit;
+
+  /* WFE executes as a NOP instruction in ARMv6T2.  */
+  uint64_t cpuFeatures = Target_GetCPUFeatures ();
+  if ((cpuFeatures & kArchExt_v7) != kArchExt_v7
+      && (cpuFeatures & kCPUExt_v6T2) != 0)
+    Error (ErrorWarning, "On ARMv6T2 %s will execute as NOP", "WFE");
+  else
+    Target_CheckCPUFeature (instrState == eInstrType_ARM ? kArchExt_v6K : kArchExt_v7, true);
+
+  if (instrState == eInstrType_ARM)
+    Put_Ins (4, cc | 0x0320F002);
+  else if (instrWidth == eInstrWidth_Enforce16bit)
+    Put_Ins (2, 0xBF20);
+  else
+    Put_Ins (4, 0xF3AF8002);
+
   return false;
 }
 
 
 /**
  * Implements WFI.
- *   WFI<cond>
+ *   WFI[<cc>][<q>]
  */
 bool
 m_wfi (bool doLowerCase)
@@ -842,16 +886,38 @@ m_wfi (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v6K, true);
-  
-  Put_Ins (4, cc | 0x0320F003);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
+    instrWidth = eInstrWidth_Enforce16bit;
+
+  /* WFI executes as a NOP instruction in ARMv6T2.  */
+  uint64_t cpuFeatures = Target_GetCPUFeatures ();
+  if ((cpuFeatures & kArchExt_v7) != kArchExt_v7
+      && (cpuFeatures & kCPUExt_v6T2) != 0)
+    Error (ErrorWarning, "On ARMv6T2 %s will execute as NOP", "WFI");
+  else
+    Target_CheckCPUFeature (instrState == eInstrType_ARM ? kArchExt_v6K : kArchExt_v7, true);
+
+  if (instrState == eInstrType_ARM)
+    Put_Ins (4, cc | 0x0320F003);
+  else if (instrWidth == eInstrWidth_Enforce16bit)
+    Put_Ins (2, 0xBF30);
+  else
+    Put_Ins (4, 0xF3AF8003);
+
   return false;
 }
 
 
 /**
  * Implements YIELD.
- *   YIELD<cond>
+ *   YIELD[<cc>][<q>]
  */
 bool
 m_yield (bool doLowerCase)
@@ -860,7 +926,31 @@ m_yield (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Put_Ins (4, cc | 0x0320F001);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
+    instrWidth = eInstrWidth_Enforce16bit;
+
+  /* YIELD executes as a NOP instruction in ARMv6T2.  */
+  uint64_t cpuFeatures = Target_GetCPUFeatures ();
+  if ((cpuFeatures & kArchExt_v7) != kArchExt_v7
+      && (cpuFeatures & kCPUExt_v6T2) != 0)
+    Error (ErrorWarning, "On ARMv6T2 %s will execute as NOP", "YIELD");
+  else
+    Target_CheckCPUFeature (instrState == eInstrType_ARM ? kArchExt_v6K : kArchExt_v7, true);
+
+  if (instrState == eInstrType_ARM)
+    Put_Ins (4, cc | 0x0320F001);
+  else if (instrWidth == eInstrWidth_Enforce16bit)
+    Put_Ins (2, 0xBF10);
+  else
+    Put_Ins (4, 0xF3AF8001);
+
   return false;
 }
 
