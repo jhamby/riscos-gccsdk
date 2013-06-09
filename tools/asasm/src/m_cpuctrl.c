@@ -867,8 +867,8 @@ m_yield (bool doLowerCase)
 
 /**
  * Implements CPS.
- *   CPS<effect> <iflags>{, #<mode>}
- *   CPS #<mode>
+ *   CPS<effect>[<q>] <iflags>[", #" <mode>]
+ *   CPS[<q>] #<mode>
  * where:
  *   effect   is one of:
  *            IE  Interrupt or abort enable.
@@ -882,46 +882,56 @@ m_yield (bool doLowerCase)
 bool
 m_cps (bool doLowerCase)
 {
-  int imod;
-  if (Input_IsEndOfKeyword ())
-    imod = 0<<18;
-  else if (Input_MatchKeyword (doLowerCase ? "id" : "ID"))
-    imod = 3<<18;
-  else if (Input_MatchKeyword (doLowerCase ? "ie" : "IE"))
-    imod = 2<<18;
-  else
-    return true;
-  Input_SkipWS ();
+  bool effectSpecified = Input_LookN (0) == (doLowerCase ? 'i' : 'I');
+  bool effectEnable;
+  if (effectSpecified)
+    {
+      effectEnable = Input_LookN (1) == (doLowerCase ? 'e' : 'E');
+      if (!effectEnable && Input_LookN (1) != (doLowerCase ? 'd' : 'D'))
+	return true;
+      Input_SkipN (2);
+    }
 
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  Input_SkipWS ();
   bool readMode;
-  int iflags = 0;
-  if (imod)
+  ARMWord iflags = 0;
+  if (effectSpecified)
     {
       /* Read iflags.  */
-      if (Input_LookLower () == 'a')
+      while (!Input_IsEolOrCommentStart ()
+             && !(readMode = Input_Match (',', true)))
 	{
+	  const ARMWord iflagsBefore = iflags;
+	  switch (Input_LookLower ())
+	    {
+	      case 'a':
+		iflags |= 1<<2;
+		break;
+	      case 'i':
+		iflags |= 1<<1;
+		break;
+	      case 'f':
+		iflags |= 1<<0;
+		break;
+	      default:
+		Error (ErrorError, "Unknown interrupt mask bit specification");
+		(void) Input_Rest ();
+		break;
+	    }
+	  if (iflagsBefore == iflags)
+	    Error (ErrorWarning, "Interrupt mask bit already specified");
 	  Input_Skip ();
-	  iflags |= 1<<8;
+	  Input_SkipWS ();
 	}
-      if (Input_LookLower () == 'i')
-	{
-	  Input_Skip ();
-	  iflags |= 1<<7;
-	}
-      if (Input_LookLower () == 'f')
-	{
-	  Input_Skip ();
-	  iflags |= 1<<6;
-	}
-      if (iflags == 0)
-	Error (ErrorWarning, "CPS did not have any interrupt disable flags specified");
-      Input_SkipWS ();
-      readMode = Input_Match (',', true);
     }
   else
     readMode = true;
 
-  int mode = 0;
+  ARMWord mode = 0;
   if (readMode)
     {
       if (!Input_Match ('#', true))
@@ -948,10 +958,52 @@ m_cps (bool doLowerCase)
 	    }
 	}
     }
-  assert(!(((imod == (0<<18) || imod == (1<<18)) && !readMode) || (imod == (1<<18) && readMode)) && "We shouldn't be generating this");
-  Put_Ins (4, (0xF << 28) | (1<<24) | imod | (readMode ? (1<<17) : 0) | iflags | mode);
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (AL, instrState != eInstrType_ARM);
+
+  /* We need Thumb2 when mode is specified.  */
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
+    instrWidth = readMode ? eInstrWidth_Enforce32bit : eInstrWidth_Enforce16bit;
+  else if (instrWidth == eInstrWidth_Enforce16bit && readMode)
+    {
+      Error (ErrorError, "Narrow instruction qualifier for Thumb can not have mode specified");
+      instrWidth = eInstrWidth_Enforce32bit;
+    }
+
+  if (effectSpecified && iflags == 0)
+    Error (ErrorWarning, "Enabling/disabling interrupt without interrupt mask bits specified is UNPREDICTABLE");
+
+  if (instrState == eInstrType_ARM)
+    {
+      Target_CheckCPUFeature (kCPUExt_v6, true);
+      ARMWord imod;
+      if (effectSpecified)
+	imod = effectEnable ? (2<<18) : (3<<18);
+      else
+	imod = 0<<18;
+      Put_Ins (4, 0xF1000000 | imod | (readMode<<17) | (iflags<<6) | mode);
+    }
+  else if (instrWidth == eInstrWidth_Enforce16bit)
+    {
+      Target_CheckCPUFeature (kCPUExt_v6, true);
+      assert (!readMode);
+      Put_Ins (2, 0xB660 | (!effectEnable<<4) | iflags);
+    }
+  else
+    {
+      Target_CheckCPUFeature (kCPUExt_v6T2, true);
+      ARMWord imod;
+      if (effectSpecified)
+	imod = effectEnable ? (2<<9) : (3<<9);
+      else
+	imod = 0<<9;
+      Put_Ins (4, 0xF3af8000 | imod | (readMode<<8) | (iflags<<5) | mode);
+    }
+
   return false;
 }
+
 
 /**
  * Implements DBG.

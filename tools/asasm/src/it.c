@@ -92,7 +92,7 @@ IT_EmitIT (const IT_State_t *state, bool isThumb)
 
 /**
  * Implements IT.
- *   IT{<x>{<y>{<z>}}}{<q>} <firstcond>
+ *   IT["T" | "E" ["T" | "E" ["T" | "E"]]][<q>] <firstcond>
  */
 bool
 m_it (bool doLowerCase)
@@ -123,7 +123,7 @@ m_it (bool doLowerCase)
     return true;
 
   if (instrWidth == eInstrWidth_Enforce32bit)
-    Error (ErrorWarning, "Wide variant of IT does not exist");
+    Error (ErrorWarning, "Wide instruction qualifier for Thumb is not possible");
 
   Input_SkipWS ();
   newIT.cc = Option_GetCCodeIfThere (false); /* Condition code is an argument

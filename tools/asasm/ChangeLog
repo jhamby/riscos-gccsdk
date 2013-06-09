@@ -1,3 +1,11 @@
+Sun Jun  9 13:45:49 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* it.c (m_it): Tune warning.
+	* m_cpuctrl.c (m_cps): Add Thumb and Thumb2 support.
+
+	* unittests/compare/core/instr_cps.s: Enhance.
+
 Sat Jun  8 23:24:16 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
