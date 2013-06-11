@@ -606,140 +606,231 @@ m_adr (bool doLowerCase)
   return false;
 }
 
-/* PSR access */
 
-static ARMWord
-getpsr (bool only_all)
+static const struct
+{
+  const char *bankedRegP;
+  uint8_t r;
+  uint8_t sys;
+} oBankedReg[] =
+{
+  { "r8_usr", 0, 0 },
+  { "r9_usr", 0, 1 },
+  { "r10_usr", 0, 2 },
+  { "r11_usr", 0, 3 },
+  { "r12_usr", 0, 4 },
+  { "sp_usr", 0, 5 },
+  { "lr_usr", 0, 6 },
+  { "r8_fiq", 0, 8 + 0 },
+  { "r9_fiq", 0, 8 + 1 },
+  { "r10_fiq", 0, 8 + 2 },
+  { "r11_fiq", 0, 8 + 3 },
+  { "r12_fiq", 0, 8 + 4 },
+  { "sp_fiq", 0, 8 + 5 },
+  { "lr_fiq", 0, 8 + 6 },
+  { "lr_irq", 0, 16 + 0 },
+  { "sp_irq", 0, 16 + 1 },
+  { "lr_svc", 0, 16 + 2 },
+  { "sp_svc", 0, 16 + 3 },
+  { "lr_abt", 0, 16 + 4 },
+  { "sp_abt", 0, 16 + 5 },
+  { "lr_und", 0, 16 + 6 },
+  { "sp_und", 0, 16 + 7 },
+  { "lr_mon", 0, 24 + 4 },
+  { "sp_mon", 0, 24 + 5 },
+  { "elr_hyp", 0, 24 + 6 },
+  { "sp_hyp", 0, 24 + 7 },
+  { "spsr_fiq", 1, 8 + 6 },
+  { "spsr_irq", 1, 16 + 0 },
+  { "spsr_svc", 1, 16 + 2 },
+  { "spsr_abt", 1, 16 + 4 },
+  { "spsr_und", 1, 16 + 6 },
+  { "spsr_mon", 1, 24 + 4 },
+  { "spsr_hyp", 1, 24 + 6 },
+};
+
+/**
+ * \return Index in oBankedReg for given banked register name.  Is SIZE_MAX
+ * when not recognized as banked register.
+ */
+static size_t
+GetBankedReg (void)
+{
+  for (size_t idx = 0; idx != sizeof (oBankedReg)/sizeof (oBankedReg[0]); ++idx)
+    {
+      if (Input_MatchStringLower (oBankedReg[idx].bankedRegP))
+	return idx;
+    }
+  return SIZE_MAX;
+}
+
+typedef struct
+{
+  size_t bankedReg;
+  bool error;
+  bool isSPSR; /* Only when bankedReg == SIZE_MAX.  */
+  uint8_t mask; /* Only when bankedReg == SIZE_MAX and writeFields was true.  */
+} Parse_PSR_t;
+
+/**
+ * \param writeFields When true, it's MSR so need to parse bits/fields in
+ * APSR_<bits>, CPSR_<fields> and SPSR_<fields>.
+ */
+static Parse_PSR_t
+Parse_PSR (bool writeFields)
 {
   Input_SkipWS ();
 
+  Parse_PSR_t result = { .bankedReg = GetBankedReg (), .error = false };
+  if (result.bankedReg != SIZE_MAX)
+    return result;
   /* Read "APSR", "CPSR" or "SPSR".  */
-  bool isAPSR = false;
-  ARMWord saved;
-  switch (Input_GetCLower ())
+  enum { isAPSR, isCPSR, isSPSR } keyword;
+  if (Input_MatchStringLower ("apsr"))
+    keyword = isAPSR;
+  else if (Input_MatchStringLower ("cpsr"))
+    keyword = isCPSR;
+  else if (Input_MatchStringLower ("spsr"))
+    keyword = isSPSR;
+  else
     {
-      case 'a':
-	isAPSR = true;
-	/* Fall through.  */
-      case 'c':
-        saved = 0;
-        break;
-      case 's':
-        saved = 1 << 22;
-        break;
-      default:
-        Error (ErrorError, "Not a PSR name (expected 'APSR', 'CPSR' or 'SPSR')");
-        return 0;
+      Error (ErrorError, "Unrecognized PSR field");
+      result.error = true;
+      return result;
     }
-  if (Input_GetCLower () != 'p'
-      || Input_GetCLower () != 's'
-      || Input_GetCLower () != 'r')
-    {
-      Error (ErrorError, "Not a PSR name (expected 'APSR', 'CPSR' or 'SPSR')");
-      return 0;
-    }
+  result.isSPSR = keyword == isSPSR;
 
-  if (isAPSR)
+  if (keyword == isCPSR || keyword == isSPSR)
     {
-      if (only_all)
-	saved |= 0xF<<16;
+      enum { isNone, isAll, isFlg, isCtl, isCXSF } type;
+      const char *reqFieldSpecP;
+      if (Input_IsEndOfKeyword () || Input_Look () == ',')
+	{
+	  /* "CPSR" or "SPSR"
+	     writeFields true: deprecated, use "CPSR_cf"/"SPSR_cf" instead.  */
+	  reqFieldSpecP = writeFields ? "cf" : NULL;
+	  type = isNone;
+	  result.mask = 0x9;
+	}
+      else if (Input_MatchString ("_all"))
+	{
+	  /* "CPSR_all" or "SPSR_all".
+	     writeFields false: deprecated, use "CPSR"/"SPSR" instead
+	     writeFields true: deprecated, use "CPSR_cf"/"SPSR_cf" instead.  */
+	  reqFieldSpecP = writeFields ? "cf" : "";
+	  type = isAll;
+	  result.mask = 0x9;
+	}
+      else if (Input_MatchString ("_flg"))
+	{
+	  /* "CPSR_flg" or "SPSR_flg".
+	     writeFields false: illegal
+	     writeFields true: deprecated, use "APSR_nzcvq"/"SPSR_f" instead.  */
+	  reqFieldSpecP = writeFields ? "f" : NULL;
+	  type = isFlg;
+	  result.mask = 0x8;
+	}
+      else if (Input_MatchString ("_ctl"))
+	{
+	  /* "CPSR_ctl" or "SPSR_ctl".
+	     writeFields false: illegal
+	     writeFields true: deprecated, use "CPSR_c"/"SPSR_c" instead.  */
+	  reqFieldSpecP = writeFields ? "c" : NULL;
+	  type = isCtl;
+	  result.mask = 0x1;
+	}
       else
 	{
-	  /* Process "APSR_<bits> with <bits> = one of 'nzcvq', 'g' or 'nzcvqg'.  */
-	  bool ok;
-	  if ((ok = Input_Match ('_', false)) != false)
+	  /* "{C|S}PSR_{c}{x}{s}{f}.
+	     writeFields false: illegal
+	     writeFields true & CPSR case, when possible it's recommended to
+	     use APSR_{nzcvq}{g} instead.  */
+	  reqFieldSpecP = NULL;
+	  type = isCXSF;
+	  result.mask = 0;
+	  bool ok = Input_Match ('_', false);
+	  while (ok)
 	    {
-	      if (Input_MatchString ("nzcvq"))
-		saved |= 1<<19;
-	      if (Input_Match ('g', false))
-		saved |= 1<<18;
-	      ok = Input_IsEndOfKeyword () || Input_Look () == ',';
+	      uint8_t maskPrev = result.mask;
+	      if (Input_Match ('c', false))
+		result.mask |= 0x1;
+	      else if (Input_Match ('x', false))
+		result.mask |= 0x2;
+	      else if (Input_Match ('s', false))
+		result.mask |= 0x4;
+	      else if (Input_Match ('f', false))
+		result.mask |= 0x8;
+	      else
+		{
+		  ok = Input_IsEndOfKeyword () || Input_Look () == ',';
+		  break;
+		}
+	      if (maskPrev == result.mask)
+		Error (ErrorWarning, "PSR field specifier bit has already been specified");
 	    }
 	  if (!ok)
-	    Error (ErrorError, "Expected one of 'nzcvq', 'g' or 'nzcvqg'");
+	    {
+	      Error (ErrorError, "Unrecognized PSR field specifier");
+	      result.error = true;
+	      return result;
+	    }
+	  if (writeFields && result.mask == 0)
+	    Error (ErrorWarning, "Empty PSR field specifier is UNPREDICTABLE");
 	}
+      if (writeFields
+          && keyword == isCPSR
+          && (result.mask & 0xC0) != 0 && (result.mask & ~0xC0) == 0)
+	Error (ErrorWarning, "Recommended to use APSR_%s%s instead",
+	       (result.mask & 0x8) ? "nzcvq" : "",
+	       (result.mask & 0x4) ? "g" : "");
+      else if (!writeFields && (type != isNone && type != isAll))
+	{
+	  assert (type == isFlg || type == isCtl || type == isCXSF);
+	  const char *s = type == isFlg ? "flg" : type == isCtl ? "ctl" : "cxsf";
+	  Error (ErrorError, "PSR field specifier _%s type can not be used for MRS", s);
+	}
+      else if (reqFieldSpecP)
+	Error (ErrorWarning, "PSR field specifier is OBSOLETE, use %s_%s instead",
+	       keyword == isCPSR ? "CPSR" : "SPSR", reqFieldSpecP);
     }
   else
     {
-      bool giveLegacyWarning;
-      if (!Input_Match ('_', false))
+      assert (keyword == isAPSR);
+      /* Process "APSR_<bits> with <bits> = one of 'nzcvq', 'g' or 'nzcvqg'.  */
+      result.mask = 0;
+      if (Input_Match ('_', false))
 	{
-	  giveLegacyWarning = !only_all;
-	  saved |= only_all ? 0xF<<16 : 0x9<<16;
-	}
-      else
-	{
-	  const char * const inputMark = Input_GetMark ();
-	  char w[3];
-	  w[0] = Input_GetCLower ();
-	  w[1] = Input_GetCLower ();
-	  w[2] = Input_GetCLower ();
-	  if (!memcmp (w, "all", sizeof ("all")-1))
+	  if (Input_MatchStringLower ("nzcvq"))
+	    result.mask |= 0x8;
+	  if (Input_Match ('g', false))
+	    result.mask |= 0x4;
+	  if (result.mask == 0 || !(Input_IsEndOfKeyword () || Input_Look () == ','))
 	    {
-	      giveLegacyWarning = true;
-	      saved |= only_all ? 0xF<<16 : 0x9<<16;
-	    }
-	  else if (only_all)
-	    {
-	      Error (ErrorError, "Partial PSR access not allowed");
-	      return 0;
-	    }
-	  else if (!memcmp (w, "ctl", sizeof ("ctl")-1))
-	    {
-	      giveLegacyWarning = true;
-	      saved |= 0x1<<16;
-	    }
-	  else if (!memcmp (w, "flg", sizeof ("flg")-1))
-	    {
-	      giveLegacyWarning = true;
-	      saved |= 0x8<<16;
-	    }
-	  else
-	    {
-	      Input_RollBackToMark (inputMark);
-	      giveLegacyWarning = false;
-
-	      int p;
-	      do
-		{
-		  char c;
-		  switch (c = Input_LookLower ())
-		    {
-		      case 'c':
-			p = 16;
-			break;
-		      case 'x':
-			p = 17;
-			break;
-		      case 's':
-			p = 18;
-			break;
-		      case 'f':
-			p = 19;
-			break;
-		      default:
-			p = 0;
-			break;
-		    }
-		  if (p)
-		    {
-		      if (saved & (1 << p))
-			Error (ErrorError, "PSR mask bit '%c' already specified", c);
-		      Input_Skip ();
-		      saved |= 1 << p;
-		    }
-		} while (p);
+	      Error (ErrorError, "Expected one of 'nzcvq', 'g' or 'nzcvqg'");
+	      result.error = true;
+	      return result;
 	    }
 	}
-      if (giveLegacyWarning)
-	Error (ErrorWarning, "The CPSR, CPSR_flg, CPSR_ctl, CPSR_all, SPSR, SPSR_flg, SPSR_ctl and SPSR_all forms of PSR field specification have been superseded by the csxf format");
+      else if (!Input_IsEndOfKeyword () && !Input_Look () == ',')
+	{
+	  Error (ErrorError, "Unrecognized PSR field specifier");
+	  result.error = true;
+	  return result;
+	}
+      if (!writeFields && result.mask != 0)
+	Error (ErrorError, "PSR field specifier _%s%s can not be used for MRS",
+	       (result.mask & 0x8) ? "nzcvq" : "", (result.mask & 0x4) ? "g" : "");
     }
-
-  return saved;
+  
+  return result;
 }
+
 
 /**
  * Implements MSR.
+ *   MSR[<c>][<q>] <banked_reg>, <Rn>
+ *   MSR[<c>][<q>] <spec_reg>, #const
+ *   MSR[<c>][<q>] <spec_reg>, <Rn>
  */
 bool
 m_msr (bool doLowerCase)
@@ -748,33 +839,96 @@ m_msr (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v3, true);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
 
-  cc |= getpsr (false) | 0x0120F000;
+  const Parse_PSR_t psr = Parse_PSR (true);
+
+  bool isReg = false;
+  ARMWord params = 0;
   Input_SkipWS ();
   if (!Input_Match (',', true))
     Error (ErrorError, "%slhs", InsertCommaAfter);
-  if (Input_Match ('#', false))
+  else if (Input_Match ('#', false))
     {
       const Value *im = Expr_BuildAndEval (ValueInt);
       if (im->Tag == ValueInt)
-	{
-	  cc |= 0x02000000;
-	  cc |= Fix_Imm8s4 (cc, im->Data.Int.i); /* FIXME: no rotator support (see getRhs()) ? */
-	}
+	params = Fix_Imm8s4 (cc, im->Data.Int.i); /* FIXME: no rotator support (see getRhs()) ? */
       else
 	Error (ErrorError, "Illegal immediate expression");
-      if (cc & ((1<<17) | (1<<18)))
+      if (psr.bankedReg != SIZE_MAX && (psr.mask & 0x6) != 0)
 	Error (ErrorWarning, "Writing immediate value to status or extension field of CPSR/SPSR is inadvisable");
     }
   else
-    cc |= Get_CPUReg ();
-  Put_Ins (4, cc);
+    {
+      params = Get_CPUReg ();
+      isReg = true;
+    }
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  if (psr.bankedReg != SIZE_MAX && !isReg)
+    {
+      Error (ErrorError, "MSR with banked register can only have a register as source");
+      params = 0;
+      isReg = true;
+    }
+  if (instrState != eInstrType_ARM && !isReg)
+    {
+      Error (ErrorError, "MSR with constant can't be encoded in Thumb");
+      params = 0;
+      isReg = true;
+    }
+
+  Target_CheckCPUFeature (psr.bankedReg != SIZE_MAX ? kCPUExt_Virt : instrState == eInstrType_ARM ? kCPUExt_v3 : kCPUExt_v6T2, true);
+  if (instrState == eInstrType_ARM)
+    {
+      if (isReg)
+	{
+	  if (psr.bankedReg != SIZE_MAX && (params == 13 || params == 15))
+	    Error (ErrorWarning, "The use of R13 or PC as Rn is UNPREDICTABLE");
+	  if (psr.bankedReg == SIZE_MAX && params == 15)
+	    Error (ErrorWarning, "The use of PC as Rn is UNPREDICTABLE");
+	}
+      Put_Ins (4, cc | (psr.bankedReg != SIZE_MAX ? 0x0120F200u
+						      | (oBankedReg[psr.bankedReg].r << 22)
+						      | ((oBankedReg[psr.bankedReg].sys & 0xF)<<16)
+						      | ((oBankedReg[psr.bankedReg].sys & 0x10)<<(8-4))
+						      | params
+                                                  : 0x0120F000u
+						      | (!isReg << 25)
+						      | (psr.isSPSR << 22)
+						      | (psr.mask << 16)
+						      | params));
+    }
+  else
+    {
+      if (instrWidth == eInstrWidth_Enforce16bit)
+        Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+      assert (isReg);
+      if (params == 13 || params == 15)
+	Error (ErrorWarning, "The use of R13 or PC as Rn is UNPREDICTABLE");
+      Put_Ins (4, psr.bankedReg != SIZE_MAX ? 0xF3808020
+						| (oBankedReg[psr.bankedReg].r << 20)
+						| (params << 16)
+						| ((oBankedReg[psr.bankedReg].sys & 0xF) << 8)
+						| ((oBankedReg[psr.bankedReg].sys & 0x10) << (4-4))
+					    : 0xF3808000
+						| (psr.isSPSR << 20)
+						| (params << 16)
+						| (psr.mask << 8));
+    }
+
   return false;
 }
 
+
 /**
  * Implements MRS.
+ *   MRS[<c>][<q>] <Rd>, <banked_reg> 
+ *   MRS[<c>][<q>] <Rn>, <spec_reg>
  */
 bool
 m_mrs (bool doLowerCase)
@@ -783,14 +937,52 @@ m_mrs (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v3, true);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
 
-  cc |= Get_CPUReg () << 12 | 0x01000000;
+  ARMWord params = Get_CPUReg ();
+
+  Target_CheckCPUFeature (kCPUExt_v3, true);
   Input_SkipWS ();
   if (!Input_Match (',', true))
     Error (ErrorError, "%slhs", InsertCommaAfter);
-  cc |= getpsr (true);
-  Put_Ins (4, cc);
+
+  const Parse_PSR_t psr = Parse_PSR (false);
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  Target_CheckCPUFeature (psr.bankedReg != SIZE_MAX ? kCPUExt_Virt : instrState == eInstrType_ARM ? kCPUExt_v3 : kCPUExt_v6T2, true);
+  if (instrState == eInstrType_ARM)
+    {
+      if (params == 15)
+	Error (ErrorWarning, "The use of R13 or PC as Rn is UNPREDICTABLE");
+      Put_Ins (4, cc | (psr.bankedReg != SIZE_MAX ? 0x01000200
+						      | (oBankedReg[psr.bankedReg].r << 22)
+						      | ((oBankedReg[psr.bankedReg].sys & 0xF) << 16)
+						      | (params << 12)
+						      | ((oBankedReg[psr.bankedReg].sys & 0x10) << (8-4))
+						  : 0x010F0000
+						      | (psr.isSPSR << 22)
+						      | (params << 12)));
+    }
+  else
+    {
+      if (instrWidth == eInstrWidth_Enforce16bit)
+	Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+      if (params == 13 || params == 15)
+	Error (ErrorWarning, "The use of PC as Rn is UNPREDICTABLE");
+      Put_Ins (4, cc | (psr.bankedReg != SIZE_MAX ? 0xF3E08020
+						      | (oBankedReg[psr.bankedReg].r << 20)
+						      | ((oBankedReg[psr.bankedReg].sys & 0xF) << 16)
+						      | (params << 8)
+						      | ((oBankedReg[psr.bankedReg].sys & 0x10) << (4-4))
+						  : 0xF3EF8000
+						      | (psr.isSPSR << 20)
+						      | (params << 8)));
+    }
+
   return false;
 }
 

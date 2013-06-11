@@ -1,3 +1,17 @@
+Tue Jun 11 21:20:45 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cpuctrl.c (oBankedReg): Add.
+	(GetBankedReg, Parse_PSR_t, Parse_PSR): Add.
+	(getpsr): Remove.
+	(m_msr): Make use of Parse_PSR instead of getpsr. Add Thumb2 support.
+	(m_mrs): Likewise.
+	* option.h (ARM_MODE_*): Change into ARM_Mode_e* enum. Add monitor and
+	hyp entries.
+	* option.c (Option_IsValidARMMode): Follow ARM_MODE_* change.
+
+	* unittests/compare/core/instr_mrs_msr.s: Enhance.
+
 Sun Jun  9 14:47:48 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/m_cpuctrl.c (m_sev): Add Thumb and Thumb2 support.

@@ -760,13 +760,15 @@ Option_ADRL (bool doLowerCase)
 
 
 bool
-Option_IsValidARMMode (int armMode)
+Option_IsValidARMMode (unsigned armMode)
 {
-  return armMode == ARM_MODE_USR
-	   || armMode == ARM_MODE_FIQ
-	   || armMode == ARM_MODE_IRQ
-	   || armMode == ARM_MODE_SVC
-	   || armMode == ARM_MODE_ABORT
-	   || armMode == ARM_MODE_UNDEF
-	   || armMode == ARM_MODE_SYSTEM;
+  return armMode == ARM_Mode_eUSR
+	   || armMode == ARM_Mode_eFIQ
+	   || armMode == ARM_Mode_eIRQ
+	   || armMode == ARM_Mode_eSVC
+	   || armMode == ARM_Mode_eMON
+	   || armMode == ARM_Mode_eABT
+	   || armMode == ARM_Mode_eHYP
+	   || armMode == ARM_Mode_eUND
+	   || armMode == ARM_Mode_eSYS;
 }

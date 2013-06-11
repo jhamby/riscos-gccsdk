@@ -135,14 +135,19 @@ InstrWidth_e Option_GetInstrWidth (bool doLowerCase);
 
 #define FORCE_FLAG	((ARMWord)1<<22)
 
-#define ARM_MODE_USR	(0x10)
-#define ARM_MODE_FIQ	(0x11)
-#define ARM_MODE_IRQ	(0x12)
-#define ARM_MODE_SVC	(0x13)
-#define ARM_MODE_ABORT	(0x17)
-#define ARM_MODE_UNDEF	(0x1B)
-#define ARM_MODE_SYSTEM	(0x1F)
+typedef enum
+{
+  ARM_Mode_eUSR =	0x10, /* User.  */
+  ARM_Mode_eFIQ =	0x11, /* FIQ.  */
+  ARM_Mode_eIRQ =	0x12, /* IRQ.  */
+  ARM_Mode_eSVC =	0x13, /* Supervisor.  */
+  ARM_Mode_eMON =	0x16, /* Monitor.  */
+  ARM_Mode_eABT =	0x17, /* Abort.  */
+  ARM_Mode_eHYP =	0x1A, /* Hyp.  */
+  ARM_Mode_eUND =	0x1B, /* Undefined.  */
+  ARM_Mode_eSYS =	0x1F  /* System.  */
+} ARM_Mode_e;
 
-bool Option_IsValidARMMode (int armMode);
+bool Option_IsValidARMMode (unsigned armMode);
 
 #endif
