@@ -1,3 +1,14 @@
+Tue Jun 11 22:10:52 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cpuctrl.c (m_swi): Add Thumb support.
+	(m_bkpt): Make hash parsing optional.
+	(Parse_PSR_t): Drop error field.
+	(Parse_PSR): Follow Parse_PSR_t change.
+
+	* unittests/compare/core/instr_swi_svc.s: Enhance.
+	* unittests/compare/core/instr_bkpt.s: Likewise.
+
 Tue Jun 11 21:49:09 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

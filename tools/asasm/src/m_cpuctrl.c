@@ -208,11 +208,11 @@ m_bxj (bool doLowerCase)
   return false;
 }
 
+
 /**
  * Implements SVC / SWI.
- *   SVC/SWI #<24 bit int>
- *   SVC/SWI <24 bit int>
- *   SVC/SWI <string>
+ *   SVC/SWI[<cc>][<q>] ["#"]<24 bit int>
+ *   SVC/SWI[<cc>][<q>] <string>
  */
 bool
 m_swi (bool doLowerCase)
@@ -221,20 +221,19 @@ m_swi (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  ARMWord swiNum = 0;
   Input_SkipWS ();
-  ValueTag valueOK = Input_Match ('#', false) ? ValueInt : (ValueInt | ValueString);
-  const Value *im = Expr_BuildAndEval (valueOK);
-  ARMWord ir = cc | 0x0F000000;
+  ValueTag valueTags = Input_Match ('#', false) ? ValueInt : (ValueInt | ValueString);
+  const Value *im = Expr_BuildAndEval (valueTags);
   switch (im->Tag)
     {
       case ValueInt:
-	{
-	  unsigned swiNum = im->Data.Int.i;
-	  if ((swiNum & 0xffffff) != swiNum)
-	    Error (ErrorError, "Illegal swi number %d(0x%08x)", swiNum, swiNum);
-	  ir |= swiNum;
-	  break;
-	}
+	swiNum = im->Data.Int.i;
+	break;
 
       case ValueString:
 	{
@@ -243,9 +242,12 @@ m_swi (bool doLowerCase)
 	  char swiname[im->Data.String.len + 1];
 	  memcpy (swiname, im->Data.String.s, im->Data.String.len);
 	  swiname[im->Data.String.len] = '\0';
-	  ir |= OS_SWINameToNum (swiname);
-	  if (ir == 0xFFFFFFFF)
-	    Error (ErrorError, "Unknown SVC/SWI name");
+	  swiNum = OS_SWINameToNum (swiname);
+	  if (swiNum == 0xFFFFFFFF)
+	    {
+	      Error (ErrorError, "Unknown SVC/SWI name");
+	      swiNum = 0;
+	    }
 #else
 	  Error (ErrorError, "RISC OS is required to look up the SVC/SWI name");
 #endif
@@ -257,14 +259,31 @@ m_swi (bool doLowerCase)
 	  Error (ErrorError, "Illegal SVC/SWI expression");
 	break;
     }
-  Put_Ins (4, ir);
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  ARMWord maxSwiNum = instrState == eInstrType_ARM ? (1<<24) : (1<<8);
+  if (swiNum >= maxSwiNum)
+    Error (ErrorError, "SVC/SWI number %d (0x%08x) to high (max is 0x%08x)",
+           swiNum, swiNum, maxSwiNum - 1);
+  if (instrState == eInstrType_ARM)
+   Put_Ins (4, cc | 0x0F000000 | swiNum);
+  else
+    {
+      Target_CheckCPUFeature (kCPUExt_v4T, true);
+      if (instrWidth == eInstrWidth_Enforce32bit)
+	Error (ErrorError, "Wide instruction qualifier for Thumb is not possible");
+      Put_Ins (2, 0xDF00 | swiNum);
+    }
+
   return false;
 }
 
 
 /**
  * Implements BKPT.
- *   BKPT[<cc>][<q>] #<imm>
+ *   BKPT[<cc>][<q>] ["#"]<imm>
  *
  * Note <cc> should be AL or "" otherwise it's unpredictable.
  */
@@ -280,8 +299,7 @@ m_bkpt (bool doLowerCase)
     return true;
 
   Input_SkipWS ();
-  if (!Input_Match ('#', false))
-    Error (ErrorInfo, "BKPT is always immediate");
+  (void) Input_Match ('#', false);
   const Value *im = Expr_BuildAndEval (ValueInt);
   int i;
   if (im->Tag != ValueInt)
@@ -696,7 +714,6 @@ GetBankedReg (void)
 typedef struct
 {
   size_t bankedReg;
-  bool error;
   bool isSPSR; /* Only when bankedReg == SIZE_MAX.  */
   uint8_t mask; /* Only when bankedReg == SIZE_MAX and writeFields was true.  */
 } Parse_PSR_t;
@@ -710,7 +727,7 @@ Parse_PSR (bool writeFields)
 {
   Input_SkipWS ();
 
-  Parse_PSR_t result = { .bankedReg = GetBankedReg (), .error = false };
+  Parse_PSR_t result = { .bankedReg = GetBankedReg () };
   if (result.bankedReg != SIZE_MAX)
     return result;
   /* Read "APSR", "CPSR" or "SPSR".  */
@@ -724,7 +741,6 @@ Parse_PSR (bool writeFields)
   else
     {
       Error (ErrorError, "Unrecognized PSR field");
-      result.error = true;
       return result;
     }
   result.isSPSR = keyword == isSPSR;
@@ -800,7 +816,6 @@ Parse_PSR (bool writeFields)
 	  if (!ok)
 	    {
 	      Error (ErrorError, "Unrecognized PSR field specifier");
-	      result.error = true;
 	      return result;
 	    }
 	  if (writeFields && result.mask == 0)
@@ -836,14 +851,12 @@ Parse_PSR (bool writeFields)
 	  if (result.mask == 0 || !(Input_IsEndOfKeyword () || Input_Look () == ','))
 	    {
 	      Error (ErrorError, "Expected one of 'nzcvq', 'g' or 'nzcvqg'");
-	      result.error = true;
 	      return result;
 	    }
 	}
       else if (!Input_IsEndOfKeyword () && !Input_Look () == ',')
 	{
 	  Error (ErrorError, "Unrecognized PSR field specifier");
-	  result.error = true;
 	  return result;
 	}
       if (!writeFields && result.mask != 0)
