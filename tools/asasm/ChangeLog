@@ -1,3 +1,12 @@
+Tue Jun 11 21:49:09 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* decode.c (oDecodeTable): Make BKPT eCB_VoidPMatch.
+	* m_cpuctrl.h (m_bkpt): Update prototype.
+	* m_cpuctrl.c (m_bkpt): Fix hash parsing.  Add Thumb support.
+
+	* unittests/compare/core/instr_bkpt.s: Enhance.
+
 Tue Jun 11 21:20:45 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

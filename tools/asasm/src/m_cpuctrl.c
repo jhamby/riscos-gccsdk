@@ -261,15 +261,26 @@ m_swi (bool doLowerCase)
   return false;
 }
 
+
 /**
  * Implements BKPT.
+ *   BKPT[<cc>][<q>] #<imm>
+ *
+ * Note <cc> should be AL or "" otherwise it's unpredictable.
  */
 bool
-m_bkpt (void)
+m_bkpt (bool doLowerCase)
 {
-  Target_CheckCPUFeature (kCPUExt_v5, true);
+  ARMWord cc = Option_Cond (doLowerCase);
+  if (cc == kOption_NotRecognized)
+    return true;
 
-  if (Input_Match ('#', false))
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  Input_SkipWS ();
+  if (!Input_Match ('#', false))
     Error (ErrorInfo, "BKPT is always immediate");
   const Value *im = Expr_BuildAndEval (ValueInt);
   int i;
@@ -280,12 +291,30 @@ m_bkpt (void)
     }
   else
     i = im->Data.Int.i;
-  ARMWord val = Fix_Int (2, i);
 
-  ARMWord ir = 0xE1200070 | ((val & 0xFFF0) << 4) | (val & 0xF);
-  Put_Ins (4, ir);
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+
+  if (cc != AL)
+    Error (ErrorWarning, "For BKPT, using condition code different than AL is UNPREDICTABLE");
+
+  Target_CheckCPUFeature (instrState == eInstrType_ARM ? kCPUExt_v5 : kCPUExt_v5T, true);
+  if (instrState == eInstrType_ARM)
+    {
+      ARMWord val = Fix_Int (2, i);
+      Put_Ins (4, cc | 0xE1200070 | ((val & 0xFFF0) << 4) | (val & 0xF));
+    }
+  else
+    {
+      if (instrWidth == eInstrWidth_Enforce32bit)
+	Error (ErrorError, "Wide instruction qualifier for Thumb is not possible");
+      ARMWord val = Fix_Int (1, i);
+      Put_Ins (2, 0xBE00 | val);
+    }
+
   return false;
 }
+
 
 /**
  * \param constant Constant value relative to base register (R0 .. R15), or

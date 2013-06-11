@@ -1,12 +1,25 @@
 ; Tests BKPT.
-; RUNOPT: -CPU=7-A
+; RUNOPT: -CPU=5T
 
 		AREA |C$$code|, CODE, READONLY
 
 	[ :LNOT: REFERENCE
-		BKPT	1234
+		ARM
+		BKPT	#1234
+		BKPT.W	#&Feba
+
+		THUMB
+		BKPT	#0xC2
+		BKPT.N	#&C2
 	|
-		DCI	&E1204D72
+		ARM
+		DCI &e1204d72	; bkpt	0x04d2
+		DCI &e12feb7a	; bkpt	0xfeba
+
+		THUMB
+		DCI.N &bec2	; bkpt	0x00c2
+		DCI.N &bec2	; bkpt	0x00c2
+
 	]
 
 		END

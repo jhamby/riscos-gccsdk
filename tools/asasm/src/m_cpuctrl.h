@@ -24,7 +24,7 @@
 #include <stdbool.h>
 
 bool m_adr (bool doLowerCase);
-bool m_bkpt (void);
+bool m_bkpt (bool doLowerCase);
 bool m_blx (bool doLowerCase);
 bool m_branch (bool doLowerCase);
 bool m_bx (bool doLowerCase);
