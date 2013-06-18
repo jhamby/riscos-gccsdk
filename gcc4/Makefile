@@ -208,7 +208,7 @@ clean-done:
 	-rm -rf $(BUILDDIR) $(BUILDSTEPSDIR) $(SRCDIR) $(GCCSDK_CROSS_PREFIX) $(GCCSDK_RISCOS_PREFIX)
 	-svn revert -R $(SRCORIGDIR)/gcc-trunk
 	-svn status $(SRCORIGDIR)/gcc-trunk | grep -E "^?" | cut -b 9- | xargs rm -rf
-	-svn status --no-ignore | grep "^I       " | cut -b 9- | grep -v -E "^(gccsdk-params|srcdir\.orig|release-area)$$" | xargs rm -rf
+	for i in . riscos/asasm riscos/asasm/decaof/ riscos/asasm/elftoolchain/ ; do svn status --no-ignore $$i | grep "^I       " | cut -b 9- | grep -v -E "^(gccsdk-params|srcdir\.orig|release-area)$$" | xargs rm -rf ; done
 
 # Return to a state for doing a full fresh cross build (using the current binutils/gcc sources).
 clean-cross: $(GCCSDK_INTERNAL_GETENV)
