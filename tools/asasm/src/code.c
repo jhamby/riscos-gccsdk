@@ -31,7 +31,6 @@
 #endif
 #include <string.h>
 
-#include "area.h"
 #include "code.h"
 #include "error.h"
 #include "eval.h"

@@ -2,7 +2,7 @@
 ; LDM/STM/PUSH/POP support for RLIST is tested in directive_rlist.s.
 ; -RUNOPT: -CPU=Cortex-A8
 
-	AREA Code, CODE, READONLY
+	AREA Code1, CODE, READONLY
 
 	; When NStrict is {TRUE}, there can be calls to LDM* and STM*
 	; macros.
@@ -1197,6 +1197,34 @@ cc	SETA	cc + 1
 	DCI.W &f8d91000		; ldrcc.w	r1, [r9]
 	DCI.W &f8d91000		; ldrcc.w	r1, [r9]
 	DCI.W &f8d91000		; ldr.w	r1, [r9]
+	]
+
+	AREA Code2, CODE
+	THUMB
+	[ :LNOT: REFERENCE
+	POPCC.W {r4, pc}	; Forces the end of the implicit IT block.
+	SWICC 0
+
+	LDMNE.W r3!, {r4, pc}	; Forces the end of the implicit IT block.
+	SWINE 0
+
+	LDMDBCC.W r3!, {r4, pc}	; Forces the end of the implicit IT block.
+	SWICC 0
+	|
+	DCI.N &bf38	; it	cc
+	DCI.W &e8bd8010	; ldmiacc.w	sp!, {r4, pc}
+	DCI.N &bf38	; it	cc
+	DCI.N &df00	; svccc	0
+
+	DCI.N &bf18	; it	ne
+	DCI.W &e8b38010	; ldmiane.w	r3!, {r4, pc}
+	DCI.N &bf18	; it	ne
+	DCI.N &df00	; svcne	0
+
+	DCI.N &bf38	; it	cc
+	DCI.W &e9338010	; ldmdbcc	r3!, {r4, pc}
+	DCI.N &bf38	; it	cc
+	DCI.N &df00	; svccc	0
 	]
 
 	END

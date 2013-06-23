@@ -51,6 +51,7 @@ IT_FinalizeState (IT_State_t *state __attribute__ ((unused)))
 {
 }
 void IT_PrepareForPhase (Phase_e phase);
-void IT_ApplyCond (uint32_t cc, bool isThumb);
+void IT_ApplyCond (uint32_t cc, bool enforceLast, bool isThumb);
+bool IT_CanExtendBlock (uint32_t cc);
 
 #endif

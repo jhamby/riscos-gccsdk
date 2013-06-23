@@ -72,7 +72,7 @@ coprocessor (const char *descr, bool doLowerCase, bool two,
     return true;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (ir, instrState != eInstrType_ARM); 
+  IT_ApplyCond (ir, false, instrState != eInstrType_ARM); 
 
   /* For Thumb2, we need at least ARMv6T2.
      CDP2, MCR2, MRC2 for ARM need at least ARMv5T.  */
@@ -239,7 +239,7 @@ dstmem (const char *descr, bool doLowerCase, bool two,
     return true;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (ir, instrState != eInstrType_ARM); 
+  IT_ApplyCond (ir, false, instrState != eInstrType_ARM); 
 
   /* For Thumb2, we need at least ARMv6T2.
      CDP2, MCR2, MRC2 for ARM need at least ARMv5T.  */

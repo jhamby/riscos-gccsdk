@@ -53,39 +53,55 @@
 #include "targetcpu.h"
 #include "value.h"
 
-/**
- * Shared for B, BL and BLX implementation.
- */
-static bool
-branch_shared (ARMWord cc, bool isBLX)
+typedef struct
+{
+  bool forwardLabel; /* Can only be true during pass 1 when we can't
+    evaluate the label.  Presumebly this is a forward label.  */
+  uint32_t instrOffset; /* Aligned instruction offset.  */
+  Value relocValue; /* When ValueSymbol, instruction needs to be relocated
+    against this Symbol. Can only be set during pass 2.  */
+  int32_t branchOffset; /* Branch offset value to be encoded in the
+    instruction.  */
+} BranchLabel_t;
+
+static BranchLabel_t
+GetBranchLabel (bool isBLX)
 {
   /* At this point the current area index can be unaligned for ARM/Thumb
      instructions, upfront correct this index.  */
-  const uint32_t instrAlign = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
-  const uint32_t offset = (areaCurrentSymbol->area->curIdx + instrAlign-1) & -instrAlign;
-  const uint32_t areaOffset = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+  bool stateIsARM = State_GetInstrType () == eInstrType_ARM;
+  const uint32_t instrAlign = stateIsARM ? 4 : 2;
 
-  if (Expr_Build ())
-    Error (ErrorError, "Failed to parse expression");
-
-  if (gPhase == ePassOne)
+  BranchLabel_t result =
     {
-      Put_Ins (4, 0);
-      return false;
-    }
+      .forwardLabel = false,
+      .instrOffset = (areaCurrentSymbol->area->curIdx + instrAlign-1) & -instrAlign,
+      .relocValue.Tag = ValueIllegal,
+      .branchOffset = 0
+    };
 
-  const Value *valP = Expr_Eval (ValueInt | ValueSymbol); /* FIXME: support ValueAddr  ? */
-  if (valP->Tag == ValueIllegal
-      || (valP->Tag == ValueSymbol && valP->Data.Symbol.factor != 1))
-    {
-      Error (ErrorError, "Illegal branch expression");
-      return false;
-    }
-
-  /* Switch to ValueSymbol when possible.  */
+  const Value *valP = Expr_BuildAndEval (ValueInt | ValueSymbol);
   Value value;
+  if (valP->Tag == ValueIllegal
+      || (valP->Tag == ValueSymbol
+          && (valP->Data.Symbol.factor != 1 || gPhase == ePassOne && valP->Data.Symbol.symbol != areaCurrentSymbol)))
+    {
+      if (gPhase != ePassOne)
+	{
+	  Error (ErrorError, "Illegal branch expression");
+	  return result;
+	}
+      value = Value_Symbol (areaCurrentSymbol, 1, result.instrOffset + (stateIsARM ? 8 : 4));
+      valP = &value;
+      result.forwardLabel = true;
+    }
+
+  /* Switch to ValueSymbol when possible.
+     FIXME: still needed ? As this will probably be wrong when branching to
+     another area which happens to be absolute.  */
   if (valP->Tag == ValueInt)
     {
+      const uint32_t areaOffset = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
       value = Value_Symbol (areaCurrentSymbol, 1, valP->Data.Int.i - areaOffset);
       valP = &value;
     }
@@ -94,39 +110,43 @@ branch_shared (ARMWord cc, bool isBLX)
      current area base + branch instruction offset + 8.
      So start to compensate with this value, the result is a value what needs
      to be added to that branch instruction with value 0.  */
-  int branchInstrValue = -(offset + 8);
+  result.branchOffset = -(result.instrOffset + (stateIsARM ? 8 : 4));
 
   assert (valP->Tag == ValueSymbol);
   assert (valP->Data.Symbol.factor == 1);
   if (valP->Data.Symbol.symbol != areaCurrentSymbol)
     {
-      Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP);
-      /* BL and BLX use R_ARM_CALL (the linker can change BL to BLX when it
-	 notices a jump to Thumb code).
-         B and BL<cond> use R_ARM_JUMP24 (a linker can create a veneer to
- 	 jump to Thumb code).  */
-      Reloc_CreateELF (isBLX || ((cc & LINK_BIT) != 0 && (cc & NV) == AL) ? R_ARM_CALL : R_ARM_JUMP24,
-                       offset, valP);
-
       /* The R_ARM_CALL/R_ARM_JUMP24 ELF reloc needs to happen for a
- 	 "B {PC}" instruction, while in AOF this needs to happen for a
+	 "B {PC}" instruction, while in AOF this needs to happen for a
 	 "B -<area origin>" instruction.  */
       if (!option_aof)
-	branchInstrValue += offset;
+	result.branchOffset += result.instrOffset;
+      Value_Assign (&result.relocValue,  valP);
     }
-  branchInstrValue += valP->Data.Symbol.offset;
-  
-  int mask = isBLX ? 1 : 3;
-  if (branchInstrValue & mask)
-    Error (ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
-  ARMWord ir = cc | 0x0A000000 | ((branchInstrValue >> 2) & 0xffffff) | (isBLX ? (branchInstrValue & 2) << 23 : 0);
-  Put_Ins (4, ir);
+  int32_t targetAddr = !stateIsARM && isBLX ? (valP->Data.Symbol.offset & ~2) | (result.instrOffset & 2) : valP->Data.Symbol.offset;
+  result.branchOffset += targetAddr;
 
-  return false;
+  unsigned mask = ((State_GetInstrType () == eInstrType_ARM) ^ isBLX) ? 3 : 1;
+  if ((valP->Data.Symbol.offset & mask) != 0)
+    Error (ErrorWarning, "Branch target is not a multiple of %s", mask == 1 ? "two" : "four");
+
+  return result;
 }
+
+
+/**
+ * \return true when given signed value can be encoded in given range.
+ */
+static inline bool
+RangeIsOK (int32_t value, int32_t range)
+{
+  return value >= -range/2 && value < range/2;
+}
+
 
 /**
  * Implements B and BL.
+ *   B["L"][<cc>][<q>] <label>
  */
 bool
 m_branch (bool doLowerCase)
@@ -134,11 +154,253 @@ m_branch (bool doLowerCase)
   ARMWord cc = Option_LinkCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  return branch_shared (cc, false);
+  bool isLink = (cc & LINK_BIT) != 0;
+  cc &= ~LINK_BIT;
+
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  BranchLabel_t brLabel = GetBranchLabel (false);
+
+  InstrType_e instrState = State_GetInstrType ();
+
+  if (isLink)
+    {
+      IT_ApplyCond (cc, instrState != eInstrType_ARM, instrState != eInstrType_ARM);
+      if (instrState == eInstrType_ARM)
+	{
+	  if (!RangeIsOK (brLabel.branchOffset, 1<<26))
+	    Error (ErrorError, "Branch target too far away");
+
+	  Put_Ins (4, cc | 0x0B000000 | ((brLabel.branchOffset & 0x3fffffc) >> 2));
+
+	  if (brLabel.relocValue.Tag == ValueSymbol
+	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	    Reloc_CreateELF (R_ARM_CALL, brLabel.instrOffset, &brLabel.relocValue);
+	}
+      else
+	{
+	  if (instrWidth == eInstrWidth_Enforce16bit)
+	    Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+
+	  /* Do final branch range test after IT_ApplyCond().  */
+	  if (!RangeIsOK (brLabel.branchOffset, 1<<25))
+	    Error (ErrorError, "Branch target too far away");
+
+	  bool j1 = ((brLabel.branchOffset & (1<<23)) != 0) == (brLabel.branchOffset < 0);
+	  bool j2 = ((brLabel.branchOffset & (1<<22)) != 0) == (brLabel.branchOffset < 0);
+	  Put_Ins (4, 0xF000D000
+			| ((brLabel.branchOffset < 0) << 26)
+			| ((brLabel.branchOffset & 0x3ff000) << 4)
+			| (j1 << 13)
+	  		| (j2 << 11)
+	   		| ((brLabel.branchOffset & 0xfff) >> 1));
+
+	  if (brLabel.relocValue.Tag == ValueSymbol
+	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	    Reloc_CreateELF (R_ARM_THM_CALL, brLabel.instrOffset, &brLabel.relocValue);
+	}
+    }
+  else
+    {
+      if (instrState == eInstrType_ARM)
+	{
+	  IT_ApplyCond (cc, false, false);
+
+	  if (!RangeIsOK (brLabel.branchOffset, 1<<26))
+	    Error (ErrorError, "Branch target too far away");
+
+	  Put_Ins (4, cc | 0x0A000000 | ((brLabel.branchOffset & 0x3fffffc) >> 2));
+
+	  if (brLabel.relocValue.Tag == ValueSymbol
+	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	    Reloc_CreateELF (R_ARM_JUMP24, brLabel.instrOffset, &brLabel.relocValue);
+	}
+      else
+	{
+	  bool extraITNeededInCaseOfLongRange, useLongRange;
+	  if (gPhase == ePassOne)
+	    {
+	      extraITNeededInCaseOfLongRange = cc != AL && !IT_CanExtendBlock (cc);
+
+	      /* When <q> is not specified:
+		   - Pre-v6T2 : always 16-bit Thumb
+		   - v6T2 onwards : go for 16-bit Thumb when branch target
+		     allows it or when we have a forward label.  */
+	      if (instrWidth == eInstrWidth_NotSpecified)
+		instrWidth = !Target_CheckCPUFeature (kCPUExt_v6T2, false)
+			       || RangeIsOK (brLabel.branchOffset - (extraITNeededInCaseOfLongRange ? 2 : 0), 1<<12) ? eInstrWidth_Enforce16bit : eInstrWidth_Enforce32bit;
+
+	      /* 16-bit [32-bit] Thumb branch with explicit condition code
+		 encoded can only jump in a 9 [21] bit range.  Without explicit
+		 condition code encoded (i.e. using an IT block) this is a
+		 12 [25] bit range but we don't want to generate an extra IT
+		 block if it can be avoided.  */
+	      int32_t shortRange = instrWidth == eInstrWidth_Enforce16bit ? (1<<9) : (1<<21);
+	      useLongRange = cc == AL || IT_CanExtendBlock (cc) || brLabel.forwardLabel || !RangeIsOK (brLabel.branchOffset, shortRange);
+	    }
+	  else
+	    {
+	      /* Reverse engineer what we've decided during pass one.  */
+	      uint32_t instrOffset = brLabel.instrOffset;
+	      ARMWord nextThumb = Put_GetHalfWord (instrOffset);
+	      instrOffset += 2;
+	      extraITNeededInCaseOfLongRange = (nextThumb & 0xFF00) == 0xBF00;
+	      if (extraITNeededInCaseOfLongRange)
+		{
+		  nextThumb = Put_GetHalfWord (instrOffset);
+		  instrOffset += 2;
+		}
+	      bool useWide;
+	      if ((nextThumb & 0xF000) == 0xD000)
+		{
+		  useLongRange = false;
+		  assert (!extraITNeededInCaseOfLongRange);
+		  useWide = false;
+		}
+	      else if ((nextThumb & 0xF000) == 0xE000)
+		{
+		  useLongRange = true;
+		  useWide = false;
+		}
+	      else
+		{
+		  assert ((nextThumb & 0xF800) == 0xF000);
+		  nextThumb = Put_GetHalfWord (instrOffset);
+		  instrOffset += 2;
+		  assert ((nextThumb & 0xC000) == 0x8000);
+		  if ((nextThumb & 0x1000) != 0)
+		    useLongRange = true;
+		  else
+		    {
+		      useLongRange = false;
+		      assert (!extraITNeededInCaseOfLongRange);
+		    }
+		  useWide = true;
+		}
+	      assert ((instrWidth == eInstrWidth_Enforce16bit && !useWide)
+	              || (instrWidth == eInstrWidth_Enforce32bit && useWide)
+	              || instrWidth == eInstrWidth_NotSpecified);
+	      if (instrWidth == eInstrWidth_NotSpecified)
+		instrWidth = useWide ? eInstrWidth_Enforce32bit : eInstrWidth_Enforce16bit;
+	    }
+
+	  IT_ApplyCond (useLongRange ? cc : AL, useLongRange, true);
+	  if (useLongRange && extraITNeededInCaseOfLongRange)
+	    brLabel.branchOffset -= 2;
+
+	  /* Do final branch range test after IT_ApplyCond().  */
+	  int32_t shortRange = instrWidth == eInstrWidth_Enforce16bit ? (1<<9) : (1<<21);
+	  int32_t longRange = instrWidth == eInstrWidth_Enforce16bit ? (1<<12) : (1<<25);
+	  if (!RangeIsOK (brLabel.branchOffset, useLongRange ? longRange : shortRange))
+	    Error (ErrorError, "Branch target too far away");
+
+	  Target_CheckCPUFeature (instrWidth == eInstrWidth_Enforce16bit ? kCPUExt_v4T : kCPUExt_v6T2, true);
+
+	  if (instrWidth == eInstrWidth_Enforce16bit)
+	    {
+	      Put_Ins (2, useLongRange ? 0xE000 | ((brLabel.branchOffset & 0xffe) >> 1)
+				       : 0xD000 | (cc >> 20) | ((brLabel.branchOffset & 0x1fe) >> 1));
+
+	      if (brLabel.relocValue.Tag == ValueSymbol
+		  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+		Reloc_CreateELF (useLongRange ? R_ARM_THM_JUMP11 : R_ARM_THM_JUMP8,
+		                 brLabel.instrOffset, &brLabel.relocValue);
+	    }
+	  else
+	    {
+	      bool j1 = ((brLabel.branchOffset & (1<<23)) != 0) == (brLabel.branchOffset < 0);
+	      bool j2 = ((brLabel.branchOffset & (1<<22)) != 0) == (brLabel.branchOffset < 0);
+	      Put_Ins (4, useLongRange ? 0xF0009000
+					   | ((brLabel.branchOffset < 0) << 26)
+					   | ((brLabel.branchOffset & 0x3ff000) << 4)
+					   | (j1 << 13)
+					   | (j2 << 11)
+					   | ((brLabel.branchOffset & 0x000fff) >> 1)
+				       : 0xF0008000
+					   | ((brLabel.branchOffset < 0) << 26)
+					   | (cc >> 6)
+					   | ((brLabel.branchOffset & 0x3f000) << 4)
+					   | ((brLabel.branchOffset & (1<<18)) >> (18-13))
+					   | ((brLabel.branchOffset & (1<<19)) >> (19-11))
+					   | ((brLabel.branchOffset & 0x000fff) >> 1));
+
+	      /* Note, R_ARM_THM_JUMP19 is misleading as it is relocating
+		 20 bits.  */
+	      if (brLabel.relocValue.Tag == ValueSymbol
+		  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+		Reloc_CreateELF (useLongRange ? R_ARM_THM_JUMP24 : R_ARM_THM_JUMP19,
+		                 brLabel.instrOffset, &brLabel.relocValue);
+	    }
+	}
+    }
+
+  if (brLabel.relocValue.Tag == ValueSymbol
+      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+    Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE,
+                     brLabel.instrOffset, &brLabel.relocValue);
+
+  return false;
 }
+
+
+/**
+ * Implements CBNZ/CBZ.
+ *   CB["N"]Z <Rn>, <label>
+ */
+bool
+m_cbnz_cbz (bool doLowerCase)
+{
+  bool isCBNZ = Input_Match (doLowerCase ? 'n' : 'N', false);
+  if (!Input_Match (doLowerCase ? 'z' : 'Z', false))
+    return true;
+
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  unsigned rn = Get_CPUReg ();
+  if (rn >= 8)
+    Error (ErrorError, "CB%sZ can only encode registers R0 ... R7", isCBNZ ? "N" : "");
+
+  Input_SkipWS ();
+  if (!Input_Match (',', false))
+    Error (ErrorError, "%sdst", InsertCommaAfter);
+
+  BranchLabel_t brLabel = GetBranchLabel (false);
+
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (AL, instrState != eInstrType_ARM, instrState != eInstrType_ARM);
+
+  if (instrState == eInstrType_ARM)
+    Error (ErrorError, "CB%sZ is not an ARM instruction", isCBNZ ? "N" : "");
+  else
+    {
+      if (instrWidth == eInstrWidth_Enforce32bit)
+	Error (ErrorError, "Wide instruction qualifier for Thumb is not possible");
+      if (brLabel.branchOffset < 0)
+	Error (ErrorError, "CB%sZ can only branch forward from {PC} + 4 onwards", isCBNZ ? "N" : "");
+      else if (brLabel.branchOffset >= 128)
+	Error (ErrorError, "Branch target too far away");
+
+      Target_CheckCPUFeature (kCPUExt_v6T2, true);
+
+      Put_Ins (2, 0xB100
+		    | (isCBNZ << 11)
+		    | ((brLabel.branchOffset & 0x40) << (9 - 6))
+		    | ((brLabel.branchOffset & 0x3e) << (3 - 1))
+		    | rn);
+    }
+
+  return false;
+}
+
 
 /**
  * Implements BLX.
+ *   BLX[<cc>][<q>] <Rm>
+ *   BLX[<cc>][<q>] <label>
  */
 bool
 m_blx (bool doLowerCase)
@@ -147,24 +409,83 @@ m_blx (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v5T, true);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
 
   ARMWord reg = Get_CPURegNoError ();
   if (reg == INVALID_REG)
-    { /* BLXcc <target_addr> */
-      if (cc != AL)
-        Error (ErrorError, "BLX <target_addr> must be unconditional");
+    {
+      /* BLX[<cc>][<q>] <label> */
+      BranchLabel_t brLabel = GetBranchLabel (true);
 
-      return branch_shared (NV, true);
+      InstrType_e instrState = State_GetInstrType ();
+      IT_ApplyCond (cc, instrState != eInstrType_ARM, instrState != eInstrType_ARM);
+
+      bool j1 = ((brLabel.branchOffset & (1<<23)) != 0) == (brLabel.branchOffset < 0);
+      bool j2 = ((brLabel.branchOffset & (1<<22)) != 0) == (brLabel.branchOffset < 0);
+      Target_CheckCPUFeature (instrState == eInstrType_ARM || (j1 && j2) ? kCPUExt_v5T : kCPUExt_v6T2, true);
+
+      /* Do final branch range test after IT_ApplyCond().  */
+      if (!RangeIsOK (brLabel.branchOffset, instrState == eInstrType_ARM ? (1<<26) : (1<<25)))
+	Error (ErrorError, "Branch target too far away");
+
+      if (instrState == eInstrType_ARM)
+	{
+	  if (cc != AL)
+	    Error (ErrorError, "BLX <label> must be unconditional");
+	  Put_Ins (4, 0xFA000000
+	   		| ((brLabel.branchOffset >> 2) & 0xffffff)
+	   		| ((brLabel.branchOffset & 2) << 23));
+	}
+      else
+	{
+	  if (instrWidth == eInstrWidth_Enforce16bit)
+	    Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+	  Put_Ins (4, 0xF000C000
+			| ((brLabel.branchOffset < 0) << 26)
+			| ((brLabel.branchOffset & 0x3ff000) << 4)
+			| (j1 << 13)
+			| (j2 << 11)
+			| (brLabel.branchOffset & 0xffc) >> 1);
+	}
+      if (brLabel.relocValue.Tag == ValueSymbol
+	  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	{
+	  Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, brLabel.instrOffset,
+	                   &brLabel.relocValue);
+	  Reloc_CreateELF (instrState == eInstrType_ARM ? R_ARM_CALL : R_ARM_THM_CALL,
+	                   brLabel.instrOffset, &brLabel.relocValue);
+	}
     }
   else
-    Put_Ins (4, cc | 0x012FFF30 | RHS_OP (reg)); /* BLX <Rm> */
+    {
+      /* BLX[<cc>][<q>] <Rm> */
+      InstrType_e instrState = State_GetInstrType ();
+      IT_ApplyCond (cc, instrState != eInstrType_ARM, instrState != eInstrType_ARM);
+
+      Target_CheckCPUFeature (kCPUExt_v5T, true);
+
+      if (reg == 15)
+	Error (ErrorWarning, "Use of PC with BLX is UNPREDICTABLE");
+
+      if (instrState == eInstrType_ARM)
+	Put_Ins (4, cc | 0x012FFF30 | RHS_OP (reg));
+      else
+	{
+	  if (instrWidth == eInstrWidth_Enforce32bit)
+	    Error (ErrorError, "Wide instruction qualifier for Thumb is not possible");
+	  Put_Ins (2, 0x4780 | (reg << 3));
+	}
+    }
 
   return false;
 }
 
+
 /**
  * Implements BX.
+ *   BX[<cc>][<q>] <Rm>
  */
 bool
 m_bx (bool doLowerCase)
@@ -173,23 +494,43 @@ m_bx (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v4T, true);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
 
   unsigned dst = Get_CPUReg ();
   if (dst == 15)
-    Error (ErrorWarning, "Use of PC with BX is discouraged");
+    Error (ErrorWarning, "Use of PC with BX is DEPRECATED");
 
-  /* Output R_ARM_V4BX with nul symbol so that linker can create ARMv4
-     compatible images by changing this BX instruction into MOV PC, Rx.  */
-  if (gPhase == ePassTwo)
-    Reloc_CreateELF (R_ARM_V4BX, areaCurrentSymbol->area->curIdx, NULL);
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM, instrState != eInstrType_ARM);
 
-  Put_Ins (4, cc | 0x012fff10 | dst);
+  Target_CheckCPUFeature (kCPUExt_v4T, true);
+
+  if (instrState == eInstrType_ARM)
+    {
+      /* Output R_ARM_V4BX with nul symbol so that linker can create ARMv4
+         compatible images by changing this BX instruction into MOV PC, Rx.
+         Only for up to ARMv4T + ARMv5, from ARMv5T onwards we don't do this.  */
+      if (!Target_CheckCPUFeature (kCPUExt_v5T, false))
+	Reloc_CreateELF (R_ARM_V4BX, areaCurrentSymbol->area->curIdx, NULL);
+
+      Put_Ins (4, cc | 0x012fff10 | dst);
+    }
+  else
+    {
+      if (instrWidth == eInstrWidth_Enforce32bit)
+	Error (ErrorError, "Wide instruction qualifier for Thumb is not possible");
+      Put_Ins (2, 0x4700 | (dst << 3));
+    }
+
   return false;
 }
 
+
 /**
  * Implements BXJ.
+ *   BXJ[<cc>][<q>] <Rm>
  */
 bool
 m_bxj (bool doLowerCase)
@@ -198,13 +539,36 @@ m_bxj (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_CheckCPUFeature (kCPUExt_v5J, true);
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
 
   unsigned dst = Get_CPUReg ();
-  if (dst == 15)
-    Error (ErrorWarning, "Use of PC with BXJ is discouraged");
 
-  Put_Ins (4, cc | 0x012fff20 | dst);
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, instrState != eInstrType_ARM, instrState != eInstrType_ARM);
+
+  if (instrState == eInstrType_ARM)
+    {
+      Target_CheckCPUFeature (kCPUExt_v5J, true);
+
+      if (dst == 15)
+	Error (ErrorWarning, "Use of PC with BXJ is UNPREDICTABLE");
+
+      Put_Ins (4, cc | 0x012fff20 | dst);
+    }
+  else
+    {
+      if (instrWidth == eInstrWidth_Enforce16bit)
+	Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+
+      Target_CheckCPUFeature (kCPUExt_v6T2, true);
+
+      if (dst == 13 || dst == 15)
+	Error (ErrorWarning, "Use of R13 or PC with BXJ is UNPREDICTABLE");
+      Put_Ins (4, 0xf3c08f00 | (dst << 16));
+    }
+
   return false;
 }
 
@@ -261,14 +625,14 @@ m_swi (bool doLowerCase)
     }
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   ARMWord maxSwiNum = instrState == eInstrType_ARM ? (1<<24) : (1<<8);
   if (swiNum >= maxSwiNum)
     Error (ErrorError, "SVC/SWI number %d (0x%08x) to high (max is 0x%08x)",
            swiNum, swiNum, maxSwiNum - 1);
   if (instrState == eInstrType_ARM)
-   Put_Ins (4, cc | 0x0F000000 | swiNum);
+    Put_Ins (4, cc | 0x0F000000 | swiNum);
   else
     {
       Target_CheckCPUFeature (kCPUExt_v4T, true);
@@ -311,7 +675,7 @@ m_bkpt (bool doLowerCase)
     i = im->Data.Int.i;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   if (cc != AL)
     Error (ErrorWarning, "For BKPT, using condition code different than AL is UNPREDICTABLE");
@@ -570,7 +934,7 @@ m_adr (bool doLowerCase)
     return true;
 
   unsigned regD = Get_CPUReg ();
-  
+
   Input_SkipWS ();
   if (!Input_Match (',', false))
     Error (ErrorError, "%sdst", InsertCommaAfter);
@@ -909,7 +1273,7 @@ m_msr (bool doLowerCase)
     }
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   if (psr.bankedReg != SIZE_MAX && !isReg)
     {
@@ -993,7 +1357,7 @@ m_mrs (bool doLowerCase)
   const Parse_PSR_t psr = Parse_PSR (false);
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   Target_CheckCPUFeature (psr.bankedReg != SIZE_MAX ? kCPUExt_Virt : instrState == eInstrType_ARM ? kCPUExt_v3 : kCPUExt_v6T2, true);
   if (instrState == eInstrType_ARM)
@@ -1045,7 +1409,7 @@ m_sev (bool doLowerCase)
     return true;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
     instrWidth = eInstrWidth_Enforce16bit;
@@ -1085,7 +1449,7 @@ m_wfe (bool doLowerCase)
     return true;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
     instrWidth = eInstrWidth_Enforce16bit;
@@ -1125,7 +1489,7 @@ m_wfi (bool doLowerCase)
     return true;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
     instrWidth = eInstrWidth_Enforce16bit;
@@ -1165,7 +1529,7 @@ m_yield (bool doLowerCase)
     return true;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
     instrWidth = eInstrWidth_Enforce16bit;
@@ -1284,7 +1648,7 @@ m_cps (bool doLowerCase)
     }
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (AL, instrState != eInstrType_ARM);
+  IT_ApplyCond (AL, false, instrState != eInstrType_ARM);
 
   /* We need Thumb2 when mode is specified.  */
   if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)
@@ -1370,7 +1734,7 @@ m_dbg (bool doLowerCase)
     }
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   /* DBG executes as a NOP instruction in ARMv6K and ARMv6T2.  */
   uint64_t cpuFeatures = Target_GetCPUFeatures ();
@@ -1435,7 +1799,7 @@ core_smc_smi (bool doLowerCase, const char *instr)
     }
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, true, instrState != eInstrType_ARM);
 
   /* Note that the security extensions are optional.  */
   Target_CheckCPUFeature (kCPUExt_Sec, true);

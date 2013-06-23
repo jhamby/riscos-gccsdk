@@ -365,7 +365,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 
   return false;
 }
-	     
+
 
 /**
  * Implements LDR:
@@ -738,9 +738,6 @@ LoadStoreMultiple (ARMWord cc, bool doLowerCase, LSM_Type_e lsmType)
   if (instrWidth == eInstrWidth_Unrecognized)
     return true;
 
-  InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM); 
-
   const LSM_Arg_t lsmArg = GetLoadStoreMultipleArg (lsmType);
 
   /* Count number of registers loaded or saved.  */
@@ -784,11 +781,16 @@ LoadStoreMultiple (ARMWord cc, bool doLowerCase, LSM_Type_e lsmType)
     }
   if (option_pedantic
       && (lsmType == eIsLDM || lsmType == eIsPop)
-      && (lsmArg.regList &  (1 << 15))
+      && (lsmArg.regList & (1 << 15))
       && Target_CheckCPUFeature (kCPUExt_v4T, false) && !Target_CheckCPUFeature (kCPUExt_v5T, false))
     Error (ErrorWarning, "ARMv4T does not switch ARM/Thumb state when LDM/POP specifies PC (use BX instead)");
 
-// FIXME: LDM (?)/POP + Thumb with PC in reglist && IT Block && not last instr in IT block -> UNPREDICTABLE
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc,
+                instrState != eInstrType_ARM
+                  && (lsmType == eIsPop || lsmType == eIsLDM)
+                  && (lsmArg.regList & (1 << 15)) != 0,
+                instrState != eInstrType_ARM); 
 
   /* Simplifies ARM/Thumb2 implementation.  */
   switch (lsmType)
@@ -1151,7 +1153,7 @@ m_swp (bool doLowerCase)
   else if (Target_CheckCPUFeature (kCPUExt_v6, false))
     Error (ErrorWarning, "The use of SWP/SWPB is deprecated for ARMv6 and ARMv7");
 
-  IT_ApplyCond (cc_b, false);
+  IT_ApplyCond (cc_b, false, false);
 
   int ir = cc_b | 0x01000090;
   unsigned rt = Get_CPUReg ();

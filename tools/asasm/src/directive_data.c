@@ -613,7 +613,7 @@ c_dci (bool doLowerCase)
     return true;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (areaCurrentSymbol->area->it.cc, instrState != eInstrType_ARM); 
+  IT_ApplyCond (areaCurrentSymbol->area->it.cc, false, instrState != eInstrType_ARM); 
 
   unsigned alignValue;
   unsigned instructionSize;

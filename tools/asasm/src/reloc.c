@@ -228,12 +228,14 @@ void
 Reloc_CreateInternal (uint32_t how, uint32_t offset, const Value *value,
                       bool replace)
 {
-  assert (gPhase == ePassTwo);
   assert ((value == NULL && !option_aof) || (value->Tag == ValueSymbol && value->Data.Symbol.factor > 0));
   assert ((value == NULL && !option_aof) || (!Area_IsMappingSymbol (value->Data.Symbol.symbol->str)));
 
   assert ((option_aof && (how & HOW2_SIDMASK) == 0) || (!option_aof && how < 256u));
-  assert (offset < areaCurrentSymbol->area->maxIdx);
+  assert (offset <= areaCurrentSymbol->area->curIdx + 3);
+
+  if (gPhase != ePassTwo)
+    return;
 
   Reloc_State_t *stateP = &areaCurrentSymbol->area->reloc;
   Symbol *relocSymP = value ? value->Data.Symbol.symbol : NULL;

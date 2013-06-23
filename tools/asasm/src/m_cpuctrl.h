@@ -29,6 +29,7 @@ bool m_blx (bool doLowerCase);
 bool m_branch (bool doLowerCase);
 bool m_bx (bool doLowerCase);
 bool m_bxj (bool doLowerCase);
+bool m_cbnz_cbz (bool doLowerCase);
 bool m_mrs (bool doLowerCase);
 bool m_msr (bool doLowerCase);
 bool m_swi (bool doLowerCase);

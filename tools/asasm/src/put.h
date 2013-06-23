@@ -36,6 +36,7 @@ void Put_InsWithOffset (uint32_t offset, unsigned size, ARMWord data);
 
 void Put_Ins_MOVW_MOVT (uint32_t cc, uint32_t destReg, uint32_t value, bool isMOVT);
 
+ARMWord Put_GetHalfWord (uint32_t offset);
 ARMWord Put_GetWord (uint32_t offset);
 
 #endif

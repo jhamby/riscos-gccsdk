@@ -102,7 +102,7 @@ typedef struct
 /* This table is sorted alphabetically.
    Adjust kDecodeTableIndex_* values when necessary after updating
    oDecodeTable.  */
-#define kDecodeTableIndex_RELOC (143)
+#define kDecodeTableIndex_RELOC (144)
 static const decode_table_t oDecodeTable[] =
 {
   { "!", eCB_NoLex, 0, 0, { .nolex = c_info } }, /* INFO shorthand */
@@ -136,6 +136,7 @@ static const decode_table_t oDecodeTable[] =
   { "BLX", eCB_VoidPMatch, 1, 1, { .vdpm = m_blx } }, /* BLX CC */
   { "BX", eCB_VoidPMatch, 1, 1, { .vdpm = m_bx } }, /* BX CC */
   { "BXJ", eCB_VoidPMatch, 1, 1, { .vdpm = m_bxj } }, /* BXJ CC */
+  { "CB", eCB_VoidPMatch, 1, 1, { .vdpm = m_cbnz_cbz } }, /* CBNZ, CBZ */
   { "CDP", eCB_VoidPMatch, 1, 1, { .vdpm = m_cdp } }, /* CDP CC / CDP2 */
   { "CLREX", eCB_Void, 1, 1, { .vd = m_clrex } }, /* CLREX */
   { "CLZ", eCB_VoidPMatch, 1, 1, { .vdpm = m_clz } }, /* CLZ CC */

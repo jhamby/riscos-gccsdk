@@ -74,7 +74,7 @@ m_nop (bool doLowerCase)
 	return true;
 
       InstrType_e instrState = State_GetInstrType ();
-      IT_ApplyCond (cc, instrState != eInstrType_ARM); 
+      IT_ApplyCond (cc, false, instrState != eInstrType_ARM); 
 
       if (instrState == eInstrType_ARM)
 	Put_Ins (4, 0x0320F000 | cc);
@@ -138,7 +138,7 @@ m_und (bool doLowerCase)
     intValue = 0;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   unsigned maxValue;
   if (instrState == eInstrType_ARM)
@@ -1283,7 +1283,7 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
     }
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM); 
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM); 
 
   unsigned widthInd;
   ARMWord baseInstr;
@@ -1497,7 +1497,7 @@ m_pkh (bool doLowerCase)
 	shift = 0;
     }
 
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   if (instrState == eInstrType_ARM)
     {
@@ -1607,7 +1607,7 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
   assert (regIndex == 0);
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (cc, instrState != eInstrType_ARM);
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
 
   /* Determine 16bit or 32bit Thumb.  */
   if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_NotSpecified)

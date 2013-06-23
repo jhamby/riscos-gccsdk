@@ -146,7 +146,7 @@ Put_Data (unsigned size, ARMWord data)
  * range from 2^-14 to 65504 (i.e. (1 + &3FF / 2^-10) * 2^(30-15)
  * = 2^15 + &3FF*32 = 65504).
  * When ieee is false : ARM alternative format.  Does not support infinities
- * or NaNs.  The range of exponents is extended so it supports normalized
+ * nor NaNs.  The range of exponents is extended so it supports normalized
  * values in the range from 2^-14 to 131008 (i.e. (1 + &3FF / 2^-10) * 2^(31-15)
  * = 2^16 + &3FF*64 = 131008).
  *
@@ -235,6 +235,7 @@ FloatToHalf (float flt, bool ieee)
   /* -1 because mantissa is 1<<10 too big.  */
   return neg | (((exp + 15 - 1) << 10) + (mantissa >> 13));
 }
+
 
 /**
  * Append single or double float at the end of current area.
@@ -325,6 +326,7 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
   Put_DataWithOffset (offset, size, toWrite, 1);
 }
 
+
 void
 Put_InsWithOffset (uint32_t offset, unsigned size, ARMWord ins)
 {
@@ -338,6 +340,7 @@ Put_InsWithOffset (uint32_t offset, unsigned size, ARMWord ins)
   else
     Put_DataWithOffset (offset, size, ins, 1);
 }
+
 
 /**
  * Append ARM/Thumb instruction at the end of current area.
@@ -364,9 +367,18 @@ Put_Ins_MOVW_MOVT (uint32_t cc, uint32_t destReg, uint32_t value, bool isMOVT)
 
 
 ARMWord
+Put_GetHalfWord (uint32_t offset)
+{
+  assert (offset + 2 <= areaCurrentSymbol->area->imagesize);
+  const uint8_t *p = &areaCurrentSymbol->area->image[offset];
+  return p[0] + (p[1]<<8);
+}
+
+
+ARMWord
 Put_GetWord (uint32_t offset)
 {
-  assert (offset <= areaCurrentSymbol->area->imagesize - 4);
+  assert (offset + 4 <= areaCurrentSymbol->area->imagesize);
   const uint8_t *p = &areaCurrentSymbol->area->image[offset];
   return p[0] + (p[1]<<8) + (p[2]<<16) + (p[3]<<24);
 }

@@ -142,7 +142,7 @@ m_it (bool doLowerCase)
       Error_Line (curAreaP->it.fileName, curAreaP->it.lineNum, ErrorError, "note: Pending IT block started here");
     }
 
-  /* We've already warned about the use of NV.
+  /* We've already gave a warning about the use of NV.
      Here, warn about using AL and having numCond non-zero.  */
   if (newIT.cc == AL && newIT.maxIdx != 1)
     Error (ErrorWarning, "Use of AL condition with one or more Then/Else arguments is UNPREDICTABLE");
@@ -185,33 +185,51 @@ IT_StartImplicitIT (IT_State_t *itStateP, uint32_t cc)
 
 /**
  * To be called for each ARM and Thumb instruction with its condition code
- * and whether it is ARM or Thumb.
- * When we have a pending IT block, the condition code will be verified.
- * When we don't have a pending IT block and it is a Thumb instruction, an
- * implicit IT instruction is emited.  If it's an ARM instruction, no IT
- * instruction is emited.
+ * and whether it is ARM or Thumb instruction.
+ * When we have a pending explicit IT block, the condition code will be
+ * verified.
+ * When we don't have a pending explicit IT block and it is a Thumb
+ * instruction with a non-AL condition code, an implicit IT block is
+ * generated and an IT instruction is emited.
+ * If it's an ARM instruction, no IT instruction is emited.
+ * \param cc Condition code.
+ * \param enforceLast When true, makes sure that this is going to be the
+ * last instruction for the current IT block (if any).  When it is an
+ * explicit pending IT block and not the last instruction in that block,
+ * an error is given.
+ * \param isThumb When true when current instruction is a Thumb instruction.
  */
 void
-IT_ApplyCond (uint32_t cc, bool isThumb)
+IT_ApplyCond (uint32_t cc, bool enforceLast, bool isThumb)
 {
   cc &= NV; /* Filter out the condition codes.  */
   IT_State_t *itStateP = &areaCurrentSymbol->area->it;
+  assert (itStateP->curIdx <= itStateP->maxIdx);
   if (itStateP->curIdx != itStateP->maxIdx)
     {
-      /* Pending IT block.  */
+      /* Pending explicit IT block.  */
       assert (!itStateP->implicitIT);
-      uint32_t expectedCC = itStateP->cc ^ (!itStateP->isThen[itStateP->curIdx] << 28);
-      if (cc != expectedCC)
+      if (isThumb && enforceLast && itStateP->curIdx + 1 != itStateP->maxIdx)
 	{
-	  Error (ErrorError, "Condition code does not match with pending IT block");
+	  Error (ErrorError, "Not having this instruction as last in pending IT block is UNPREDICTABLE");
 	  Error_Line (itStateP->fileName, itStateP->lineNum, ErrorError, "note: Pending IT block started here");
+	}
+      else
+	{
+	  uint32_t expectedCC = itStateP->cc ^ (!itStateP->isThen[itStateP->curIdx] << 28);
+	  if (cc != expectedCC)
+	    {
+	      Error (ErrorError, "Condition code does not match with pending IT block");
+	      Error_Line (itStateP->fileName, itStateP->lineNum, ErrorError, "note: Pending IT block started here");
+	    }
 	}
       itStateP->curIdx++;
     }
   else if (itStateP->implicitIT && itStateP->maxIdx != 4)
     {
-      /* If it is not Thumb, we've switched to ARM code while we still have
-         a pending implicit IT block.  */
+      /* An implicit IT block which still can be extended.
+         If it is not Thumb anymore, we've switched to ARM code while we still
+         having an implicit IT block.  */
       if (!isThumb || cc == AL)
 	IT_InitializeState (itStateP);
       else
@@ -233,6 +251,11 @@ IT_ApplyCond (uint32_t cc, bool isThumb)
 	  else
 	    IT_StartImplicitIT (itStateP, cc);
 	  IT_EmitIT (itStateP, true);
+	  if (enforceLast)
+	    {
+	      itStateP->implicitIT = false;
+	      itStateP->curIdx = itStateP->maxIdx = 4; /* Finish implicit IT block prematurely.  */
+	    }
 	}
     }
   else if (isThumb && cc != AL)
@@ -240,5 +263,26 @@ IT_ApplyCond (uint32_t cc, bool isThumb)
       /* Start a new implicit IT block.  */
       IT_StartImplicitIT (itStateP, cc);
       IT_EmitIT (itStateP, true);
+      if (enforceLast)
+	{
+	  itStateP->implicitIT = false;
+	  itStateP->curIdx = itStateP->maxIdx = 4; /* Finish implicit IT block prematurely.  */
+	}
     }
+}
+
+
+/**
+ * \return true when we have an explicit IT block which is still active and
+ * given <cc> value fits in it.  Also true for an implicit IT block which
+ * can still be extended using the same <cc> code.
+ */
+bool
+IT_CanExtendBlock (uint32_t cc)
+{
+  assert ((cc & ~NV) == 0 && cc != AL);
+  const IT_State_t *itStateP = &areaCurrentSymbol->area->it;
+  assert (itStateP->curIdx <= itStateP->maxIdx);
+  return (itStateP->curIdx != itStateP->maxIdx && cc == (itStateP->cc ^ (!itStateP->isThen[itStateP->curIdx] << 28)))
+           || (itStateP->implicitIT && itStateP->maxIdx != 4 && (cc == itStateP->cc || cc == (itStateP->cc ^ (1<<28))));
 }

@@ -115,47 +115,71 @@ cnt	SETA	cnt + 1
 	THUMB
 	DCI.W &f7f98000	; smc	#9
 	DCI.W &f7f98000	; smc	#9
-	DCI.N &bf07	; ittee	eq
+	DCI.N &bf08	; it	eq
 	DCI.W &f7f98000	; smceq	#9
+	DCI.N &bf08	; it	eq
 	DCI.W &f7f98000	; smceq	#9
+	DCI.N &bf18	; it	ne
 	DCI.W &f7f98000	; smcne	#9
+	DCI.N &bf18	; it	ne
 	DCI.W &f7f98000	; smcne	#9
-	DCI.N &bf27	; ittee	cs
+	DCI.N &bf28	; it	cs
 	DCI.W &f7f98000	; smccs	#9
+	DCI.N &bf28	; it	cs
 	DCI.W &f7f98000	; smccs	#9
+	DCI.N &bf38	; it	cc
 	DCI.W &f7f98000	; smccc	#9
+	DCI.N &bf38	; it	cc
 	DCI.W &f7f98000	; smccc	#9
-	DCI.N &bf47	; ittee	mi
+	DCI.N &bf48	; it	mi
 	DCI.W &f7f98000	; smcmi	#9
+	DCI.N &bf48	; it	mi
 	DCI.W &f7f98000	; smcmi	#9
+	DCI.N &bf58	; it	pl
 	DCI.W &f7f98000	; smcpl	#9
+	DCI.N &bf58	; it	pl
 	DCI.W &f7f98000	; smcpl	#9
-	DCI.N &bf67	; ittee	vs
+	DCI.N &bf68	; it	vs
 	DCI.W &f7f98000	; smcvs	#9
+	DCI.N &bf68	; it	vs
 	DCI.W &f7f98000	; smcvs	#9
+	DCI.N &bf78	; it	vc
 	DCI.W &f7f98000	; smcvc	#9
+	DCI.N &bf78	; it	vc
 	DCI.W &f7f98000	; smcvc	#9
-	DCI.N &bf87	; ittee	hi
+	DCI.N &bf88	; it	hi
 	DCI.W &f7f98000	; smchi	#9
+	DCI.N &bf88	; it	hi
 	DCI.W &f7f98000	; smchi	#9
+	DCI.N &bf98	; it	ls
 	DCI.W &f7f98000	; smcls	#9
+	DCI.N &bf98	; it	ls
 	DCI.W &f7f98000	; smcls	#9
-	DCI.N &bfa7	; ittee	ge
+	DCI.N &bfa8	; it	ge
 	DCI.W &f7f98000	; smcge	#9
+	DCI.N &bfa8	; it	ge
 	DCI.W &f7f98000	; smcge	#9
+	DCI.N &bfb8	; it	lt
 	DCI.W &f7f98000	; smclt	#9
+	DCI.N &bfb8	; it	lt
 	DCI.W &f7f98000	; smclt	#9
-	DCI.N &bfc7	; ittee	gt
+	DCI.N &bfc8	; it	gt
 	DCI.W &f7f98000	; smcgt	#9
+	DCI.N &bfc8	; it	gt
 	DCI.W &f7f98000	; smcgt	#9
+	DCI.N &bfd8	; it	le
 	DCI.W &f7f98000	; smcle	#9
+	DCI.N &bfd8	; it	le
 	DCI.W &f7f98000	; smcle	#9
 	DCI.W &f7f98000	; smc	#9
 	DCI.W &f7f98000	; smc	#9
-	DCI.N &bf27	; ittee	cs
+	DCI.N &bf28	; it	cs
 	DCI.W &f7f98000	; smccs	#9
+	DCI.N &bf28	; it	cs
 	DCI.W &f7f98000	; smccs	#9
+	DCI.N &bf38	; it	cc
 	DCI.W &f7f98000	; smccc	#9
+	DCI.N &bf38	; it	cc
 	DCI.W &f7f98000	; smccc	#9
 	]
 
@@ -217,6 +241,18 @@ cnt	SETA	cnt + 1
 	NOP
 	NOP
 	DCI.W &f7f68000
+	]
+
+	AREA Code6, CODE
+	THUMB
+	[ :LNOT: REFERENCE
+	SMCCC #5	; Forces the end of the implicit IT block.
+	SWICC #5
+	|
+	DCI.N &bf38	; it	cc
+	DCI.W &f7f58000	; smccc	#5
+	DCI.N &bf38	; it	cc
+	DCI.N &df05	; svccc	5
 	]
 
 	END

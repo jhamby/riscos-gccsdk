@@ -1,3 +1,45 @@
+Mon Jun 24 00:14:53 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* put.c (Put_GetHalfWord): Add.
+	* put.h (Put_GetHalfWord): Likewise.
+	* it.c (IT_ApplyCond): Add enforceLast parameter.
+	(IT_CanExtendBlock): Add.
+	* it.h: Likewise.
+	* m_cpuctrl.c (branch_shared): Refactor into...
+	(GetBranchLabel): ...this.
+	(BranchLabel_t): Add.
+	(m_branch): Make use of GetBranchLabel.  Add Thumb support.
+	(m_blx): Likewise.
+	(m_bx): Likewise.
+	(m_bjx): Likewise.
+	(m_cbnz_cbz): Add.
+	Follow IT_ApplyCond API change.
+	* m_cpuctrl.h (m_cbnz_cbz): Add.
+	* reloc.c (Reloc_CreateInternal): Tolerate being called during pass one.
+	* decode.c (oDecodeTable): Add CB entry.
+	(kDecodeTableIndex_RELOC): Update.
+	* m_cpumem.c (LoadStoreMultiple): Make sure LDM/POP with PC is the
+	last entry in IT block for Thumb code.
+	* m_coprocessor.c: Follow IT_ApplyCond API change.
+	* m_cpu.c: Likewise.
+	* directive_data.c: Likewise.
+	* code.c: Remove area.h include.
+	* value.c: Add stdio.h include.
+
+	* unittests/compare/Makefile.in: Add OUTPUTELF variable.
+	* unittests/compare/core/instr_smc_smi.s: Update expected output.
+	Add test case.
+	* unittests/compare/core/instr_ldm_stm_pop_push.s: Add test case.
+	* unittests/compare/core/instr_bx_reloc.s: Add.
+	* unittests/compare/core/instr_b_bl_blx_reloc.s: Add.
+	* unittests/compare/core/instr_cbz_cbnz.s: Add.
+	* unittests/compare/core/instr_b_bx_bxj_bl_blx.s: Refactor into...
+	* unittests/compare/core/instr_blx_bx_bxj_register.s: ...this.
+	Enhance test cases.
+	* unittests/compare/core/instr_b_bl_blx_label.s: ...and this.
+	Enhance test cases.
+
 Tue Jun 11 22:10:52 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
