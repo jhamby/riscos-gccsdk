@@ -175,6 +175,7 @@ m_branch (bool doLowerCase)
 
 	  Put_Ins (4, cc | 0x0B000000 | ((brLabel.branchOffset & 0x3fffffc) >> 2));
 
+	  /* FIXME: should emit reloc when label is function and when it marked for export.  */
 	  if (brLabel.relocValue.Tag == ValueSymbol
 	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
 	    Reloc_CreateELF (R_ARM_CALL, brLabel.instrOffset, &brLabel.relocValue);
@@ -197,6 +198,7 @@ m_branch (bool doLowerCase)
 	  		| (j2 << 11)
 	   		| ((brLabel.branchOffset & 0xfff) >> 1));
 
+	  /* FIXME: should emit reloc when label is function and when it marked for export.  */
 	  if (brLabel.relocValue.Tag == ValueSymbol
 	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
 	    Reloc_CreateELF (R_ARM_THM_CALL, brLabel.instrOffset, &brLabel.relocValue);
@@ -213,6 +215,7 @@ m_branch (bool doLowerCase)
 
 	  Put_Ins (4, cc | 0x0A000000 | ((brLabel.branchOffset & 0x3fffffc) >> 2));
 
+	  /* FIXME: should emit reloc when label is function and when it marked for export.  */
 	  if (brLabel.relocValue.Tag == ValueSymbol
 	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
 	    Reloc_CreateELF (R_ARM_JUMP24, brLabel.instrOffset, &brLabel.relocValue);
@@ -303,6 +306,7 @@ m_branch (bool doLowerCase)
 	      Put_Ins (2, useLongRange ? 0xE000 | ((brLabel.branchOffset & 0xffe) >> 1)
 				       : 0xD000 | (cc >> 20) | ((brLabel.branchOffset & 0x1fe) >> 1));
 
+	      /* FIXME: should emit reloc when label is function and when it marked for export.  */
 	      if (brLabel.relocValue.Tag == ValueSymbol
 		  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
 		Reloc_CreateELF (useLongRange ? R_ARM_THM_JUMP11 : R_ARM_THM_JUMP8,
@@ -328,6 +332,7 @@ m_branch (bool doLowerCase)
 
 	      /* Note, R_ARM_THM_JUMP19 is misleading as it is relocating
 		 20 bits.  */
+	      /* FIXME: should emit reloc when label is function and when it marked for export.  */
 	      if (brLabel.relocValue.Tag == ValueSymbol
 		  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
 		Reloc_CreateELF (useLongRange ? R_ARM_THM_JUMP24 : R_ARM_THM_JUMP19,
@@ -391,6 +396,16 @@ m_cbnz_cbz (bool doLowerCase)
 		    | ((brLabel.branchOffset & 0x40) << (9 - 6))
 		    | ((brLabel.branchOffset & 0x3e) << (3 - 1))
 		    | rn);
+
+      /* FIXME: should emit reloc when label is function and when it marked for export.  */
+      if (brLabel.relocValue.Tag == ValueSymbol
+	  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol) 
+	{
+	  Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, brLabel.instrOffset,
+	                   &brLabel.relocValue);
+	  Reloc_CreateELF (R_ARM_THM_JUMP6,
+	                   brLabel.instrOffset, &brLabel.relocValue);
+	}
     }
 
   return false;
@@ -449,8 +464,9 @@ m_blx (bool doLowerCase)
 			| (j2 << 11)
 			| (brLabel.branchOffset & 0xffc) >> 1);
 	}
+      /* FIXME: should emit reloc when label is function and when it marked for export.  */
       if (brLabel.relocValue.Tag == ValueSymbol
-	  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol) 
 	{
 	  Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, brLabel.instrOffset,
 	                   &brLabel.relocValue);

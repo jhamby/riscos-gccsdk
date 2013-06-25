@@ -1,3 +1,8 @@
+Wed Jun 26 01:48:59 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpuctrl.c (m_cbnz_cbz): Add ELF reloc support.
+	* unittests/compare/core/instr_cbz_cbnz.s: Enhance test.
+
 Mon Jun 24 00:14:53 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

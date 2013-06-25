@@ -158,5 +158,23 @@ idx	SETA idx + 2
 	DCI.N &bbfd
 
 	]
-	END
 
+	; Test ELF relocation:
+	[ OUTPUTELF
+	AREA CodeELFReloc, CODE
+
+	; IMPORT extSymbol_T01
+	IMPORT extSymbol_T02
+
+	[ :LNOT: REFERENCE
+	CBZ r1, 40 + extSymbol_T01
+	CBNZ r2, 80 + extSymbol_T02
+	|
+	DCI.N &b191	; cbz	r1, . + 4 + 40
+	RELOC R_ARM_THM_JUMP6, extSymbol_T01
+	DCI.N &bb32	; cbnz	r2, . + 4 + 80
+	RELOC R_ARM_THM_JUMP6, extSymbol_T02
+	]
+	] ; OUTPUTELF
+
+	END
