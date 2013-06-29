@@ -119,11 +119,11 @@ for roapp in asasm cmunge elf2aif ln mkresfs ; do
         # Don't build the elftoolchain tools.  They are only needed for
         # testing asasm and not for the gccsdk build.
         EXTRA_CONFIGURE_ARGS=--disable-building-tools
-       test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && ACLOCAL='aclocal -I $GCCSDK_RISCOS/asasm/m4' autoreconf --install )
+        test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && ACLOCAL='aclocal -I $GCCSDK_RISCOS/asasm/m4' autoreconf -f --install )
         ;;
       *)
         EXTRA_CONFIGURE_ARGS=
-       test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf --install )
+        test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf -f --install )
         ;;
     esac
     create_empty_dir $GCCSDK_BUILDDIR/$roapp
