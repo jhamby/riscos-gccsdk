@@ -1,3 +1,7 @@
+Sat Jun 29 21:34:50 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/configure.ac (AC_PROG_LIBTOOL): Add.
+
 Sat Jun 29 17:53:35 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Merged from upstream-trunk.
