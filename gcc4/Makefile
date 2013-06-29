@@ -278,7 +278,7 @@ buildtool-automake-for-gcc-built: src-automake-for-gcc-copied buildtool-autoconf
 	cd $(BUILDDIR)/buildtool-automake-for-gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SRCDIR)/automake-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
 else
 # autoconf-for-gcc and automake-for-gcc are the same as autoconf-for-binutils and automake-for-gcc so we can use PREFIX_BUILDTOOL_GCC as PREFIX_BUILDTOOL_BINUTILS
-buildtool-automake-for-gcc-built: buildtool-autoconf-for-gcc-built
+buildtool-automake-for-gcc-built: buildtool-automake-for-binutils-built
 endif
 	touch $(BUILDSTEPSDIR)/buildtool-automake-for-gcc-built
 
