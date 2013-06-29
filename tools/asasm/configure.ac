@@ -12,6 +12,7 @@ AC_PROG_CC
 AC_GNU_SOURCE
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_HEADER_STDC
 AC_CHECK_FUNCS(strdup strndup strncasecmp strcasecmp)

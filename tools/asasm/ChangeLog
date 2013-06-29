@@ -1,3 +1,12 @@
+Sat Jun 29 22:47:40 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	m4:
+	* ltdl.m4: Removed.
+	* argz.m4: Removed.
+	* libtool.m4: Updated from upstream.
+
+	* configure.ac (AC_CONFIG_MACRO_DIR): Add.
+
 Wed Jun 26 01:48:59 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/m_cpuctrl.c (m_cbnz_cbz): Add ELF reloc support.
