@@ -509,7 +509,7 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
   /* Read Rd.  */
   unsigned regD = Get_CPUReg ();
   if (regD == 15)
-    Error (ErrorWarning, "Use of register PC is unpredictable");
+    Error (ErrorWarning, "Use of register PC is UNPREDICTABLE");
 
   /* Read Rn (lhs).  */
   Input_SkipWS ();
@@ -517,7 +517,7 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
     Error (ErrorError, "%sdst", InsertCommaAfter);
   unsigned regN = Get_CPUReg ();
   if (regN == 15)
-    Error (ErrorWarning, "Use of register PC is unpredictable");
+    Error (ErrorWarning, "Use of register PC is UNPREDICTABLE");
 
   /* Read Rm (rhs).  */
   Input_SkipWS ();
@@ -525,7 +525,7 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
     Error (ErrorError, "%slhs", InsertCommaAfter);
   unsigned regM = Get_CPUReg ();
   if (regM == 15)
-    Error (ErrorWarning, "Use of register PC is unpredictable");
+    Error (ErrorWarning, "Use of register PC is UNPREDICTABLE");
   if (mulType != Is_eMLS)
     {
       if (regD == regN && !Target_CheckCPUFeature (kCPUExt_v6, false))
@@ -550,7 +550,7 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
 	Error (ErrorError, "%srhs", InsertCommaAfter);
       unsigned regA = Get_CPUReg ();
       if (regA == 15)
-	Error (ErrorWarning, "Use of register PC is unpredictable");
+	Error (ErrorWarning, "Use of register PC is UNPREDICTABLE");
       ir |= ACC_MUL (regA);
     }
   ir |= DST_MUL (regD);
@@ -992,7 +992,7 @@ m_clz (bool doLowerCase)
   ir |= RHS_OP (rhs);
 
   if (dst == 15 || rhs == 15)
-    Error (ErrorError, "Use of R15 in CLZ is unpredictable");
+    Error (ErrorError, "Use of R15 in CLZ is UNPREDICTABLE");
 
   Put_Ins (4, ir);
   return false;
@@ -1296,15 +1296,15 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 	  if (instrState == eInstrType_ARM)
 	    {
 	      if (rd == 15)
-		Error (ErrorWarning, "Use of PC is unpredictable");
+		Error (ErrorWarning, "Use of PC is UNPREDICTABLE");
 	      if (rd == 13 || rn == 13)
-		Error (ErrorWarning, "Use of R13 as Rd or Rn is deprecated");
+		Error (ErrorWarning, "Use of R13 as Rd or Rn is DEPRECATED");
 	      baseInstr = 0x07C00010;
 	    }
 	  else
 	    {
 	      if (rd == 13 || rd == 15 || rn == 13)
-		Error (ErrorWarning, "Use of R13 or PC is unpredictable");
+		Error (ErrorWarning, "Use of R13 or PC is UNPREDICTABLE");
 	      baseInstr = 0xF3600000;
 	    }
 	  break;
@@ -1317,15 +1317,15 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 	  if (instrState == eInstrType_ARM)
 	    {
 	      if (rd == 15 || rn == 15)
-		Error (ErrorWarning, "Use of PC in unpredictable");
+		Error (ErrorWarning, "Use of PC in UNPREDICTABLE");
 	      if (rd == 13 || rn == 13)
-		Error (ErrorWarning, "Use of R13 as Rd or Rn is deprecated");
+		Error (ErrorWarning, "Use of R13 as Rd or Rn is DEPRECATED");
 	      baseInstr = bitFieldType == eIsSBFX ? 0x07A00050 : 0x07E00050;
 	    }
 	  else
 	    {
 	      if (rd == 13 || rd == 15 || rn == 13 || rn == 15)
-		Error (ErrorWarning, "Use of R13 or PC is unpredictable");
+		Error (ErrorWarning, "Use of R13 or PC is UNPREDICTABLE");
 	      baseInstr = bitFieldType == eIsSBFX ? 0xF3400000 : 0xF3C00000;
 	    }
 	  break;
@@ -1502,14 +1502,14 @@ m_pkh (bool doLowerCase)
   if (instrState == eInstrType_ARM)
     {
       if (rd == 15 || rn == 15 || rm == 15)
-	Error (ErrorWarning, "Use of PC for Rd, Rn or Rm is unpredictable");
+	Error (ErrorWarning, "Use of PC for Rd, Rn or Rm is UNPREDICTABLE");
       const ARMWord baseInstr = 0x06800010;
       Put_Ins (4, baseInstr | cc | (rn << 16) | (rd << 12) | (shift << 7) | (isTB ? (1<<6) : 0) | rm);
     }
   else
     {
       if (rd == 15 || rd == 13 || rn == 15 || rn == 13 || rm == 15 || rm == 13)
-	Error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
+	Error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is UNPREDICTABLE");
       const ARMWord baseInstr = 0xEAC00000;
       Put_Ins (4, baseInstr | (rn << 16) | ((shift & 0x1C) << 10) | (rd << 8) | ((shift & 3) << 6) | (isTB ? (1<<5) : 0) | rm);
     }
@@ -1621,7 +1621,7 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
   if (instrState == eInstrType_ARM)
     {
       if (rd == 15 || rm == 15)
-	Error (ErrorWarning, "Use of PC for Rd or Rm is unpredictable");
+	Error (ErrorWarning, "Use of PC for Rd or Rm is UNPREDICTABLE");
       ARMWord baseInstr;
       switch (extend)
 	{
@@ -1646,7 +1646,7 @@ core_sxt_uxt (bool doLowerCase, bool isLXT)
     {
       Target_CheckCPUFeature (kCPUExt_v6T2, true);
       if (rd == 13 || rd == 15 || rn == 13 || rm == 15 || rm == 15)
-	Error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
+	Error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is UNPREDICTABLE");
       ARMWord baseInstr;
       switch (extend)
 	{

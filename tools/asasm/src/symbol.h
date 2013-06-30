@@ -37,7 +37,10 @@
 #define SYMBOL_DEFINED   0x0001 /* This is a mask.  */
 #define SYMBOL_EXPORT    0x0002 /* This is a mask.  */
 
-#define SYMBOL_ABSOLUTE  0x0004	/* This is an absolute value (e.g. constant) and only valid when SYMBOL_DEFINED is set.  Otherwise its value is relative to the base AREA where it is defined. */
+#define SYMBOL_ABSOLUTE  0x0004	/* This is an absolute value (e.g. constant)
+  and only valid when SYMBOL_DEFINED is set (FIXME? exception for IMPORT + BASED
+  symbols).  Otherwise its value is relative to the base AREA where it is
+  defined. */
 #define SYMBOL_NOCASE    0x0008	/* Only if SYMBOL_REFERENCE, case insensitive */
 #define SYMBOL_WEAK      0x0010	/* Only if SYMBOL_REFERENCE, must not be resolved (AOF).  For ELF, can be on SYMBOL_LOCAL/SYMBOL_GLOBAL.  */
 #define SYMBOL_STRONG    0x0020	/* Only if SYMBOL_GLOBAL.  This attribute 
@@ -94,9 +97,10 @@ typedef struct Symbol
   struct Symbol *next;  /** Linked symbols all having the same hash value.  */
 
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
-  Value value; /** Symbol value.  For symbol labels, this is always a ValueSymbol
-    with symbol an area symbol.
-    For SYMBOL_COMMON symbols, this is the size of the common block it represents.  */
+  Value value; /** Symbol value.  For symbol labels, this is always a
+    ValueSymbol with symbol an area symbol.
+    For SYMBOL_COMMON symbols, this is the size of the common block it
+    represents.  */
   uint32_t codeSize; /** Size of the code associated with this symbol label
     (for AREA symbol, this is unused).
     For SYMBOL_COMMON symbols, this is also its size.  */

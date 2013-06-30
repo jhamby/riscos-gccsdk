@@ -17,7 +17,7 @@
 		MACRO
 		SubInvoke $instr, $dst
 		Inject	"$instr p8, 5, $dst, c4, c12"
-		Inject	"$instr p8 , 5 , $dst , c4 , c12 , 4"
+		Inject	"$instr p8 , # 5 , $dst , c4 , c12 , 4"
 		Inject	"$instr p8 ,5 ,$dst ,c4 ,c12 , # 7"
 		MEND
 

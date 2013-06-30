@@ -140,6 +140,7 @@ Area_IsDWARF (const Area *area)
 static inline unsigned
 Area_GetBaseReg (const Area *area)
 {
+  assert ((area->type & AREA_BASED) != 0);
   return (area->type & AREA_MASKBASEREG) >> 24;
 }
 

@@ -41,8 +41,9 @@
 #include "targetcpu.h"
 
 static int
-CopInt (int max, const char *msg)
+Get_CoProOpcode (int max, const char *msg)
 {
+  (void) Input_Match ('#', false);
   const Value *i = Expr_BuildAndEval (ValueInt);
   if (i->Tag == ValueInt)
     {
@@ -60,48 +61,60 @@ CopInt (int max, const char *msg)
   return i->Data.Int.i;
 }
 
+
+static void
+Check_CopNum (bool isTwo, unsigned copNum)
+{
+  /* FPA uses coprocessor 1 and 2 (the latter only for LFM/SFM).
+     NEON/VFP uses coprocessor 10 and 11.  */
+  switch (copNum)
+    {
+      case 1:
+      case 2:
+	if (option_pedantic)
+	  Error (ErrorInfo, "Coprocessor 1 and 2 are FPA floating point unit. Use FPA mnemonics if possible");
+	break;
+      case 10:
+      case 11:
+	if (isTwo)
+	  Error (ErrorWarning, "Use of coprocessor 10 and 11 is UNDEFINED");
+	else if (option_pedantic)
+	  Error (ErrorInfo, "Coprocessor 10 and 11 are used for NEON/VFP. Use their mnemonics if possible");
+    }
+}
+
+
 /**
- * Parses: p#, CPopc1, CPd, CPn, CPm {,{#}<CPopc2>}
+ * Parses:
+ *   [<cc>][<q>] <coproc>, ["#"]<opcode1>, [<CPd> | <Rt>], <CPn>, <CPm> [,["#"]<opcode2>]
  */
 static bool
-coprocessor (const char *descr, bool doLowerCase, bool two,
-             bool CopOnly, ARMWord ir, int maxop)
+coprocessor (bool doLowerCase, bool isTwo, bool copOnly, ARMWord ir, int maxop)
 {
+  ARMWord cc = Option_Cond (doLowerCase);
+  if (cc == kOption_NotRecognized)
+    return true;
+
   InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
   if (instrWidth == eInstrWidth_Unrecognized)
     return true;
 
-  InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (ir, false, instrState != eInstrType_ARM); 
-
-  /* For Thumb2, we need at least ARMv6T2.
-     CDP2, MCR2, MRC2 for ARM need at least ARMv5T.  */
-  if (instrState != eInstrType_ARM)
-    Target_CheckCPUFeature (kCPUExt_v6T2, true);
-  else if (two)
-    Target_CheckCPUFeature (kCPUExt_v5T, true);
-
-  int cop = CP_NUMBER (Get_CopNum ());
-
-  /* FPA uses coprocessor 1 and 2 (the latter only for LFM/SFM).  */
-  if (cop == CP_NUMBER (1) || cop == CP_NUMBER (2))
-    {
-      if (option_pedantic)
-	Error (ErrorInfo, "Coprocessor 1 and 2 are FPA floating point unit. Use FPA mnemonics if possible");
-    }
-  ir |= cop;
+  unsigned copNum = Get_CopNum ();
+  Check_CopNum (isTwo, copNum);
+  ir |= CP_NUMBER (copNum);
 
   Input_SkipWS ();
   if (!Input_Match (',', true))
     Error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   if (maxop > 7)
-    ir |= CP_DCODE (CopInt (maxop, "coprocessor opcode"));
+    ir |= CP_DCODE (Get_CoProOpcode (maxop, "coprocessor opcode"));
   else
-    ir |= CP_RTRAN (CopInt (maxop, "coprocessor opcode"));
+    ir |= CP_RTRAN (Get_CoProOpcode (maxop, "coprocessor opcode"));
   Input_SkipWS ();
   if (!Input_Match (',', true))
     Error (ErrorError, "%sdata operand", InsertCommaAfter);
-  ir |= CPDST_OP (CopOnly ? Get_CopReg () : Get_CPUReg ());
+  unsigned reg = copOnly ? Get_CopReg () : Get_CPUReg ();
+  ir |= CPDST_OP (reg);
   Input_SkipWS ();
   if (!Input_Match (',', true))
     Error (ErrorError, "%sdst", InsertCommaAfter);
@@ -112,204 +125,260 @@ coprocessor (const char *descr, bool doLowerCase, bool two,
   ir |= CPRHS_OP (Get_CopReg ());
   Input_SkipWS ();
   if (Input_Match (',', true))
-    {
-      (void) Input_Match ('#', true);
-      ir |= CP_INFO (CopInt (7, "coprocessor info"));
-    }
-
-  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_Enforce16bit)
-    Error (ErrorError, "Instruction %s is not supported for Thumb", descr);
-
-  /* Instructions bits for ARM and Thumb2 are the same.  Some cc fiddling
-     is still needed.  */
-  if (two)
-    ir |= 0xf0000000;
-  else if (instrState != eInstrType_ARM)
-    ir = (ir & 0x0fffffff) | 0xe0000000;
-  Put_Ins (4, ir);
-  return false;
-}
-
-/**
- * Implements CDP and CDP2.
- *   CDP<cond> p#, CPopc1, CPd, CPn, CPm {,{#}<CPopc2>}
- */
-bool
-m_cdp (bool doLowerCase)
-{
-  if (Input_Match ('2', false))
-    return coprocessor ("CDP2", doLowerCase, true, true, 0xe0000000 | 0x0e000000, 15);
-
-  ARMWord cc = Option_Cond (doLowerCase);
-  if (cc == kOption_NotRecognized)
-    return true;
-  return coprocessor ("CDP", doLowerCase, false, true, cc | 0x0e000000, 15);
-}
-
-/** REGISTER TRANSFER **/
-
-/**
- * Implements MCR and MCR2.
- */
-bool
-m_mcr (bool doLowerCase)
-{
-  if (Input_Match ('2', false))
-    return coprocessor ("MCR2", doLowerCase, true, false, 0xe0000000 | 0x0e000010, 7);
-
-  ARMWord cc = Option_Cond (doLowerCase);
-  if (cc == kOption_NotRecognized)
-    return true;
-  return coprocessor ("MCR", doLowerCase, false, false, cc | 0x0e000010, 7);
-}
-
-/**
- * Implements MRC and MRC2.
- */
-bool
-m_mrc (bool doLowerCase)
-{
-  if (Input_Match ('2', false))
-    return coprocessor ("MRC2", doLowerCase, true, false, 0xe0000000 | 0x0e100010, 7);
-  ARMWord cc = Option_Cond (doLowerCase);
-  if (cc == kOption_NotRecognized)
-    return true;
-  return coprocessor ("MRC", doLowerCase, false, false, cc | 0x0e100010, 7);
-}
-
-static void
-coprocessorr (ARMWord ir)
-{
-  ir |= CP_NUMBER (Get_CopNum ());
-  Input_SkipWS ();
-  if (!Input_Match (',', true))
-    Error (ErrorError, "%scoprocessor number", InsertCommaAfter);
-  ir |= (CopInt (15, "coprocessor opcode") << 4);
-  Input_SkipWS ();
-  if (!Input_Match (',', true))
-    Error (ErrorError, "%scoprocessor opcode", InsertCommaAfter);
-  ir |= CPDST_OP (Get_CPUReg ());
-  Input_SkipWS ();
-  if (!Input_Match (',', true))
-    Error (ErrorError, "%sdst", InsertCommaAfter);
-  ir |= CPLHS_OP (Get_CPUReg ());
-  Input_SkipWS ();
-  if (!Input_Match (',', true))
-    Error (ErrorError, "%slhs", InsertCommaAfter);
-  ir |= CPRHS_OP (Get_CopReg ());
-
-  Put_Ins (4, ir);
-}
-
-/**
- * Implements MCRR.
- */
-bool
-m_mcrr (bool doLowerCase)
-{
-  ARMWord cc = Option_Cond (doLowerCase);
-  if (cc == kOption_NotRecognized)
-    return true;
-  Target_CheckCPUFeature (kCPUExt_v5E, true);
-  coprocessorr (cc | 0x0C400000);
-  return false;
-}
-
-/**
- * Implements MRRC.
- */
-bool
-m_mrrc (bool doLowerCase)
-{
-  ARMWord cc = Option_Cond (doLowerCase);
-  if (cc == kOption_NotRecognized)
-    return true;
-  Target_CheckCPUFeature (kCPUExt_v5E, true);
-  coprocessorr (cc | 0x0C500000);
-  return false;
-}
-
-
-static bool
-dstmem (const char *descr, bool doLowerCase, bool two,
-        ARMWord ir, bool literal)
-{
-  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
-  if (instrWidth == eInstrWidth_Unrecognized)
-    return true;
+    ir |= CP_INFO (Get_CoProOpcode (7, "coprocessor info"));
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (ir, false, instrState != eInstrType_ARM); 
+
+  if (!copOnly)
+    {
+      if (reg == 15)
+	Error (ErrorWarning, "The use of R15 is UNPREDICTABLE");
+      if (instrState != eInstrType_ARM && reg == 13)
+	Error (ErrorWarning, "The use of R13 is UNPREDICTABLE");
+    }
+
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
+
+  if (isTwo)
+    {
+      if (cc != AL)
+	{
+	  const char *instr = copOnly ? "CDP2" : (ir & 0x00100000) != 0 ? "MRC2" : "MCR2";
+	  Error (ErrorError, "%s can not have a non-AL condition code", instr);
+	}
+      ir |= NV;
+    }
+  else if (instrState != eInstrType_ARM)
+    ir |= AL;
+  else
+    ir |= cc;
 
   /* For Thumb2, we need at least ARMv6T2.
      CDP2, MCR2, MRC2 for ARM need at least ARMv5T.  */
   if (instrState != eInstrType_ARM)
     Target_CheckCPUFeature (kCPUExt_v6T2, true);
-  else if (two)
+  else if (isTwo)
     Target_CheckCPUFeature (kCPUExt_v5T, true);
 
-  int cop = CP_NUMBER (Get_CopNum ());
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_Enforce16bit)
+    Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
 
-  /* FPA uses coprocessor 1 and 2 (the latter only for LFM/SFM).  */
-  if (cop == CP_NUMBER (1) || cop == CP_NUMBER (2))
+  Put_Ins (4, ir);
+  return false;
+}
+
+
+/**
+ * Implements CDP and CDP2.
+ *   CDP["2"][<cc>][<q>] <coproc>, ["#"]<opcode1>, <CPd>, <CPn>, <CPm> [, ["#"]<opcode2>]
+ */
+bool
+m_cdp (bool doLowerCase)
+{
+  bool isTwo = Input_Match ('2', false);
+  return coprocessor (doLowerCase, isTwo, true, 0x0e000000, 15);
+}
+
+
+/**
+ * Implements MCR and MCR2.
+ *   MRC["2"][<cc>][<q>] <coproc>, ["#"]<opcode1>, <Rt>, <CRn>, <CRm> [, ["#"]<opcode2>]
+ */
+bool
+m_mcr (bool doLowerCase)
+{
+  bool isTwo = Input_Match ('2', false);
+  return coprocessor (doLowerCase, isTwo, false, 0x0e000010, 7);
+}
+
+
+/**
+ * Implements MRC and MRC2.
+ *   MCR["2"][<cc>][<q>] <coproc>, ["#"]<opcode1>, <Rt>, <CRn>, <CRm> [, ["#"]<opcode2>]
+ */
+bool
+m_mrc (bool doLowerCase)
+{
+  bool isTwo = Input_Match ('2', false);
+  return coprocessor (doLowerCase, isTwo, false, 0x0e100010, 7);
+}
+
+
+/**
+ * Parses:
+ *   [<cc>][<q>] <coproc>, ["#"]<opcode1>, <Rt>, <Rt2>, <CPm>
+ */
+static bool
+coprocessorr (bool doLowerCase, bool isTwo, ARMWord ir)
+{
+  ARMWord cc = Option_Cond (doLowerCase);
+  if (cc == kOption_NotRecognized)
+    return true;
+
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  unsigned copNum = Get_CopNum ();
+  Check_CopNum (isTwo, copNum);
+  ir |= CP_NUMBER (copNum);
+
+  Input_SkipWS ();
+  if (!Input_Match (',', true))
+    Error (ErrorError, "%scoprocessor number", InsertCommaAfter);
+  ir |= Get_CoProOpcode (15, "coprocessor opcode") << 4;
+  Input_SkipWS ();
+  if (!Input_Match (',', true))
+    Error (ErrorError, "%scoprocessor opcode", InsertCommaAfter);
+  unsigned regT = Get_CPUReg ();
+  ir |= CPDST_OP (regT);
+  Input_SkipWS ();
+  if (!Input_Match (',', true))
+    Error (ErrorError, "%sdst", InsertCommaAfter);
+  unsigned regT2 = Get_CPUReg ();
+  ir |= CPLHS_OP (regT2);
+  Input_SkipWS ();
+  if (!Input_Match (',', true))
+    Error (ErrorError, "%slhs", InsertCommaAfter);
+  ir |= CPRHS_OP (Get_CopReg ());
+
+  InstrType_e instrState = State_GetInstrType ();
+
+  if (regT == 15 || regT2 == 15)
+    Error (ErrorWarning, "The use of R15 is UNPREDICTABLE");
+  if (instrState != eInstrType_ARM && (regT == 13 || regT2 == 13))
+    Error (ErrorWarning, "The use of R13 is UNPREDICTABLE");
+
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
+
+  if (isTwo)
     {
-      if (option_pedantic)
-	Error (ErrorInfo, "Coprocessor 1 and 2 are FPA floating point unit. Use FPA mnemonics if possible");
+      if (cc != AL)
+	Error (ErrorError, "%s can not have a non-AL condition code", (ir & 0x0FF00000) == 0x0C400000 ? "MCRR2" : "MRRC2");
+      ir |= NV;
     }
-  ir |= cop;
+  else if (instrState != eInstrType_ARM)
+    ir |= AL;
+  else
+    ir |= cc;
+
+  /* For Thumb2, we need at least ARMv6T2.
+     MRRC/MCRR for ARM needs at least ARMv5TE,
+     MRRC2/MCRR2 for ARM needs at least ARMv6.  */
+  if (instrState != eInstrType_ARM)
+    Target_CheckCPUFeature (kCPUExt_v6T2, true);
+  else
+    Target_CheckCPUFeature (isTwo ? kCPUExt_v6 : kCPUExt_v5E, true);
+
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_Enforce16bit)
+    Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+
+  Put_Ins (4, ir);
+  return false;
+}
+
+
+/**
+ * Implements MCRR and MCRR2.
+ *   MCRR["2"][<cc>][<q>] <coproc>, ["#"]<opcode1>, <Rt>, <Rt2>, <CPm>
+ */
+bool
+m_mcrr (bool doLowerCase)
+{
+  bool isTwo = Input_Match ('2', false);
+  return coprocessorr (doLowerCase, isTwo, 0x0C400000);
+}
+
+
+/**
+ * Implements MRRC and MRRC2.
+ *   MRRC["2"][<cc>][<q>] <coproc>, ["#"]<opcode1>, <Rt>, <Rt2>, <CPm>
+ */
+bool
+m_mrrc (bool doLowerCase)
+{
+  bool isTwo = Input_Match ('2', false);
+  return coprocessorr (doLowerCase, isTwo, 0x0C500000);
+}
+
+
+/**
+ * For LDC/LDC2/STC/STC2 usage:
+ * Parses:
+ *   [<cc>]["L"][<q>] <coproc>, <CRd>, <addressing mode 5> (pre-UAL)
+ *   ["L"][<cc>][<q>] <coproc>, <CRd>, <addressing mode 5> (UAL)
+ */
+static bool
+dstmem (bool doLowerCase, bool isTwo, ARMWord ir, bool literal)
+{
+  ARMWord cc = Option_CondL (doLowerCase);
+  if (cc == kOption_NotRecognized)
+    return true;
+
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  unsigned copNum = Get_CopNum ();
+  Check_CopNum (isTwo, copNum);
+  ir |= CP_NUMBER (copNum);
 
   Input_SkipWS ();
   if (!Input_Match (',', true))
     Error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (Get_CopReg ());
 
-  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_Enforce16bit)
-    Error (ErrorError, "Instruction %s is not supported for Thumb", descr);
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM); 
 
-  /* Instructions bits for ARM and Thumb2 are the same.  Some cc fiddling
-     is still needed.  */
-  if (two)
-    ir |= 0xf0000000;
+  ir |= cc & ~NV; /* Copy "L" bit.  */
+  if (isTwo)
+    {
+      if (cc != AL)
+	Error (ErrorError, "%s can not have a non-AL condition code", literal ? "LDC2" : "STC2");
+      ir |= NV;
+    }
   else if (instrState != eInstrType_ARM)
-    ir = (ir & 0x0fffffff) | 0xe0000000;
+    ir |= AL;
+  else
+    ir |= cc & NV;
+
+  /* For Thumb2, we need at least ARMv6T2.
+     STC2, LDC2 for ARM need at least ARMv5T.  */
+  if (instrState != eInstrType_ARM)
+    Target_CheckCPUFeature (kCPUExt_v6T2, true);
+  else if (isTwo)
+    Target_CheckCPUFeature (kCPUExt_v5T, true);
+
+  if (instrState != eInstrType_ARM && instrWidth == eInstrWidth_Enforce16bit)
+    Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+
   HelpCop_Addr (ir, literal, false, instrState != eInstrType_ARM);
   return false;
 }
 
+
 /**
  * Implements LDC and LDC2.
- * LDC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5> (pre-UAL)
- * LDC{L}{<cond>} <coproc>, <CRd>, <addressing mode 5> (UAL)
- * LDC2{L} <coproc>, <CRd>, <addressing mode 5>
+ *   LDC[<cc>]["L"][<q>] <coproc>, <CRd>, <addressing mode 5> (pre-UAL)
+ *   LDC["2"]["L"][<cc>][<q>] <coproc>, <CRd>, <addressing mode 5> (UAL)
  */
 bool
 m_ldc (bool doLowerCase)
 {
-  if (Input_Match ('2', false))
-    return dstmem ("LDC2", doLowerCase, true,
-                   0xe0000000 | (Input_Match (doLowerCase ? 'l' : 'L', false) ? N_FLAG : 0) | 0x0c100000, true);
-
-  ARMWord cc = Option_CondL (doLowerCase);
-  if (cc == kOption_NotRecognized)
-    return true;
-  return dstmem ("LDC", doLowerCase, false, cc | 0x0c100000, true);
+  bool isTwo = Input_Match ('2', false);
+  return dstmem (doLowerCase, isTwo, 0x0c100000, true);
 }
+
 
 /**
  * Implements STC.
- * STC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5> (pre-UAL)
- * STC{L}{<cond>} <coproc>, <CRd>, <addressing mode 5> (pre-UAL)
- * STC2{L} <coproc>, <CRd>, <addressing mode 5>
+ *   STC[<cc>]["L"][<q>] <coproc>, <CRd>, <addressing mode 5> (pre-UAL)
+ *   STC["2"]["L"][<cc>][<q>] <coproc>, <CRd>, <addressing mode 5> (UAL)
  */
 bool
 m_stc (bool doLowerCase)
 {
-  if (Input_Match ('2', false))
-    return dstmem ("STC2", doLowerCase, true,
-                   0xe0000000 | (Input_Match (doLowerCase ? 'l' : 'L', false) ? N_FLAG : 0) | 0x0c000000, false);
-
-  ARMWord cc = Option_CondL (doLowerCase);
-  if (cc == kOption_NotRecognized)
-    return true;
-  return dstmem ("STC", doLowerCase, false, cc | 0x0c000000, false);
+  bool isTwo = Input_Match ('2', false);
+  return dstmem (doLowerCase, isTwo, 0x0c000000, false);
 }

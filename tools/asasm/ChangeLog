@@ -1,3 +1,18 @@
+Sun Jun 30 14:12:12 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cpu.c: Uppercase words unpredictable and deprecated.
+	* m_cpumem.c: Likewise.
+	* symbol.h: Update comments.
+	* area.h (Area_GetBaseReg): Add assert.
+	* m_cpuctrl.c: Fix compiler warning.
+	* m_coprocessor.c: Cleaned up implementation.  Add support for MCRR2
+	and MRRC2.  Add hash character support in front of opcode.
+
+	unittests/compare/core:
+	* instr_mcrr_mrrc.s: Add full ARM/Thumb + condition code tests.
+	* instr_cdp_mcr_mrc_ldc_stc.s: Add hash character opcode test.
+
 Sun Jun 30 13:58:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	unittests/reloc:

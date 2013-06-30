@@ -84,7 +84,7 @@ GetBranchLabel (bool isBLX)
   Value value;
   if (valP->Tag == ValueIllegal
       || (valP->Tag == ValueSymbol
-          && (valP->Data.Symbol.factor != 1 || gPhase == ePassOne && valP->Data.Symbol.symbol != areaCurrentSymbol)))
+          && (valP->Data.Symbol.factor != 1 || (gPhase == ePassOne && valP->Data.Symbol.symbol != areaCurrentSymbol))))
     {
       if (gPhase != ePassOne)
 	{

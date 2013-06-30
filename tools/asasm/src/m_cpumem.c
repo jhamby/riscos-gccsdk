@@ -1151,7 +1151,7 @@ m_swp (bool doLowerCase)
   if (Target_CheckCPUFeature (kCPUExt_v8, false))
     Error (ErrorWarning, "The use of SWP/SWPB is obsolete for ARMv8");
   else if (Target_CheckCPUFeature (kCPUExt_v6, false))
-    Error (ErrorWarning, "The use of SWP/SWPB is deprecated for ARMv6 and ARMv7");
+    Error (ErrorWarning, "The use of SWP/SWPB is DEPRECATED for ARMv6 and ARMv7");
 
   IT_ApplyCond (cc_b, false, false);
 
@@ -1312,7 +1312,7 @@ m_rfe (bool doLowerCase)
   if (regN == INVALID_REG)
     return false;
   if (regN == 15)
-    Error (ErrorError, "Using PC as base register is unpredictable");
+    Error (ErrorError, "Using PC as base register is UNPREDICTABLE");
 
   Input_SkipWS ();
   bool updateStack = Input_Match ('!', false);
