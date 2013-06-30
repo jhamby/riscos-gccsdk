@@ -10,26 +10,27 @@ ELF Header:
   Version:                           0x1
   Entry point address:               0x0
   Start of program headers:          0 (bytes into file)
-  Start of section headers:          520 (bytes into file)
+  Start of section headers:          556 (bytes into file)
   Flags:                             0x0
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
   Number of program headers:         0
   Size of section headers:           40 (bytes)
-  Number of section headers:         9
-  Section header string table index: 8
+  Number of section headers:         10
+  Section header string table index: 9
 
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            00000000 000000 000000 00      0   0  0
-  [ 1] .symtab           SYMTAB          00000000 000034 000130 10      2  10  4
-  [ 2] .strtab           STRTAB          00000000 000164 00003d 00      0   0  1
-  [ 3] Code1             PROGBITS        00000000 0001a4 00000c 00 WAX  0   0  4
-  [ 4] Code2             PROGBITS        00000000 0001b0 00000c 00 WAX  0   0  4
-  [ 5] Code3             PROGBITS        00000000 0001bc 000004 00 WAX  0   0  4
-  [ 6] Data4             PROGBITS        00000000 0001c0 00000c 00  WA  0   0  4
-  [ 7] Code5             PROGBITS        00000000 0001cc 000000 00 WAX  0   0  4
-  [ 8] .shstrtab         STRTAB          00000000 0001cc 000039 00      0   0  1
+  [ 1] .symtab           SYMTAB          00000000 000034 000140 10      2  11  4
+  [ 2] .strtab           STRTAB          00000000 000174 00003d 00      0   0  1
+  [ 3] Code1             PROGBITS        00000000 0001b4 000010 00 WAX  0   0  4
+  [ 4] .rel.Code1        REL             00000000 0001c4 000008 08      1   3  4
+  [ 5] Code2             PROGBITS        00000000 0001cc 00000c 00 WAX  0   0  4
+  [ 6] Code3             PROGBITS        00000000 0001d8 000004 00 WAX  0   0  4
+  [ 7] Data4             PROGBITS        00000000 0001dc 00000c 00  WA  0   0  4
+  [ 8] Code5             PROGBITS        00000000 0001e8 000000 00 WAX  0   0  4
+  [ 9] .shstrtab         STRTAB          00000000 0001e8 000044 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
   I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
@@ -39,30 +40,33 @@ There are no section groups in this file.
 
 There are no program headers in this file.
 
-There are no relocations in this file.
+Relocation section '.rel.Code1' at offset 0x1c4 contains 1 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0000000c  00000602 R_ARM_ABS32       00000000   Code1
 
 There are no unwind sections in this file.
 
-Symbol table '.symtab' contains 19 entries:
+Symbol table '.symtab' contains 20 entries:
    Num:    Value  Size Type    Bind   Vis      Ndx Name
      0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
      1: 00000000     0 NOTYPE  LOCAL  DEFAULT    3 $a
-     2: 00000000     0 NOTYPE  LOCAL  DEFAULT    4 $a
-     3: 00000000     0 NOTYPE  LOCAL  DEFAULT    5 $a
-     4: 00000000     0 NOTYPE  LOCAL  DEFAULT    6 $d
-     5: 00000000     0 SECTION LOCAL  DEFAULT    3 
-     6: 00000000     0 SECTION LOCAL  DEFAULT    4 
+     2: 00000000     0 NOTYPE  LOCAL  DEFAULT    5 $a
+     3: 00000000     0 NOTYPE  LOCAL  DEFAULT    6 $a
+     4: 0000000c     0 NOTYPE  LOCAL  DEFAULT    3 $d
+     5: 00000000     0 NOTYPE  LOCAL  DEFAULT    7 $d
+     6: 00000000     0 SECTION LOCAL  DEFAULT    3 
      7: 00000000     0 SECTION LOCAL  DEFAULT    5 
-     8: 00000000     0 SECTION LOCAL  DEFAULT    7 
-     9: 00000000     0 SECTION LOCAL  DEFAULT    6 
-    10: 00000004     4 NOTYPE  GLOBAL DEFAULT    3 Exp11
-    11: 00000008     4 NOTYPE  GLOBAL DEFAULT    3 Exp12
-    12: 00000004     4 NOTYPE  GLOBAL DEFAULT  ABS Exp21
-    13: 00000008     4 NOTYPE  GLOBAL DEFAULT  ABS Exp22
-    14: 00000004     4 NOTYPE  GLOBAL DEFAULT    6 Exp41
-    15: 00000008     4 NOTYPE  GLOBAL DEFAULT    6 Exp42
-    16: 00000000     0 NOTYPE  GLOBAL DEFAULT    7 Exp51
-    17: 00000000     0 NOTYPE  GLOBAL DEFAULT    7 Exp52
-    18: 00000000     0 NOTYPE  GLOBAL DEFAULT    7 Exp53
+     8: 00000000     0 SECTION LOCAL  DEFAULT    6 
+     9: 00000000     0 SECTION LOCAL  DEFAULT    8 
+    10: 00000000     0 SECTION LOCAL  DEFAULT    7 
+    11: 00000004     4 NOTYPE  GLOBAL DEFAULT    3 Exp11
+    12: 00000008     4 NOTYPE  GLOBAL DEFAULT    3 Exp12
+    13: 00000004     4 NOTYPE  GLOBAL DEFAULT  ABS Exp21
+    14: 00000008     4 NOTYPE  GLOBAL DEFAULT  ABS Exp22
+    15: 00000004     4 NOTYPE  GLOBAL DEFAULT    7 Exp41
+    16: 00000008     4 NOTYPE  GLOBAL DEFAULT    7 Exp42
+    17: 00000000     0 NOTYPE  GLOBAL DEFAULT    8 Exp51
+    18: 00000000     0 NOTYPE  GLOBAL DEFAULT    8 Exp52
+    19: 00000000     0 NOTYPE  GLOBAL DEFAULT    8 Exp53
 
 No version information found in this file.

@@ -14,7 +14,7 @@
 	DoImport CASE
 
 	IMPORT	ImpBASED [ BASED r9 ]
-	LDR	r0, ImBASED
+	LDR	r0, ImpBASED		; FIXME: not correct yet!
 
 	IMPORT	ImpCOMMON [ COMMON =  3*4  ]
 	DCD	ImpCOMMON

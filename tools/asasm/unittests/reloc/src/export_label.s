@@ -10,6 +10,10 @@ Exp11	MOV	r0, #1
 Exp12	MOV	r0, #2
 	EXPORT	Exp12
 
+	; Although Exp11 is exported and could be used to relocate against it, the following does not
+	; generate a relocation against Exp11 but against Code1.
+	DCD	Exp11
+
 	; Export symbols from absolute area.
 	AREA	Code2, CODE, ABS
 

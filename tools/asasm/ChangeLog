@@ -1,3 +1,11 @@
+Sun Jun 30 13:58:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	unittests/reloc:
+	* src/export_label.s: Add test case.
+	* ref/export_label_aof.txt, ref/export_label_elf.txt: Update.
+	* src/import_qualifiers.s: Fixed typo but also noted that this reveals
+	a bug.
+
 Sat Jun 29 22:47:40 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	m4:

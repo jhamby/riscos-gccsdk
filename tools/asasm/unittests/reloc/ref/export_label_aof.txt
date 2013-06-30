@@ -3,12 +3,16 @@
 
 AOF version: 310
 5 areas
-18 symbols
+19 symbols
 
 ** Area (0x000102) "Code1", aligned at 4 bytes, [code] [32bit] 
-   Size 12 bytes, 0 relocations
+   Size 16 bytes, 1 relocation
 
-000000: e3a00000 e3a00001 e3a00002
+000000: e3a00000 e3a00001 e3a00002 00000004
+
+** Relocations:
+
+At 0x00000c (flags 0x82000000): Word displaced by base of area "Code1" (type-2 reloc)
 
 ** Area (0x000103) "Code2", aligned at 4 bytes, [code] [abs] [32bit] 
    Base address 0x0
@@ -47,6 +51,7 @@ Code3            (01) local at "Code3" + 0x000000
 Code5            (01) local at "Code5" + 0x000000
 Data4            (01) local at "Data4" + 0x000000
 $a               (01) local at "Code1" + 0x000000
+$d               (101) local, cadatum at "Code1" + 0x00000c
 $a               (01) local at "Code2" + 0x000000
 $a               (01) local at "Code3" + 0x000000
 $d               (01) local at "Data4" + 0x000000
