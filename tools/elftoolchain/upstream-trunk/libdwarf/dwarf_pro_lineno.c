@@ -26,15 +26,15 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: dwarf_pro_lineno.c 2943 2013-05-11 03:54:33Z kaiwang27 $");
+ELFTC_VCSID("$Id: dwarf_pro_lineno.c 2953 2013-06-30 20:21:38Z kaiwang27 $");
 
 Dwarf_Unsigned
 dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
-    Dwarf_Addr code_offset, Dwarf_Unsigned lineno, Dwarf_Signed column,
+    Dwarf_Addr off, Dwarf_Unsigned lineno, Dwarf_Signed column,
     Dwarf_Bool is_stmt, Dwarf_Bool basic_block, Dwarf_Error *error)
 {
 	Dwarf_LineInfo li;
-	Dwarf_Line ln, ln0;
+	Dwarf_Line ln;
 
 	if (dbg == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
@@ -43,20 +43,9 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 
 	li = dbg->dbgp_lineinfo;
 
-	/* Search for nearest DW_LNE_set_address. */
-	ln0 = NULL;
-	STAILQ_FOREACH(ln, &li->li_lnlist, ln_next) {
-		if (ln->ln_symndx > 0)
-			ln0 = ln;
-	}
-	if (ln0 == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
-		return (DW_DLV_NOCOUNT);
-	}
-
 	ln = STAILQ_LAST(&li->li_lnlist, _Dwarf_Line, ln_next);
 
-	if (ln->ln_addr > ln0->ln_addr + code_offset) {
+	if (ln->ln_addr > off) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
@@ -66,7 +55,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 		return (DW_DLV_NOCOUNT);
 	}
 	ln->ln_li     = li;
-	ln->ln_addr   = ln0->ln_addr + code_offset;
+	ln->ln_addr   = off;
 	ln->ln_symndx = 0;
 	ln->ln_fileno = file;
 	ln->ln_lineno = lineno;

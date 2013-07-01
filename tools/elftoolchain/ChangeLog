@@ -1,3 +1,8 @@
+Mon Jul  1 21:11:23 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2953
+
 Sat Jun 29 22:50:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/configure.ac (AC_PROG_LIBTOOL): Remove.
