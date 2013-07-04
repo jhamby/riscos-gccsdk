@@ -1,3 +1,10 @@
+Fri Jul  5 00:36:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	unittests/reloc:
+	* Makefile.in: Use binutils objdump to disassemble and show relocations
+	inplace.  Redirect stderr to temporary output files.
+	* ref/*_elf.txt: Update.
+
 Sun Jun 30 14:12:12 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

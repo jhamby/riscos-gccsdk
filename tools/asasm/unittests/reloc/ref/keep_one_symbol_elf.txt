@@ -50,3 +50,6 @@ Symbol table '.symtab' contains 7 entries:
      6: 00008000     0 NOTYPE  LOCAL  DEFAULT  ABS SymB2
 
 No version information found in this file.
+
+out/keep_one_symbol_elf.o:     file format elf32-littlearm
+

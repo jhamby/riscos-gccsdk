@@ -63,3 +63,24 @@ Symbol table '.symtab' contains 13 entries:
     12: 00000000     0 NOTYPE  WEAK   DEFAULT  UND ImpWithNOFPREGARGS_WEAK
 
 No version information found in this file.
+
+out/area_apcs_fpa_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section CodeFPA:
+
+00000000 <CodeFPA>:
+   0:	419d6f34 	.word	0x419d6f34
+   4:	54000000 	.word	0x54000000
+
+Disassembly of section Code:
+
+00000000 <ExpWithFPREGARGS>:
+   0:	ebfffffe 	bl	0 <ImpWithFPREGARGS>
+			0: R_ARM_CALL	ImpWithFPREGARGS
+   4:	ebfffffe 	bl	0 <ImpWithFPREGARGS_WEAK>
+			4: R_ARM_CALL	ImpWithFPREGARGS_WEAK
+   8:	ebfffffe 	bl	0 <ImpWithNOFPREGARGS>
+			8: R_ARM_CALL	ImpWithNOFPREGARGS
+   c:	ebfffffe 	bl	0 <ImpWithNOFPREGARGS_WEAK>
+			c: R_ARM_CALL	ImpWithNOFPREGARGS_WEAK

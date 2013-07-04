@@ -74,3 +74,46 @@ Symbol table '.symtab' contains 28 entries:
     27: 00000000     4 NOTYPE  LOCAL  DEFAULT    6 Data2Sym01
 
 No version information found in this file.
+
+out/symbol_datum_attribute_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code:
+
+00000000 <Code1Sym01>:
+   0:	e3a00000 	mov	r0, #0
+
+00000004 <Code1Sym02>:
+   4:	e3a00001 	mov	r0, #1
+
+00000008 <Code1Sym03>:
+   8:	e3a00002 	mov	r0, #2
+
+0000000c <Code1Sym04>:
+   c:	00000004 	.word	0x00000004
+
+00000010 <Code1Sym05>:
+  10:	00000005 	.word	0x00000005
+
+00000014 <Code1Sym06>:
+  14:	e3a00006 	mov	r0, #6
+
+00000018 <Code1Sym07>:
+  18:	e3a00007 	mov	r0, #7
+
+0000001c <Code1Sym08>:
+  1c:	00000008 	andeq	r0, r0, r8
+
+00000020 <Code1Sym09>:
+  20:	00000009 	andeq	r0, r0, r9
+
+00000024 <Code1Sym10>:
+  24:	0000000a 	.word	0x0000000a
+
+00000028 <Code1Sym11>:
+  28:	e3a0000b 	mov	r0, #11
+
+Disassembly of section Code2:
+
+00000000 <Code2Sym01>:
+   0:	e3a00000 	mov	r0, #0

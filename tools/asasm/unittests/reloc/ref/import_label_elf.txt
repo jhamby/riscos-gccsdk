@@ -93,3 +93,28 @@ Symbol table '.symtab' contains 21 entries:
     20: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND Imp43
 
 No version information found in this file.
+
+out/import_label_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code1:
+
+00000000 <Code1>:
+   0:	e3a00000 	mov	r0, #0
+   4:	ebfffffe 	bl	0 <Imp11>
+			4: R_ARM_CALL	Imp11
+   8:	ebfffffe 	bl	0 <Imp12>
+			8: R_ARM_CALL	Imp12
+   c:	ebfffffe 	bl	0 <Imp13>
+			c: R_ARM_CALL	Imp13
+
+Disassembly of section Code2:
+
+00000000 <Code2>:
+   0:	e3a00000 	mov	r0, #0
+   4:	ebfffffe 	bl	0 <Imp21>
+			4: R_ARM_CALL	Imp21
+   8:	ebfffffe 	bl	0 <Imp22>
+			8: R_ARM_CALL	Imp22
+   c:	ebfffffe 	bl	0 <Imp23>
+			c: R_ARM_CALL	Imp23

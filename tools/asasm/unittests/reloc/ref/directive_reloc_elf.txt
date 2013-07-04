@@ -55,3 +55,21 @@ Symbol table '.symtab' contains 6 entries:
      5: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND ImpSym2
 
 No version information found in this file.
+
+out/directive_reloc_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code:
+
+00000000 <Code>:
+   0:	e51f1008 	ldr	r1, [pc, #-8]	; 0 <ImpSym>
+			0: R_ARM_LDR_PC_G0	ImpSym
+	...
+			4: R_ARM_ABS32	ImpSym
+   c:	00000001 	.word	0x00000001
+  10:	00000002 	.word	0x00000002
+  14:	00000003 	.word	0x00000003
+  18:	00000004 	.word	0x00000004
+			18: R_ARM_TARGET1	ImpSym2
+  1c:	00000000 	.word	0x00000000
+			1c: R_ARM_TARGET1	ImpSym

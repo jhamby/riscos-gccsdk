@@ -53,3 +53,15 @@ Symbol table '.symtab' contains 9 entries:
      8: 0000000c     0 NOTYPE  WEAK   DEFAULT    3 ExtDat2
 
 No version information found in this file.
+
+out/export_weak_all_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code:
+
+00000000 <ExtCod1-0x4>:
+   0:	e3a00001 	mov	r0, #1
+
+00000004 <ExtCod1>:
+   4:	e3a00002 	mov	r0, #2
+   8:	e3a00003 	mov	r0, #3

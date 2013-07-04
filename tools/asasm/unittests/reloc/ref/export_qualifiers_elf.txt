@@ -70,3 +70,6 @@ Symbol table '.symtab' contains 27 entries:
     26: 00000000     0 NOTYPE  GLOBAL DEFAULT    3 ExpWithUSESSB
 
 No version information found in this file.
+
+out/export_qualifiers_elf.o:     file format elf32-littlearm
+

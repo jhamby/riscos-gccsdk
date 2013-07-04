@@ -61,3 +61,42 @@ Symbol table '.symtab' contains 8 entries:
      7: 00000000     0 SECTION LOCAL  DEFAULT    6 
 
 No version information found in this file.
+
+out/reloc_against_other_areas_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code1:
+
+00000000 <Code1>:
+   0:	e3a01001 	mov	r1, #1
+   4:	e3a02002 	mov	r2, #2
+   8:	e3a03003 	mov	r3, #3
+   c:	e3a04004 	mov	r4, #4
+
+Disassembly of section Code2:
+
+00000000 <Code2>:
+   0:	e3a05005 	mov	r5, #5
+   4:	e3a06006 	mov	r6, #6
+   8:	e3a07007 	mov	r7, #7
+   c:	e3a08008 	mov	r8, #8
+  10:	00000000 	.word	0x00000000
+			10: R_ARM_ABS32	Code1
+  14:	00000008 	.word	0x00000008
+			14: R_ARM_ABS32	Code1
+  18:	00000000 	.word	0x00000000
+			18: R_ARM_ABS32	Code2
+  1c:	00000008 	.word	0x00000008
+			1c: R_ARM_ABS32	Code2
+  20:	00000000 	.word	0x00000000
+			20: R_ARM_ABS32	Code3
+  24:	00000008 	.word	0x00000008
+			24: R_ARM_ABS32	Code3
+
+Disassembly of section Code3:
+
+00000000 <Code3>:
+   0:	e3a09009 	mov	r9, #9
+   4:	e3a0a00a 	mov	sl, #10
+   8:	e3a0b00b 	mov	fp, #11
+   c:	e3a0c00c 	mov	ip, #12

@@ -60,3 +60,18 @@ Symbol table '.symtab' contains 11 entries:
     10: 00000000     0 NOTYPE  WEAK   DEFAULT  UND ImpWithSOFTFP_WEAK
 
 No version information found in this file.
+
+out/area_apcs_hardfp_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code:
+
+00000000 <ExpWithHARDFP>:
+   0:	ebfffffe 	bl	0 <ImpWithSOFTFP>
+			0: R_ARM_CALL	ImpWithSOFTFP
+   4:	ebfffffe 	bl	0 <ImpWithSOFTFP_WEAK>
+			4: R_ARM_CALL	ImpWithSOFTFP_WEAK
+   8:	ebfffffe 	bl	0 <ImpWithHARDFP>
+			8: R_ARM_CALL	ImpWithHARDFP
+   c:	ebfffffe 	bl	0 <ImpWithHARDFP_WEAK>
+			c: R_ARM_CALL	ImpWithHARDFP_WEAK

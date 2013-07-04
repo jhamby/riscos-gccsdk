@@ -45,3 +45,6 @@ Symbol table '.symtab' contains 2 entries:
      1: 00000000     0 SECTION LOCAL  DEFAULT    3 
 
 No version information found in this file.
+
+out/area_apcs_interwork_elf.o:     file format elf32-littlearm
+

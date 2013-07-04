@@ -62,3 +62,6 @@ Symbol table '.symtab' contains 10 entries:
      9: 00000004     0 OBJECT  GLOBAL PROTECTED  COM cVis3
 
 No version information found in this file.
+
+out/common_elf.o:     file format elf32-littlearm
+

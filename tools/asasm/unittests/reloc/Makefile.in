@@ -10,11 +10,13 @@ DECAOF := @top_builddir@/decaof/decaof
 # Use binutils readelf (target arm-unknown-eabi) instead of elftoolchain's
 # tools as those are not supporting all the options we want.
 READELF := arm-unknown-eabi-readelf
+OBJDUMP := arm-unknown-eabi-objdump
 
 ASASMFLAGS_AOF := -aof -i@srcdir@/src
 ASASMFLAGS_ELF := -elf -i@srcdir@/src
 DECAOFFLAGS := -a -d -r -s -t
 READELFFLAGS := -a
+OBJDUMPFLAGS := -r -d
 
 ECHO := echo
 MKDIR := mkdir
@@ -50,7 +52,8 @@ out/%_elf.o: %.s @srcdir@/ref/%_elf.txt
 	@$(ECHO) +++ Checking ELF relocations for $<
 	$(V)$(MKDIR) -p out
 	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -depend $(@:%.o=%.d) -o $@ $<
-	$(V)$(READELF) $(READELFFLAGS) $@ > $(@:%.o=%.txt)
+	$(V)$(READELF) $(READELFFLAGS) $@ > $(@:%.o=%.txt) 2>&1
+	$(V)$(OBJDUMP) $(OBJDUMPFLAGS) $@ >> $(@:%.o=%.txt) 2>&1
 	$(V)$(DIFF) $(DIFFFLAGS) $(@:out/%_elf.o=@srcdir@/ref/%_elf.txt) $(@:%.o=%.txt) || (mv $@ $(@:%_elf.o=%_elf_failed.o) && false)
 
 # When there is no reference file, create an empty one.  Needs to be overwritten
@@ -62,7 +65,7 @@ out/%_aof.o: %.s @srcdir@/ref/%_aof.txt
 	@$(ECHO) +++ Checking AOF relocations for $<
 	$(V)$(MKDIR) -p out
 	$(V)$(ASASM) $(ASASMFLAGS_AOF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -depend $(@:%.o=%.d) -o $@ $<
-	$(V)$(DECAOF) $(DECAOFFLAGS) $@ > $(@:%.o=%.txt)
+	$(V)$(DECAOF) $(DECAOFFLAGS) $@ > $(@:%.o=%.txt) 2>&1
 	$(V)$(DIFF) $(DIFFFLAGS) $(@:out/%_aof.o=@srcdir@/ref/%_aof.txt) $(@:%.o=%.txt) || (mv $@ $(@:%_aof.o=%_aof_failed.o) && false)
 
 # When there is no reference file, create an empty one.  Needs to be overwritten

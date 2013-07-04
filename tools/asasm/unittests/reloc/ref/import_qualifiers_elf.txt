@@ -106,3 +106,67 @@ Symbol table '.symtab' contains 33 entries:
     32: 00000000     0 NOTYPE  WEAK   DEFAULT  UND ImpWithWEAK_WEAK
 
 No version information found in this file.
+
+out/import_qualifiers_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code:
+
+00000000 <Code>:
+   0:	ebfffffe 	bl	0 <ImpWithFPREGARGS>
+			0: R_ARM_CALL	ImpWithFPREGARGS
+   4:	ebfffffe 	bl	0 <ImpWithFPREGARGS_WEAK>
+			4: R_ARM_CALL	ImpWithFPREGARGS_WEAK
+   8:	ebfffffe 	bl	0 <ImpWithNOFPREGARGS>
+			8: R_ARM_CALL	ImpWithNOFPREGARGS
+   c:	ebfffffe 	bl	0 <ImpWithNOFPREGARGS_WEAK>
+			c: R_ARM_CALL	ImpWithNOFPREGARGS_WEAK
+  10:	ebfffffe 	bl	0 <ImpWithSOFTFP>
+			10: R_ARM_CALL	ImpWithSOFTFP
+  14:	ebfffffe 	bl	0 <ImpWithSOFTFP_WEAK>
+			14: R_ARM_CALL	ImpWithSOFTFP_WEAK
+  18:	ebfffffe 	bl	0 <ImpWithHARDFP>
+			18: R_ARM_CALL	ImpWithHARDFP
+  1c:	ebfffffe 	bl	0 <ImpWithHARDFP_WEAK>
+			1c: R_ARM_CALL	ImpWithHARDFP_WEAK
+  20:	ebfffffe 	bl	0 <ImpWithDATA>
+			20: R_ARM_CALL	ImpWithDATA
+  24:	ebfffffe 	bl	0 <ImpWithDATA_WEAK>
+			24: R_ARM_CALL	ImpWithDATA_WEAK
+  28:	ebfffffe 	bl	0 <ImpWithCODE>
+			28: R_ARM_CALL	ImpWithCODE
+  2c:	ebfffffe 	bl	0 <ImpWithCODE_WEAK>
+			2c: R_ARM_CALL	ImpWithCODE_WEAK
+  30:	ebfffffe 	bl	0 <ImpWithWEAK>
+			30: R_ARM_CALL	ImpWithWEAK
+  34:	ebfffffe 	bl	0 <ImpWithWEAK_WEAK>
+			34: R_ARM_CALL	ImpWithWEAK_WEAK
+  38:	ebfffffe 	bl	0 <ImpWithNOWEAK>
+			38: R_ARM_CALL	ImpWithNOWEAK
+  3c:	ebfffffe 	bl	0 <ImpWithREADONLY>
+			3c: R_ARM_CALL	ImpWithREADONLY
+  40:	ebfffffe 	bl	0 <ImpWithREADONLY_WEAK>
+			40: R_ARM_CALL	ImpWithREADONLY_WEAK
+  44:	ebfffffe 	bl	0 <ImpWithREADWRITE>
+			44: R_ARM_CALL	ImpWithREADWRITE
+  48:	ebfffffe 	bl	0 <ImpWithREADWRITE_WEAK>
+			48: R_ARM_CALL	ImpWithREADWRITE_WEAK
+  4c:	ebfffffe 	bl	0 <ImpWithNOCASE>
+			4c: R_ARM_CALL	ImpWithNOCASE
+  50:	ebfffffe 	bl	0 <ImpWithNOCASE_WEAK>
+			50: R_ARM_CALL	ImpWithNOCASE_WEAK
+  54:	ebfffffe 	bl	0 <ImpWithCASE>
+			54: R_ARM_CALL	ImpWithCASE
+  58:	ebfffffe 	bl	0 <ImpWithCASE_WEAK>
+			58: R_ARM_CALL	ImpWithCASE_WEAK
+  5c:	e5100000 	ldr	r0, [r0, #-0]
+  60:	00000000 	.word	0x00000000
+			60: R_ARM_ABS32	ImpCOMMON
+  64:	ebfffffe 	bl	0 <ImpEmptyList>
+			64: R_ARM_CALL	ImpEmptyList
+  68:	ebfffffe 	bl	0 <ImpNoListFPREGARGS>
+			68: R_ARM_CALL	ImpNoListFPREGARGS
+  6c:	ebfffffe 	bl	0 <ImpNoListFPREGARGS_WEAK>
+			6c: R_ARM_CALL	ImpNoListFPREGARGS_WEAK
+  70:	ebfffffe 	bl	0 <ImpNoListWEAK>
+			70: R_ARM_CALL	ImpNoListWEAK

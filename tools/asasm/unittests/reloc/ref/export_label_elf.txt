@@ -70,3 +70,31 @@ Symbol table '.symtab' contains 20 entries:
     19: 00000000     0 NOTYPE  GLOBAL DEFAULT    8 Exp53
 
 No version information found in this file.
+
+out/export_label_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code1:
+
+00000000 <Exp11-0x4>:
+   0:	e3a00000 	mov	r0, #0
+
+00000004 <Exp11>:
+   4:	e3a00001 	mov	r0, #1
+
+00000008 <Exp12>:
+   8:	e3a00002 	mov	r0, #2
+   c:	00000004 	.word	0x00000004
+			c: R_ARM_ABS32	Code1
+
+Disassembly of section Code2:
+
+00000000 <Code2>:
+   0:	e3a00000 	mov	r0, #0
+   4:	e3a00001 	mov	r0, #1
+   8:	e3a00002 	mov	r0, #2
+
+Disassembly of section Code3:
+
+00000000 <Code3>:
+   0:	e3a00001 	mov	r0, #1

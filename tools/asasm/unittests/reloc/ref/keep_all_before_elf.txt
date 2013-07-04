@@ -70,3 +70,27 @@ Symbol table '.symtab' contains 24 entries:
     23: 0000000c     0 NOTYPE  LOCAL  DEFAULT  ABS IgnAreaABS3
 
 No version information found in this file.
+
+out/keep_all_before_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section AreaCode:
+
+00000000 <AreaCode1-0x4>:
+   0:	e3a00000 	mov	r0, #0
+
+00000004 <AreaCode1>:
+   4:	00000001 	.word	0x00000001
+
+00000008 <AreaCode2>:
+   8:	00000002 	.word	0x00000002
+   c:	0afffffe 	beq	c <AreaABS2>
+  10:	1affffff 	bne	14 <AreaABS2+0x8>
+
+Disassembly of section AreaABS:
+
+00000000 <AreaABS>:
+   0:	00000001 	.word	0x00000001
+   4:	e3a02000 	mov	r2, #0
+   8:	e3a03000 	mov	r3, #0
+   c:	00000005 	.word	0x00000005
