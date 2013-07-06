@@ -1,5 +1,5 @@
 /* Static linked ELF to AIF convertor for ARM binaries
-   Copyright (c) 2006-2010 GCCSDK Developers
+   Copyright (c) 2006-2013 GCCSDK Developers
 
    Written by John Tytgat.
 
@@ -39,7 +39,7 @@
 #include "elf/common.h"
 #include "elf/external.h"
 
-#define COPYRIGHT "Copyright (c) 2006, 2007, 2009 GCCSDK Developers"
+#define COPYRIGHT "Copyright (c) 2006-2013 GCCSDK Developers"
 #define DISCLAIMER "This is free software; see the source for copying conditions.  There is NO\n" \
                    "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 
@@ -300,8 +300,7 @@ e2a_readphdr (FILE * elfhandle)
       return EXIT_FAILURE;
     }
 
-  if ((phentrysize =
-       RdShort (elf_ehdr.e_phentsize)) < sizeof (Elf32_External_Phdr))
+  if ((phentrysize = RdShort (elf_ehdr.e_phentsize)) < sizeof (Elf32_External_Phdr))
     {
       fprintf (stderr, "Size program header entry is too small\n");
       return EXIT_FAILURE;
@@ -314,17 +313,15 @@ e2a_readphdr (FILE * elfhandle)
       uint32_t phtype;
 
       if (fseek (elfhandle, phoffset, SEEK_SET) != 0
-	  || fread (&phentry, sizeof (Elf32_External_Phdr), 1,
-		    elfhandle) != 1)
+	  || fread (&phentry, sizeof (Elf32_External_Phdr), 1, elfhandle) != 1)
 	{
 	  fprintf (stderr, "Failed to read program header entry\n");
 	  return EXIT_FAILURE;
 	}
       phtype = RdLong (phentry.p_type);
       if (opt_verbose)
-	printf
-	  ("Processing program header entry at offset 0x%x with type %d\n",
-	   phoffset, phtype);
+	printf ("Processing program header entry at offset 0x%x with type %d\n",
+		phoffset, phtype);
       switch (phtype)
 	{
 	case PT_LOAD:
@@ -368,7 +365,7 @@ e2a_copy (FILE * elfhandle, FILE * aifhandle)
   flags = RdLong (elf_phdrlistP->phdr.p_flags);
   if (prev_addr != load_addr
       && (exec_addr < prev_addr
-	  || exec_addr >= prev_addr + RdLong (phdrP->phdr.p_filesz))
+	  || exec_addr >= prev_addr + RdLong (elf_phdrlistP->phdr.p_filesz))
       && ((flags & (PF_R | PF_W | PF_X)) == (PF_R | PF_X)))
     {
       fprintf (stderr, "Unsupported case of entry address\n");
@@ -378,7 +375,8 @@ e2a_copy (FILE * elfhandle, FILE * aifhandle)
   if (RdLong (elf_phdrlistP->phdr.p_offset) != 0
       || exec_addr - load_addr < sizeof (aifcode))
     {
-      fprintf (stderr, "First program segment is not what we hoped to be\n");
+      fprintf (stderr, "First program segment is not what we hoped to be "
+		       "(not enough place before _start symbol for AIF header)\n");
       return EXIT_FAILURE;
     }
   robase = prev_addr;
@@ -405,8 +403,7 @@ e2a_copy (FILE * elfhandle, FILE * aifhandle)
 	      while (prev_addr < cur_addr)
 		{
 		  const uint32_t chunk =
-		    (cur_addr - prev_addr >
-		     sizeof (zeros)) ? sizeof (zeros) : cur_addr - prev_addr;
+		    (cur_addr - prev_addr > sizeof (zeros)) ? sizeof (zeros) : cur_addr - prev_addr;
 		  if (fwrite (zeros, chunk, 1, aifhandle) != 1)
 		    {
 		      fprintf (stderr, "Failed to write program segment\n");
@@ -453,9 +450,8 @@ e2a_copy (FILE * elfhandle, FILE * aifhandle)
 	}
       foffset = RdLong (phdrP->phdr.p_offset);
       if (opt_verbose)
-	printf
-	  ("Reading ELF program segment from file offset 0x%x, size 0x%x\n",
-	   foffset, fsize);
+	printf ("Reading ELF program segment from file offset 0x%x, size 0x%x\n",
+		foffset, fsize);
       if (fseek (elfhandle, foffset, SEEK_SET) != 0
 	  || fread (ptr, fsize, 1, elfhandle) != 1)
 	{
@@ -471,9 +467,9 @@ e2a_copy (FILE * elfhandle, FILE * aifhandle)
       prev_addr = cur_addr + msize;
     }
 
-  rosize = rwbase - robase;
-  rwsize = zibase - rwbase;
-  zisize = zilimit - zibase;
+  rosize = rwbase ? rwbase - robase : robase + RdLong (elf_phdrlistP->phdr.p_memsz);
+  rwsize = zibase ? zibase - rwbase : 0;
+  zisize = zibase ? zilimit - zibase : 0;
   if (opt_verbose)
     printf ("Load address 0x%x\n"
 	    "Entry address 0x%x\n"

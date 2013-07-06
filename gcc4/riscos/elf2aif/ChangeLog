@@ -1,6 +1,12 @@
+Sat Jul  6 19:40:33 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/elf2aif.c (e2a_copy): Don't write incorrect rosize, rwsize or
+	zisize when one or more segments are missing.
+	* configure.ac: Version 0.06.
+
 Sun Jan 10 05:08:02 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
-	* src/elf2aif.c(e2a_loadphentry,e2a_convert): Don't write to variables
+	* src/elf2aif.c (e2a_loadphentry,e2a_convert): Don't write to variables
 	which won't be read afterwards.
 	(e2a_copy): Fix flags test.
 	* configure.ac: Version 0.05.
@@ -9,24 +15,24 @@ Sun Jan  4 02:03:21 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/elf2aif.c: Make AIF output file executable when running on a
 	non-RISC OS platform.
-	* configure.ac: version 0.04.
+	* configure.ac: Version 0.04.
 
 Wed Aug 15 21:48:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
-	* src/elf2aif.c: report the ELF filename in error messages; remove the
+	* src/elf2aif.c: Report the ELF filename in error messages; remove the
 	ELF file before renaming the temporary AIF file to it (libscl only);
 	set 0xFF8 filetype for AIF output file (native RISC OS build only).
 	* src/Makefile.am: install elf2aif in execprefix/target directory for
 	gcc's collect2 conveniance.
-	* configure.ac: version 0.03.
-	* HOWTO-BUILD-GCCSDK: removed, and its contents got moved to...
+	* configure.ac: Version 0.03.
+	* HOWTO-BUILD-GCCSDK: Removed, and its contents got moved to...
 	* README: ...here. Added more words on syntax and license.
 
 Mon Aug 13 00:41:06 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
-	* src/elf2aif.c: when AIF filename is not specified, overwrite the ELF
+	* src/elf2aif.c: When AIF filename is not specified, overwrite the ELF
 	file; GNU code style.
-	* configure.ac: version 0.02.
+	* configure.ac: Version 0.02.
 
 Tue Jan  2 01:10:30 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 

@@ -1,5 +1,5 @@
 AC_PREREQ([2.64])
-AC_INIT([elf2aif],[0.05],[http://gccsdk.riscos.info/])
+AC_INIT([elf2aif],[0.06],[http://gccsdk.riscos.info/])
 
 AC_CONFIG_HEADERS([config.h])
 
