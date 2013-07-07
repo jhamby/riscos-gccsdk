@@ -1,3 +1,7 @@
+Sun Jul  7 14:19:40 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* COPYING: Update FSF address.
+
 Sat Jul  6 19:40:33 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/elf2aif.c (e2a_copy): Don't write incorrect rosize, rwsize or
