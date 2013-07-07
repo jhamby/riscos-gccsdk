@@ -1,3 +1,15 @@
+Sun Jul  7 17:06:29 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* area.c (Area_AlignOffset): Support NOINIT.
+	* directive_data.c (c_align): Likewise.
+
+	unittests/reloc:
+	* src/area_noinit.s, ref/area_noinit_elf.txt, ref/area_noinit_aof.txt:
+	Add.
+	* ref/import_label_elf.txt, ref/directive_reloc_all_elf.txt,
+	ref/area_elf.txt: Update.
+
 Fri Jul  5 00:36:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	unittests/reloc:

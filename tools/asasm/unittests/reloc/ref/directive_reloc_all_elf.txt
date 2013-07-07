@@ -24,7 +24,7 @@ Section Headers:
   [ 0]                   NULL            00000000 000000 000000 00      0   0  0
   [ 1] .symtab           SYMTAB          00000000 000034 000890 10      2   3  4
   [ 2] .strtab           STRTAB          00000000 0008c4 000a36 00      0   0  1
-  [ 3] Data              NOBITS          00000000 000000 000000 00  WA  0   0  0
+  [ 3] Data              NOBITS          00000000 0012fc 000218 00  WA  0   0  4
   [ 4] .rel.Data         REL             00000000 0012fc 000430 08      1   3  4
   [ 5] .shstrtab         STRTAB          00000000 00172c 00002a 00      0   0  1
 Key to Flags:

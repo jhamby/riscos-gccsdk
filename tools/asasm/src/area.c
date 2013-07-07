@@ -403,10 +403,14 @@ Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const c
   if (msg && (offset & (alignValue - 1)) != 0)
     Error (ErrorWarning, "Implicit aligning unaligned %s", msg);
   size_t newOffset = (offset + alignValue-1) & -alignValue;
-  Area_EnsureExtraSize (areaSym, newOffset - areaSym->area->curIdx);
+  /* Auto increase Area's curIdx value when aligned offset surpasses it.  */
   if (areaSym->area->curIdx < newOffset)
     {
-      memset (&areaSym->area->image[areaSym->area->curIdx], 0, newOffset - areaSym->area->curIdx); 
+      if (!Area_IsNoInit (areaSym->area))
+	{
+	  Area_EnsureExtraSize (areaSym, newOffset - areaSym->area->curIdx);
+	  memset (&areaSym->area->image[areaSym->area->curIdx], 0, newOffset - areaSym->area->curIdx);
+	}
       areaSym->area->curIdx = newOffset;
     }
   return newOffset;

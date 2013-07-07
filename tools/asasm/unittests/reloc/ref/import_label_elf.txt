@@ -30,7 +30,7 @@ Section Headers:
   [ 6] .rel.Code2        REL             00000000 00020c 000018 08      1   5  4
   [ 7] Data3             PROGBITS        00000000 000224 000010 00  WA  0   0  4
   [ 8] .rel.Data3        REL             00000000 000234 000018 08      1   7  4
-  [ 9] Data4             NOBITS          00000000 000000 000000 00  WA  0   0  0
+  [ 9] Data4             NOBITS          00000000 00024c 000010 00  WA  0   0  4
   [10] .rel.Data4        REL             00000000 00024c 000018 08      1   9  4
   [11] .shstrtab         STRTAB          00000000 000264 00005f 00      0   0  1
 Key to Flags:

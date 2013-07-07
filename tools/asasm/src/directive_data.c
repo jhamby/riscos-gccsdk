@@ -208,7 +208,14 @@ c_align (void)
   else
     {
       uint32_t curFillValue = fillValue >> 8*(curPos & (fillValueSize - 1));
-      for (/* */; curPos != newPos; ++curPos)
+      if (Area_IsNoInit (areaCurrentSymbol->area))
+	{
+	  if (curFillValue != 0)
+	    Error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
+	  areaCurrentSymbol->area->curIdx += bytesToStuff;
+	}
+      else
+	for (/* */; curPos != newPos; ++curPos)
 	{
 	  if ((curPos & (fillValueSize - 1)) == 0)
 	    curFillValue = fillValue;

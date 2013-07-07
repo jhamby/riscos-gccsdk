@@ -1,0 +1,42 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+5 areas
+9 symbols
+
+** Area (0x000010) "BSS1", aligned at 4 bytes, [data] [noinit] 
+   Size 0 bytes, 0 relocations
+
+** Area (0x000010) "BSS2", aligned at 4 bytes, [data] [noinit] 
+   Size 8 bytes, 0 relocations
+
+** Area (0x000010) "BSS3", aligned at 4 bytes, [data] [noinit] 
+   Size 4 bytes, 0 relocations
+
+** Area (0x000010) "BSS4", aligned at 4 bytes, [data] [noinit] 
+   Size 8 bytes, 0 relocations
+
+** Area (0x000010) "BSS5", aligned at 4 bytes, [data] [noinit] 
+   Size 160 bytes, 0 relocations
+
+** Symbol table:
+
+BSS1             (01) local at "BSS1" + 0x000000
+BSS2             (01) local at "BSS2" + 0x000000
+BSS3             (01) local at "BSS3" + 0x000000
+BSS4             (01) local at "BSS4" + 0x000000
+BSS5             (01) local at "BSS5" + 0x000000
+$d               (01) local at "BSS2" + 0x000000
+$d               (01) local at "BSS3" + 0x000000
+$d               (01) local at "BSS4" + 0x000000
+$d               (01) local at "BSS5" + 0x000000
+
+** String table:
+
+000004: BSS1
+000009: BSS2
+00000e: BSS3
+000013: BSS4
+000018: BSS5
+00001d: $d
