@@ -1,3 +1,9 @@
+Sun Jul  7 14:15:39 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* DRenderer.s: Encode offsets explicitly as offsets.  Update FSF
+	address.
+	* COPYING: Update FSF address.
+	* Makefile (clean,dist-clean): Ignore rm errors.
 
 Fri May 15 20:57:00 CST 2012  Christopher Martin  <belles@internode.on.net>
 

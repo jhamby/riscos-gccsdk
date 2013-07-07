@@ -5,11 +5,12 @@
 ; * Support for sound playback from applications
 ; * (C) 1997-2006 Andreas Dehmel (zarquon@t-online.de)
 ; * (C) 2011-2012 Christopher Martin (belles@internode.on.net)
+; * (C) 2012-2013 GCCSDK Developers (gcc@gccsdk.riscos.info)
 ; *
-; * This program is free software; you can redistribute it and/or modify
-; * it under the terms of the GNU General Public License as published by
-; * the Free Software Foundation; either version 2 of the License, or
-; * (at your option) any later version.
+; * This program is free software; you can redistribute it and/or
+; * modify it under the terms of the GNU General Public License
+; * as published by the Free Software Foundation; either version 2
+; * of the License, or (at your option) any later version.
 ; *
 ; * This program is distributed in the hope that it will be useful,
 ; * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,8 +19,7 @@
 ; *
 ; * You should have received a copy of the GNU General Public License
 ; * along with this program; if not, write to the Free Software
-; * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-; * 02111-1307  USA.
+; * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 ; *
 ; *******************************************************************
 
@@ -335,22 +335,20 @@ off		SETA	-&$off
 
 	AREA	Module,CODE,READONLY
 
-	ENTRY
-
 DRenderModuleBase
 	&	0		;start code
-	&	InitCode
-	&	FinalCode
-	&	ServiceHandler
-	&	TitleString
-	&	HelpString
-	&	HelpTable
+	&	InitCode - DRenderModuleBase
+	&	FinalCode - DRenderModuleBase
+	&	ServiceHandler - DRenderModuleBase
+	&	TitleString - DRenderModuleBase
+	&	HelpString - DRenderModuleBase
+	&	HelpTable - DRenderModuleBase
 	&	SWI_ChunkBase
-	&	SWIHandler
-	&	SWIDecodingTable
+	&	SWIHandler - DRenderModuleBase
+	&	SWIDecodingTable - DRenderModuleBase
 	&	0		;SWI decoding code
 	&	0
-	&	DRenderModuleFlags
+	&	DRenderModuleFlags - DRenderModuleBase
 
 DRenderMagic
 	&	DigitalRendererMagicWord
@@ -462,17 +460,17 @@ DeregisterFilingSystem
 	B	ModuleReturnOK
 
 FilingSystemBlock
-	&	FSName
-	&	FSStartup
-	&	FSEntry_Open
-	&	FSEntry_GetBytes
-	&	FSEntry_PutBytes
-	&	FSEntry_Args
-	&	FSEntry_Close
-	&	FSEntry_File
+	&	FSName - DRenderModuleBase
+	&	FSStartup - DRenderModuleBase
+	&	FSEntry_Open - DRenderModuleBase
+	&	FSEntry_GetBytes - DRenderModuleBase
+	&	FSEntry_PutBytes - DRenderModuleBase
+	&	FSEntry_Args - DRenderModuleBase
+	&	FSEntry_Close - DRenderModuleBase
+	&	FSEntry_File - DRenderModuleBase
 	&	FSNumber + (1 << 8) + (&38 << 16) + (&38 << 24)
-	&	FSEntry_Func
-	&	FSEntry_GBPB
+	&	FSEntry_Func - DRenderModuleBase
+	&	FSEntry_GBPB - DRenderModuleBase
 
 FSName
 	=	"DRender",0
@@ -581,22 +579,22 @@ HelpString
 HelpTable
 	=	"DRenderOff",0
 	ALIGN
-	&	CommandDRoff
+	&	CommandDRoff - DRenderModuleBase
 	&	&0000ff00
 	&	0
-	&	Help_DRoff
+	&	Help_DRoff - DRenderModuleBase
 	=	"DRenderDefaults",0
 	ALIGN
-	&	CommandDRdefault
+	&	CommandDRdefault - DRenderModuleBase
 	&	&0010ff00
 	&	0
-	&	Help_DRdefault
+	&	Help_DRdefault - DRenderModuleBase
 	=	"DRenderStatus",0
 	ALIGN
-	&	CommandDRstatus
+	&	CommandDRstatus - DRenderModuleBase
 	&	&0000ff00
 	&	0
-	&	Help_DRstatus
+	&	Help_DRstatus - DRenderModuleBase
 	&	0
 
 Help_DRoff

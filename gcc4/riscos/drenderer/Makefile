@@ -32,14 +32,14 @@ ifeq "$(RONATIVE)" "YES"
 	remove logtable
 	remove makelogtable
 else
-	rm *.o logtable makelogtable
+	-rm *.o logtable makelogtable
 endif
 
 dist-clean: clean
 ifeq "$(RONATIVE)" "YES"
 	remove DRenderer$(EXTMOD)
 else
-	rm DRenderer$(EXTMOD)
+	-rm DRenderer$(EXTMOD)
 endif
 
 .PHONY: all clean dist-clean
