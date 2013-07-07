@@ -140,7 +140,7 @@ _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t rc)
 		sh_size    = shdr64->sh_size;
 	}
 
-	assert(sh_type != SHT_NULL && sh_type != SHT_NOBITS);
+	assert(sh_type != SHT_NULL);
 
 	elftype = _libelf_xlate_shtype(sh_type);
 	if (elftype > ELF_T_LAST) {
@@ -457,13 +457,13 @@ _libelf_resync_sections(Elf *e, off_t rc, struct _Elf_Extent_List *extents)
 		else
 			sh_type = s->s_shdr.s_shdr64.sh_type;
 
-		if (sh_type == SHT_NOBITS || sh_type == SHT_NULL)
+		if (sh_type == SHT_NULL)
 			continue;
 
 		if (_libelf_compute_section_extents(e, s, rc) == 0)
 			return ((off_t) -1);
 
-		if (s->s_size == 0)
+		if (sh_type == SHT_NOBITS || s->s_size == 0)
 			continue;
 
 		if (!_libelf_insert_extent(extents, ELF_EXTENT_SECTION,

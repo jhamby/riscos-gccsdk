@@ -1,3 +1,13 @@
+Sun Jul  7 16:34:07 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/libelf/elf_update.c (_libelf_resync_sections): Call
+	_libelf_compute_section_extents for SHT_NOBITS sections so its
+	offset, size and align value are properly filled in.
+	(_libelf_compute_section_extents): Remove assert on section type not
+	being SHT_NOBITS.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/429
+
 Mon Jul  1 21:13:36 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Merged from upstream-trunk.
