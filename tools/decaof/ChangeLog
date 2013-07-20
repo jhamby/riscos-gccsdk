@@ -1,3 +1,8 @@
+Sat Jul 20 18:32:14 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (print_area): Use ellipsis when dumping area contents
+	for long series of same words.
+
 Sat Jun  1 13:29:26 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac (AC_INIT): Increase version to 2.02.

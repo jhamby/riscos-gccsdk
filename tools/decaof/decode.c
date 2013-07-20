@@ -430,7 +430,7 @@ print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
     printf ("[unknown bits %06x00] ", ubits & ~AREA_ALIGN_MASK);
   printf ("\n");
 
-  if (areahdr->baseaddr || (areaFlags & AREA_ABS))
+  if (areahdr->baseaddr || (areaFlags & AREA_ABS) != 0)
     printf ("   Base address 0x%x%s\n",
 	    areahdr->baseaddr, (areaFlags & AREA_ABS) ? "" : " (but area is NOT marked as absolute)");
 
@@ -439,17 +439,59 @@ print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
 	  (areahdr->size == 1) ? "" : "s",
 	  areahdr->numrelocs, (areahdr->numrelocs == 1) ? "" : "s");
 
-  if (opt_print_area_contents && !(areaFlags & AREA_UDATA))
+  if (opt_print_area_contents && (areaFlags & AREA_UDATA) == 0)
     {
       fseek (ifp, area_offset + offset, SEEK_SET);
-      int cols = 0;
-      for (uint32_t areaIdx = 0; areaIdx < areahdr->size; areaIdx += 4)
+      unsigned cols = 0;
+      Word repeatedValue;
+      unsigned numRepeatedValue = 0;
+      for (uint32_t areaIdx = 0; areaIdx != areahdr->size; /* */)
 	{
-	  if ((cols++ & 7) == 0)
-	    printf ("\n%06x: ", areahdr->baseaddr + areaIdx);
-	  else
-	    putchar (' ');
-	  printf ("%08x", read_word (ifp));
+	  /* Print full rows.  */
+	  while (areaIdx != areahdr->size)
+	    {
+	      if ((cols % 8) == 0)
+		printf ("\n%06x:", areahdr->baseaddr + areaIdx);
+	      Word value = read_word (ifp);
+	      if (numRepeatedValue == 0)
+		repeatedValue = value;
+	      if (repeatedValue == value)
+		++numRepeatedValue;
+	      else
+		numRepeatedValue = 0;
+	      printf (" %08x", value);
+
+	      areaIdx += 4;
+	      ++cols;
+	      if ((cols % 8) == 0 && numRepeatedValue > 4)
+		break;
+	    }
+
+	  /* When enough words have repeated themselves, try to collaps them
+	     as one or more rows marked with "...".  */
+	  Word value;
+	  unsigned colsR = 0; /* Number of repeated values.  */
+	  while (areaIdx != areahdr->size)
+	    {
+	      value = read_word (ifp);
+	      if (value != repeatedValue)
+		break;
+	      areaIdx += 4;
+	      ++colsR;
+	    }
+	  if (colsR / 8 != 0)
+	    printf ("\n..."); /* At least one row of repeated values.  */
+	  cols += colsR;
+	  if (areaIdx != areahdr->size)
+	    {
+	      colsR &= 7;
+	      printf ("\n%06x:", areahdr->baseaddr + areaIdx - 4*colsR);
+	      while (colsR--)
+		printf (" %08x", repeatedValue);
+	      printf (" %08x", value);
+	      areaIdx += 4;
+	      cols += 1;
+	    }
 	}
       printf ("\n");
     }
