@@ -93,7 +93,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	}
     }
   
-  const ARMWord offset = areaCurrentSymbol->area->curIdx;
+  const ARMWord instrOffset = areaCurrentSymbol->area->curIdx;
   Value value;
   const Value *valP = NULL;
   bool movOptAllowed = false; /* true when MOV/MVN/MOVW optimisation is allowed.  */
@@ -217,9 +217,9 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  /* This is always pre-increment.  */
 	  ir |= P_FLAG;
 
-	  /* FIXME: ARM LDR{B}T can only use post-indexing, so =<expression>
-	     can not be supported.  Thumb LDR{B}T + literal is in fact
-	     LDR{B} + literal.
+	  /* FIXME: ARM LDR["B"]T can only use post-indexing, so =<expression>
+	     can not be supported.  Thumb LDR["B"]T + literal is in fact
+	     LDR["B"] + literal.
 	     So LDR+T + literal -> error.  */
 	  Lit_eSize litSize;
 	  Lit_eAddrType addrType;
@@ -269,9 +269,9 @@ dstmem (ARMWord ir, const char *mnemonic)
 	{
 	  /* We're dealing with one of the following:
 	   *
-	   * 1) a PC-relative label
-	   * 2) a field in a register-based map
-	   * 3) a label in a register-based area
+	   * 1) a PC-relative label : ValueInt (ABS area), ValueAddr or ValueSymbol.
+	   * 2) a field in a register-based map : ValueAddr
+	   * 3) a label in a register-based area : ValueAddr
 	   */
 
 	  if (translate)
@@ -288,69 +288,56 @@ dstmem (ARMWord ir, const char *mnemonic)
   if (gPhase != ePassOne && valP != NULL)
     {
       /* ValueInt is special.  When movOptAllowed is true, we have a
-         literal which guaranteed can fit in MOV/MVN/MOVW.
-         If movOptAllowed is false, then we have someone using a direct
-         int value which can only make sense in an absolute AREA so we
-         translate this back into [pc, #...] construction.  */
-      if (valP->Tag == ValueInt)
+         literal which guaranteed can fit in MOV/MVN/MOVW.  */
+      if (valP->Tag == ValueInt && movOptAllowed)
 	{
-	  if (movOptAllowed)
-	    {
-	      ir = (ir & NV) | DST_OP (GET_DST_OP (ir));
-	      uint32_t im;
-	      if ((im = HelpCPU_Imm8s4 (valP->Data.Int.i)) != UINT32_MAX)
-		ir |= M_MOV | IMM_RHS | im; /* Optimize to MOV.  */
-	      else if ((im = HelpCPU_Imm8s4 (~valP->Data.Int.i)) != UINT32_MAX)
-		ir |= M_MVN | IMM_RHS | im; /* Optimize to MVN.  */
-	      else if (CPUMem_ConstantInMOVW (valP->Data.Int.i))
-		ir |= 0x03000000 | ((valP->Data.Int.i & 0xF000) << 4) | (valP->Data.Int.i & 0x0FFF); /* Optimize to MOVW.  */
-	      else
-		assert (0);
-	      valP = NULL;
-	    }
-	  else if ((areaCurrentSymbol->area->type & AREA_ABS) != 0)
-	    {
-	      /* FIXME: MOV/MVN/MOVW would be an option too.  */
-	      value = Value_Addr (15, valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8));
-	      valP = &value;
-	    }
+	  ir = (ir & NV) | DST_OP (GET_DST_OP (ir));
+	  uint32_t im;
+	  if ((im = HelpCPU_Imm8s4 (valP->Data.Int.i)) != UINT32_MAX)
+	    ir |= M_MOV | IMM_RHS | im; /* Optimize to MOV.  */
+	  else if ((im = HelpCPU_Imm8s4 (~valP->Data.Int.i)) != UINT32_MAX)
+	    ir |= M_MVN | IMM_RHS | im; /* Optimize to MVN.  */
+	  else if (CPUMem_ConstantInMOVW (valP->Data.Int.i))
+	    ir |= 0x03000000 | ((valP->Data.Int.i & 0xF000) << 4) | (valP->Data.Int.i & 0x0FFF); /* Optimize to MOVW.  */
 	  else
-	    {
-	      /* Don't do anything here, we will automatically give an error
-	         further on.  */
-	    }
+	    assert (0);
+	  valP = NULL;
 	}
 
       if (valP != NULL)
 	{
-	  switch (valP->Tag)
+	  const RelocAndAddend_t relocAddend = Reloc_SplitRelocAndAddend (valP,
+									  areaCurrentSymbol,
+									  instrOffset,
+	                                                                  false);
+	  valP = &relocAddend.addend;
+
+	  bool isPCrel;
+	  if (valP->Tag == ValueAddr)
 	    {
-	      case ValueSymbol:
-		{
-		  if (valP->Data.Symbol.symbol != areaCurrentSymbol)
-		    {
-		      assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
-		      Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP);
-		      // FIXME: Reloc_CreateELF ();
-		      break;
-		    }
-		  value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));
-		  valP = &value;
-		  /* Fall through.  */
-		}
+	      ir |= LHS_OP (valP->Data.Addr.r);
+	      if (isAddrMode3)
+		ir |= B_FLAG;
+	      ir = Fix_CPUOffset (ir, valP->Data.Addr.i);
+	      isPCrel = valP->Data.Addr.r == 15;
+	    }
+	  else
+	    {
+	      Error (ErrorError, "Illegal %s expression", mnemonic);
+	      isPCrel = true;
+	    }
 
-	      case ValueAddr:
-		{
-		  ir |= LHS_OP (valP->Data.Addr.r);
-		  if (isAddrMode3)
-		    ir |= B_FLAG;
-		  ir = Fix_CPUOffset (ir, valP->Data.Addr.i);
-		  break;
-		}
-
-	      default:
-		Error (ErrorError, "Illegal %s expression", mnemonic);
-		break;
+	  if (relocAddend.relocSymbol.Tag == ValueSymbol)
+	    {
+	      assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
+	      uint32_t aofHow = HOW2_INIT | HOW2_INSTR_UNLIM | (isPCrel ? HOW2_RELATIVE : HOW2_BASED);
+	      Reloc_CreateAOF (aofHow, instrOffset, &relocAddend.relocSymbol);
+	      uint32_t elfHow;
+	      if ((ir & 0x0C500000) == 0x04100000)
+		elfHow = isPCrel ? R_ARM_LDR_PC_G0 : R_ARM_LDR_SB_G0;
+	      else
+		elfHow = isPCrel ? R_ARM_LDRS_PC_G0 : R_ARM_LDRS_SB_G0;
+	      Reloc_CreateELF (elfHow, instrOffset, &relocAddend.relocSymbol);
 	    }
 	}
     }
@@ -370,23 +357,23 @@ dstmem (ARMWord ir, const char *mnemonic)
 /**
  * Implements LDR:
  * Pre-UAL:
- *   LDR[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   LDR[<cond>]T <Rd>, <address mode 2> | <pc relative label>
- *   LDR[<cond>]B <Rd>, <address mode 2> | <pc relative label>
- *   LDR[<cond>]BT <Rd>, <address mode 2> | <pc relative label>
- *   LDR[<cond>]D <Rd>, <address mode 3> | <pc relative label>
- *   LDR[<cond>]H <Rd>, <address mode 3> | <pc relative label>
- *   LDR[<cond>]SB <Rd>, <address mode 3> | <pc relative label>
- *   LDR[<cond>]SH <Rd>, <address mode 3> | <pc relative label>
+ *   LDR[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDR[<cc>]T <Rd>, <address mode 2> | <pc relative label>
+ *   LDR[<cc>]B <Rd>, <address mode 2> | <pc relative label>
+ *   LDR[<cc>]BT <Rd>, <address mode 2> | <pc relative label>
+ *   LDR[<cc>]D <Rd>, <address mode 3> | <pc relative label>
+ *   LDR[<cc>]H <Rd>, <address mode 3> | <pc relative label>
+ *   LDR[<cc>]SB <Rd>, <address mode 3> | <pc relative label>
+ *   LDR[<cc>]SH <Rd>, <address mode 3> | <pc relative label>
  * UAL:
- *   LDR[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   LDRT[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   LDRB[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   LDRBT[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   LDRD[<cond>] <Rd>, <address mode 3> | <pc relative label>
- *   LDRH[<cond>] <Rd>, <address mode 3> | <pc relative label>
- *   LDRSB[<cond>] <Rd>, <address mode 3> | <pc relative label>
- *   LDRSH[<cond>] <Rd>, <address mode 3> | <pc relative label>
+ *   LDR[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDRT[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDRB[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDRBT[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDRD[<cc>] <Rd>, <address mode 3> | <pc relative label>
+ *   LDRH[<cc>] <Rd>, <address mode 3> | <pc relative label>
+ *   LDRSB[<cc>] <Rd>, <address mode 3> | <pc relative label>
+ *   LDRSH[<cc>] <Rd>, <address mode 3> | <pc relative label>
  */
 bool
 m_ldr (bool doLowerCase)
@@ -499,12 +486,13 @@ LdrStrEx (bool isLoad, bool doLowerCase)
   return false;
 }
 
+
 /**
  * Implements LDREX/LDREXB/LDREXH.
- *   LDREX[<cond>] <Rd>, [<Rn>]
- *   LDREXB[<cond>] <Rd>, [<Rn>]
- *   LDREXH[<cond>] <Rd>, [<Rn>]
- *   LDREXD[<cond>] <Rd>, <Rd2>, [<Rn>]
+ *   LDREX[<cc>] <Rd>, [<Rn>]
+ *   LDREXB[<cc>] <Rd>, [<Rn>]
+ *   LDREXH[<cc>] <Rd>, [<Rn>]
+ *   LDREXD[<cc>] <Rd>, <Rd2>, [<Rn>]
  */
 bool
 m_ldrex (bool doLowerCase)
@@ -512,26 +500,27 @@ m_ldrex (bool doLowerCase)
   return LdrStrEx (true, doLowerCase);
 }
 
+
 /**
- * Implements STR<cond>[B].
+ * Implements STR<cc>[B].
  * Pre-UAL:
- *   STR[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   STR[<cond>]T <Rd>, <address mode 2> | <pc relative label>
- *   STR[<cond>]B <Rd>, <address mode 2> | <pc relative label>
- *   STR[<cond>]BT <Rd>, <address mode 2> | <pc relative label>
- *   STR[<cond>]D <Rd>, <address mode 3> | <pc relative label>
- *   STR[<cond>]H <Rd>, <address mode 3> | <pc relative label>
- *   STR[<cond>]SB <Rd>, <address mode 3> | <pc relative label>
- *   STR[<cond>]SH <Rd>, <address mode 3> | <pc relative label>
+ *   STR[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   STR[<cc>]T <Rd>, <address mode 2> | <pc relative label>
+ *   STR[<cc>]B <Rd>, <address mode 2> | <pc relative label>
+ *   STR[<cc>]BT <Rd>, <address mode 2> | <pc relative label>
+ *   STR[<cc>]D <Rd>, <address mode 3> | <pc relative label>
+ *   STR[<cc>]H <Rd>, <address mode 3> | <pc relative label>
+ *   STR[<cc>]SB <Rd>, <address mode 3> | <pc relative label>
+ *   STR[<cc>]SH <Rd>, <address mode 3> | <pc relative label>
  * UAL:
- *   STR[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   STRT[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   STRB[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   STRBT[<cond>] <Rd>, <address mode 2> | <pc relative label>
- *   STRD[<cond>] <Rd>, <address mode 3> | <pc relative label>
- *   STRH[<cond>] <Rd>, <address mode 3> | <pc relative label>
- *   STRSB[<cond>] <Rd>, <address mode 3> | <pc relative label>
- *   STRSH[<cond>] <Rd>, <address mode 3> | <pc relative label>
+ *   STR[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   STRT[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   STRB[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   STRBT[<cc>] <Rd>, <address mode 2> | <pc relative label>
+ *   STRD[<cc>] <Rd>, <address mode 3> | <pc relative label>
+ *   STRH[<cc>] <Rd>, <address mode 3> | <pc relative label>
+ *   STRSB[<cc>] <Rd>, <address mode 3> | <pc relative label>
+ *   STRSH[<cc>] <Rd>, <address mode 3> | <pc relative label>
  */
 bool
 m_str (bool doLowerCase)
@@ -542,12 +531,13 @@ m_str (bool doLowerCase)
   return dstmem (cc, "STR");
 }
 
+
 /**
  * Implements STREX/LDREXB/LDREXH.
- *   STREX[<cond>] <Rd>, [<Rn>]
- *   STREXB[<cond>] <Rd>, [<Rn>]
- *   STREXH[<cond>] <Rd>, [<Rn>]
- *   STREXD[<cond>] <Rd>, <Rd2>, [<Rn>]
+ *   STREX[<cc>] <Rd>, [<Rn>]
+ *   STREXB[<cc>] <Rd>, [<Rn>]
+ *   STREXH[<cc>] <Rd>, [<Rn>]
+ *   STREXD[<cc>] <Rd>, <Rd2>, [<Rn>]
  */
 bool
 m_strex (bool doLowerCase)
@@ -1089,7 +1079,7 @@ m_ldm (bool doLowerCase)
 
 
 /**
- * Implements POP, i.e. LDM<cond>FD sp!, {...} when more than one register is
+ * Implements POP, i.e. LDM<cc>FD sp!, {...} when more than one register is
  * to be popped from the stack, or is LDR Rx, [sp, #4]! when one register is
  * to be popped from the stack.
  * UAL syntax.
@@ -1118,7 +1108,7 @@ m_stm (bool doLowerCase)
 
 
 /**
- * Implements PUSH, i.e. STM<cond>FD sp!, {...} when more than one register is
+ * Implements PUSH, i.e. STM<cc>FD sp!, {...} when more than one register is
  * to be pushed on the stack, or STR Rx, [sp], #-4 when one register is to be
  * pushed on the stack.
  * UAL syntax.

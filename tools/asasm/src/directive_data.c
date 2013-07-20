@@ -277,7 +277,7 @@ DefineInt_HandleSymbols (unsigned size, bool allowUnaligned, bool swapHalfwords,
 	  const Value *valP = &codeP->Data.value;
 
 	  Value value = *valP;
-	  if (Value_ResolveSymbol (&value))
+	  if (Value_ResolveSymbol (&value, true))
 	    return true;
 	  switch (value.Tag)
 	    {
@@ -288,7 +288,6 @@ DefineInt_HandleSymbols (unsigned size, bool allowUnaligned, bool swapHalfwords,
 		{
 		  if (value.Data.Symbol.symbol == areaCurrentSymbol)
 		    {
-		      assert ((value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) == 0);
 		      relative += factor * value.Data.Symbol.factor;
 		    }
 		  else
@@ -334,7 +333,7 @@ DefineInt_HandleSymbols (unsigned size, bool allowUnaligned, bool swapHalfwords,
 	  const Value *valP = &codeP->Data.value;
 
 	  Value value = *valP;
-	  if (Value_ResolveSymbol (&value))
+	  if (Value_ResolveSymbol (&value, true))
 	    return true;
 	  switch (value.Tag)
 	    {

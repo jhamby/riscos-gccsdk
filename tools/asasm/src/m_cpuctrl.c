@@ -67,20 +67,16 @@ typedef struct
 static BranchLabel_t
 GetBranchLabel (bool isBLX)
 {
-  /* At this point the current area index can be unaligned for ARM/Thumb
-     instructions, upfront correct this index.  */
-  bool stateIsARM = State_GetInstrType () == eInstrType_ARM;
-  const uint32_t instrAlign = stateIsARM ? 4 : 2;
-
   BranchLabel_t result =
     {
       .forwardLabel = false,
-      .instrOffset = (areaCurrentSymbol->area->curIdx + instrAlign-1) & -instrAlign,
+      .instrOffset = Area_CurIdxAligned (),
       .relocValue.Tag = ValueIllegal,
       .branchOffset = 0
     };
 
   const Value *valP = Expr_BuildAndEval (ValueInt | ValueSymbol);
+  bool stateIsARM = State_GetInstrType () == eInstrType_ARM;
   Value value;
   if (valP->Tag == ValueIllegal
       || (valP->Tag == ValueSymbol
@@ -117,8 +113,8 @@ GetBranchLabel (bool isBLX)
   if (valP->Data.Symbol.symbol != areaCurrentSymbol)
     {
       /* The R_ARM_CALL/R_ARM_JUMP24 ELF reloc needs to happen for a
-	 "B {PC}" instruction, while in AOF this needs to happen for a
-	 "B -<area origin>" instruction.  */
+	 "B {PC}" instruction, while for AOF Type 2 relocations this needs
+	 to happen for a "B <area origin>" instruction.  */
       if (!option_aof)
 	result.branchOffset += result.instrOffset;
       Value_Assign (&result.relocValue,  valP);
@@ -310,7 +306,7 @@ m_branch (bool doLowerCase)
 	      if (brLabel.relocValue.Tag == ValueSymbol
 		  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
 		Reloc_CreateELF (useLongRange ? R_ARM_THM_JUMP11 : R_ARM_THM_JUMP8,
-		                 brLabel.instrOffset, &brLabel.relocValue);
+				 brLabel.instrOffset, &brLabel.relocValue);
 	    }
 	  else
 	    {
@@ -336,7 +332,7 @@ m_branch (bool doLowerCase)
 	      if (brLabel.relocValue.Tag == ValueSymbol
 		  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
 		Reloc_CreateELF (useLongRange ? R_ARM_THM_JUMP24 : R_ARM_THM_JUMP19,
-		                 brLabel.instrOffset, &brLabel.relocValue);
+				 brLabel.instrOffset, &brLabel.relocValue);
 	    }
 	}
     }
@@ -469,9 +465,9 @@ m_blx (bool doLowerCase)
 	  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol) 
 	{
 	  Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, brLabel.instrOffset,
-	                   &brLabel.relocValue);
+			   &brLabel.relocValue);
 	  Reloc_CreateELF (instrState == eInstrType_ARM ? R_ARM_CALL : R_ARM_THM_CALL,
-	                   brLabel.instrOffset, &brLabel.relocValue);
+			   brLabel.instrOffset, &brLabel.relocValue);
 	}
     }
   else
@@ -714,6 +710,30 @@ m_bkpt (bool doLowerCase)
 }
 
 
+typedef enum
+{
+  eADRInstrType_ALU	= 0,
+  eADRInstrType_MOVW	= 1,
+  eADRInstrType_MOVT	= 2,
+  eADRInstrType_NOP	= 3
+} ADRInstrType_e;
+
+typedef struct
+{
+  ADRInstrType_e instrType[2]; /*< See ADRInstrType_e values.  */
+  uint8_t numInstr; /*< Number instructions generated. */
+} ADRResult_t;
+
+typedef enum
+{
+  eCS_Yes	= 0, /* We can ignore isADRL and freely switch between
+    ADR and ADRL.  */
+  eCS_NoBecauseForwardLabel = 1, /* There is a forward label preventing
+    us to make a smarter choice between ADR and ADRL than what the user
+    wrote.  */
+  eCS_NoBecauseReloc = 2 /* We're going to output a reloc for the ADR/ADRL.  */
+} CanSwitch_e;
+
 /**
  * \param constant Constant value relative to base register (R0 .. R15), or
  * absolute when base register is < 0.
@@ -743,8 +763,7 @@ m_bkpt (bool doLowerCase)
  * \param baseInstr Base instruction as returned from Option_ADRL with bit 0
  * cleared.
  * \param isADRL true when the input was ADRL, false for ADR.
- * \param canSwitch true when we still can switch between ADR and ADRL, false
- * otherwise.
+ * \param canSwitch See its enum definition.
  * 
  * In an ABS area, there is no distinction between:
  *   ADR(L) Rx, <integer value>
@@ -756,11 +775,11 @@ m_bkpt (bool doLowerCase)
  * creation and only the ADD/SUB flavour will be correct when they were using
  * a label in their ABS area.
  */
-static void
+static ADRResult_t
 ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
-		      bool isADRL, bool canSwitch)
+		      bool isADRL, CanSwitch_e canSwitch)
 {
-  uint32_t offset = areaCurrentSymbol->area->curIdx;
+  uint32_t offset = Area_CurIdxAligned ();
   uint32_t areaOffset = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
 
   /* When we don't have a base register, use PC as base register but only
@@ -848,26 +867,33 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
 
   if (bestScore == 1 && isADRL)
     {
-      if (canSwitch)
+      switch (canSwitch)
 	{
-	  if (areaCurrentSymbol->area->type & AREA_ABS)
-	    Error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x with base address 0x%x to encode %s",
-		   offset, areaOffset, toEncode);
-	  else
-	    Error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x to encode %s",
-		   offset, toEncode);
-	}
-      else
-	{
-	  if (areaCurrentSymbol->area->type & AREA_ABS)
-	    Error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x with base address 0x%x to encode %s",
-		   offset, areaOffset, toEncode);
-	  else
-	    Error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x to encode %s",
-		   offset, toEncode);
+	  case eCS_Yes:
+	    if (areaCurrentSymbol->area->type & AREA_ABS)
+	      Error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x with base address 0x%x to encode %s",
+		     offset, areaOffset, toEncode);
+	    else
+	      Error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x to encode %s",
+		     offset, toEncode);
+	    break;
+
+	  case eCS_NoBecauseForwardLabel:
+	    /* The second instruction of ADRL is going to be a NOP.  */
+	    if (areaCurrentSymbol->area->type & AREA_ABS)
+	      Error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x with base address 0x%x to encode %s",
+		     offset, areaOffset, toEncode);
+	    else
+	      Error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x to encode %s",
+		     offset, toEncode);
+	    break;
+
+	  case eCS_NoBecauseReloc:
+	    /* No warning.  */
+	    break;
 	}
     }
-  else if (bestScore == 2 && !isADRL && canSwitch)
+  else if (bestScore == 2 && !isADRL && canSwitch == eCS_Yes)
     {
       /* We switch from ADR to ADRL because there is no other option.  */
       if (areaCurrentSymbol->area->type & AREA_ABS)
@@ -879,6 +905,17 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
     }
 
   assert (bestScore == 1 || bestScore == 2);
+
+  if (bestScore == 2 && GET_DST_OP(baseInstr) == 15)
+    Error (ErrorError, "ADRL can not be used with register 15 as destination");
+
+  if (bestScore == 1  && isADRL && canSwitch == eCS_NoBecauseReloc)
+    {
+      bestScore = 2;
+      split[bestIndex].try[1] = 0;
+    }
+
+  ADRResult_t result = { .numInstr = bestScore };
   if (bestIndex < 4)
     {
       ARMWord irop1, irop2;
@@ -900,9 +937,6 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
 	    break;
 	}
 
-      if (bestScore == 2 && GET_DST_OP(baseInstr) == 15)
-	Error (ErrorError, "ADRL can not be used with register 15 as destination");
-
       for (unsigned n = 0; n != bestScore; ++n)
 	{
 	  /* Fix up the base register.  */
@@ -915,6 +949,7 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
 	  irs |= i8s4;
 
 	  Put_Ins (4, irs);
+	  result.instrType[n] = eADRInstrType_ALU;
 	}
     }
   else
@@ -923,19 +958,25 @@ ADR_RelocUpdaterCore (uint32_t constant, int baseReg, uint32_t baseInstr,
       uint32_t cc = baseInstr & NV;
       uint32_t destReg = GET_DST_OP(baseInstr);
       Put_Ins_MOVW_MOVT (cc, destReg, split[bestIndex].try[0], false);
+      result.instrType[0] = eADRInstrType_MOVW;
       if (bestScore == 2)
 	{
 	  assert (split[bestIndex].try[1] != 0);
 	  Put_Ins_MOVW_MOVT (cc, destReg, split[bestIndex].try[1], true);
+	  result.instrType[0] = eADRInstrType_MOVT;
 	}
     }
-  if (bestScore == 1  && isADRL && !canSwitch)
+  if (bestScore == 1  && isADRL && canSwitch == eCS_NoBecauseForwardLabel)
     {
       /* We need to output two instructions.  Use NOP (its value depends
          on architecture support v6K and v6T2).  */
       Put_Ins (4, Target_CheckCPUFeature (kCPUExt_v6K, false)
                     || Target_CheckCPUFeature (kCPUExt_v6T2, false) ? 0xe320F000 : 0xe1a00000);
+      result.instrType[1] = eADRInstrType_NOP;
+      result.numInstr = 2;
     }
+
+  return result;
 }
 
 
@@ -957,13 +998,35 @@ m_adr (bool doLowerCase)
 
   bool isADRL = ir & 1;
   ir &= ~1;
-  
-  ValueTag tag = (gPhase == ePassOne) ? ValueInt | ValueAddr : ValueInt | ValueAddr | ValueSymbol;
-  const Value *valP = Expr_BuildAndEval (tag);
+
+  const Value *valP = Expr_BuildAndEval (ValueInt | ValueAddr | ValueSymbol);
+  if (valP->Tag == ValueIllegal
+      || (valP->Tag == ValueInt && valP->Data.Int.type != eIntType_PureInt))
+    {
+      Error (ErrorError, "Illegal %s expression", isADRL ? "ADRL" : "ADR");
+      return false;
+    }
+
+  const uint32_t instrOffset = Area_CurIdxAligned ();
+
+  const RelocAndAddend_t relocAddend = Reloc_SplitRelocAndAddend (valP,
+								  areaCurrentSymbol,
+								  instrOffset,
+								  true);
+  valP = &relocAddend.addend;
+
+  /* During PassOne, we're at liberty to change ADR into ADRL and/or ADRL
+     into ADR when we have a valid addend and there is no relocation symbol
+     (at this point, it is not even sure that a relocation symbol at PassOne
+     will be a relocation symbol at PassTwo).  */
+  CanSwitch_e canSwitch = gPhase == ePassOne || Put_GetWord (instrOffset) != 0 ? eCS_Yes : eCS_NoBecauseForwardLabel;
+  /* Don't switch from a probably well meant ADRL to ADR when there is a
+     relocation to be done.  */
+  if (relocAddend.relocSymbol.Tag == ValueSymbol)
+    canSwitch = eCS_NoBecauseReloc;
 
   if (valP->Tag == ValueIllegal
-      || (valP->Tag == ValueInt && valP->Data.Int.type != eIntType_PureInt)
-      || (valP->Tag == ValueSymbol && valP->Data.Symbol.factor != 1))
+      || (gPhase == ePassOne && canSwitch != eCS_Yes))
     {
       if (gPhase == ePassOne)
 	{
@@ -975,60 +1038,78 @@ m_adr (bool doLowerCase)
 	    Put_Ins (4, 0);
 	}
       else
-	Error (ErrorError, "Illegal %s expression", isADRL ? "ADRL" : "ADR");
-      return false;
+	Error (ErrorError, "Relocation failed");
     }
-
-  uint32_t offset = areaCurrentSymbol->area->curIdx;
-  uint32_t areaOffset = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
-  /* If we come here during PassOne, we're at liberty to change ADR into ADRL
-   * and/or ADRL into ADR.  When we come here at PassTwo, it might be that this
-   * is the first time (as during PassOne we were unable to resolve the ADR(L)
-   * expression into a ValueInt/ValueAddr) so it is important that for this
-   * case we don't do any ADR vs ADRL swapping but also it is important that
-   * we're making the same choice for 'canSwitch' for the case where we arrived
-   * here during PassOne.
-   * The latter means that the first instruction is no longer 0.
-   */
-  bool canSwitch = gPhase == ePassOne || Put_GetWord (offset) != 0;
-
-  /* Switch from current area symbol to [r15, #...].  */
-  Value value;
-  if (valP->Tag == ValueSymbol && valP->Data.Symbol.symbol == areaCurrentSymbol)
+  else
     {
-      value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));
-      valP = &value;
+      int constant, baseReg;
+      switch (valP->Tag)
+	{
+	  case ValueInt:
+	    /* Absolute value : results in MOV/MVN (followed by ADD/SUB in
+	       case of ADRL) or MOVW or MOV32.  */
+	    constant = valP->Data.Int.i;
+	    baseReg = -1;
+	    break;
+
+	  case ValueAddr:
+	    /* Storage map, pc-relative, AREA + BASED.  */
+	    constant = valP->Data.Addr.i;
+	    baseReg = valP->Data.Addr.r;
+	    break;
+
+	  default:
+	    Error (ErrorError, "Illegal %s expression", isADRL ? "ADRL" : "ADR");
+	    constant = 8; /* FIXME: Thumb support missing.  */
+	    baseReg = 15;
+	    break;
+	}
+      const ADRResult_t result = ADR_RelocUpdaterCore (constant,
+						       baseReg, ir | DST_OP (regD) | IMM_RHS,
+						       isADRL, canSwitch);
+      if (relocAddend.relocSymbol.Tag == ValueSymbol)
+	{
+	  bool isPCrel = baseReg == 15;
+	  for (unsigned i = 0; i != result.numInstr; ++i)
+	    {
+	      if (result.instrType[i] == eADRInstrType_NOP)
+		continue;
+
+	      uint32_t elfHow;
+	      switch (result.instrType[i])
+		{
+		  case eADRInstrType_ALU:
+		    {
+		      if (i == 0)
+			{
+			  if (i + 1 == result.numInstr)
+			    elfHow = isPCrel ? R_ARM_ALU_PC_G0 : R_ARM_ALU_SB_G0;
+			  else
+			    elfHow = isPCrel ? R_ARM_ALU_PC_G0_NC : R_ARM_ALU_SB_G0_NC;
+			}
+		      else
+			elfHow = isPCrel ? R_ARM_ALU_PC_G1 : R_ARM_ALU_SB_G1;
+		      break;
+		    }
+		  case eADRInstrType_MOVW:
+		    /* If result.numInstr is 1, we should be using R_ARM_MOVW_PREL
+		       and R_ARM_MOVW_ABS but that doesn't seem to exist ?! */
+		    elfHow = isPCrel ? R_ARM_MOVW_PREL_NC : R_ARM_MOVW_ABS_NC;
+		    break;
+		  case eADRInstrType_MOVT:
+		    elfHow = isPCrel ? R_ARM_MOVT_PREL : R_ARM_MOVT_ABS;
+		    break;
+		  case eADRInstrType_NOP:
+		    /* Already filtered upfront.  */
+		    assert (0);
+		    break;
+		}
+	      Reloc_CreateELF (elfHow, instrOffset + 4*i, &relocAddend.relocSymbol);
+	    }
+	  uint32_t aofHow = HOW2_INIT | HOW2_INSTR_UNLIM | (isPCrel ? HOW2_RELATIVE : HOW2_BASED);
+	  Reloc_CreateAOF (aofHow, instrOffset, &relocAddend.relocSymbol);
+	}
     }
-
-  int constant, baseReg;
-  switch (valP->Tag)
-    {
-      case ValueInt:
-	/* Absolute value : results in MOV/MVN (followed by ADD/SUB in case of
-	   ADRL) or MOVW or MOV32.  */
-	constant = valP->Data.Int.i;
-	baseReg = -1;
-	break;
-
-      case ValueAddr:
-	constant = valP->Data.Addr.i;
-	baseReg = valP->Data.Addr.r;
-	break;
-
-      case ValueSymbol:
-	assert (valP->Data.Symbol.factor == 1);
-	Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP);
-	// FIXME: Reloc_CreateELF() missing.
-	constant = valP->Data.Symbol.offset - (areaOffset + offset + 8);
-	baseReg = 15;
-	break;
-
-      default:
-	assert (0);
-	break;
-    }
-  ADR_RelocUpdaterCore (constant, baseReg, ir | DST_OP (regD) | IMM_RHS,
-			isADRL, canSwitch);
 
   return false;
 }

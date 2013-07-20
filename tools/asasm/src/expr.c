@@ -87,10 +87,7 @@ Expr_GetPrim (void)
         break;
 
       case LexPosition:
-	if (areaCurrentSymbol->area->type & AREA_ABS)
-	  Code_Int (Area_GetBaseAddress (areaCurrentSymbol) + areaCurrentSymbol->area->curIdx);
-	else
-	  Code_Symbol (areaCurrentSymbol, areaCurrentSymbol->area->curIdx);
+	Code_Symbol (areaCurrentSymbol, areaCurrentSymbol->area->curIdx);
         break;
 
       case LexStorage:

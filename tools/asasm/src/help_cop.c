@@ -73,7 +73,7 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack, bool isThumb)
       return;
     }
 
-  const ARMWord offset = areaCurrentSymbol->area->curIdx;
+  const ARMWord instrOffset = areaCurrentSymbol->area->curIdx;
   Value value;
   const Value *valP = NULL;
   switch (Input_Look ())
@@ -247,78 +247,73 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack, bool isThumb)
 
   if (gPhase != ePassOne && valP != NULL)
     {
-      switch (valP->Tag)
+      if (valP->Tag == ValueFloat)
 	{
-	  case ValueInt:
+	  /* This can only happen when "LFD Fx, =<constant>" can be turned
+	   into MVF/MNF Fx, #<constant>.  */
+	  ir = (ir & NV) | DST_OP (GET_DST_OP (ir));
+	  switch (ir & PRECISION_MEM_MASK)
 	    {
-	      /* This can only happen when the current area is absolute.
-	         The value represents an absolute address.  We translate this
-	         into PC relative one for the current instruction.  */
-	      assert (areaCurrentSymbol->area->type & AREA_ABS);
-	      ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
-	      ir |= CPLHS_OP (15);
-	      ir = Fix_CopOffset (ir, newOffset);
-	      break;
+	      case PRECISION_MEM_SINGLE:
+		ir |= PRECISION_SINGLE;
+		break;
+
+	      case PRECISION_MEM_DOUBLE:
+		ir |= PRECISION_DOUBLE;
+		break;
+
+	      default:
+		assert (!"Extended/packed are not supported");
+		break;
 	    }
 
-	  case ValueFloat:
-	    {
-	      /* This can only happen when "LFD Fx, =<constant>" can be turned
-	         into MVF/MNF Fx, #<constant>.  */
-	      ir = (ir & NV) | DST_OP (GET_DST_OP (ir));
-	      switch (ir & PRECISION_MEM_MASK)
-		{
-		  case PRECISION_MEM_SINGLE:
-		    ir |= PRECISION_SINGLE;
-		    break;
+	  ARMWord im;
+	  if ((im = FPE_ConvertImmediate (valP->Data.Float.f)) != (ARMWord)-1)
+	    ir |= M_MVF | im;
+	  else if ((im = FPE_ConvertImmediate (- valP->Data.Float.f)) != (ARMWord)-1)
+	    ir |= M_MNF | im;
+	  else
+	    assert (0);
+	  valP = NULL;
+	}
 
-		  case PRECISION_MEM_DOUBLE:
-		    ir |= PRECISION_DOUBLE;
-		    break;
+      if (valP != NULL)
+        {
+	  const RelocAndAddend_t relocAddend = Reloc_SplitRelocAndAddend (valP,
+									  areaCurrentSymbol,
+									  instrOffset,
+	                                                                  false);
+	  valP = &relocAddend.addend;
 
-		  default:
-		    assert (!"Extended/packed are not supported");
-		    break;
-		}
-
-	      ARMWord im;
-	      if ((im = FPE_ConvertImmediate (valP->Data.Float.f)) != (ARMWord)-1)
-	        ir |= M_MVF | im;
-	      else if ((im = FPE_ConvertImmediate (- valP->Data.Float.f)) != (ARMWord)-1)
-	        ir |= M_MNF | im;
-	      else
-	        assert (0);
-	      break;
-	    }
-
-	  case ValueSymbol:
-	    {
-	      if (valP->Data.Symbol.symbol != areaCurrentSymbol)
-		{
-		  assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
-		  Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP);
-		  // FIXME: Reloc_CreateELF
-		  break;
-		}
-	      value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));
-	      valP = &value;
-	      /* Fall through.  */
-	    }
-
-	  case ValueAddr:
+	  bool isPCrel;
+	  if (valP->Tag == ValueAddr)
 	    {
 	      ir |= CPLHS_OP (valP->Data.Addr.r);
 	      ir = Fix_CopOffset (ir, valP->Data.Addr.i);
-	      break;
+	      isPCrel = valP->Data.Addr.r == 15;
 	    }
+	  else
+	    {
+	      Error (ErrorError, "Illegal expression");
+	      isPCrel = true;
+	    }
+	  if (relocAddend.relocSymbol.Tag == ValueSymbol)
+	    {
+	      if (isThumb)
+		Error (ErrorError, "Thumb instruction doesn't support relocation");
 
-	  default:
-	    Error (ErrorError, "Illegal expression");
-	    break;
+	      assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
+	      uint32_t aofHow = HOW2_INIT | HOW2_INSTR_UNLIM | (isPCrel ? HOW2_RELATIVE : HOW2_BASED);
+	      Reloc_CreateAOF (aofHow, instrOffset, &relocAddend.relocSymbol);
+	      uint32_t elfHow;
+	      elfHow = isPCrel ? R_ARM_LDC_PC_G0 : R_ARM_LDC_SB_G0;
+	      Reloc_CreateELF (elfHow, instrOffset, &relocAddend.relocSymbol);
+	    }
 	}
     }
 
   if (isThumb && (ir & P_FLAG) == 0 && CP_GET_LHS(ir) == 15)
     Error (ErrorWarning, "The use of PC as base register in unindexed form is UNPREDICTABLE in Thumb mode");
+
   Put_Ins (4, ir);
 }

@@ -1,3 +1,56 @@
+Sat Jul 20 19:46:11 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* reloc.c (Reloc_SplitRelocAndAddend): Add.
+	* reloc.h (RelocAndAddend_t, Reloc_SplitRelocAndAddend): Add.
+	* eval.c (GetInt): Support absolute area symbols.
+	(GetValueAddrEquivalent): Add.
+	(Eval_Unop): Reimplement :BASE: and :INDEX: using
+	GetValueAddrEquivalent.  Explict support absolute area symbol in :STR:.
+	* m_cpuctrl.c (GetBranchLabel): Make use of Area_CurIdxAligned.
+	(ADRInstrType_e, CanSwitch_e): Add.
+	(ADR_RelocUpdaterCore): Make use of CanSwitch_e.
+	(m_adr): Make use of Reloc_SplitRelocAndAddend.
+	* help_cop.c (HelpCop_Addr): Make use of Reloc_SplitRelocAndAddend.
+	* m_cpumem.c (dstmem): Likewise.
+	* directive_data.c (DefineInt_HandleSymbols): Follow Value_ResolveSymbol
+	API change.
+	* area.c, area.h (Area_CurIdxAligned): Add.
+	* value.c, value.h (Value_IsLabel): Add.
+	(Value_ResolveSymbol): Add resolveAbsArea parameter.
+	* expr.c (Expr_GetPrim): For LexPosition, don't make an exception
+	for absolute area symbols.
+	* symbol.c (c_import): Drop absolute symbol attribute for based
+	import symbols.
+	* code.c (Code_EvalLowest): Add legal parameter.  Follow
+	Value_ResolveSymbol API change.
+	(Code_Eval): Follow Code_EvalLowest API change.
+
+	unittests/compare:
+	* Makefile.in: Use objdump when there are differences.
+	* core/instr_ldr_from_addr.s: Drop tests which generate relocations.
+	* core/operator_index.s: Rename to...
+	* core/operator_base_index.s: ...this.  Add import based tests.
+	Update.
+	* core/include/adr.s: Drop tests which generate relocations.  Update.
+	* core/instr_ldr.s: Drop tests which  generate relocations.
+	* core/storage_map.s: Remove.
+
+	unittests/reloc:
+	* src/include/reloc_adr.s: Add.
+	* src/reloc_adr_adrl_before_6t2.s: Add.
+	* src/reloc_adr_adrl_6t2.s: Add.
+	* src/include/keep_all.s: Drop FIXME comment.
+	* src/reloc_ldc.s: Add.
+	* src/reloc_ldr.s: Add.
+	* ref/reloc_adr_adrl_6t2_aof.txt, ref/reloc_adr_adrl_6t2_elf.txt,
+	ref/reloc_ldc_aof.txt, ref/reloc_ldr_aof.txt,
+	ref/reloc_adr_adrl_before_6t2_aof.txt, ref/reloc_ldc_elf.txt,
+	ref/reloc_ldr_elf.txt, ref/reloc_adr_adrl_before_6t2_elf.txt
+	* ref/keep_all_before_aof.txt, ref/keep_all_before_elf.txt,
+	ref/keep_all_after_elf.txt, ref/keep_all_after_aof.txt,
+	ref/import_qualifiers_aof.txt, ref/import_qualifiers_elf.txt: Update.
+
 Sun Jul  7 17:06:29 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

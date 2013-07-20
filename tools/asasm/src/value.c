@@ -38,6 +38,18 @@
 #include "main.h"
 #include "value.h"
 
+
+/**
+ * A label is a defining symbol holding an area symbol as value.
+ */
+bool
+Value_IsLabel (const Value *valueP)
+{
+  return valueP->Tag == ValueSymbol
+	   && (valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0;
+}
+
+
 /**
  * Copies one Value to another, correctly freeing/claiming memory resources.
  */
@@ -130,35 +142,30 @@ Value_Code (size_t len, const Code *code)
 
 
 /**
- * Resolve the defined value behind a ValueSymbol object.
+ * Try to resolve a ValueSymbol object to its defined value.
  * \return true When resolving failed.  No ownership transfered.
  */
 bool
-Value_ResolveSymbol (Value *valueP)
+Value_ResolveSymbol (Value *valueP, bool resolveAbsArea)
 {
-  /* Resolve all defined symbols and based/absolute area symbols.  */
+  /* Resolve all defined symbols except for symbol labels (if we would resolve
+     labels, we're losing relocation info).  */
   /* FIXME: this can probably loop forever: label1 -> label2 -> label1 */
-  while (valueP->Tag == ValueSymbol /* Only replace symbols... */
-         && ((valueP->Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0
-             || (valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0)) /* FIXME: make all SYMBOL_AREA -> SYMBOL_LOCAL so we can drop this test ? */
+  while (valueP->Tag == ValueSymbol
+	 && ((valueP->Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0
+	     || (resolveAbsArea
+		 && (valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0
+		 && (valueP->Data.Symbol.symbol->area->type & AREA_ABS) != 0)))
     {
       int offset = valueP->Data.Symbol.offset;
       int factor = valueP->Data.Symbol.factor;
 
-      if ((valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0)
+      if (resolveAbsArea
+	  && (valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0)
 	{
-	  /* Label symbol.  */
-	  const Area *areaP = valueP->Data.Symbol.symbol->area; 
-	  if ((areaP->type & AREA_BASED) != 0)
-	    {
-	      if (factor != 1)
-		return true;
-
-	      /* Define label as "ValueAddr AreaBaseReg, #<given area offset>".  */
-	      *valueP = Value_Addr (Area_GetBaseReg (areaP), offset);
-	    }
-	  else if ((areaP->type & AREA_ABS) != 0)
-	    *valueP = Value_Int (factor * Area_GetBaseAddress (valueP->Data.Symbol.symbol) + offset, eIntType_PureInt);
+	  const Area *areaP = valueP->Data.Symbol.symbol->area;
+	  assert ((areaP->type & AREA_ABS) != 0);
+	  *valueP = Value_Int (factor * Area_GetBaseAddress (valueP->Data.Symbol.symbol) + offset, eIntType_PureInt);
 	  break;
 	}
 

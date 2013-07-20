@@ -46,6 +46,7 @@
 #include "main.h"
 #include "phase.h"
 #include "symbol.h"
+#include "state.h"
 #include "reloc.h"
 
 static void Area_Ensure (void);
@@ -436,6 +437,19 @@ uint32_t
 Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg)
 {
   return Area_AlignOffset (areaSym, areaSym->area->curIdx, alignValue, msg);
+}
+
+
+/**
+ * \return The current area index of the current area and align it for the
+ * current state (ARM or Thumb).
+ * Does NOT update the current index.
+ */
+uint32_t
+Area_CurIdxAligned (void)
+{
+  uint32_t instrAlign = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
+  return (areaCurrentSymbol->area->curIdx + instrAlign-1) & -instrAlign;
 }
 
 

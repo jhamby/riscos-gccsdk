@@ -47,7 +47,7 @@ IgnAreaBased3	EQU	AreaBased2	; NOT kept in output
 		MOV	r2, #0
 AreaABS1	MOV	r3, #0
 AreaABS2	DCD	5
-IgnAreaABS3	EQU	AreaABS2	; NOT kept in output, FIXME: this is however happening.
+IgnAreaABS3	EQU	AreaABS2	; NOT kept in output
 
 		; Local labels should never be exported.
 		AREA	AreaCode, CODE

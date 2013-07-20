@@ -647,7 +647,7 @@ Symbol_BuildStringData (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
     {
       /* AOF : write length of OBJ_STRT.  */
       assert (symOutP->strDataSize >= 4);
-      unsigned len = symOutP->strDataSize;// - 4;
+      unsigned len = symOutP->strDataSize;
       *strP++ = (char)((len >>  0) & 0xFF);
       *strP++ = (char)((len >>  8) & 0xFF);
       *strP++ = (char)((len >> 16) & 0xFF);
@@ -1474,7 +1474,6 @@ c_import (void)
 	}
       else if (result.basedRegNum != INVALID_REG)
 	{
-	  sym->type |= SYMBOL_ABSOLUTE; /* FIXME: Correct ? See c_alloc implementation. */
 	  const Value value = Value_Addr (result.basedRegNum, 0);
 	  Value_Assign (&sym->value, &value);
 	}

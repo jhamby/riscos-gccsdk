@@ -39,6 +39,7 @@
 #include "include.h"
 #include "main.h"
 #include "phase.h"
+#include "state.h"
 
 static const char oLowcaseCCodes[] = "eqnecsccmiplvsvchilsgeltgtlealnvhslo";
 
@@ -84,27 +85,43 @@ ememcmp (const Value *lv, const Value *rv)
  * \return true when it concerns a ValueInt or one character ValueString object.
  */
 static bool
-GetInt (const Value *val, uint32_t *i)
+GetInt (const Value *valP, uint32_t *i)
 {
-  switch (val->Tag)
+  switch (valP->Tag)
     {
       case ValueInt:
 	/* A CPU register list is not a meaningful integer value, so exclude
 	   that int type.  */
-	if (val->Data.Int.type != eIntType_CPURList)
+	if (valP->Data.Int.type != eIntType_CPURList)
 	  {
-	    *i = (unsigned)val->Data.Int.i;
+	    *i = (unsigned)valP->Data.Int.i;
 	    return true;
 	  }
 	break;
 
       case ValueString:
-	if (val->Data.String.len == 1)
+	if (valP->Data.String.len == 1)
 	  {
-	    *i = (uint8_t)val->Data.String.s[0];
+	    *i = (uint8_t)valP->Data.String.s[0];
 	    return true;
 	  }
 	break;
+
+      case ValueSymbol:
+	{
+	  const Symbol *symP = valP->Data.Symbol.symbol;
+	  if ((symP->type & SYMBOL_AREA) != 0)
+	    {
+	      if ((symP->area->type & AREA_ABS) != 0)
+		{
+		  int offset = valP->Data.Symbol.offset;
+		  int factor = valP->Data.Symbol.factor;
+		  *i = factor * Area_GetBaseAddress (symP) + offset;
+		  return true;
+		}
+	    }
+	  break;
+	}
 
       default:
 	break;
@@ -656,6 +673,26 @@ Eval_Binop (Operator_e op,
   return result;
 }
 
+
+/**
+ * Try to convert a ValueAddr or ValueSymbol into ValueAddr (possibly loosing
+ * relocation info.
+ */
+static Value
+GetValueAddrEquivalent (const Value *valP)
+{
+  const RelocAndAddend_t relocAddend = Reloc_SplitRelocAndAddend (valP,
+								  areaCurrentSymbol,
+								  Area_CurIdxAligned (),
+                                                                  false);
+  valP = &relocAddend.addend;
+  if (valP->Tag == ValueAddr)
+    return *valP;
+  Value illVal = { .Tag = ValueIllegal };
+  return illVal;
+}
+
+
 /**
  * <result> = <op> <value>
  * \return Value of result.  Is ValueIllegal when operation can not be
@@ -864,25 +901,12 @@ Eval_Unop (Operator_e op, const Value *value)
 
       case eOp_Base: /* :BASE: */
 	{
-	  switch (value->Tag)
+	  Value addrVal = GetValueAddrEquivalent (value);
+	  switch (addrVal.Tag)
 	    {
-	      case ValueSymbol:
-		{
-		  if (value->Data.Symbol.symbol == areaCurrentSymbol
-		      && value->Data.Symbol.factor == 1)
-		    result = Value_Int (15, eIntType_PureInt);
-		  else
-		    {
-		      if (gPhase != ePassOne)
-			Error (ErrorError, "Not current area symbol");
-		      result = Value_Illegal ();
-		    }
-		  break;
-		}
-
 	      case ValueAddr:
 		{
-		  result = Value_Int (value->Data.Addr.r, eIntType_PureInt);
+		  result = Value_Int (addrVal.Data.Addr.r, eIntType_PureInt);
 		  break;
 		}
 
@@ -899,36 +923,26 @@ Eval_Unop (Operator_e op, const Value *value)
 
       case eOp_Index: /* :INDEX: */
 	{
-	  switch (value->Tag)
+	  if (value->Tag == ValueInt)
+	    result = *value;
+	  else
 	    {
-	      case ValueInt:
-		result = *value;
-		break;
-
-	      case ValueAddr:
-		result = Value_Int (value->Data.Addr.i, eIntType_PureInt);
-		break;
-
-	      case ValueSymbol:
+	      Value addrVal = GetValueAddrEquivalent (value);
+	      switch (addrVal.Tag)
 		{
-		  if (value->Data.Symbol.symbol == areaCurrentSymbol
-		      && value->Data.Symbol.factor == 1)
-		    result = Value_Int (value->Data.Symbol.offset, eIntType_PureInt);
-		  else
+		  case ValueAddr:
+		    {
+		      result = addrVal.Data.Addr.r ? Value_Int (addrVal.Data.Addr.i, eIntType_PureInt) : *value;
+		      break;
+		    }
+
+		  default:
 		    {
 		      if (gPhase != ePassOne)
-			Error (ErrorError, "Not current area symbol");
+			Error (ErrorError, "Bad operand type for %s", ":INDEX:");
 		      result = Value_Illegal ();
+		      break;
 		    }
-		  break;
-		}
-
-	      default:
-		{
-		  if (gPhase != ePassOne)
-		    Error (ErrorError, "Bad operand type for %s", ":INDEX:");
-		  result = Value_Illegal ();
-		  break;
 		}
 	    }
 	  break;
@@ -949,6 +963,16 @@ Eval_Unop (Operator_e op, const Value *value)
 
       case eOp_Str: /* :STR: */
 	{
+	  Value tempValue;
+	  if (value->Tag == ValueSymbol
+	      && (value->Data.Symbol.symbol->type & SYMBOL_AREA) != 0
+	      && (value->Data.Symbol.symbol->area->type & AREA_ABS) != 0)
+	    {
+	      int factor = value->Data.Symbol.factor;
+	      int offset= value->Data.Symbol.offset;
+	      tempValue = Value_Int (factor * Area_GetBaseAddress (value->Data.Symbol.symbol) + offset, eIntType_PureInt);
+	      value = &tempValue;
+	    }
 	  switch (value->Tag)
 	    {
 	      default:

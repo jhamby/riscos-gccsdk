@@ -168,6 +168,7 @@ bool Area_IsImplicit (const Symbol *sym);
 uint32_t Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const char *msg);
 uint32_t Area_AlignTo (uint32_t offset, unsigned alignValue, const char *msg);
 uint32_t Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg);
+uint32_t Area_CurIdxAligned (void);
 
 bool c_area (void);
 bool c_entry (void);

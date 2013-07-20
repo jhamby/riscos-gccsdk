@@ -3,7 +3,7 @@
 
 AOF version: 310
 4 areas
-23 symbols
+22 symbols
 
 ** Area (0x000000) "AreaData", aligned at 4 bytes, [data] 
    Size 12 bytes, 0 relocations
@@ -40,7 +40,6 @@ AreaCode2        (101) local, cadatum at "AreaCode" + 0x000008
 AreaData         (01) local at "AreaData" + 0x000000
 AreaData1        (01) local at "AreaData" + 0x000004
 AreaData2        (01) local at "AreaData" + 0x000008
-IgnAreaABS3      (05) local, absolute = 0x0000000c
 $d               (101) local, cadatum at "AreaABS" + 0x000000
 $a               (01) local at "AreaABS" + 0x000004
 $d               (101) local, cadatum at "AreaABS" + 0x00000c
@@ -66,6 +65,5 @@ $d               (01) local at "AreaData" + 0x000000
 00005b: AreaData
 000064: AreaData1
 00006e: AreaData2
-000078: IgnAreaABS3
-000084: $d
-000087: $a
+000078: $d
+00007b: $a

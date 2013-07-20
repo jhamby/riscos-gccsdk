@@ -3,44 +3,6 @@
 		GBLL	CanUseMOVW
 CanUseMOVW	SETL	{TARGET_ARCH_6T2} :LOR: {TARGET_ARCH_7} 
 
-	[ {FALSE}	; FIXME: results in relocations, how to test ?
-	; ADR/ADRL simple label cases
-	AREA	Code1, CODE, READONLY
-	DCB	"Cde1"
-
-	AREA	Code2, CODE, READONLY
-
-	; First defined, then used.
-c1lbl1	%	40
-c1lbl2	%	8
-	DCB	"Cde2"
-
-	ADR	r1, c1lbl1
-	ADR	r2, c1lbl2
-	ADR	r3, c1lbl3
-	ADR	r4, c1lbl4
-
-	ADRL	r1, c1lbl1
-	ADRL	r2, c1lbl2
-	ADRL	r3, c1lbl3
-	ADRL	r4, c1lbl4
-
-	; ADR/ADRL to declared, current and not-yet declared AREAs
-	ADR	r5, Code1
-	ADR	r6, Code2
-	ADR	r7, Code3
-	ADRL	r8, Code1
-	ADRL	r9, Code2
-	ADRL	r10, Code3
-
-	; First used, then defined.
-c1lbl3	%	40
-c1lbl4	%	8
-
-	AREA	Code3, CODE, READONLY
-	DCB	"Cde3"
-	]
-
 	[ {TRUE}
 	AREA	Code4, CODE, READONLY
 	; Excercise the address range of ADR/ADRL.
@@ -82,35 +44,6 @@ SymAbs	SETA	32
 	|
 	MOV	r0, #32
 	]
-	]
-
-	[ {TRUE}
-	[ EXTENSION
-	; ADR/ADRL references to labels in register based AREA.
-	; ObjAsm extension
-	AREA	Data6, DATA, READONLY, BASED r3
-dt6lbl1	%	8
-dt6lbl2	%	32
-dt6lbl3	%	4
-
-	AREA	Code6, CODE, READONLY
-
-	[ :LNOT: REFERENCE
-	ADR	r1, dt6lbl2	; ObjAsm extension : ADD r1, r3, #dt6lbl2 - Data6
-	|
-	ADD	r1, r3, #8
-	]
-	]
-	]
-
-	[ {FALSE}	; FIXME: results in relocations, how to test ?
-	; External label usage in ADR/ADRL.
-	AREA	Code7, CODE, READONLY
-
-	IMPORT	ExternLabel
-
-	ADR	r3, ExternLabel
-	ADRL	r4, ExternLabel
 	]
 
 	[ {TRUE}
@@ -318,8 +251,10 @@ Code13lbl
 	; <base> "L" <cond code>	; UAL only
 	MACRO
 	Invoke
-	Inject	"ADR r1, ."
-	Inject	"ADRL r2, ."
+	Inject	"ADR r1, %f10 - 4"
+10
+	Inject	"ADRL r2, %f20 - 8"
+20
 
 	LCLS	instr0
 	LCLS	instr1
@@ -333,9 +268,12 @@ cnt	SETA	0
 instr0	SETS	"ADR" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2)
 instr1	SETS	"ADR" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2) :CC: "L"	; Pre-UAL
 instr2	SETS	"ADRL" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2)	; UAL
-	Inject	"$instr0 r3, ."
-	Inject	"$instr1 r4, ."
-	Inject	"$instr2 r5, ."
+	Inject	"$instr0 r3, %f30 - 4"
+30
+	Inject	"$instr1 r4, %f40 - 8"
+40
+	Inject	"$instr2 r5, %f50 - 8"
+50
 cnt	SETA	cnt + 1
 	WEND
 	MEND

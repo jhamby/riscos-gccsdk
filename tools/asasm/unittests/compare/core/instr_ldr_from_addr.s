@@ -31,10 +31,12 @@ tst8_b	%	4
 		STR	r2, tst5_a
 
 		; Offset in an area marked with base register:
+		[ {FALSE}		; Results in relocations.
 		LDR	r3, tst7_b
 		STR	r3, tst8_b
 		LDR	r3, tst7_a
 		STR	r3, tst8_a
+		]
 	|
 		LDR	r1, [r2]
 		STR	r1, [r2, #4]
@@ -46,10 +48,12 @@ tst8_b	%	4
 		LDR	r2, [r9, #0x14]
 		STR	r2, [r9, #0x18]
 
+		[ {FALSE}		; Results in relocations.
 		LDR	r3, [r11, #0x20]
 		STR	r3, [r11, #0x28]
 		LDR	r3, [r10, #0x20]
 		STR	r3, [r10, #0x28]
+		]
 	]
 
 		AREA	Code2, CODE, READONLY
@@ -68,10 +72,12 @@ tst8_b	%	4
 		STR	r2, tst5_a
 
 		; Offset in an area marked with base register:
+		[ {FALSE}		; Results in relocations.
 		LDR	r3, tst7_b
 		STR	r3, tst8_b
 		LDR	r3, tst7_a
 		STR	r3, tst8_a
+		]
 	|
 		LDR	r1, [r2]
 		STR	r1, [r2, #4]
@@ -83,10 +89,12 @@ tst8_b	%	4
 		LDR	r2, [r9, #0x14]
 		STR	r2, [r9, #0x18]
 
+		[ {FALSE}		; Results in relocations.
 		LDR	r3, [r11, #0x20]
 		STR	r3, [r11, #0x28]
 		LDR	r3, [r10, #0x20]
 		STR	r3, [r10, #0x28]
+		]
 	]
 
 	; Labels defined afterwards:

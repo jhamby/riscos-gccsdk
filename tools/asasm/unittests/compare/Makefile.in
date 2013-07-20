@@ -43,6 +43,8 @@ DIFFFLAGS := -q
 ECHO := echo
 ECHOFLAGS :=
 MKDIR := mkdir
+OBJDUMP := arm-unknown-eabi-objdump
+OBJDUMPFLAGS := -r -d
 
 V := @
 
@@ -95,7 +97,9 @@ output_actual_elf/%.o: %.s output_reference_elf/%.o
 	@$(ECHO) +++ $< : Assemble actual for ELF and compare with reference
 	$(V)$(MKDIR) -p output_actual_elf
 	$(V)$(ASASM) $(ASFLAGS) -elf $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -PD "OUTPUTELF SETL {TRUE}" -depend $(@:%.o=%.d) -o $@ $<
-	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual_elf/%=output_reference_elf/%) || (mv $@ $(@:%.o=%_failed.o) && false)
+	$(V)$(OBJDUMP) $(OBJDUMPFLAGS) $(@:output_actual_elf/%=output_reference_elf/%) > $(@:output_actual_elf/%.o=output_reference_elf/%.txt)
+	$(V)$(OBJDUMP) $(OBJDUMPFLAGS) $@ > $(@:%.o=%.txt)
+	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual_elf/%=output_reference_elf/%) || (mv $@ $(@:%.o=%_failed.o) && diff -u $(@:output_actual_elf/%.o=output_reference_elf/%.txt) $(@:%.o=%.txt))
 
 output_reference_elf/%.o: %.s
 	@$(ECHO) +++ $< : Create ELF reference $@

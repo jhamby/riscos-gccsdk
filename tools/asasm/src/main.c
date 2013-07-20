@@ -438,7 +438,7 @@ main (int argc, char **argv)
                || (val = IsOptGetArg (&argv, "MC", sizeof ("MC")-1, &argc)) != NULL)
 	{
 	  char *endVal;
-	  long cacheSize = strtol(val, &endVal, 10);
+	  long cacheSize = strtol (val, &endVal, 10);
 	  if (endVal == val || *endVal != '\0' || cacheSize > UINT_MAX)
 	    {
 	      fprintf (stderr, PACKAGE_NAME ": Wrong value for source cache size\n");

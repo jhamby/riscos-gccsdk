@@ -198,10 +198,12 @@ Value_Symbol (struct Symbol *symbol, int factor, int offset)
   return value;
 }
 
+bool Value_IsLabel (const Value *valueP);
+
 void Value_Assign (Value *dst, const Value *src);
 Value Value_Copy (const Value *src);
 void Value_Free (Value *value);
-bool Value_ResolveSymbol (Value *valueP);
+bool Value_ResolveSymbol (Value *valueP, bool resolveAbsArea);
 bool Value_Equal (const Value *a, const Value *b);
 #ifdef DEBUG
 void Value_Print (const Value *v);

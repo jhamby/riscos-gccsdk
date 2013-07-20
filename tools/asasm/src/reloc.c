@@ -42,6 +42,7 @@
 #include "main.h"
 #include "phase.h"
 #include "reloc.h"
+#include "state.h"
 #include "symbol.h"
 #include "value.h"
 
@@ -210,6 +211,133 @@ Reloc_FinalizeState (Reloc_State_t *stateP)
   stateP->relocIntP = NULL;
   free (stateP->raw.rawP);
   stateP->raw.rawP = NULL;
+}
+
+
+/**
+ * Splits given value into relocation symbol (if possible) and addend which
+ * needs to be encoded in the final instruction.
+ *
+ * \param valP Value whichs needs to be splitted.
+ * \param pcRelSymP When non-NULL, an area symbol which can be used to
+ * generate a PC-relative Value_Addr() addend.
+ * \param instrOffset Instruction offset.  Used when pcRelSymP is non-NULL to
+ * calculate the addend Value_Addr().
+ *
+ * When RelocAndAddend_t::addend.Tag is ValueIllegal, this routine failed.
+ * Otherwise it is the value which needs to be encoded in the instruction.
+ * Additionally, when RelocAndAddend_t::relocSymbol.Tag == ValueSymbol,
+ * appropriate relocations need to be outputed.  In that case
+ * relocSymbol.Data.Symbol.offset is 0 but relocSymbol.Data.Symbol.factor is
+ * >= 1.
+ */
+RelocAndAddend_t
+Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
+			   uint32_t instrOffset, bool intAddendOk)
+{
+  assert (pcRelSymP == NULL || (pcRelSymP->type & SYMBOL_AREA) != 0);
+
+  RelocAndAddend_t result =
+    {
+      .relocSymbol.Tag = ValueIllegal,
+      .addend.Tag = ValueIllegal
+    };
+
+  if (Value_IsLabel (valP))
+    {
+      Symbol *symP = valP->Data.Symbol.symbol;
+      int symOffset = valP->Data.Symbol.offset;
+      int symFactor = valP->Data.Symbol.factor;
+      assert ((symP->type & SYMBOL_AREA) != 0);
+      const Area *areaP = symP->area;
+      assert (areaP != NULL);
+
+      if ((areaP->type & AREA_BASED) != 0)
+	{
+	  /* Label in an AREA BASED.  */
+	  if (symFactor == 1)
+	    {
+	      result.relocSymbol = Value_Symbol (symP, 1, 0);
+	      result.addend = Value_Addr (Area_GetBaseReg (areaP), symOffset);
+	    }
+	}
+      else if ((areaP->type & AREA_ABS) != 0 && intAddendOk)
+	{
+	  /* Label in an ABS AREA.  */
+	  result.relocSymbol.Tag = ValueIllegal;
+	  result.addend = Value_Int (symFactor * Area_GetBaseAddress (symP) + symOffset,
+	                             eIntType_PureInt);
+	}
+      else if (pcRelSymP != NULL)
+	{
+	  if (symFactor == 1)
+	    {
+	      int pcOffset = State_GetInstrType () == eInstrType_ARM ? 8 : 4;
+	      if (symP == pcRelSymP)
+		{
+		  result.relocSymbol.Tag = ValueIllegal;
+		  result.addend = Value_Addr (15, symOffset - (instrOffset + pcOffset));
+		}
+	      else
+		{
+		  result.relocSymbol = Value_Symbol (symP, 1, 0);
+		  result.addend = Value_Addr (15, symOffset - pcOffset);
+		}
+	    }
+	}
+      else if (intAddendOk)
+	{
+	  result.relocSymbol = Value_Symbol (symP, symFactor, 0);
+	  result.addend = Value_Int (symOffset, eIntType_PureInt);
+	}
+    }
+  else if (valP->Tag == ValueSymbol
+           /* && SYMBOL_KIND(valP->Data.Symbol.symbol->type) == SYMBOL_REFERENCE */) /* Test disabled in order to support non-declared imported symbols.  */
+    {
+      Symbol *symP = valP->Data.Symbol.symbol;
+      int symOffset = valP->Data.Symbol.offset;
+      int symFactor = valP->Data.Symbol.factor;
+      if (symFactor == 1)
+	{
+	  result.relocSymbol = Value_Symbol (symP, 1, 0);
+	  if (symP->value.Tag == ValueAddr)
+	    {
+	      /* IMPORT ... [ BASED ...] symbols.  */
+	      result.addend = symP->value;
+	      result.addend.Data.Addr.i += symOffset;
+	    }
+	  else
+	    {
+	      int pcOffset = State_GetInstrType () == eInstrType_ARM ? 8 : 4;
+	      result.addend = Value_Addr (15, symOffset - pcOffset);
+	    }
+	}
+    }
+  else if (!intAddendOk
+	   && valP->Tag == ValueInt
+	   && valP->Data.Int.type == eIntType_PureInt
+	   && pcRelSymP != NULL
+	   && (pcRelSymP->area->type & AREA_ABS) != 0)
+    {
+      /* Convert integer (presumebly an address) into ValueAddr.  */
+      int pcOffset = State_GetInstrType () == eInstrType_ARM ? 8 : 4;
+      int pcVal = Area_GetBaseAddress (pcRelSymP) + instrOffset + pcOffset;
+      result.addend = Value_Addr (15, valP->Data.Int.i - pcVal);
+    }
+  else
+    result.addend = *valP;
+
+  /* ELF PC-based relocations happen for instructions with base {PC} but
+     AOF Type 2 relocations happen for instructions with base <area origin>.
+     Note, we're assuming here we're outputing AOF Type 2 and not Type 1
+     relocations.  */
+  if (option_aof
+      && result.relocSymbol.Tag == ValueSymbol
+      && result.addend.Tag == ValueAddr
+      && result.addend.Data.Addr.r == 15)
+    result.addend.Data.Addr.i -= instrOffset;
+
+  return result;
 }
 
 

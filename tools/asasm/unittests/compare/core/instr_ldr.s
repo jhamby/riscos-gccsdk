@@ -6,12 +6,17 @@
 		LDR	r1, foo
 		LDR	r1, array + 10
 
+		[ {FALSE}		; Results in relocations.
 		; Late label in different area based on r9
 		; (=> R9 relative expression)
 		LDR	r2, bar
 		LDR	r2, barray + 10
+		|
+		NOP
+		NOP
+		]
 
-		[ {FALSE}	; FIXME: asasm works for this case but we need to emit Reloc in reference case, which we can't do.
+		[ {FALSE}		; Results in relocations.
 		; Late label in different area
 		; (=> PC-relative expression)
 		LDR	r3, bat
@@ -29,8 +34,13 @@
 		LDR	r1, [pc,#32 - 8]
 		LDR	r1, [pc,#32 + 10 - 8]
 
+		[ {FALSE}
 		LDR	r2, [r9]
 		LDR	r2, [r9,#14]
+		|
+		NOP
+		NOP
+		]
 
 		[ {FALSE}
 		LDR	r3, [pc,#-24]

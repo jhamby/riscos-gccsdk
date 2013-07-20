@@ -64,6 +64,18 @@ typedef struct
 void Reloc_InitializeState (Reloc_State_t *stateP);
 void Reloc_FinalizeState (Reloc_State_t *stateP);
 
+typedef struct
+{
+  Value relocSymbol; /* When ValueSymbol, its offset is guaranteed to be zero.
+    Is ValueIllegal when no reloc should be outputed.  */
+  Value addend; /* Is ValueIllegal when Symbol_GetLabelAddend failed.
+    ValueInt or ValueAddr otherwise.  */
+} RelocAndAddend_t;
+RelocAndAddend_t Reloc_SplitRelocAndAddend (const Value *valP,
+					    const Symbol *pcRelSymP,
+					    uint32_t instrOffset,
+					    bool intAddendOk);
+
 /**
  * Enable the use of RELOC for given offset.
  */

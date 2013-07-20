@@ -126,7 +126,7 @@ Tst5L2	DCD	4, 5, 6
 	DCD	4, 5, 6
 	DCD	15
 	[ EXTENSION
-	DCD	12
+	DCD	-24
 	]
 
 	AREA	Data5b, DATA, BASED r3
@@ -139,6 +139,15 @@ Tst5L2	DCD	4, 5, 6
 	DCD	3
 	DCD	12
 
+	]
+
+	; Test 6 : on IMPORT [ BASED ] label
+	IMPORT Data6TestLbl [BASED r9]
+	AREA	Data6, DATA
+	[ :LNOT:REFERENCE
+	DCD	:BASE:Data6TestLbl
+	|
+	DCD	r9
 	]
 
 	END

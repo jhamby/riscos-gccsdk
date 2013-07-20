@@ -51,7 +51,8 @@ typedef struct
 #define CODE_SIZESTACK (1024)
 
 static void Code_FreeCode (Code *codeP);
-static bool Code_EvalLowest (size_t size, const Code *program, int *sp);
+static bool Code_EvalLowest (size_t size, const Code *program, int *sp,
+			     ValueTag legal);
 
 #ifdef DEBUG_CODE
 static void Code_PrintValueArray (size_t size, const StackType_t *stackP);
@@ -244,7 +245,7 @@ Code_Value (const Value *value, bool expCode)
  * \return false if succeeded, true otherwise.
  */
 static bool
-Code_EvalLowest (size_t size, const Code *program, int *sp)
+Code_EvalLowest (size_t size, const Code *program, int *sp, ValueTag legal)
 {
 #ifdef DEBUG_CODE
   printf ("vvv Code_EvalLowest\n");
@@ -324,7 +325,8 @@ Code_EvalLowest (size_t size, const Code *program, int *sp)
 	      bool nextIsOpSize = i + 1 != size
 				    && program[i + 1].Tag == CodeOperator
 				    && program[i + 1].Data.op == eOp_Size;
-	      if (!nextIsOpSize && Value_ResolveSymbol (&value))
+	      if (!nextIsOpSize && Value_ResolveSymbol (&value,
+							(legal & (ValueInt | ValueSymbol)) == ValueInt))
 		{
 #ifdef DEBUG_CODE
 		  printf ("FAILED\n");
@@ -387,7 +389,7 @@ Code_Eval (ValueTag legal)
 #endif
 
   int sp = 0;
-  if (size == 0 || Code_EvalLowest (size, program, &sp))
+  if (size == 0 || Code_EvalLowest (size, program, &sp, legal))
     {
       if (Stack[0].owns)
 	Value_Free (&Stack[0].value);
