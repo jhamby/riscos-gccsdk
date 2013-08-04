@@ -1,3 +1,7 @@
+Sun Aug  4 14:19:31 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpumem.c (dstmem): Reposition instrOffset assignment.
+
 Sun Aug  4 14:10:25 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/put.c (Put_Ins_MOVW_MOVT): Add deprecated and unpredictable

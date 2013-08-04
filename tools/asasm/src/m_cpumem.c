@@ -93,7 +93,6 @@ dstmem (ARMWord ir, const char *mnemonic)
 	}
     }
   
-  const ARMWord instrOffset = areaCurrentSymbol->area->curIdx;
   Value value;
   const Value *valP = NULL;
   bool movOptAllowed = false; /* true when MOV/MVN/MOVW optimisation is allowed.  */
@@ -306,6 +305,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 
       if (valP != NULL)
 	{
+	  const uint32_t instrOffset = Area_CurIdxAligned ();
 	  const RelocAndAddend_t relocAddend = Reloc_SplitRelocAndAddend (valP,
 									  areaCurrentSymbol,
 									  instrOffset,
