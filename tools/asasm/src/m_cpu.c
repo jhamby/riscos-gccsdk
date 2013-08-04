@@ -27,6 +27,7 @@
 #  include <inttypes.h>
 #endif
 
+#include "area.h"
 #include "error.h"
 #include "expr.h"
 #include "fix.h"
@@ -38,6 +39,7 @@
 #include "m_cpu.h"
 #include "option.h"
 #include "put.h"
+#include "reloc.h"
 #include "state.h"
 #include "targetcpu.h"
 
@@ -268,15 +270,21 @@ m_eor (bool doLowerCase)
 
 
 /**
- *   MOVW<c> <Rd>, #<imm16>
- *   MOVT<c> <Rd>, #<imm16>
- *   MOV32<c> <Rd>, #<imm32>
+ * Implements MOVW, MOVT and MOV32:
+ *   MOVW[<cc>] <Rd>, #<imm16>
+ *   MOVT[<cc>] <Rd>, #<imm16>
+ *   MOV32[<cc>] <Rd>, #<imm32>
+ *   MOV32[<cc>] <Rd>, <expression>
  */
 static bool
 m_movw_movt_mov32 (bool doLowerCase, MOV_Type_e movType)
 {
   ARMWord cc = Option_Cond (doLowerCase);
   if (cc == kOption_NotRecognized)
+    return true;
+
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
     return true;
 
   unsigned destReg = Get_CPUReg ();
@@ -286,47 +294,132 @@ m_movw_movt_mov32 (bool doLowerCase, MOV_Type_e movType)
       Error (ErrorError, "%sdst", InsertCommaAfter);
       return false;
     }
-  if (!Input_Match ('#', false))
+  bool isConstant = Input_Match ('#', false);
+  if (movType != eIsMOV32 && !isConstant)
     {
       Error (ErrorError, "Missing immediate constant");
       return false;
     }
-  uint32_t immValue = 0;
-  const Value *im = Expr_BuildAndEval (ValueInt); /* FIXME: *** NEED ValueSymbol & ValueCode */
-  switch (im->Tag)
-    {
-      case ValueInt:
-	if (im->Data.Int.type == eIntType_PureInt)
-	  {
-	    immValue = im->Data.Int.i;
-	    break;
-	  }
-	/* Fall through.  */
+  const Value *valP = Expr_BuildAndEval (isConstant ? ValueInt : ValueInt | ValueAddr | ValueSymbol);
 
-      default:
-	/* During pass one, we discard any errors of the evaluation as it
-	   might contain unresolved symbols.  Wait until during pass two.  */
-	if (gPhase != ePassOne)
-	  Error (ErrorError, "Illegal immediate expression");
-	break;
+  InstrType_e instrState = State_GetInstrType ();
+  IT_ApplyCond (cc, false, instrState != eInstrType_ARM);
+
+  bool isThumb;
+  if (instrState == eInstrType_ARM)
+    isThumb = false;
+  else
+    {
+      isThumb = true;
+      if (instrWidth == eInstrWidth_Enforce16bit)
+	Error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
     }
 
-  switch (movType)
+  if (gPhase == ePassOne)
     {
-      case eIsMOVT:
-      case eIsMOVW:
-	if (immValue >= 0x10000)
-	  {
-	    Error (ErrorError, "Value 0x%x is out of range", immValue);
-	    immValue &= 0xFFFF;
-	  }
-	Put_Ins_MOVW_MOVT (cc, destReg, immValue, movType == eIsMOVT);
-	break;
+      Put_Ins (4, 0);
+      if (movType == eIsMOV32)
+	Put_Ins (4, 0);
+    }
+  else
+    {
+      const uint32_t instrOffset = Area_CurIdxAligned ();
+      const RelocAndAddend_t relocAddend = Reloc_SplitRelocAndAddend (valP,
+								      NULL,
+								      instrOffset,
+								      true);
+      valP = &relocAddend.addend;
 
-      case eIsMOV32:
-	Put_Ins_MOVW_MOVT (cc, destReg, immValue & 0xFFFF, false); /* MOVW */
-	Put_Ins_MOVW_MOVT (cc, destReg, immValue >> 16, true); /* MOVT */
-	break;
+      uint32_t immValue;
+      enum { eIsABS = 0, eIsPREL = 1, eIsBREL } relType;
+      switch (valP->Tag)
+	{
+	  case ValueAddr:
+	    relType = valP->Data.Addr.r == 15 ? eIsPREL : eIsBREL;
+	    immValue = valP->Data.Addr.i;
+	    break;
+
+	  case ValueInt:
+	    if (valP->Data.Int.type == eIntType_PureInt)
+	      {
+		relType = eIsABS;
+		immValue = valP->Data.Int.i;
+		break;
+	      }
+	    /* Fall through.  */
+
+	  default:
+	    Error (ErrorError, "Illegal expression");
+	    relType = eIsABS;
+	    immValue = 0;
+	    break;
+	}
+
+      /* A MOV32 <constant> is possible with full 32-bit constant.
+	 However, as soon as MOV32 requires relocation, the constant needs
+	 to be -32768 <= constant < 32768 because of ELF relocation
+	 requirements.  We assume AOF has the same restrictions.
+	 For MOVT/MOVW we accept -32768 <= constant < 65536  */
+      switch (movType)
+	{
+	  case eIsMOVT:
+	  case eIsMOVW:
+	    {
+	      immValue = Fix_Int (2, immValue);
+	      Put_Ins_MOVW_MOVT (cc, destReg, immValue, movType == eIsMOVT);
+	      break;
+	    }
+
+	  case eIsMOV32:
+	    {
+	      uint32_t valMOVW, valMOVT;
+	      if (relocAddend.relocSymbol.Tag == ValueSymbol)
+		{
+		  int32_t signedValue = (int32_t)immValue;
+		  if (signedValue < -32768 || signedValue >= 32768)
+		    Error (ErrorError, "Constant %d (0x%x) is too big when there is relocation",
+		   	   signedValue, signedValue);
+		  valMOVW = valMOVT = immValue & 0xFFFF;
+		}
+	      else
+		{
+		  valMOVW = immValue & 0xFFFF;
+		  valMOVT = immValue >> 16;
+		}
+	      Put_Ins_MOVW_MOVT (cc, destReg, valMOVW, false); /* MOVW */
+	      Put_Ins_MOVW_MOVT (cc, destReg, valMOVT, true); /* MOVT */
+	      break;
+	    }
+	}
+
+      if (relocAddend.relocSymbol.Tag == ValueSymbol)
+	{
+	  assert (movType == eIsMOV32);
+
+	  uint32_t aofHow;
+	  switch (relType)
+	    {
+	      case eIsABS:
+		aofHow = HOW2_INIT | HOW2_INSTR_UNLIM;
+		break;
+	      case eIsPREL:
+		aofHow = HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE;
+		break;
+	      case eIsBREL:
+		aofHow = HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_BASED;
+		break;
+	    }
+	  Reloc_CreateAOF (aofHow, instrOffset, &relocAddend.relocSymbol);
+
+	  static const uint32_t elfHow[3][2][2] =
+	    {
+	      { { R_ARM_MOVW_ABS_NC, R_ARM_MOVT_ABS }, { R_ARM_THM_MOVW_ABS_NC, R_ARM_THM_MOVT_ABS } }, /* eIsABS */
+	      { { R_ARM_MOVW_PREL_NC, R_ARM_MOVT_PREL }, { R_ARM_THM_MOVW_PREL_NC, R_ARM_THM_MOVT_PREL } }, /* eIsPREL */
+	      { { R_ARM_MOVW_BREL_NC, R_ARM_MOVT_BREL }, { R_ARM_THM_MOVW_BREL_NC, R_ARM_THM_MOVT_BREL } }, /* eIsBREL */
+	    };
+	  Reloc_CreateELF (elfHow[relType][isThumb][0], instrOffset, &relocAddend.relocSymbol);
+	  Reloc_CreateELF (elfHow[relType][isThumb][1], instrOffset + (movType == eIsMOV32 ? 4 : 0), &relocAddend.relocSymbol);
+	}
     }
 
   return false;

@@ -1,0 +1,307 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+14 areas
+47 symbols
+
+** Area (0x000122) "CodeBefore", aligned at 4 bytes, [code] [readonly] [32bit] 
+   Size 12 bytes, 0 relocations
+
+000000: ef000000 ef000001 ef000002
+
+** Area (0x000123) "CodeABS1Before", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
+   Base address 0x20
+   Size 12 bytes, 0 relocations
+
+000020: ef000000 ef000001 ef000002
+
+** Area (0x000123) "CodeABS2Before", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
+   Base address 0xff20
+   Size 12 bytes, 0 relocations
+
+00ff20: ef000000 ef000001 ef000002
+
+** Area (0x000123) "CodeABS3Before", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
+   Base address 0xffff20
+   Size 12 bytes, 0 relocations
+
+ffff20: ef000000 ef000001 ef000002
+
+** Area (0x0a1000) "DataBefore", aligned at 4 bytes, [data] [based r10] 
+   Size 65344 bytes, 0 relocations
+
+000000: 00000001 00000002 00000003 00000000 00000000 00000000 00000000 00000000
+000020: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+...
+00ff20: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000004
+
+** Area (0x000122) "CodeNonABSARM", aligned at 4 bytes, [code] [readonly] [32bit] 
+   Size 408 bytes, 23 relocations
+
+000000: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+000020: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002008 e3402000
+000040: e3001020 e3401000 e3002028 e3402000 e30f1f20 e3401000 e30f2f28 e3402000
+000060: e30f1f20 e34010ff e30f2f28 e34020ff e3001000 e3401000 e3002000 e3402000
+000080: e3003028 e3403000 e3001088 e3401000 e30010e0 e3401000 e3002108 e3402000
+0000a0: e3001000 e3401000 e3002004 e3402000 e3001020 e3401000 e3002024 e3402000
+0000c0: e30f1f20 e3401000 e30f2f24 e3402000 e30f1f20 e34010ff e30f2f24 e34020ff
+0000e0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+000100: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002000 e3402000
+000120: e3003000 e3403000 e3001000 e3401000 e3002000 e3402000 e3001000 e3401000
+000140: e3002000 e3402000 e3001018 e3401000 e30f2f48 e3402000 e3001014 e3401000
+000160: e30f2f44 e3402000 e3001000 e3401000 e3002008 e3402000 e30f3f3c e3403000
+000180: e3001000 e3401000 e3002008 e3402000 e30f3f3c e3403000
+
+** Relocations:
+
+At 0x000030 (flags 0x83000000): Unlimited number of instructions displaced by base of area "CodeBefore" (type-2 reloc)
+At 0x000038 (flags 0x83000000): Unlimited number of instructions displaced by base of area "CodeBefore" (type-2 reloc)
+At 0x000070 (flags 0x83000005): Unlimited number of instructions displaced by base of area "CodeNonABSARM" (type-2 reloc)
+At 0x000078 (flags 0x83000005): Unlimited number of instructions displaced by base of area "CodeNonABSARM" (type-2 reloc)
+At 0x000080 (flags 0x83000005): Unlimited number of instructions displaced by base of area "CodeNonABSARM" (type-2 reloc)
+At 0x000088 (flags 0x83000005): Unlimited number of instructions displaced by base of area "CodeNonABSARM" (type-2 reloc)
+At 0x000090 (flags 0x83000005): Unlimited number of instructions displaced by base of area "CodeNonABSARM" (type-2 reloc)
+At 0x000098 (flags 0x83000005): Unlimited number of instructions displaced by base of area "CodeNonABSARM" (type-2 reloc)
+At 0x0000a0 (flags 0x83000009): Unlimited number of instructions displaced by base of area "CodeAfter" (type-2 reloc)
+At 0x0000a8 (flags 0x83000009): Unlimited number of instructions displaced by base of area "CodeAfter" (type-2 reloc)
+At 0x000110 (flags 0x8b000003): Unlimited number of instructions displaced by symbol "ImpLblB1" (type-2 reloc)
+At 0x000118 (flags 0x8b000000): Unlimited number of instructions displaced by symbol "ImpLblA1" (type-2 reloc)
+At 0x000120 (flags 0x8b000006): Unlimited number of instructions displaced by symbol "ImpLblNotDeclared" (type-2 reloc)
+At 0x000128 (flags 0x9b000004): Unlimited number of instructions base-relative to symbol "ImpLblB2" (type-2 reloc)
+At 0x000130 (flags 0x9b000001): Unlimited number of instructions base-relative to symbol "ImpLblA2" (type-2 reloc)
+At 0x000138 (flags 0x8b000005): Unlimited number of instructions displaced by symbol "ImpLblB3" (type-2 reloc)
+At 0x000140 (flags 0x8b000002): Unlimited number of instructions displaced by symbol "ImpLblA3" (type-2 reloc)
+At 0x000168 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000170 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000178 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000180 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000188 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+
+** Area (0x000123) "CodeABSARM", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
+   Base address 0xff40
+   Size 408 bytes, 17 relocations
+
+00ff40: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00ff60: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002008 e3402000
+00ff80: e3001020 e3401000 e3002028 e3402000 e30f1f20 e3401000 e30f2f28 e3402000
+00ffa0: e30f1f20 e34010ff e30f2f28 e34020ff e30f1f40 e3401000 e30f2f40 e3402000
+00ffc0: e30f3f68 e3403000 e30f1fc8 e3401000 e3001020 e3401001 e3002048 e3402001
+00ffe0: e3001000 e3401000 e3002004 e3402000 e3001020 e3401000 e3002024 e3402000
+010000: e30f1f20 e3401000 e30f2f24 e3402000 e30f1f20 e34010ff e30f2f24 e34020ff
+010020: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+010040: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002000 e3402000
+010060: e3003000 e3403000 e3001000 e3401000 e3002000 e3402000 e3001000 e3401000
+010080: e3002000 e3402000 e3001018 e3401000 e30f2f48 e3402000 e3001014 e3401000
+0100a0: e30f2f44 e3402000 e3001000 e3401000 e3002008 e3402000 e30f3f3c e3403000
+0100c0: e3001000 e3401000 e3002008 e3402000 e30f3f3c e3403000
+
+** Relocations:
+
+At 0x000030 (flags 0x83000000): Unlimited number of instructions displaced by base of area "CodeBefore" (type-2 reloc)
+At 0x000038 (flags 0x83000000): Unlimited number of instructions displaced by base of area "CodeBefore" (type-2 reloc)
+At 0x0000a0 (flags 0x83000009): Unlimited number of instructions displaced by base of area "CodeAfter" (type-2 reloc)
+At 0x0000a8 (flags 0x83000009): Unlimited number of instructions displaced by base of area "CodeAfter" (type-2 reloc)
+At 0x000110 (flags 0x8b000003): Unlimited number of instructions displaced by symbol "ImpLblB1" (type-2 reloc)
+At 0x000118 (flags 0x8b000000): Unlimited number of instructions displaced by symbol "ImpLblA1" (type-2 reloc)
+At 0x000120 (flags 0x8b000006): Unlimited number of instructions displaced by symbol "ImpLblNotDeclared" (type-2 reloc)
+At 0x000128 (flags 0x9b000004): Unlimited number of instructions base-relative to symbol "ImpLblB2" (type-2 reloc)
+At 0x000130 (flags 0x9b000001): Unlimited number of instructions base-relative to symbol "ImpLblA2" (type-2 reloc)
+At 0x000138 (flags 0x8b000005): Unlimited number of instructions displaced by symbol "ImpLblB3" (type-2 reloc)
+At 0x000140 (flags 0x8b000002): Unlimited number of instructions displaced by symbol "ImpLblA3" (type-2 reloc)
+At 0x000168 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000170 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000178 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000180 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000188 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+
+** Area (0x000122) "CodeNonABSTHUMB", aligned at 4 bytes, [code] [readonly] [32bit] 
+   Size 408 bytes, 23 relocations
+
+000000: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+000020: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0208f240 0200f2c0
+000040: 0120f240 0100f2c0 0228f240 0200f2c0 7120f64f 0100f2c0 7228f64f 0200f2c0
+000060: 7120f64f 01fff2c0 7228f64f 02fff2c0 0100f240 0100f2c0 0200f240 0200f2c0
+000080: 0328f240 0300f2c0 0188f240 0100f2c0 01e0f240 0100f2c0 1208f240 0200f2c0
+0000a0: 0100f240 0100f2c0 0204f240 0200f2c0 0120f240 0100f2c0 0224f240 0200f2c0
+0000c0: 7120f64f 0100f2c0 7224f64f 0200f2c0 7120f64f 01fff2c0 7224f64f 02fff2c0
+0000e0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+000100: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0200f240 0200f2c0
+000120: 0300f240 0300f2c0 0100f240 0100f2c0 0200f240 0200f2c0 0100f240 0100f2c0
+000140: 0200f240 0200f2c0 0118f240 0100f2c0 7248f64f 0200f2c0 0114f240 0100f2c0
+000160: 7244f64f 0200f2c0 0100f240 0100f2c0 0208f240 0200f2c0 733cf64f 0300f2c0
+000180: 0100f240 0100f2c0 0208f240 0200f2c0 733cf64f 0300f2c0
+
+** Relocations:
+
+At 0x000030 (flags 0x83000000): Unlimited number of instructions displaced by base of area "CodeBefore" (type-2 reloc)
+At 0x000038 (flags 0x83000000): Unlimited number of instructions displaced by base of area "CodeBefore" (type-2 reloc)
+At 0x000070 (flags 0x83000007): Unlimited number of instructions displaced by base of area "CodeNonABSTHUMB" (type-2 reloc)
+At 0x000078 (flags 0x83000007): Unlimited number of instructions displaced by base of area "CodeNonABSTHUMB" (type-2 reloc)
+At 0x000080 (flags 0x83000007): Unlimited number of instructions displaced by base of area "CodeNonABSTHUMB" (type-2 reloc)
+At 0x000088 (flags 0x83000007): Unlimited number of instructions displaced by base of area "CodeNonABSTHUMB" (type-2 reloc)
+At 0x000090 (flags 0x83000007): Unlimited number of instructions displaced by base of area "CodeNonABSTHUMB" (type-2 reloc)
+At 0x000098 (flags 0x83000007): Unlimited number of instructions displaced by base of area "CodeNonABSTHUMB" (type-2 reloc)
+At 0x0000a0 (flags 0x83000009): Unlimited number of instructions displaced by base of area "CodeAfter" (type-2 reloc)
+At 0x0000a8 (flags 0x83000009): Unlimited number of instructions displaced by base of area "CodeAfter" (type-2 reloc)
+At 0x000110 (flags 0x8b000003): Unlimited number of instructions displaced by symbol "ImpLblB1" (type-2 reloc)
+At 0x000118 (flags 0x8b000000): Unlimited number of instructions displaced by symbol "ImpLblA1" (type-2 reloc)
+At 0x000120 (flags 0x8b000006): Unlimited number of instructions displaced by symbol "ImpLblNotDeclared" (type-2 reloc)
+At 0x000128 (flags 0x9b000004): Unlimited number of instructions base-relative to symbol "ImpLblB2" (type-2 reloc)
+At 0x000130 (flags 0x9b000001): Unlimited number of instructions base-relative to symbol "ImpLblA2" (type-2 reloc)
+At 0x000138 (flags 0x8b000005): Unlimited number of instructions displaced by symbol "ImpLblB3" (type-2 reloc)
+At 0x000140 (flags 0x8b000002): Unlimited number of instructions displaced by symbol "ImpLblA3" (type-2 reloc)
+At 0x000168 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000170 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000178 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000180 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000188 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+
+** Area (0x000123) "CodeABSTHUMB", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
+   Base address 0xff40
+   Size 408 bytes, 17 relocations
+
+00ff40: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00ff60: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0208f240 0200f2c0
+00ff80: 0120f240 0100f2c0 0228f240 0200f2c0 7120f64f 0100f2c0 7228f64f 0200f2c0
+00ffa0: 7120f64f 01fff2c0 7228f64f 02fff2c0 7140f64f 0100f2c0 7240f64f 0200f2c0
+00ffc0: 7368f64f 0300f2c0 71c8f64f 0100f2c0 0120f240 0101f2c0 0248f240 0201f2c0
+00ffe0: 0100f240 0100f2c0 0204f240 0200f2c0 0120f240 0100f2c0 0224f240 0200f2c0
+010000: 7120f64f 0100f2c0 7224f64f 0200f2c0 7120f64f 01fff2c0 7224f64f 02fff2c0
+010020: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+010040: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0200f240 0200f2c0
+010060: 0300f240 0300f2c0 0100f240 0100f2c0 0200f240 0200f2c0 0100f240 0100f2c0
+010080: 0200f240 0200f2c0 0118f240 0100f2c0 7248f64f 0200f2c0 0114f240 0100f2c0
+0100a0: 7244f64f 0200f2c0 0100f240 0100f2c0 0208f240 0200f2c0 733cf64f 0300f2c0
+0100c0: 0100f240 0100f2c0 0208f240 0200f2c0 733cf64f 0300f2c0
+
+** Relocations:
+
+At 0x000030 (flags 0x83000000): Unlimited number of instructions displaced by base of area "CodeBefore" (type-2 reloc)
+At 0x000038 (flags 0x83000000): Unlimited number of instructions displaced by base of area "CodeBefore" (type-2 reloc)
+At 0x0000a0 (flags 0x83000009): Unlimited number of instructions displaced by base of area "CodeAfter" (type-2 reloc)
+At 0x0000a8 (flags 0x83000009): Unlimited number of instructions displaced by base of area "CodeAfter" (type-2 reloc)
+At 0x000110 (flags 0x8b000003): Unlimited number of instructions displaced by symbol "ImpLblB1" (type-2 reloc)
+At 0x000118 (flags 0x8b000000): Unlimited number of instructions displaced by symbol "ImpLblA1" (type-2 reloc)
+At 0x000120 (flags 0x8b000006): Unlimited number of instructions displaced by symbol "ImpLblNotDeclared" (type-2 reloc)
+At 0x000128 (flags 0x9b000004): Unlimited number of instructions base-relative to symbol "ImpLblB2" (type-2 reloc)
+At 0x000130 (flags 0x9b000001): Unlimited number of instructions base-relative to symbol "ImpLblA2" (type-2 reloc)
+At 0x000138 (flags 0x8b000005): Unlimited number of instructions displaced by symbol "ImpLblB3" (type-2 reloc)
+At 0x000140 (flags 0x8b000002): Unlimited number of instructions displaced by symbol "ImpLblA3" (type-2 reloc)
+At 0x000168 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000170 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000178 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
+At 0x000180 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000188 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+
+** Area (0x000102) "CodeAfter", aligned at 4 bytes, [code] [32bit] 
+   Size 8 bytes, 0 relocations
+
+000000: df04df03 0000df05
+
+** Area (0x000123) "CodeABS1After", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
+   Base address 0x20
+   Size 8 bytes, 0 relocations
+
+000020: df01df00 0000df02
+
+** Area (0x000123) "CodeABS2After", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
+   Base address 0xff20
+   Size 8 bytes, 0 relocations
+
+00ff20: df01df00 0000df02
+
+** Area (0x000123) "CodeABS3After", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
+   Base address 0xffff20
+   Size 8 bytes, 0 relocations
+
+ffff20: df01df00 0000df02
+
+** Area (0x0a1000) "DataAfter", aligned at 4 bytes, [data] [based r10] 
+   Size 65344 bytes, 0 relocations
+
+000000: 00000004 00000005 00000006 00000000 00000000 00000000 00000000 00000000
+000020: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+...
+00ff20: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000004
+
+** Symbol table:
+
+ImpLblA1         (02) extern
+ImpLblA2         (02) extern
+ImpLblA3         (42) extern, common = 0x00000010
+ImpLblB1         (02) extern
+ImpLblB2         (02) extern
+ImpLblB3         (42) extern, common = 0x00000028
+ImpLblNotDeclared (02) extern
+CodeABS1After    (05) local, absolute = 0x00000020
+CodeABS1Before   (05) local, absolute = 0x00000020
+CodeABS2After    (05) local, absolute = 0x0000ff20
+CodeABS2Before   (05) local, absolute = 0x0000ff20
+CodeABS3After    (05) local, absolute = 0x00ffff20
+CodeABS3Before   (05) local, absolute = 0x00ffff20
+CodeABSARM       (05) local, absolute = 0x0000ff40
+CodeABSTHUMB     (05) local, absolute = 0x0000ff40
+CodeAfter        (01) local at "CodeAfter" + 0x000000
+CodeBefore       (01) local at "CodeBefore" + 0x000000
+CodeNonABSARM    (01) local at "CodeNonABSARM" + 0x000000
+CodeNonABSTHUMB  (01) local at "CodeNonABSTHUMB" + 0x000000
+DataAfter        (01) local at "DataAfter" + 0x000000
+DataBefore       (01) local at "DataBefore" + 0x000000
+$t               (01) local at "CodeABS1After" + 0x000000
+$a               (01) local at "CodeABS1Before" + 0x000000
+$t               (01) local at "CodeABS2After" + 0x000000
+$a               (01) local at "CodeABS2Before" + 0x000000
+$t               (01) local at "CodeABS3After" + 0x000000
+$a               (01) local at "CodeABS3Before" + 0x000000
+$d               (101) local, cadatum at "CodeABSARM" + 0x000000
+$a               (01) local at "CodeABSARM" + 0x000030
+$d               (101) local, cadatum at "CodeABSARM" + 0x0000e0
+$a               (01) local at "CodeABSARM" + 0x000110
+$d               (101) local, cadatum at "CodeABSTHUMB" + 0x000000
+$t               (01) local at "CodeABSTHUMB" + 0x000030
+$d               (101) local, cadatum at "CodeABSTHUMB" + 0x0000e0
+$t               (01) local at "CodeABSTHUMB" + 0x000110
+$t               (01) local at "CodeAfter" + 0x000000
+$a               (01) local at "CodeBefore" + 0x000000
+$d               (101) local, cadatum at "CodeNonABSARM" + 0x000000
+$a               (01) local at "CodeNonABSARM" + 0x000030
+$d               (101) local, cadatum at "CodeNonABSARM" + 0x0000e0
+$a               (01) local at "CodeNonABSARM" + 0x000110
+$d               (101) local, cadatum at "CodeNonABSTHUMB" + 0x000000
+$t               (01) local at "CodeNonABSTHUMB" + 0x000030
+$d               (101) local, cadatum at "CodeNonABSTHUMB" + 0x0000e0
+$t               (01) local at "CodeNonABSTHUMB" + 0x000110
+$d               (01) local at "DataAfter" + 0x000000
+$d               (01) local at "DataBefore" + 0x000000
+
+** String table:
+
+000004: ImpLblA1
+00000d: ImpLblA2
+000016: ImpLblA3
+00001f: ImpLblB1
+000028: ImpLblB2
+000031: ImpLblB3
+00003a: ImpLblNotDeclared
+00004c: CodeABS1After
+00005a: CodeABS1Before
+000069: CodeABS2After
+000077: CodeABS2Before
+000086: CodeABS3After
+000094: CodeABS3Before
+0000a3: CodeABSARM
+0000ae: CodeABSTHUMB
+0000bb: CodeAfter
+0000c5: CodeBefore
+0000d0: CodeNonABSARM
+0000de: CodeNonABSTHUMB
+0000ee: DataAfter
+0000f8: DataBefore
+000103: $t
+000106: $a
+000109: $d

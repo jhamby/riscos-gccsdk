@@ -268,21 +268,18 @@ Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
 	  result.addend = Value_Int (symFactor * Area_GetBaseAddress (symP) + symOffset,
 	                             eIntType_PureInt);
 	}
-      else if (pcRelSymP != NULL)
+      else if (pcRelSymP != NULL && symFactor == 1)
 	{
-	  if (symFactor == 1)
+	  int pcOffset = State_GetInstrType () == eInstrType_ARM ? 8 : 4;
+	  if (symP == pcRelSymP)
 	    {
-	      int pcOffset = State_GetInstrType () == eInstrType_ARM ? 8 : 4;
-	      if (symP == pcRelSymP)
-		{
-		  result.relocSymbol.Tag = ValueIllegal;
-		  result.addend = Value_Addr (15, symOffset - (instrOffset + pcOffset));
-		}
-	      else
-		{
-		  result.relocSymbol = Value_Symbol (symP, 1, 0);
-		  result.addend = Value_Addr (15, symOffset - pcOffset);
-		}
+	      result.relocSymbol.Tag = ValueIllegal;
+	      result.addend = Value_Addr (15, symOffset - (instrOffset + pcOffset));
+	    }
+	  else
+	    {
+	      result.relocSymbol = Value_Symbol (symP, 1, 0);
+	      result.addend = Value_Addr (15, symOffset - pcOffset);
 	    }
 	}
       else if (intAddendOk)
@@ -306,11 +303,13 @@ Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
 	      result.addend = symP->value;
 	      result.addend.Data.Addr.i += symOffset;
 	    }
-	  else
+	  else if (pcRelSymP != NULL)
 	    {
 	      int pcOffset = State_GetInstrType () == eInstrType_ARM ? 8 : 4;
 	      result.addend = Value_Addr (15, symOffset - pcOffset);
 	    }
+	  else
+	    result.addend = Value_Int (symOffset, eIntType_PureInt);
 	}
     }
   else if (!intAddendOk
