@@ -63,7 +63,7 @@ Test_001_BasicUTime (void)
   for (size_t idx = 0; idx != sizeof (testFiles)/sizeof (testFiles[0]); ++idx)
     {
       STEP(Create_File, testFiles[idx]);
-      STEP(Create_SymLink, testFiles[idx], "symlink");
+      STEP(SymLink, testFiles[idx], "symlink");
       struct utimbuf times = { .actime = 0, .modtime = 0 };
       for (unsigned mi = 0; mi != 17; ++mi)
         {
@@ -117,7 +117,7 @@ Test_002_GenerationOfENOENT (void)
   STEP(Check_DirEmpty);
 
   /* Dangling symlink.  */
-  STEP(Create_SymLink, "non-existing-object", "symlink");
+  STEP(SymLink, "non-existing-object", "symlink");
   STEP(ExpectCall_UTime, "symlink", &times, ENOENT);
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);

@@ -1,3 +1,26 @@
+Sun Aug  4 22:03:30 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/realpath (realpath): Return ENOENT if object does not exist.
+	* incl-local/internal/symlinks.h: Move features.h include in
+	__UNIXLIB_SYMLINKS test.
+	* incl-local/internal/unix.h: Drop internal/symlinks.h include.
+	* common/exist.c: Add internal/symlinks.h include.
+	* common/objattr.c: Likewise.
+	* sys/exec.c: Likewise.
+	* unittest/test-realpath.c: Add.
+	* unittest/include/expect-realpath.c: Add.
+	* unittest/include/expect-symlink.c: Rename Create_SymLink to SymLink.
+	* unittest/test-utimes.c: Follow Create_SymLink to SymLink rename.
+	* unittest/test-utime.c: Likewise.
+	* unittest/test-fopen.c: Likewise.
+	* unittest/test-rename.c: Likewise.
+	* unittest/test-symlink.c: Likewise.
+	* unittest/test-readlink.c: Likewise.
+	* unittest/test-stat.c: Likewise.
+	(IsLink): Build conditionally.
+	* unittest/include/check.c: Make functions global.
+	* unittest/include/main.c: Add --stop option.
+
 Tue May  7 23:27:42 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (stdlib_src): Build realpath for SCL as well.

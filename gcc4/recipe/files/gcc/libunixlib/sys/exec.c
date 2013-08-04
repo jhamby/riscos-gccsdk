@@ -20,6 +20,7 @@
 #include <internal/local.h>
 #include <internal/os.h>
 #include <internal/unix.h>
+#include <internal/symlinks.h>
 
 /* #define DEBUG 1 */
 #ifdef DEBUG

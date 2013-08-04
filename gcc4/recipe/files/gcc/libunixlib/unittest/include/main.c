@@ -3,6 +3,8 @@
   
    Written by John Tytgat / BASS.  */
 
+static bool gStopOnFirstError = false;
+
 int
 main (int argc, char *argv[])
 {
@@ -10,11 +12,13 @@ main (int argc, char *argv[])
     {
       if (!strcmp(argv[i], "--help"))
         {
-          fprintf (stderr, "Syntax: %s [ --help | --verbose ]\n", argv[0]);
+          fprintf (stderr, "Syntax: %s [ --help | --verbose | --stop ]\n", argv[0]);
           return EXIT_FAILURE;
         }
-      else if (!strcmp(argv[i], "--verbose"))
+      else if (!strcmp (argv[i], "--verbose"))
         gVerbose = true;
+      else if (!strcmp (argv[i], "--stop"))
+	gStopOnFirstError = true;
       else
         {
           fprintf (stderr, "Unknown argument, use --help for more info.\n");
@@ -36,6 +40,8 @@ main (int argc, char *argv[])
         {
           fprintf (stderr, "  *** Test '%s' FAILED !\n", oTesters[i].name);
           ok = false;
+	  if (gStopOnFirstError)
+	    break;
           if (Clean_CurDir ())
             {
               fprintf (stderr, "  Unable to continue testing.\n");

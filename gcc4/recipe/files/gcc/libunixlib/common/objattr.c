@@ -11,6 +11,7 @@
 #include <internal/os.h>
 #include <internal/local.h>
 #include <internal/unix.h>
+#include <internal/symlinks.h>
 #include <internal/swiparams.h>
 
 /* Get an object's filetype, object type, etc and do some common checks.

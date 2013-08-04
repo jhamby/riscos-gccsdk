@@ -119,7 +119,7 @@ Test_003_GenerationOfEEXIST (void)
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "nowhere", "asymlink");
+  STEP(SymLink, "nowhere", "asymlink");
   STEP(ExpectCall_SymLink, "non_existing_object", "asymlink", EEXIST);
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
@@ -159,7 +159,7 @@ Test_005_GenerationOfENOENT (void)
   STEP(ExpectCall_SymLink, "non_existing_object", "dir1/dir2/symlink", ENOENT);
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "non_existing_object", "dir");
+  STEP(SymLink, "non_existing_object", "dir");
   STEP(ExpectCall_SymLink, "nowhere", "dir/symlink", ENOENT);
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);

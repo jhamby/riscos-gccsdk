@@ -7,6 +7,7 @@
 #include <limits.h>
 
 #include <internal/os.h>
+#include <internal/symlinks.h>
 
 #ifndef __TARGET_SCL__
 #include <unixlib/local.h>
@@ -48,12 +49,19 @@ realpath (const char *file_name, char *resolved_name)
 # endif
 
   char buffer[PATH_MAX];
+  unsigned objtype;
   const _kernel_oserror *err;
   if ((err = SWI_OS_FSControl_Canonicalise (ro_filename, NULL,
 					    buffer, sizeof (buffer),
-					    NULL)) != NULL)
+					    NULL)) != NULL
+      || (err = SWI_OS_File_ReadCatInfo (buffer, &objtype, NULL, NULL, NULL,
+					 NULL)) != NULL
+      || objtype == 0)
     {
-      __ul_seterr (err, ENOENT);
+      if (err != NULL)
+	__ul_seterr (err, ENOENT);
+      else
+	__set_errno (ENOENT);
       goto error;
     }
 
@@ -96,12 +104,19 @@ realpath (const char *file_name, char *resolved_name)
       out_size = PATH_MAX;
     }
 
+  unsigned objtype;
   const _kernel_oserror *err;
   if ((err = SWI_OS_FSControl_Canonicalise (file_name, NULL,
 					    out_resolved_name, out_size,
-					    NULL)) != NULL)
+					    NULL)) != NULL
+      || (err = SWI_OS_File_ReadCatInfo (out_resolved_name, &objtype, NULL,
+					 NULL, NULL, NULL)) != NULL
+      || objtype == 0)
     {
-      __ul_seterr (err, ENOENT);
+      if (err != NULL)
+	__ul_seterr (err, ENOENT);
+      else
+	__set_errno (ENOENT);
       if (resolved_name == NULL)
 	free (out_resolved_name);
       return NULL;

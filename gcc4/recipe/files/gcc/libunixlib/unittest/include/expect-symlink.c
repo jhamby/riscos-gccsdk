@@ -45,6 +45,8 @@ static bool
 ExpectCall_SymLink (const char *actpath, const char *sympath, int err)
 {
   int realErr = Call_SymLink (actpath, sympath);
+  if (realErr == -1)
+    return true;
   if (realErr != err)
     {
       fprintf (stderr, "symlink(%s, %s) got error %d (%s) while we would have expected error %d (%s)\n",
@@ -54,8 +56,11 @@ ExpectCall_SymLink (const char *actpath, const char *sympath, int err)
   return false;
 }
 
+/**
+ * Can be used in non-symlink() related tests.
+ */
 static bool
-Create_SymLink (const char *actpath, const char *sympath)
+SymLink (const char *actpath, const char *sympath)
 {
   return ExpectCall_SymLink (actpath, sympath, 0);
 }

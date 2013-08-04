@@ -40,7 +40,7 @@ Test_001_BasicReadLink (void)
 {
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "non-existing-file", "001_src");
+  STEP(SymLink, "non-existing-file", "001_src");
   STEP(Check_ReadLink, "001_src", "non-existing-file");
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
@@ -57,7 +57,7 @@ Test_002_BufSize (void)
   STEP(Check_DirEmpty);
 
   char buf[sizeof ("non-existing-object")-1 + 3];
-  STEP(Create_SymLink, "non-existing-object", "symlink");
+  STEP(SymLink, "non-existing-object", "symlink");
 
   /* Given buf size is one byte too big.  */
   memset (buf, '\xc8', sizeof (buf));
@@ -118,7 +118,7 @@ Test_004_GenerationOfEFAULT (void)
   STEP(ExpectCall_ReadLink, NULL, buf, sizeof (buf), -1, EFAULT);
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "non-existing-object", "asymlink");
+  STEP(SymLink, "non-existing-object", "asymlink");
   STEP(ExpectCall_ReadLink, "asymlink", NULL, sizeof (buf), -1, EFAULT);
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);

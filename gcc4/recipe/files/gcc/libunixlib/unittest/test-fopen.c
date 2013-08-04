@@ -257,7 +257,7 @@ Test_001_BasicFileOpen (void)
               const char real_filename[] = "foo";
               const char *fopen_filename = via_symlink ? "symlink" : real_filename;
               if (via_symlink)
-                STEP(Create_SymLink, real_filename, "symlink");
+                STEP(SymLink, real_filename, "symlink");
 
               bool createFile = subIdx >= 3;
               bool readByte = (subIdx % 3) == 1;
@@ -393,9 +393,9 @@ Test_005_FileOpenViaSymLink (void)
 
   /* fopen() should follow symlinks.  */
   STEP(Create_FileWithSize, "file", 16);
-  STEP(Create_SymLink, "symlink2", "symlink1");
-  STEP(Create_SymLink, "symlink3", "symlink2");
-  STEP(Create_SymLink, "file", "symlink3");
+  STEP(SymLink, "symlink2", "symlink1");
+  STEP(SymLink, "symlink3", "symlink2");
+  STEP(SymLink, "file", "symlink3");
   FILE *fh;
   STEP(ExpectCall_FOpen, &fh, "symlink1", "a+", 0);
   STEP(ExpectCall_FPutC, 'A', fh, 0);
@@ -473,9 +473,9 @@ Test_009_GenerationELOOP (void)
 {
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "symlink2", "symlink1");
-  STEP(Create_SymLink, "symlink3", "symlink2");
-  STEP(Create_SymLink, "symlink1", "symlink3");
+  STEP(SymLink, "symlink2", "symlink1");
+  STEP(SymLink, "symlink3", "symlink2");
+  STEP(SymLink, "symlink1", "symlink3");
   FILE *fh;
   STEP(ExpectCall_FOpen, &fh, "symlink1", "r", ELOOP);
   STEP(Clean_CurDir);

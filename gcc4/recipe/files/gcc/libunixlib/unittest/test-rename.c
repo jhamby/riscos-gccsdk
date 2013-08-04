@@ -123,27 +123,27 @@ Test_003_BasicRenameSymLink (void)
 {
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "non-existing-object", "003_src");
+  STEP(SymLink, "non-existing-object", "003_src");
   STEP(ExpectCall_Rename, "003_src", "003_dst", 0);
   static const char * const fnames1[] = { "003_dst" };
   STEP(Check_DirContents, fnames1, sizeof (fnames1)/sizeof (fnames1[0]));
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "non-existing-object", "003_src");
+  STEP(SymLink, "non-existing-object", "003_src");
   STEP(ExpectCall_Rename, "./003_src", "./003_dst", 0);
   STEP(Check_DirContents, fnames1, sizeof (fnames1)/sizeof (fnames1[0]));
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "non-existing-object", "003_xxx");
+  STEP(SymLink, "non-existing-object", "003_xxx");
   STEP(ExpectCall_Rename, "003_xxx", "003_XXX", 0);
   static const char * const fnames2[] = { "003_XXX" };
   STEP(Check_DirContents, fnames2, sizeof (fnames2)/sizeof (fnames2[0]));
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
 
-  STEP(Create_SymLink, "non-existing-object", "003_foo");
+  STEP(SymLink, "non-existing-object", "003_foo");
   STEP(ExpectCall_Rename, "003_foo", "003_foo", 0);
   static const char * const fnames3[] = { "003_foo" };
   STEP(Check_DirContents, fnames3, sizeof (fnames3)/sizeof (fnames3[0]));
@@ -152,9 +152,9 @@ Test_003_BasicRenameSymLink (void)
 
   /* rename() shouldn't generate ELOOP (or some other error) when we have
      symlink loop.  */
-  STEP(Create_SymLink, "symlink2", "symlink1");
-  STEP(Create_SymLink, "symlink3", "symlink2");
-  STEP(Create_SymLink, "symlink1", "symlink3");
+  STEP(SymLink, "symlink2", "symlink1");
+  STEP(SymLink, "symlink3", "symlink2");
+  STEP(SymLink, "symlink1", "symlink3");
   STEP(ExpectCall_Rename, "symlink1", "foo", 0);
   STEP(ExpectCall_Rename, "foo", "symlink1", 0);
   STEP(Clean_CurDir);

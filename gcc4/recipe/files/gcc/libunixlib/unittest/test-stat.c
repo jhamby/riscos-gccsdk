@@ -62,6 +62,7 @@ IsDir (const struct stat *buf)
             && !S_ISSOCK(buf->st_mode));
 }
 
+#ifdef TEST_LSTAT_INSTEAD_OF_STAT
 static bool
 IsLink (const struct stat *buf)
 {
@@ -70,6 +71,7 @@ IsLink (const struct stat *buf)
             && !S_ISFIFO(buf->st_mode) && S_ISLNK(buf->st_mode)
             && !S_ISSOCK(buf->st_mode));
 }
+#endif
 
 static bool
 IsChr (const struct stat *buf)
@@ -95,7 +97,7 @@ Test_001_BasicStat (void)
     STEP(EXPECTCALL_STAT_OR_LSTAT, "file", &buf, 0);
     STEP(IsFile, &buf);
 
-    STEP(Create_SymLink, "file", "symlink-to-file");
+    STEP(SymLink, "file", "symlink-to-file");
     STEP(EXPECTCALL_STAT_OR_LSTAT, "symlink-to-file", &buf, 0);
 #ifdef TEST_LSTAT_INSTEAD_OF_STAT
     STEP(IsLink, &buf);
@@ -134,7 +136,7 @@ Test_001_BasicStat (void)
     STEP(EXPECTCALL_STAT_OR_LSTAT, "dir", &buf, 0);
     STEP(IsDir, &buf);
 
-    STEP(Create_SymLink, "dir", "symlink-to-dir");
+    STEP(SymLink, "dir", "symlink-to-dir");
     STEP(EXPECTCALL_STAT_OR_LSTAT, "symlink-to-dir", &buf, 0);
 #ifdef TEST_LSTAT_INSTEAD_OF_STAT
     STEP(IsLink, &buf);
@@ -174,9 +176,9 @@ Test_004_GenerationOfELOOP (void)
 
   /* Only applicable for stat().  */
 #ifndef TEST_LSTAT_INSTEAD_OF_STAT
-  STEP(Create_SymLink, "symlink2", "symlink1");
-  STEP(Create_SymLink, "symlink3", "symlink2");
-  STEP(Create_SymLink, "symlink1", "symlink3");
+  STEP(SymLink, "symlink2", "symlink1");
+  STEP(SymLink, "symlink3", "symlink2");
+  STEP(SymLink, "symlink1", "symlink3");
   struct stat buf;
   STEP(EXPECTCALL_STAT_OR_LSTAT, "symlink1", &buf, ELOOP);
   STEP(Clean_CurDir);
@@ -222,7 +224,7 @@ Test_006_GenerationOfENOENT (void)
 
   /* Only applicable for stat(): dangling symlink.  */
 #ifndef TEST_LSTAT_INSTEAD_OF_STAT
-  STEP(Create_SymLink, "non-existing-object", "symlink");
+  STEP(SymLink, "non-existing-object", "symlink");
   STEP(EXPECTCALL_STAT_OR_LSTAT, "symlink", &buf, ENOENT);
   STEP(Clean_CurDir);
   STEP(Check_DirEmpty);
@@ -248,6 +250,7 @@ Test_007_GenerationOfENAMETOOLONG (void)
   STEP(Check_DirEmpty);
 
   free (longFileName);
+  return false;
 }
 
 /* FIXME: permission tests.  */

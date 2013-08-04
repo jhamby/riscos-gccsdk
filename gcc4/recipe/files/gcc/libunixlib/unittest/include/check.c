@@ -38,7 +38,7 @@ typedef struct
   ObjInfo_t *objInfos;
 } DirContents_t;
 
-static bool
+bool
 DirContents_Get (const char *dir, DirContents_t *dirContents)
 {
   dirContents->numEntries = 0;
@@ -90,14 +90,14 @@ DirContents_Get (const char *dir, DirContents_t *dirContents)
   return false;
 }
 
-static void
+void
 DirContents_Print (const DirContents_t *dirContents)
 {
   for (size_t i = 0; i != dirContents->numEntries; ++i)
     printf ("%s\n", dirContents->objInfos[i].name);
 }
 
-static void
+void
 DirContents_Free (DirContents_t *dirContents)
 {
   for (size_t i = 0; i != dirContents->numEntries; ++i)
@@ -110,7 +110,7 @@ DirContents_Free (DirContents_t *dirContents)
  * Checks if current directory is empty.
  * \return true in case of failure.
  */
-static bool
+bool
 Check_DirEmpty (void)
 {
   DirContents_t dirContents;
@@ -127,7 +127,7 @@ Check_DirEmpty (void)
  * \return true when there is a mismatched with expected list of files and
  * subdirectories.
  */
-static bool
+bool
 Check_DirContents (const char * const fnames[], size_t numEntries)
 {
   bool rtrn = false;
@@ -164,7 +164,7 @@ Check_DirContents (const char * const fnames[], size_t numEntries)
  * Given an Unix path fpath, check on RISC OS if it has the required filetype.
  * \return true in case of failure.
  */
-static bool
+bool
 Check_ROFileType (const char *fpath, unsigned roftype)
 {
 #ifdef __riscos__
@@ -217,7 +217,7 @@ Check_ROFileType (const char *fpath, unsigned roftype)
 /**
  * Does follow any symbolic links.
  */
-static bool
+bool
 Check_FileSize (const char *fname, off_t fsize)
 {
   struct stat statBuf;
@@ -240,7 +240,7 @@ Check_FileSize (const char *fname, off_t fsize)
 /**
  * Does follow any symbolic links.
  */
-static bool
+bool
 Check_FileModDate (const char *fname, time_t mtime_sec, unsigned mtime_csec)
 {
   struct stat statBuf;
@@ -280,7 +280,7 @@ Check_FileModDate (const char *fname, time_t mtime_sec, unsigned mtime_csec)
  * Removes all files and subdirectories from the given directory.
  * \return true in case of failure.
  */
-static bool
+bool
 Clean_Dir (const char *dir)
 {
   char tmpPath[_POSIX_PATH_MAX];
@@ -314,7 +314,7 @@ Clean_Dir (const char *dir)
  * Removes all files and subdirectories from the current directory.
  * \return true in case of failure.
  */
-static bool
+bool
 Clean_CurDir (void)
 {
   return Clean_Dir (".");
@@ -324,7 +324,7 @@ Clean_CurDir (void)
  * Creates file.
  * \return true in case of failure.
  */
-static bool
+bool
 Create_File (const char *fname)
 {
   int fh = creat (fname, S_IWUSR | S_IRUSR);
@@ -346,7 +346,7 @@ Create_File (const char *fname)
  * Creates directory.
  * \return true in case of failure.
  */
-static bool
+bool
 Create_Dir (const char *dname)
 {
   if (mkdir (dname, S_IWUSR | S_IRUSR | S_IXUSR) != 0)

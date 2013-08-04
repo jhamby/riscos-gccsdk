@@ -40,10 +40,6 @@
 #include <internal/tty.h>
 #endif
 
-#ifndef __INTERNAL_SYMLINKS_H
-#include <internal/symlinks.h>
-#endif
-
 __BEGIN_DECLS
 
 struct __process

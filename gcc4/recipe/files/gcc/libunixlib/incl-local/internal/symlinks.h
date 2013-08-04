@@ -5,9 +5,9 @@
 #ifndef __INTERNAL_SYMLINKS_H
 #define __INTERNAL_SYMLINKS_H
 
-#include <features.h>
-
 #if __UNIXLIB_SYMLINKS
+
+#include <features.h>
 
 /* Offically allocated filetype.  */
 #define	SYMLINK_FILETYPE	0x1C8

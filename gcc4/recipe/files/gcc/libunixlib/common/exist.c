@@ -4,8 +4,10 @@
 #include <limits.h>
 
 #include <unixlib/local.h>
+
 #include <internal/local.h>
 #include <internal/os.h>
+#include <internal/symlinks.h>
 #include <internal/unix.h>
 
 /* Return 0 if ux_obj does not exist; 1 if it is an existing file or an
