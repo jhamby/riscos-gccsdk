@@ -29,7 +29,7 @@
 ARMWord Fix_Imm8s4 (ARMWord ir, int im);
 
 ARMWord Fix_ShiftImm (ARMWord shiftop, int shift);
-ARMWord Fix_Int (int size, int value);
+ARMWord Fix_Int (unsigned dataSize, unsigned dataValue);
 ARMWord Fix_CopOffset (ARMWord ir, int offset);
 ARMWord Fix_CPUOffset (ARMWord ir, int offset);
 

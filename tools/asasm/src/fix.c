@@ -224,23 +224,24 @@ Fix_CPUOffset (ARMWord ir, int offset)
   return ir;
 }
 
+
 /**
  * Check if given value fits in word of given size.
- * \entry lineNum Source linenumber where the value is coming from.
- * \entry size Size in bytes of word value, should be 1, 2 or 4.
- * \entry value Value which should be checked for.
+ * \entry dataSize Size in bytes of word value, should be 1, 2 or 4.
+ * \entry dataValue Value which should be checked for.
  * When the check fails, an error is given and the value is truncated so it
  * fits in given word size.
  */
 ARMWord
-Fix_Int (int size, int value)
+Fix_Int (unsigned dataSize, unsigned dataValue)
 {
-  if (Fix_CheckForOverflow (size, value))
+  if (Fix_CheckForOverflow (dataSize, dataValue))
     {
-      Error (ErrorError, "Expression %d too big for %i bits", value, 8*size);
-      value &= (1U << (8*size))-1;
+      Error (ErrorError, "Value %d (0x%x) too big for %i bits",
+             dataValue, dataValue, 8*dataSize);
+      dataValue &= (1U << (8*dataSize))-1;
     }
-  return value;
+  return dataValue;
 }
 
 
