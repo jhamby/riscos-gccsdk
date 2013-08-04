@@ -356,7 +356,12 @@ Put_Ins (unsigned size, ARMWord ins)
 void
 Put_Ins_MOVW_MOVT (uint32_t cc, uint32_t destReg, uint32_t value, bool isMOVT)
 {
-  if (State_GetInstrType () == eInstrType_ARM)
+  bool isARM = State_GetInstrType () == eInstrType_ARM;
+  if (destReg == 15)
+    Error (ErrorWarning, "The use of R15 is UNPREDICTABLE");
+  if (destReg == 13)
+    Error (ErrorWarning, isARM ? "The use of SP is DEPRECATED" : "The use of SP is UNPREDICTABLE");
+  if (isARM)
     Put_Ins (4, cc | (isMOVT ? 0x03400000 : 0x03000000) | ((value & 0xF000)<<4) | (destReg<<12) | (value & 0x0FFF));
   else
     {
