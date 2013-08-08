@@ -1,5 +1,7 @@
 
-AB_URL=http://poppler.freedesktop.org/poppler-0.19.1.tar.gz
+AB_URL=http://poppler.freedesktop.org/poppler-0.23.1.tar.xz
+
+AB_CONFLAGS='--enable-zlib --enable-libcurl'
 
 ab_package() {
   # Package programs
@@ -9,7 +11,9 @@ ab_package() {
   cp $S/AUTHORS $S/ChangeLog $S/COPYING $S/NEWS $S/README $S/README-XPDF $S/TODO $A/
 
   ab_docs $S/utils/*.1
- 
+
   $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -package pdfutils -name PDFUtils -section Document
 
  }
+
+export LIBS='-lz -ljpeg'
