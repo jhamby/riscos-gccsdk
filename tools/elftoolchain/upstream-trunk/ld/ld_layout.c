@@ -39,7 +39,7 @@
 #include "ld_symbols.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_layout.c 2920 2013-02-16 07:16:27Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_layout.c 2955 2013-08-24 19:34:13Z kaiwang27 $");
 
 struct ld_wildcard_match {
 	char *wm_name;
@@ -678,6 +678,10 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 		is = &li->li_is[i];
 
 		if (is->is_type == SHT_NULL)
+			continue;
+
+		/* Ignore discarded section groups. */
+		if (is->is_discard)
 			continue;
 
 		if (strcmp(is->is_name, ".shstrtab") == 0 ||

@@ -1,3 +1,8 @@
+Sat Sep  7 15:15:33 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2963
+
 Sun Jul  7 16:34:07 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libelf/elf_update.c (_libelf_resync_sections): Call

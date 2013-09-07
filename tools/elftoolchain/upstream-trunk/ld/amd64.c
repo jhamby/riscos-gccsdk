@@ -35,7 +35,7 @@
 #include "ld_utils.h"
 #include "amd64.h"
 
-ELFTC_VCSID("$Id: amd64.c 2913 2013-02-16 07:15:24Z kaiwang27 $");
+ELFTC_VCSID("$Id: amd64.c 2963 2013-08-25 17:29:54Z kaiwang27 $");
 
 static void _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb,
     uint64_t offset);
@@ -475,6 +475,7 @@ _finalize_got_and_plt(struct ld *ld)
 	got += 8;
 
 	/* Reserve the second and the third entry for the dynamic linker. */
+	memset(got, 0, 16);
 	got += 16;
 
 	/*
@@ -646,9 +647,19 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 		 * addresses. (If PLT address is used, function will have
 		 * unified address in the main executable and DSOs)
 		 */
-		if (ld_reloc_require_plt(ld, lre) && !lsb->lsb_plt) {
-			_reserve_gotplt_entry(ld, lsb);
-			_reserve_plt_entry(ld, lsb);
+		if (ld_reloc_require_plt(ld, lre)) {
+			if (!lsb->lsb_plt) {
+				_reserve_gotplt_entry(ld, lsb);
+				_reserve_plt_entry(ld, lsb);
+			}
+			/*
+			 * Note here even if we have generated PLT for this
+			 * function before, we still need to set this flag.
+			 * It's possible that we first see the relative
+			 * relocation then this absolute relocation, in
+			 * other words, the same function can be called in
+			 * different ways.
+			 */
 			lsb->lsb_func_addr = 1;
 		}
 

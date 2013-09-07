@@ -37,7 +37,7 @@
 #include "ld_path.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id: ld_main.c 2924 2013-03-17 22:53:36Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_main.c 2959 2013-08-25 03:12:47Z kaiwang27 $");
 
 static struct ld _ld;
 struct ld* ld = &_ld;
@@ -94,6 +94,8 @@ restart:
 	ld_script_init(ld);
 
 	ld_options_parse(ld, argc, argv);
+
+	ld_output_early_init(ld);
 
 	ls->ls_arch_conflict = 0;
 	ls->ls_first_elf_object = 1;

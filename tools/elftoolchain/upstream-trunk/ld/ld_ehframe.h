@@ -23,9 +23,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_ehframe.h 2910 2013-02-03 06:06:23Z kaiwang27 $
+ * $Id: ld_ehframe.h 2960 2013-08-25 03:13:07Z kaiwang27 $
  */
 
+void	ld_ehframe_adjust(struct ld *, struct ld_input_section *);
 void	ld_ehframe_scan(struct ld *);
 void	ld_ehframe_create_hdr(struct ld *);
 void	ld_ehframe_finalize_hdr(struct ld *);

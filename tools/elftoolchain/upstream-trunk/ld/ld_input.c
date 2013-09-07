@@ -29,12 +29,14 @@
 #include "ld_input.h"
 #include "ld_symbols.h"
 
-ELFTC_VCSID("$Id: ld_input.c 2940 2013-05-04 22:22:10Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_input.c 2960 2013-08-25 03:13:07Z kaiwang27 $");
 
 /*
  * Support routines for input section handling.
  */
 
+static void _discard_section_group(struct ld *ld, struct ld_input *li,
+    Elf_Scn *scn);
 static off_t _offset_sort(struct ld_archive_member *a,
     struct ld_archive_member *b);
 
@@ -383,12 +385,17 @@ void
 ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	struct ld_input_section *is;
-	Elf_Scn *scn;
-	Elf_Data *d;
-	const char *name;
+	struct ld_section_group *sg;
+	Elf_Scn *scn, *_scn;
+	Elf_Data *d, *_d;
+	char *name;
 	GElf_Shdr sh;
-	size_t shstrndx, ndx;
+	GElf_Sym sym;
+	size_t shstrndx, strndx, ndx;
 	int elferr;
+
+	_d = NULL;
+	strndx = 0;
 
 	if (elf_getshdrnum(e, &li->li_shnum) < 0)
 		ld_fatal(ld, "%s: elf_getshdrnum: %s", li->li_name,
@@ -437,16 +444,82 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 		is->is_link = sh.sh_link;
 		is->is_info = sh.sh_info;
 		is->is_index = elf_ndxscn(scn);
+		is->is_shrink = 0;
 		is->is_input = li;
 
 		/*
-		 * Section groups should not appear in the output executable
-		 * or shared library.
+		 * Section groups are identified by their signatures.
+		 * A section group's signature is used to compare with the
+		 * the section groups that are already added. If a match
+		 * is found, the sections included in this section group
+		 * should be discarded.
+		 *
+		 * Note that since signatures are stored in the symbol
+		 * table, in order to handle that here we have to load
+		 * the symbol table earlier.
 		 */
 		if (is->is_type == SHT_GROUP) {
 			is->is_discard = 1;
-			li->li_sg_exist = 1;
-			continue;
+			if (_d == NULL) {
+				_scn = elf_getscn(e, is->is_link);
+				if (_scn == NULL) {
+					ld_warn(ld, "%s: elf_getscn failed"
+					    " with the `sh_link' of group"
+					    " section %ju as index: %s",
+					    li->li_name, ndx, elf_errmsg(-1));
+					continue;
+				}
+				if (gelf_getshdr(_scn, &sh) != &sh) {
+					ld_warn(ld, "%s: gelf_getshdr: %s",
+					    li->li_name, elf_errmsg(-1));
+					continue;
+				}
+				strndx = sh.sh_link;
+				(void) elf_errno();
+				_d = elf_getdata(_scn, NULL);
+				if (_d == NULL) {
+					elferr = elf_errno();
+					if (elferr != 0)
+						ld_warn(ld, "%s: elf_getdata"
+						    " failed: %s", li->li_name,
+						    elf_errmsg(elferr));
+					continue;
+				}
+			}
+			if (gelf_getsym(_d, is->is_info, &sym) != &sym) {
+				ld_warn(ld, "%s: gelf_getsym failed (section"
+				    " group signature): %s", li->li_name,
+				    elf_errmsg(-1));
+				continue;
+			}
+			if ((name = elf_strptr(e, strndx, sym.st_name)) ==
+			    NULL) {
+				ld_warn(ld, "%s: elf_strptr failed (section"
+				    " group signature): %s", li->li_name,
+				    elf_errmsg(-1));
+				continue;
+			}
+
+			/*
+			 * Search the currently added section groups for the
+			 * signature. If found, this section group should not
+			 * be added and the sections it contains should be
+			 * discarded. If not found, we add this section group
+			 * to the set.
+			 */
+			HASH_FIND_STR(ld->ld_sg, name, sg);
+			if (sg != NULL)
+				_discard_section_group(ld, li, scn);
+			else {
+				if ((sg = calloc(1, sizeof(*sg))) == NULL)
+					ld_fatal_std(ld, "%s: calloc",
+					    li->li_name);
+				if ((sg->sg_name = strdup(name)) == NULL)
+					ld_fatal_std(ld, "%s: strdup",
+					    li->li_name);
+				HASH_ADD_KEYPTR(hh, ld->ld_sg, sg->sg_name,
+				    strlen(sg->sg_name), sg);
+			}
 		}
 
 		/*
@@ -464,9 +537,8 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 		}
 
 		/*
-		 * .eh_frame section is especially treated. The content of
-		 * input .eh_frame section is preloaded for output .eh_frame
-		 * optimization.
+		 * The content of input .eh_frame section is preloaded for
+		 * output .eh_frame optimization.
 		 */
 		if (strcmp(is->is_name, ".eh_frame") == 0) {
 			if ((d = elf_rawdata(scn, NULL)) == NULL) {
@@ -481,76 +553,17 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 			if (d->d_buf == NULL || d->d_size == 0)
 				continue;
 
-			if ((is->is_ibuf = malloc(d->d_size)) == NULL)
+			if ((is->is_ehframe = malloc(d->d_size)) == NULL)
 				ld_fatal_std(ld, "malloc");
 
-			memcpy(is->is_ibuf, d->d_buf, d->d_size);
+			memcpy(is->is_ehframe, d->d_buf, d->d_size);
+			is->is_ibuf = is->is_ehframe;
 		}
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
 		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
 		    elf_errmsg(elferr));
-}
-
-void
-ld_input_process_section_group(struct ld *ld, struct ld_input *li, Elf *e)
-{
-	struct ld_input_section *is;
-	struct ld_section_group *sg;
-	Elf_Scn *scn;
-	Elf_Data *d;
-	const char *name;
-	uint32_t *w;
-	int elferr, i, j;
-
-	for (i = 0; (uint64_t) i < li->li_shnum - 1; i++) {
-		is = &li->li_is[i];
-		if (is->is_type != SHT_GROUP)
-			continue;
-
-		if ((scn = elf_getscn(e, (size_t) i)) == NULL) {
-			ld_warn(ld, "%s(%s): elf_getscn failed: %s",
-			    li->li_name, is->is_name, elf_errmsg(-1));
-			continue;
-		}
-
-		if ((d = elf_getdata(scn, NULL)) == NULL) {
-			elferr = elf_errno();
-			if (elferr != 0)
-				ld_warn(ld, "%s(%s): elf_getdata "
-				    "failed: %s", li->li_name,
-				    is->is_name, elf_errmsg(elferr));
-			continue;
-		}
-
-		if (d->d_buf == NULL || d->d_size == 0)
-			continue;
-
-		w = d->d_buf;
-		if ((*w & GRP_COMDAT) == 0)
-			continue;
-
-		/* Assume sh_link field points to the only .symtab section */
-		if (li->li_symindex == NULL || is->is_info >= li->li_symnum)
-			continue;
-		
-		name = li->li_symindex[is->is_info]->lsb_name;
-		if (name == NULL)
-			continue;
-
-		if ((sg = calloc(1, sizeof(*sg))) == NULL)
-			ld_fatal_std(ld, "%s: calloc", li->li_name);
-		if ((sg->sg_name = strdup(name)) == NULL)
-			ld_fatal_std(ld, "%s: strdup", li->li_name);
-		HASH_ADD_KEYPTR(hhi, li->li_sg, sg->sg_name,
-		    strlen(sg->sg_name), sg);
-
-		for (j = 1; (size_t) j < d->d_size / 4; j++) {
-			if (w[j] < li->li_shnum - 1)
-				li->li_is[w[j]].is_sg = sg;
-		}
-	}
 }
 
 void
@@ -601,6 +614,35 @@ ld_input_alloc_common_symbol(struct ld *ld, struct ld_symbol *lsb)
 	is->is_size = roundup(is->is_size, is->is_align);
 	lsb->lsb_value = is->is_size;
 	is->is_size += lsb->lsb_size;
+}
+
+static void
+_discard_section_group(struct ld *ld, struct ld_input *li, Elf_Scn *scn)
+{
+	Elf_Data *d;
+	uint32_t *w;
+	int elferr, i;
+
+	(void) elf_errno();
+	if ((d = elf_getdata(scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			ld_warn(ld, "%s: elf_getdata failed (section group):"
+			    " %s", li->li_name, elf_errmsg(elferr));
+		return;
+	}
+
+	if (d->d_buf == NULL || d->d_size == 0)
+		return;
+
+	w = d->d_buf;
+	if ((*w & GRP_COMDAT) == 0)
+		return;
+
+	for (i = 1; (size_t) i < d->d_size / 4; i++) {
+		if (w[i] < li->li_shnum - 1)
+			li->li_is[w[i]].is_discard = 1;
+	}
 }
 
 static off_t

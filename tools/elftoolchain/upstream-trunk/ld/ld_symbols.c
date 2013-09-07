@@ -34,7 +34,7 @@
 #include "ld_script.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_symbols.c 2940 2013-05-04 22:22:10Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_symbols.c 2956 2013-08-24 19:34:23Z kaiwang27 $");
 
 #define	_INIT_SYMTAB_SIZE	128
 
@@ -879,9 +879,34 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	struct ld_symbol_defver *dv;
 	char *name;
 	int j, len, ndx;
+	unsigned char st_bind;
 
 	if ((name = elf_strptr(e, strndx, sym->st_name)) == NULL)
 		return;
+
+	/*
+	 * First check if the section this symbol refers to is belong
+	 * to a section group that has been removed.
+	 */
+	st_bind = GELF_ST_BIND(sym->st_info);
+	if (sym->st_shndx != SHN_UNDEF && sym->st_shndx != SHN_COMMON &&
+	    sym->st_shndx != SHN_ABS && sym->st_shndx < li->li_shnum - 1 &&
+	    li->li_is[sym->st_shndx].is_discard) {
+		st_bind = GELF_ST_BIND(sym->st_info);
+		if (st_bind == STB_GLOBAL || st_bind == STB_WEAK) {
+			/*
+			 * For symbol with STB_GLOBAL or STB_WEAK binding,
+			 * we convert it to an undefined symbol.
+			 */
+			sym->st_shndx = SHN_UNDEF;
+		} else {
+			/*
+			 * Local symbols are discarded, if the section they
+			 * refer to are removed.
+			 */
+			return;
+		}
+	}
 
 	lsb = _alloc_symbol(ld);
 
@@ -1163,9 +1188,6 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 		_add_elf_symbol(ld, li, e, &sym, strndx, i);
 	}
 
-	/* Process section groups. */
-	if (li->li_sg_exist)
-		ld_input_process_section_group(ld, li, e);
 }
 
 static void
@@ -1195,6 +1217,9 @@ _unload_symbols(struct ld_input *li)
 static void
 _free_symbol(struct ld_symbol *lsb)
 {
+
+	if (lsb == NULL)
+		return;
 
 	free(lsb->lsb_name);
 	free(lsb->lsb_longname);
