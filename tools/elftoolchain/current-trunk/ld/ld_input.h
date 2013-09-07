@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_input.h 2940 2013-05-04 22:22:10Z kaiwang27 $
+ * $Id: ld_input.h 2960 2013-08-25 03:13:07Z kaiwang27 $
  */
 
 struct ld_reloc_entry_head;
@@ -31,8 +31,7 @@ struct ld_ehframe_fde_head;
 
 struct ld_section_group {
 	char *sg_name;
-	unsigned char sg_discard;
-	UT_hash_handle hh, hhi;
+	UT_hash_handle hh;
 };
 
 struct ld_input_section {
@@ -43,6 +42,7 @@ struct ld_input_section {
 	uint64_t is_reloff;		/* relative offset in output section */
 	uint64_t is_addr;		/* section vma */
 	uint64_t is_size;		/* section file size */
+	uint64_t is_shrink;		/* section shrinked bytes */
 	uint64_t is_entsize;		/* seciton entry size */
 	uint64_t is_align;		/* section align */
 	uint64_t is_type;		/* section type */
@@ -57,12 +57,12 @@ struct ld_input_section {
 	unsigned char is_need_reloc;	/* need apply relocation */
 	void *is_data;			/* output section data descriptor */
 	void *is_ibuf;			/* buffer for internal sections */
+	void *is_ehframe;		/* temp buffer for ehframe section. */
 	struct ld_reloc_entry_head *is_reloc; /* list of relocation entries */
 	uint64_t is_num_reloc;		/* number of reloc entries */
 	struct ld_input_section *is_tis; /* relocation target */
 	struct ld_input_section *is_ris; /* relocation section */
 	struct ld_ehframe_fde_head *is_fde; /* list of FDE */
-	struct ld_section_group *is_sg;	/* section group */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 	STAILQ_ENTRY(ld_input_section) is_gc_next; /* next gc search */
 	UT_hash_handle hh;		/* hash handle (internal section) */
@@ -98,8 +98,6 @@ struct ld_input {
 	size_t li_versym_sz;		/* symbol version array size */
 	int li_dso_refcnt;		/* symbol reference count (DSO) */
 	struct ld_symver_verdef_head *li_verdef; /* version definition */
-	struct ld_section_group *li_sg;	/* section groups. */
-	unsigned char li_sg_exist;	/* section group exist. */
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
@@ -120,5 +118,4 @@ void	ld_input_init_sections(struct ld *, struct ld_input *, Elf *);
 void	ld_input_link_objects(struct ld *);
 void	ld_input_load(struct ld *, struct ld_input *);
 void	ld_input_unload(struct ld *, struct ld_input *);
-void	ld_input_process_section_group(struct ld *, struct ld_input *, Elf *);
 uint64_t ld_input_reserve_ibuf(struct ld_input_section *, uint64_t);

@@ -25,13 +25,14 @@
  */
 
 #include "ld.h"
+#include "ld_arch.h"
 #include "ld_ehframe.h"
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_reloc.h"
 #include "ld_utils.h"
 
-ELFTC_VCSID("$Id: ld_ehframe.c 2928 2013-03-17 22:54:09Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_ehframe.c 2962 2013-08-25 16:34:57Z kaiwang27 $");
 
 struct ld_ehframe_cie {
 	uint64_t cie_off;	/* offset in section */
@@ -62,6 +63,96 @@ static void _process_ehframe_section(struct ld *ld, struct ld_output *lo,
     struct ld_input_section *is);
 static int _read_encoded(struct ld *ld, struct ld_output *lo, uint64_t *val,
     uint8_t *data, uint8_t encode, uint64_t pc);
+static int _cmp_fde(struct ld_ehframe_fde *a, struct ld_ehframe_fde *b);
+
+void
+ld_ehframe_adjust(struct ld *ld, struct ld_input_section *is)
+{
+	struct ld_output *lo;
+	uint8_t *p, *d, *end, *s;
+	uint64_t length, length_size, remain, adjust;
+	uint32_t cie_id;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	/*
+	 * If the .eh_frame section is unchanged, we don't need to
+	 * do much.
+	 */
+	assert(is->is_ehframe != NULL);
+	if (is->is_shrink == 0) {
+		is->is_ehframe = NULL;
+		return;
+	}
+
+	/*
+	 * Otherwise the section is shrinked becase some FDE's are
+	 * discarded. We copy the section content to a buffer while
+	 * skipping those discarded FDE's.
+	 */
+
+	if ((is->is_ibuf = malloc(is->is_size - is->is_shrink)) == NULL)
+		ld_fatal_std(ld, "malloc");
+	d = is->is_ibuf;
+	end = d + is->is_size - is->is_shrink;
+	p = is->is_ehframe;
+	adjust = 0;
+	remain = is->is_size;
+	while (remain > 0) {
+
+		s = p;
+
+		/* Read CIE/FDE length field. */
+		READ_32(p, length);
+		p += 4;
+		if (length == 0xffffffff) {
+			READ_64(p, length);
+			p += 8;
+			length_size = 8;
+		} else
+			length_size = 4;
+
+		/* Check for terminator */
+		if (length == 0) {
+			memset(d, 0, 4);
+			d += 4;
+			break;
+		}
+
+		/* Read CIE ID/Pointer field. */
+		READ_32(p, cie_id);
+
+		/* Clear adjustment if CIE is found. */
+		if (cie_id == 0)
+			adjust = 0;
+
+		/* Check for our special mark. */
+		if (cie_id != 0xFFFFFFFF) {
+			if (cie_id != 0) {
+				/* Adjust FDE pointer. */
+				assert(cie_id > adjust);
+				cie_id -= adjust;
+				WRITE_32(p, cie_id);
+			}
+			memcpy(d, s, length + length_size);
+			d += length + length_size;
+		} else {
+			/* Discard FDE and increate adjustment. */
+			adjust += length + length_size;
+		}
+
+		/* Next entry. */
+		p += length;
+		remain -= length + length_size;
+	}
+
+	is->is_size -= is->is_shrink;
+	is->is_shrink = 0;
+	assert(d == end);
+	free(is->is_ehframe);
+	is->is_ehframe = NULL;
+}
 
 void
 ld_ehframe_scan(struct ld *ld)
@@ -235,7 +326,8 @@ ld_ehframe_finalize_hdr(struct ld *ld)
 		}
 	}
 
-	/* TODO: sort FDE list. */
+	/* Sort the binary search table in an increasing order by pcrel. */
+	STAILQ_SORT(ld->ld_fde, ld_ehframe_fde, fde_next, _cmp_fde);
 
 	/* Write binary search table. */
 	STAILQ_FOREACH(fde, ld->ld_fde, fde_next) {
@@ -246,6 +338,18 @@ ld_ehframe_finalize_hdr(struct ld *ld)
 	}
 
 	assert(p == end);
+}
+
+static int
+_cmp_fde(struct ld_ehframe_fde *a, struct ld_ehframe_fde *b)
+{
+
+	if (a->fde_pcrel < b->fde_pcrel)
+		return (-1);
+	else if (a->fde_pcrel == b->fde_pcrel)
+		return (0);
+	else
+		return (1);
 }
 
 static void
@@ -299,6 +403,7 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
     struct ld_input_section *is)
 {
 	struct ld_input *li;
+	struct ld_output_section *os;
 	struct ld_ehframe_cie *cie, *_cie;
 	struct ld_ehframe_cie_head cie_h;
 	struct ld_ehframe_fde *fde;
@@ -308,6 +413,7 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 	uint8_t *p, *et, cie_version, *augment;
 
 	li = is->is_input;
+	os = is->is_output;
 
 	STAILQ_INIT(&cie_h);
 
@@ -500,6 +606,11 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 				    cie->cie_off_orig + cie->cie_size) {
 					STAILQ_REMOVE(is->is_ris->is_reloc,
 					    lre, ld_reloc_entry, lre_next);
+					is->is_ris->is_num_reloc--;
+					is->is_ris->is_size -= 
+					    ld->ld_arch->reloc_entsize;
+					os->os_r->os_size -=
+					    ld->ld_arch->reloc_entsize;
 					break;
 				}
 

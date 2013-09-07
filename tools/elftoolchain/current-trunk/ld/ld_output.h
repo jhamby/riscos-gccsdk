@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_output.h 2926 2013-03-17 22:53:54Z kaiwang27 $
+ * $Id: ld_output.h 2959 2013-08-25 03:12:47Z kaiwang27 $
  */
 
 enum ld_output_element_type {
@@ -160,5 +160,6 @@ void	ld_output_create_string_table_section(struct ld *, const char *,
     struct ld_strtab *, Elf_Scn *);
 void	ld_output_emit_gnu_stack_section(struct ld *);
 void	ld_output_format(struct ld *, char *, char *, char *);
+void	ld_output_early_init(struct ld *);
 void	ld_output_init(struct ld *);
 void	ld_output_write(struct ld *);
