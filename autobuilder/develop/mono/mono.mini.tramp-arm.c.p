@@ -1,6 +1,6 @@
---- mono/mini/tramp-arm.c.orig	2013-02-27 16:56:56.000000000 +0000
-+++ mono/mini/tramp-arm.c	2013-03-04 20:10:57.000000000 +0000
-@@ -828,7 +828,18 @@
+--- mono/mini/tramp-arm.c.orig	2013-07-30 02:50:26.000000000 +0100
++++ mono/mini/tramp-arm.c	2013-08-02 20:24:44.851899124 +0100
+@@ -831,7 +831,18 @@
  		mono_marshal_find_bitfield_offset (MonoVTable, initialized, &byte_offset, &bitmask);
  
  	g_assert (arm_is_imm8 (byte_offset));

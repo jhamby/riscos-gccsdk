@@ -1,5 +1,5 @@
---- mono/io-layer/io.c.orig	2013-01-08 18:41:09.000000000 +0000
-+++ mono/io-layer/io.c	2013-01-21 19:47:00.000000000 +0000
+--- mono/io-layer/io.c.orig	2013-07-30 02:47:37.000000000 +0100
++++ mono/io-layer/io.c	2013-08-02 20:24:44.859899124 +0100
 @@ -46,6 +46,12 @@
  #include <mono/io-layer/io-portability.h>
  #include <mono/utils/strenc.h>
@@ -13,7 +13,7 @@
  #if 0
  #define DEBUG(...) g_message(__VA_ARGS__)
  #define DEBUG_ENABLED 1
-@@ -1574,6 +1580,18 @@
+@@ -1584,6 +1590,18 @@
  	
  	DEBUG("%s: returning handle %p", __func__, handle);
  	
@@ -32,7 +32,7 @@
  	return(handle);
  }
  
-@@ -4194,7 +4212,7 @@
+@@ -4227,7 +4245,7 @@
  }
  
  /* Linux has struct statfs which has a different layout */

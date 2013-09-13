@@ -1,6 +1,6 @@
---- mono/metadata/assembly.c.orig	2013-03-08 04:31:54.000000000 +0000
-+++ mono/metadata/assembly.c	2013-04-14 14:47:27.000000000 +0100
-@@ -45,6 +45,11 @@
+--- mono/metadata/assembly.c.orig	2013-07-30 02:47:35.000000000 +0100
++++ mono/metadata/assembly.c	2013-08-02 20:24:44.855899124 +0100
+@@ -46,6 +46,11 @@
  #include <mach-o/dyld.h>
  #endif
  
@@ -12,7 +12,7 @@
  /* AssemblyVersionMap: an assembly name and the assembly version set on which it is based */
  typedef struct  {
  	const char* assembly_name;
-@@ -1458,7 +1463,11 @@
+@@ -1464,7 +1469,11 @@
  			fname = g_strdup (filename);
  		}
  	} else {

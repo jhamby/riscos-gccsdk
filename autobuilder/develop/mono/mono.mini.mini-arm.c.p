@@ -1,24 +1,48 @@
---- mono/mini/mini-arm.c.orig	2013-03-08 04:31:49.000000000 +0000
-+++ mono/mini/mini-arm.c	2013-04-14 14:47:26.000000000 +0100
-@@ -65,7 +65,7 @@
+--- mono/mini/mini-arm.c.orig	2013-07-30 02:50:25.000000000 +0100
++++ mono/mini/mini-arm.c	2013-08-16 13:53:54.572498248 +0100
+@@ -12,7 +12,7 @@
+ #include "mini.h"
+ #include <string.h>
+ 
+-#if !defined(__APPLE__) && !defined(PLATFORM_ANDROID)
++#if !defined(__APPLE__) && !defined(PLATFORM_ANDROID) && !defined(__riscos__)
+ #include <sys/auxv.h>
+ #endif
+ 
+@@ -90,7 +90,10 @@
  #define mono_mini_arch_unlock() LeaveCriticalSection (&mini_arch_mutex)
  static CRITICAL_SECTION mini_arch_mutex;
  
--static int v5_supported = 0;
-+int v5_supported = 0;
- static int v6_supported = 0;
- static int v7_supported = 0;
- static int thumb_supported = 0;
-@@ -805,7 +805,7 @@
- mono_arch_cpu_optimizations (guint32 *exclude_mask)
- {
+-static gboolean v5_supported = FALSE;
++#ifndef __riscos__
++static
++#endif
++gboolean v5_supported = FALSE;
+ static gboolean v6_supported = FALSE;
+ static gboolean v7_supported = FALSE;
+ static gboolean v7s_supported = FALSE;
+@@ -832,7 +835,11 @@
  	guint32 opts = 0;
--	const char *cpu_arch = getenv ("MONO_CPU_ARCH");
+ 
+ 	/* Format: armv(5|6|7[s])[-thumb[2]] */
++#ifdef __riscos__
 +	const char *cpu_arch = getenv ("Mono$CPUArch");
++#else
+ 	const char *cpu_arch = getenv ("MONO_CPU_ARCH");
++#endif
  	if (cpu_arch != NULL) {
- 		thumb_supported = strstr (cpu_arch, "thumb") != NULL;
  		if (strncmp (cpu_arch, "armv", 4) == 0) {
-@@ -951,6 +951,15 @@
+ 			v5_supported = cpu_arch [4] >= '5';
+@@ -885,7 +892,7 @@
+ 		fclose (file);
+ 		/*printf ("features: v5: %d, thumb: %d\n", v5_supported, thumb_supported);*/
+ 	}
+-#else
++#elif !defined(__riscos__)
+ 	/* This solution is neat because it uses the dynamic linker
+ 	 * instead of the kernel. Thus, it works in QEMU chroots. */
+ 	unsigned long int hwcap;
+@@ -1052,6 +1059,15 @@
  	regs = g_list_prepend (regs, GUINT_TO_POINTER (ARMREG_V1));
  	regs = g_list_prepend (regs, GUINT_TO_POINTER (ARMREG_V2));
  	regs = g_list_prepend (regs, GUINT_TO_POINTER (ARMREG_V3));
@@ -34,7 +58,7 @@
  	if (darwin)
  		/* V4=R7 is used as a frame pointer, but V7=R10 is preserved */
  		regs = g_list_prepend (regs, GUINT_TO_POINTER (ARMREG_V7));
-@@ -959,6 +968,7 @@
+@@ -1060,6 +1076,7 @@
  	if (!(cfg->compile_aot || cfg->uses_rgctx_reg || COMPILE_LLVM (cfg)))
  		/* V5 is reserved for passing the vtable/rgctx/IMT method */
  		regs = g_list_prepend (regs, GUINT_TO_POINTER (ARMREG_V5));
@@ -42,7 +66,7 @@
  	/*regs = g_list_prepend (regs, GUINT_TO_POINTER (ARMREG_V6));*/
  	/*regs = g_list_prepend (regs, GUINT_TO_POINTER (ARMREG_V7));*/
  
-@@ -1405,6 +1415,11 @@
+@@ -1565,6 +1582,11 @@
  	cfg->arch.omit_fp = TRUE;
  	cfg->arch.omit_fp_computed = TRUE;
  
@@ -54,7 +78,7 @@
  	if (cfg->disable_omit_fp)
  		cfg->arch.omit_fp = FALSE;
  	if (!debug_omit_fp ())
-@@ -1488,9 +1503,13 @@
+@@ -1648,9 +1670,13 @@
  		cfg->used_int_regs |= 1 << cfg->frame_reg;
  
  	if (cfg->compile_aot || cfg->uses_rgctx_reg || COMPILE_LLVM (cfg))
@@ -69,7 +93,7 @@
  	offset = 0;
  	curinst = 0;
  	if (!MONO_TYPE_ISSTRUCT (sig->ret) && !cinfo->vtype_retaddr) {
-@@ -3706,7 +3725,17 @@
+@@ -3879,7 +3905,17 @@
  		case OP_STOREI2_MEMBASE_IMM:
  			code = mono_arm_emit_load_imm (code, ARMREG_LR, ins->inst_imm & 0xFFFF);
  			g_assert (arm_is_imm8 (ins->inst_offset));
@@ -87,7 +111,7 @@
  			break;
  		case OP_STORE_MEMBASE_IMM:
  		case OP_STOREI4_MEMBASE_IMM:
-@@ -3720,7 +3749,13 @@
+@@ -3893,7 +3929,13 @@
  			break;
  		case OP_STOREI2_MEMBASE_REG:
  			g_assert (arm_is_imm8 (ins->inst_offset));
@@ -101,7 +125,7 @@
  			break;
  		case OP_STORE_MEMBASE_REG:
  		case OP_STOREI4_MEMBASE_REG:
-@@ -3736,7 +3771,14 @@
+@@ -3909,7 +3951,14 @@
  			ARM_STRB_REG_REG (code, ins->sreg1, ins->inst_destbasereg, ins->sreg2);
  			break;
  		case OP_STOREI2_MEMINDEX:
@@ -116,7 +140,7 @@
  			break;
  		case OP_STORE_MEMINDEX:
  		case OP_STOREI4_MEMINDEX:
-@@ -3751,16 +3793,39 @@
+@@ -3924,16 +3973,39 @@
  			ARM_LDR_REG_REG (code, ins->dreg, ins->inst_basereg, ins->sreg2);
  			break;
  		case OP_LOADI1_MEMINDEX:
@@ -156,7 +180,7 @@
  			break;
  		case OP_LOAD_MEMBASE:
  		case OP_LOADI4_MEMBASE:
-@@ -3775,7 +3840,13 @@
+@@ -3948,7 +4020,13 @@
  			break;
  		case OP_LOADI1_MEMBASE:
  			g_assert (arm_is_imm8 (ins->inst_offset));
@@ -170,7 +194,7 @@
  			break;
  		case OP_LOADU1_MEMBASE:
  			g_assert (arm_is_imm12 (ins->inst_offset));
-@@ -3783,11 +3854,26 @@
+@@ -3956,11 +4034,26 @@
  			break;
  		case OP_LOADU2_MEMBASE:
  			g_assert (arm_is_imm8 (ins->inst_offset));
@@ -197,7 +221,7 @@
  			break;
  		case OP_ICONV_TO_I1:
  			ARM_SHL_IMM (code, ins->dreg, ins->sreg1, 24);
-@@ -5066,6 +5152,10 @@
+@@ -5113,6 +5206,10 @@
  	mono_register_jit_icall (__aeabi_read_tp, "__aeabi_read_tp", mono_create_icall_signature ("void"), TRUE);
  #endif
  #endif
@@ -208,7 +232,7 @@
  }
  
  #define patch_lis_ori(ip,val) do {\
-@@ -5113,6 +5203,11 @@
+@@ -5160,6 +5257,11 @@
  		}
  
  		switch (patch_info->type) {
@@ -220,7 +244,7 @@
  		case MONO_PATCH_INFO_IP:
  			g_assert_not_reached ();
  			patch_lis_ori (ip, ip);
-@@ -5158,6 +5253,114 @@
+@@ -5205,6 +5307,114 @@
  
  #ifndef DISABLE_JIT
  
@@ -335,7 +359,7 @@
  /*
   * Stack frame layout:
   * 
-@@ -5187,6 +5390,10 @@
+@@ -5234,6 +5444,10 @@
  	int lmf_offset = 0;
  	int prev_sp_offset, reg_offset;
  
@@ -346,9 +370,9 @@
  	if (mono_jit_trace_calls != NULL && mono_trace_eval (method))
  		tracing = 1;
  
-@@ -5200,6 +5407,60 @@
- 	pos = 0;
- 	prev_sp_offset = 0;
+@@ -5266,6 +5480,60 @@
+ 		mono_emit_unwind_op_offset (cfg, code, ARMREG_R7, (- prev_sp_offset) + 0);
+ 	}
  
 +#ifdef ENABLE_RISCOS_STACKFRAMES
 +	stack_check_needed = mono_stack_check_needed (!(cfg->flags & MONO_CFG_HAS_CALLS), alloc_size);
@@ -406,16 +430,16 @@
 +#else
  	if (!method->save_lmf) {
  		if (iphone_abi) {
- 			/* 
-@@ -5261,6 +5522,7 @@
- 		pos += sizeof (MonoLMF) - prev_sp_offset;
+ 			/* No need to push LR again */
+@@ -5313,6 +5581,7 @@
+ 		pos += sizeof (MonoLMF) - (4 * 10);
  		lmf_offset = pos;
  	}
 +#endif
  	alloc_size += pos;
  	orig_alloc_size = alloc_size;
  	// align to MONO_ARCH_FRAME_ALIGNMENT bytes
-@@ -5273,6 +5535,11 @@
+@@ -5325,6 +5594,11 @@
  	if (prev_sp_offset & 4)
  		alloc_size += 4;
  	cfg->stack_usage = alloc_size;
@@ -427,7 +451,7 @@
  	if (alloc_size) {
  		if ((i = mono_arm_is_rotated_imm8 (alloc_size, &rot_amount)) >= 0) {
  			ARM_SUB_REG_IMM (code, ARMREG_SP, ARMREG_SP, i, rot_amount);
-@@ -5358,15 +5625,22 @@
+@@ -5410,15 +5684,22 @@
  			else if (ainfo->storage == RegTypeFP) {
  				g_assert_not_reached ();
  			} else if (ainfo->storage == RegTypeBase) {
@@ -451,7 +475,7 @@
  			if (cfg->verbose_level > 2)
  				g_print ("Argument %d assigned to register %s\n", pos, mono_arch_regname (inst->dreg));
  		} else {
-@@ -5382,12 +5656,26 @@
+@@ -5434,12 +5715,26 @@
  					}
  					break;
  				case 2:
@@ -478,7 +502,7 @@
  					break;
  				case 8:
  					if (arm_is_imm12 (inst->inst_offset)) {
-@@ -5415,16 +5703,32 @@
+@@ -5467,16 +5762,32 @@
  			} else if (ainfo->storage == RegTypeBaseGen) {
  				g_assert (arm_is_imm12 (prev_sp_offset + ainfo->offset));
  				g_assert (arm_is_imm12 (inst->inst_offset));
@@ -493,7 +517,7 @@
 +#endif
  				ARM_STR_IMM (code, ARMREG_LR, inst->inst_basereg, inst->inst_offset + 4);
  				ARM_STR_IMM (code, ARMREG_R3, inst->inst_basereg, inst->inst_offset);
- 			} else if (ainfo->storage == RegTypeBase) {
+ 			} else if (ainfo->storage == RegTypeBase || ainfo->storage == RegTypeGSharedVtOnStack) {
 +#ifdef ENABLE_RISCOS_STACKFRAMES
 +				if (cfg->arch.stack_frame_needed) {
 +					ARM_LDR_IMM (code, ARMREG_LR, ARMREG_R11, (ainfo->offset + 4));
@@ -511,7 +535,7 @@
  
  				switch (ainfo->size) {
  				case 1:
-@@ -5436,12 +5740,30 @@
+@@ -5488,12 +5799,30 @@
  					}
  					break;
  				case 2:
@@ -542,7 +566,7 @@
  					break;
  				case 8:
  					if (arm_is_imm12 (inst->inst_offset)) {
-@@ -5450,12 +5772,22 @@
+@@ -5502,12 +5831,22 @@
  						code = mono_arm_emit_load_imm (code, ARMREG_IP, inst->inst_offset);
  						ARM_STR_REG_REG (code, ARMREG_LR, inst->inst_basereg, ARMREG_IP);
  					}
@@ -565,7 +589,7 @@
  					if (arm_is_imm12 (inst->inst_offset + 4)) {
  						ARM_STR_IMM (code, ARMREG_LR, inst->inst_basereg, inst->inst_offset + 4);
  					} else {
-@@ -5493,6 +5825,11 @@
+@@ -5545,6 +5884,11 @@
  				if (ainfo->vtsize) {
  					/* FIXME: handle overrun! with struct sizes not multiple of 4 */
  					//g_print ("emit_memcpy (prev_sp_ofs: %d, ainfo->offset: %d, soffset: %d)\n", prev_sp_offset, ainfo->offset, soffset);
@@ -577,7 +601,7 @@
  					code = emit_memcpy (code, ainfo->vtsize * sizeof (gpointer), inst->inst_basereg, doffset, ARMREG_SP, prev_sp_offset + ainfo->offset);
  				}
  			} else if (ainfo->storage == RegTypeStructByAddr) {
-@@ -5652,13 +5989,20 @@
+@@ -5704,13 +6048,20 @@
  	}
  
  	if (method->save_lmf) {
@@ -598,10 +622,10 @@
  		/* This points to r4 inside MonoLMF->iregs */
  		sp_adj = (sizeof (MonoLMF) - MONO_ARM_NUM_SAVED_REGS * sizeof (mgreg_t));
  		reg = ARMREG_R4;
-@@ -5673,7 +6017,24 @@
- 		code = emit_big_add (code, ARMREG_SP, cfg->frame_reg, cfg->stack_usage - lmf_offset + sp_adj);
- 		/* restore iregs */
- 		ARM_POP (code, regmask); 
+@@ -5734,7 +6085,24 @@
+ 			ARM_ADD_REG_IMM (code, ARMREG_SP, ARMREG_SP, sizeof (gpointer), 0);
+ 			ARM_POP (code, (1 << ARMREG_R7) | (1 << ARMREG_PC));
+ 		}
 +#endif
  	} else {
 +#ifdef ENABLE_RISCOS_STACKFRAMES
@@ -623,7 +647,7 @@
  		if ((i = mono_arm_is_rotated_imm8 (cfg->stack_usage, &rot_amount)) >= 0) {
  			ARM_ADD_REG_IMM (code, ARMREG_SP, cfg->frame_reg, i, rot_amount);
  		} else {
-@@ -5690,6 +6051,7 @@
+@@ -5751,6 +6119,7 @@
  		} else {
  			ARM_POP (code, cfg->used_int_regs | (1 << ARMREG_PC));
  		}

@@ -1,7 +1,7 @@
---- mono/utils/mono-threads.c.orig	2013-01-08 18:41:09.000000000 +0000
-+++ mono/utils/mono-threads.c	2013-01-19 12:27:13.000000000 +0000
-@@ -317,7 +317,7 @@
- 	EnterCriticalSection (&info->suspend_lock);
+--- mono/utils/mono-threads.c.orig	2013-07-30 02:50:26.000000000 +0100
++++ mono/utils/mono-threads.c	2013-08-16 11:47:09.064280136 +0100
+@@ -326,7 +326,7 @@
+ 	mono_mutex_lock (&info->suspend_lock);
  
  	/*thread is on the process of detaching*/
 -	if (mono_thread_info_run_state (info) > STATE_RUNNING) {
@@ -9,16 +9,16 @@
  		mono_hazard_pointer_clear (hp, 1);
  		return NULL;
  	}
-@@ -341,7 +341,7 @@
+@@ -350,7 +350,7 @@
  		mono_threads_core_interrupt (info);
  
  	++info->suspend_count;
 -	info->thread_state |= STATE_SUSPENDED;
 +	info->thread_state |= mono_thread_STATE_SUSPENDED;
- 	LeaveCriticalSection (&info->suspend_lock);
+ 	mono_mutex_unlock (&info->suspend_lock);
  	mono_hazard_pointer_clear (hp, 1);
  
-@@ -363,7 +363,7 @@
+@@ -372,7 +372,7 @@
  	g_assert (info->suspend_count == 0);
  	++info->suspend_count;
  
@@ -27,7 +27,7 @@
  
  	ret = mono_threads_get_runtime_callbacks ()->thread_state_init_from_sigctx (&info->suspend_state, NULL);
  	g_assert (ret);
-@@ -382,7 +382,7 @@
+@@ -391,7 +391,7 @@
  mono_thread_info_resume_internal (MonoThreadInfo *info)
  {
  	gboolean result;
@@ -36,7 +36,7 @@
  		MONO_SEM_POST (&info->resume_semaphore);
  		while (MONO_SEM_WAIT (&info->finish_resume_semaphore) != 0) {
  			/* g_assert (errno == EINTR); */
-@@ -391,7 +391,7 @@
+@@ -400,7 +400,7 @@
  	} else {
  		result = mono_threads_core_resume (info);
  	}
@@ -45,7 +45,7 @@
  	return result;
  }
  
-@@ -565,7 +565,7 @@
+@@ -574,7 +574,7 @@
  	if (!info)
  		return;
  

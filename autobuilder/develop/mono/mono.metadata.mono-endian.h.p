@@ -1,6 +1,6 @@
---- mono/metadata/mono-endian.h.orig	2011-12-19 21:10:24.000000000 +0000
-+++ mono/metadata/mono-endian.h	2012-02-23 19:46:52.000000000 +0000
-@@ -52,6 +52,16 @@
+--- mono/metadata/mono-endian.h.orig	2013-07-30 02:47:37.000000000 +0100
++++ mono/metadata/mono-endian.h	2013-08-16 13:44:53.644482736 +0100
+@@ -39,11 +39,21 @@
  		*(dest) = mf.fval;	\
  	} while (0)
  
@@ -10,15 +10,13 @@
 +	do {	\
 +		mono_rdouble mf;	\
 +		mf.ival = mono_read_double (x);	\
-+		MONO_DOUBLE_ASSERT_ENDIANITY (&mf.fval);	\
 +		*(dest) = mf.fval;	\
 +	} while (0)
 +#else
  #define readr8(x,dest)	\
  	do {	\
  		mono_rdouble mf;	\
-@@ -59,5 +69,6 @@
- 		MONO_DOUBLE_ASSERT_ENDIANITY (&mf.fval);	\
+ 		mf.ival = read64 ((x));	\
  		*(dest) = mf.fval;	\
  	} while (0)
 +#endif

@@ -1,6 +1,6 @@
 AB_CATEGORY="Development"
 
-AB_URL=http://download.mono-project.com/sources/mono/mono-3.0.7.tar.bz2
+AB_URL=http://download.mono-project.com/sources/mono/mono-3.2.1.tar.bz2
 
 AB_CONFLAGS="--ro-recurse --with-sgen=yes --with-gc=sgen --with-tls=pthread --with-xen-opt=no --with-ikvm-native=no --with-moonlight=no --disable-shared-memory --with-sigaltstack=no --with-jit=yes --with-malloc-mempools --with-static_mono=yes --with-shared_mono=yes"
 
@@ -181,4 +181,4 @@ ab_package() {
 }
 
 # Regenerate configure from the patched configure.in
-autoconf
+autoreconf -f

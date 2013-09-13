@@ -1,6 +1,6 @@
---- mono/mini/mini.c.orig	2013-03-08 04:31:48.000000000 +0000
-+++ mono/mini/mini.c	2013-04-14 14:47:26.000000000 +0100
-@@ -3059,6 +3059,9 @@
+--- mono/mini/mini.c.orig	2013-07-30 02:50:25.000000000 +0100
++++ mono/mini/mini.c	2013-08-02 20:24:44.839899124 +0100
+@@ -3172,6 +3172,9 @@
  		target = patch_info->data.bb->native_offset + code;
  		break;
  	case MONO_PATCH_INFO_ABS:
@@ -10,7 +10,7 @@
  		target = patch_info->data.target;
  		break;
  	case MONO_PATCH_INFO_LABEL:
-@@ -5187,6 +5190,19 @@
+@@ -5355,6 +5358,19 @@
  					}
  				}
  			}
@@ -30,7 +30,7 @@
  			mono_linear_scan (cfg, vars, regs, &cfg->used_int_regs);
  		}
  	}
-@@ -6478,7 +6494,7 @@
+@@ -6655,7 +6671,7 @@
  static void
  mini_parse_debug_options (void)
  {
@@ -39,7 +39,7 @@
  	gchar **args, **ptr;
  	
  	if (!options)
-@@ -6522,7 +6538,7 @@
+@@ -6699,7 +6715,7 @@
  		else if (!strcmp (arg, "soft-breakpoints"))
  			debug_options.soft_breakpoints = TRUE;
  		else {
@@ -48,12 +48,12 @@
  			fprintf (stderr, "Available options: 'handle-sigint', 'keep-delegates', 'reverse-pinvoke-exceptions', 'collect-pagefault-stats', 'break-on-unverified', 'no-gdb-backtrace', 'dont-free-domains', 'suspend-on-sigsegv', 'suspend-on-unhandled', 'dyn-runtime-invoke', 'gdb', 'explicit-null-checks', 'init-stacks'\n");
  			exit (1);
  		}
-@@ -6757,7 +6773,7 @@
+@@ -6930,7 +6946,7 @@
  	mono_threads_runtime_init (&ticallbacks);
  
  
 -	if (getenv ("MONO_DEBUG") != NULL)
 +	if (getenv ("Mono$Debug") != NULL)
  		mini_parse_debug_options ();
- 	
- 	mono_arch_cpu_init ();
+ 
+ 	mono_code_manager_init ();
