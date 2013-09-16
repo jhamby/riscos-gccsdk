@@ -1,4 +1,6 @@
 
+AB_ROVERSION=2
+
 ab_package() {
   ab_create_app Defenguin Apps/Games
   ab_makerun defendguin !RunImage$AB_EXEEXT

@@ -15,7 +15,7 @@
  SDL_CFLAGS := $(shell sdl-config --cflags)
  SDL_LDFLAGS := $(shell sdl-config --libs) -L/usr/X11R6/lib
 -MIXER=-lSDL_mixer
-+MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile
++MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile -lmikmod
  NOSOUNDFLAG=__SOUND
  CFLAGS=-Wall $(SDL_CFLAGS) -DDATA_PREFIX=\"$(DATA_PREFIX)\" -D$(NOSOUNDFLAG) \
 -	-DJOY_$(JOY)

@@ -1,5 +1,4 @@
 #!/bin/bash -e
-
 function zip_tidy ()
 {
 # unzip -F when enabled preserves RISC OS filetypes.  However, it sometimes preserves too many.
@@ -146,20 +145,38 @@ else
     debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
 
     orig=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4)
+    if [ -n "$orig" ] ; then
+      archtype=bz2
+    fi
     if [ -z "$orig" ] ; then
       orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
+      if [ -n "$orig" ] ; then
+        archtype=gz
+      fi
     fi
     if [ -z "$orig" ] ; then
       orig=$((grep \.orig\.tar\.xz files || grep \.tar\.xz files) | cut -d ' ' -f 4)
+      if [ -n "$orig" ] ; then
+        archtype=xz
+      fi
     fi
     if [ -n "$orig" ] ; then
       $AB_WGET $debdir/$orig
 
       deb=$(grep \.debian\.tar\.gz files | cut -d ' ' -f 4)
+      if [ -n "$deb" ] ; then
+        debarchtype=gz
+      fi
       if [ -z "$deb" ] ; then
         deb=$(grep \.debian\.tar\.bz2 files | cut -d ' ' -f 4)
+        if [ -n "$deb" ] ; then
+          debarchtype=bz2
+        fi
         if [ -z "$deb" ] ; then
           deb=$(grep \.debian\.tar\.xz files | cut -d ' ' -f 4)
+          if [ -n "$deb" ] ; then
+            debarchtype=xz
+          fi
         fi
         if [ -z "$deb" ] ; then
           echo "Autobuilder: could not find Debian additional files to download" 1>&2
@@ -170,10 +187,28 @@ else
         $AB_WGET $debdir/$deb
       fi
 
-      tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz || tar xfz *.orig.tar.gz || tar xfJ *.tar.xz 
+      if [ $archtype = "bz2" ] ; then
+        tar xfj $orig
+      elif [ $archtype = "gz" ] ; then
+        tar xfz $orig
+      elif [ $archtype = "xz" ] ; then
+        tar xfJ $orig
+      fi
       subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
       if [ ! -z "$deb" ] ; then
-        tar xfz $deb -C $subdir || tar xfj $deb -C $subdir || tar xfJ $deb -C $subdir
+        if [ $debarchtype = "gz" ] ; then
+          tar xfz $deb -C $subdir
+        elif [ $debarchtype = "bz2" ] ; then
+          tar xfj $deb -C $subdir
+        elif [ $debarchtype = "xz" ] ; then
+          tar xfJ $deb -C $subdir
+        fi
+      fi
+
+      debdiff=$(grep \.diff\.gz files | cut -d ' ' -f 4)
+      if [ ! -z "$debdiff" ] ; then
+        $AB_WGET $debdir/$debdiff
+        zcat *.diff.gz | patch -d $subdir -p1 || true
       fi
 
     else
@@ -191,7 +226,7 @@ else
             orig=$(sed s#\.tar\.bz2#\.orig\.tar\.bz2# <<< $file)
           fi
         else
-          archtype="xz"  
+          archtype="xz"
         fi
         $AB_WGET $debdir/$file -O $orig
       else
