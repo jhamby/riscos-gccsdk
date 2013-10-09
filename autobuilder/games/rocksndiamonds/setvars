@@ -1,10 +1,10 @@
-AB_URL=http://artsoft.org/RELEASES/unix/rocksndiamonds/rocksndiamonds-3.2.6.1.tar.gz
 
 AB_DISTCLEAN="$AB_MAKE dist-clean PLATFORM=unix"
 
 ab_make() {
-  eval "$AB_MAKE PLATFORM=unix CC=$CC EXTRA_LDFLAGS='-static -lvorbisidec -ljpeg -lpng -ltiff -lz' RO_GAMEDIR='RocksNDmds:' RW_GAMEDIR='~' EXTRA_CFLAGS=-O2"
+  eval "$AB_MAKE PLATFORM=unix CC=$CC EXTRA_LDFLAGS='-static -lvorbisidec -ljpeg -lpng -ltiff -lz -logg -lmikmod' RO_GAMEDIR='RocksNDmds:' RW_GAMEDIR='~' EXTRA_CFLAGS=-O2"
 }
+
 
 ab_package() {
   ab_create_app RocksNDmds Apps/Games
@@ -12,13 +12,15 @@ ab_package() {
 
   cp README $A/\!Help
 
-  cp ChangeLog COPYING CREDITS TODO $A
-  cp -r docs $A
-  cp -r graphics $A
-  cp -r levels $A
-  cp -r music $A
-  cp -r sounds $A
+  cp ChangeLog COPYING CREDITS $A
+  wget http://www.artsoft.org/RELEASES/unix/rocksndiamonds/rocksndiamonds-3.3.0.1.tar.gz
+  tar -xzvf rocksndiamonds-3.3.0.1.tar.gz
+  cp -r rocksndiamonds-3.3.0.1/docs $A
+  cp -r rocksndiamonds-3.3.0.1/graphics $A
+  cp -r rocksndiamonds-3.3.0.1/levels $A
+  cp -r rocksndiamonds-3.3.0.1/music $A
+  cp -r rocksndiamonds-3.3.0.1/sounds $A
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+  $AB_HOME/add-riscpkg -name RocksNDiamonds -unixlib -unixsound -unixhome \
     -copyrightfile $S/COPYING
 }
