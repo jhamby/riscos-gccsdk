@@ -1,4 +1,7 @@
 Set GLHack$Dir <Obey$Dir>
 
+IfThere "<GLHack$Dir>.locks" then else cdir "<GLHack$Dir>.locks"
+IfThere "<GLHack$Dir>.var" then else cdir "<GLHack$Dir>.var"
+
 WIMPSLOT
 Run <GLHack$Dir>.glhack --windowed >null: 2>null:

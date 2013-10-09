@@ -1,5 +1,8 @@
 AB_URL=http://kent.dl.sourceforge.net/sourceforge/glhack/glhack-1.2.tar.gz
 
+AB_ROVERSION=2
+AB_MAKE="$AB_MAKE -j1"
+
 ab_package() {
   ab_create_app GLHack Apps/Games
 
@@ -16,7 +19,7 @@ ab_package() {
   cp $S/CHANGELOG.GL $S/NEWS.GL $S/README* $A/Docs
 
   rman -f HTML $S/doc/glhack.6 > $A/Docs/glhack.html,faf
- 
+
   $AB_HOME/add-riscpkg -unixlib -copyrightfile dat/license
 }
 
