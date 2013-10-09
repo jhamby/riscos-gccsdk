@@ -1,6 +1,6 @@
---- gio/gsocket.c.orig	2009-09-28 14:48:07.000000000 -0700
-+++ gio/gsocket.c	2009-09-28 14:50:25.000000000 -0700
-@@ -2616,6 +2616,9 @@
+--- gio/gsocket.c.orig	2013-08-07 15:34:32.000000000 +0100
++++ gio/gsocket.c	2013-10-09 12:21:28.185944500 +0100
+@@ -3690,6 +3690,9 @@
        vectors = &one_vector;
      }
  
@@ -10,15 +10,15 @@
  #ifndef G_OS_WIN32
    {
      struct msghdr msg;
-@@ -2802,6 +2805,7 @@
+@@ -3884,6 +3887,7 @@
      return bytes_sent;
    }
  #endif
 +#endif
  }
  
- /**
-@@ -2914,6 +2918,9 @@
+ static GSocketAddress *
+@@ -4056,6 +4060,9 @@
        vectors = &one_vector;
      }
  
@@ -28,11 +28,11 @@
  #ifndef G_OS_WIN32
    {
      struct msghdr msg;
-@@ -3157,6 +3164,7 @@
+@@ -4313,6 +4320,7 @@
      return bytes_received;
    }
  #endif
 +#endif
  }
  
- #define __G_SOCKET_C__
+ /**

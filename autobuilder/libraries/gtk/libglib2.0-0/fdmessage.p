@@ -1,6 +1,6 @@
---- gio/gunixfdmessage.c.orig	2009-09-28 14:53:03.000000000 -0700
-+++ gio/gunixfdmessage.c	2009-09-28 14:54:50.000000000 -0700
-@@ -69,7 +69,7 @@
+--- gio/gunixfdmessage.c.orig	2013-08-07 15:34:32.000000000 +0100
++++ gio/gunixfdmessage.c	2013-10-09 12:21:28.165944500 +0100
+@@ -73,7 +73,7 @@
  static int
  g_unix_fd_message_get_msg_type (GSocketControlMessage *message)
  {
@@ -9,8 +9,8 @@
  }
  
  static GSocketControlMessage *
-@@ -81,7 +81,7 @@
-   GUnixFDMessage *message;
+@@ -88,7 +88,7 @@
+   gint *fds;
  
    if (level != SOL_SOCKET ||
 -      type != SCM_RIGHTS)

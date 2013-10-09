@@ -12,3 +12,8 @@ Linking flags for static libraries
 For running of shared programs you will need the
 libglib2.0 runtime and the libgettext runtime.
 
+The directory search path separator is the comma (,)
+rather than the colon (:).
+
+The default system data directories are /LibGLib2:$
+and /Choices:$.
