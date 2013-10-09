@@ -1,5 +1,8 @@
 AB_LICENCE=Free
 
+AB_PVERSION=1.50
+AB_ROVERSION=2
+
 AB_PRECONF=:
 
 CC=$HOST_CC make gobpack
@@ -8,7 +11,7 @@ ab_package() {
   ab_create_app jumpnbump Apps/Games
 
   ab_makerun jumpnbump
- 
+
   cp -av $S/README $A/\!Help
   cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/LINKS $A/
 

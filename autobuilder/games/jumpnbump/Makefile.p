@@ -5,7 +5,7 @@
  
  $(TARGET): $(OBJS) $(SDL_TARGET) data globals.h
 -	$(CC) -o $(TARGET) $(OBJS) $(LIBS) $(SDL_TARGET)
-+	$(CC) -o $(TARGET) $(OBJS) $(LIBS) $(SDL_TARGET) -lvorbisidec -static
++	$(CC) -o $(TARGET) $(OBJS) $(LIBS) $(SDL_TARGET) -lvorbisidec -logg -lmikmod -static
  
  $(OBJS): globals.h
  
