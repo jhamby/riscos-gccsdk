@@ -1,7 +1,7 @@
 AB_INSTALL=yes
 
 # Use internal mikmod modules, disable smpeg as we don't build it
-AB_CONFLAGS="--disable-music-mod-shared --disable-music-libmikmod --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared --disable-music-midi"
+AB_CONFLAGS="--disable-music-mod-shared --disable-music-libmikmod --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
 
 ab_package() {
   ab_create_app SDLMixer Apps/Library libsdl-mixer1.2-dev
