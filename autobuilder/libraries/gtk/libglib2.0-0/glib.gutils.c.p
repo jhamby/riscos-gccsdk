@@ -5,7 +5,7 @@
  
        if (!data_dirs || !data_dirs[0])
 +#if defined (__riscos__)
-+          data_dirs = "/LibGLib2:$,/Choices:$";
++          data_dirs = "/LibGLib2:,/Choices:";
 +#else
            data_dirs = "/usr/local/share/:/usr/share/";
 +#endif
