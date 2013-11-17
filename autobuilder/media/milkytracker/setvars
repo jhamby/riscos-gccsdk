@@ -1,0 +1,12 @@
+
+ab_package() {
+  ab_create_app MilkyTracker Apps/Audio
+
+  ab_makerun $S/src/tracker/milkytracker$AB_EXEEXT milkytracker
+
+  cp -av $S/docs $A
+  cp -av $S/resources $A
+  cp -av AUTHORS ChangeLog COPYING NEWS README $A
+
+  $AB_HOME/add-riscpkg -unixlib -unixhome
+}
