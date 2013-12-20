@@ -29,29 +29,30 @@ AOF version: 310
 ffff20: ef000000 ef000001 ef000002
 
 ** Area (0x0a1000) "DataBefore", aligned at 4 bytes, [data] [based r10] 
-   Size 65344 bytes, 0 relocations
+   Size 32576 bytes, 0 relocations
 
 000000: 00000001 00000002 00000003 00000000 00000000 00000000 00000000 00000000
 000020: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
 ...
-00ff20: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000004
+007f20: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000004
 
 ** Area (0x000122) "CodeNonABSARM", aligned at 4 bytes, [code] [readonly] [32bit] 
-   Size 408 bytes, 23 relocations
+   Size 424 bytes, 25 relocations
 
 000000: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-000020: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002008 e3402000
+000020: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002008 e3402008
 000040: e3001020 e3401000 e3002028 e3402000 e30f1f20 e3401000 e30f2f28 e3402000
 000060: e30f1f20 e34010ff e30f2f28 e34020ff e3001000 e3401000 e3002000 e3402000
-000080: e3003028 e3403000 e3001088 e3401000 e30010e0 e3401000 e3002108 e3402000
-0000a0: e3001000 e3401000 e3002004 e3402000 e3001020 e3401000 e3002024 e3402000
+000080: e3003028 e3403028 e3001088 e3401088 e30010e0 e34010e0 e3002108 e3402108
+0000a0: e3001000 e3401000 e3002004 e3402004 e3001020 e3401000 e3002024 e3402000
 0000c0: e30f1f20 e3401000 e30f2f24 e3402000 e30f1f20 e34010ff e30f2f24 e34020ff
 0000e0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
 000100: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002000 e3402000
 000120: e3003000 e3403000 e3001000 e3401000 e3002000 e3402000 e3001000 e3401000
 000140: e3002000 e3402000 e3001018 e3401000 e30f2f48 e3402000 e3001014 e3401000
-000160: e30f2f44 e3402000 e3001000 e3401000 e3002008 e3402000 e30f3f3c e3403000
-000180: e3001000 e3401000 e3002008 e3402000 e30f3f3c e3403000
+000160: e30f2f44 e3402000 e3001000 e3401000 e3002008 e3402008 e3073f3c e3473f3c
+000180: e30847ee e34847ee e3001000 e3401000 e3002008 e3402008 e3073f3c e3473f3c
+0001a0: e30847ee e34847ee
 
 ** Relocations:
 
@@ -75,27 +76,30 @@ At 0x000140 (flags 0x8b000002): Unlimited number of instructions displaced by sy
 At 0x000168 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000170 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000178 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
-At 0x000180 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000180 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000188 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
 At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000198 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x0001a0 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
 
 ** Area (0x000123) "CodeABSARM", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
    Base address 0xff40
-   Size 408 bytes, 17 relocations
+   Size 424 bytes, 19 relocations
 
 00ff40: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-00ff60: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002008 e3402000
+00ff60: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002008 e3402008
 00ff80: e3001020 e3401000 e3002028 e3402000 e30f1f20 e3401000 e30f2f28 e3402000
 00ffa0: e30f1f20 e34010ff e30f2f28 e34020ff e30f1f40 e3401000 e30f2f40 e3402000
 00ffc0: e30f3f68 e3403000 e30f1fc8 e3401000 e3001020 e3401001 e3002048 e3402001
-00ffe0: e3001000 e3401000 e3002004 e3402000 e3001020 e3401000 e3002024 e3402000
+00ffe0: e3001000 e3401000 e3002004 e3402004 e3001020 e3401000 e3002024 e3402000
 010000: e30f1f20 e3401000 e30f2f24 e3402000 e30f1f20 e34010ff e30f2f24 e34020ff
 010020: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
 010040: 00000000 00000000 00000000 00000000 e3001000 e3401000 e3002000 e3402000
 010060: e3003000 e3403000 e3001000 e3401000 e3002000 e3402000 e3001000 e3401000
 010080: e3002000 e3402000 e3001018 e3401000 e30f2f48 e3402000 e3001014 e3401000
-0100a0: e30f2f44 e3402000 e3001000 e3401000 e3002008 e3402000 e30f3f3c e3403000
-0100c0: e3001000 e3401000 e3002008 e3402000 e30f3f3c e3403000
+0100a0: e30f2f44 e3402000 e3001000 e3401000 e3002008 e3402008 e3073f3c e3473f3c
+0100c0: e30847ee e34847ee e3001000 e3401000 e3002008 e3402008 e3073f3c e3473f3c
+0100e0: e30847ee e34847ee
 
 ** Relocations:
 
@@ -113,26 +117,29 @@ At 0x000140 (flags 0x8b000002): Unlimited number of instructions displaced by sy
 At 0x000168 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000170 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000178 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
-At 0x000180 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000180 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000188 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
 At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000198 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x0001a0 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
 
 ** Area (0x000122) "CodeNonABSTHUMB", aligned at 4 bytes, [code] [readonly] [32bit] 
-   Size 408 bytes, 23 relocations
+   Size 424 bytes, 25 relocations
 
 000000: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-000020: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0208f240 0200f2c0
+000020: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0208f240 0208f2c0
 000040: 0120f240 0100f2c0 0228f240 0200f2c0 7120f64f 0100f2c0 7228f64f 0200f2c0
 000060: 7120f64f 01fff2c0 7228f64f 02fff2c0 0100f240 0100f2c0 0200f240 0200f2c0
-000080: 0328f240 0300f2c0 0188f240 0100f2c0 01e0f240 0100f2c0 1208f240 0200f2c0
-0000a0: 0100f240 0100f2c0 0204f240 0200f2c0 0120f240 0100f2c0 0224f240 0200f2c0
+000080: 0328f240 0328f2c0 0188f240 0188f2c0 01e0f240 01e0f2c0 1208f240 1208f2c0
+0000a0: 0100f240 0100f2c0 0204f240 0204f2c0 0120f240 0100f2c0 0224f240 0200f2c0
 0000c0: 7120f64f 0100f2c0 7224f64f 0200f2c0 7120f64f 01fff2c0 7224f64f 02fff2c0
 0000e0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
 000100: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0200f240 0200f2c0
 000120: 0300f240 0300f2c0 0100f240 0100f2c0 0200f240 0200f2c0 0100f240 0100f2c0
 000140: 0200f240 0200f2c0 0118f240 0100f2c0 7248f64f 0200f2c0 0114f240 0100f2c0
-000160: 7244f64f 0200f2c0 0100f240 0100f2c0 0208f240 0200f2c0 733cf64f 0300f2c0
-000180: 0100f240 0100f2c0 0208f240 0200f2c0 733cf64f 0300f2c0
+000160: 7244f64f 0200f2c0 0100f240 0100f2c0 0208f240 0208f2c0 733cf647 733cf6c7
+000180: 74eef248 74eef2c8 0100f240 0100f2c0 0208f240 0208f2c0 733cf647 733cf6c7
+0001a0: 74eef248 74eef2c8
 
 ** Relocations:
 
@@ -156,27 +163,30 @@ At 0x000140 (flags 0x8b000002): Unlimited number of instructions displaced by sy
 At 0x000168 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000170 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000178 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
-At 0x000180 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000180 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000188 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
 At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000198 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x0001a0 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
 
 ** Area (0x000123) "CodeABSTHUMB", aligned at 4 bytes, [code] [abs] [readonly] [32bit] 
    Base address 0xff40
-   Size 408 bytes, 17 relocations
+   Size 424 bytes, 19 relocations
 
 00ff40: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-00ff60: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0208f240 0200f2c0
+00ff60: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0208f240 0208f2c0
 00ff80: 0120f240 0100f2c0 0228f240 0200f2c0 7120f64f 0100f2c0 7228f64f 0200f2c0
 00ffa0: 7120f64f 01fff2c0 7228f64f 02fff2c0 7140f64f 0100f2c0 7240f64f 0200f2c0
 00ffc0: 7368f64f 0300f2c0 71c8f64f 0100f2c0 0120f240 0101f2c0 0248f240 0201f2c0
-00ffe0: 0100f240 0100f2c0 0204f240 0200f2c0 0120f240 0100f2c0 0224f240 0200f2c0
+00ffe0: 0100f240 0100f2c0 0204f240 0204f2c0 0120f240 0100f2c0 0224f240 0200f2c0
 010000: 7120f64f 0100f2c0 7224f64f 0200f2c0 7120f64f 01fff2c0 7224f64f 02fff2c0
 010020: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
 010040: 00000000 00000000 00000000 00000000 0100f240 0100f2c0 0200f240 0200f2c0
 010060: 0300f240 0300f2c0 0100f240 0100f2c0 0200f240 0200f2c0 0100f240 0100f2c0
 010080: 0200f240 0200f2c0 0118f240 0100f2c0 7248f64f 0200f2c0 0114f240 0100f2c0
-0100a0: 7244f64f 0200f2c0 0100f240 0100f2c0 0208f240 0200f2c0 733cf64f 0300f2c0
-0100c0: 0100f240 0100f2c0 0208f240 0200f2c0 733cf64f 0300f2c0
+0100a0: 7244f64f 0200f2c0 0100f240 0100f2c0 0208f240 0208f2c0 733cf647 733cf6c7
+0100c0: 74eef248 74eef2c8 0100f240 0100f2c0 0208f240 0208f2c0 733cf647 733cf6c7
+0100e0: 74eef248 74eef2c8
 
 ** Relocations:
 
@@ -194,9 +204,11 @@ At 0x000140 (flags 0x8b000002): Unlimited number of instructions displaced by sy
 At 0x000168 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000170 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000178 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
-At 0x000180 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000180 (flags 0x93000004): Unlimited number of instructions base-relative to base of area "DataBefore" (type-2 reloc)
 At 0x000188 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
 At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x000198 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
+At 0x0001a0 (flags 0x9300000d): Unlimited number of instructions base-relative to base of area "DataAfter" (type-2 reloc)
 
 ** Area (0x000102) "CodeAfter", aligned at 4 bytes, [code] [32bit] 
    Size 8 bytes, 0 relocations
@@ -222,12 +234,12 @@ At 0x000190 (flags 0x9300000d): Unlimited number of instructions base-relative t
 ffff20: df01df00 0000df02
 
 ** Area (0x0a1000) "DataAfter", aligned at 4 bytes, [data] [based r10] 
-   Size 65344 bytes, 0 relocations
+   Size 32576 bytes, 0 relocations
 
 000000: 00000004 00000005 00000006 00000000 00000000 00000000 00000000 00000000
 000020: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
 ...
-00ff20: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000004
+007f20: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000004
 
 ** Symbol table:
 
