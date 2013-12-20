@@ -1,3 +1,9 @@
+Fri Dec 20 22:59:12 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	Automake 1.13 fixes:
+	* configure.ac (AM_PROG_CC_C_O): Add.
+	(AM_INIT_AUTOMAKE): Drop -Werror.
+
 Sat Jul 20 18:32:14 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (print_area): Use ellipsis when dumping area contents

@@ -5,8 +5,9 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])
 
 AC_PROG_CC
+AM_PROG_CC_C_O
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([-Wall foreign])
 
 AC_HEADER_STDC
 dnl AC_CHECK_FUNCS(strdup strndup strncasecmp)
