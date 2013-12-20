@@ -5,14 +5,16 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SUBDIRS([elftoolchain decaof])
 
+AC_CONFIG_MACRO_DIR([m4])
+AM_INIT_AUTOMAKE([-Wall foreign])
+
 AC_USE_SYSTEM_EXTENSIONS
-LT_INIT
 
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_GNU_SOURCE
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-AC_CONFIG_MACRO_DIR([m4])
+LT_INIT
 
 AC_HEADER_STDC
 AC_CHECK_FUNCS(strdup strndup strncasecmp strcasecmp)

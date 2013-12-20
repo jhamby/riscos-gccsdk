@@ -1,3 +1,15 @@
+Fri Dec 20 23:02:21 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	Automake 1.13 fixes:
+	* configure.ac (AM_PROG_CC_C_O): Add.
+	(AM_INIT_AUTOMAKE): Drop -Werror.
+
+	* m4/libtool.m4: Remove.
+	* m4/ltoptions.m4: Remove.
+	* m4/ltsugar.m4: Remove.
+	* m4/ltversion.m4: Remove.
+	* m4/lt~obsolete.m4: Remove.
+
 Mon Oct  7 21:31:48 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/eval.c (Eval_Unop): Fix wrong shift for eOp_CCEnc case.
