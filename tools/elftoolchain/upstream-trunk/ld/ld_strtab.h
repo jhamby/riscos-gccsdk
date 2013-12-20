@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Kai Wang
+ * Copyright (c) 2012,2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,18 +23,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ld_strtab.h 2505 2012-05-12 22:39:48Z kaiwang27 $
+ * $Id: ld_strtab.h 2965 2013-09-10 02:46:29Z kaiwang27 $
  */
 
-struct ld_strtab {
-	char *st_buf;
-	size_t st_cap;
-	size_t st_size;
-};
-
-struct ld_strtab *ld_strtab_alloc(struct ld *);
+struct ld_strtab *ld_strtab_alloc(struct ld *, unsigned char);
 void	ld_strtab_free(struct ld_strtab *);
 void	ld_strtab_insert(struct ld *, struct ld_strtab *, const char *);
-int	ld_strtab_insert_no_suffix(struct ld *, struct ld_strtab *,
-	    const char *);
-int	ld_strtab_lookup(struct ld_strtab *, const char *);
+size_t	ld_strtab_insert_no_suffix(struct ld *, struct ld_strtab *, char *);
+size_t	ld_strtab_lookup(struct ld_strtab *, const char *);
+char	*ld_strtab_getbuf(struct ld *, struct ld_strtab *);
+size_t	ld_strtab_getsize(struct ld_strtab *);

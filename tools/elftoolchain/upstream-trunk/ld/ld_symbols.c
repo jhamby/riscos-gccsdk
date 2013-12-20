@@ -34,7 +34,7 @@
 #include "ld_script.h"
 #include "ld_strtab.h"
 
-ELFTC_VCSID("$Id: ld_symbols.c 2956 2013-08-24 19:34:23Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_symbols.c 2965 2013-09-10 02:46:29Z kaiwang27 $");
 
 #define	_INIT_SYMTAB_SIZE	128
 
@@ -314,7 +314,7 @@ ld_symbols_build_symtab(struct ld *ld)
 	lo = ld->ld_output;
 
 	ld->ld_symtab = _alloc_symbol_table(ld);
-	ld->ld_strtab = ld_strtab_alloc(ld);
+	ld->ld_strtab = ld_strtab_alloc(ld, 0);
 
 	/* Create an initial symbol at the beginning of symbol table. */
 	_lsb.lsb_name = NULL;
@@ -431,7 +431,7 @@ ld_symbols_scan(struct ld *ld)
 
 	ld->ld_dynsym = _alloc_symbol_table(ld);
 	if (ld->ld_dynstr == NULL)
-		ld->ld_dynstr = ld_strtab_alloc(ld);
+		ld->ld_dynstr = ld_strtab_alloc(ld, 0);
 
 	/* Reserve space for the initial symbol. */
 	ld->ld_dynsym->sy_size++;
