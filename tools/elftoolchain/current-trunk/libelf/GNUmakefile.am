@@ -251,6 +251,7 @@ libelf_convert.c: elf_types.m4 libelf_convert.m4
 libelf_fsize.c:	 elf_types.m4 libelf_fsize.m4
 libelf_msize.c:	 elf_types.m4 libelf_msize.m4
 
-%.c: %.m4
+SUFFIXES = .m4
+.m4.c:
 	m4 -D SRCDIR=${top_srcdir}/libelf $< > $@
 

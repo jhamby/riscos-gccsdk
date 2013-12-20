@@ -1,3 +1,15 @@
+Fri Dec 20 22:56:14 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	Automake 1.13 fixes:
+	* current-trunk (svn:ignore): Add compile and ar-lib.
+	* current-trunk/configure.ac (AM_INIT_AUTOMAKE): Drop -Werror.
+	(AM_PROG_CC_C_O): Add.
+	(LT_INIT): Move after AC_PROG/AM_PROG tests.
+
+	* current-trunk/libdwarf/GNUmakefile.am: Avoid GNU makefile specific
+	feature use.
+	* current-trunk/libelf/GNUmakefile.am: Likewise.
+
 Fri Dec 20 20:14:52 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Merged from upstream-trunk.

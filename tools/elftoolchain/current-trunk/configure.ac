@@ -10,20 +10,22 @@ AC_CANONICAL_TARGET
 AC_CONFIG_SRCDIR([.])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([-Wall foreign])
 dnl Enable silent builds by default, but only if we have automake
 dnl that supports it. It requires automake 1.11 and newer
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
 
-LT_INIT
-
 # Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_PROG_LEX
 AC_PROG_YACC
+AM_PROG_AR
+
+LT_INIT
 
 REQ_LIBARCHIVE_VERSION=2.8.4
 
