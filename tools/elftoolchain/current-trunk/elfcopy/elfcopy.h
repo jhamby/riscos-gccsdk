@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2010,2012 Kai Wang
+ * Copyright (c) 2007-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: elfcopy.h 2540 2012-08-11 15:15:25Z kaiwang27 $
+ * $Id: elfcopy.h 2970 2013-12-01 15:22:12Z kaiwang27 $
  */
 
 #include "_elftc.h"
@@ -214,6 +214,7 @@ struct elfcopy {
 #define	SEC_PRINT	0x00400000U
 #define	SEC_REMOVE	0x00800000U
 #define	SEC_COPY	0x01000000U
+#define	DISCARD_LLABEL	0x02000000U
 
 	int		 flags;		/* elfcopy run control flags. */
 	int64_t		 change_addr;	/* Section address adjustment. */

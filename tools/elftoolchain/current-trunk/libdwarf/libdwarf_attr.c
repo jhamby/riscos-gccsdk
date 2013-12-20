@@ -27,7 +27,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_attr.c 2070 2011-10-27 03:05:32Z jkoshy $");
+ELFTC_VCSID("$Id: libdwarf_attr.c 2966 2013-09-21 14:40:14Z kaiwang27 $");
 
 int
 _dwarf_attr_alloc(Dwarf_Die die, Dwarf_Attribute *atp, Dwarf_Error *error)
@@ -107,7 +107,7 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 	memset(&atref, 0, sizeof(atref));
 	atref.at_die = die;
 	atref.at_attrib = ad->ad_attrib;
-	atref.at_form = ad->ad_form;
+	atref.at_form = indirect ? form : ad->ad_form;
 	atref.at_indirect = indirect;
 	atref.at_ld = NULL;
 

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2011 Kai Wang
+ * Copyright (c) 2007-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 
 #include "elfcopy.h"
 
-ELFTC_VCSID("$Id: symbols.c 2358 2011-12-19 18:22:32Z kaiwang27 $");
+ELFTC_VCSID("$Id: symbols.c 2971 2013-12-01 15:22:21Z kaiwang27 $");
 
 /* Symbol table buffer structure. */
 struct symbuf {
@@ -57,6 +57,7 @@ struct strbuf {
 static int	is_debug_symbol(unsigned char st_info);
 static int	is_global_symbol(unsigned char st_info);
 static int	is_local_symbol(unsigned char st_info);
+static int	is_local_label(const char *name);
 static int	is_needed_symbol(struct elfcopy *ecp, int i, GElf_Sym *s);
 static int	is_remove_symbol(struct elfcopy *ecp, size_t sc, int i,
 		    GElf_Sym *s, const char *name);
@@ -107,6 +108,17 @@ is_local_symbol(unsigned char st_info)
 {
 
 	if (GELF_ST_BIND(st_info) == STB_LOCAL)
+		return (1);
+
+	return (0);
+}
+
+static int
+is_local_label(const char *name)
+{
+
+	/* Compiler generated local symbols that start with .L */
+	if (name[0] == '.' && name[1] == 'L')
 		return (1);
 
 	return (0);
@@ -178,7 +190,12 @@ is_remove_symbol(struct elfcopy *ecp, size_t sc, int i, GElf_Sym *s,
 	if (ecp->strip == STRIP_UNNEEDED)
 		return (1);
 
-	if ((ecp->flags & DISCARD_LOCAL) && is_local_symbol(s->st_info))
+	if ((ecp->flags & DISCARD_LOCAL) && is_local_symbol(s->st_info) &&
+	    !is_debug_symbol(s->st_info))
+		return (1);
+
+	if ((ecp->flags & DISCARD_LLABEL) && is_local_symbol(s->st_info) &&
+	    !is_debug_symbol(s->st_info) && is_local_label(name))
 		return (1);
 
 	if (ecp->strip == STRIP_DEBUG && is_debug_symbol(s->st_info))
@@ -339,9 +356,12 @@ generate_symbols(struct elfcopy *ecp)
 	if (elferr != 0)
 		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
-	/* FIXME don't panic if can't find .strtab */
-	if (symndx == 0)
-		errx(EXIT_FAILURE, "can't find .strtab section");
+
+	/* Symbol table should exist if this function is called. */
+	if (symndx == 0) {
+		warnx("can't find .strtab section");
+		return (0);
+	}
 
 	/* Locate .symtab of input object. */
 	is = NULL;

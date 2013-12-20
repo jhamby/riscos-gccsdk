@@ -32,7 +32,7 @@
 #include "ld_reloc.h"
 #include "ld_utils.h"
 
-ELFTC_VCSID("$Id: ld_ehframe.c 2962 2013-08-25 16:34:57Z kaiwang27 $");
+ELFTC_VCSID("$Id: ld_ehframe.c 2964 2013-09-10 02:46:06Z kaiwang27 $");
 
 struct ld_ehframe_cie {
 	uint64_t cie_off;	/* offset in section */
@@ -609,8 +609,9 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 					is->is_ris->is_num_reloc--;
 					is->is_ris->is_size -= 
 					    ld->ld_arch->reloc_entsize;
-					os->os_r->os_size -=
-					    ld->ld_arch->reloc_entsize;
+					if (os->os_r != NULL)
+						os->os_r->os_size -=
+						    ld->ld_arch->reloc_entsize;
 					break;
 				}
 

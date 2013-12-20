@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2011 Kai Wang
+ * Copyright (c) 2007-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@
 
 #include "elfcopy.h"
 
-ELFTC_VCSID("$Id: main.c 2372 2011-12-30 07:06:00Z jkoshy $");
+ELFTC_VCSID("$Id: main.c 2970 2013-12-01 15:22:12Z kaiwang27 $");
 
 enum options
 {
@@ -343,11 +343,15 @@ create_elf(struct elfcopy *ecp)
 	/* Apply section address changes, if any. */
 	adjust_addr(ecp);
 
-	/* FIXME */
+	/*
+	 * Determine if the symbol table needs to be changed based on
+	 * command line options.
+	 */
 	if (ecp->strip == STRIP_DEBUG ||
 	    ecp->strip == STRIP_UNNEEDED ||
 	    ecp->flags & WEAKEN_ALL ||
 	    ecp->flags & DISCARD_LOCAL ||
+	    ecp->flags & DISCARD_LLABEL ||
 	    ecp->prefix_sym != NULL ||
 	    !STAILQ_EMPTY(&ecp->v_symop))
 		ecp->flags &= ~SYMTAB_INTACT;
@@ -808,8 +812,10 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			add_to_symop_list(ecp, optarg, NULL, SYMOP_WEAKEN);
 			break;
 		case 'x':
-		case 'X':
 			ecp->flags |= DISCARD_LOCAL;
+			break;
+		case 'X':
+			ecp->flags |= DISCARD_LLABEL;
 			break;
 		case ECP_ADD_GNU_DEBUGLINK:
 			ecp->debuglink = optarg;
@@ -1086,8 +1092,10 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 			ecp->flags |= WILDCARD;
 			break;
 		case 'x':
-		case 'X':
 			ecp->flags |= DISCARD_LOCAL;
+			break;
+		case 'X':
+			ecp->flags |= DISCARD_LLABEL;
 			break;
 		case ECP_ONLY_DEBUG:
 			ecp->strip = STRIP_NONDEBUG;
@@ -1101,7 +1109,9 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 		}
 	}
 
-	if (ecp->strip == 0)
+	if (ecp->strip == 0 &&
+	    ((ecp->flags & DISCARD_LOCAL) == 0) &&
+	    ((ecp->flags & DISCARD_LLABEL) == 0))
 		ecp->strip = STRIP_ALL;
 	if (optind == argc)
 		strip_usage();
