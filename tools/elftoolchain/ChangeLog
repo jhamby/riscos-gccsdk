@@ -1,3 +1,9 @@
+Sun Dec 22 16:21:10 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	current-trunk:
+	* libelftc/elftc_copyfile.c (elftc_copyfile): Fix memory leak when
+	read fails.  Change test on mmap failure.
+
 Sun Dec 22 16:16:08 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	current-trunk:
