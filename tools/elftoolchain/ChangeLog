@@ -1,3 +1,11 @@
+Sun Dec 22 15:53:47 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	current-trunk:
+	* libdwarf/libdwarf_arange.c (_dwarf_arange_init): Fix wrong amount
+	of heap memory allocation storing for Dwarf_Arange data.
+	* libdwarf/dwarf_lineno.c (dwarf_srclines): Fix wrong amount of heap
+	memory allocation for storing Dwarf_Line data.
+
 Sun Dec 22 14:05:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	current-trunk:
