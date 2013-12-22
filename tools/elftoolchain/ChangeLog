@@ -1,3 +1,10 @@
+Sun Dec 22 16:16:08 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	current-trunk:
+	* libdwarf/libdwarf_macinfo.c (_dwarf_macinfo_parse): Don't access
+	fileindex out-of-bounds for unmatched (DW_MACINFO_start_file,
+	DW_MACINFO_end_file) pairs.
+
 Sun Dec 22 16:11:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	current-trunk:
