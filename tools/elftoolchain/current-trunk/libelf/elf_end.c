@@ -70,7 +70,7 @@ elf_end(Elf *e)
 			 */
 			STAILQ_FOREACH_SAFE(scn, &e->e_u.e_elf.e_scn, s_next,
 			    tscn)
- 				scn = _libelf_release_scn(scn);
+ 				_libelf_release_scn(scn);
 			break;
 		case ELF_K_NUM:
 			assert(0);
@@ -90,7 +90,7 @@ elf_end(Elf *e)
 		sv = e;
 		if ((e = e->e_parent) != NULL)
 			e->e_u.e_ar.e_nchildren--;
-		sv = _libelf_release_elf(sv);
+		_libelf_release_elf(sv);
 	}
 
 	return (0);

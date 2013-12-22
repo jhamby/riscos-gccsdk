@@ -91,7 +91,7 @@ _libelf_init_elf(Elf *e, Elf_Kind kind)
 	} while (0)
 
 
-Elf *
+void
 _libelf_release_elf(Elf *e)
 {
 	Elf_Arhdr *arh;
@@ -129,8 +129,6 @@ _libelf_release_elf(Elf *e)
 	}
 
 	free(e);
-
-	return (NULL);
 }
 
 struct _Libelf_Data *
@@ -148,7 +146,7 @@ _libelf_allocate_data(Elf_Scn *s)
 	return (d);
 }
 
-struct _Libelf_Data *
+void
 _libelf_release_data(struct _Libelf_Data *d)
 {
 
@@ -156,8 +154,6 @@ _libelf_release_data(struct _Libelf_Data *d)
 		free(d->d_data.d_buf);
 
 	free(d);
-
-	return (NULL);
 }
 
 Elf_Scn *
@@ -181,7 +177,7 @@ _libelf_allocate_scn(Elf *e, size_t ndx)
 	return (s);
 }
 
-Elf_Scn *
+void
 _libelf_release_scn(Elf_Scn *s)
 {
 	Elf *e;
@@ -191,13 +187,13 @@ _libelf_release_scn(Elf_Scn *s)
 
 	STAILQ_FOREACH_SAFE(d, &s->s_data, d_next, td) {
 		STAILQ_REMOVE(&s->s_data, d, _Libelf_Data, d_next);
-		d = _libelf_release_data(d);
+		_libelf_release_data(d);
 	}
 
 	STAILQ_FOREACH_SAFE(d, &s->s_rawdata, d_next, td) {
 		assert((d->d_flags & LIBELF_F_DATA_MALLOCED) == 0);
 		STAILQ_REMOVE(&s->s_rawdata, d, _Libelf_Data, d_next);
-		d = _libelf_release_data(d);
+		_libelf_release_data(d);
 	}
 
 	e = s->s_elf;
@@ -207,6 +203,4 @@ _libelf_release_scn(Elf_Scn *s)
 	STAILQ_REMOVE(&e->e_u.e_elf.e_scn, s, _Elf_Scn, s_next);
 
 	free(s);
-
-	return (NULL);
 }

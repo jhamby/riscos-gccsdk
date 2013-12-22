@@ -1,3 +1,15 @@
+Sun Dec 22 14:05:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	current-trunk:
+	* libelf/_libelf.h (_libelf_release_data,_libelf_release_elf,
+	_libelf_release_scn): Drop the NULL pointer return value.  Using that
+	value for local variable assignment results in "dead assignment"
+	compiler warnings.
+	* libelf/libelf_allocate.c: Follow.
+	* libelf/elf_data.c: Likewise.
+	* libelf/elf_end.c: Likewise.
+	* libelf/libelf_memory.c: Likewise.
+
 Fri Dec 20 23:10:37 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/m4: Add empty directory.

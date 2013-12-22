@@ -130,7 +130,7 @@ elf_getdata(Elf_Scn *s, Elf_Data *ed)
         }
 
 	if ((d->d_data.d_buf = malloc(msz*count)) == NULL) {
-		(void) _libelf_release_data(d);
+		_libelf_release_data(d);
 		LIBELF_SET_ERROR(RESOURCE, 0);
 		return (NULL);
 	}
