@@ -1,3 +1,10 @@
+Sun Dec 22 16:11:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	current-trunk:
+	* libdwarf/dwarf_pro_lineno.c (dwarf_add_line_entry): Don't do a
+	NULL pointer dereference when dwarf_lne_set_address hasn't been called
+	before.
+
 Sun Dec 22 16:03:36 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	current-trunk:
