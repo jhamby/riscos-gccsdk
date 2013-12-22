@@ -992,7 +992,7 @@ _libelf_write_shdr(Elf *e, char *nf, struct _Elf_Extent *ex)
 static off_t
 _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 {
-	off_t nrc, rc;
+	off_t rc;
 	char *newfile;
 	Elf_Scn *scn, *tscn;
 	struct _Elf_Extent *ex;
@@ -1006,8 +1006,9 @@ _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 		return ((off_t) -1);
 	}
 
-	nrc = rc = 0;
+	rc = 0;
 	SLIST_FOREACH(ex, extents, ex_next) {
+		off_t nrc;
 
 		/* Fill inter-extent gaps. */
 		if (ex->ex_start > (size_t) rc)

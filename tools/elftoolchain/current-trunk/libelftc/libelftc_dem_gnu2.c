@@ -761,7 +761,6 @@ read_func_ptr(struct demangle_data *d)
 	}
 
 	fptr.p = d->p;
-	lim = 0;
 
 	if (read_type(&fptr) == false) {
 		free(arg_type);

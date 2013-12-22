@@ -380,7 +380,6 @@ symtaberror:
  */
 
 #define	GET_WORD(P, V) do {			\
-		(V) = 0;			\
 		(V) = (P)[0]; (V) <<= 8;	\
 		(V) += (P)[1]; (V) <<= 8;	\
 		(V) += (P)[2]; (V) <<= 8;	\
@@ -427,8 +426,6 @@ _libelf_ar_process_svr4_symtab(Elf *e, size_t *count)
 
 		if (s >= end)
 			goto symtaberror;
-
-		off = 0;
 
 		GET_WORD(p, off);
 
