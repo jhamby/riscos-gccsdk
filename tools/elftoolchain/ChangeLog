@@ -8,12 +8,16 @@ Sun Dec 22 16:28:26 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 	(_libelf_ar_process_svr4_symtab): Likewise.
 	* libelftc/libelftc_dem_arm.c (read_func_ptr): Likewise.
 	* libelftc/libelftc_dem_gnu2.c (read_func_ptr): Likewise.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/432
 
 Sun Dec 22 16:21:10 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	current-trunk:
 	* libelftc/elftc_copyfile.c (elftc_copyfile): Fix memory leak when
 	read fails.  Change test on mmap failure.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/437
 
 Sun Dec 22 16:16:08 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -21,6 +25,8 @@ Sun Dec 22 16:16:08 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 	* libdwarf/libdwarf_macinfo.c (_dwarf_macinfo_parse): Don't access
 	fileindex out-of-bounds for unmatched (DW_MACINFO_start_file,
 	DW_MACINFO_end_file) pairs.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/436
 
 Sun Dec 22 16:11:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -28,6 +34,8 @@ Sun Dec 22 16:11:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 	* libdwarf/dwarf_pro_lineno.c (dwarf_add_line_entry): Don't do a
 	NULL pointer dereference when dwarf_lne_set_address hasn't been called
 	before.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/435
 
 Sun Dec 22 16:03:36 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -37,6 +45,8 @@ Sun Dec 22 16:03:36 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 	* libdwarf_lineno.c (_dwarf_lineno_init): Likewise.
 	* libdwarf_loclist.c (_dwarf_loclist_add): Likewise.
 	* libdwarf/libdwarf_ranges.c (_dwarf_ranges_add): Likewise.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/434
 
 Sun Dec 22 15:53:47 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -45,6 +55,8 @@ Sun Dec 22 15:53:47 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 	of heap memory allocation storing for Dwarf_Arange data.
 	* libdwarf/dwarf_lineno.c (dwarf_srclines): Fix wrong amount of heap
 	memory allocation for storing Dwarf_Line data.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/433
 
 Sun Dec 22 14:05:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -57,6 +69,8 @@ Sun Dec 22 14:05:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 	* libelf/elf_data.c: Likewise.
 	* libelf/elf_end.c: Likewise.
 	* libelf/libelf_memory.c: Likewise.
+	Sent patch upstream as:
+	http://sourceforge.net/apps/trac/elftoolchain/ticket/431
 
 Fri Dec 20 23:10:37 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
