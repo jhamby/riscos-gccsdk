@@ -1,3 +1,12 @@
+Sun Dec 22 16:03:36 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	current-trunk:
+	* libdwarf/libdwarf_elf_init.c (_dwarf_elf_init): Avoid calling malloc
+	for 0 byte allocation.
+	* libdwarf_lineno.c (_dwarf_lineno_init): Likewise.
+	* libdwarf_loclist.c (_dwarf_loclist_add): Likewise.
+	* libdwarf/libdwarf_ranges.c (_dwarf_ranges_add): Likewise.
+
 Sun Dec 22 15:53:47 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	current-trunk:
