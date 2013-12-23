@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_lineno.c 2949 2013-05-30 21:36:43Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_lineno.c 2972 2013-12-23 06:46:04Z kaiwang27 $");
 
 static int
 _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
@@ -370,7 +370,8 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	}
 
 	if (length != 0) {
-		if ((li->li_incdirs = malloc(length * sizeof(char *))) == NULL) {
+		if ((li->li_incdirs = malloc(length * sizeof(char *))) ==
+		    NULL) {
 			ret = DW_DLE_MEMORY;
 			DWARF_SET_ERROR(dbg, error, ret);
 			goto fail_cleanup;

@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_elf_init.c 2697 2012-11-24 17:12:36Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_elf_init.c 2972 2013-12-23 06:46:04Z kaiwang27 $");
 
 static const char *debug_name[] = {
 	".debug_abbrev",

@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_macinfo.c 2070 2011-10-27 03:05:32Z jkoshy $");
+ELFTC_VCSID("$Id: libdwarf_macinfo.c 2974 2013-12-23 06:46:22Z kaiwang27 $");
 
 #define	_FILEINDEX_STACK_SIZE	16384
 
@@ -86,7 +86,7 @@ _dwarf_macinfo_parse(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *off,
 				sp--;
 				break;
 			}
-			/* Fall through.  */
+			/* FALLTHROUGH */
 		default:
 			DWARF_SET_ERROR(dbg, error,
 			    DW_DLE_DEBUG_MACRO_INCONSISTENT);
