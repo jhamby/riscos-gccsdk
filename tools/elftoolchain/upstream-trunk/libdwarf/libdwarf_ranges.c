@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_ranges.c 2070 2011-10-27 03:05:32Z jkoshy $");
+ELFTC_VCSID("$Id: libdwarf_ranges.c 2972 2013-12-23 06:46:04Z kaiwang27 $");
 
 static int
 _dwarf_ranges_parse(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
@@ -127,19 +127,23 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off,
 	}
 
 	rl->rl_rglen = cnt;
-	if ((rl->rl_rgarray = calloc(cnt, sizeof(Dwarf_Ranges))) ==
-	    NULL) {
-		free(rl);
-		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
-		return (DW_DLE_MEMORY);
-	}
+	if (cnt != 0) {
+		if ((rl->rl_rgarray = calloc(cnt, sizeof(Dwarf_Ranges))) ==
+		    NULL) {
+			free(rl);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
+			return (DW_DLE_MEMORY);
+		}
 
-	ret = _dwarf_ranges_parse(dbg, cu, ds, off, rl->rl_rgarray, NULL);
-	if (ret != DW_DLE_NONE) {
-		free(rl->rl_rgarray);
-		free(rl);
-		return (ret);
-	}
+		ret = _dwarf_ranges_parse(dbg, cu, ds, off, rl->rl_rgarray,
+		    NULL);
+		if (ret != DW_DLE_NONE) {
+			free(rl->rl_rgarray);
+			free(rl);
+			return (ret);
+		}
+	} else
+		rl->rl_rgarray = NULL;
 
 	STAILQ_INSERT_TAIL(&dbg->dbg_rllist, rl, rl_next);
 	*ret_rl = rl;

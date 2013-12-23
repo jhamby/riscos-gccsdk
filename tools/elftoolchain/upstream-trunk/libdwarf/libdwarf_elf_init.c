@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_elf_init.c 2697 2012-11-24 17:12:36Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_elf_init.c 2972 2013-12-23 06:46:04Z kaiwang27 $");
 
 static const char *debug_name[] = {
 	".debug_abbrev",
@@ -237,6 +237,9 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 	}
 
 	e->eo_seccnt = n;
+
+	if (n == 0)
+		return (DW_DLE_NONE);
 
 	if ((e->eo_data = calloc(n, sizeof(Dwarf_Elf_Data))) == NULL ||
 	    (e->eo_shdr = calloc(n, sizeof(GElf_Shdr))) == NULL) {

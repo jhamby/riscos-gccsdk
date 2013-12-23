@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: dwarf_pro_lineno.c 2953 2013-06-30 20:21:38Z kaiwang27 $");
+ELFTC_VCSID("$Id: dwarf_pro_lineno.c 2973 2013-12-23 06:46:16Z kaiwang27 $");
 
 Dwarf_Unsigned
 dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
@@ -45,7 +45,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 
 	ln = STAILQ_LAST(&li->li_lnlist, _Dwarf_Line, ln_next);
 
-	if (ln->ln_addr > off) {
+	if (ln == NULL || ln->ln_addr > off) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
