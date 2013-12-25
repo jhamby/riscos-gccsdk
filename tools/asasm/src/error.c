@@ -209,12 +209,13 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 	    break;
 
 	  case POType_eMacro:
-	    fprintf (stderr, "%s:%u:%zd: %s: %s in macro %s\n",
+	    fprintf (stderr, "%s:%u:%zd: %s: %s in macro %s%s\n",
 		     pObjP->fileName,
 	             pObjP->lineNum,
 		     Input_GetColumn (),
 		     str, errbuf,
-		     pObjP->d.macro.macro->name);
+		     pObjP->d.macro.macro->name,
+		     Macro_GetSuffixValue (&pObjP->d.macro));
 	    break;
 	}
 
@@ -246,12 +247,15 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 
 	      case POType_eMacro:
 		{
-		  fprintf (stderr, "  called from macro %s at line %u in file %s\n",
-			   pObjP->d.macro.macro->name, pObjP->lineNum, pObjP->fileName);
+		  fprintf (stderr, "  called from macro %s%s at line %u in file %s\n",
+			   pObjP->d.macro.macro->name,
+			   Macro_GetSuffixValue (&pObjP->d.macro),
+			   pObjP->lineNum, pObjP->fileName);
 #ifdef __riscos__
 		  char errPath[256];
-		  snprintf (errPath, sizeof (errPath), "...was called from macro %s",
-			    pObjP->d.macro.macro->name);
+		  snprintf (errPath, sizeof (errPath), "...was called from macro %s%s",
+			    pObjP->d.macro.macro->name,
+			    Macro_GetSuffixValue (&pObjP->d.macro));
 		  DoThrowback (ThrowbackInfo, pObjP->lineNum, errPath, pObjP->fileName);
 #endif
 		  break;

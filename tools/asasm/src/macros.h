@@ -40,13 +40,16 @@ typedef struct Macro
   const char *name; /**< Name of this macro.  Malloced string.  */
   size_t nameLen; /**< Length of macro name.  */  
   const char *fileName; /**< Filename where this macro has been defined.  */
-  const char *buf;
-  bool labelArg; /**< When true, macro supports label as one of its arguments.  */
-  bool suffixArg; /**< When true, macro name as a suffix as one if its arguments.  */
-  unsigned char numArgs; /**< Number of macro arguments (including the label
-    one if there is one).  Varies from 0 .. MACRO_ARG_LIMIT - 1.  */
-  const char *args[MACRO_ARG_LIMIT]; /**< Macro argument names.  NULL or malloced strings.  */
-  const char *defArgs[MACRO_ARG_LIMIT]; /**< Default argument value.  NULL or malloced strings.  */
+  const char *buf; /**< Full macro definition.  Malloced.  */
+  bool labelArg; /**< When true, macro has a label.  */
+  bool suffixArg; /**< When true, macro name has a suffix.  */
+  unsigned char numArgs; /**< Number of valid args entries.
+    Varies from 0 .. MACRO_ARG_LIMIT.  */
+  const char *args[MACRO_ARG_LIMIT]; /**< Macro label name (when specified), 
+    macro suffix name (when specified) followed by any specified macro
+    parameter names.  numArgs malloced strings, the rest NULL values.  */
+  const char *defArgs[MACRO_ARG_LIMIT]; /**< Default values for corresponding
+    entries in args (only for macro parameter names).  NULL or malloced strings.  */
   unsigned startLineNum; /**< Line number in Macro::fileName where its macro definition starts.  */
 } Macro;
 
@@ -54,7 +57,8 @@ typedef struct
 {
   const Macro *macro; /**< Pointer to the macro definition which is being executed.  */
   const char *curPtr; /**< Current pointer inside macro buffer Macro::buf.  */
-  const char *args[MACRO_ARG_LIMIT]; /**< Current argument values during macro execution.  NULL or malloced strings.  */
+  const char *args[MACRO_ARG_LIMIT]; /**< Current argument values during macro execution.
+    NULL (when argument is not given) or malloced strings.  */
   const VarPos *varListP; /**< Linked list of local variables defined in this macro.  */
   unsigned optDirective; /**< Value {OPT} just before macro invocation.
     {OPT} gets restored after macro invocation.  */
@@ -63,6 +67,9 @@ typedef struct
 void Macro_PrepareForPhase (Phase_e phase);
 
 void FS_PopMacroPObject (bool noCheck);
+
+const char *Macro_GetSuffix (const Macro *macroP);
+const char *Macro_GetSuffixValue (const PObject_Macro *mP);
 
 bool Macro_Call (const char *macroName, size_t macroNameLen, const Lex *lbl);
 

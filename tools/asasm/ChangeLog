@@ -1,3 +1,17 @@
+Wed Dec 25 17:17:38 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* macro.c (Macro_GetSuffix): Add.
+	(Macro_GetSuffixValue): Likewise.
+	(Macro_Call): Better macro name reporting for macros with suffix.
+	(c_macro): Likewise.
+	* macro.h (Macro): Improve comments
+	(PObject_Macro): Likewise.
+	(Macro_GetSuffix): Add prototype.
+	(Macro_GetSuffixValue): Likewise.
+	* error.c (errorCore): Better macro name reporting for macros with
+	suffix.
+
 Wed Dec 25 16:20:53 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

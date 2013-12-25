@@ -151,6 +151,31 @@ FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
 
 
 /**
+ * \return Macro suffix name when there is one, NULL otherwise.
+ */
+const char *
+Macro_GetSuffix (const Macro *macroP)
+{
+  size_t idx = macroP->labelArg ? 1 : 0;
+  assert ((macroP->suffixArg && idx < macroP->numArgs) || (!macroP->suffixArg && idx <= macroP->numArgs));
+  return macroP->suffixArg ? macroP->args[idx] : NULL;
+}
+
+
+/**
+ * \return Macro suffix value when there is one, empty string otherwise.
+ */
+const char *
+Macro_GetSuffixValue (const PObject_Macro *mP)
+{
+  const Macro *macroP = mP->macro;
+  const char *suffix;
+  return macroP->suffixArg 
+	   && (suffix = mP->args[macroP->labelArg ? 1 : 0]) != NULL ? suffix : "";
+}
+
+
+/**
  * \return true when macro can not be found.  false otherwise.
  */
 bool
@@ -175,8 +200,10 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
 	}
       else
 	{
-	  Error (ErrorWarning, "Label argument is ignored by macro %s", m->name);
-	  Error_Line (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
+	  Error (ErrorWarning, "Label argument is ignored by macro %.*s",
+		 (int)macroNameLen, macroName);
+	  Error_Line (m->fileName, m->startLineNum, ErrorWarning, "note: Macro %.*s was defined here",
+		      (int)macroNameLen, macroName);
 	}
     }
   else if (m->labelArg)
@@ -201,7 +228,8 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
       if (marg == m->numArgs)
 	{
 	  Error (ErrorError, "Too many macro arguments");
-	  Error_Line (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
+	  Error_Line (m->fileName, m->startLineNum, ErrorWarning, "note: Macro %.*s was defined here",
+		      (int)macroNameLen, macroName);
 	  for (unsigned i = 0; i != marg; ++i)
 	    free ((void *)args[i]);
 	  return false;
@@ -390,7 +418,7 @@ AddMacroArg (Macro *macro, const char *arg, size_t argLen, const char *defValue)
 /**
  * Implements MACRO:
  *         MACRO
- * $<lbl> <marco name>[$<suffix>] [$<param>[=<default value>] [, $<param>[=<default value>]]*
+ * [$<lbl>] <macro name>[$<suffix>] [$<param>[=<default value>] [, $<param>[=<default value>]]*
  */
 bool
 c_macro (void)
@@ -461,26 +489,43 @@ c_macro (void)
          (possibly via a macro suffix).  */
       if (prevDefMacro->nameLen == macroNameLen && prevDefMacro->suffixArg == m.suffixArg)
 	{
-	  Error (ErrorError, "Macro '%.*s' is already defined", (int)macroNameLen, macroName);
-	  Error_Line (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
-		     "note: Previous macro definition '%s' was here", prevDefMacro->name);
+	  if (m.suffixArg)
+	    Error (ErrorError, "Macro '%.*s$%s' is already defined",
+		   (int)macroNameLen, macroName, Macro_GetSuffix (&m));
+	  else
+	    Error (ErrorError, "Macro '%.*s' is already defined",
+		   (int)macroNameLen, macroName);
 	}
       else if (prevDefMacro->nameLen <= macroNameLen && prevDefMacro->suffixArg)
 	{
-	  Error (ErrorError, "Macro definition '%.*s' is eclipsed by macro definition '%s' with suffix $%s",
-		 (int)macroNameLen, macroName, prevDefMacro->name, prevDefMacro->args[prevDefMacro->labelArg ? 1 : 0]);
-	  Error_Line (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
-		     "note: Macro definition '%s' was here", prevDefMacro->name);
+	  if (m.suffixArg)
+	    Error (ErrorError, "Macro definition '%.*s$%s' is eclipsed by macro definition '%s$%s'",
+		   (int)macroNameLen, macroName, Macro_GetSuffix (&m),
+		   prevDefMacro->name, Macro_GetSuffix (prevDefMacro));
+	  else
+	    Error (ErrorError, "Macro definition '%.*s' is eclipsed by macro definition '%s$%s",
+		   (int)macroNameLen, macroName, prevDefMacro->name, Macro_GetSuffix (prevDefMacro));
 	}
       else if (macroNameLen <= prevDefMacro->nameLen && m.suffixArg)
 	{
-	  Error (ErrorError, "Macro definition '%.*s' with suffix $%s eclipses macro definition '%s'",
-		 (int)macroNameLen, macroName, m.args[m.labelArg ? 1 : 0], prevDefMacro->name);
-	  Error_Line (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
-		     "note: Macro definition '%s' was here", prevDefMacro->name);
+	  if (prevDefMacro->suffixArg)
+	    Error (ErrorError, "Macro definition '%.*s$%s' eclipses macro definition '%s$%s'",
+		   (int)macroNameLen, macroName, Macro_GetSuffix (&m),
+		   prevDefMacro->name, Macro_GetSuffix (prevDefMacro));
+	  else
+	    Error (ErrorError, "Macro definition '%.*s$%s' eclipses macro definition '%s'",
+		   (int)macroNameLen, macroName, Macro_GetSuffix (&m),
+		   prevDefMacro->name);
 	}
       else
 	assert (0);
+      if (prevDefMacro->suffixArg)
+        Error_Line (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+		    "note: Macro %s$%s was defined here",
+		    prevDefMacro->name, Macro_GetSuffix (prevDefMacro));
+      else
+        Error_Line (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
+		    "note: Macro %s was defined here", prevDefMacro->name);
       goto lookforMEND;
     }
   if ((m.name = strndup (macroName, macroNameLen)) == NULL)
