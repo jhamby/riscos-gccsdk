@@ -374,28 +374,28 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
     }
   else
     {
-      Symbol *sym = Symbol_Find (&label);
-      if (sym && (sym->type & SYMBOL_RW) != 0)
+      Symbol *symP = Symbol_Find (&label);
+      if (symP && (symP->attr.type & SYMBOL_RW) != 0)
 	{
 	  char buf[32];
 	  const char *toCopy;
 	  size_t toCopyLen;
-	  switch (sym->value.Tag)
+	  switch (symP->attr.value.Tag)
 	    {
 	      case ValueInt:
-		toCopyLen = sprintf (buf, "%.8X", sym->value.Data.Int.i);
+		toCopyLen = sprintf (buf, "%.8X", symP->attr.value.Data.Int.i);
 		toCopy = buf;
 		break;
 	      case ValueString:
-		toCopyLen = sym->value.Data.String.len;
-		toCopy = sym->value.Data.String.s;
-		assert (sym->value.Data.String.s || sym->value.Data.String.len == 0);
+		toCopyLen = symP->attr.value.Data.String.len;
+		toCopy = symP->attr.value.Data.String.s;
+		assert (symP->attr.value.Data.String.s || symP->attr.value.Data.String.len == 0);
 		if (toCopy == NULL)
 		  toCopy = "";
 		break;
 	      case ValueBool:
 		toCopyLen = 1;
-		toCopy = (sym->value.Data.Bool.b) ? "T" : "F";
+		toCopy = (symP->attr.value.Data.Bool.b) ? "T" : "F";
 		break;
 	      default:
 		/* Only GBL{L,S,A} and LCL{L,S,A} variables are used for

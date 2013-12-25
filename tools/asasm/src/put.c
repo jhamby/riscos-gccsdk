@@ -62,35 +62,35 @@ Put_DataWithOffset (uint32_t offset, unsigned dataSize, uint64_t dataValue,
 {
   const uint32_t newOffset = offset + dataSize*times;
 
-  if (!Area_IsNoInit (areaCurrentSymbol->area))
+  if (!Area_IsNoInit (areaCurrentSymbol->attr.area))
     {
       ReportOverflow (dataSize, dataValue);
 
-      if (newOffset > areaCurrentSymbol->area->curIdx)
-	Area_EnsureExtraSize (areaCurrentSymbol, newOffset - areaCurrentSymbol->area->curIdx);
+      if (newOffset > areaCurrentSymbol->attr.area->curIdx)
+	Area_EnsureExtraSize (areaCurrentSymbol, newOffset - areaCurrentSymbol->attr.area->curIdx);
 
       for (uint32_t i = offset; i != newOffset; i += dataSize)
 	{
 	  switch (dataSize)
 	    {
 	      case 8:
-		areaCurrentSymbol->area->image[i + 7] = (dataValue >> 56) & 0xff;
-		areaCurrentSymbol->area->image[i + 6] = (dataValue >> 48) & 0xff;
-		areaCurrentSymbol->area->image[i + 5] = (dataValue >> 40) & 0xff;
-		areaCurrentSymbol->area->image[i + 4] = (dataValue >> 32) & 0xff;
+		areaCurrentSymbol->attr.area->image[i + 7] = (dataValue >> 56) & 0xff;
+		areaCurrentSymbol->attr.area->image[i + 6] = (dataValue >> 48) & 0xff;
+		areaCurrentSymbol->attr.area->image[i + 5] = (dataValue >> 40) & 0xff;
+		areaCurrentSymbol->attr.area->image[i + 4] = (dataValue >> 32) & 0xff;
 		/* Fall through.  */
 
 	      case 4:
-		areaCurrentSymbol->area->image[i + 3] = (dataValue >> 24) & 0xff;
-		areaCurrentSymbol->area->image[i + 2] = (dataValue >> 16) & 0xff;
+		areaCurrentSymbol->attr.area->image[i + 3] = (dataValue >> 24) & 0xff;
+		areaCurrentSymbol->attr.area->image[i + 2] = (dataValue >> 16) & 0xff;
 		/* Fall through.  */
 
 	      case 2:
-		areaCurrentSymbol->area->image[i + 1] = (dataValue >> 8) & 0xff;
+		areaCurrentSymbol->attr.area->image[i + 1] = (dataValue >> 8) & 0xff;
 		/* Fall through.  */
 
 	      case 1:
-		areaCurrentSymbol->area->image[i + 0] = dataValue & 0xff;
+		areaCurrentSymbol->attr.area->image[i + 0] = dataValue & 0xff;
 		break;
 
 	      default:
@@ -103,8 +103,8 @@ Put_DataWithOffset (uint32_t offset, unsigned dataSize, uint64_t dataValue,
     Error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
 
   /* Update current AREA index when necessary.  */
-  if (newOffset > areaCurrentSymbol->area->curIdx)
-    areaCurrentSymbol->area->curIdx = newOffset;
+  if (newOffset > areaCurrentSymbol->attr.area->curIdx)
+    areaCurrentSymbol->attr.area->curIdx = newOffset;
 }
 
 
@@ -133,7 +133,7 @@ Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data,
 void
 Put_Data (unsigned size, ARMWord data)
 {
-  Put_DataWithOffset (areaCurrentSymbol->area->curIdx, size, data, 1);
+  Put_DataWithOffset (areaCurrentSymbol->attr.area->curIdx, size, data, 1);
 }
 
 
@@ -283,7 +283,7 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
 	    offset = Area_AlignTo (offset, 4 /* yes, 4, not 8 */, "double-precision floating-point value");
 
 	  const union ieee754_double dbl = { .d = data };
-	  if ((areaCurrentSymbol->area->type & AREA_VFP) == 0)
+	  if ((areaCurrentSymbol->attr.area->type & AREA_VFP) == 0)
 	    {
 	      /* double : ARM/FPA.  */
 	      const union arm_double_fpa armdbl_fpa =
@@ -349,7 +349,7 @@ Put_InsWithOffset (uint32_t offset, unsigned size, ARMWord ins)
 void
 Put_Ins (unsigned size, ARMWord ins)
 {
-  Put_InsWithOffset (areaCurrentSymbol->area->curIdx, size, ins);
+  Put_InsWithOffset (areaCurrentSymbol->attr.area->curIdx, size, ins);
 }
 
 
@@ -374,8 +374,8 @@ Put_Ins_MOVW_MOVT (uint32_t cc, uint32_t destReg, uint32_t value, bool isMOVT)
 ARMWord
 Put_GetHalfWord (uint32_t offset)
 {
-  assert (offset + 2 <= areaCurrentSymbol->area->imagesize);
-  const uint8_t *p = &areaCurrentSymbol->area->image[offset];
+  assert (offset + 2 <= areaCurrentSymbol->attr.area->imagesize);
+  const uint8_t *p = &areaCurrentSymbol->attr.area->image[offset];
   return p[0] + (p[1]<<8);
 }
 
@@ -383,7 +383,7 @@ Put_GetHalfWord (uint32_t offset)
 ARMWord
 Put_GetWord (uint32_t offset)
 {
-  assert (offset + 4 <= areaCurrentSymbol->area->imagesize);
-  const uint8_t *p = &areaCurrentSymbol->area->image[offset];
+  assert (offset + 4 <= areaCurrentSymbol->attr.area->imagesize);
+  const uint8_t *p = &areaCurrentSymbol->attr.area->image[offset];
   return p[0] + (p[1]<<8) + (p[2]<<16) + (p[3]<<24);
 }

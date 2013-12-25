@@ -110,9 +110,9 @@ GetInt (const Value *valP, uint32_t *i)
       case ValueSymbol:
 	{
 	  const Symbol *symP = valP->Data.Symbol.symbol;
-	  if ((symP->type & SYMBOL_AREA) != 0)
+	  if ((symP->attr.type & SYMBOL_AREA) != 0)
 	    {
-	      if ((symP->area->type & AREA_ABS) != 0)
+	      if ((symP->attr.area->type & AREA_ABS) != 0)
 		{
 		  int offset = valP->Data.Symbol.offset;
 		  int factor = valP->Data.Symbol.factor;
@@ -965,8 +965,8 @@ Eval_Unop (Operator_e op, const Value *value)
 	{
 	  Value tempValue;
 	  if (value->Tag == ValueSymbol
-	      && (value->Data.Symbol.symbol->type & SYMBOL_AREA) != 0
-	      && (value->Data.Symbol.symbol->area->type & AREA_ABS) != 0)
+	      && (value->Data.Symbol.symbol->attr.type & SYMBOL_AREA) != 0
+	      && (value->Data.Symbol.symbol->attr.area->type & AREA_ABS) != 0)
 	    {
 	      int factor = value->Data.Symbol.factor;
 	      int offset= value->Data.Symbol.offset;
@@ -1038,14 +1038,14 @@ Eval_Unop (Operator_e op, const Value *value)
 	      Error (ErrorError, "Bad operand type for %s", "? operator");
 	      result = Value_Illegal ();
 	    }
-	  else if ((value->Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_COMMON)) != 0)
-	    result = Value_Int (value->Data.Symbol.symbol->codeSize, eIntType_PureInt);
-	  else if (value->Data.Symbol.symbol->type & SYMBOL_AREA)
+	  else if ((value->Data.Symbol.symbol->attr.type & (SYMBOL_DEFINED | SYMBOL_COMMON)) != 0)
+	    result = Value_Int (value->Data.Symbol.symbol->attr.codeSize, eIntType_PureInt);
+	  else if (value->Data.Symbol.symbol->attr.type & SYMBOL_AREA)
 	    {
 	      if (gPhase == ePassTwo
-		  && value->Data.Symbol.symbol->area->curIdx != value->Data.Symbol.symbol->area->maxIdx)
+		  && value->Data.Symbol.symbol->attr.area->curIdx != value->Data.Symbol.symbol->attr.area->maxIdx)
 		Error (ErrorError, "? on area symbol which gets extended later on");
-	      result = Value_Int (value->Data.Symbol.symbol->area->curIdx, eIntType_PureInt);
+	      result = Value_Int (value->Data.Symbol.symbol->attr.area->curIdx, eIntType_PureInt);
 	    }
 	  else
 	    {

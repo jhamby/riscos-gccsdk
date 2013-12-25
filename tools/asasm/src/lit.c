@@ -100,7 +100,7 @@ Lit_GetLitOffsetAsSymbol (const LitPool *literal)
   assert (bytesWritten >= 0);
   const Lex lex = Lex_Id (intSymbol, (size_t)bytesWritten);
   Symbol *offsetToLiteralSymbol = Symbol_Get (&lex);
-  offsetToLiteralSymbol->type |= SYMBOL_NO_EXPORT;
+  offsetToLiteralSymbol->attr.type |= SYMBOL_NO_EXPORT;
   return offsetToLiteralSymbol;
 }
 
@@ -174,7 +174,7 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
 
   /* Add new literal at the end of the literal pool.  */
   assert (offsetof (LitPool, next) == 0);
-  LitPool *prevLitP = (LitPool *)&areaCurrentSymbol->area->litPool;
+  LitPool *prevLitP = (LitPool *)&areaCurrentSymbol->attr.area->litPool;
   for (/* */; prevLitP->next != NULL; prevLitP = prevLitP->next)
     /* */;
   prevLitP->next = litP;
@@ -186,14 +186,14 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
 void
 Lit_RemoveLiterals (Symbol *areaSymbolP)
 {
-  for (LitPool *litP = areaSymbolP->area->litPool; litP != NULL; /* */)
+  for (LitPool *litP = areaSymbolP->attr.area->litPool; litP != NULL; /* */)
     {
       LitPool *nextLitP = litP->next;
       Value_Free (&litP->value);
       free ((void *)litP);
       litP = nextLitP;
     }
-  areaSymbolP->area->litPool = NULL;
+  areaSymbolP->attr.area->litPool = NULL;
 }
 
 
@@ -216,7 +216,7 @@ Lit_RegisterInt (const Value *valueP,
   printf ("\n");
 #endif
 
-  const uint32_t pcVal = (areaCurrentSymbol->area->curIdx & -4) + (instrType == eInstrType_ARM ? 8 : 4);
+  const uint32_t pcVal = (areaCurrentSymbol->attr.area->curIdx & -4) + (instrType == eInstrType_ARM ? 8 : 4);
 
   /* Upfront truncate ValueInt value to what we're really going to have
      in our register after loading, before we wrongly match to the untruncated
@@ -266,7 +266,7 @@ Lit_RegisterInt (const Value *valueP,
      oLitAddrRange[addrType].align.  */
   /* FIXME: we would beter scan the literal list backward and abort when litPoolP->offset
      becomes too low.  */
-  for (const LitPool *litPoolP = areaCurrentSymbol->area->litPool;
+  for (const LitPool *litPoolP = areaCurrentSymbol->attr.area->litPool;
        litPoolP != NULL;
        litPoolP = litPoolP->next)
     {
@@ -337,13 +337,13 @@ Lit_RegisterInt (const Value *valueP,
 	  assert (litPoolP->status != eNoNeedToAssemble);
 
 	  Symbol *symP = Lit_GetLitOffsetAsSymbol (litPoolP);
-	  assert (gPhase != ePassTwo || (symP->type & SYMBOL_DEFINED) != 0);
-	  assert ((((symP->type & SYMBOL_DEFINED) == 0) && litPoolP->status == eNotYetAssembled)
-	          || (((symP->type & SYMBOL_DEFINED) != 0) && (litPoolP->status == eAssembledPassOne || litPoolP->status == eAssembledPassTwo)));
-	  if ((symP->type & SYMBOL_DEFINED) != 0)
+	  assert (gPhase != ePassTwo || (symP->attr.type & SYMBOL_DEFINED) != 0);
+	  assert ((((symP->attr.type & SYMBOL_DEFINED) == 0) && litPoolP->status == eNotYetAssembled)
+	          || (((symP->attr.type & SYMBOL_DEFINED) != 0) && (litPoolP->status == eAssembledPassOne || litPoolP->status == eAssembledPassTwo)));
+	  if ((symP->attr.type & SYMBOL_DEFINED) != 0)
 	    {
-	      assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol);
-	      assert (gPhase == ePassTwo || areaCurrentSymbol->area->curIdx >= litPoolP->offset);
+	      assert (symP->attr.value.Tag == ValueInt || symP->attr.value.Tag == ValueSymbol);
+	      assert (gPhase == ePassTwo || areaCurrentSymbol->attr.area->curIdx >= litPoolP->offset);
 	      if (pcVal > litPoolP->offset - oLitAddrRange[addrType].min
 	          || (pcVal & oLitAddrRange[addrType].alignMinOne) != 0)
 		continue;
@@ -352,7 +352,7 @@ Lit_RegisterInt (const Value *valueP,
 
 	      /* A literal with the same value got already assembled and is in
 	         our range to refer to.  */
-	      return Value_Addr (15, litPoolP->offset + offset - (areaCurrentSymbol->area->curIdx + 8));
+	      return Value_Addr (15, litPoolP->offset + offset - (areaCurrentSymbol->attr.area->curIdx + 8));
 	    }
 	  else
 	    {
@@ -388,7 +388,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size,
   printf ("\n");
 #endif
 
-  const uint32_t pcVal = (areaCurrentSymbol->area->curIdx & -4) + (instrType == eInstrType_ARM ? 8 : 4);
+  const uint32_t pcVal = (areaCurrentSymbol->attr.area->curIdx & -4) + (instrType == eInstrType_ARM ? 8 : 4);
 
   /* Convert given integer value to float.  */
   const Value value = (valueP->Tag == ValueInt) ? Value_Float ((ARMFloat)valueP->Data.Int.i) : *valueP;
@@ -408,7 +408,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size,
      oLitAddrRange[addrType].align.  */
   /* FIXME: we would beter scan the literal list backward and abort when litPoolP->offset
      becomes too low.  */
-  for (const LitPool *litPoolP = areaCurrentSymbol->area->litPool;
+  for (const LitPool *litPoolP = areaCurrentSymbol->attr.area->litPool;
        litPoolP != NULL;
        litPoolP = litPoolP->next)
     {
@@ -421,19 +421,19 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size,
 	  assert (litPoolP->status != eNoNeedToAssemble);
 
 	  Symbol *symP = Lit_GetLitOffsetAsSymbol (litPoolP);
-	  assert (gPhase != ePassTwo || (symP->type & SYMBOL_DEFINED) != 0);
-	  assert ((((symP->type & SYMBOL_DEFINED) == 0) && litPoolP->status == eNotYetAssembled)
-	          || (((symP->type & SYMBOL_DEFINED) != 0) && (litPoolP->status == eAssembledPassOne || litPoolP->status == eAssembledPassTwo)));
-	  if ((symP->type & SYMBOL_DEFINED) != 0)
+	  assert (gPhase != ePassTwo || (symP->attr.type & SYMBOL_DEFINED) != 0);
+	  assert ((((symP->attr.type & SYMBOL_DEFINED) == 0) && litPoolP->status == eNotYetAssembled)
+	          || (((symP->attr.type & SYMBOL_DEFINED) != 0) && (litPoolP->status == eAssembledPassOne || litPoolP->status == eAssembledPassTwo)));
+	  if ((symP->attr.type & SYMBOL_DEFINED) != 0)
 	    {
-	      assert (symP->value.Tag == ValueFloat || symP->value.Tag == ValueSymbol);
-	      assert (gPhase == ePassTwo || areaCurrentSymbol->area->curIdx >= litPoolP->offset);
+	      assert (symP->attr.value.Tag == ValueFloat || symP->attr.value.Tag == ValueSymbol);
+	      assert (gPhase == ePassTwo || areaCurrentSymbol->attr.area->curIdx >= litPoolP->offset);
 	      if (pcVal > litPoolP->offset - oLitAddrRange[addrType].min
 	          || (pcVal & oLitAddrRange[addrType].alignMinOne) != 0)
 		continue;
 	      /* A literal with the same value got already assembled and is in
 	         our range to refer to.  */
-	      return Value_Addr (15, litPoolP->offset - (areaCurrentSymbol->area->curIdx + 8));
+	      return Value_Addr (15, litPoolP->offset - (areaCurrentSymbol->attr.area->curIdx + 8));
 	    }
 	  else
 	    {
@@ -460,14 +460,14 @@ Lit_DumpPool (void)
 #endif
 
   Status_e statusToLeaveAlone = (gPhase == ePassOne) ? eAssembledPassOne : eAssembledPassTwo;
-  for (LitPool *litP = areaCurrentSymbol->area->litPool; litP != NULL; litP = litP->next)
+  for (LitPool *litP = areaCurrentSymbol->attr.area->litPool; litP != NULL; litP = litP->next)
     {
       if (litP->status == statusToLeaveAlone || litP->status == eNoNeedToAssemble)
 	continue;
       assert ((gPhase == ePassOne && litP->status == eNotYetAssembled) || (gPhase == ePassTwo && litP->status == eAssembledPassOne));
 
       const size_t alignValue = Lit_GetAlignment (litP);
-      if (gPhase == ePassTwo && litP->offset > ((areaCurrentSymbol->area->curIdx + alignValue-1) & -alignValue))
+      if (gPhase == ePassTwo && litP->offset > ((areaCurrentSymbol->attr.area->curIdx + alignValue-1) & -alignValue))
 	break;
 
       litP->status = gPhase == ePassOne ? eAssembledPassOne : eAssembledPassTwo;
@@ -490,9 +490,9 @@ Lit_DumpPool (void)
 	}
 
       Symbol *symP = Lit_GetLitOffsetAsSymbol (litP);
-      if ((areaCurrentSymbol->type & SYMBOL_ABSOLUTE) != 0)
-	symP->type |= SYMBOL_ABSOLUTE;
-      symP->type |= SYMBOL_DEFINED;
+      if ((areaCurrentSymbol->attr.type & SYMBOL_ABSOLUTE) != 0)
+	symP->attr.type |= SYMBOL_ABSOLUTE;
+      symP->attr.type |= SYMBOL_DEFINED;
 
       /* Check if it is a fixed integer/float which fits an immediate
          representation.  */
@@ -542,7 +542,7 @@ Lit_DumpPool (void)
 		      /* The definition of the literal happeded after its use
 			 but before LTORG so we don't have to assemble it
 			 explicitely.  */
-		      symP->value = Value_Int (constant, eIntType_PureInt);
+		      symP->attr.value = Value_Int (constant, eIntType_PureInt);
 		      litP->status = eNoNeedToAssemble;
 		      continue;
 		    }
@@ -582,7 +582,7 @@ Lit_DumpPool (void)
 		      /* The definition of the literal happeded after its use
 			 but before LTORG so we don't have to assemble it
 			 explicitely.  */
-		      symP->value = Value_Float (constant);
+		      symP->attr.value = Value_Float (constant);
 		      litP->status = eNoNeedToAssemble;
 		      continue;
 		    }
@@ -604,7 +604,7 @@ Lit_DumpPool (void)
 
       /* At this point we're sure we're going to write data in the current
          area.  Mark it as such.  */
-      Area_MarkStartAs (areaCurrentSymbol, areaCurrentSymbol->area->curIdx, eData);
+      Area_MarkStartAs (areaCurrentSymbol, areaCurrentSymbol->attr.area->curIdx, eData);
       
       /* Ensure alignment.  */
       switch (litP->size)
@@ -630,11 +630,11 @@ Lit_DumpPool (void)
 	 + ValueInt(offset where literal gets assembled).
 	 The ValueSymbol will be translated to a ValueAddr(pc) at a later
 	 stage.  */
-      Value newSymValue = Value_Symbol (areaCurrentSymbol, 1, areaCurrentSymbol->area->curIdx);
-      Value_Assign (&symP->value, &newSymValue);
+      Value newSymValue = Value_Symbol (areaCurrentSymbol, 1, areaCurrentSymbol->attr.area->curIdx);
+      Value_Assign (&symP->attr.value, &newSymValue);
 
-      assert ((gPhase == ePassOne && litP->offset == 0) || (gPhase == ePassTwo && litP->offset == areaCurrentSymbol->area->curIdx));
-      litP->offset = areaCurrentSymbol->area->curIdx;
+      assert ((gPhase == ePassOne && litP->offset == 0) || (gPhase == ePassTwo && litP->offset == areaCurrentSymbol->attr.area->curIdx));
+      litP->offset = areaCurrentSymbol->attr.area->curIdx;
 
       switch (litP->size)
 	{

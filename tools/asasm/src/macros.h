@@ -59,7 +59,8 @@ typedef struct
   const char *curPtr; /**< Current pointer inside macro buffer Macro::buf.  */
   const char *args[MACRO_ARG_LIMIT]; /**< Current argument values during macro execution.
     NULL (when argument is not given) or malloced strings.  */
-  const VarPos *varListP; /**< Linked list of local variables defined in this macro.  */
+  const struct VarPos *varListP; /**< Linked list of local variables defined
+    in this macro.  */
   unsigned optDirective; /**< Value {OPT} just before macro invocation.
     {OPT} gets restored after macro invocation.  */
 } PObject_Macro;

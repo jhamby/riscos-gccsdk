@@ -87,7 +87,7 @@ Expr_GetPrim (void)
         break;
 
       case LexPosition:
-	Code_Symbol (areaCurrentSymbol, areaCurrentSymbol->area->curIdx);
+	Code_Symbol (areaCurrentSymbol, areaCurrentSymbol->attr.area->curIdx);
         break;
 
       case LexStorage:

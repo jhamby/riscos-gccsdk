@@ -26,23 +26,13 @@
 #include "phase.h"
 #include "symbol.h"
 
-/**
- * Created for each local variable encountered in a macro as we need to restore
- * it.
- */
-typedef struct VarPos
-{
-  const struct VarPos *next;
-  Symbol *symbolP; /**< Non-NULL when macro caller has this variable already defined.  */
-  Symbol symbol; /**< When symbolP is non-NULL, the previous symbol object.  */
-  char name[]; /**< NUL terminated symbol name.  */
-} VarPos;
+struct VarPos;
 
 bool c_gbl (void);
 bool c_lcl (void);
 bool c_set (const Lex *label);
 
 void Var_PrepareForPhase (Phase_e phase);
-void Var_RestoreLocals (const VarPos *);	/* called on macro exit */
+void Var_RestoreLocals (const struct VarPos *);	/* called on macro exit */
 
 #endif

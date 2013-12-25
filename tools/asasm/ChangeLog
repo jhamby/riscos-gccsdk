@@ -1,3 +1,15 @@
+Wed Dec 25 19:25:40 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* symbol.h (Symbol): Aggregate symbol attributes into SymbolAttr.
+	(SymbolAttr): Add.
+	* variables.h (VarPos): Move to...
+	* variables.c: ...here.
+	* area.c, area.h, asm.c, debug_dwarf.c, decode.c, directive_data.c,
+	directive_symbol.c, eval.c, expr.c, get.c, help_cop.c, input.c, it.c,
+	lex.c, lit.c, m_cpuctrl.c, m_cpumem.c, macros.h, output.c, put.c,
+	reloc.c, symbol.c, symbol.h, value.c, variables.c, variables.h: Follow.
+
 Wed Dec 25 17:17:38 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

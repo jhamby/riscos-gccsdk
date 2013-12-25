@@ -55,6 +55,19 @@
 //#  define DEBUG_VARIABLES
 #endif
 
+/**
+ * Created for each local variable encountered in a macro as we need to restore
+ * it.
+ */
+typedef struct VarPos
+{
+  const struct VarPos *next;
+  Symbol *symbolP; /**< Non-NULL when macro caller has this variable already defined.  */
+  SymbolAttr symbolAttr; /**< When symbolP is non-NULL, the previous symbol's
+    attribute set.  */
+  char name[]; /**< NUL terminated symbol name.  */
+} VarPos;
+
 static void Var_PredefineVariables (void);
 static Symbol *Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro);
 
@@ -86,10 +99,10 @@ Var_PrepareForPhase (Phase_e phase)
 static void
 Var_PredefineVariables (void)
 {
-  Symbol *sym = Var_Define ("asasm$version", sizeof ("asasm$version")-1,
-			    ValueInt, false);
-  if (sym != NULL)
-    sym->value.Data.Int.i = ASASM_VERSION;
+  Symbol *symP = Var_Define ("asasm$version", sizeof ("asasm$version")-1,
+			     ValueInt, false);
+  if (symP != NULL)
+    symP->attr.value.Data.Int.i = ASASM_VERSION;
 }
 
 /**
@@ -134,12 +147,12 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
   Symbol *sym;
   if (!localMacro && (sym = Symbol_Find (&var)) != NULL)
     {
-      if ((sym->type & SYMBOL_RW) == 0)
+      if ((sym->attr.type & SYMBOL_RW) == 0)
 	{
 	  const char *symDescP = Symbol_GetDescription (sym);
 	  Error (ErrorError, "Redefinition of %s %s as %s variable",
 		 symDescP, sym->str, localMacro ? "local" : "global");
-	  Error_Line (sym->fileName, sym->lineNumber, ErrorError, "note: %c%s %s was first used here",
+	  Error_Line (sym->attr.fileName, sym->attr.lineNumber, ErrorError, "note: %c%s %s was first used here",
 		      toupper ((unsigned char)symDescP[0]), symDescP + 1, sym->str);
 	  return NULL;
 	}
@@ -147,7 +160,7 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
   else
     sym = Symbol_Get (&var);
   
-  if (sym->value.Tag != ValueIllegal)
+  if (sym->attr.value.Tag != ValueIllegal)
     {
       /* A local variable can have a different type than a similar named
 	 global variable.  */
@@ -156,14 +169,14 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 	 global.  So we won't detect two different type local variables (with
 	 same name) when we already have a global variable also with that
 	 name).  */
-      if (sym->value.Tag != type
-          && (!localMacro || (sym->type & SYMBOL_MACRO_LOCAL) != 0))
+      if (sym->attr.value.Tag != type
+          && (!localMacro || (sym->attr.type & SYMBOL_MACRO_LOCAL) != 0))
 	{
 	  const char *symDescP = Symbol_GetDescription (sym);
 	  Error (ErrorError, "Redefinition of %s %s %s as %s %s",
-		 Var_GetDescription (sym->value.Tag), symDescP, sym->str,
+		 Var_GetDescription (sym->attr.value.Tag), symDescP, sym->str,
 		 Var_GetDescription (type), symDescP);
-	  Error_Line (sym->fileName, sym->lineNumber, ErrorError, "note: Previous definition was here");
+	  Error_Line (sym->attr.fileName, sym->attr.lineNumber, ErrorError, "note: Previous definition was here");
 	  return NULL;
 	}
 
@@ -172,23 +185,23 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
       localMacro = false;
     }
 
-  sym->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE | SYMBOL_RW;
+  sym->attr.type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE | SYMBOL_RW;
   if (localMacro)
-    sym->type |= SYMBOL_MACRO_LOCAL;
+    sym->attr.type |= SYMBOL_MACRO_LOCAL;
 
-  Value_Free (&sym->value);
+  Value_Free (&sym->attr.value);
   switch (type)
     {
       case ValueInt:
-	sym->value = Value_Int (0, eIntType_PureInt);
+	sym->attr.value = Value_Int (0, eIntType_PureInt);
 	break;
 
       case ValueBool:
-	sym->value = Value_Bool (false);
+	sym->attr.value = Value_Bool (false);
 	break;
 
       case ValueString:
-	sym->value = Value_String (NULL, 0, false);
+	sym->attr.value = Value_String (NULL, 0, false);
 	break;
     }
 
@@ -293,10 +306,10 @@ c_lcl (void)
       varPosP->next = gCurPObjP->d.macro.varListP;
       if ((varPosP->symbolP = symbolP) != NULL)
 	{
-	  varPosP->symbol = *symbolP;
-	  varPosP->symbol.value = Value_Copy (&symbolP->value);
+	  varPosP->symbolAttr = symbolP->attr;
+	  varPosP->symbolAttr.value = Value_Copy (&symbolP->attr.value);
 	  /* Reset Symbol parts which won't get touched by Var_Define().  */
-	  symbolP->codeSize = 0;
+	  symbolP->attr.codeSize = 0;
 	}
       gCurPObjP->d.macro.varListP = varPosP;
     }
@@ -352,25 +365,25 @@ c_set (const Lex *label)
 	     (int)label->Data.Id.len, label->Data.Id.str);
       return false;
     }
-  if ((sym->type & SYMBOL_RW) == 0)
+  if ((sym->attr.type & SYMBOL_RW) == 0)
     {
       const char *symDescP = Symbol_GetDescription (sym);
       Error (ErrorError, "%c%s %s can not be used as variable",
 	     toupper ((unsigned char)symDescP[0]), symDescP + 1, sym->str);
-      Error_Line (sym->fileName, sym->lineNumber, ErrorError, "%c%s %s was defined here",
+      Error_Line (sym->attr.fileName, sym->attr.lineNumber, ErrorError, "%c%s %s was defined here",
 		  toupper ((unsigned char)symDescP[0]), symDescP + 1, sym->str);
       return false;
     }
-  if (type != sym->value.Tag)
+  if (type != sym->attr.value.Tag)
     {
-      const char *scope = (sym->type & SYMBOL_MACRO_LOCAL) ? "local" : "global";
+      const char *scope = (sym->attr.type & SYMBOL_MACRO_LOCAL) ? "local" : "global";
       Error (ErrorError, "SET%c is unexpected for %s %s variable %s",
-	     setType, Var_GetDescription (sym->value.Tag), scope, sym->str);
-      Error_Line (sym->fileName, sym->lineNumber, ErrorError, "note: %c%s variable %s was defined here",
+	     setType, Var_GetDescription (sym->attr.value.Tag), scope, sym->str);
+      Error_Line (sym->attr.fileName, sym->attr.lineNumber, ErrorError, "note: %c%s variable %s was defined here",
 		  toupper ((unsigned char)scope[0]), scope + 1, sym->str);
       return false;
     }
-  const Value *value = Expr_BuildAndEval (sym->value.Tag);
+  const Value *value = Expr_BuildAndEval (sym->attr.value.Tag);
   switch (value->Tag)
     {
       case ValueIllegal:
@@ -378,7 +391,7 @@ c_set (const Lex *label)
 	break;
 
       default:
-	Value_Assign (&sym->value, value);
+	Value_Assign (&sym->attr.value, value);
 	break;
     }
 
@@ -399,8 +412,8 @@ Var_RestoreLocals (const VarPos *p)
 	{
 	  /* Variable existed before we (temporarily) overruled it, so
 	     restore it to its original value.  */
-	  Value_Free (&p->symbolP->value);
-	  *p->symbolP = p->symbol;
+	  Value_Free (&p->symbolP->attr.value);
+	  p->symbolP->attr = p->symbolAttr;
 	}
       else
 	{

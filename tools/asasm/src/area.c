@@ -148,11 +148,11 @@ Area_CreateDWARF (const char *name, uint32_t scnIdx)
       return NULL;
     }
   areaSymP = Symbol_Get (&lex);
-  areaSymP->type = SYMBOL_AREA;
-  areaSymP->value = Value_Int (0, eIntType_PureInt);
-  areaSymP->area = Area_Create (areaSymP, AREA_INT_DWARF);
+  areaSymP->attr.type = SYMBOL_AREA;
+  areaSymP->attr.value = Value_Int (0, eIntType_PureInt);
+  areaSymP->attr.area = Area_Create (areaSymP, AREA_INT_DWARF);
 
-  areaSymP->area->number = scnIdx;
+  areaSymP->attr.area->number = scnIdx;
   return areaSymP;
 }
 
@@ -163,11 +163,11 @@ Area_CreateDWARF (const char *name, uint32_t scnIdx)
 Symbol *
 Area_FindDWARF (uint32_t scnIdx)
 {
-  for (Symbol *areaSymP = areaHeadSymbol; areaSymP != NULL; areaSymP = areaSymP->area->next)
+  for (Symbol *areaSymP = areaHeadSymbol; areaSymP != NULL; areaSymP = areaSymP->attr.area->next)
     {
-      if (areaSymP->area->number == scnIdx)
+      if (areaSymP->attr.area->number == scnIdx)
 	{
-	  assert ((areaSymP->area->type & AREA_INT_DWARF) != 0);
+	  assert ((areaSymP->attr.area->type & AREA_INT_DWARF) != 0);
 	  return areaSymP;
 	}
     }
@@ -210,29 +210,29 @@ ValidateORGValue (uint32_t alignValue, uint32_t org)
 void
 Area_EnsureExtraSize (Symbol *areaSymP, size_t mingrow)
 {
-  if ((areaSymP->area->type & AREA_UDATA) != 0)
+  if ((areaSymP->attr.area->type & AREA_UDATA) != 0)
     return;
 
-  if (areaSymP->area->curIdx + mingrow <= areaSymP->area->imagesize)
+  if (areaSymP->attr.area->curIdx + mingrow <= areaSymP->attr.area->imagesize)
     return;
 
   assert (gPhase == ePassOne);
   
   /* When we want to grow an implicit area, it is time to give an error as
      this is not something we want to output.  */
-  if (areaSymP->area->imagesize == 0 && Area_IsImplicit (areaSymP))
+  if (areaSymP->attr.area->imagesize == 0 && Area_IsImplicit (areaSymP))
     Error (ErrorError, "No area defined");
 
   size_t inc;
-  if (areaSymP->area->imagesize && areaSymP->area->imagesize < DOUBLE_UP_TO)
-    inc = areaSymP->area->imagesize;
+  if (areaSymP->attr.area->imagesize && areaSymP->attr.area->imagesize < DOUBLE_UP_TO)
+    inc = areaSymP->attr.area->imagesize;
   else
     inc = GROWSIZE;
   if (inc < mingrow)
     inc = mingrow;
-  while (inc > mingrow && !Area_Resize (areaSymP->area, areaSymP->area->imagesize + inc))
+  while (inc > mingrow && !Area_Resize (areaSymP->attr.area, areaSymP->attr.area->imagesize + inc))
     inc /= 2;
-  if (inc <= mingrow && !Area_Resize (areaSymP->area, areaSymP->area->imagesize + mingrow))
+  if (inc <= mingrow && !Area_Resize (areaSymP->attr.area, areaSymP->attr.area->imagesize + mingrow))
     Error_OutOfMem ();
 }
 
@@ -261,11 +261,11 @@ Area_PrepareForPhase (Phase_e phase)
 	  /* Do an implicit LTORG at the end of all areas.  */
 	  for (areaCurrentSymbol = areaHeadSymbol;
 	       areaCurrentSymbol != NULL;
-	       areaCurrentSymbol = areaCurrentSymbol->area->next)
+	       areaCurrentSymbol = areaCurrentSymbol->attr.area->next)
 	    {
 	      Lit_DumpPool ();
-	      areaCurrentSymbol->area->maxIdx = areaCurrentSymbol->area->curIdx;
-	      areaCurrentSymbol->area->curIdx = 0;
+	      areaCurrentSymbol->attr.area->maxIdx = areaCurrentSymbol->attr.area->curIdx;
+	      areaCurrentSymbol->attr.area->curIdx = 0;
 	    }
 
 	  Area_ResetPrivateVars ();
@@ -282,16 +282,16 @@ Area_PrepareForPhase (Phase_e phase)
 	  /* Do an implicit LTORG at the end of all areas.  */
 	  for (areaCurrentSymbol = areaHeadSymbol;
 	       areaCurrentSymbol != NULL;
-	       areaCurrentSymbol = areaCurrentSymbol->area->next)
+	       areaCurrentSymbol = areaCurrentSymbol->attr.area->next)
 	    {
 	      Lit_DumpPool ();
-	      assert (areaCurrentSymbol->area->curIdx == areaCurrentSymbol->area->maxIdx);
+	      assert (areaCurrentSymbol->attr.area->curIdx == areaCurrentSymbol->attr.area->maxIdx);
 	    }
 
 	  /* Suggest NOINIT ? */
-	  for (const Symbol *areaSymP = areaHeadSymbol; areaSymP != NULL; areaSymP = areaSymP->area->next)
+	  for (const Symbol *areaSymP = areaHeadSymbol; areaSymP != NULL; areaSymP = areaSymP->attr.area->next)
 	    {
-	      const Area *areaP = areaSymP->area;
+	      const Area *areaP = areaSymP->attr.area;
 	      /* Skip suggestion when:
 	          - READONLY area, as NOINIT can not be combined with READONLY.
 		  - CODE area
@@ -305,7 +305,7 @@ Area_PrepareForPhase (Phase_e phase)
 		  for (i = 0; i != areaP->maxIdx && areaP->image[i] == 0; ++i)
 		    /* */;
 		  if (i == areaP->maxIdx)
-		    Error_Line (areaSymP->fileName, areaSymP->lineNumber, ErrorInfo,
+		    Error_Line (areaSymP->attr.fileName, areaSymP->attr.lineNumber, ErrorInfo,
 				"Area %s only contains zero bytes, use NOINIT area attribute ?", areaSymP->str);
 		}
 	    }
@@ -313,16 +313,16 @@ Area_PrepareForPhase (Phase_e phase)
 	  /* Revert sort the area's so they become listed chronologically.  */
 	  Symbol *aSymP = areaHeadSymbol;
 	  assert (aSymP != NULL); /* There is always at least one area.  */
-	  for (Symbol *nextSymP = aSymP->area->next; nextSymP != NULL; /* */)
+	  for (Symbol *nextSymP = aSymP->attr.area->next; nextSymP != NULL; /* */)
 	    {
-	      Symbol *nextNextSymP = nextSymP->area->next;
+	      Symbol *nextNextSymP = nextSymP->attr.area->next;
 
-	      nextSymP->area->next = aSymP;
+	      nextSymP->attr.area->next = aSymP;
 	      aSymP = nextSymP;
 
 	      nextSymP = nextNextSymP;
 	    }
-	  areaHeadSymbol->area->next = NULL;
+	  areaHeadSymbol->attr.area->next = NULL;
 	  areaHeadSymbol = aSymP;
 	  break;
 	}
@@ -331,8 +331,8 @@ Area_PrepareForPhase (Phase_e phase)
 	{
 	  for (Symbol *areaSymbolP = areaHeadSymbol; areaSymbolP != NULL; /* */)
 	    {
-	      Symbol *nextAreaSymbolP = areaSymbolP->area->next;
-              Area *areaP = areaSymbolP->area;
+	      Symbol *nextAreaSymbolP = areaSymbolP->attr.area->next;
+              Area *areaP = areaSymbolP->attr.area;
 	      free (areaP->image);
 	      areaP->image = NULL;
 
@@ -342,7 +342,7 @@ Area_PrepareForPhase (Phase_e phase)
 	      IT_FinalizeState (&areaP->it);
 
 	      free (areaP);
-	      areaSymbolP->area = NULL;
+	      areaSymbolP->attr.area = NULL;
 	      areaSymbolP = nextAreaSymbolP;
 	    }
 	  areaHeadSymbol = NULL;
@@ -375,7 +375,7 @@ c_entry (void)
       else
 	{
 	  areaEntrySymbol = areaCurrentSymbol;
-	  areaEntryOffset = areaCurrentSymbol->area->curIdx;
+	  areaEntryOffset = areaCurrentSymbol->attr.area->curIdx;
 	  oArea_EntrySymbolFileName = FS_GetCurFileName ();
 	  oArea_EntrySymbolLineNum = FS_GetCurLineNumber ();
 	}
@@ -399,20 +399,20 @@ c_entry (void)
 uint32_t
 Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const char *msg)
 {
-  assert (areaSym->type & SYMBOL_AREA);
+  assert (areaSym->attr.type & SYMBOL_AREA);
   assert (alignValue && (alignValue & (alignValue - 1)) == 0);
   if (msg && (offset & (alignValue - 1)) != 0)
     Error (ErrorWarning, "Implicit aligning unaligned %s", msg);
   size_t newOffset = (offset + alignValue-1) & -alignValue;
   /* Auto increase Area's curIdx value when aligned offset surpasses it.  */
-  if (areaSym->area->curIdx < newOffset)
+  if (areaSym->attr.area->curIdx < newOffset)
     {
-      if (!Area_IsNoInit (areaSym->area))
+      if (!Area_IsNoInit (areaSym->attr.area))
 	{
-	  Area_EnsureExtraSize (areaSym, newOffset - areaSym->area->curIdx);
-	  memset (&areaSym->area->image[areaSym->area->curIdx], 0, newOffset - areaSym->area->curIdx);
+	  Area_EnsureExtraSize (areaSym, newOffset - areaSym->attr.area->curIdx);
+	  memset (&areaSym->attr.area->image[areaSym->attr.area->curIdx], 0, newOffset - areaSym->attr.area->curIdx);
 	}
-      areaSym->area->curIdx = newOffset;
+      areaSym->attr.area->curIdx = newOffset;
     }
   return newOffset;
 }
@@ -436,7 +436,7 @@ Area_AlignTo (uint32_t offset, unsigned alignValue, const char *msg)
 uint32_t
 Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg)
 {
-  return Area_AlignOffset (areaSym, areaSym->area->curIdx, alignValue, msg);
+  return Area_AlignOffset (areaSym, areaSym->attr.area->curIdx, alignValue, msg);
 }
 
 
@@ -449,7 +449,7 @@ uint32_t
 Area_CurIdxAligned (void)
 {
   uint32_t instrAlign = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
-  return (areaCurrentSymbol->area->curIdx + instrAlign-1) & -instrAlign;
+  return (areaCurrentSymbol->attr.area->curIdx + instrAlign-1) & -instrAlign;
 }
 
 
@@ -508,16 +508,16 @@ Area_Ensure (void)
       areaType = AREA_CODE | AREA_ABS | AREA_READONLY | AREA_DEFAULT_ALIGNMENT;
     }
   const Lex lex = Lex_Id (areaNameP, areaNameSize);
-  Symbol *sym = Symbol_Get (&lex);
-  assert (SYMBOL_KIND (sym->type) == 0);
-  if ((sym->type & SYMBOL_AREA) == 0)
+  Symbol *symP = Symbol_Get (&lex);
+  assert (SYMBOL_KIND (symP->attr.type) == 0);
+  if ((symP->attr.type & SYMBOL_AREA) == 0)
     {
       /* When an area is made absolute, ensure its symbol is also absolute.  */
-      sym->type = (areaType & AREA_ABS) ? SYMBOL_ABSOLUTE | SYMBOL_AREA : SYMBOL_AREA;
-      sym->value = Value_Int (0, eIntType_PureInt);
-      sym->area = Area_Create (sym, areaType);
+      symP->attr.type = (areaType & AREA_ABS) ? SYMBOL_ABSOLUTE | SYMBOL_AREA : SYMBOL_AREA;
+      symP->attr.value = Value_Int (0, eIntType_PureInt);
+      symP->attr.area = Area_Create (symP, areaType);
     }
-  areaCurrentSymbol = sym;
+  areaCurrentSymbol = symP;
 }
 
 
@@ -751,26 +751,26 @@ c_area (void)
     return false; /* No need to give an error, Lex_GetID already did.  */
 
   Symbol *sym = Symbol_Get (&lex);
-  if (SYMBOL_KIND (sym->type) != 0)
+  if (SYMBOL_KIND (sym->attr.type) != 0)
     {
       const char *symDescrP = Symbol_GetDescription (sym);
       Error (ErrorError, "Redefinition of %s %s as area", symDescrP, sym->str);
-      Error_Line (sym->fileName, sym->lineNumber, ErrorError, "note: %c%s %s was previously defined here",
+      Error_Line (sym->attr.fileName, sym->attr.lineNumber, ErrorError, "note: %c%s %s was previously defined here",
 		  toupper ((unsigned char)symDescrP[0]), symDescrP + 1, sym->str);
       return false;
     }
   unsigned int prevAreaAttrib;  
-  if (sym->type & SYMBOL_AREA)
+  if (sym->attr.type & SYMBOL_AREA)
     {
-      prevAreaAttrib = sym->area->type;
+      prevAreaAttrib = sym->attr.area->type;
       assert (prevAreaAttrib);
     }
   else
     {
       prevAreaAttrib = 0;
-      sym->type = SYMBOL_AREA;
-      sym->value = Value_Int (0, eIntType_PureInt);
-      sym->area = Area_Create (sym, 0);
+      sym->attr.type = SYMBOL_AREA;
+      sym->attr.value = Value_Int (0, eIntType_PureInt);
+      sym->attr.area = Area_Create (sym, 0);
     }
   Input_SkipWS ();
 
@@ -811,7 +811,7 @@ c_area (void)
     {
       result.flagValues[eBothCodeAndData] |= AREA_ABS;
       uint32_t alignValue = 1U << (result.flagValues[eBothCodeAndData] & AREA_ALIGN_MASK);
-      sym->value = Value_Int (ValidateORGValue (alignValue, oPendingORG.value), eIntType_PureInt);
+      sym->attr.value = Value_Int (ValidateORGValue (alignValue, oPendingORG.value), eIntType_PureInt);
       oPendingORG.isValid = false;
     }
 
@@ -837,7 +837,7 @@ c_area (void)
 
   /* When an area is made absolute, ensure its symbol is also absolute.  */
   if ((result.flagValues[eBothCodeAndData] & AREA_ABS) != 0)
-    sym->type |= SYMBOL_ABSOLUTE;
+    sym->attr.type |= SYMBOL_ABSOLUTE;
 
   /* When an area is re-defined, make sure its attributes are the same.  */
   if (prevAreaAttrib != 0)
@@ -861,8 +861,8 @@ c_area (void)
     {
       /* Only set the area attribute bits when the area gets defined for the
          first time.  */
-      sym->area->type |= result.flagValues[eBothCodeAndData];
-      assert ((sym->area->type & ~((sym->area->type & AREA_CODE) ? AREA_INT_CODEMASK : AREA_INT_DATAMASK)) == 0);
+      sym->attr.area->type |= result.flagValues[eBothCodeAndData];
+      assert ((sym->attr.area->type & ~((sym->attr.area->type & AREA_CODE) ? AREA_INT_CODEMASK : AREA_INT_DATAMASK)) == 0);
     }
 
   areaCurrentSymbol = sym;
@@ -895,20 +895,20 @@ c_org (void)
 	}
       else
 	{
-	  if (areaCurrentSymbol->area->curIdx != 0)
+	  if (areaCurrentSymbol->attr.area->curIdx != 0)
 	    {
 	      Error (ErrorError, "Too late to set ORG of current area");
-	      Error_Line (areaCurrentSymbol->fileName, areaCurrentSymbol->lineNumber,
+	      Error_Line (areaCurrentSymbol->attr.fileName, areaCurrentSymbol->attr.lineNumber,
 			  ErrorError, "note: Expected to be set just before or after this line");
 	    }
 	  else
 	    {
-	      areaCurrentSymbol->area->type |= AREA_ABS;
-	      areaCurrentSymbol->value = Value_Int (ValidateORGValue (1U << (areaCurrentSymbol->area->type & AREA_ALIGN_MASK), value->Data.Int.i), eIntType_PureInt);
+	      areaCurrentSymbol->attr.area->type |= AREA_ABS;
+	      areaCurrentSymbol->attr.value = Value_Int (ValidateORGValue (1U << (areaCurrentSymbol->attr.area->type & AREA_ALIGN_MASK), value->Data.Int.i), eIntType_PureInt);
 
 	      /* When an area is made absolute, ensure its symbol is also
 		 absolute.  */
-	      areaCurrentSymbol->type |= SYMBOL_ABSOLUTE;
+	      areaCurrentSymbol->attr.type |= SYMBOL_ABSOLUTE;
 	    }
 	}
     }
@@ -975,9 +975,9 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset,
   if (areaSymbol == NULL || Area_IsImplicit (areaSymbol))
     return;
 
-  if (areaSymbol->area->entryType != type)
+  if (areaSymbol->attr.area->entryType != type)
     {
-      areaSymbol->area->entryType = type;
+      areaSymbol->attr.area->entryType = type;
 
       const char *baseMappingSymbol;
       switch (type)
@@ -1014,7 +1014,7 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset,
 Area_eEntryType
 Area_GetCurrentEntryType (void)
 {
-  return areaCurrentSymbol->area->entryType;
+  return areaCurrentSymbol->attr.area->entryType;
 }
 
 

@@ -93,15 +93,15 @@ Define (const char *msg, Symbol *sym, ValueTag legal, IntType_e intType)
  * Implements CN.
  */
 bool
-c_cn (Symbol *symbol)
+c_cn (Symbol *symP)
 {
-  if (!Define ("coprocessor register", symbol, ValueInt, eIntType_CoProReg))
+  if (!Define ("coprocessor register", symP, ValueInt, eIntType_CoProReg))
     {
-      assert (symbol->value.Tag == ValueInt);
-      int no = symbol->value.Data.Int.i;
+      assert (symP->attr.value.Tag == ValueInt);
+      int no = symP->attr.value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Int.i = 0;
+	  symP->attr.value.Data.Int.i = 0;
 	  Error (ErrorError, "Illegal %s register %d (using 0)", "coprocessor", no);
 	}
     }
@@ -112,15 +112,15 @@ c_cn (Symbol *symbol)
  * Implements CP.
  */
 bool
-c_cp (Symbol *symbol)
+c_cp (Symbol *symP)
 {
-  if (!Define ("coprocessor number", symbol, ValueInt, eIntType_CoProNum))
+  if (!Define ("coprocessor number", symP, ValueInt, eIntType_CoProNum))
     {
-      assert (symbol->value.Tag == ValueInt);
-      int no = symbol->value.Data.Int.i;
+      assert (symP->attr.value.Tag == ValueInt);
+      int no = symP->attr.value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Int.i = 0;
+	  symP->attr.value.Data.Int.i = 0;
 	  Error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
 	}
     }
@@ -132,12 +132,12 @@ c_cp (Symbol *symbol)
  *   <symbol> EQU <expression>, <attribute>
  */
 bool
-c_equ (Symbol *symbol)
+c_equ (Symbol *symP)
 {
   /* FIXME: <attribute> parsing.  */
   /* FIXME: ObjAsm limits EQU to ValueInt | ValueAddr | ValueSymbol, should
      we do the same ? */
-  Define ("* or EQU", symbol, ValueAll, 0);
+  Define ("* or EQU", symP, ValueAll, 0);
   return false;
 }
 
@@ -145,15 +145,15 @@ c_equ (Symbol *symbol)
  * Implements FN.
  */
 bool
-c_fn (Symbol *symbol)
+c_fn (Symbol *symP)
 {
-  if (!Define ("FPU register", symbol, ValueInt, eIntType_FPU))
+  if (!Define ("FPU register", symP, ValueInt, eIntType_FPU))
     {
-      assert (symbol->value.Tag == ValueInt);
-      int no = symbol->value.Data.Int.i;
+      assert (symP->attr.value.Tag == ValueInt);
+      int no = symP->attr.value.Data.Int.i;
       if (no < 0 || no > 7)
 	{
-	  symbol->value.Data.Int.i = 0;
+	  symP->attr.value.Data.Int.i = 0;
 	  Error (ErrorError, "Illegal %s register %d (using 0)", "FPU", no);
 	}
     }
@@ -164,15 +164,15 @@ c_fn (Symbol *symbol)
  * Implements RN.
  */
 bool
-c_rn (Symbol *symbol)
+c_rn (Symbol *symP)
 {
-  if (!Define ("CPU register", symbol, ValueInt, eIntType_CPU))
+  if (!Define ("CPU register", symP, ValueInt, eIntType_CPU))
     {
-      assert (symbol->value.Tag == ValueInt);
-      int no = symbol->value.Data.Int.i;
+      assert (symP->attr.value.Tag == ValueInt);
+      int no = symP->attr.value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Int.i = 0;
+	  symP->attr.value.Data.Int.i = 0;
 	  Error (ErrorError, "Illegal %s register %d (using 0)", "CPU", no);
 	}
     }
@@ -183,14 +183,14 @@ c_rn (Symbol *symbol)
  * Implements RLIST.
  */
 bool
-c_rlist (Symbol *symbol)
+c_rlist (Symbol *symP)
 {
-  if (symbol == NULL)
+  if (symP == NULL)
     {
       Error (ErrorError, "Missing label before %s", "register list");
       return false;
     }
   const Value rlistValue = Value_Int (Get_CPURList (), eIntType_CPURList);
-  Symbol_Define (symbol, SYMBOL_CONSTANT | SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, &rlistValue);
+  Symbol_Define (symP, SYMBOL_CONSTANT | SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, &rlistValue);
   return false;
 }

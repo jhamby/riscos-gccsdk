@@ -73,7 +73,7 @@ HelpCop_Addr (ARMWord ir, bool literal, bool stack, bool isThumb)
       return;
     }
 
-  const ARMWord instrOffset = areaCurrentSymbol->area->curIdx;
+  const ARMWord instrOffset = areaCurrentSymbol->attr.area->curIdx;
   Value value;
   const Value *valP = NULL;
   switch (Input_Look ())

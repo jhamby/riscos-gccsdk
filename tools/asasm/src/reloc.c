@@ -235,7 +235,7 @@ RelocAndAddend_t
 Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
 			   uint32_t instrOffset, bool intAddendOk)
 {
-  assert (pcRelSymP == NULL || (pcRelSymP->type & SYMBOL_AREA) != 0);
+  assert (pcRelSymP == NULL || (pcRelSymP->attr.type & SYMBOL_AREA) != 0);
 
   RelocAndAddend_t result =
     {
@@ -248,8 +248,8 @@ Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
       Symbol *symP = valP->Data.Symbol.symbol;
       int symOffset = valP->Data.Symbol.offset;
       int symFactor = valP->Data.Symbol.factor;
-      assert ((symP->type & SYMBOL_AREA) != 0);
-      const Area *areaP = symP->area;
+      assert ((symP->attr.type & SYMBOL_AREA) != 0);
+      const Area *areaP = symP->attr.area;
       assert (areaP != NULL);
 
       if ((areaP->type & AREA_BASED) != 0)
@@ -297,10 +297,10 @@ Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
       if (symFactor == 1)
 	{
 	  result.relocSymbol = Value_Symbol (symP, 1, 0);
-	  if (symP->value.Tag == ValueAddr)
+	  if (symP->attr.value.Tag == ValueAddr)
 	    {
 	      /* IMPORT ... [ BASED ...] symbols.  */
-	      result.addend = symP->value;
+	      result.addend = symP->attr.value;
 	      result.addend.Data.Addr.i += symOffset;
 	    }
 	  else if (pcRelSymP != NULL)
@@ -316,7 +316,7 @@ Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
 	   && valP->Tag == ValueInt
 	   && valP->Data.Int.type == eIntType_PureInt
 	   && pcRelSymP != NULL
-	   && (pcRelSymP->area->type & AREA_ABS) != 0)
+	   && (pcRelSymP->attr.area->type & AREA_ABS) != 0)
     {
       /* Convert integer (presumebly an address) into ValueAddr.  */
       int pcOffset = State_GetInstrType () == eInstrType_ARM ? 8 : 4;
@@ -359,12 +359,12 @@ Reloc_CreateInternal (uint32_t how, uint32_t offset, const Value *value,
   assert ((value == NULL && !option_aof) || (value != NULL && !Area_IsMappingSymbol (value->Data.Symbol.symbol->str)));
 
   assert ((option_aof && (how & HOW2_SIDMASK) == 0) || (!option_aof && how < 256u));
-  assert (offset <= areaCurrentSymbol->area->curIdx + 3);
+  assert (offset <= areaCurrentSymbol->attr.area->curIdx + 3);
 
   if (gPhase != ePassTwo)
     return;
 
-  Reloc_State_t *stateP = &areaCurrentSymbol->area->reloc;
+  Reloc_State_t *stateP = &areaCurrentSymbol->attr.area->reloc;
   Symbol *relocSymP = value ? value->Data.Symbol.symbol : NULL;
   size_t entriesNeeded = value ? value->Data.Symbol.factor : 1;
   if (replace)
@@ -427,9 +427,9 @@ Reloc_GetRawRelocData (Reloc_State_t *stateP)
 	{
 	  relDstP->Offset = armword (relSrcP->offset);
 	  const Symbol *symP = relSrcP->symP;
-	  assert (symP->used >= 0 && (symP->used & ~HOW2_SIDMASK) == 0);
-	  uint32_t how = relSrcP->how | symP->used;
-	  if ((symP->type & SYMBOL_AREA) == 0)
+	  assert (symP->attr.used >= 0 && (symP->attr.used & ~HOW2_SIDMASK) == 0);
+	  uint32_t how = relSrcP->how | symP->attr.used;
+	  if ((symP->attr.type & SYMBOL_AREA) == 0)
 	    how |= HOW2_SYMBOL;
 	  relDstP->How = armword (how);
 	}
@@ -442,8 +442,8 @@ Reloc_GetRawRelocData (Reloc_State_t *stateP)
 	{
 	  relDstP->r_offset = relSrcP->offset;
 	  const Symbol *symP = relSrcP->symP;
-	  assert (symP == NULL || (symP->used >= 0 && (symP->used & ~0xFFu) == 0));
-	  relDstP->r_info = ELF32_R_INFO (symP ? symP->used : 0, relSrcP->how);
+	  assert (symP == NULL || (symP->attr.used >= 0 && (symP->attr.used & ~0xFFu) == 0));
+	  relDstP->r_info = ELF32_R_INFO (symP ? symP->attr.used : 0, relSrcP->how);
 	}
     }
   return stateP->raw.rawP;
@@ -570,7 +570,7 @@ c_reloc (void)
 
   if (!option_aof)
     {
-      uint32_t relocOffset = areaCurrentSymbol->area->reloc.offsetForExplicitReloc;
+      uint32_t relocOffset = areaCurrentSymbol->attr.area->reloc.offsetForExplicitReloc;
       if (relocOffset == UINT32_MAX)
 	Error (ErrorError, "Relocation offset can not be determined");
       else

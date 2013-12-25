@@ -91,11 +91,9 @@
 
 #define SYMBOL_TABLESIZE 1024
 
-
-typedef struct Symbol
+/** Symbol attributes.  */
+typedef struct
 {
-  struct Symbol *next;  /** Linked symbols all having the same hash value.  */
-
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
   Value value; /** Symbol value.  For symbol labels, this is always a
     ValueSymbol with symbol an area symbol.
@@ -132,8 +130,14 @@ typedef struct Symbol
       For ELF: Index in the symbol table (area symbols also have an entry there).
 	       From 0 onwards.
       Is -1 when the symbol is not to be mentioned in the symbol table.  */
+} SymbolAttr;
 
-  /* Symbol name: */
+typedef struct Symbol
+{
+  struct Symbol *next;  /** Linked symbols all having the same hash value.  */
+
+  SymbolAttr attr; /** Symbol attributes.  */
+
   size_t len;		/** length of str[] without its NUL terminator.  */
   char str[];		/** symbol name as NUL terminated string */
 } Symbol;

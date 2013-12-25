@@ -41,9 +41,9 @@ IT_PrepareForPhase (Phase_e phase)
     {
       case ePassTwo:
 	{
-	  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+	  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->attr.area->next)
 	    {
-	      IT_State_t *itStateP = &ap->area->it;
+	      IT_State_t *itStateP = &ap->attr.area->it;
 	      if (itStateP->curIdx != itStateP->maxIdx)
 		{
 		  /* We have a pending IT block.  */
@@ -51,7 +51,7 @@ IT_PrepareForPhase (Phase_e phase)
 		  Error_Line (itStateP->fileName, itStateP->lineNum, ErrorError, "note: Pending IT block started here");
 		}
 	      /* Reset any implicit IT block.  */
-	      IT_InitializeState (&ap->area->it);
+	      IT_InitializeState (&ap->attr.area->it);
 	    }
 	  break;
 	}
@@ -104,7 +104,7 @@ m_it (bool doLowerCase)
       .curIdx = 0,
       .implicitIT = false,
       /* .cc = ..., */
-      .areaCurIdx = areaCurrentSymbol->area->curIdx,
+      .areaCurIdx = areaCurrentSymbol->attr.area->curIdx,
       .fileName = FS_GetCurFileName(),
       .lineNum = FS_GetCurLineNumber()
     };
@@ -134,7 +134,7 @@ m_it (bool doLowerCase)
       return false;
     }
 
-  Area *curAreaP = areaCurrentSymbol->area;
+  Area *curAreaP = areaCurrentSymbol->attr.area;
   if (curAreaP->it.curIdx != curAreaP->it.maxIdx)
     {
       /* We have a pending IT block.  */
@@ -175,7 +175,7 @@ IT_StartImplicitIT (IT_State_t *itStateP, uint32_t cc)
       .curIdx = 1,
       .implicitIT = true,
       .cc = cc,
-      .areaCurIdx = areaCurrentSymbol->area->curIdx,
+      .areaCurIdx = areaCurrentSymbol->attr.area->curIdx,
       .fileName = FS_GetCurFileName(),
       .lineNum = FS_GetCurLineNumber()
     };
@@ -203,7 +203,7 @@ void
 IT_ApplyCond (uint32_t cc, bool enforceLast, bool isThumb)
 {
   cc &= NV; /* Filter out the condition codes.  */
-  IT_State_t *itStateP = &areaCurrentSymbol->area->it;
+  IT_State_t *itStateP = &areaCurrentSymbol->attr.area->it;
   assert (itStateP->curIdx <= itStateP->maxIdx);
   if (itStateP->curIdx != itStateP->maxIdx)
     {
@@ -281,7 +281,7 @@ bool
 IT_CanExtendBlock (uint32_t cc)
 {
   assert ((cc & ~NV) == 0 && cc != AL);
-  const IT_State_t *itStateP = &areaCurrentSymbol->area->it;
+  const IT_State_t *itStateP = &areaCurrentSymbol->attr.area->it;
   assert (itStateP->curIdx <= itStateP->maxIdx);
   return (itStateP->curIdx != itStateP->maxIdx && cc == (itStateP->cc ^ (!itStateP->isThen[itStateP->curIdx] << 28)))
            || (itStateP->implicitIT && itStateP->maxIdx != 4 && (cc == itStateP->cc || cc == (itStateP->cc ^ (1<<28))));

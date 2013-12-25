@@ -46,7 +46,7 @@ bool
 Value_IsLabel (const Value *valueP)
 {
   return valueP->Tag == ValueSymbol
-	   && (valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0;
+	   && (valueP->Data.Symbol.symbol->attr.type & SYMBOL_AREA) != 0;
 }
 
 
@@ -152,24 +152,24 @@ Value_ResolveSymbol (Value *valueP, bool resolveAbsArea)
      labels, we're losing relocation info).  */
   /* FIXME: this can probably loop forever: label1 -> label2 -> label1 */
   while (valueP->Tag == ValueSymbol
-	 && ((valueP->Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0
+	 && ((valueP->Data.Symbol.symbol->attr.type & SYMBOL_DEFINED) != 0
 	     || (resolveAbsArea
-		 && (valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0
-		 && (valueP->Data.Symbol.symbol->area->type & AREA_ABS) != 0)))
+		 && (valueP->Data.Symbol.symbol->attr.type & SYMBOL_AREA) != 0
+		 && (valueP->Data.Symbol.symbol->attr.area->type & AREA_ABS) != 0)))
     {
       int offset = valueP->Data.Symbol.offset;
       int factor = valueP->Data.Symbol.factor;
 
       if (resolveAbsArea
-	  && (valueP->Data.Symbol.symbol->type & SYMBOL_AREA) != 0)
+	  && (valueP->Data.Symbol.symbol->attr.type & SYMBOL_AREA) != 0)
 	{
-	  const Area *areaP = valueP->Data.Symbol.symbol->area;
+	  const Area *areaP = valueP->Data.Symbol.symbol->attr.area;
 	  assert ((areaP->type & AREA_ABS) != 0);
 	  *valueP = Value_Int (factor * Area_GetBaseAddress (valueP->Data.Symbol.symbol) + offset, eIntType_PureInt);
 	  break;
 	}
 
-      const Value *newValueP = &valueP->Data.Symbol.symbol->value;
+      const Value *newValueP = &valueP->Data.Symbol.symbol->attr.value;
       switch (newValueP->Tag)
 	{
 	  case ValueBool:

@@ -150,11 +150,11 @@ DWARF_MarkAs (const Symbol *areaSymP, uint32_t offset,
   /* Record DWARF debug line data.
      Only for ELF output, when debug is specified, for code and this during
      phase 2.  */
-  if ((areaSymP->area->type & AREA_CODE) == 0)
+  if ((areaSymP->attr.area->type & AREA_CODE) == 0)
     return;
   if (option_debug && !option_aof && gPhase == ePassTwo)
     {
-      DWARF_State_t *dwarfStateP = &areaSymP->area->dwarf;
+      DWARF_State_t *dwarfStateP = &areaSymP->attr.area->dwarf;
       if (fileNameP != dwarfStateP->lastFileNameP)
 	{
 	  const MarkData_FileName_t markData = { .strP = fileNameP };
@@ -313,14 +313,14 @@ DWARF_DumpDebugLine (Dwarf_P_Debug dwHandle)
   DWARF_FSObjTree fsObjTree;
   DWARF_FSObjTree_Init (dwHandle, &fsObjTree);
 
-  for (const Symbol *areaSymP = areaHeadSymbol; areaSymP != NULL; areaSymP = areaSymP->area->next)
+  for (const Symbol *areaSymP = areaHeadSymbol; areaSymP != NULL; areaSymP = areaSymP->attr.area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (areaSymP))
 	continue;
-      assert (!Area_IsDWARF (areaSymP->area));
+      assert (!Area_IsDWARF (areaSymP->attr.area));
 
-      const DWARF_State_t *dwarfStateP = &areaSymP->area->dwarf;
+      const DWARF_State_t *dwarfStateP = &areaSymP->attr.area->dwarf;
 
       Dwarf_Error dwErr;
       bool did_set_address = false;
@@ -381,7 +381,7 @@ DWARF_DumpDebugLine (Dwarf_P_Debug dwHandle)
 	}
 
       if (did_set_address
-          && dwarf_lne_end_sequence (dwHandle, FIX (areaSymP->area->maxIdx) /* FIXME: FIX() needed ? */, &dwErr) != 0)
+          && dwarf_lne_end_sequence (dwHandle, FIX (areaSymP->attr.area->maxIdx) /* FIXME: FIX() needed ? */, &dwErr) != 0)
 	Error_Abort ("dwarf_lne_end_sequence() failed: %s", dwarf_errmsg (dwErr));
     }
   DWARF_FSObjTree_Finalize (&fsObjTree);
@@ -484,12 +484,12 @@ DWARF_CreateAreasAndSections (DWARF_UserState_t *dwUserStateP)
      area), or DW_AT_ranges (FIXME: not done yet).  */
   unsigned numAreas = 0;
   const Symbol *areaSymP = NULL;
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->attr.area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
-      assert (!Area_IsDWARF (ap->area));
+      assert (!Area_IsDWARF (ap->attr.area));
 
       areaSymP = ap;
       numAreas += 1;
@@ -499,7 +499,7 @@ DWARF_CreateAreasAndSections (DWARF_UserState_t *dwUserStateP)
     {
       if (dwarf_add_AT_targ_address_b (dwHandle, compileUnitDieP, DW_AT_low_pc, 0, (Dwarf_Unsigned) areaSymP, &dwErr) == NULL)
 	Error_Abort ("dwarf_add_AT_targ_address_b() failed: %s", dwarf_errmsg (dwErr));
-      if (dwarf_add_AT_targ_address_b (dwHandle, compileUnitDieP, DW_AT_high_pc, FIX (areaSymP->area->maxIdx) /* FIXME: Is FIX() needed ? */, (Dwarf_Unsigned) areaSymP, &dwErr) == NULL)
+      if (dwarf_add_AT_targ_address_b (dwHandle, compileUnitDieP, DW_AT_high_pc, FIX (areaSymP->attr.area->maxIdx) /* FIXME: Is FIX() needed ? */, (Dwarf_Unsigned) areaSymP, &dwErr) == NULL)
 	Error_Abort ("dwarf_add_AT_targ_address_b() failed: %s", dwarf_errmsg (dwErr));
     }
   else
@@ -511,14 +511,14 @@ DWARF_CreateAreasAndSections (DWARF_UserState_t *dwUserStateP)
   DWARF_DumpDebugLine (dwHandle);
   
   /* Add .debug_aranges section.  One entry for each area.  */
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->attr.area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
-      assert (!Area_IsDWARF (ap->area));
+      assert (!Area_IsDWARF (ap->attr.area));
 
-      if (dwarf_add_arange (dwHandle, 0, FIX (ap->area->maxIdx) /* FIXME: FIX() needed ? */, (Dwarf_Signed) ap, &dwErr) == 0)
+      if (dwarf_add_arange (dwHandle, 0, FIX (ap->attr.area->maxIdx) /* FIXME: FIX() needed ? */, (Dwarf_Signed) ap, &dwErr) == 0)
 	Error_Abort ("dwarf_add_arange() failed: %s", dwarf_errmsg (dwErr));
     }
 
@@ -584,7 +584,7 @@ DWARF_OutputSectionData (DWARF_UserState_t *dwUserStateP)
 	Error_OutOfMem ();
       /* Store copy of elfRelocDataP so it can get deallocated at the end.  */
       Symbol *dwarfAreaP = Area_FindDWARF (elfSectLinkIdx);
-      dwarfAreaP->area->dwarf.elfRelocDataP = elfRelocDataP;
+      dwarfAreaP->attr.area->dwarf.elfRelocDataP = elfRelocDataP;
       for (Dwarf_Unsigned relocIdx = 0; relocIdx != relocCount; ++relocIdx)
 	{
 	  struct Dwarf_Relocation_Data_s *relocRecordP = &relocData[relocIdx];
@@ -592,9 +592,9 @@ DWARF_OutputSectionData (DWARF_UserState_t *dwUserStateP)
 	     dwarf_drt_first_of_length_pair, dwarf_drt_second_of_length_pair.  */
 	  assert (relocRecordP->drd_type == dwarf_drt_data_reloc && relocRecordP->drd_length == 4);
 	  const Symbol *relocSymP = (const Symbol *)relocRecordP->drd_symbol_index;
-	  assert (relocSymP->used >= 0);
+	  assert (relocSymP->attr.used >= 0);
 	  elfRelocDataP[relocIdx].r_offset = relocRecordP->drd_offset;
-	  elfRelocDataP[relocIdx].r_info = ELF32_R_INFO (relocSymP->used, R_ARM_ABS32);
+	  elfRelocDataP[relocIdx].r_info = ELF32_R_INFO (relocSymP->attr.used, R_ARM_ABS32);
 	}
 
       /* Link DWARF relocation section data into ELF data structure.  */

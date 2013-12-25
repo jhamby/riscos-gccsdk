@@ -344,7 +344,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 
   if ((ir & 0x0e000000) == 0 /* Address mode 3.  */
       && (ir & (1<<5)) != 0 /* Half-word.  */
-      && (areaCurrentSymbol->area->type & AREA_HALFWORD) == 0
+      && (areaCurrentSymbol->attr.area->type & AREA_HALFWORD) == 0
       && option_aof)
     Error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
 
@@ -475,7 +475,7 @@ LdrStrEx (bool isLoad, bool doLowerCase)
     }
 
   if (type == htype
-      && (areaCurrentSymbol->area->type & AREA_HALFWORD) == 0
+      && (areaCurrentSymbol->attr.area->type & AREA_HALFWORD) == 0
       && option_aof)
     Error (ErrorWarning, "Half-word memory access without area being marked with HALFWORD");
 

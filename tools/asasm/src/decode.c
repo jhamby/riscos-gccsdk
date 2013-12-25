@@ -433,7 +433,7 @@ Decode (const Lex *label)
   /* Deal with empty line quickly.  */
   if (Input_IsEolOrCommentStart ())
     {
-      (void) ASM_DefineLabel (label, areaCurrentSymbol->area->curIdx, false);
+      (void) ASM_DefineLabel (label, areaCurrentSymbol->attr.area->curIdx, false);
       return;
     }
   
@@ -558,7 +558,7 @@ Decode (const Lex *label)
       /* Take snapshots of current area, its current offset and current file
          and its current line number.  Executing the next instruction,
          mnemonic and directive can change any of those 'current' value.  */
-      uint32_t startOffset = areaCurrentSymbol->area->curIdx;
+      uint32_t startOffset = areaCurrentSymbol->attr.area->curIdx;
       Symbol * const startAreaSymbol = areaCurrentSymbol;
       const char * const startFileNameP = FS_GetCurFileName ();
       const unsigned startLineNumber = FS_GetCurLineNumber ();
@@ -567,7 +567,7 @@ Decode (const Lex *label)
 
       /* Unless it's RELOC, disable the use of RELOC until further notice.  */
       if (indexFound != kDecodeTableIndex_RELOC)
-	Reloc_DisableExplicitReloc (&areaCurrentSymbol->area->reloc);
+	Reloc_DisableExplicitReloc (&areaCurrentSymbol->attr.area->reloc);
       
       Symbol *labelSymbol;
       switch (oDecodeTable[indexFound].cb_type)
@@ -659,7 +659,7 @@ Decode (const Lex *label)
 
 	      /* Mark all ARM/Thumb instructions applicable for an explicit
 	         RELOC.  */
-	      Reloc_EnableExplicitReloc (&startAreaSymbol->area->reloc, startOffset);
+	      Reloc_EnableExplicitReloc (&startAreaSymbol->attr.area->reloc, startOffset);
 	    }
 
 	  if (oDecodeTable[indexFound].updateMap)
@@ -691,7 +691,7 @@ Decode (const Lex *label)
 	      /* Give warning when ARM/Thumb instructions are being used in
 	         DATA areas.  */
 	      if ((entryType == eARM || entryType == eThumb)
-	          && !(areaCurrentSymbol->area->type & AREA_CODE))
+	          && !(areaCurrentSymbol->attr.area->type & AREA_CODE))
 		Error (ErrorWarning, "Code generated in data area");
 
 	      /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
@@ -717,7 +717,7 @@ Decode (const Lex *label)
 	  if (startAreaSymbol != areaCurrentSymbol)
 	    {
 	      assert (!strcmp (oDecodeTable[indexFound].mnemonic, "AREA"));
-	      startOffset = areaCurrentSymbol->area->curIdx;
+	      startOffset = areaCurrentSymbol->attr.area->curIdx;
 	    }
 
 	  /* Determine the code size associated with the label on this line
@@ -728,8 +728,8 @@ Decode (const Lex *label)
 	      /* Either we have an increase in code/data in our current area,
 	         either we have an increase in storage map, either non of the
 	         previous (like with "<lbl> * <value>" input).  */
-	      if (areaCurrentSymbol->area->curIdx - startOffset != 0)
-		codeSize = areaCurrentSymbol->area->curIdx - startOffset;
+	      if (areaCurrentSymbol->attr.area->curIdx - startOffset != 0)
+		codeSize = areaCurrentSymbol->attr.area->curIdx - startOffset;
 	      else
 		{
 		  Code_Init ();
@@ -745,8 +745,8 @@ Decode (const Lex *label)
 		      Error (ErrorError, "Failed to determine label size");
 		    }
 		}
-	      assert ((gPhase == ePassOne && labelSymbol->codeSize == 0) || (gPhase == ePassTwo && labelSymbol->codeSize == codeSize));
-	      labelSymbol->codeSize = codeSize;
+	      assert ((gPhase == ePassOne && labelSymbol->attr.codeSize == 0) || (gPhase == ePassTwo && labelSymbol->attr.codeSize == codeSize));
+	      labelSymbol->attr.codeSize = codeSize;
 	    }
 	}
 

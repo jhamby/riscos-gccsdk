@@ -210,16 +210,16 @@ Output_AOF (void)
 {
   size_t totalAreaSize = 0;
   uint32_t numAreas = 0;
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->attr.area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
 
-      ap->area->number = numAreas++;
-      if (!Area_IsNoInit (ap->area))
-	totalAreaSize += FIX (ap->area->maxIdx);
-      totalAreaSize += Reloc_GetRawRelocSize (&ap->area->reloc);
+      ap->attr.area->number = numAreas++;
+      if (!Area_IsNoInit (ap->attr.area))
+	totalAreaSize += FIX (ap->attr.area->maxIdx);
+      totalAreaSize += Reloc_GetRawRelocSize (&ap->attr.area->reloc);
     }
 
   SymbolOut_t symOut = Symbol_CreateSymbolOut ();
@@ -230,7 +230,7 @@ Output_AOF (void)
       .Version = armword (310),
       .noAreas = armword (numAreas),
       .noSymbols = armword (symOut.numAllSymbols),
-      .EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->area->number + 1 : 0),
+      .EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->attr.area->number + 1 : 0),
       .EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0)
     };
 
@@ -264,7 +264,7 @@ Output_AOF (void)
 
   /* Chunk 0 Header (OBJ_HEAD).  */
   fwrite (&aof_head, 1, sizeof (aof_head), oFHandle);
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->attr.area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
@@ -272,11 +272,11 @@ Output_AOF (void)
 
       const AofEntry aof_entry =
 	{
-	  .Name = armword (ap->offset),
-          .Type = armword (ap->area->type & AREA_INT_AOFMASK),
-          .Size = armword (FIX (ap->area->maxIdx)),
-          .noRelocations = armword (Reloc_GetNumRelocs (&ap->area->reloc)),
-          .BaseAddr = armword ((ap->area->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
+	  .Name = armword (ap->attr.offset),
+          .Type = armword (ap->attr.area->type & AREA_INT_AOFMASK),
+          .Size = armword (FIX (ap->attr.area->maxIdx)),
+          .noRelocations = armword (Reloc_GetNumRelocs (&ap->attr.area->reloc)),
+          .BaseAddr = armword ((ap->attr.area->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
 	};
       fwrite (&aof_entry, 1, sizeof (aof_entry), oFHandle);
     }
@@ -296,24 +296,24 @@ Output_AOF (void)
     Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing OBJ_SYMT");    
 
   /* Chunk 4 Area (OBJ_AREA).  */
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->attr.area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
-      if (!Area_IsNoInit (ap->area))
+      if (!Area_IsNoInit (ap->attr.area))
 	{
-	  if (fwrite (ap->area->image, 1, ap->area->maxIdx, oFHandle) != ap->area->maxIdx)
+	  if (fwrite (ap->attr.area->image, 1, ap->attr.area->maxIdx, oFHandle) != ap->attr.area->maxIdx)
 	    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing data for area %s", ap->str);
 	  /* Word align the written area.  */
-	  for (unsigned pad = EXTRA (ap->area->maxIdx); pad; --pad)
+	  for (unsigned pad = EXTRA (ap->attr.area->maxIdx); pad; --pad)
 	    fputc (0, oFHandle);
 	}
-      void *rawRelocP = Reloc_GetRawRelocData (&ap->area->reloc);
+      void *rawRelocP = Reloc_GetRawRelocData (&ap->attr.area->reloc);
       if (rawRelocP != NULL)
 	{
-	  size_t len = Reloc_GetRawRelocSize (&ap->area->reloc);
+	  size_t len = Reloc_GetRawRelocSize (&ap->attr.area->reloc);
 	  if (fwrite (rawRelocP, 1, len, oFHandle) != len)
 	    Error_AbortLine (NULL, 0, "Internal Output_AOF: error when writing reloc for area %s", ap->str);
 	}
@@ -378,7 +378,7 @@ Output_ELF (void)
 
   /* Sections per area and its relocs.  */
   bool atLeastOneArea = false;
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->attr.area->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
@@ -389,9 +389,9 @@ Output_ELF (void)
       Elf_Scn *areaScnP;
       if ((areaScnP = elf_newscn (elfHandle)) == NULL)
 	Error_Abort ("elf_newscn() failed");
-      ap->area->number = elf_ndxscn (areaScnP);
+      ap->attr.area->number = elf_ndxscn (areaScnP);
       shstrtab_add (&shStrTabData, ap->str, ap->len + 1); 
-      if (Reloc_GetNumRelocs (&ap->area->reloc) != 0)
+      if (Reloc_GetNumRelocs (&ap->attr.area->reloc) != 0)
 	{
 	  Elf_Scn *areaRelScnP;
 	  if ((areaRelScnP = elf_newscn (elfHandle)) == NULL)
@@ -470,34 +470,34 @@ Output_ELF (void)
   scnNameIdx += sizeof (".strtab");
 
   /* Write area data and their relocs as separate sections.  */
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area->next)
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->attr.area->next)
     {
       /* Skip the implicit area and the conveniance DWARF areas we've
          created.  */
-      if (Area_IsImplicit (ap) || Area_IsDWARF (ap->area))
+      if (Area_IsImplicit (ap) || Area_IsDWARF (ap->attr.area))
 	continue;
 
       Elf32_Word scnFlags = 0;
-      if (ap->area->type & AREA_CODE)
+      if (ap->attr.area->type & AREA_CODE)
         scnFlags |= SHF_EXECINSTR;
-      if (!(ap->area->type & AREA_READONLY))
+      if (!(ap->attr.area->type & AREA_READONLY))
         scnFlags |= SHF_WRITE;
-      if (ap->area->type & AREA_COMMONDEF)
+      if (ap->attr.area->type & AREA_COMMONDEF)
         scnFlags |= SHF_COMDEF;
       if (ap == areaEntrySymbol)
         scnFlags |= SHF_ENTRYSECT;
       scnFlags |= SHF_ALLOC;
 
       Elf_Scn *areaScnP;
-      if ((areaScnP = elf_getscn (elfHandle, ap->area->number)) == NULL)
+      if ((areaScnP = elf_getscn (elfHandle, ap->attr.area->number)) == NULL)
 	Error_Abort ("elf_getscn() failed");
       Elf_Data *areaDataP;
       if ((areaDataP = elf_newdata (areaScnP)) == NULL)
 	Error_Abort ("elf_newdata() failed");
-      areaDataP->d_align = 1 << (ap->area->type & AREA_ALIGN_MASK);
-      areaDataP->d_buf = ap->area->image; /* For AREA_UDATA, this is NULL.  */
+      areaDataP->d_align = 1 << (ap->attr.area->type & AREA_ALIGN_MASK);
+      areaDataP->d_buf = ap->attr.area->image; /* For AREA_UDATA, this is NULL.  */
       /* areaDataP->d_off */
-      areaDataP->d_size = FIX (ap->area->maxIdx); /* FIXME: do we always need to round up area section size ? */
+      areaDataP->d_size = FIX (ap->attr.area->maxIdx); /* FIXME: do we always need to round up area section size ? */
       areaDataP->d_type = ELF_T_BYTE;
       /* areaDataP->d_version */
 
@@ -505,17 +505,17 @@ Output_ELF (void)
       if ((areaSHdrP = elf32_getshdr (areaScnP)) == NULL)
 	Error_Abort ("elf32_getshdr() failed");
       areaSHdrP->sh_name = scnNameIdx;
-      areaSHdrP->sh_type = !Area_IsNoInit (ap->area) ? SHT_PROGBITS : SHT_NOBITS;
+      areaSHdrP->sh_type = !Area_IsNoInit (ap->attr.area) ? SHT_PROGBITS : SHT_NOBITS;
       areaSHdrP->sh_flags = scnFlags;
       areaSHdrP->sh_addr = 0; /* FIXME: ORG should be implemented differently then ap->value.Data.Int.i; */
 
       scnNameIdx += ap->len + 1;
 
-      void *rawRelocP = Reloc_GetRawRelocData (&ap->area->reloc);
+      void *rawRelocP = Reloc_GetRawRelocData (&ap->attr.area->reloc);
       if (rawRelocP != NULL)
         {
 	  Elf_Scn *areaRelScnP;
-	  if ((areaRelScnP = elf_getscn (elfHandle, ap->area->number + 1)) == NULL)
+	  if ((areaRelScnP = elf_getscn (elfHandle, ap->attr.area->number + 1)) == NULL)
 	    Error_Abort ("elf_getscn() failed");
 	  Elf_Data *areaRelDataP;
 	  if ((areaRelDataP = elf_newdata (areaRelScnP)) == NULL)
@@ -523,7 +523,7 @@ Output_ELF (void)
 	  areaRelDataP->d_align = 4;
 	  areaRelDataP->d_buf = rawRelocP;
 	  /* areaRelDataP->d_off */
-	  areaRelDataP->d_size = Reloc_GetRawRelocSize (&ap->area->reloc);
+	  areaRelDataP->d_size = Reloc_GetRawRelocSize (&ap->attr.area->reloc);
 	  areaRelDataP->d_type = ELF_T_REL;
 	  /* areaRelDataP->d_version */
 
@@ -534,7 +534,7 @@ Output_ELF (void)
 	  areaRelSHdrP->sh_type = SHT_REL;
 	  areaRelSHdrP->sh_link = elf_ndxscn (symTabScnP); /* Section header
 	    index of the associated symbol table.  */
-	  areaRelSHdrP->sh_info = ap->area->number; /* The section header index
+	  areaRelSHdrP->sh_info = ap->attr.area->number; /* The section header index
 	    of the section to which the relocation applies.  */
 	  areaRelSHdrP->sh_entsize = sizeof (Elf32_Rel);
 

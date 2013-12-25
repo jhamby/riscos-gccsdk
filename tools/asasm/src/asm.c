@@ -171,13 +171,13 @@ ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping)
 
   /* Define label as "ValueSymbol(current AREA) + <given area offset>".  */
   const Value value = Value_Symbol (areaCurrentSymbol, 1, offset);
-  unsigned symbolType = !isMapping && (areaCurrentSymbol->area->type & AREA_ABS) != 0 ? SYMBOL_ABSOLUTE : 0;
+  unsigned symbolType = !isMapping && (areaCurrentSymbol->attr.area->type & AREA_ABS) != 0 ? SYMBOL_ABSOLUTE : 0;
 
   /* All Data symbols in code areas need SYMBOL_DATUM bit set.
      Note Area_GetCurrentEntryType() can return eInvalid when we're going
      to define a label at the start of an area which haven't processed
      yet any data or ARM/Thumb instruction.  */
-  if ((areaCurrentSymbol->area->type & AREA_CODE) != 0
+  if ((areaCurrentSymbol->attr.area->type & AREA_CODE) != 0
       && Area_GetCurrentEntryType () == eData)
     symbolType |= SYMBOL_DATUM;
   /* Don't ever export local labels.  */

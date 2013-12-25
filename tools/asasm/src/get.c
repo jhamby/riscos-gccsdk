@@ -46,14 +46,14 @@ GetRegisterValue (bool genError, IntType_e type, const char *typeStr)
   const Lex lexSym = genError ? Lex_GetID () : Lex_GetIDNoError ();
   if (lexSym.tag == LexId)
     {
-      const Symbol *sym = Symbol_Find (&lexSym);
-      if (sym && (sym->type & SYMBOL_DEFINED))
+      const Symbol *symP = Symbol_Find (&lexSym);
+      if (symP && (symP->attr.type & SYMBOL_DEFINED))
 	{
-	  if (sym->value.Tag == ValueInt
-	      && sym->value.Data.Int.type == type)
-	    return sym->value.Data.Int.i;
+	  if (symP->attr.value.Tag == ValueInt
+	      && symP->attr.value.Data.Int.type == type)
+	    return symP->attr.value.Data.Int.i;
 	  if (genError)
-	    Error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
+	    Error (ErrorError, "'%s' is not a %s", symP->str, typeStr);
 	}
       else if (genError)
 	Error (ErrorError, "Undefined %s %.*s", typeStr,

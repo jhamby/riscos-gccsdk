@@ -53,7 +53,7 @@
 static uint32_t
 GetDefaultAlignValueSize (void)
 {
-  if (areaCurrentSymbol->area->type & AREA_CODE)
+  if (areaCurrentSymbol->attr.area->type & AREA_CODE)
     return State_GetInstrType () == eInstrType_ARM ? 4 : 2;
   return 1;
 }
@@ -174,8 +174,8 @@ c_align (void)
 
   /* We have to align on n x alignValue + offsetValue.  */
 
-  uint32_t curPos = (areaCurrentSymbol->area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
-  curPos += areaCurrentSymbol->area->curIdx;
+  uint32_t curPos = (areaCurrentSymbol->attr.area->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+  curPos += areaCurrentSymbol->attr.area->curIdx;
   uint32_t newPos = ((curPos - offsetValue + alignValue - 1) / alignValue)*alignValue + offsetValue;  
   uint32_t bytesToStuff = newPos - curPos;
 
@@ -184,7 +184,7 @@ c_align (void)
   /* When area has CODEALIGN attribute, and <value> + <value size> are not
      specified, and ALIGN is following an instruction, and offset is multiple
      of current instruction size, then pad with NOP instructions.  */
-  if ((areaCurrentSymbol->area->type & AREA_INT_CODEALIGN) != 0
+  if ((areaCurrentSymbol->attr.area->type & AREA_INT_CODEALIGN) != 0
       && !fillValueProvided
       && (offsetValue % fillValueSize) == 0
       && Area_GetCurrentEntryType () != eData) 
@@ -208,18 +208,18 @@ c_align (void)
   else
     {
       uint32_t curFillValue = fillValue >> 8*(curPos & (fillValueSize - 1));
-      if (Area_IsNoInit (areaCurrentSymbol->area))
+      if (Area_IsNoInit (areaCurrentSymbol->attr.area))
 	{
 	  if (curFillValue != 0)
 	    Error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
-	  areaCurrentSymbol->area->curIdx += bytesToStuff;
+	  areaCurrentSymbol->attr.area->curIdx += bytesToStuff;
 	}
       else
 	for (/* */; curPos != newPos; ++curPos)
 	{
 	  if ((curPos & (fillValueSize - 1)) == 0)
 	    curFillValue = fillValue;
-	  areaCurrentSymbol->area->image[areaCurrentSymbol->area->curIdx++] = curFillValue;
+	  areaCurrentSymbol->attr.area->image[areaCurrentSymbol->attr.area->curIdx++] = curFillValue;
 	  curFillValue >>= 8;
 	}
     }
@@ -446,7 +446,7 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
   uint32_t prevOffset;
   do
     {
-      const uint32_t offset = areaCurrentSymbol->area->curIdx;
+      const uint32_t offset = areaCurrentSymbol->attr.area->curIdx;
       const Value *valP = Expr_BuildAndEval (allowedTypes);
 
       bool failed = false;
@@ -531,7 +531,7 @@ DefineInt (unsigned size, bool allowUnaligned, bool swapHalfwords,
 
   /* Only the last DC* entry is applicable for RELOC.  */
   if (prevOffset != UINT32_MAX)
-    Reloc_EnableExplicitReloc (&areaCurrentSymbol->area->reloc, prevOffset);
+    Reloc_EnableExplicitReloc (&areaCurrentSymbol->attr.area->reloc, prevOffset);
 }
 
 
@@ -619,7 +619,7 @@ c_dci (bool doLowerCase)
     return true;
 
   InstrType_e instrState = State_GetInstrType ();
-  IT_ApplyCond (areaCurrentSymbol->area->it.cc, false, instrState != eInstrType_ARM); 
+  IT_ApplyCond (areaCurrentSymbol->attr.area->it.cc, false, instrState != eInstrType_ARM); 
 
   unsigned alignValue;
   unsigned instructionSize;
@@ -658,7 +658,7 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 
   do
     {
-      uint32_t offset = areaCurrentSymbol->area->curIdx;
+      uint32_t offset = areaCurrentSymbol->attr.area->curIdx;
 
       /* FIXME? Support for ValueInt, ValueInt64 ? */
       /* FIXME: relocation support for float values ? */
@@ -780,7 +780,7 @@ ReserveSpace (bool isFill)
   if ((int32_t)times < 0)
     Error (ErrorWarning, "Reserve space value is considered unsigned, i.e. reserving %u bytes now\n", times);
 
-  Put_AlignDataWithOffset (areaCurrentSymbol->area->curIdx, valueSize,
+  Put_AlignDataWithOffset (areaCurrentSymbol->attr.area->curIdx, valueSize,
 			   value, times, false);
 }
 

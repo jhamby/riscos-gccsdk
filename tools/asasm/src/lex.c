@@ -495,7 +495,7 @@ Lex_GetUnaryOp (Lex *lex)
 	        /* :DEF: only returns {TRUE} when the symbol is defined and it is
 		   not a macro local variable.  */
 		const Symbol *symP = Symbol_Find (lex);
-		lex->Data.Bool.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
+		lex->Data.Bool.value = symP != NULL && !(symP->attr.type & SYMBOL_MACRO_LOCAL);
 		lex->tag = LexBool;
 		return;
 	      }
@@ -1297,7 +1297,7 @@ Lex_GetDoubleFloatingPointLiteral (void)
       dblAsInt = 16*dblAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
     }
   double d;
-  if ((areaCurrentSymbol->area->type & AREA_VFP) != 0)
+  if ((areaCurrentSymbol->attr.area->type & AREA_VFP) != 0)
     {
       const union arm_double_vfp armdbl_vfp = { .i = dblAsInt };
       const union ieee754_double dbl =
