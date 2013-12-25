@@ -644,7 +644,6 @@ Decode (const Lex *label)
 	    }
 
 	  default:
-	    tryAsMacro = false;
 	    assert (0);
 	    break;
 	}
@@ -741,7 +740,10 @@ Decode (const Lex *label)
 		  if (value->Tag == ValueInt)
 		    codeSize = value->Data.Int.i;
 		  else
-		    Error (ErrorError, "Failed to determine label size");
+		    {
+		      codeSize = 0;
+		      Error (ErrorError, "Failed to determine label size");
+		    }
 		}
 	      assert ((gPhase == ePassOne && labelSymbol->codeSize == 0) || (gPhase == ePassTwo && labelSymbol->codeSize == codeSize));
 	      labelSymbol->codeSize = codeSize;

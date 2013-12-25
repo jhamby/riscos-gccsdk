@@ -202,6 +202,8 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
 	{
 	  Error (ErrorError, "Too many macro arguments");
 	  Error_Line (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
+	  for (unsigned i = 0; i != marg; ++i)
+	    free ((void *)args[i]);
 	  return false;
 	}
       const char *arg;

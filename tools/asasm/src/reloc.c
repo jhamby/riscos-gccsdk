@@ -355,8 +355,8 @@ void
 Reloc_CreateInternal (uint32_t how, uint32_t offset, const Value *value,
                       bool replace)
 {
-  assert ((value == NULL && !option_aof) || (value->Tag == ValueSymbol && value->Data.Symbol.factor > 0));
-  assert ((value == NULL && !option_aof) || (!Area_IsMappingSymbol (value->Data.Symbol.symbol->str)));
+  assert ((value == NULL && !option_aof) || (value != NULL && value->Tag == ValueSymbol && value->Data.Symbol.factor > 0));
+  assert ((value == NULL && !option_aof) || (value != NULL && !Area_IsMappingSymbol (value->Data.Symbol.symbol->str)));
 
   assert ((option_aof && (how & HOW2_SIDMASK) == 0) || (!option_aof && how < 256u));
   assert (offset <= areaCurrentSymbol->area->curIdx + 3);
@@ -536,7 +536,7 @@ c_reloc (void)
       case ValueSymbol:
 	relocNum = Reloc_GetRelocValue (relocID->Data.Symbol.symbol->str);
 	break;
-      case ValueIllegal:
+      default:
 	relocNum = UINT32_MAX;
 	break;
     }
@@ -553,14 +553,15 @@ c_reloc (void)
       const Value *relocSymP = Expr_BuildAndEval (ValueSymbol);
       switch (relocSymP->Tag)
 	{
-	  case ValueIllegal:
-	    Error (ErrorError, "Not a symbol");
-	    relocSymbolValueP = NULL;
-	    break;
 	  case ValueSymbol:
 	    if (relocSymP->Data.Symbol.offset != 0)
 	      Error (ErrorError, "An offset can not be specified");
 	    relocSymbolValueP = relocSymP;
+	    break;
+
+	  default:
+	    Error (ErrorError, "Not a symbol");
+	    relocSymbolValueP = NULL;
 	    break;
 	}
     }

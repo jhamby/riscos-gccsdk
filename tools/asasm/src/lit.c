@@ -208,6 +208,7 @@ Lit_RegisterInt (const Value *valueP,
                  Lit_eSize size, Lit_eAddrType addrType, InstrType_e instrType)
 {
   assert (valueP->Tag == ValueInt || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
+  assert ((size == eLitIntUByte || size == eLitIntSByte || size == eLitIntUHalfWord || size == eLitIntSHalfWord || size == eLitIntWord) && "Incorrect literal size for this routine");
 
 #ifdef DEBUG_LIT
   printf ("Lit_RegisterInt(): area offset 0x%x : type %d : ", areaCurrentSymbol->area->curIdx, size);
@@ -245,11 +246,6 @@ Lit_RegisterInt (const Value *valueP,
 	    break;
 	  case eLitIntWord:
 	    truncForUser = truncValue.Data.Int.i;
-	    break;
-
-	  case eLitFloat:
-	  case eLitDouble:
-	    assert (0);
 	    break;
 	}
       if (truncValue.Data.Int.i != valueP->Data.Int.i)
@@ -328,10 +324,6 @@ Lit_RegisterInt (const Value *valueP,
 	      case eLitIntWord:
 		offset = 0;
 		equal = litPoolP->value.Data.Int.i == truncValue.Data.Int.i;
-		break;
-
-	      default:
-		equal = false;
 		break;
 	    }
 	}
@@ -479,7 +471,7 @@ Lit_DumpPool (void)
 	break;
 
       litP->status = gPhase == ePassOne ? eAssembledPassOne : eAssembledPassTwo;
-      
+
       /* Re-evaluate symbol/code.  It might be resolvable by now.  */
       if (litP->value.Tag == ValueSymbol || litP->value.Tag == ValueCode)
 	{
@@ -508,49 +500,42 @@ Lit_DumpPool (void)
 	{
 	  case ValueInt:
 	    {
-	      bool isImmediate;
 	      int constant;
 	      switch (litP->size)
 		{
 		  case eLitIntUByte:
 		    constant = (int)(uint8_t)litP->value.Data.Int.i;
-		    isImmediate = true;
 		    break;
 
 		  case eLitIntSByte:
 		    constant = (int)(int8_t)litP->value.Data.Int.i;
-		    isImmediate = true;
 		    break;
 
 		  case eLitIntUHalfWord:
 		    constant = (int)(uint16_t)litP->value.Data.Int.i;
-		    isImmediate = true;
 		    break;
 
 		  case eLitIntSHalfWord:
 		    constant = (int)(int16_t)litP->value.Data.Int.i;
-		    isImmediate = true;
 		    break;
 
 		  case eLitIntWord:
 		    constant = litP->value.Data.Int.i;
-		    isImmediate = true;
 		    break;
 
 		  default:
-		    isImmediate = false;
+		    assert (0);
 		    break;
 		}
 	      if (constant != litP->value.Data.Int.i)
 		Error_Line (litP->file, litP->lineNum, ErrorWarning,
-			   "Constant %d has been truncated to %d by the used mnemonic",
-			   litP->value.Data.Int.i, constant);
+			    "Constant %d has been truncated to %d by the used mnemonic",
+			    litP->value.Data.Int.i, constant);
 
 	      /* Value representable using MOV, MVN or MOVW ? */
-	      if (isImmediate
-		  && (HelpCPU_Imm8s4 (constant) != UINT32_MAX
-		      || HelpCPU_Imm8s4 (~constant) != UINT32_MAX
-		      || CPUMem_ConstantInMOVW (constant)))
+	      if (HelpCPU_Imm8s4 (constant) != UINT32_MAX
+		  || HelpCPU_Imm8s4 (~constant) != UINT32_MAX
+		  || CPUMem_ConstantInMOVW (constant))
 		{
 		  if (gPhase == ePassOne)
 		    {
@@ -577,8 +562,10 @@ Lit_DumpPool (void)
 	  case ValueCode:
 	  case ValueSymbol:
 	    {
-	      /* Case:          LDR Rx, =<label>
-	               <label>  ...  */
+	      /* E.g.:
+	       *	  LDR Rx, =<label>
+	       * <label>  ...
+	       */
 	      break;
 	    }
 
@@ -599,15 +586,13 @@ Lit_DumpPool (void)
 		      litP->status = eNoNeedToAssemble;
 		      continue;
 		    }
-		  else
-		    {
-		      /* We do MVF/MNF optimisation but as the literal value
-			 got defined after LTORG, we've already allocated
-			 some bytes which aren't going to be used.  */
-		      Error_Line (litP->file, litP->lineNum, ErrorWarning,
-				  "Literal loading optimized as MVF/MNF but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
-		      Error (ErrorWarning, "note: LTORG was here");
-		    }
+
+		  /* We do MVF/MNF optimisation but as the literal value
+		     got defined after LTORG, we've already allocated
+		     some bytes which aren't going to be used.  */
+		  Error_Line (litP->file, litP->lineNum, ErrorWarning,
+			      "Literal loading optimized as MVF/MNF but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
+		  Error (ErrorWarning, "note: LTORG was here");
 		}
 	      break;
 	    }
@@ -624,6 +609,10 @@ Lit_DumpPool (void)
       /* Ensure alignment.  */
       switch (litP->size)
 	{
+	  case eLitIntUByte:
+	  case eLitIntSByte:
+	    break;
+
 	  case eLitIntUHalfWord:
 	  case eLitIntSHalfWord:
 	    Area_AlignArea (areaCurrentSymbol, 2, NULL);
@@ -633,9 +622,6 @@ Lit_DumpPool (void)
 	  case eLitFloat:
 	  case eLitDouble:
 	    Area_AlignArea (areaCurrentSymbol, 4, NULL);
-	    break;
-
-	  default:
 	    break;
 	}
       

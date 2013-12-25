@@ -267,7 +267,7 @@ m_branch (bool doLowerCase)
 		{
 		  assert ((nextThumb & 0xF800) == 0xF000);
 		  nextThumb = Put_GetHalfWord (instrOffset);
-		  instrOffset += 2;
+		  /* instrOffset += 2; */
 		  assert ((nextThumb & 0xC000) == 0x8000);
 		  if ((nextThumb & 0x1000) != 0)
 		    useLongRange = true;
@@ -1687,6 +1687,7 @@ m_cps (bool doLowerCase)
   if (effectSpecified)
     {
       /* Read iflags.  */
+      readMode = false;
       while (!Input_IsEolOrCommentStart ()
              && !(readMode = Input_Match (',', true)))
 	{

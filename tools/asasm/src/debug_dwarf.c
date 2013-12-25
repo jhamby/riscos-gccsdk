@@ -186,7 +186,7 @@ FSObjTree_CreateFileEntry (Dwarf_P_Debug dwHandle, Dwarf_Unsigned dirIdx,
   rtrn->nextP = NULL;
   memcpy (rtrn->name, fnameP, nameLen);
   Dwarf_Error dwErr;
-  if ((rtrn->idx = dwarf_add_file_decl (dwHandle, rtrn->name, dirIdx, 0 /* FIXME: mtime ? */, 0 /* FIXME: size ? */, &dwErr)) == DW_DLV_NOCOUNT)
+  if ((rtrn->idx = dwarf_add_file_decl (dwHandle, rtrn->name, dirIdx, 0 /* FIXME: mtime ? */, 0 /* FIXME: size ? */, &dwErr)) == (Dwarf_Unsigned)DW_DLV_NOCOUNT)
     Error_Abort ("dwarf_add_file_decl() failed: %s", dwarf_errmsg (dwErr));
   return rtrn;
 }
@@ -206,7 +206,7 @@ FSObjTree_CreateDirEntry (Dwarf_P_Debug dwHandle,
   if (!isCWD)
     {
       Dwarf_Error dwErr;
-      if ((rtrn->idx = dwarf_add_directory_decl (dwHandle, rtrn->name, &dwErr)) == DW_DLV_NOCOUNT)
+      if ((rtrn->idx = dwarf_add_directory_decl (dwHandle, rtrn->name, &dwErr)) == (Dwarf_Unsigned)DW_DLV_NOCOUNT)
 	Error_Abort ("dwarf_add_directory_decl() failed: %s", dwarf_errmsg (dwErr));
     }
   else

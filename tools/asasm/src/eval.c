@@ -1097,15 +1097,18 @@ Eval_Unop (Operator_e op, const Value *value)
 			 (int)value->Data.String.len, value->Data.String.s);
 		  result = Value_Illegal ();
 		}
-	      unsigned revCCode = ccode ^ 1;
-	      unsigned isUpcase = (value->Data.String.len ? (value->Data.String.s[0] & 0x20) : 0) ^ 0x20;
-	      /* Input string length is 0 or 2.  */
-	      char *str;
-	      if ((str = malloc (2)) == NULL)
-		Error_OutOfMem ();
-	      str[0] = oLowcaseCCodes[revCCode*2 + 0] ^ isUpcase;
-	      str[1] = oLowcaseCCodes[revCCode*2 + 1] ^ isUpcase;
-	      result = Value_String (str, 2, true);
+	      else
+		{
+		  unsigned revCCode = ccode ^ 1;
+		  unsigned isUpcase = (value->Data.String.len ? (value->Data.String.s[0] & 0x20) : 0) ^ 0x20;
+		  /* Input string length is 0 or 2.  */
+		  char *str;
+		  if ((str = malloc (2)) == NULL)
+		    Error_OutOfMem ();
+		  str[0] = oLowcaseCCodes[revCCode*2 + 0] ^ isUpcase;
+		  str[1] = oLowcaseCCodes[revCCode*2 + 1] ^ isUpcase;
+		  result = Value_String (str, 2, true);
+		}
 	    }
 	  break;
 	}
@@ -1123,9 +1126,12 @@ Eval_Unop (Operator_e op, const Value *value)
 			 (int)value->Data.String.len, value->Data.String.s);
 		  result = Value_Illegal ();
 		}
-	      if (ccode >= 16)
-		ccode += -16 + 2;
-	      result = Value_Int (ccode << 28, eIntType_PureInt);
+	      else
+		{
+		  if (ccode >= 16)
+		    ccode += -16 + 2;
+		  result = Value_Int (ccode << 28, eIntType_PureInt);
+		}
 	    }
 	  break;
 	}

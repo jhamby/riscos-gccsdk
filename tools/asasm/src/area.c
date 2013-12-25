@@ -995,6 +995,7 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset,
 	    baseMappingSymbol = "t.x";
 	    break;
 	  case eInvalid:
+	    assert (0);
 	    break;
 	}
       size_t mappingSymbolSize = 1 + 3 + 1 + areaSymbol->len + 1 + 8 + 1;

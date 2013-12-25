@@ -252,7 +252,7 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
 	{
 	  if (alignBefore)
 	    offset = Area_AlignTo (offset, 2, "half-precision floating-point value");
-          toWrite = FloatToHalf ((float)data, true); /* FIXME: ieee vs alternative option needed ? */
+	  toWrite = FloatToHalf ((float)data, true); /* FIXME: ieee vs alternative option needed ? */
 	  break;
 	}
 

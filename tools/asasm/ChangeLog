@@ -1,3 +1,20 @@
+Wed Dec 25 16:20:53 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* area.c (Area_MarkStartAs): Avoid/fix scan-build/clang compiler
+	warning.
+	* debug_dwarf.c (FSObjTree_CreateFileEntry): Likewise.
+	(FSObjTree_CreateDirEntry): Likewise.
+	* decode.c (Decode): Likewise.
+	* eval.c (Eval_Unop): Likewise.
+	* lit.c (Lit_RegisterInt): Likewise.
+	(Lit_DumpPool): Likewise.
+	* m_cpuctrl.c (m_branch): Likewise.
+	(m_cps): Likewise.
+	* macros.c (Macro_Call): Likewise.
+	* reloc.c (Reloc_CreateInternal): Likewise.
+	(c_reloc): Likewise.
+
 Sat Dec 21 00:36:48 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	unittests/reloc:
