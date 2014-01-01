@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,7 +48,7 @@ Expr_GetPrim (void)
   switch (lex.tag)
     {
       case LexId:
-	Code_Symbol (Symbol_Get (&lex), 0);
+	Code_Symbol (Symbol_Get (lex.Data.Id.str, lex.Data.Id.len), 0);
         break;
 
       case LexLocalLabel:

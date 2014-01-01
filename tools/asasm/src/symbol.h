@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2013 GCCSDK Developers
+ * Copyright (c) 2001-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +24,6 @@
 
 #include <stdbool.h>
 
-#include "lex.h"
 #include "phase.h"
 #include "value.h"
 
@@ -147,9 +146,9 @@ typedef struct Symbol
 
 void Symbol_PrepareForPhase (Phase_e phase);
 
-Symbol *Symbol_Get (const Lex *l);
-Symbol *Symbol_Find (const Lex *l);
-void Symbol_Remove (const Lex *l);
+Symbol *Symbol_Get (const char *symNameP, size_t symLen);
+Symbol *Symbol_Find (const char *symNameP, size_t symLen);
+void Symbol_Remove (const char *symNameP, size_t symLen);
 void Symbol_RemoveVariables (void);
 
 bool Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue);

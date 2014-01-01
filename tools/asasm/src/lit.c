@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -98,8 +98,7 @@ Lit_GetLitOffsetAsSymbol (const LitPool *literal)
   char intSymbol[48];
   int bytesWritten = snprintf (intSymbol, sizeof (intSymbol), kIntLabelPrefix "Lit$%p", (void *)literal);
   assert (bytesWritten >= 0);
-  const Lex lex = Lex_Id (intSymbol, (size_t)bytesWritten);
-  Symbol *offsetToLiteralSymbol = Symbol_Get (&lex);
+  Symbol *offsetToLiteralSymbol = Symbol_Get (intSymbol, (size_t)bytesWritten);
   offsetToLiteralSymbol->attr.type |= SYMBOL_NO_EXPORT;
   return offsetToLiteralSymbol;
 }

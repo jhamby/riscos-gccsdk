@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -139,15 +139,13 @@ Area_CreateDWARF (const char *name, uint32_t scnIdx)
 {
   assert (!strncmp (name, ".debug_", sizeof (".debug_")-1));
 
-  size_t nameLen = strlen (name);
-  const Lex lex = Lex_Id (name, nameLen);
-  Symbol *areaSymP = Symbol_Find (&lex);
+  Symbol *areaSymP = Symbol_Find (name, strlen (name));
   if (areaSymP != NULL)
     {
       Error (ErrorError, "DWARF section has same name as an existing area or symbol");
       return NULL;
     }
-  areaSymP = Symbol_Get (&lex);
+  areaSymP = Symbol_Get (name, strlen (name));
   areaSymP->attr.type = SYMBOL_AREA;
   areaSymP->attr.value = Value_Int (0, eIntType_PureInt);
   areaSymP->attr.area = Area_Create (areaSymP, AREA_INT_DWARF);
@@ -507,8 +505,7 @@ Area_Ensure (void)
       areaNameSize = sizeof (IMPLICIT_AREA_NAME)-1;
       areaType = AREA_CODE | AREA_ABS | AREA_READONLY | AREA_DEFAULT_ALIGNMENT;
     }
-  const Lex lex = Lex_Id (areaNameP, areaNameSize);
-  Symbol *symP = Symbol_Get (&lex);
+  Symbol *symP = Symbol_Get (areaNameP, areaNameSize);
   assert (SYMBOL_KIND (symP->attr.type) == 0);
   if ((symP->attr.type & SYMBOL_AREA) == 0)
     {
@@ -750,7 +747,7 @@ c_area (void)
   if (lex.tag != LexId)
     return false; /* No need to give an error, Lex_GetID already did.  */
 
-  Symbol *sym = Symbol_Get (&lex);
+  Symbol *sym = Symbol_Get (lex.Data.Id.str, lex.Data.Id.len);
   if (SYMBOL_KIND (sym->attr.type) != 0)
     {
       const char *symDescrP = Symbol_GetDescription (sym);

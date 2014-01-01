@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -360,7 +360,7 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
   /* Replace symbol by its definition.  */
   assert (input_pos == NULL);
   input_pos = inP;
-  Lex label = Lex_GetIDNoError ();
+  const Lex label = Lex_GetIDNoError ();
   input_pos = NULL;
   if (label.tag != LexId)
     {
@@ -374,7 +374,7 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
     }
   else
     {
-      Symbol *symP = Symbol_Find (&label);
+      Symbol *symP = Symbol_Find (label.Data.Id.str, label.Data.Id.len);
       if (symP && (symP->attr.type & SYMBOL_RW) != 0)
 	{
 	  char buf[32];

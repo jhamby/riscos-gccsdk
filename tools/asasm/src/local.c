@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -205,8 +205,7 @@ Local_DefineLabel (unsigned labelNum)
 	  char fwdSym[256];
 	  int r = snprintf (fwdSym, sizeof (fwdSym), oLocal_IntFwdLabelFormat, fwdLocalP->label, fwdLocalP->counter);
 	  assert (r >= 0 && (size_t)r < sizeof (fwdSym));
-	  const Lex keyLex = Lex_Id (fwdSym, strlen (fwdSym));
-	  Symbol *keySymbol = Symbol_Get (&keyLex);
+	  Symbol *keySymbol = Symbol_Get (fwdSym, strlen (fwdSym));
 #ifdef DEBUG_LOCAL
 	  const char *levelStr = (fwdLocalP->level == eThisLevelOnly) ? "t" : (fwdLocalP->level == eAllLevels) ? "a" : "";
 	  const char *dirStr = "f"; // (dir == eBackward) ? "b" : (dir == eForward) ? "f" : "";
@@ -216,8 +215,7 @@ Local_DefineLabel (unsigned labelNum)
 
 	  char lblSym[256];
 	  Local_CreateSymbol (lblP, macroDepth, true, lblSym, sizeof (lblSym));
-	  const Lex valueLex = Lex_Id (lblSym, strlen (lblSym));
-	  Symbol *valueSymbol = Symbol_Get (&valueLex);
+	  Symbol *valueSymbol = Symbol_Get (lblSym, strlen (lblSym));
 	  const Value valueValue = Value_Symbol (valueSymbol, 1, 0);
 
           bool err = Symbol_Define (keySymbol, SYMBOL_NO_EXPORT, &valueValue);

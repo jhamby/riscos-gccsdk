@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -99,7 +99,7 @@ c_alloc (const Lex *lex)
 	break;
 
       case LexId:
-	if (Symbol_Define (Symbol_Get (lex), SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, StorageMap_Value ()))
+	if (Symbol_Define (Symbol_Get (lex->Data.Id.str, lex->Data.Id.len), SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, StorageMap_Value ()))
 	  return false;
 	break;
 

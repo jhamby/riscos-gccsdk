@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -184,7 +184,7 @@ ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping)
   if (isLocalLabel)
     symbolType |= SYMBOL_NO_EXPORT;
 
-  Symbol *symbol = Symbol_Get (label);
+  Symbol *symbol = Symbol_Get (label->Data.Id.str, label->Data.Id.len);
   if (Symbol_Define (symbol, symbolType, &value))
     return NULL;
 

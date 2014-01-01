@@ -1,3 +1,27 @@
+Wed Jan  1 17:43:54 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* lex.h (Lex): No longer have hash entry for Lex::Data.Id.
+	* lex.c (Lex_Id, Lex_MakeReferringLocalLabel)
+	(Lex_DefineLocalLabel, Lex_GetUnaryOp, Lex_GetPrim): Follow.
+	(lexHashStr): Move to...
+	* symbol.c (Symbol_CalculateHash): ...here.
+	(EqSymLex, Symbol_Get, Symbol_Find, Symbol_Remove,
+	ParseSymbolAndAdjustFlag): Follow.
+	* symbol.h (Symbol_Get, Symbol_Find, Symbol_Remove): Change LexId
+	argument into string and its length argument.
+	* area.c (Area_CreateDWARF, Area_Ensure, c_area): Follow.
+	* asm.c (ASM_DefineLabel): Likewise.
+	* decode.c (Decode): Likewise.
+	* directive_storagemap.c (c_alloc): Likewise.
+	* expr.c (Expr_GetPrim): Likewise.
+	* get.c (GetRegisterValue): Likewise.
+	* input.c (Input_VarSub): Likewise.
+	* lit.c (Lit_GetLitOffsetAsSymbol): Likewise.
+	* local.c (Local_DefineLabel): Likewise.
+	* predef_reg.c (PreDefReg_One): Likewise.
+	* variables.c (Var_Define, c_lcl, c_set, Var_RestoreLocals): Likewise.
+
 Wed Dec 25 19:25:40 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

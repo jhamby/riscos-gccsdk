@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -609,7 +609,7 @@ Decode (const Lex *label)
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.lex (labelLexP);
 	      if (!tryAsMacro)
 		{
-		  labelSymbol = Symbol_Find (labelLexP);
+		  labelSymbol = labelLexP->tag == LexId ? Symbol_Find (labelLexP->Data.Id.str, labelLexP->Data.Id.len) : NULL;
 		  if (lclLabelWarn)
 		    Error (ErrorWarning, "Local label not allowed here - ignoring");
 		}
@@ -630,7 +630,7 @@ Decode (const Lex *label)
 	  case eCB_Symbol:
 	    {
 	      assert (!doLowerCase);
-	      Symbol *symbol = label->tag == LexId ? Symbol_Get (label) : NULL;
+	      Symbol *symbol = label->tag == LexId ? Symbol_Get (label->Data.Id.str, label->Data.Id.len) : NULL;
 	      bool lclLabelWarn = label->tag == LexLocalLabel;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (symbol);
 	      if (!tryAsMacro)

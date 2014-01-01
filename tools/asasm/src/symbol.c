@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,6 +45,7 @@
 #include "get.h"
 #include "global.h"
 #include "input.h"
+#include "lex.h"
 #include "local.h"
 #include "main.h"
 #include "output.h"
@@ -63,6 +64,8 @@ static void Symbol_BuildStringData (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
 static void Symbol_BuildSymbolDataForAOF (Symbol **allSymbolsPP, SymbolOut_t *symOutP);
 static void Symbol_BuildSymbolDataForELF (Symbol **allSymbolsPP, SymbolOut_t *symOutP);
 static void Symbol_Free (Symbol **symPP);
+
+static unsigned int Symbol_CalculateHash (const char *s, size_t maxn);
 
 void
 Symbol_PrepareForPhase (Phase_e phase)
@@ -126,11 +129,11 @@ Symbol_Free (Symbol **symPP)
 
 
 static bool
-EqSymLex (const Symbol *str, const Lex *lx)
+EqSymLex (const Symbol *str, const char *symNameP, size_t symLen)
 {
-  if (str->len != lx->Data.Id.len)
+  if (str->len != symLen)
     return false;
-  return !memcmp (str->str, lx->Data.Id.str, str->len);
+  return !memcmp (str->str, symNameP, symLen);
 }
 
 
@@ -140,18 +143,17 @@ EqSymLex (const Symbol *str, const Lex *lx)
  * object.
  */
 Symbol *
-Symbol_Get (const Lex *l)
+Symbol_Get (const char *symNameP, size_t symLen)
 {
-  assert (l->tag == LexId && "non-ID");
-
+  const unsigned hash = Symbol_CalculateHash (symNameP, symLen);
   Symbol **isearch;
-  for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
+  for (isearch = &symbolTable[hash]; *isearch; isearch = &(*isearch)->next)
     {
-      if (EqSymLex (*isearch, l))
+      if (EqSymLex (*isearch, symNameP, symLen))
 	return *isearch;
     }
 
-  *isearch = Symbol_New (l->Data.Id.str, l->Data.Id.len);
+  *isearch = Symbol_New (symNameP, symLen);
   return *isearch;
 }
 
@@ -161,15 +163,12 @@ Symbol_Get (const Lex *l)
  * \return NULL when symbol doesn't exist, pointer to that symbol otherwise.
  */
 Symbol *
-Symbol_Find (const Lex *l)
+Symbol_Find (const char *symNameP, size_t symLen)
 {
-  if (l->tag != LexId)
-    return NULL;
-
-  Symbol **isearch;
-  for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
+  const unsigned hash = Symbol_CalculateHash (symNameP, symLen);
+  for (Symbol **isearch = &symbolTable[hash]; *isearch; isearch = &(*isearch)->next)
     {
-      if (EqSymLex (*isearch, l))
+      if (EqSymLex (*isearch, symNameP, symLen))
 	return *isearch;
     }
   return NULL;
@@ -324,15 +323,12 @@ Symbol_GetDescription (const Symbol *symbol)
  * Removes an existing symbol from symbol table.
  */
 void
-Symbol_Remove (const Lex *l)
+Symbol_Remove (const char *symNameP, size_t symLen)
 {
-  assert (l->tag == LexId && "non-ID");
-
-  for (Symbol **isearch = &symbolTable[l->Data.Id.hash];
-       *isearch != NULL;
-       isearch = &(*isearch)->next)
+  const unsigned hash = Symbol_CalculateHash (symNameP, symLen);
+  for (Symbol **isearch = &symbolTable[hash]; *isearch != NULL; isearch = &(*isearch)->next)
     {
-      if (EqSymLex (*isearch, l))
+      if (EqSymLex (*isearch, symNameP, symLen))
 	{
           Symbol_Free (isearch);
 	  return;
@@ -956,7 +952,7 @@ ParseSymbolAndAdjustFlag (unsigned int flags, const char *err)
     return NULL;
 
   /* When the symbol is not known yet, it will automatically be created.  */
-  Symbol *sym = Symbol_Get (&lex);
+  Symbol *sym = Symbol_Get (lex.Data.Id.str, lex.Data.Id.len);
   if (Local_IsLocalLabel (sym->str))
     Error (ErrorError, "Local labels cannot be %s", err);
   else if (Area_IsMappingSymbol (sym->str))
@@ -1482,6 +1478,55 @@ c_import (void)
     sym->attr.type = ApplyDefaultSymbolTypeForExportOrImport (sym->attr.type, 0);
 
   return false;
+}
+
+/**
+ * A simple and fast generic string hasher based on Peter K. Pearson's
+ * article in CACM 33-6, pp. 677.
+ * \param s string to hash
+ * \param maxn maximum number of chars to consider
+ */
+static unsigned int
+Symbol_CalculateHash (const char *s, size_t maxn)
+{
+  static const unsigned char hashtab[256] =
+  {
+    1, 87, 49, 12, 176, 178, 102, 166, 121, 193, 6, 84, 249, 230, 44, 163,
+    14, 197, 213, 181, 161, 85, 218, 80, 64, 239, 24, 226, 236, 142, 38, 200,
+    110, 177, 104, 103, 141, 253, 255, 50, 77, 101, 81, 18, 45, 96, 31, 222,
+    25, 107, 190, 70, 86, 237, 240, 34, 72, 242, 20, 214, 244, 227, 149, 235,
+    97, 234, 57, 22, 60, 250, 82, 175, 208, 5, 127, 199, 111, 62, 135, 248,
+    174, 169, 211, 58, 66, 154, 106, 195, 245, 171, 17, 187, 182, 179, 0, 243,
+    132, 56, 148, 75, 128, 133, 158, 100, 130, 126, 91, 13, 153, 246, 216, 219,
+    119, 68, 223, 78, 83, 88, 201, 99, 122, 11, 92, 32, 136, 114, 52, 10,
+    138, 30, 48, 183, 156, 35, 61, 26, 143, 74, 251, 94, 129, 162, 63, 152,
+    170, 7, 115, 167, 241, 206, 3, 150, 55, 59, 151, 220, 90, 53, 23, 131,
+    125, 173, 15, 238, 79, 95, 89, 16, 105, 137, 225, 224, 217, 160, 37, 123,
+    118, 73, 2, 157, 46, 116, 9, 145, 134, 228, 207, 212, 202, 215, 69, 229,
+    27, 188, 67, 124, 168, 252, 42, 4, 29, 108, 21, 247, 19, 205, 39, 203,
+    233, 40, 186, 147, 198, 192, 155, 33, 164, 191, 98, 204, 165, 180, 117, 76,
+    140, 36, 210, 172, 41, 54, 159, 8, 185, 232, 113, 196, 231, 47, 146, 120,
+    51, 65, 28, 144, 254, 221, 93, 189, 194, 139, 112, 43, 71, 109, 184, 209,
+  };
+
+  const unsigned char *p;
+  unsigned char h = 0;
+  size_t i;
+  for (i = 0, p = (const unsigned char *)s; *p && i < maxn; i++, p++)
+    h = hashtab[h ^ *p];
+
+  unsigned int rh = h;
+
+  if (SYMBOL_TABLESIZE > 256 && *s)
+    {
+      for (i = 1, p = (const unsigned char *)s, h = (*p++ + 1) & 0xff;
+	   *p && i < maxn; i++, p++)
+	h = hashtab[h ^ *p];
+
+      rh <<= 8;
+      rh |= h;
+    }
+  return rh % SYMBOL_TABLESIZE;
 }
 
 #ifdef DEBUG

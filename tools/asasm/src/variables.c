@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -140,12 +140,11 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
   assert (type == ValueInt || type == ValueString || type == ValueBool);
 
-  const Lex var = Lex_Id (ptr, len);
   /* Check if global variables are not already used as constants, area names,
      CPU/coprocessor name, etc.
      Local macro names can overrule any existing symbol.  */
   Symbol *sym;
-  if (!localMacro && (sym = Symbol_Find (&var)) != NULL)
+  if (!localMacro && (sym = Symbol_Find (ptr, len)) != NULL)
     {
       if ((sym->attr.type & SYMBOL_RW) == 0)
 	{
@@ -158,7 +157,7 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 	}
     }
   else
-    sym = Symbol_Get (&var);
+    sym = Symbol_Get (ptr, len);
   
   if (sym->attr.value.Tag != ValueIllegal)
     {
@@ -279,8 +278,7 @@ c_lcl (void)
 
   /* Link our local variable into the current macro so we can restore this
      at the end of macro invocation.  */
-  const Lex l = Lex_Id (ptr, len);
-  Symbol *symbolP = Symbol_Find (&l);
+  Symbol *symbolP = Symbol_Find (ptr, len);
 
   bool doRestore;
   if (symbolP != NULL)
@@ -358,7 +356,7 @@ c_set (const Lex *label)
 	break;
     }
 
-  Symbol *sym = Symbol_Find (label);
+  Symbol *sym = Symbol_Find (label->Data.Id.str, label->Data.Id.len);
   if (sym == NULL)
     {
       Error (ErrorError, "Variable %.*s is undefined",
@@ -416,10 +414,7 @@ Var_RestoreLocals (const VarPos *p)
 	  p->symbolP->attr = p->symbolAttr;
 	}
       else
-	{
-	  const Lex l = Lex_Id (p->name, strlen (p->name));
-	  Symbol_Remove (&l);
-	}
+	Symbol_Remove (p->name, strlen (p->name));
 
       const VarPos *q = p->next;
       free ((void *)p);
