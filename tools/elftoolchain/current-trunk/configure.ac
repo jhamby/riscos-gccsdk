@@ -23,7 +23,8 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_PROG_LEX
 AC_PROG_YACC
-AM_PROG_AR
+# AM_PROG_AR is not present in automake 1.11.1
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 LT_INIT
 
