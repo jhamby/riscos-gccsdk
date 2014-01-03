@@ -1,3 +1,9 @@
+Fri Jan  3 17:09:59 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/wchar.h: Don't include bits/wchar2.h nor bits/wchar-ldbl.h.
+	Reported by Ron <beeb@woosh.co.nz>.
+	* include/features.h, include/sys/socket.h: Uniform local changes.
+
 Sun Aug  4 22:03:30 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/realpath (realpath): Return ENOENT if object does not exist.

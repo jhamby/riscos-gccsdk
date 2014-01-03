@@ -920,12 +920,16 @@ extern size_t wcsftime_l (wchar_t *__restrict __s, size_t __maxsize,
 #endif
 
 /* Define some macros helping to catch buffer overflows.  */
+#if 0 /* This file doesn't exist on UnixLib */
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline
 # include <bits/wchar2.h>
 #endif
+#endif
 
+#if 0 /* This file doesn't exist on UnixLib */
 #ifdef __LDBL_COMPAT
 # include <bits/wchar-ldbl.h>
+#endif
 #endif
 
 __END_DECLS

@@ -262,9 +262,10 @@ extern int isfdtype (int __fd, int __fdtype) __THROW;
 
 
 /* Define some macros helping to catch buffer overflows.  */
+#if 0 /* This file doesn't exist on UnixLib */
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline
-// This file doesn't exist on UnixLib
-//# include <bits/socket2.h>
+# include <bits/socket2.h>
+#endif
 #endif
 
 #ifdef __TARGET_SCL__

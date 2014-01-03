@@ -387,8 +387,9 @@
    that will always return failure (and set errno to ENOSYS).  */
 #if 0
 #include <gnu/stubs.h>
-#endif
+#else
 #include <unixlib/stubs.h>
+#endif
 
 /* Include the UnixLib build options.  */
 #include <unixlib/buildoptions.h>
