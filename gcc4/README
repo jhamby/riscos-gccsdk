@@ -47,6 +47,9 @@ When you want to run the GCC testsuite, you need at least:
 Other and more detailed prerequisites for building GCC can be found at
 <URL:http://gcc.gnu.org/install/prerequisites.html>.
 
+You can optionally install 'lndir' which improves the build timings a little
+bit.
+
 
 1. Checking out
 ~~~~~~~~~~~~~~~
