@@ -1,6 +1,6 @@
---- binutils/readelf.c.orig	2012-11-05 17:27:35.000000000 +0100
-+++ binutils/readelf.c	2012-11-17 14:55:35.865614483 +0100
-@@ -1798,6 +1798,12 @@ get_dynamic_type (unsigned long type)
+--- binutils/readelf.c.orig	2013-11-18 09:40:15.000000000 +0100
++++ binutils/readelf.c	2013-12-31 13:16:36.454126719 +0100
+@@ -1865,6 +1865,12 @@ get_dynamic_type (unsigned long type)
  	    case EM_IA_64:
  	      result = get_ia64_dynamic_type (type);
  	      break;

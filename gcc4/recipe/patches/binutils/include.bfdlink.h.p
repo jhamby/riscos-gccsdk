@@ -1,6 +1,6 @@
---- include/bfdlink.h.orig	2012-04-09 18:27:18.000000000 +0200
-+++ include/bfdlink.h	2012-11-17 14:55:35.925613728 +0100
-@@ -501,6 +501,9 @@ struct bfd_link_info
+--- include/bfdlink.h.orig	2013-11-04 16:33:39.000000000 +0100
++++ include/bfdlink.h	2013-12-31 13:16:36.478126417 +0100
+@@ -524,6 +524,9 @@ struct bfd_link_info
    /* Start and end of RELRO region.  */
    bfd_vma relro_start, relro_end;
  

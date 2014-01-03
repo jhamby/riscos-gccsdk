@@ -1,6 +1,6 @@
---- bfd/config.bfd.orig	2012-09-04 16:14:59.000000000 +0200
-+++ bfd/config.bfd	2012-11-17 14:55:35.729616193 +0100
-@@ -315,7 +315,7 @@ case "${targ}" in
+--- bfd/config.bfd.orig	2013-11-04 16:33:37.000000000 +0100
++++ bfd/config.bfd	2013-12-31 13:16:36.386127574 +0100
+@@ -333,7 +333,7 @@ case "${targ}" in
      ;;
    arm-*-elf | arm-*-freebsd* | arm*-*-linux-* | arm*-*-conix* | \
    arm*-*-uclinux* | arm-*-kfreebsd*-gnu | \

@@ -4,7 +4,7 @@
 #
 # Build requirements:
 #   - apt-get install flex bison libgmp3-dev libmpfr-dev texinfo build-essential
-#   - binutils 2.23.2 and gcc 4.7 needs automake 1.11.1 and autoconf 2.64 and
+#   - binutils 2.24 and gcc 4.7 needs automake 1.11.1 and autoconf 2.64 and
 #     a recent libtool version.
 #     Note the required automake/autoconf/libtool sources will be fetched
 #     & built automatically.

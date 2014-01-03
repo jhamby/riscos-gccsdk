@@ -7,7 +7,7 @@ GCCSDK GCC 4.7.4 Release 1 (released xxx)
 
 Major changes:
   - Upgraded to GCC 4.7.4.
-  - Upgraded to Binutils 2.23.2.
+  - Upgraded to Binutils 2.24.
 
 Bug fixes and other improvements:
 

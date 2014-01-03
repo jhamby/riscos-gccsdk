@@ -1,6 +1,6 @@
---- bfd/elf32-arm.c.orig	2013-03-25 09:06:19.000000000 +0100
-+++ bfd/elf32-arm.c	2013-03-26 23:24:38.261500065 +0100
-@@ -2080,7 +2080,7 @@ typedef unsigned short int insn16;
+--- bfd/elf32-arm.c.orig	2013-11-08 11:13:48.000000000 +0100
++++ bfd/elf32-arm.c	2013-12-31 13:54:42.841382938 +0100
+@@ -2079,7 +2079,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
     section.  */
@@ -9,7 +9,7 @@
  
  static const unsigned long tls_trampoline [] =
  {
-@@ -2239,6 +2239,56 @@ static const bfd_vma elf32_arm_nacl_plt_
+@@ -2238,6 +2238,56 @@ static const bfd_vma elf32_arm_nacl_plt_
    0xea000000,		/* b	.Lplt_tail			*/
  };
  
@@ -66,7 +66,7 @@
  #define ARM_MAX_FWD_BRANCH_OFFSET  ((((1 << 23) - 1) << 2) + 8)
  #define ARM_MAX_BWD_BRANCH_OFFSET  ((-((1 << 23) << 2)) + 8)
  #define THM_MAX_FWD_BRANCH_OFFSET  ((1 << 22) -2 + 4)
-@@ -2998,6 +3048,26 @@ struct elf32_arm_link_hash_table
+@@ -3026,6 +3076,26 @@ struct elf32_arm_link_hash_table
    unsigned int bfd_count;
    int top_index;
    asection **input_list;
@@ -93,7 +93,7 @@
  };
  
  /* Create an entry in an ARM ELF linker hash table.  */
-@@ -3289,6 +3359,63 @@ create_ifunc_sections (struct bfd_link_i
+@@ -3317,6 +3387,63 @@ create_ifunc_sections (struct bfd_link_i
    return TRUE;
  }
  
@@ -157,7 +157,7 @@
  /* Create .plt, .rel(a).plt, .got, .got.plt, .rel(a).got, .dynbss, and
     .rel(a).bss sections in DYNOBJ, and set up shortcuts to them in our
     hash table.  */
-@@ -3333,6 +3460,20 @@ elf32_arm_create_dynamic_sections (bfd *
+@@ -3361,6 +3488,20 @@ elf32_arm_create_dynamic_sections (bfd *
  	}
      }
  
@@ -178,7 +178,7 @@
    if (!htab->root.splt
        || !htab->root.srelplt
        || !htab->sdynbss
-@@ -3483,9 +3624,209 @@ elf32_arm_link_hash_table_create (bfd *a
+@@ -3476,9 +3617,209 @@ elf32_arm_link_hash_table_create (bfd *a
        return NULL;
      }
  
@@ -388,7 +388,7 @@
  /* Free the derived linker hash table.  */
  
  static void
-@@ -7690,6 +8031,56 @@ elf32_arm_populate_plt_entry (bfd *outpu
+@@ -7703,6 +8044,56 @@ elf32_arm_populate_plt_entry (bfd *outpu
  			      elf32_arm_plt_thumb_stub[1], ptr - 2);
  	    }
  
@@ -445,7 +445,7 @@
  	  put_arm_insn (htab, output_bfd,
  			elf32_arm_plt_entry[0]
  			| ((got_displacement & 0x0ff00000) >> 20),
-@@ -7705,6 +8096,7 @@ elf32_arm_populate_plt_entry (bfd *outpu
+@@ -7718,6 +8109,7 @@ elf32_arm_populate_plt_entry (bfd *outpu
  #ifdef FOUR_WORD_PLT
  	  bfd_put_32 (output_bfd, elf32_arm_plt_entry[3], ptr + 12);
  #endif
@@ -453,7 +453,7 @@
  	}
  
        /* Fill in the entry in the .rel(a).(i)plt section.  */
-@@ -8110,6 +8502,67 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -8128,6 +8520,67 @@ elf32_arm_final_link_relocate (reloc_how
      }
    else
      addend = signed_addend = rel->r_addend;
@@ -519,17 +519,17 @@
 +	}
 +    }
  
-   /* Record the symbol information that should be used in dynamic
-      relocations.  */
-@@ -9117,6 +9570,7 @@ elf32_arm_final_link_relocate (reloc_how
-          define _GLOBAL_OFFSET_TABLE in a different way, as is
-          permitted by the ABI, we might have to change this
-          calculation.  */
+   /* ST_BRANCH_TO_ARM is nonsense to thumb-only targets when we
+      are resolving a function call relocation.  */
+@@ -9144,6 +9597,7 @@ elf32_arm_final_link_relocate (reloc_how
+ 	 define _GLOBAL_OFFSET_TABLE in a different way, as is
+ 	 permitted by the ABI, we might have to change this
+ 	 calculation.  */
 +      if (globals->s_ro_module_reloccode == NULL)
        value -= sgot->output_section->vma;
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
-@@ -10912,10 +11366,89 @@ elf32_arm_final_link (bfd *abfd, struct
+@@ -10942,10 +11396,89 @@ elf32_arm_final_link (bfd *abfd, struct
  {
    struct elf32_arm_link_hash_table *globals = elf32_arm_hash_table (info);
    asection *sec, *osec;
@@ -619,7 +619,7 @@
    /* Invoke the regular ELF backend linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
      return FALSE;
-@@ -10962,6 +11495,63 @@ elf32_arm_final_link (bfd *abfd, struct
+@@ -10992,6 +11525,63 @@ elf32_arm_final_link (bfd *abfd, struct
  	return FALSE;
      }
  
@@ -683,7 +683,7 @@
    return TRUE;
  }
  
-@@ -12479,6 +13069,22 @@ elf32_arm_check_relocs (bfd *abfd, struc
+@@ -12536,6 +13126,22 @@ elf32_arm_check_relocs (bfd *abfd, struc
  
        eh = (struct elf32_arm_link_hash_entry *) h;
  
@@ -706,7 +706,7 @@
        call_reloc_p = FALSE;
        may_become_dynamic_p = FALSE;
        may_need_local_target_p = FALSE;
-@@ -13146,6 +13752,8 @@ allocate_dynrelocs_for_symbol (struct el
+@@ -13203,6 +13809,8 @@ allocate_dynrelocs_for_symbol (struct el
  	{
  	  elf32_arm_allocate_plt_entry (info, eh->is_iplt, &h->plt, &eh->plt);
  
@@ -715,7 +715,7 @@
  	  /* If this symbol is not defined in a regular file, and we are
  	     not generating a shared library, then set the symbol to this
  	     location in the .plt.  This is required to make function
-@@ -13830,6 +14438,22 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -13892,6 +14500,22 @@ elf32_arm_size_dynamic_sections (bfd * o
  #define add_dynamic_entry(TAG, VAL) \
    _bfd_elf_add_dynamic_entry (info, TAG, VAL)
  
@@ -738,7 +738,7 @@
       if (info->executable)
  	{
  	  if (!add_dynamic_entry (DT_DEBUG, 0))
-@@ -13838,8 +14462,7 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -13900,8 +14524,7 @@ elf32_arm_size_dynamic_sections (bfd * o
  
        if (plt)
  	{
@@ -748,7 +748,7 @@
  	      || !add_dynamic_entry (DT_PLTREL,
  				     htab->use_rel ? DT_REL : DT_RELA)
  	      || !add_dynamic_entry (DT_JMPREL, 0))
-@@ -13869,6 +14492,9 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -13931,6 +14554,9 @@ elf32_arm_size_dynamic_sections (bfd * o
  	    }
  	}
  
@@ -758,7 +758,7 @@
        /* If any dynamic relocs apply to a read-only section,
  	 then we need a DT_TEXTREL entry.  */
        if ((info->flags & DF_TEXTREL) == 0)
-@@ -14086,7 +14712,12 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -14180,7 +14806,12 @@ elf32_arm_finish_dynamic_sections (bfd *
  		  && elf_vxworks_finish_dynamic_entry (output_bfd, &dyn))
  		bfd_elf32_swap_dyn_out (output_bfd, &dyn, dyncon);
  	      break;
@@ -772,7 +772,7 @@
  	    case DT_HASH:
  	      name = ".hash";
  	      goto get_vma_if_bpabi;
-@@ -14294,6 +14925,39 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -14372,6 +15003,39 @@ elf32_arm_finish_dynamic_sections (bfd *
  	    {
  	      got_displacement = got_address - (plt_address + 16);
  
@@ -812,7 +812,7 @@
  	      plt0_entry = elf32_arm_plt0_entry;
  	      put_arm_insn (htab, output_bfd, plt0_entry[0],
  			    splt->contents + 0);
-@@ -14313,6 +14977,7 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -14391,6 +15055,7 @@ elf32_arm_finish_dynamic_sections (bfd *
  #endif
  	    }
  	}
@@ -820,7 +820,7 @@
  
        /* UnixWare sets the entsize of .plt to 4, although that doesn't
  	 really seem like the right value.  */
-@@ -15600,13 +16265,28 @@ elf32_arm_add_symbol_hook (bfd *abfd, st
+@@ -15703,13 +16368,28 @@ elf32_arm_add_symbol_hook (bfd *abfd, st
  				       flagsp, secp, valp))
      return FALSE;
  
