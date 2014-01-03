@@ -1,3 +1,10 @@
+Fri Jan  3 16:29:02 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* readfile.c (getline): Fix another wrong update of options::atline
+	(case: when continuation lines are processed).
+	* copyright.h (Copyright_CMunge): Add 2014.
+	* Docs/Copyright: Likewise.
+
 Sun May 20 20:07:10 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* readfile.c (getline): Fix wrong update of options::atline.

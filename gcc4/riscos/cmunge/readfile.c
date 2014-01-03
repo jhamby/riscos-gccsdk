@@ -276,7 +276,7 @@ retry:
                 comma = 0;
                 concat = 0;
               }
-          }
+            }
           } else if (c == 'v') {
             if (!discarding) {
               if (escape) {
@@ -327,10 +327,11 @@ retry:
             /* Discard to end of line */
             discarding = 1;
           } else if (c == '\n') {
-            opt.atline++;
             discarding = 0;
-            if ((comma == 0) && (level == 0) && (concat==0))
+            if ((comma == 0) && (level == 0) && (concat==0)) {
+              opt.atline++;
               done = 1;
+            }
             break;
           } else if (c == ',') {
             if (!discarding) {
