@@ -1,3 +1,9 @@
+Sat Jan  4 02:10:32 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* README: Upstream svn URL got changed from
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk
+	to https://svn.code.sf.net/p/elftoolchain/code/trunk.
+
 Wed Jan  1 14:05:47 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/configure.ac (AM_PROG_AR): Make its use automake 1.11.1
@@ -10,7 +16,7 @@ Mon Dec 23 17:07:09 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 Mon Dec 23 16:58:21 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2974
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2974
 
 Sun Dec 22 16:28:26 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -109,7 +115,7 @@ Fri Dec 20 20:14:52 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 Fri Dec 20 20:13:12 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2971
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2971
 
 Sat Sep  7 15:17:42 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -118,7 +124,7 @@ Sat Sep  7 15:17:42 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Sat Sep  7 15:15:33 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2963
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2963
 
 Sun Jul  7 16:34:07 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -137,7 +143,7 @@ Mon Jul  1 21:13:36 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Mon Jul  1 21:11:23 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2953
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2953
 
 Sat Jun 29 22:50:28 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -154,7 +160,7 @@ Sat Jun 29 17:53:35 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Sat Jun 29 17:49:43 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2952
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2952
 
 Sat Jun  1 13:58:16 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -163,7 +169,7 @@ Sat Jun  1 13:58:16 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Sat Jun  1 13:53:35 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2949
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2949
 
 Sun May 26 13:51:36 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -172,7 +178,7 @@ Sun May 26 13:51:36 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Sun May 26 13:48:33 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2946
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2946
 
 Wed May 15 00:01:49 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -212,7 +218,7 @@ Sat May 11 14:01:29 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Sat May 11 13:59:53 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2945
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2945
 
 Thu May  9 00:19:47 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -228,7 +234,7 @@ Mon May  6 23:09:38 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Mon May  6 23:06:33 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2942
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2942
 
 Sat May  4 19:43:09 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -276,7 +282,7 @@ Sat Apr 27 15:00:08 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Sat Apr 27 14:58:00 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2938
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2938
 
 Sun Apr 21 01:54:10 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -306,7 +312,7 @@ Tue Apr  2 21:10:10 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 Tue Apr  2 21:03:22 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2936
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2936
 
 Sun Mar 24 20:37:25 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -343,7 +349,7 @@ Sun Mar 17 17:44:42 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 Sun Mar 17 17:00:37 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2921
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2921
 
 Sun Mar 17 16:11:39 CET 2013  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -356,7 +362,7 @@ Sat Dec  8 19:50:41 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 Sat Dec  8 19:18:34 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2723
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2723
 
 Tue Oct 16 23:39:59 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -365,7 +371,7 @@ Tue Oct 16 23:39:59 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 Tue Oct 16 23:34:18 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2611
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2611
 
 Fri Oct  5 00:24:26 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -379,7 +385,7 @@ Thu Oct  4 22:49:56 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 Thu Oct  4 22:46:55 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Sync'd with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2608
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2608
 
 Wed Oct  3 01:45:12 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -393,7 +399,7 @@ Tue Oct  2 23:45:16 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 Tue Oct  2 23:30:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Replace this svn:externals copy with
-	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2600
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2600
 	* Makefile.in: Removed.
 
 Wed Aug  8 02:55:01 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
