@@ -1,3 +1,7 @@
+Sun Jan  5 14:37:59 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/lex.c (Lex_OperatorAsStr): Fix typos.
+
 Wed Jan  1 17:43:54 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

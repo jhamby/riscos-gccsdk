@@ -1751,10 +1751,10 @@ Lex_OperatorAsStr (Operator_e op)
       ":FEXEC:",	/* eOp_FExec */
       ":FSIZE:",	/* eOp_FSize */
       ":FATTR:",	/* eOp_FAttr */
-      ":LNOT:",		/* eOp_lnot */
+      ":LNOT:",		/* eOp_LNot */
       ":NOT:",		/* eOp_Not */
-      ":NEG:",		/* eOp_Neg */
-      ":NONE:",		/* eOp_None */
+      "-",		/* eOp_Neg */
+      "+",		/* eOp_Pos */
       ":BASE:",		/* eOp_Base */
       ":INDEX:",	/* eOp_Index */
       ":LEN:",		/* eOp_Len */
