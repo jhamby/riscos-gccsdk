@@ -4,5 +4,5 @@ Description: Archiver for .zip files
  compatible with the popular PKZIP program; however, the command line
  options are not identical. In other words, the end result is the same,
  but the methods differ. :-)
-
+ .
  This version supports encryption.
