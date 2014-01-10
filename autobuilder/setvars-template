@@ -98,6 +98,23 @@
 # and autobuilder/libraries/libsomething/libsomething-debug/RiscPkg/Control
 #AB_PACKAGES=
 
+# Set the components for the package. This specifies the components
+# and thier flags for the package file.
+# It will need to be set before each call to add-riscpkg if multiple
+# packages are created.
+# If not set the ab_create_app etc will try to set it appropriately.
+# It can also be overriden by the Components field if set when a
+# partial RiscPkg/Control file is provided in the autobuilder
+# for this item.
+# The format is <logical_path> '(' 'Movable' | 'Movable LookAt' ')'
+# Use 'Movable' to allow the user to place the component anywhere on
+# their disc when installing.
+# Use 'Movable LookAt' if the component should be booted when installed
+# and when RISC OS is restarted. This combination should normally only
+# be used for command line utilities and applications that view or edit
+# a file when the file is run from the filer.
+#AB_COMPONENTS=
+
 # If you have multiple packages you can have different versions for them
 # using variables named after the subpackages, with illegal characters
 # replaced by underscores.  For example:

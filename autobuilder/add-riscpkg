@@ -32,6 +32,7 @@ recommends=""
 package="$AB_SUBPACKAGE"
 section="$AB_CATEGORY"
 pkgname=""
+components="$AB_COMPONENTS"
 
 # look up a version for the specific subpackage based on a
 # variable with the package name- eg AB_PVERSION_zip
@@ -57,20 +58,6 @@ fi
 
 #echo "Category $category package $package version $pkgversion-$pkgroversion"
 
-# Scan the boot file for variables etc,
-scan_boot_file() {
-  # Ignore nested !Boot files
-  boot_file=`find $D -iname "\!Boot,feb" | sort | head -1`
-  # Get appdir/appname defaults
-  appdir=`echo "$boot_file" | sed "s#$D/## ; s#/#.#g ; s/!//"`
-  appname=`echo "$appdir" | cut -d . -f 3`
-  appdir=`echo "$appdir" | cut -d . -f 1-2`
-}
-
-scan_boot_file
-
-boot_vars="yes"
-
 for param in $@ ; do
   case "$param" in
   -unixlib)
@@ -89,7 +76,7 @@ for param in $@ ; do
      fi
      mkdir -p  $D/SysVars
      echo -e "<Packages\$@$appdir.\x21$appname>" > "$D/SysVars/$appname=24Dir"
-     boot_vars="no"
+     echo "add-riscpkg: Warning -dirvar is deprecated, set AB_COMPONENTS instead if needed"
      ;;
   -pathvar)
      if [ -z "$appdir" ] || [ -z "$appname" ] ; then
@@ -98,10 +85,10 @@ for param in $@ ; do
      fi
      mkdir -p  $D/SysVars
      echo -e "<Packages\$@$appdir.\x21$appname>." > "$D/SysVars/$appname=24Path"
-     boot_vars="no"
+     echo "add-riscpkg: Warning -pathvar is deprecated, set AB_COMPONENTS instead if needed"
      ;;
   -nobootvars)
-     boot_vars="no"
+     echo "add-riscpkg: -nobootvars no longer required - boot vars are now never included"
      ;;
   -*)
      last_param=$param
@@ -140,7 +127,6 @@ for param in $@ ; do
          # so check for a package specific directory
          if [ -d "$D/$package" ] ; then
            D="$D/$package"
-           scan_boot_file
          fi
          # also check for a package specific directory in the
          # autobuilder, so we pick up packaging info from there
@@ -177,27 +163,6 @@ if [ -z "$pkgname" ] ; then
    pkgname=`echo "$package" | sed -e 's/^\([a-z]\)/\u\1/' -e 's/^\(Lib\)\(.\)/\1\u\2/' -e 's/\(-\)\(.\)/\1\u\2/g'`
 fi
 
-# Create SysVars from entries in !Boot file
-if [ "$boot_vars" == "yes" ] && [ ! -z "$boot_file" ] ; then     
-  if [ -z "$appdir" ] || [ -z "$appname" ] ; then
-    echo "add-riscpkg: Failed to determine application directory/name"
-    exit 1
-  fi
-  mkdir -p $D/SysVars
-  pdir="Packages\\\$@$appdir.!$appname"
-  vars=`grep "Set " $boot_file | sed "s/^.*Set // ; s/<Obey\\\$Dir>/<$pdir>/g"`
-
-  if [ -n "$vars" ] ; then
-    echo "$vars" |
-    while read line
-    do
-      var=`echo "$line" | cut -d ' ' -f 1 | sed -e 's/\\\$/=24/' -e 's/@/=40/'`
-      val=`echo "$line" | cut -d ' ' -f 2- | sed -e 's/%%/%/' -e "s/$appname\\\$Dir/$pdir/"`
-      echo "$val" > "$D/SysVars/$var"
-    done
-  fi
-fi
-
 mkdir -p $D/RiscPkg
 
 if [ -d "$H/RiscPkg" ] ; then
@@ -205,11 +170,13 @@ if [ -d "$H/RiscPkg" ] ; then
 fi
 
 if [ -d "$H/SysVars" ] ; then
+  echo "add-riscpkg: Warning SysVars are deprecated, consider removing from $H/SysVars"
   mkdir -p $D/SysVars
   cp -av $H/SysVars/* $D/SysVars
 fi
 
 if [ -d "$H/Sprites" ] ; then
+  echo "add-riscpkg: Warning Sprites are deprecated, consider removing from $H/Sprites"
   mkdir -p $D/Sprites
   cp -av $H/Sprites/* $D/Sprites
 fi
@@ -222,6 +189,7 @@ has_licence=""
 has_depends=""
 has_suggests=""
 has_recommends=""
+has_components=""
 
 if [ -e "$H/RiscPkg/Control" ] ; then
   has_description=`grep "^Description:" $H/RiscPkg/Control` || true
@@ -229,6 +197,7 @@ if [ -e "$H/RiscPkg/Control" ] ; then
   has_depends=`grep "^Depends:" $H/RiscPkg/Control` || true
   has_suggests=`grep "^Suggests:" $H/RiscPkg/Control` || true
   has_recommends=`grep "^Recommends:" $H/RiscPkg/Control` || true
+  has_components=`grep "^Components:" $H/RiscPkg/Control` || true
 fi
 
 echo "Package: $pkgname" > $D/RiscPkg/Control
@@ -250,7 +219,11 @@ else
   echo "Maintainer: $AB_MAINTAINER" >> $D/RiscPkg/Control
 fi
 
-echo "Standards-Version: 0.1.0" >> $D/RiscPkg/Control
+echo "Standards-Version: 0.4.0" >> $D/RiscPkg/Control
+
+if [ -z "$has_components" ] && [ ! -z "$components" ] ; then
+  echo "Components: $components" >> $D/RiscPkg/Control
+fi
 
 if [ -z "$has_depends" ] && [ ! -z "$depends" ] ; then
   depends=`echo "$depends" | cut -b 2-`

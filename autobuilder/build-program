@@ -14,6 +14,7 @@ AB_PVERSION=
 AB_PRECONF=
 AB_INSTALL=no
 AB_CATEGORY=
+AB_COMPONENTS=
 AB_COPYSOURCE=yes
 AB_DISTCLEAN=
 AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
@@ -133,6 +134,10 @@ ab_create_app() {
   if [ -z "$AB_CATEGORY" ] ; then
     AB_CATEGORY=$(sed s#^Apps/## <<<$section)
   fi
+  
+  if [ -z "$AB_COMPONENTS" ] ; then
+    AB_COMPONENTS="$(sed s#/#.# <<< $section).!$app (Movable)"
+  fi
 
   export AB_SUBPACKAGE=$package
 
@@ -153,7 +158,17 @@ ab_create_app() {
 
 
 ab_create_command_app() {
+  local add_comp
+  add_comp=false
+  if [ -z "$AB_COMPONENTS" ] ; then
+    add_comp=true
+  fi
+  
   ab_create_app $1 $2 $3
+  
+  if $add_comp ; then
+     AB_COMPONENTS=$(sed "s#Movable#Movable LookAt#" <<< $AB_COMPONENTS)
+  fi
 
   # For commands applications, just run the !Boot file
   if ! [ -e $A/\!Run,feb ] ; then
@@ -625,6 +640,7 @@ export AB_PVERSION
 export AB_ROVERSION
 export AB_CATEGORY
 export AB_DEBNAME
+export AB_COMPONENTS
 
 if [ "$AB_MANPAGE" != "" ] ; then
   ln -sf . man3
