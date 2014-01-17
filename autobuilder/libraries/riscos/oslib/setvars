@@ -1,5 +1,5 @@
 # OSLib trunk suppors both ELF as AOF building:
-AB_SVN=https://ro-oslib.svn.sourceforge.net/svnroot/ro-oslib/trunk/!OSLib
+AB_SVN=https://svn.code.sf.net/p/ro-oslib/code/trunk/!OSLib
 AB_PVERSION=svn-$(date +%Y%m%d)
 
 AB_INSTALL=yes
