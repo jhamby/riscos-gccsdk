@@ -1,4 +1,3 @@
-
 AB_CATEGORY=Graphics
 AB_NOREMOTE=yes
 AB_PVERSION=1.40
@@ -13,10 +12,8 @@ ab_package() {
   # (sadly this doesn't work on a UTF8 build machine, so we revert to omitting
   # the accent)
 
-#  mkdir -p $D/$AB_PACKAGES/Apps/$AB_CATEGORY
-#  cp -av $S/$'!D\xE9cor/' $D/$AB_PACKAGES/Apps/$AB_CATEGORY/
-#  cp -av $H/RiscPkg $D/$AB_PACKAGES/
   ab_create_app Decor Apps/Graphics
+  cp -av $S/\!Decor/Decor* $A
 
   $AB_HOME/add-riscpkg
 }

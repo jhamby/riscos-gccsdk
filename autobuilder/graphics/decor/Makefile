@@ -5,6 +5,6 @@ CFLAGS=-O2 -Wall -W -mlibscl -lDesk-scl -L$(GCCSDK_INSTALL_ENV)/lib
 
 .PHONY: Decor
 Decor: Decor.c
-	$(CC) $< $(CFLAGS) -o $$'!Decor/Decor,ff8'
+	$(CC) $< $(CFLAGS) -o '!Decor/Decor,ff8'
 
 distclean:
