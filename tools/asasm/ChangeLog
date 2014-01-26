@@ -1,3 +1,7 @@
+Sun Jan 26 18:26:55 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/eval.c (GetInt): Drop support for ValueSymbol.
+
 Sun Jan  5 14:37:59 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/lex.c (Lex_OperatorAsStr): Fix typos.

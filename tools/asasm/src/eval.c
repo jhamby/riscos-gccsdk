@@ -82,6 +82,8 @@ ememcmp (const Value *lv, const Value *rv)
 
 /**
  * Get integer value of a ValueInt and one character ValueString object.
+ * Note absolute area symbols are already resolved to integers by
+ * having called Value_ResolveSymbol before feeding the evaluation stack.
  * \return true when it concerns a ValueInt or one character ValueString object.
  */
 static bool
@@ -106,22 +108,6 @@ GetInt (const Value *valP, uint32_t *i)
 	    return true;
 	  }
 	break;
-
-      case ValueSymbol:
-	{
-	  const Symbol *symP = valP->Data.Symbol.symbol;
-	  if ((symP->attr.type & SYMBOL_AREA) != 0)
-	    {
-	      if ((symP->attr.area->type & AREA_ABS) != 0)
-		{
-		  int offset = valP->Data.Symbol.offset;
-		  int factor = valP->Data.Symbol.factor;
-		  *i = factor * Area_GetBaseAddress (symP) + offset;
-		  return true;
-		}
-	    }
-	  break;
-	}
 
       default:
 	break;
