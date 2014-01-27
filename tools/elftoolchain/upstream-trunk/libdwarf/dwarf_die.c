@@ -27,7 +27,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: dwarf_die.c 2073 2011-10-27 03:30:47Z jkoshy $");
+ELFTC_VCSID("$Id: dwarf_die.c 2976 2014-01-21 20:12:47Z kaiwang27 $");
 
 int
 dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
@@ -44,7 +44,7 @@ dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
 	}
 
 	if (die->die_ab->ab_children == DW_CHILDREN_no)
-		return (DW_DLE_NO_ENTRY);
+		return (DW_DLV_NO_ENTRY);
 
 	dbg = die->die_dbg;
 	cu = die->die_cu;
