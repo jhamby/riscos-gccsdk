@@ -10,5 +10,5 @@ diff -u -r1.18 !Run,feb
  RmEnsure WindowManager 3.98 Error Nettle requires the Nested WIMP window manager
  
 -WimpSlot -min 256K -max 256K
-+WimpSlot -min 1600K -max 1600K
++WimpSlot -min 1856K -max 1856K
  Run <Nettle$Dir>.!RunImage %*0 ><Nettle$Dir>.stdout 2><Nettle$Dir>.stderr

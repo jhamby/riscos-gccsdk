@@ -1,4 +1,5 @@
 cp $H/makefile.riscos $S/makefile.machine
+AB_ROVERSION=3
 
 ab_package() {
   mv $S/bin/7za $S/bin/7za$AB_EXEEXT  

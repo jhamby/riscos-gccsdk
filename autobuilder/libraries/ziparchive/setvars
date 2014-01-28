@@ -6,7 +6,7 @@ AB_PVERSION=`grep -m 1 "linkindex" Doc/history.html | cut -d '>' -f3 | cut -d ' 
 
 
 ab_package() {
-  ab_create_command_app ZipArchive Apps/Library ziparchive-dev
+  ab_create_app ZipArchive Apps/Library ziparchive-dev
   echo 'Set ZipArchive$Path <Obey$Dir>.' >> $A/!Boot,feb
 
   mkdir -p $A/ziparchive/h

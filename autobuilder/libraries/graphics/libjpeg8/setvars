@@ -1,5 +1,5 @@
 AB_INSTALL=yes
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
@@ -17,6 +17,7 @@ ab_package() {
   $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib -section Graphics
 
   # Package libraries
+  AB_COMPONENTS=""
   ab_create_app LibJPEG Apps/Library libjpeg8-dev
 
   HERE=`pwd`

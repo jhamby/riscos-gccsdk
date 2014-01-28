@@ -1,4 +1,4 @@
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
 AB_SHORTDESC="Allows programs portable low level access to a video, audio, mouse, and keyboard"

@@ -1,4 +1,5 @@
 $HOST_CC -o man/texinfo2man man/texinfo2man.c
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_command_app Indent Apps/Development

@@ -4,7 +4,7 @@ AB_CVS_ROOT=:pserver:anonymous@nettle.cvs.sourceforge.net:/cvsroot/nettle
 AB_CVS_MODULE=nettle
 
 AB_CATEGORY=Network
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 # RISC OS make wrapper.  This can be set to just "make" if setting the
 # path causes problems - e.g., the native compiler is required too
@@ -36,6 +36,7 @@ ab_package () {
    AB_PVERSION=`grep -m 1 "RelVer" !Release,fd7 | cut -f 3 -d' '`
    mkdir -p $D/Nettle/Apps/Network
    cp -r $S/!Nettle $D/Nettle/Apps/Network
+   AB_COMPONENTS="Apps.Network.!Nettle (Movable)"
    $AB_HOME/add-riscpkg -package Nettle -unixlib -copyrightfile $S/License \
        -depends SocketWatch -depends CryptRandom
 }

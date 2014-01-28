@@ -1,6 +1,6 @@
 AB_INSTALL=yes
 AB_PRECONF=:
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 ab_package() {
   cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
@@ -12,6 +12,8 @@ ab_package() {
   cp -av $S/README $S/LICENSE $A/docs/
 
   $AB_HOME/add-riscpkg -package bzip2 -unixlib -section Utilities
+
+  AB_COMPONENTS=""
   
   # Package libraries
   ab_create_app LibBZ2 Apps/Library libbz2-dev

@@ -1,4 +1,4 @@
-
+AB_ROVERSION=2
 export ac_cv_func_pthread_cancel=no
 
 ab_package() {

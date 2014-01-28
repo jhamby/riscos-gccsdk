@@ -1,5 +1,6 @@
 
 AB_URL=http://downloads.xiph.org/releases/opus/opus-tools-0.1.5.tar.gz
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_command_app Opus-Tools Apps/Audio

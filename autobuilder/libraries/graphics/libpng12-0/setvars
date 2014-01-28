@@ -1,5 +1,5 @@
 #AB_URL=ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.2.41.tar.bz2
-
+AB_ROVERSION=2
 AB_INSTALL=yes
 
 export ECHO=echo

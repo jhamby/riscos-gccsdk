@@ -1,6 +1,6 @@
 beta_level=`grep -m1 BETALEVEL revision.h | cut -d\" -f2 | cut -d' ' -f1`
 AB_PVERSION=`grep -m1 VERSION revision.h | cut -d\" -f2`$beta_level
-AB_ROVERSION=1
+AB_ROVERSION=2
 
 AB_PRECONF=:
 

@@ -5,6 +5,7 @@ AB_PACKAGES="libpcre3-dev"
 fi
 AB_INSTALL=yes
 AB_LICENCE=Free
+AB_ROVERSION=2
 AB_CONFLAGS="$AB_CONFLAGS --enable-utf8 --enable-unicode-properties"
 
 ab_package()
