@@ -1,3 +1,10 @@
+Tue Jan 28 02:31:30 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/eval.c (Eval_Binop): Drop support for ValueAddr for eOp_Mul and
+	eOp_And.
+	* unittests/compare/core/operator_addition_logical.s: Enhance with
+	ValueAddr tests.
+
 Sun Jan 26 18:26:55 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/eval.c (GetInt): Drop support for ValueSymbol.

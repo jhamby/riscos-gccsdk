@@ -157,8 +157,8 @@ Eval_Binop (Operator_e op,
     {
       case eOp_Mul: /* * */
 	{
-	  /* Promotion for ValueFloat, ValueAddr and ValueSymbol.  */
-	  if (rvalue->Tag == ValueFloat || rvalue->Tag == ValueAddr || rvalue->Tag == ValueSymbol)
+	  /* Promotion for ValueFloat and ValueSymbol.  */
+	  if (rvalue->Tag == ValueFloat || rvalue->Tag == ValueSymbol)
 	    {
 	      const Value * restrict tmp = lvalue;
 	      lvalue = rvalue;
@@ -167,9 +167,7 @@ Eval_Binop (Operator_e op,
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
 	  bool r_isint = GetInt (rvalue, &rval);
-	  if (lvalue->Tag == ValueAddr && r_isint) /* ValueAddr <= ValueAddr * ValueInt  <or>  ValueInt * ValueAddr */
-	    result = Value_Addr (lvalue->Data.Addr.r, lvalue->Data.Addr.i * (signed)rval);
-	  else if (lvalue->Tag == ValueSymbol && r_isint) /* ValueSymbol <= ValueSymbol * ValueInt  <or>  ValueInt * ValueSymbol */
+	  if (lvalue->Tag == ValueSymbol && r_isint) /* ValueSymbol <= ValueSymbol * ValueInt  <or>  ValueInt * ValueSymbol */
 	    result = Value_Symbol (lvalue->Data.Symbol.symbol, lvalue->Data.Symbol.factor * (signed)rval, lvalue->Data.Symbol.offset * (signed)rval);
 	  else if (lvalue->Tag == ValueFloat && (r_isint || rvalue->Tag == ValueFloat)) /* ValueFloat <= ValueFloat * ValueInt  <or>  ValueInt * ValueFloat */
 	    result = Value_Float (lvalue->Data.Float.f * (r_isint ? (signed)rval : rvalue->Data.Float.f));
@@ -366,17 +364,7 @@ Eval_Binop (Operator_e op,
 	{
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
-	  if (lvalue->Tag == ValueAddr) /* FIXME: why this support, and not in :OR: or :EOR: ? */
-	    {
-	      lval = (unsigned)lvalue->Data.Addr.i;
-	      l_isint = true;
-	    }
 	  bool r_isint = GetInt (rvalue, &rval);
-	  if (rvalue->Tag == ValueAddr)
-	    {
-	      rval = rvalue->Data.Addr.i;
-	      r_isint = true;
-	    }
 	  if (l_isint && r_isint)
 	    result = Value_Int (lval & rval, eIntType_PureInt);
 	  else

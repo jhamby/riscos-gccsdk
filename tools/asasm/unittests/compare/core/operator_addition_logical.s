@@ -31,6 +31,8 @@ field3	# 4		; Offset &18 - &1c
 	DCD	:INDEX:@ + :INDEX:@
 	DCD	"A" + 3
 	DCD	3 + "A"
+	LDR	r1, field2 + 4
+	LDR	r2, 4 + field2
 
 	; -
 	DCD	5 - 3
@@ -51,6 +53,8 @@ field3	# 4		; Offset &18 - &1c
 	]
 	DCD	"D" - 3
 	DCD	"D" - "A"
+	LDR	r1, field2 - 4
+	DCD	field3 - field2
 
 	; :AND:
 	DCD	6 :AND: 3
@@ -114,6 +118,8 @@ field3	# 4		; Offset &18 - &1c
 	DCD	&38
 	DCD	&44
 	DCD	&44
+	LDR	r1, [r12, #20]
+	LDR	r2, [r12, #20]
 
 	; -
 	DCD	2
@@ -134,6 +140,8 @@ field3	# 4		; Offset &18 - &1c
 	]
 	DCD	&41
 	DCD	3
+	LDR	r1, [r12, #12]
+	DCD	8
 
 	; :AND:
 	DCD	2
