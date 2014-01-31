@@ -60,7 +60,16 @@ ab_package() {
 
   #fontconfig - all programs fc-* to /usr/bin
   ab_create_command_app UnixFC Apps/Fonts fontconfig
-  ab_add_commands $S/fc-*/*$AB_EXEEXT
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    # Make sure we get the binaries and not the shell wrappers.
+    for f in $(find -name 'fc-*' -type d ) ; do
+      if [ -e "$S/${f##*/}/.libs/${f##*/}$AB_EXEEXT" ]; then
+	ab_add_commands "$S/${f##*/}/.libs/${f##*/}$AB_EXEEXT"
+      fi
+    done
+  else
+    ab_add_commands $S/fc-*/*$AB_EXEEXT
+  fi
 
   mkdir -p $A/docs
   cp -av $S/doc/fontconfig-user.html $A/docs
