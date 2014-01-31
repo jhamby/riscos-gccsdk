@@ -16,8 +16,8 @@ mkdir -p $D/include/freetype2/freetype/internal
 
 AB_MAKE="$AB_MAKE CCexe=$HOST_CC"
 
-export LIBPNG_CFLAGS=$GCCSDK_INSTALL_ENV/include
-export LIBPNG_LDFLAGS=$GCCSDK_INSTALL_ENV/lib
+export LIBPNG_CFLAGS="-I$GCCSDK_INSTALL_ENV/include"
+export LIBPNG_LDFLAGS="-L$GCCSDK_INSTALL_ENV/lib -lpng"
 
 ab_make() {
   cp ftconfig.h libtool *.mk builds/unix
