@@ -28,7 +28,7 @@ ab_package() {
   AVAIL_CONF="$S/conf.d/10-autohint.conf $S/conf.d/10-no-sub-pixel.conf
     $S/conf.d/10-sub-pixel-bgr.conf $S/conf.d/10-sub-pixel-rgb.conf
     $S/conf.d/10-sub-pixel-vbgr.conf $S/conf.d/10-sub-pixel-vrgb.conf
-    $S/conf.d/10-unhinted.conf $S/conf.d/20-fix-globaladvance.conf
+    $S/conf.d/10-unhinted.conf
     $S/conf.d/20-unhint-small-vera.conf $S/conf.d/25-unhint-nonlatin.conf
     $S/conf.d/30-metric-aliases.conf $S/conf.d/30-urw-aliases.conf
     $S/conf.d/40-nonlatin.conf $S/conf.d/45-latin.conf
@@ -40,7 +40,7 @@ ab_package() {
     $S/conf.d/70-yes-bitmaps.conf $S/conf.d/80-delicious.conf
     $S/conf.d/90-synthetic.conf"
 
-  CONFD_CONF="$S/conf.d/20-fix-globaladvance.conf $S/conf.d/20-unhint-small-vera.conf
+  CONFD_CONF="$S/conf.d/20-unhint-small-vera.conf
     $S/conf.d/30-metric-aliases.conf $S/conf.d/30-urw-aliases.conf
     $S/conf.d/40-nonlatin.conf $S/conf.d/45-latin.conf
     $S/conf.d/49-sansserif.conf $S/conf.d/50-user.conf
@@ -75,7 +75,7 @@ ab_package() {
   rm $A/\!Run,feb
   rm $A/\!Help,feb
   mv $A/\!Boot,feb $A/BinBoot,feb
-  rm "$D/fontconfig/SysVars/UnixFC=24Dir,fff"
+  rm -f "$D/fontconfig/SysVars/UnixFC=24Dir,fff"
 
   #libfontconfig1-dev
   ab_create_app UnixFC Apps/Fonts libfontconfig1-dev
