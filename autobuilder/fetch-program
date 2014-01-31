@@ -88,38 +88,40 @@ else
     #debarchive=http://mirrors.kernel.org/debian
     #debarchive=http://gb.archive.ubuntu.com/ubuntu/
     #distros="precise"
+    #source_ext="bz2"
+    source_ext="gz"
 
     # Old file
-    rm -f ../Sources.bz2
+    rm -f ../Sources.$source_ext
 
-    # Use and keep existing Sources.bz2 if it exists and is less
+    # Use and keep existing Sources.bz2/gz if it exists and is less
     # than a day old
 
     rm -f files
 
     for dist in ${distros}; do
       for section in main contrib; do
-        Sources=../Sources-${dist}-${section}.bz2
+        Sources=../Sources-${dist}-${section}.$source_ext
 
         if ! [ -s $Sources ] ||
              [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
 
-          echo "Autobuilder: Fetching new Sources.bz2 (${dist}/${section})"
+          echo "Autobuilder: Fetching new Sources.$source_ext (${dist}/${section})"
 
           rm -f $Sources
 
-          $AB_WGET $debarchive/dists/${dist}/${section}/source/Sources.bz2 -O $Sources
+          $AB_WGET $debarchive/dists/${dist}/${section}/source/Sources.$source_ext -O $Sources
           touch $Sources
 
         else
-          echo "Autobuilder: Using existing Sources.bz2 (${dist}/${section})"
+          echo "Autobuilder: Using existing Sources.$source_ext (${dist}/${section})"
         fi
       done
     done
 
     for dist in ${distros}; do
       for section in main contrib; do
-        Sources=../Sources-${dist}-${section}.bz2
+        Sources=../Sources-${dist}-${section}.$source_ext
 
         dist_format=""
         echo "Autobuilder: Searching for $AB_PACKAGE in $Sources..."
