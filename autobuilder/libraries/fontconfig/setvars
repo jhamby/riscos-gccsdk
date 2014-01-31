@@ -1,6 +1,6 @@
 AB_CATEGORY=Fonts
 AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev"
-AB_CONFLAGS=\''--with-confdir=/\<UnixFC\$$Dir\>/fonts'\'
+AB_CONFLAGS=\''--with-baseconfigdir=/\<UnixFC\$$Dir\>/fonts'\'
 AB_INSTALL=env
 # Only install library files
 AB_INSTALLTARGET="-C src install"
