@@ -9,14 +9,18 @@ AB_PRECONF="RO_CPATH=builds/unix/"
 
 $AB_MAKE setup unix
 
+mkdir -p $D/include/freetype2/config
 mkdir -p $D/include/freetype2/freetype/config
 mkdir -p $D/include/freetype2/freetype/cache
 mkdir -p $D/include/freetype2/freetype/internal
 
 AB_MAKE="$AB_MAKE CCexe=$HOST_CC"
 
+export LIBPNG_CFLAGS=$GCCSDK_INSTALL_ENV/include
+export LIBPNG_LDFLAGS=$GCCSDK_INSTALL_ENV/lib
+
 ab_make() {
-  cp freetype-config freetype2.pc ftconfig.h libtool *.mk builds/unix
+  cp ftconfig.h libtool *.mk builds/unix
 
   eval $AB_MAKE
 }
