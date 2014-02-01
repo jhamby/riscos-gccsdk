@@ -11,6 +11,7 @@ ab_package() {
   cp -avf $H/\!Boot,feb $A
   cp -av $H/\!Sprites,ff9 $A
 
+  mkdir -p $A/cache
   mkdir -p $A/fonts
   cp -av $S/README $A/
   cp -av $S/fonts.dtd $A/fonts
@@ -104,4 +105,32 @@ ab_package() {
 
   rm -rf $D/libfontconfig1-dev/SysVars
   rm $A/\!Boot,feb
+
+  #libfontconfig1-lib
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_app SharedLibs Apps/Library libfontconfig1-lib
+
+    # Create a skeleton !SharedLibs directory and copy shared library.
+    # Determine which ABI is in use and therefor which directory to install
+    # to. We assume that GCC 4.1.1 is obsolete. For GCC 4.1.2, the ABI
+    # directory is "abi-1.0", for newer versions of GCC, it is "abi-2.0".
+    abi_dir=abi-2.0
+    gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
+    if [[ "$gcc_version" == *4.1.2* ]]; then
+      abi_dir=abi-1.0
+    fi
+
+    mkdir -p $A/lib/$abi_dir
+    ux_lib_name=$(readlink src/.libs/libfontconfig.so)
+    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
+    cp -T $S/src/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libfontconfig.so,1C8
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libfontconfig.so.1,1C8
+
+    $AB_HOME/add-riscpkg -package libfontconfig1-lib \
+	-unixlib -depends "fontconfig-config"
+
+    # Don't overwrite the original !SharedLibs.!Boot.
+    rm $A/\!Boot,feb
+  fi
 }
