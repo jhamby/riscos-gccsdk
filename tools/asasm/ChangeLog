@@ -1,3 +1,7 @@
+Tue Feb  4 23:39:00 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/input.c (Input_Symbol): Remove redundant test.
+
 Tue Feb  4 23:27:00 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/compare/core/symbols.s: Add extra test.

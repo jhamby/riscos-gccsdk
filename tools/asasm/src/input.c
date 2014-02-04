@@ -722,7 +722,6 @@ Input_Symbol (size_t *ilen)
           else
 	    {
 	      if (!isalnum ((unsigned char)input_pos[len])
-	          && !isdigit ((unsigned char)input_pos[len])
 	          && input_pos[len] != '_')
 	        break;
 	    }
