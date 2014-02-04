@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2013 GCCSDK Developers
+ * Copyright (c) 2002-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -184,7 +184,7 @@ Eval_Binop (Operator_e op,
       
       case eOp_Div: /* / */
 	{
-	  uint32_t divident, divisor; /* Division is *unsigned*.  */
+	  uint32_t divident, divisor; /* Pure integer division is *unsigned*.  */
 	  bool divident_isint = GetInt (lvalue, &divident);
 	  bool divisor_isint = GetInt (rvalue, &divisor);
 	  if ((!divident_isint && lvalue->Tag != ValueFloat)
@@ -203,12 +203,11 @@ Eval_Binop (Operator_e op,
 		    Error (ErrorError, "Division by zero");
 		  result = Value_Illegal ();
 		}
-	      if (divident_isint && divisor_isint)
+	      else if (divident_isint && divisor_isint)
 		result = Value_Int (divident / divisor, eIntType_PureInt);
-	      else if ((divident_isint || lvalue->Tag == ValueFloat)
-	        && (divisor_isint || rvalue->Tag == ValueFloat))
+	      else
 		{
-		  /* Floating point division.  */
+		  /* Floating point division (signed).  */
 		  double divident_dbl = divident_isint ? (double)(signed)divident : lvalue->Data.Float.f;
 		  result = Value_Float (divident_dbl / divisor_dbl);
 		}
@@ -906,7 +905,7 @@ Eval_Unop (Operator_e op, const Value *value)
 		{
 		  case ValueAddr:
 		    {
-		      result = addrVal.Data.Addr.r ? Value_Int (addrVal.Data.Addr.i, eIntType_PureInt) : *value;
+		      result = Value_Int (addrVal.Data.Addr.i, eIntType_PureInt);
 		      break;
 		    }
 

@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2013 GCCSDK Developers
+ * Copyright (c) 2004-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -94,7 +94,7 @@ typedef struct
       struct			/* ValueAddr, represents address in the form of "[<r>, #<i>]" */
         {
 	  int i;		/* Must start identical with ValueInt's i & ValueStrings's len (FIXME: get rid of this).  */
-          unsigned r;		/* When = 0 - 15 (inc), it is register based. INVALID_REG otherwise.  */
+          unsigned r;		/* Ranges from 0 to 15 (inc).  */
         } Addr;
       struct			/* ValueSymbol */
 	{

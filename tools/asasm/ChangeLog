@@ -1,3 +1,9 @@
+Tue Feb  4 01:21:40 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/eval.c (Eval_Binop): Fix behaviour for division by zero case.
+	(Eval_Unop): Fix wierd implementation when base register is r0.
+	* src/value.c: Fix comment for ValueAddr entries.
+
 Tue Jan 28 02:31:30 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/eval.c (Eval_Binop): Drop support for ValueAddr for eOp_Mul and
