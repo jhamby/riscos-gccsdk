@@ -1,3 +1,7 @@
+Tue Feb  4 23:27:00 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/compare/core/symbols.s: Add extra test.
+
 Tue Feb  4 01:21:40 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/eval.c (Eval_Binop): Fix behaviour for division by zero case.

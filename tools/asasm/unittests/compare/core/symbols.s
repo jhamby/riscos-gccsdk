@@ -7,6 +7,7 @@
 Tst1		DCD	1
 |Tst2|		DCD	2
 ||Tst3||	DCD	3
+||Ts|t4||	DCD	4
 
 		DCD	Tst1
 		DCD	|Tst1|
@@ -17,12 +18,14 @@ Tst1		DCD	1
 		DCD	Tst3
 		DCD	|Tst3|
 		DCD	||Tst3||
+		DCD	||Ts|t4||
 
 	|
 
 		DCD	1
 		DCD	2
 		DCD	3
+		DCD	4
 		
 		DCD	Code + 0
 		DCD	Code + 0
@@ -33,6 +36,7 @@ Tst1		DCD	1
 		DCD	Code + 8
 		DCD	Code + 8
 		DCD	Code + 8
+		DCD	Code + 12
 	
 	]
 
