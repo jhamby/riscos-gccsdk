@@ -1680,6 +1680,24 @@ Lex_GetBinop (void)
 	  Input_UnGetC (':');
 	break;
 
+      case '^':
+	{
+	  /* Check if there is anything meaningful following.  If not, it might
+	     then be the ^ in a LDMIA register list.  */
+	  const char *mark = Input_GetMark ();
+	  Input_SkipWS ();
+	  bool somethingElse = !Input_IsEolOrCommentStart ();
+	  Input_RollBackToMark (mark);
+	  if (somethingElse)
+	    {
+	      result.tag = LexOperator;
+	      result.Data.Operator.pri = kPrioOp_AddAndLogical;
+	      result.Data.Operator.op = eOp_XOr; /* ^ */
+	      break;
+	    }
+	  /* Fall through.  */
+	}
+
       default:
 	Input_UnGetC (c);
 	result.tag = LexNone;

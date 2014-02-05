@@ -84,6 +84,7 @@ field3	# 4		; Offset &18 - &1c
 
 	; |
 	[ EXTENSION
+	; Note, the use of | is deprecated, use :OR: instead.
 	DCD	6 | 3
 	DCD	:INDEX:@ | 12
 	DCD	12 | :INDEX:@
@@ -96,6 +97,11 @@ field3	# 4		; Offset &18 - &1c
 	DCD	6 :EOR: 3
 	DCD	"A" :EOR: 3
 	DCD	3 :EOR: "A"
+
+	; ^
+	DCD	6 ^ 3
+	DCD	"A" ^ 3
+	DCD	3 ^ "A"
 
 	|
 
@@ -180,6 +186,11 @@ field3	# 4		; Offset &18 - &1c
 	]
 
 	; :EOR:
+	DCD	5
+	DCD	&42
+	DCD	&42
+
+	; ^
 	DCD	5
 	DCD	&42
 	DCD	&42

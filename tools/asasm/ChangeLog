@@ -1,3 +1,7 @@
+Wed Feb  5 01:35:21 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/lex.c (Lex_GetBinop): Support ^ as alias for :EOR:.
+
 Tue Feb  4 23:39:00 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/input.c (Input_Symbol): Remove redundant test.
