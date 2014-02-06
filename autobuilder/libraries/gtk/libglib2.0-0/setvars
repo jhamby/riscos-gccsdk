@@ -18,13 +18,6 @@ export glib_cv_g_atomic_lock_free=no
 export glib_flag_works=no
 
 AB_CONFLAGS="--with-pcre=system --with-threads=posix --enable-modular_tests=no"
- 
-# build for local system to build local tools
-if [ ! -f "$GCCSDK_INSTALL_CROSSBIN/glib-genmarshal" ] ; then
-  CC=$HOST_CC CXX=$HOST_CXX ./configure --prefix=$GCCSDK_INSTALL_CROSS
-  make install
-  make clean
-fi
 
 mkdir -p $D/bin
 
@@ -52,12 +45,6 @@ ab_package() {
   HERE=`pwd`
   cd $devdir/\!LibGLib2
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
-
-  # Need to retype the converted manual files
-  MANFILES=$(find man -type f)
-  for FILE in $MANFILES ; do
-     mv $FILE $FILE,faf
-  done
 
   # Move headers libs and docs up one directory
   mv include/* .

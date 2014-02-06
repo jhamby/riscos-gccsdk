@@ -1,3 +1,4 @@
 gettext
 libffi5
 libpcre3
+zlib1g
