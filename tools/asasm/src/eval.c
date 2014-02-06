@@ -1111,7 +1111,7 @@ Eval_Unop (Operator_e op, const Value *value)
 
       case eOp_RConst: /* :RCONST: */
 	{
-	  if (value->Tag != ValueInt && value->Data.Int.type == eIntType_PureInt)
+	  if (value->Tag != ValueInt || value->Data.Int.type == eIntType_PureInt)
 	    result = Value_Illegal ();
 	  else
 	    result = Value_Int (value->Data.Int.i, eIntType_PureInt);

@@ -1,3 +1,7 @@
+Thu Feb  6 02:43:40 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/eval.c (Eval_Unop): Fix eOp_RConst type checking.
+
 Wed Feb  5 01:35:21 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/lex.c (Lex_GetBinop): Support ^ as alias for :EOR:.
