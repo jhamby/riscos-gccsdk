@@ -16,7 +16,7 @@
 /* The current version of the .riscos.pic section that we are aware of.  */
 #define SRELPIC_VERSION 1
 
-/* Structure defining the lay out of the ".riscos.pic" section.  */
+/* Structure defining the layout of the ".riscos.pic" section.  */
 typedef struct srelpic_section
 {
   unsigned int version;
@@ -338,8 +338,8 @@ deregister_shared_object (som_client *client,
       /* Remove object from client list.  */
       linklist_remove (&client->object_list, &client_library->link);
 
-      /* Free the client copy of the library data.  */
-      som_free (client_library->rw_addr);
+      /* We do not free the client R/W segment here as we didn't allocate it in
+       * the first place. The dynamic linker is responsible for that.  */
 
       /* Free memory used to store object in client list.  */
       som_free (client_library);
