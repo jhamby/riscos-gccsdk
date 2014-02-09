@@ -7,7 +7,11 @@ AB_PVERSION=git-$(date +%Y%m%d)
 
 AB_INSTALL=yes
 
-# cd c-ares 
+# cd c-ares
+if [ ! -d man3 ] ; then
+  ln -s . man3
+fi
+
 ./buildconf
 
 ab_package() {
@@ -17,7 +21,7 @@ ab_package() {
   cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
-  
+
   # Need to retype the converted manual files
   MANFILES=$(find man -type f)
   for FILE in $MANFILES ; do

@@ -1,1 +1,5 @@
 AB_INSTALL=yes
+
+if [ ! -d man3 ] ; then
+  ln -s . man3
+fi

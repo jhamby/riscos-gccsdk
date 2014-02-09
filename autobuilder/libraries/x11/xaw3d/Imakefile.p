@@ -4,7 +4,7 @@
  #define IncSubSubdir Xaw3d
 
  XCOMM When building outside an X11 source tree:
--XCOMM EXTRA_INCLUDES = -I.
+-EXTRA_INCLUDES = -I.
 +EXTRA_INCLUDES = -I. -Iexports/include
 
  #ifdef SharedXawReqs

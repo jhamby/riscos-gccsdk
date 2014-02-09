@@ -3,6 +3,7 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--disable-gopher --disable-ldap --disable-dict --disable-telnet --disable-manual"
 
+
 ab_package() {
   ab_create_app LibCurl3 Apps/Library libcurl3-dev
 
@@ -28,9 +29,13 @@ ab_package() {
 
   cd $HERE
   
+echo "distclean:" > lib/Makefile
 echo "clean:" > include/Makefile
+echo "distclean:" >> include/Makefile
 echo "clean:" > tests/Makefile
+echo "distclean:" >> tests/Makefile
 echo "clean:" > docs/Makefile
+echo "distclean:" >> docs/Makefile
 
   $AB_HOME/add-riscpkg -unixlib -name LibCurl3-Dev -copyrightfile COPYING
 }

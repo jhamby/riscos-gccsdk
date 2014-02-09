@@ -1,0 +1,2 @@
+wget http://ftp.de.debian.org/debian/pool/main/libx/libxrender/libxrender_0.9.7-1+deb7u1.diff.gz
+zcat *.diff.gz | patch -p1 || true

@@ -1,0 +1,2 @@
+wget http://ftp.de.debian.org/debian/pool/main/libx/libx11/libx11_1.5.0-1+deb7u1.diff.gz
+zcat *.diff.gz | patch -p1 || true
