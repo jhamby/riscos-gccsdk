@@ -1,4 +1,7 @@
 
+AB_ROVERSION=2
+AB_PVERSION=0.20
+
 ab_package() {
   ab_create_app Flobopuyo Apps/Games
 

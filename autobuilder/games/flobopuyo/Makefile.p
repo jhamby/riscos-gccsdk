@@ -25,7 +25,7 @@
  ifneq ($(PLATFORM), $(CYGWIN_VERSION))
  CFLAGS:=$(CFLAGS) `$(SDL_CONFIG) --cflags` -I/sw/include
 -LDFLAGS:=$(LDFLAGS) `$(SDL_CONFIG) --cflags --libs`
-+LDFLAGS:=$(LDFLAGS) -static `$(SDL_CONFIG) --cflags --libs` -ljpeg -lpng -lz -logg -lvorbis -lvorbisfile
++LDFLAGS:=$(LDFLAGS) -static `$(SDL_CONFIG) --cflags --libs` -ljpeg -lpng -lz -logg -lvorbis -lvorbisfile -lmikmod
  endif
  
  HFILES= HiScores.h IosException.h IosImgProcess.h IosVector.h PuyoCommander.h\
