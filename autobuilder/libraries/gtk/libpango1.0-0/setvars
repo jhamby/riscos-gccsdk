@@ -3,3 +3,53 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--with-included-modules=basic-x,basic-fc"
 
+ab_package() {
+  #libpango1-dev
+  ab_create_app Pango1 Apps/Library libpango1-dev
+
+  mkdir -p $A/pango
+  cp -av $GCCSDK_INSTALL_ENV/include/pango-1.0/pango/*.h $A/pango
+  cp -av $S/pango/.libs/libpango*.a $A
+  cp -av $GCCSDK_INSTALL_ENV/lib/pango/*/modules/*.a $A
+  
+  $AB_HOME/add-riscpkg -package "libpango1-dev"
+
+  #libpango1-lib
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_app SharedLibs Apps/Library libpango1-lib
+
+    # Create a skeleton !SharedLibs directory and copy shared library.
+    # Determine which ABI is in use and therefor which directory to install
+    # to. We assume that GCC 4.1.1 is obsolete. For GCC 4.1.2, the ABI
+    # directory is "abi-1.0", for newer versions of GCC, it is "abi-2.0".
+    abi_dir=abi-2.0
+    gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
+    if [[ "$gcc_version" == *4.1.2* ]]; then
+      abi_dir=abi-1.0
+    fi
+
+    mkdir -p $A/lib/$abi_dir
+    ux_lib_name=$(readlink pango/.libs/libpango-1.0.so)
+    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
+    cp -T $S/pango/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpango-1.0.so,1C8
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpango-1.0.so.0,1C8
+
+    HERE=`pwd`
+    cd $GCCSDK_INSTALL_ENV/lib/pango
+    pango_version=$(find -maxdepth 1 ! -name '.' -type d)
+    pango_version=${pango_version##.*/}
+    cd $HERE
+
+    mkdir -p $A/lib/$abi_dir/pango/$pango_version/modules
+    cp -av $GCCSDK_INSTALL_ENV/lib/pango/$pango_version/modules/pango-*-lang.so \
+	   $A/lib/$abi_dir/pango/$pango_version/modules
+
+    # FIXME: Need dependencies adding
+    $AB_HOME/add-riscpkg -package libpango1-lib \
+	-SharedLibs
+
+    # Don't overwrite the original !SharedLibs.!Boot.
+    rm $A/\!Boot,feb
+  fi
+}
