@@ -1,3 +1,7 @@
+Wed Feb 12 02:16:03 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
 Sun May 12 17:42:11 BST 2013  Lee Noar  <leenoar@sky.com>
 
 	* som_register.c (som_deregister_client): Fix memory leak;
