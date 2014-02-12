@@ -1,3 +1,7 @@
+Wed Feb 12 02:05:03 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
 Thu Feb  6 02:43:40 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/eval.c (Eval_Unop): Fix eOp_RConst type checking.
