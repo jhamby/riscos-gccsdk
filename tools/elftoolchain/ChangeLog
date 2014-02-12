@@ -1,3 +1,11 @@
+Wed Feb 12 01:21:00 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	current-trunk:
+	* common/GNUmakefile.am: Better AM_SILENT_RULES support.
+	* libdwarf/GNUmakefile.am: Likewise.
+	* libelf/GNUmakefile.am: Likewise.
+	* libelftc/GNUmakefile.am: Likewise.
+
 Wed Feb 12 00:24:00 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Merged from upstream-trunk.
