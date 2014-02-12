@@ -1,0 +1,77 @@
+Wed Feb 12 02:43:04 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ChangeLog: Add.
+
+2014-02-12 01:20  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
+2012-08-06 22:17  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac(AC_PREREQ): Quote parameter.
+
+2010-09-04 16:46  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac(AC_PREREQ): Require at least 2.64.
+
+2010-07-04 19:10  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ReadMe: Upgrade minimal required GCC port from 4.1.1 to 4.1.2.
+
+2010-05-23 20:47  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile,fe1: Remove.
+	* Makefile.am: Add.
+	* configure.ac: Add.
+	* main.c: Several cleanups.
+	* modheader.cmhg: Update version to 0.05.
+	* ReadMe: Update.
+
+2007-08-05 15:18  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile,fe1: better CMHG makerule.
+	* main.c: credited Alex Waugh  <alex@alexwaugh.com>' work.
+	* cmhg/modheader: Move to...
+	* modheader.cmhg: ...here.
+
+2007-07-16 20:48  Alex Waugh  <alex@alexwaugh.com>
+
+	* ReadMe, cmhg/modheader: Update documentation and increase version
+	number
+
+2007-07-15 21:45  Alex Waugh  <alex@alexwaugh.com>
+
+	* main.c: Add support for translating relative filenames, needed
+	when using distcc
+
+2007-07-15 21:36  Alex Waugh  <alex@alexwaugh.com>
+
+	* Makefile,fe1: Add extra library and generate modheader.h
+
+2007-07-15 21:34  Alex Waugh  <alex@alexwaugh.com>
+
+	* main.c: Fix bug if error on claiming event. Reorder claiming and
+	releasing to improve safety. Remove use of syslogf as it is not
+	reliable in module code.
+
+2007-07-15 17:38  Alex Waugh  <alex@alexwaugh.com>
+
+	* main.c: Add filename translation and mapping code
+
+2007-07-15 16:00  Alex Waugh  <alex@alexwaugh.com>
+
+	* main.c: Add support for throwback messages. Doesn't translate
+	filenames yet.
+
+2007-07-15 15:29  Alex Waugh  <alex@alexwaugh.com>
+
+	* main.c: Fix indentation
+
+2007-07-01 15:52  Alex Waugh  <alex@alexwaugh.com>
+
+	* Makefile,fe1, ReadMe, cmhg/modheader, main.c: Import syslogd 0.03
+
+2007-07-01 15:49  Alex Waugh  <alex@alexwaugh.com>
+
+	Import John Tytgat's syslogd 0.02
+	* Makefile,fe1, ReadMe, cmhg/modheader, main.c: Add.
