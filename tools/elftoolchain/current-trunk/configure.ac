@@ -11,9 +11,10 @@ AC_CONFIG_SRCDIR([.])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([-Wall foreign])
-dnl Enable silent builds by default, but only if we have automake
-dnl that supports it. It requires automake 1.11 and newer
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
+dnl Support silent build rules.
+dnl Disable by either passing --disable-silent-rules to configure
+dnl or passing V=1 to make
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # Checks for programs.
 AC_PROG_AWK
