@@ -1,3 +1,7 @@
+Wed Feb 12 02:11:58 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
 Fri Aug  3 04:03:16 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/session.c (session_tcp_process_input): Use __get_ro_socket as
