@@ -1,3 +1,7 @@
+Wed Feb 12 02:12:43 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
 Mon Oct 15 20:08:45 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ln.c (exists_as_dir): fixed wrong test for RISC OS build.
