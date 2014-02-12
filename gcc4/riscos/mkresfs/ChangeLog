@@ -1,3 +1,7 @@
+Wed Feb 12 02:13:58 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
 Sun Aug 31 14:47:54 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/mkresfs.c: Provided new option -z to specify OSLib API instead
