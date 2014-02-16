@@ -1,0 +1,3 @@
+#!/bin/sh
+AB_PACKAGES=tokenize
+AB_FULLNAME=tokenize

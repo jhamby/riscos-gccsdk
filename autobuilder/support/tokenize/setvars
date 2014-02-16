@@ -1,0 +1,11 @@
+AB_URL=http://www.stevefryatt.org.uk/software/build/tokenise2221src.zip
+AB_PACKAGES=tokenize
+
+AB_PRECONF=:
+
+make obj buildlinux/tokenize  
+
+mkdir -p $GCCSDK_INSTALL_ENV/bin
+cp buildlinux/tokenize $GCCSDK_INSTALL_ENV/bin/
+
+echo "all:" > Makefile
