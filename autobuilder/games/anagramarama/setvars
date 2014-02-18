@@ -2,6 +2,7 @@
 AB_SVN=http://anagramarama.googlecode.com/svn/trunk/
 
 AB_PVERSION=0.3
+AB_ROVERSION=2
 
 AB_MAKE="$AB_MAKE -f makefile.linux"
 

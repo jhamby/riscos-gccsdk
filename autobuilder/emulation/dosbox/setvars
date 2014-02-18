@@ -1,4 +1,4 @@
-
+AB_ROVERSION=2
 # AB_MANPAGE=docs/dosbox.1
 AB_CONFLAGS="--disable-opengl"
 

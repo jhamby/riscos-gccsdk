@@ -1,4 +1,4 @@
-
+AB_ROVERSION=2
 AB_CONFLAGS="--disable-nls --without-bash-malloc --disable-process-substitution --with-installed-readline=yes --enable-readline --with-curses=yes"
 
 ln -s mksignames$AB_EXEEXT mksignames

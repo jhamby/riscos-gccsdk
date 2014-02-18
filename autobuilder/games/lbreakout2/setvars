@@ -15,7 +15,7 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib
 }
 
-export LIBS="-lvorbisidec"
+export LIBS="-lvorbisidec -logg -lmikmod"
 
 AB_CONFLAGS=\''--datadir=/\<LBreakout2\$$Dir\>/data'\'
 

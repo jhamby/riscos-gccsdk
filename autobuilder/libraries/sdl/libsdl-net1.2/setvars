@@ -2,7 +2,7 @@ AB_INSTALL=yes
 
 # Package version needs help as download doesn't have same name
 AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#sdl-net1.2-## -e "s/[^-]*-//")
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 export SED=sed
 

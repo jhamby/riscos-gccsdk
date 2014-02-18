@@ -1,3 +1,5 @@
+AB_ROVERSION=2
+
 ab_package() {
   ab_create_app Bugsquish Apps/Games
   ab_makerun $S/bugsquish

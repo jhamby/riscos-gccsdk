@@ -1,4 +1,4 @@
-AB_URL=http://www.parallelrealities.co.uk/download/blobwars/blobwars-1.17-1.tar.gz
+AB_URL=http://sourceforge.net/projects/blobwars/files/blobwars-1.19.tar.gz
 
 $HOST_CXX -O2 src/pak.cpp src/CFileData.cpp -o pak `sdl-config --libs` -lSDL_mixer -lSDL_image -lSDL_ttf -lSDL_net -lz
 make buildpak

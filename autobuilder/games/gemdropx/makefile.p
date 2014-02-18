@@ -16,7 +16,7 @@
  
  
 -MIXER=-lSDL_mixer
-+MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile
++MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile -lmikmod
  NOSOUNDFLAG=$(SOUND)SOUND
  JOYFLAG=$(JOY)JOYSTICK
  EMBEDDEDFLAG=NOT_EMBEDDED

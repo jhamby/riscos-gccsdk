@@ -1,5 +1,5 @@
 # Extra libraries needed by static build of SDL_Mixer
-export LIBS="-lpng -ljpeg -lz -lvorbisidec -lvorbisfile"
+export LIBS="-lpng -ljpeg -lz -lvorbisidec -lvorbisfile -logg -kmikmod"
 
 ab_package() {
   ab_create_app Blackbox Apps/Games

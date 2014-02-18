@@ -1,4 +1,5 @@
 AB_INSTALL=yes
+AB_ROVERSION=2
 
 # Use internal mikmod modules, disable smpeg as we don't build it
 AB_CONFLAGS="--disable-music-mod-shared --disable-music-libmikmod --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"

@@ -4,7 +4,7 @@
 -LFLAGS=-Wall -funroll-loops -fomit-frame-pointer -pipe -O9
 -CFLAGS=-Wall `sdl-config --cflags --libs` -funroll-loops -fomit-frame-pointer -pipe -O9 -lSDL_mixer
 +LFLAGS=-Wall -funroll-loops -fomit-frame-pointer -pipe -O3
-+CFLAGS=-Wall -static `sdl-config --cflags --libs` -funroll-loops -fomit-frame-pointer -pipe -O3 -lSDL_mixer -lvorbisidec
++CFLAGS=-Wall -static `sdl-config --cflags --libs` -funroll-loops -fomit-frame-pointer -pipe -O3 -lSDL_mixer -lvorbisidec -logg -lmikmod
  CC=gcc
  
  C_FILES=src/dlb.c src/linked.c src/sprite.c src/ag.c
