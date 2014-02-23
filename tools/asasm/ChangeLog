@@ -1,3 +1,8 @@
+Sun Feb 23 19:07:06 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/error.c (errorCore): Flush stdout first.
+	(errorCoreLine): Likewise.
+
 Sun Feb 23 17:49:42 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* common.h: Include string.h when strndup or strdup is available.

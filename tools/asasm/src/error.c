@@ -151,6 +151,10 @@ Error_SuppressMsg (ErrorTag e)
 static void
 errorCore (ErrorTag e, const char *format, va_list ap)
 {
+  /* Before we output to stderr flush first stdout for the case when it shares
+     the same underlying stream as stderr.  */
+  fflush (stdout);
+
   const char *str;
 #ifdef __riscos__
   int t = 0;
@@ -323,6 +327,10 @@ static void
 errorCoreLine (const char *fileName, unsigned lineNum, ErrorTag e,
 	       const char *format, va_list ap)
 {
+  /* Before we output to stderr flush first stdout for the case when it shares
+     the same underlying stream as stderr.  */
+  fflush (stdout);
+
   const char *str;
 #ifdef __riscos__
   int t = 0;
