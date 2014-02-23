@@ -1,7 +1,7 @@
 /* 
  * AsAsm an assembler for ARM
  * Copyright (c) 1998 Nick Burrett
- * Copyright (c) 2001-2013 GCCSDK Developers
+ * Copyright (c) 2001-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,8 +21,6 @@
 
 #ifndef os_header_included
 #define os_header_included
-
-#include "config.h"
 
 #include <stdbool.h>
 #include <stdio.h>

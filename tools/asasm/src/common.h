@@ -1,6 +1,6 @@
 /*
  * AsAsm an assembler for ARM
- * Copyright (c) 2011-2013 GCCSDK Developers
+ * Copyright (c) 2011-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,9 +21,13 @@
 #ifndef common_header_included
 #define common_header_included
 
-#include "config.h"
-
 #include <stdlib.h>
+#if defined(HAVE_STRNDUP) || defined(HAVE_STRDUP)
+# include <string.h>
+#endif
+#if defined(HAVE_STRNCASECMP)
+# include <strings.h>
+#endif
 
 #ifndef HAVE_STRNDUP
 char *strndup (const char *str, size_t len);

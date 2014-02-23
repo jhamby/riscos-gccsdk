@@ -1,3 +1,17 @@
+Sun Feb 23 17:49:42 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* common.h: Include string.h when strndup or strdup is available.
+	Include strings.h when strncasecmp is available.
+	Drop include config.h.
+	* directive_data.h: Drop include config.h.
+	* global.h: Likewise.
+	* help_cpu.h: Likewise.
+	* lex.h: Likewise.
+	* m_cpumem.h: Likewise.
+	* os.h: Likewise.
+	* output.h: Likewise.
+	* reloc.h: Likewise.
+
 Wed Feb 12 02:05:03 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac: Add support for AM_SILENT_RULES (default enabled).

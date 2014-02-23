@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2013 GCCSDK Developers
+ * Copyright (c) 2004-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,8 +21,6 @@
 
 #ifndef directive_data_header_included
 #define directive_data_header_included
-
-#include "config.h"
 
 #include <stdbool.h>
 #ifdef HAVE_STDINT_H
