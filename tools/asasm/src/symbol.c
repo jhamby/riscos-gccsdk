@@ -832,7 +832,7 @@ Symbol_BuildSymbolDataForELF (Symbol **allSymbolsPP, SymbolOut_t *symOutP)
 	  assert (((symP->attr.type & SYMBOL_ABSOLUTE) != 0) == ((symP->attr.area->type & AREA_ABS) != 0));
 	  assert (SYMBOL_KIND (symP->attr.type) == 0);
           elfSymP->st_name = 0;
-	  elfSymP->st_value = 0; /* FIXME: should be implemented differently: (symP->area->attr.type & AREA_ABS) ? Area_GetBaseAddress (symP) : 0; */
+	  elfSymP->st_value = 0; /* FIXME: should be implemented differently: (symP->attr.area->attr.type & AREA_ABS) ? Area_GetBaseAddress (symP) : 0; */
 	  elfSymP->st_size = 0; /* No the area size.  */
 	  elfSymP->st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
 	  elfSymP->st_other = symP->attr.visibility;
@@ -1533,7 +1533,7 @@ Symbol_CalculateHash (const char *s, size_t maxn)
 void
 Symbol_Print (const Symbol *sym)
 {
-  if (sym->area == NULL)
+  if (sym->attr.area == NULL)
     {
       static const char * const symkind[4] =
 	{
@@ -1548,7 +1548,7 @@ Symbol_Print (const Symbol *sym)
     printf ("\"%s\": ", sym->str); 
   assert (strlen (sym->str) == (size_t)sym->len);
   /* It's either a non-AREA symbol, either an AREA symbol.  */
-  assert (sym->area == NULL || (SYMBOL_KIND (sym->attr.type) == 0 && (sym->attr.type & SYMBOL_AREA) != 0 && sym->area != NULL));
+  assert (sym->attr.area == NULL || (SYMBOL_KIND (sym->attr.type) == 0 && (sym->attr.type & SYMBOL_AREA) != 0 && sym->attr.area != NULL));
 
   /* Dump the symbol attributes:  */
   if (sym->attr.type & SYMBOL_ABSOLUTE)
@@ -1579,10 +1579,10 @@ Symbol_Print (const Symbol *sym)
   if (sym->attr.type & SYMBOL_KEEP)
     printf (", keep");
   if (sym->attr.type & SYMBOL_AREA)
-    printf (", area %p", (void *)sym->area);
+    printf (", area %p", (void *)sym->attr.area);
 
   printf (", size %" PRIu32 ", offset 0x%x, used %d : ",
-          sym->codeSize, sym->attr.offset, sym->attr.used);
+          sym->attr.codeSize, sym->attr.offset, sym->attr.used);
   Value_Print (&sym->attr.value);
 }
 

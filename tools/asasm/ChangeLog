@@ -1,3 +1,7 @@
+Sun Feb 23 19:37:37 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/symbol.c (Symbol_Print): Fix DEBUG build.
+
 Sun Feb 23 19:07:06 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/error.c (errorCore): Flush stdout first.
