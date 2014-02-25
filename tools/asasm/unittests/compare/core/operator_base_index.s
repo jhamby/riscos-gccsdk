@@ -6,6 +6,7 @@
 
 	; Test 1
 	DCD	:INDEX:5		; :INDEX: on integer is allowed.
+	DCD	:INDEX:"A"
 
 	; Test 2
 	^	0
@@ -66,6 +67,7 @@ late_field2 #	32
 
 	; Test 1
 	DCD	5
+	DCD	0x41
 
 	; Test 2
 	DCD	28

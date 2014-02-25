@@ -6,6 +6,9 @@
 	DCD	+(5-3)		; Unary+ <int>
 	DCFS	+(5.3)		; Unary+ <float>
 
+	DCD	+"A"
+Lbl1	DCD	+Lbl1
+
 	; Unary -
 	DCD	-(5-3)		; Unary- <int>
 	DCFS	-(5.3)		; Unary- <float>
@@ -20,6 +23,9 @@
 
 	DCD	2
 	DCFS	5.3
+
+	DCD	0x41		; +"A"
+Lbl1	DCD	Lbl1
 
 	DCD	-2
 	DCFS	-5.3

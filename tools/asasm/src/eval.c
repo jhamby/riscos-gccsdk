@@ -860,8 +860,11 @@ Eval_Unop (Operator_e op, const Value *value)
 
       case eOp_Pos: /* Unary + */
 	{
-	  if (value->Tag == ValueInt || value->Tag == ValueInt64
-	      || value->Tag == ValueFloat)
+	  uint32_t i;
+	  if (GetInt (value, &i))
+	    result = Value_Int (i, eIntType_PureInt);
+	  else if (value->Tag == ValueInt64 || value->Tag == ValueFloat
+		   || value->Tag == ValueSymbol)
 	    result = Value_Copy (value);
 	  else
 	    {
@@ -896,8 +899,9 @@ Eval_Unop (Operator_e op, const Value *value)
 
       case eOp_Index: /* :INDEX: */
 	{
-	  if (value->Tag == ValueInt)
-	    result = *value;
+	  uint32_t i;
+	  if (GetInt (value, &i))
+	    result = Value_Int (i, eIntType_PureInt);
 	  else
 	    {
 	      Value addrVal = GetValueAddrEquivalent (value);
