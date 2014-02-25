@@ -109,6 +109,17 @@ GetInt (const Value *valP, uint32_t *i)
 	  }
 	break;
 
+      case ValueSymbol:
+	if ((valP->Data.Symbol.symbol->attr.type & SYMBOL_AREA) != 0
+	    && (valP->Data.Symbol.symbol->attr.area->type & AREA_ABS) != 0)
+	  {
+	    int offset = valP->Data.Symbol.offset;
+	    int factor = valP->Data.Symbol.factor;
+	    *i = factor * Area_GetBaseAddress (valP->Data.Symbol.symbol) + offset;
+	    return true;
+	  }
+	break;
+
       default:
 	break;
     }
