@@ -1,3 +1,4 @@
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_app Ri-Li Apps/Games
@@ -15,7 +16,7 @@ ab_package() {
 
 }
 
-export LIBS="-lSDL_mixer -logg -lvorbisfile -lvorbis"
+export LIBS="-lSDL_mixer -logg -lvorbisfile -lvorbis -lmikmod"
 
 AB_CONFLAGS=\''--datadir=/<Ri-Li\$$Dir>'\'
 

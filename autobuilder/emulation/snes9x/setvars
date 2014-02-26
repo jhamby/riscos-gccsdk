@@ -2,6 +2,7 @@
 AB_GIT=https://github.com/domaemon/snes9x-sdl.git
 
 AB_PVERSION=1.53
+AB_ROVERSION=2
 
 export snes9x_cv_option_o3="yes"
 export snes9x_cv_option_omit_frame_pointer="yes"

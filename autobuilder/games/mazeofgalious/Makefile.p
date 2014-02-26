@@ -14,7 +14,7 @@
  # static binary:
  mogs: $(OBJS)
 -	c++ -static $^ -o $@ -lSDL_image -lSDL_mixer -lSDL_sound -lpng -ljpeg -lz `sdl-config --static-libs`
-+	c++ -static $^ -o $@ -lSDL_image -lSDL_mixer -lSDL_sound -lpng -ljpeg -lz `sdl-config --static-libs` -logg -lvorbis -lvorbisfile -lFLAC
++	c++ -static $^ -o $@ -lSDL_image -lSDL_mixer -lSDL_sound -lpng -ljpeg -lz `sdl-config --static-libs` -logg -lvorbis -lvorbisfile -lmikmod -lFLAC
  
  clean:
  	rm -f mog mogs

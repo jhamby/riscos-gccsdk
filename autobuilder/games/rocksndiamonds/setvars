@@ -1,4 +1,4 @@
-
+AB_ROVERSION=2
 AB_DISTCLEAN="$AB_MAKE dist-clean PLATFORM=unix"
 
 ab_make() {

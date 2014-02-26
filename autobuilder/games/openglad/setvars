@@ -1,7 +1,9 @@
 
-AB_SVN=https://snowstorm.svn.sourceforge.net/svnroot/snowstorm/openglad/trunk
+AB_SVN=https://svn.code.sf.net/p/snowstorm/code/openglad/trunk
 
 AB_PVERSION=0.98.1
+AB_ROVERSION=2
+
 sh ./autogen.sh
 
 export LIBS='-lSDL_mixer -lvorbisidec'

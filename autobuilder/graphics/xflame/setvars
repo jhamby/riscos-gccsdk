@@ -1,4 +1,5 @@
 AB_URL=http://www.libsdl.org/projects/xflame/src/xflame-1.0.tar.gz
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_app Xflame Apps/Graphics

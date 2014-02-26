@@ -1,5 +1,6 @@
 
 AB_URL=http://poppler.freedesktop.org/poppler-0.23.1.tar.xz
+AB_ROVERSION=2
 
 AB_CONFLAGS='--enable-zlib --enable-libcurl'
 
