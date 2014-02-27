@@ -373,4 +373,16 @@ cnt	SETA	cnt + 1
 	]
 	]
 
+	[ {TRUE}
+	; Ensure there is no error when ADR target is not yet known in pass 1.
+	AREA	Code15, CODE
+	ADR R2, c15foo + c15bar
+
+	^ 8, r12
+	# 4
+c15foo	# 0
+
+c15bar	* 0
+	]
+
 	END

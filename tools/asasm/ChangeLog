@@ -1,3 +1,9 @@
+Thu Feb 27 02:15:48 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpuctrl.c (m_adr): Better support for expression which can
+	not yet evaluated during pass one.
+	* unittests/compare/core/include/adr.s: Add extra test case.
+
 Tue Feb 25 03:43:08 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/eval.c (GetInt): Support absolute area labels.

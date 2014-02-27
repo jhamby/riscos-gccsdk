@@ -1000,12 +1000,6 @@ m_adr (bool doLowerCase)
   ir &= ~1;
 
   const Value *valP = Expr_BuildAndEval (ValueInt | ValueAddr | ValueSymbol);
-  if (valP->Tag == ValueIllegal
-      || (valP->Tag == ValueInt && valP->Data.Int.type != eIntType_PureInt))
-    {
-      Error (ErrorError, "Illegal %s expression", isADRL ? "ADRL" : "ADR");
-      return false;
-    }
 
   const uint32_t instrOffset = Area_CurIdxAligned ();
 
@@ -1013,6 +1007,28 @@ m_adr (bool doLowerCase)
 								  areaCurrentSymbol,
 								  instrOffset,
 								  true);
+
+  if (gPhase == ePassOne
+      && (valP->Tag == ValueIllegal || relocAddend.relocSymbol.Tag == ValueSymbol))
+    {
+      /* Two cases:
+	   - We have a non evaluatable expression.  Wait until pass two to do
+	     the work.  This means that when ADRL is used, we can't go back
+	     to ADR anymore.
+	   - We have a forward label (not yet seen) or relocation symbol.
+	     Equally here, no switch from ADRL to ADR possible.  */
+      Put_Ins (4, 0);
+      if (isADRL)
+	Put_Ins (4, 0);
+      return false;
+    }
+  if (valP->Tag == ValueIllegal
+      || (valP->Tag == ValueInt && valP->Data.Int.type != eIntType_PureInt))
+    {
+      Error (ErrorError, "Illegal %s expression", isADRL ? "ADRL" : "ADR");
+      return false;
+    }
+
   valP = &relocAddend.addend;
 
   /* During PassOne, we're at liberty to change ADR into ADRL and/or ADRL
@@ -1020,95 +1036,78 @@ m_adr (bool doLowerCase)
      (at this point, it is not even sure that a relocation symbol at PassOne
      will be a relocation symbol at PassTwo).  */
   CanSwitch_e canSwitch = gPhase == ePassOne || Put_GetWord (instrOffset) != 0 ? eCS_Yes : eCS_NoBecauseForwardLabel;
-  /* Don't switch from a probably well meant ADRL to ADR when there is a
-     relocation to be done.  */
   if (relocAddend.relocSymbol.Tag == ValueSymbol)
     canSwitch = eCS_NoBecauseReloc;
 
-  if (valP->Tag == ValueIllegal
-      || (gPhase == ePassOne && canSwitch != eCS_Yes))
+  int constant, baseReg;
+  switch (valP->Tag)
     {
-      if (gPhase == ePassOne)
-	{
-	  /* We have unresolved symbols.  Wait until pass two to do the work.
-	     This means also that when ADRL is used, we can't go back to ADR
-	     anymore.  */
-	  Put_Ins (4, 0);
-	  if (isADRL)
-	    Put_Ins (4, 0);
-	}
-      else
-	Error (ErrorError, "Relocation failed");
+      case ValueInt:
+	/* Absolute value : results in MOV/MVN (followed by ADD/SUB in
+	   case of ADRL) or MOVW or MOV32.  */
+	constant = valP->Data.Int.i;
+	baseReg = -1;
+	break;
+
+      case ValueAddr:
+	/* Storage map, pc-relative, AREA + BASED.  */
+	constant = valP->Data.Addr.i;
+	baseReg = valP->Data.Addr.r;
+	break;
+
+      default:
+	Error (ErrorError, "Illegal %s expression", isADRL ? "ADRL" : "ADR");
+	constant = 8; /* FIXME: Thumb support missing.  */
+	baseReg = 15;
+	break;
     }
-  else
+  const ADRResult_t result = ADR_RelocUpdaterCore (constant,
+						   baseReg, ir | DST_OP (regD) | IMM_RHS,
+						   isADRL, canSwitch);
+  if (relocAddend.relocSymbol.Tag == ValueSymbol)
     {
-      int constant, baseReg;
-      switch (valP->Tag)
+      bool isPCrel = baseReg == 15;
+      for (unsigned i = 0; i != result.numInstr; ++i)
 	{
-	  case ValueInt:
-	    /* Absolute value : results in MOV/MVN (followed by ADD/SUB in
-	       case of ADRL) or MOVW or MOV32.  */
-	    constant = valP->Data.Int.i;
-	    baseReg = -1;
-	    break;
+	  if (result.instrType[i] == eADRInstrType_NOP)
+	    continue;
 
-	  case ValueAddr:
-	    /* Storage map, pc-relative, AREA + BASED.  */
-	    constant = valP->Data.Addr.i;
-	    baseReg = valP->Data.Addr.r;
-	    break;
-
-	  default:
-	    Error (ErrorError, "Illegal %s expression", isADRL ? "ADRL" : "ADR");
-	    constant = 8; /* FIXME: Thumb support missing.  */
-	    baseReg = 15;
-	    break;
-	}
-      const ADRResult_t result = ADR_RelocUpdaterCore (constant,
-						       baseReg, ir | DST_OP (regD) | IMM_RHS,
-						       isADRL, canSwitch);
-      if (relocAddend.relocSymbol.Tag == ValueSymbol)
-	{
-	  bool isPCrel = baseReg == 15;
-	  for (unsigned i = 0; i != result.numInstr; ++i)
+	  uint32_t elfHow;
+	  switch (result.instrType[i])
 	    {
-	      if (result.instrType[i] == eADRInstrType_NOP)
-		continue;
-
-	      uint32_t elfHow;
-	      switch (result.instrType[i])
+	      case eADRInstrType_ALU:
 		{
-		  case eADRInstrType_ALU:
+		  if (i == 0)
 		    {
-		      if (i == 0)
-			{
-			  if (i + 1 == result.numInstr)
-			    elfHow = isPCrel ? R_ARM_ALU_PC_G0 : R_ARM_ALU_SB_G0;
-			  else
-			    elfHow = isPCrel ? R_ARM_ALU_PC_G0_NC : R_ARM_ALU_SB_G0_NC;
-			}
+		      if (i + 1 == result.numInstr)
+			elfHow = isPCrel ? R_ARM_ALU_PC_G0 : R_ARM_ALU_SB_G0;
 		      else
-			elfHow = isPCrel ? R_ARM_ALU_PC_G1 : R_ARM_ALU_SB_G1;
-		      break;
+			elfHow = isPCrel ? R_ARM_ALU_PC_G0_NC : R_ARM_ALU_SB_G0_NC;
 		    }
-		  case eADRInstrType_MOVW:
-		    /* If result.numInstr is 1, we should be using R_ARM_MOVW_PREL
-		       and R_ARM_MOVW_ABS but that doesn't seem to exist ?! */
-		    elfHow = isPCrel ? R_ARM_MOVW_PREL_NC : R_ARM_MOVW_ABS_NC;
-		    break;
-		  case eADRInstrType_MOVT:
-		    elfHow = isPCrel ? R_ARM_MOVT_PREL : R_ARM_MOVT_ABS;
-		    break;
-		  case eADRInstrType_NOP:
-		    /* Already filtered upfront.  */
-		    assert (0);
-		    break;
+		  else
+		    elfHow = isPCrel ? R_ARM_ALU_PC_G1 : R_ARM_ALU_SB_G1;
+		  break;
 		}
-	      Reloc_CreateELF (elfHow, instrOffset + 4*i, &relocAddend.relocSymbol);
+
+	      case eADRInstrType_MOVW:
+		/* If result.numInstr is 1, we should be using R_ARM_MOVW_PREL
+		 and R_ARM_MOVW_ABS but that doesn't seem to exist ?! */
+		elfHow = isPCrel ? R_ARM_MOVW_PREL_NC : R_ARM_MOVW_ABS_NC;
+		break;
+
+	      case eADRInstrType_MOVT:
+		elfHow = isPCrel ? R_ARM_MOVT_PREL : R_ARM_MOVT_ABS;
+		break;
+
+	      case eADRInstrType_NOP:
+		/* Already filtered upfront.  */
+		assert (0);
+		break;
 	    }
-	  uint32_t aofHow = HOW2_INIT | HOW2_INSTR_UNLIM | (isPCrel ? HOW2_RELATIVE : HOW2_BASED);
-	  Reloc_CreateAOF (aofHow, instrOffset, &relocAddend.relocSymbol);
+	  Reloc_CreateELF (elfHow, instrOffset + 4*i, &relocAddend.relocSymbol);
 	}
+      uint32_t aofHow = HOW2_INIT | HOW2_INSTR_UNLIM | (isPCrel ? HOW2_RELATIVE : HOW2_BASED);
+      Reloc_CreateAOF (aofHow, instrOffset, &relocAddend.relocSymbol);
     }
 
   return false;
