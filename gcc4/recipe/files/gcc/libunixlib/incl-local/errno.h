@@ -1,5 +1,5 @@
 /* Internal UnixLib errno.h
- * Copyright (c) 2000-2012 UnixLib Developers
+ * Copyright (c) 2000-2014 UnixLib Developers
  */
 
 #ifndef __ERRNO_H
@@ -12,6 +12,17 @@
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
 #endif
+
+/* Macro useful to test for a specific RISC OS filing system error number.  It
+   ignores the RISC OS FS number encoded in the error number (see PRM 2-528
+   and 2-590):
+
+     &0001nnee with nn the FS number and ee file error number used by FileCore
+     based filing systems.
+
+   Note this is useful for non-FileCore based filing systems as well.  */
+
+#define mask_fs_num(errnum) ((errnum) & 0xFFFF00FF)
 
 __BEGIN_DECLS
 

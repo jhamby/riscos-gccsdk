@@ -1,3 +1,10 @@
+Sat Mar  8 16:11:39 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/errno.h (mask_fs_num): Add.
+	* stdio/rename.c (rename): Use mask_fs_num.
+	* unix/mkdir.c (mkdir): Likewise.  Remove ADFS specific error number
+	check and language dependent error string check.
+
 Fri Jan  3 17:09:59 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/wchar.h: Don't include bits/wchar2.h nor bits/wchar-ldbl.h.

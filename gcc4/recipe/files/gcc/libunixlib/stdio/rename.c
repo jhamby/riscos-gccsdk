@@ -1,5 +1,5 @@
 /* Rename a file.
-   Copyright (c) 2005-2013 UnixLib Developers.  */
+   Copyright (c) 2005-2014 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdio.h>
@@ -66,7 +66,7 @@ rename (const char *old_name, const char *new_name)
   const _kernel_oserror *err;
   if ((err = SWI_OS_FSControl_Rename (ofile, nfile)) != NULL)
     {
-      switch (err->errnum & 0xFFFF00FF)
+      switch (mask_fs_num (err->errnum))
 	{
 	  case 0x100D6:
 	    /* A RISC OS FS error 0x1xxD6 "Not found" indicates not all
@@ -93,7 +93,7 @@ rename (const char *old_name, const char *new_name)
 	     caused by a rename across file systems.  */
 	  if (err->errnum == 0xB0)
 	    return __set_errno (EXDEV);
-	  if ((err->errnum & 0xFFFF00FF) == 0x100B0)
+	  if (mask_fs_num (err->errnum) == 0x100B0)
 	    return __set_errno (EINVAL);
 	  return __ul_seterr (err, EOPSYS); /* FIXME: ok ? */
 	}

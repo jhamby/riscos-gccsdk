@@ -1,5 +1,5 @@
 /* Create a directory.
-   Copyright (c) 2005-2012 UnixLib Developers.  */
+   Copyright (c) 2005-2014 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -45,8 +45,7 @@ mkdir (const char *ux_path, __mode_t mode)
   if ((err = SWI_OS_File_CreateDirectory (path)) != NULL)
     {
       /* Match with "Not found" RISC OS error */
-      if (err->errnum == 0x108d6 || strcasecmp(err->errmess, "Not found") == 0
-          || strstr(err->errmess, "not found"))
+      if (mask_fs_num (err->errnum) == 0x100D6)
         return __set_errno (ENOENT);
 
       return __ul_seterr (err, EOPSYS);
