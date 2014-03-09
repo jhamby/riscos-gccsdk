@@ -442,7 +442,7 @@ Reloc_GetRawRelocData (Reloc_State_t *stateP)
 	{
 	  relDstP->r_offset = relSrcP->offset;
 	  const Symbol *symP = relSrcP->symP;
-	  assert (symP == NULL || (symP->attr.used >= 0 && (symP->attr.used & ~0xFFu) == 0));
+	  assert (symP == NULL || (symP->attr.used >= 0 && (symP->attr.used & 0xFF000000u) == 0));
 	  relDstP->r_info = ELF32_R_INFO (symP ? symP->attr.used : 0, relSrcP->how);
 	}
     }

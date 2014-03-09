@@ -1,3 +1,7 @@
+Sun Mar  9 19:14:35 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/reloc.c (Reloc_GetRawRelocData): Fix mask value in assert.
+
 Sun Mar  9 18:46:15 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/aoffile.h (HOW2_*): Update comments.
