@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2013 GCCSDK Developers
+ * Copyright (c) 2001-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,7 +37,7 @@ typedef struct
 
 typedef struct
 {
-  uint32_t Type;	/* 0xc5e2d080 if relocatable object format       */
+  uint32_t Type;	/* 0xC5E2D080 if relocatable object format       */
   uint32_t Version;	/* 1.xx -> 150  2.xx -> 200                      */
   uint32_t noAreas;	/* size of Area[]                                */
   uint32_t noSymbols;	/* size of Symbol Table if such exist            */
@@ -63,10 +63,14 @@ typedef struct
 #define HOW2_INSTR_MAX1   (0x03000000u | 0x20000000u) /* Field to be relocated is one instruction.  */
 #define HOW2_INSTR_MAX2   (0x03000000u | 0x40000000u) /* Field to be relocated is an at most 2 instruction sequence.  */
 #define HOW2_INSTR_MAX3   (0x03000000u | 0x60000000u) /* Field to be relocated is an at most 3 instruction sequence.  */
-#define HOW2_RELATIVE     0x04000000u /* PC-relative.  */
-#define HOW2_SYMBOL       0x08000000 /* The 'A' bit. Determines SID type. */
-#define HOW2_BASED        0x10000000 /* Based area.  */
-#define HOW2_SIDMASK      0x00ffffff /* Symbol offset if HOW2_SYMBOL, otherwise area number */
+#define HOW2_RELATIVE     0x04000000u /* The 'R' bit, i.e. PC-relative.  */
+#define HOW2_SYMBOL       0x08000000u /* The 'A' bit.
+  When not set, the subject field is relocated by the base of the area of
+  which SID is the zero-origin index in the array of areas.
+  When set, the subject field is relocated by the value of the symbol of
+  which SID is the zero-origin index in the symbol table chunk.  */
+#define HOW2_BASED        0x10000000u /* The 'B' bit, i.e. based area.  */
+#define HOW2_SIDMASK      0x00ffffffu /* Symbol offset if HOW2_SYMBOL, otherwise area number */
 
 typedef struct
 {
