@@ -1,7 +1,7 @@
 /*
  * ISO C99 Standard: 7.23 Date and Time <time.h>.
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2011 UnixLib Developers
+ * Copyright (c) 2000-2014 UnixLib Developers
  */
 
 #ifndef __TIME_H
@@ -110,7 +110,7 @@ struct tm
   int tm_yday;	/* Number of days since January 1 (0 through 365).  */
   int tm_isdst;	/* 1 - DST in effect, 0 - not, -1 - not known */
 #ifndef __TARGET_SCL__
-  int tm_gmtoff;	/* Offset east of UTC (GMT) in seconds.  */
+  long tm_gmtoff;	/* Offset east of UTC (GMT) in seconds.  */
   const char *tm_zone;	/* Abbreviation of timezone name.  */
 #endif
 };

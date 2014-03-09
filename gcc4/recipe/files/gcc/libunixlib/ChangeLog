@@ -1,3 +1,10 @@
+Sun Mar  9 02:24:41 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* common/cvttime.c (__cvt_riscos_time): Take only low byte of high
+	parameter into account.  Fixes bug #249.
+	* include/time.h (struct tm): Change type tm_gmtoff into long.
+	* time/time.c (time): Drop byte mask for __cvt_riscos_time.
+
 Sat Mar  8 16:11:39 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/errno.h (mask_fs_num): Add.
