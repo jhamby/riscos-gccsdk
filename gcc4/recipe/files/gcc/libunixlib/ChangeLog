@@ -1,3 +1,13 @@
+Sun Mar  9 15:22:24 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* time/localtime_r.c (localtime_r): Reduce ordinals entries from 15 to
+	9.
+	(SWI_Territory_ConvertTimeToOrdinals): Move to...
+	* incl-local/internal/os.h: ...here.
+	* time/mktime.c (mktime): Drop __os_swi usage and use
+	SWI_Territory_ConvertTimeToOrdinals instead.
+	* unittest/test-utimes.c: Fix comment.
+
 Sun Mar  9 02:24:41 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* common/cvttime.c (__cvt_riscos_time): Take only low byte of high

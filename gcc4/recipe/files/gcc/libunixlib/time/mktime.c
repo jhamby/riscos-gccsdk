@@ -1,14 +1,13 @@
 /* mktime ()
  * Written by Nick Burrett on 13 July 1997.
- * Copyright (c) 1997-2011 UnixLib Developers
+ * Copyright (c) 1997-2014 UnixLib Developers
  */
 
 #include <errno.h>
 #include <locale.h>
-#include <time.h>
-#include <stddef.h>
-#include <string.h>
+#include <kernel.h>
 #include <swis.h>
+#include <time.h>
 
 #include <internal/os.h>
 #include <internal/local.h>
@@ -16,32 +15,30 @@
 time_t
 mktime (struct tm *brokentime)
 {
-  tzset (); /* To initialize daylight, timezone and tzname.  */
-
   const _kernel_oserror *err;
   unsigned int riscos_time[2]; /* UTC */
-  if ((err = __cvt_broken_time (brokentime, (char *) riscos_time)) != NULL)
+  unsigned int ordinals[9];
+  if ((err = __cvt_broken_time (brokentime, (char *) riscos_time)) != NULL
+      || (err = SWI_Territory_ConvertTimeToOrdinals (
+#ifdef __TARGET_SCL__
+						     -1,
+#else
+						     __locale_territory[LC_TIME],
+#endif
+						     riscos_time,
+						     ordinals)) != NULL)
     return __ul_seterr (err, ENOSYS);
 
-  /* Normalize the brokentime structure.  */
-  int regs[10];
-  regs[0] = __locale_territory[LC_TIME];
-  regs[1] = (int) riscos_time;
-  regs[2] = (int) brokentime;
-  __os_swi (Territory_ConvertTimeToOrdinals, regs);
+  brokentime->tm_sec = ordinals[1];
+  brokentime->tm_min = ordinals[2];
+  brokentime->tm_hour = ordinals[3];
+  brokentime->tm_mday = ordinals[4];
+  brokentime->tm_mon = ordinals[5] - 1;
+  brokentime->tm_year = ordinals[6] - 1900;
+  brokentime->tm_wday = ordinals[7] - 1;
+  brokentime->tm_yday = ordinals[8] - 1;
 
-  /* Fixup normalised brokentime to lose centiseconds field */
-  memmove (brokentime, &brokentime->tm_min, offsetof(struct tm, tm_gmtoff));
-  /* And fixup month field */
-  brokentime->tm_mon -= 1;
-  /* And fixup year field */
-  brokentime->tm_year -= 1900;
-  /* And fixup day of week.  */
-  brokentime->tm_wday -= 1;
-  /* And fixup day of year.  */
-  brokentime->tm_yday -= 1;
-
-  /* Set correct timezone information in brokentime structure.  */
+  tzset (); /* Initialise daylight, timezone and tzname.  */
   brokentime->tm_isdst = daylight;
 #ifndef __TARGET_SCL__
   brokentime->tm_gmtoff = daylight * 3600 - timezone;

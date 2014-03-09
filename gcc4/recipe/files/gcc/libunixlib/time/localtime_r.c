@@ -1,6 +1,6 @@
 /* localtime_r ()
  * Written by Nick Burrett on 12 July 1997.
- * Copyright (c) 1997-2011 UnixLib Developers
+ * Copyright (c) 1997-2014 UnixLib Developers
  */
 
 #include <errno.h>
@@ -15,24 +15,6 @@
 /* Note time/gmtime_r.c and time/localtime_r.c are very similar concerning
    implementation.  */
 
-static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_Territory_ConvertTimeToOrdinals (int __territory,
-				     const unsigned int __ro_time[],
-				     unsigned int __ordinals[])
-{
-  register int territory __asm ("r0") = __territory;
-  register const unsigned int *ro_time __asm ("r1") = __ro_time;
-  register unsigned int *ordinals __asm ("r2") = __ordinals;
-  register _kernel_oserror *err __asm ("r0");
-  __asm__ volatile ("SWI\t%[SWI_Territory_ConvertTimeToOrdinals]\n\t"
-		    "MOVVC\tr0, #0\n\t"
-		    : "=r" (err)
-		    : "r" (territory), "r" (ro_time), "r" (ordinals),
-		      [SWI_Territory_ConvertTimeToOrdinals] "i" (Territory_ConvertTimeToOrdinals | (1<<17))
-		    : "r14", "cc", "memory");
-  return err;
-}
-
 struct tm *
 localtime_r (const time_t *tp, struct tm *tz)
 {
@@ -41,7 +23,7 @@ localtime_r (const time_t *tp, struct tm *tz)
   __cvt_unix_time (*tp, &riscos_time[1], &riscos_time[0]);
 
   const _kernel_oserror *err;
-  unsigned int ordinals[15];
+  unsigned int ordinals[9];
   if ((err = SWI_Territory_ConvertTimeToOrdinals (
 #ifdef __TARGET_SCL__
 						  -1,
@@ -66,7 +48,7 @@ localtime_r (const time_t *tp, struct tm *tz)
   tz->tm_wday = ordinals[7] - 1;
   tz->tm_yday = ordinals[8] - 1;
 
-  tzset(); /* To initialise timezone & daylight.  */
+  tzset(); /* Initialise daylight, timezone and tzname.  */
   tz->tm_isdst = daylight;
 #ifndef __TARGET_SCL__
   tz->tm_gmtoff = 3600 * daylight - timezone;

@@ -1,5 +1,5 @@
 /* Direct interface calls to RISC OS.
-   Copyright (c) 2000-2013 UnixLib Developers.  */
+   Copyright (c) 2000-2014 UnixLib Developers.  */
 
 #ifndef __INTERNAL_OS_H
 #define __INTERNAL_OS_H
@@ -631,6 +631,24 @@ SWI_OS_Args_Flush (unsigned __fhandle)
 		    : "r" (fhandle),
 		      [SWI_XOS_Args] "i" (OS_Args | (1<<17))
 		    : "r14", "cc");
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_Territory_ConvertTimeToOrdinals (int __territory,
+				     const unsigned int __ro_time[],
+				     unsigned int __ordinals[])
+{
+  register int territory __asm ("r0") = __territory;
+  register const unsigned int *ro_time __asm ("r1") = __ro_time;
+  register unsigned int *ordinals __asm ("r2") = __ordinals;
+  register _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("SWI\t%[SWI_Territory_ConvertTimeToOrdinals]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (territory), "r" (ro_time), "r" (ordinals),
+		      [SWI_Territory_ConvertTimeToOrdinals] "i" (Territory_ConvertTimeToOrdinals | (1<<17))
+		    : "r14", "cc", "memory");
   return err;
 }
 

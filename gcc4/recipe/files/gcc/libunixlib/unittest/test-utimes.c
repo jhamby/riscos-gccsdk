@@ -1,7 +1,7 @@
 /* utimes() unittest.
-   Copyright (c) 2013 UnixLib Developers.
+   Copyright (c) 2013-2014 UnixLib Developers.
 
-   Note: very similar to test-utimes.c.
+   Note: very similar to test-utime.c.
 
    Written by John Tytgat / BASS.  */
 
