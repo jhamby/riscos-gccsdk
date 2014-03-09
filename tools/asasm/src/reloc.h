@@ -66,7 +66,7 @@ typedef struct
 {
   Value relocSymbol; /* When ValueSymbol, its offset is guaranteed to be zero.
     Is ValueIllegal when no reloc should be outputed.  */
-  Value addend; /* Is ValueIllegal when Symbol_GetLabelAddend failed.
+  Value addend; /* Is ValueIllegal when Reloc_SplitRelocAndAddend failed.
     ValueInt or ValueAddr otherwise.  */
 } RelocAndAddend_t;
 RelocAndAddend_t Reloc_SplitRelocAndAddend (const Value *valP,

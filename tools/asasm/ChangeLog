@@ -1,3 +1,10 @@
+Sun Mar  9 19:18:48 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/reloc.c (Reloc_SplitRelocAndAddend): Fail during pass one when
+	there would be relocation symbol not yet defined/declared.
+	* src/reloc.h (RelocAndAddend_t): Fix comments.
+	* unittests/compare/core/operator_base_index.s: Add test case.
+
 Sun Mar  9 19:14:35 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/reloc.c (Reloc_GetRawRelocData): Fix mask value in assert.

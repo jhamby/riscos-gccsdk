@@ -152,4 +152,12 @@ Tst5L2	DCD	4, 5, 6
 	DCD	r9
 	]
 
+	; Test 7 : don't fail when used for a symbol not yet defined during
+	; Pass 1 but defined at Pass 2.
+	AREA Code7, CODE
+	LDR r1, =:INDEX:foo - 4
+	^ 0, r12
+	# 12348
+foo	# 4
+
 	END

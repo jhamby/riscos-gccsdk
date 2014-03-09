@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -288,8 +288,7 @@ Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
 	  result.addend = Value_Int (symOffset, eIntType_PureInt);
 	}
     }
-  else if (valP->Tag == ValueSymbol
-           /* && SYMBOL_KIND(valP->Data.Symbol.symbol->type) == SYMBOL_REFERENCE */) /* Test disabled in order to support non-declared imported symbols.  */
+  else if (valP->Tag == ValueSymbol)
     {
       Symbol *symP = valP->Data.Symbol.symbol;
       int symOffset = valP->Data.Symbol.offset;
@@ -325,6 +324,15 @@ Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
     }
   else
     result.addend = *valP;
+
+  /* When at pass 1, result.relocSymbol can contain a relocation symbol
+     which gets resolved later at pass 1.
+     As we could draw wrong conclusions during that pass 1, we deliberately
+     fail for that case.  */
+  if (gPhase == ePassOne
+      && result.relocSymbol.Tag == ValueSymbol
+      && (result.relocSymbol.Data.Symbol.symbol->attr.type & (SYMBOL_DEFINED | SYMBOL_EXPORT | SYMBOL_AREA)) == 0)
+    result.addend.Tag = ValueIllegal;
 
   /* ELF PC-based relocations happen for instructions with base {PC} but
      AOF Type 2 relocations happen for instructions with base <area origin>.
