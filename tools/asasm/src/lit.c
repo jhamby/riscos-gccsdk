@@ -204,13 +204,13 @@ Lit_RemoveLiterals (Symbol *areaSymbolP)
  */
 Value
 Lit_RegisterInt (const Value *valueP,
-                 Lit_eSize size, Lit_eAddrType addrType, InstrType_e instrType)
+		 Lit_eSize size, Lit_eAddrType addrType, InstrType_e instrType)
 {
   assert (valueP->Tag == ValueInt || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
   assert ((size == eLitIntUByte || size == eLitIntSByte || size == eLitIntUHalfWord || size == eLitIntSHalfWord || size == eLitIntWord) && "Incorrect literal size for this routine");
 
 #ifdef DEBUG_LIT
-  printf ("Lit_RegisterInt(): area offset 0x%x : type %d : ", areaCurrentSymbol->area->curIdx, size);
+  printf ("Lit_RegisterInt(): area offset 0x%x : type %d : ", areaCurrentSymbol->attr.area->curIdx, size);
   Value_Print (valueP);
   printf ("\n");
 #endif
@@ -376,13 +376,13 @@ Lit_RegisterInt (const Value *valueP,
  */
 Value
 Lit_RegisterFloat (const Value *valueP, Lit_eSize size,
-                   Lit_eAddrType addrType, InstrType_e instrType)
+		   Lit_eAddrType addrType, InstrType_e instrType)
 {
   assert (valueP->Tag == ValueInt || valueP->Tag == ValueFloat || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
   assert ((size == eLitFloat || size == eLitDouble) && "Incorrect literal size for this routine");
 
 #ifdef DEBUG_LIT
-  printf ("Lit_RegisterFloat(): area offset 0x%x, type %d : ", areaCurrentSymbol->area->curIdx, size);
+  printf ("Lit_RegisterFloat(): area offset 0x%x, type %d : ", areaCurrentSymbol->attr.area->curIdx, size);
   Value_Print (valueP);
   printf ("\n");
 #endif
@@ -455,7 +455,7 @@ void
 Lit_DumpPool (void)
 {
 #ifdef DEBUG_LIT
-  printf ("Lit_DumpPool(), area offset 0x%x\n", areaCurrentSymbol->area->curIdx);
+  printf ("Lit_DumpPool(), area offset 0x%x\n", areaCurrentSymbol->attr.area->curIdx);
 #endif
 
   Status_e statusToLeaveAlone = (gPhase == ePassOne) ? eAssembledPassOne : eAssembledPassTwo;
@@ -551,7 +551,7 @@ Lit_DumpPool (void)
 		         got defined after LTORG, we've already allocated
 		         some bytes which aren't going to be used.  */
 		      Error_Line (litP->file, litP->lineNum, ErrorWarning,
-			         "Literal loading optimized as MOV/MVN/MOVW but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
+				  "Literal loading optimized as MOV/MVN/MOVW but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
 		      Error (ErrorWarning, "note: LTORG was here");
 		    }
 		}
