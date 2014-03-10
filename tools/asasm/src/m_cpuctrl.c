@@ -172,8 +172,7 @@ m_branch (bool doLowerCase)
 	  Put_Ins (4, cc | 0x0B000000 | ((brLabel.branchOffset & 0x3fffffc) >> 2));
 
 	  /* FIXME: should emit reloc when label is function and when it marked for export.  */
-	  if (brLabel.relocValue.Tag == ValueSymbol
-	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	  if (brLabel.relocValue.Tag == ValueSymbol)
 	    Reloc_CreateELF (R_ARM_CALL, brLabel.instrOffset, &brLabel.relocValue);
 	}
       else
@@ -195,8 +194,7 @@ m_branch (bool doLowerCase)
 	   		| ((brLabel.branchOffset & 0xfff) >> 1));
 
 	  /* FIXME: should emit reloc when label is function and when it marked for export.  */
-	  if (brLabel.relocValue.Tag == ValueSymbol
-	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	  if (brLabel.relocValue.Tag == ValueSymbol)
 	    Reloc_CreateELF (R_ARM_THM_CALL, brLabel.instrOffset, &brLabel.relocValue);
 	}
     }
@@ -212,8 +210,7 @@ m_branch (bool doLowerCase)
 	  Put_Ins (4, cc | 0x0A000000 | ((brLabel.branchOffset & 0x3fffffc) >> 2));
 
 	  /* FIXME: should emit reloc when label is function and when it marked for export.  */
-	  if (brLabel.relocValue.Tag == ValueSymbol
-	      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	  if (brLabel.relocValue.Tag == ValueSymbol)
 	    Reloc_CreateELF (R_ARM_JUMP24, brLabel.instrOffset, &brLabel.relocValue);
 	}
       else
@@ -299,12 +296,11 @@ m_branch (bool doLowerCase)
 
 	  if (instrWidth == eInstrWidth_Enforce16bit)
 	    {
-	      Put_Ins (2, useLongRange ? 0xE000 | ((brLabel.branchOffset & 0xffe) >> 1)
-				       : 0xD000 | (cc >> 20) | ((brLabel.branchOffset & 0x1fe) >> 1));
+	      Put_Ins (2, useLongRange ? 0xE000u | ((brLabel.branchOffset & 0xffe) >> 1)
+				       : 0xD000u | (cc >> 20) | ((brLabel.branchOffset & 0x1fe) >> 1));
 
 	      /* FIXME: should emit reloc when label is function and when it marked for export.  */
-	      if (brLabel.relocValue.Tag == ValueSymbol
-		  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	      if (brLabel.relocValue.Tag == ValueSymbol)
 		Reloc_CreateELF (useLongRange ? R_ARM_THM_JUMP11 : R_ARM_THM_JUMP8,
 				 brLabel.instrOffset, &brLabel.relocValue);
 	    }
@@ -329,18 +325,16 @@ m_branch (bool doLowerCase)
 	      /* Note, R_ARM_THM_JUMP19 is misleading as it is relocating
 		 20 bits.  */
 	      /* FIXME: should emit reloc when label is function and when it marked for export.  */
-	      if (brLabel.relocValue.Tag == ValueSymbol
-		  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+	      if (brLabel.relocValue.Tag == ValueSymbol)
 		Reloc_CreateELF (useLongRange ? R_ARM_THM_JUMP24 : R_ARM_THM_JUMP19,
 				 brLabel.instrOffset, &brLabel.relocValue);
 	    }
 	}
     }
 
-  if (brLabel.relocValue.Tag == ValueSymbol
-      && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol)
+  if (brLabel.relocValue.Tag != ValueIllegal)
     Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE,
-                     brLabel.instrOffset, &brLabel.relocValue);
+		     brLabel.instrOffset, &brLabel.relocValue);
 
   return false;
 }
@@ -394,8 +388,7 @@ m_cbnz_cbz (bool doLowerCase)
 		    | rn);
 
       /* FIXME: should emit reloc when label is function and when it marked for export.  */
-      if (brLabel.relocValue.Tag == ValueSymbol
-	  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol) 
+      if (brLabel.relocValue.Tag == ValueSymbol)
 	{
 	  Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, brLabel.instrOffset,
 	                   &brLabel.relocValue);
@@ -461,8 +454,7 @@ m_blx (bool doLowerCase)
 			| (brLabel.branchOffset & 0xffc) >> 1);
 	}
       /* FIXME: should emit reloc when label is function and when it marked for export.  */
-      if (brLabel.relocValue.Tag == ValueSymbol
-	  && brLabel.relocValue.Data.Symbol.symbol != areaCurrentSymbol) 
+      if (brLabel.relocValue.Tag == ValueSymbol)
 	{
 	  Reloc_CreateAOF (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, brLabel.instrOffset,
 			   &brLabel.relocValue);
