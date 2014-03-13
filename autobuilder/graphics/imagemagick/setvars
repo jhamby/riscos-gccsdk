@@ -12,5 +12,5 @@ ab_package() {
   cp -av config $A/
   mv $D/*,faf $A/\!Help,faf
  
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -name ImageMagick
 }

@@ -32,7 +32,7 @@
      options.c fullscreen.c
  
 -SDL_MIXER=-lSDL_mixer
-+SDL_MIXER=-lSDL_mixer -logg -lvorbisfile -lvorbis -static
++SDL_MIXER=-lSDL_mixer -logg -lvorbisfile -lvorbis -lmikmod -static
  SDL_LIB=$(SDL_LDFLAGS) $(SDL_MIXER) 
  SDL_CFLAGS := $(shell $(SDLCONFIG) --cflags)
  SDL_LDFLAGS := $(shell $(SDLCONFIG) --libs)

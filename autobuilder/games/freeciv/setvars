@@ -1,6 +1,7 @@
 
 AB_URL=http://download.gna.org/freeciv/stable/freeciv-2.3.0.tar.bz2
-AB_PVERSION=2.3.0
+# Added r2 to version as previous version on packages site had -r1 on it
+AB_PVERSION=2.3.0-r2
 
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 

@@ -21,6 +21,6 @@ ab_package() {
   cp -r rocksndiamonds-3.3.0.1/music $A
   cp -r rocksndiamonds-3.3.0.1/sounds $A
 
-  $AB_HOME/add-riscpkg -name RocksNDiamonds -unixlib -unixsound -unixhome \
+  $AB_HOME/add-riscpkg -name RocksNDiamonds -unixlib -unixsound \
     -copyrightfile $S/COPYING
 }

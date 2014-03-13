@@ -1,4 +1,7 @@
 AB_PRECONF=:
+# Have to override version as it now comes out at 1.2.1
+AB_PVERSION=1.21.1
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_app IceBreaker Apps/Games
@@ -11,5 +14,5 @@ ab_package() {
   mkdir -p $A/data
   cp -r $S/*.wav $S/*.bmp $A/data
 
-  $AB_HOME/add-riscpkg -unixhome -unixlib -name IceBreaker
+  $AB_HOME/add-riscpkg -unixlib -name IceBreaker
 }

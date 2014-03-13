@@ -11,7 +11,7 @@ ab_package() {
   mkdir -p $A/share/heroes/etc
   cp src/etc/heroesrc $A/share/heroes/etc
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+  $AB_HOME/add-riscpkg -unixlib -unixsound \
      -depends Heroes-Data
 }
 

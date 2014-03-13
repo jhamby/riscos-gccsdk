@@ -98,6 +98,7 @@ ab_package() {
       -depends SharedLibs -copyrightfile $S/COPYING
   fi
 
+  AB_COMPONENTS="Apps.Library.LibGlib2.0-Dev (Movable LookAt)"
   $AB_HOME/add-riscpkg -package "libglib2.0-dev" -name LibGLib2.0-Dev \
     -unixlib -copyrightfile $S/COPYING
      
@@ -111,6 +112,7 @@ ab_package() {
   echo " as only it includes the header files and static libraries (optionally)" >> $D/libglib2.0-dev/RiscPkg/Control,fff
   echo " needed for compiling." >> $D/libglib2.0-dev/RiscPkg/Control,fff
 
+  AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package "libglib2.0-doc -name LibGLib2.0-Doc -depends LibGLib2.0-Dev -copyrightfile $S/COPYING"
   
   mkdir -p $D/libglib2.0-doc/RiscPkg

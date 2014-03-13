@@ -1,5 +1,6 @@
 
 AB_PVERSION=1.1.0
+AB_ROVERSION=2
 
 for cfg in $(find cfg -name "*.cfg") ; do
  echo $cfg
@@ -17,5 +18,5 @@ ab_package() {
   mkdir $A/doc
   cp -av $S/AUTHORS $S/CHANGELOG $S/LICENSE $S/README $S/VERSION $A/doc/
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome -name AlienBlaster
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name AlienBlaster
 }

@@ -9,7 +9,7 @@ ab_package() {
   cp -av $S/AUTHORS $S/COPYING $S/INSTALL $S/NEWS $S/THANKS $A
   cp -av $S/README $A/\!Help
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
-    -appdir Apps.Emulation -appname DosBox -dirvar \
-    -name DosBox -copyrightfile COPYING
+  AB_COMPONENTS="Apps.Emulation.!DosBox (Movable LookAt)"
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name DosBox \
+     -copyrightfile COPYING
 }
