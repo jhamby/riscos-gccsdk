@@ -5,14 +5,14 @@
  
  UI=sdl
 -UILIBS=$(shell sdl-config --libs) -lSDL_mixer
-+UILIBS=$(shell sdl-config --libs) -lSDL_mixer -lvorbisidec
++UILIBS=$(shell sdl-config --libs) -lSDL_mixer -lvorbisidec -logg -lmikmod
  UIFLAGS=$(shell sdl-config --cflags)
  
 -FEATURES=-DHAVE_BACKTRACE=1 -DHAVE_VARIADIC_MACROS=1
 +FEATURES=-DHAVE_VARIADIC_MACROS=1
  DEBUGCXXFLAGS=-ggdb1 -rdynamic
 -CXXFLAGS=$(FEATURES) -Wall -I. $(UIFLAGS) $(shell xml2-config --cflags) -DICON_FILE=\"$(datadir)/pixmaps/u4.bmp\" -DVERSION=\"$(VERSION)\" $(DEBUGCXXFLAGS)
-+CXXFLAGS=$(FEATURES) -Wall -I. $(UIFLAGS) $(shell xml2-config --cflags) -DICON_FILE=\"$(datadir)/pixmaps/u4.bmp\" -DVERSION=\"$(VERSION)\" $(DEBUGCXXFLAGS) \
++CXXFLAGS=$(FEATURES) -Wall -I. $(UIFLAGS) $(shell xml2-config --cflags) -DICON_FILE=\"$(datadir)/pixmaps/u4.bmp\" -DVERSION=\"$(VERSION)\" \
 + -O2
  CFLAGS=$(CXXFLAGS)
  LIBS=$(UILIBS) $(shell xml2-config --libs) -lpng
