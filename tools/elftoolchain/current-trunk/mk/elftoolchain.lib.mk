@@ -1,5 +1,5 @@
 #
-# $Id: elftoolchain.lib.mk 2796 2012-12-19 12:44:09Z jkoshy $
+# $Id: elftoolchain.lib.mk 2985 2014-03-06 03:24:35Z jkoshy $
 #
 
 .if !defined(TOP)
@@ -11,7 +11,7 @@
 .include <bsd.lib.mk>
 
 # Support a 'clobber' target.
-clobber:	clean	.PHONY
+clobber:	clean os-specific-clobber .PHONY
 
 # Adjust CFLAGS
 CFLAGS+=	-I.			# OBJDIR
