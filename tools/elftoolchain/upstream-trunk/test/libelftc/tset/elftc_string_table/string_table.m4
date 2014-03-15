@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: string_table.m4 2868 2013-01-06 13:28:47Z jkoshy $
+ * $Id: string_table.m4 2984 2014-03-02 16:47:14Z jkoshy $
  */
 
 /*
@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "tet_api.h"
 

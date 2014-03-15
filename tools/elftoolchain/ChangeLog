@@ -1,3 +1,8 @@
+Sat Mar 15 12:18:52 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	https://svn.code.sf.net/p/elftoolchain/code/trunk@r2986
+
 Wed Feb 12 02:07:49 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/configure.ac: Default enable AM_SILENT_RULES.
