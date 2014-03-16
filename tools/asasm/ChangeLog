@@ -1,3 +1,23 @@
+Sun Mar 16 15:49:25 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/m_cpuctrl.c (GetBranchLabel): Improve support for branches to
+	absolute addresses.
+	(m_branch): Support ValueInt ELF relocs.
+	(m_cbnz_cbz): Likewise.
+	(m_blx): Likewise.
+	* src/reloc.c (Reloc_CreateInternal): Add support for ValueInt
+	ELF relocs.
+	* src/symbol.h (SymbolAttr::value): Improve comments.
+
+	unittest/reloc:
+	* src/branch_no_org.s: Add
+	* src/branch_with_org.s: Likewise.
+	* src/include/branch.s: Likewise.
+	* ref/branch_no_org_aof.txt: Likewise.
+	* ref/branch_no_org_elf.txt: Likewise.
+	* ref/branch_with_org_aof.txt: Likewise.
+	* ref/branch_with_org_elf.txt: Likewise.
+
 Mon Mar 10 02:05:56 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/m_cpuctrl.c (m_branch): Simplify test for calling Reloc_CreateELF.

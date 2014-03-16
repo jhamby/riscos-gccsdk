@@ -353,9 +353,14 @@ Reloc_SplitRelocAndAddend (const Value *valP, const Symbol *pcRelSymP,
  * \param how For AOF these are the HOW2_* bits. HOW2_SYMBOL will get assigned
  * automatically. For ELF, this is a R_ARM_* vaule.
  * \param offset Area offset where the relocation needs to happen.
- * \param value A ValueSymbol value.  Its offset will be ignored and needs to
- * be taken into account by the caller.  Can be NULL to specify a relocation
- * against anonymous symbol (ELF output only).
+ * \param value
+ *   For AOF A ValueSymbol value.
+ *   For ELF A ValueSymbol, ValueInt value or NULL.
+ *     In case of ValueInt, a relocation against an absolute value symbol will
+ *     be created (same value as the ValueInt).
+ *     When NULL, it will be a relocation against anonymous symbol.
+ *   For both AOF and ELF and when ValueSymbol, its offset will be ignored and
+ *   needs to be taken into account by the caller.
  * \param replace When true, previous relocation(s) for same offset will be
  * replaced by given new relocation.
  */
@@ -363,14 +368,33 @@ void
 Reloc_CreateInternal (uint32_t how, uint32_t offset, const Value *value,
                       bool replace)
 {
+  if (gPhase != ePassTwo)
+    return;
+
+  /* For ELF output: allow relocations against absolute address.
+     I.e. turn ValueInt into a ValueSymbol pointing to a, in ELF terms,
+     symbol holding an absolute value (SHN_ABS).  */
+  Value absSymValue;
+  if (!option_aof && value != NULL && value->Tag == ValueInt)
+    {
+      /* Use "*ABS*0x" followed by the hex representation of the absolute
+	 address.  Same as binutils.  */ // FIXME: Use asasm internal prefix ?
+      char symName[16];
+      int r = snprintf (symName, sizeof (symName), "*ABS*0x%x", value->Data.Int.i);
+      assert (r >= 0 && (size_t)r < sizeof (symName));
+      Symbol *absSymP = Symbol_Get (symName, r);
+      /* SYMBOL_KEEP to force it being outputed.  */
+      if (Symbol_Define (absSymP, SYMBOL_ABSOLUTE | SYMBOL_KEEP, value))
+	return; /* We don't expect this to be happening.  */
+      absSymValue = Value_Symbol (absSymP, 1, 0);
+      value = &absSymValue;
+    }
+
   assert ((value == NULL && !option_aof) || (value != NULL && value->Tag == ValueSymbol && value->Data.Symbol.factor > 0));
   assert ((value == NULL && !option_aof) || (value != NULL && !Area_IsMappingSymbol (value->Data.Symbol.symbol->str)));
 
   assert ((option_aof && (how & HOW2_SIDMASK) == 0) || (!option_aof && how < 256u));
   assert (offset <= areaCurrentSymbol->attr.area->curIdx + 3);
-
-  if (gPhase != ePassTwo)
-    return;
 
   Reloc_State_t *stateP = &areaCurrentSymbol->attr.area->reloc;
   Symbol *relocSymP = value ? value->Data.Symbol.symbol : NULL;

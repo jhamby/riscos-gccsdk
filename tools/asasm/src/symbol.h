@@ -98,7 +98,10 @@ typedef struct
     ValueSymbol with symbol an area symbol.
     For IMPORT BASED symbols, this is a ValueAddr.
     For SYMBOL_COMMON symbols, this is ValueInt containing the size of the
-    common block it represents.  */
+    common block it represents.
+    For SYMBOL_AREA symbols, this is ValueInt with value 0 for non-absolute
+    areas (this without further meaning), or the ORG ValueInt value for
+    absolute areas.  */
   uint32_t codeSize; /** Size of the code associated with this symbol label
     (for AREA symbol, this is unused).
     For SYMBOL_COMMON symbols, this is also its size.  */
