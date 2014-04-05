@@ -38,7 +38,6 @@
 
 #include "aoffile.h"
 #include "area.h"
-#include "code.h"
 #include "error.h"
 #include "expr.h"
 #include "filestack.h"
@@ -50,10 +49,6 @@
 #include "main.h"
 #include "output.h"
 #include "symbol.h"
-
-#ifdef DEBUG
-//#  define DEBUG_SYMBOL
-#endif
 
 static Symbol *symbolTable[SYMBOL_TABLESIZE];
 static bool oKeepAllSymbols;
@@ -198,60 +193,15 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
     {
       /* When a symbol is already defined, we can only overrule its value when
          that value was ValueIllegal, or when the value is exactly the same.  */
-      if (symbol->attr.value.Tag != ValueIllegal)
+      if (symbol->attr.value.Tag != ValueIllegal
+	  && !Value_Equal (&symbol->attr.value, newValue))
 	{
-	  bool diffValue;
-	  if (Value_Equal (&symbol->attr.value, newValue))
-	    diffValue = false;
-	  else
-	    {
-	      if (symbol->attr.value.Tag == ValueSymbol || newValue->Tag == ValueSymbol)
-		{
-		  /* newValue might point into our code array.  */
-		  Value_Assign (&newValueCopy, newValue);
-		  newValue = &newValueCopy;
-
-		  Code_Init ();
-		  Code_Value (&symbol->attr.value, false);
-		  Value val1 = Value_Copy (Code_Eval (ValueAll));
-		  Code_Init ();
-		  Code_Value (newValue, false);
-		  Value val2 = Value_Copy (Code_Eval (ValueAll));
-		  diffValue = !Value_Equal (&val1, &val2);
-#ifdef DEBUG_SYMBOL
-		  if (diffValue)
-		    {
-		      printf ("Diff: ");
-		      Value_Print (&val1);
-		      printf (" vs ");
-		      Value_Print (&val2);
-		      printf ("\n");
-		    }
-#endif
-		  Value_Free (&val1);
-		  Value_Free (&val2);
-		}
-	      else
-		{
-		  diffValue = true; /* Not sure if we don't have to try harder here.  */
-#ifdef DEBUG_SYMBOL
-		  printf ("Diff: ");
-		  Value_Print (&symbol->attr.value);
-		  printf (" vs ");
-		  Value_Print (newValue);
-		  printf ("\n");
-#endif
-		}
-	    }
-	  if (diffValue)
-	    {
-	      const char *symDescP = Symbol_GetDescription (symbol);
-	      Error (ErrorError, "%c%s %s can not be redefined with a different value",
-		     toupper ((unsigned char)symDescP[0]), symDescP + 1, symbol->str);
-	      if (symbol->attr.fileName != FS_GetCurFileName() || symbol->attr.lineNumber != FS_GetCurLineNumber ())
-		Error_Line (symbol->attr.fileName, symbol->attr.lineNumber, ErrorError, "note: previous definition was done here");
-	      return true;
-	    }
+	  const char *symDescP = Symbol_GetDescription (symbol);
+	  Error (ErrorError, "%c%s %s can not be redefined with a different value",
+		 toupper ((unsigned char)symDescP[0]), symDescP + 1, symbol->str);
+	  if (symbol->attr.fileName != FS_GetCurFileName() || symbol->attr.lineNumber != FS_GetCurLineNumber ())
+	    Error_Line (symbol->attr.fileName, symbol->attr.lineNumber, ErrorError, "note: previous definition was done here");
+	  return true;
 	}
     }
   symbol->attr.type |= newSymbolType | SYMBOL_DEFINED;

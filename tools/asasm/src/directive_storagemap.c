@@ -32,6 +32,7 @@
 #include "directive_storagemap.h"
 #include "error.h"
 #include "expr.h"
+#include "filestack.h"
 #include "get.h"
 #include "input.h"
 #include "main.h"
@@ -46,7 +47,7 @@ static Value oStorageMapValue =
 const Value *
 StorageMap_Value (void)
 {
-  assert ((oStorageMapValue.Tag == ValueInt && oStorageMapValue.Data.Int.type == eIntType_PureInt) || oStorageMapValue.Tag == ValueAddr || oStorageMapValue.Tag == ValueSymbol || oStorageMapValue.Tag == ValueCode);
+  assert ((oStorageMapValue.Tag == ValueInt && oStorageMapValue.Data.Int.type == eIntType_PureInt) || oStorageMapValue.Tag == ValueAddr || oStorageMapValue.Tag == ValueSymbol);
   return &oStorageMapValue;
 }
 
@@ -56,7 +57,7 @@ StorageMap_Value (void)
 bool
 c_record (void)
 {
-  const Value *value = Expr_BuildAndEval (ValueInt | ValueAddr | ValueSymbol | ValueCode);
+  const Value *value = Expr_BuildAndEval (ValueInt | ValueAddr | ValueSymbol);
   switch (value->Tag)
     {
       case ValueInt:
@@ -68,7 +69,6 @@ c_record (void)
 
       case ValueAddr:
       case ValueSymbol:
-      case ValueCode:
 	Value_Assign (&oStorageMapValue, value);
 	break;
 	
@@ -99,9 +99,27 @@ c_alloc (const Lex *lex)
 	break;
 
       case LexId:
-	if (Symbol_Define (Symbol_Get (lex->Data.Id.str, lex->Data.Id.len), SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, StorageMap_Value ()))
-	  return false;
-	break;
+	{
+	  /* When a symbol gets redefined with Symbol_Define, we will only test
+	     its value remains the same.  For mapping labels, this isn't good enough
+	     as its 'code size' depends on the '#' argument, we can't allow, e.g.
+	        foo # 0
+	        foo # 4
+	     Twice foo # 0 would be ok (code size being 0 for both) but there
+	     isn't much value to allow this, hence, don't allow a mapping label to
+	     be redefined at all.  */
+	  Symbol *mapSymbol = Symbol_Get (lex->Data.Id.str, lex->Data.Id.len);
+	  if (gPhase == ePassOne && (mapSymbol->attr.type & SYMBOL_DEFINED) != 0)
+	    {
+	      Error (ErrorError, "Mapping label can not be redefined");
+	      if (mapSymbol->attr.fileName != FS_GetCurFileName() || mapSymbol->attr.lineNumber != FS_GetCurLineNumber ())
+		Error_Line (mapSymbol->attr.fileName, mapSymbol->attr.lineNumber, ErrorError, "note: previous definition was done here");
+	      return false;
+	    }
+	  if (Symbol_Define (mapSymbol, SYMBOL_ABSOLUTE | SYMBOL_NO_EXPORT, StorageMap_Value ()))
+	    return false;
+	  break;
+	}
 
       case LexLocalLabel:
 	Error (ErrorError, "Local label is not allowed here");
@@ -124,7 +142,7 @@ c_alloc (const Lex *lex)
 	    break;
 	  }
 	/* Fall through.  */
-	
+
       default:
         Error (ErrorError, "Illegal expression after # or FIELD");
         break;

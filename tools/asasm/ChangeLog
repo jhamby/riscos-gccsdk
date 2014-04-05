@@ -1,3 +1,10 @@
+Sun Apr  6 01:04:42 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/directive_storagemap.c: Drop support for ValueCode.
+	(c_alloc): Add check on redefinition of mapping label.
+	* src/symbol.c (Symbol_Define): When a symbol gets redefined, only
+	use the Value_Equal test, Code_Eval should not be necessary anymore.
+
 Sun Apr  6 01:02:51 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/compare/core/register_types.s: Add test on register
