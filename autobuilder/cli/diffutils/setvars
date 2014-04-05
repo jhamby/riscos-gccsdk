@@ -1,6 +1,14 @@
 
 AB_MANPAGE="man/cmp.1 man/diff.1 man/diff3.1 man/sdiff.1"
 
+# We need to set gl_cv_func_gettimeofday_clobber to no (= gettineofday and
+# localtime does not share a static buffer) as otherwise a configure test will
+# be done but that one default to 'guessing yes' for non-*gnu* cross-compilers.
+# Otherwise, such a '*yes' will then result in a compiler error:
+# .../cross/lib/gcc/arm-unknown-riscos/4.7.4/../../../../arm-unknown-riscos/include/sys/time.h:74:12: error: conflicting types for 'rpl_gettimeofday'
+# ./sys/time.h:398:1: note: previous declaration of 'rpl_gettimeofday' was here
+export gl_cv_func_gettimeofday_clobber=no
+
 ab_package() {
   ab_create_command_app DiffUtils Apps/Utilities
   ab_add_commands  $S/src/*$AB_EXEEXT
