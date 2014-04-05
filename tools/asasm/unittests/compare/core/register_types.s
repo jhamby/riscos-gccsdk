@@ -27,6 +27,12 @@ MyFReg2b	FN	MyFReg2a
 MyPReg3b	CP	MyPReg3a
 MyCReg4b	CN	MyCReg4a
 
+		; Redefine register with the same value.  That should work.
+MyReg1b		RN	1
+MyFReg2b	FN	2
+MyPReg3b	CP	3
+MyCReg4b	CN	4
+
 		AREA	Code, CODE
 		MOV	MyReg1a, #1
 		FLTD	MyFReg2a,MyReg1a

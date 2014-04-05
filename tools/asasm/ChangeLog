@@ -1,3 +1,8 @@
+Sun Apr  6 01:02:51 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/compare/core/register_types.s: Add test on register
+	redefinition.
+
 Sun Apr  6 01:01:28 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/compare/core/storagemap_register.s: Add BASED AREA test.
