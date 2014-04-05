@@ -2,7 +2,7 @@
 ; ARMv4T and ARMv5 (in ARM mode, not thumb).
 ; RUNOPT: -CPU=4T
 
-	[ OUTPUTELF
+	[ OUTPUTTYPE == "ELF"
 
 	AREA CodeELFReloc, CODE
 
@@ -20,6 +20,6 @@
 	RELOC	R_ARM_V4BX
 	]
 
-	] ; OUTPUTELF
+	]
 
 	END

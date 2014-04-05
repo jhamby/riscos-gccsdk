@@ -160,7 +160,7 @@ idx	SETA idx + 2
 	]
 
 	; Test ELF relocation:
-	[ OUTPUTELF
+	[ OUTPUTTYPE == "ELF"
 	AREA CodeELFReloc, CODE
 
 	; IMPORT extSymbol_T01
@@ -175,6 +175,6 @@ idx	SETA idx + 2
 	DCI.N &bb32	; cbnz	r2, . + 4 + 80
 	RELOC R_ARM_THM_JUMP6, extSymbol_T02
 	]
-	] ; OUTPUTELF
+	]
 
 	END

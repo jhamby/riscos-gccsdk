@@ -34,10 +34,10 @@
 export HDR_PATH := @srcdir@/include/hdr
 export APCS := APCS-32
 
-# EXTENSION enables extra tests for functionality ASASM has but ObjAsm hasn't.
+# EXTENSION enables extra tests for functionality AsAsm has but ObjAsm hasn't.
 
 ASASM := @top_builddir@/src/asasm
-ASFLAGS := -i @srcdir@ -i @srcdir@/core -PD "EXTENSION SETL {TRUE}"
+ASASMFLAGS := -i @srcdir@ -i @srcdir@/core -PD "EXTENSION SETL {TRUE}"
 DIFF := diff
 DIFFFLAGS := -q
 ECHO := echo
@@ -45,6 +45,9 @@ ECHOFLAGS :=
 MKDIR := mkdir
 OBJDUMP := arm-unknown-eabi-objdump
 OBJDUMPFLAGS := -r -d
+
+ASASMFLAGS_AOF := $(ASASMFLAGS) -PD "OUTPUTTYPE SETS \"AOF\"" -aof
+ASASMFLAGS_ELF := $(ASASMFLAGS) -PD "OUTPUTTYPE SETS \"ELF\"" -elf
 
 V := @
 
@@ -85,18 +88,18 @@ distclean: clean
 output_actual_aof/%.o: %.s output_reference_aof/%.o
 	@$(ECHO) +++ $< : Assemble actual for AOF and compare with reference
 	$(V)$(MKDIR) -p output_actual_aof
-	$(V)$(ASASM) $(ASFLAGS) -aof $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -PD "OUTPUTELF SETL {FALSE}" -depend $(@:%.o=%.d) -o $@ $<
+	$(V)$(ASASM) $(ASASMFLAGS_AOF) $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -depend $(@:%.o=%.d) -o $@ $<
 	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual_aof/%=output_reference_aof/%) || (mv $@ $(@:%.o=%_failed.o) && false)
 
 output_reference_aof/%.o: %.s
 	@$(ECHO) +++ $< : Create AOF reference $@
 	$(V)$(MKDIR) -p output_reference_aof
-	$(V)$(ASASM) $(ASFLAGS) -aof $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -PD "OUTPUTELF SETL {FALSE}" -depend $(@:%.o=%.d) -o $@ $<
+	$(V)$(ASASM) $(ASASMFLAGS_AOF) $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -depend $(@:%.o=%.d) -o $@ $<
 
 output_actual_elf/%.o: %.s output_reference_elf/%.o
 	@$(ECHO) +++ $< : Assemble actual for ELF and compare with reference
 	$(V)$(MKDIR) -p output_actual_elf
-	$(V)$(ASASM) $(ASFLAGS) -elf $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -PD "OUTPUTELF SETL {TRUE}" -depend $(@:%.o=%.d) -o $@ $<
+	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -depend $(@:%.o=%.d) -o $@ $<
 	$(V)$(OBJDUMP) $(OBJDUMPFLAGS) $(@:output_actual_elf/%=output_reference_elf/%) > $(@:output_actual_elf/%.o=output_reference_elf/%.txt)
 	$(V)$(OBJDUMP) $(OBJDUMPFLAGS) $@ > $(@:%.o=%.txt)
 	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual_elf/%=output_reference_elf/%) || (mv $@ $(@:%.o=%_failed.o) && diff -u $(@:output_actual_elf/%.o=output_reference_elf/%.txt) $(@:%.o=%.txt))
@@ -104,9 +107,8 @@ output_actual_elf/%.o: %.s output_reference_elf/%.o
 output_reference_elf/%.o: %.s
 	@$(ECHO) +++ $< : Create ELF reference $@
 	$(V)$(MKDIR) -p output_reference_elf
-	$(V)$(ASASM) $(ASFLAGS) -elf $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -PD "OUTPUTELF SETL {TRUE}" -depend $(@:%.o=%.d) -o $@ $<
+	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -depend $(@:%.o=%.d) -o $@ $<
 
 .PHONY: all check install clean distclean
 .SUFFIXES:
 .SUFFIXES: .o .s
-

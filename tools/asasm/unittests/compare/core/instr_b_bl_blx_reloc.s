@@ -1,7 +1,7 @@
 ; Tests ELF relocations for B, BL, BLX <label>
 ; -RUNOPT: -CPU=7-A
 
-	[ OUTPUTELF
+	[ OUTPUTTYPE == "ELF"
 
 	; IMPORT extSymbol_AB01
 	IMPORT extSymbol_AB02
@@ -115,6 +115,6 @@
 
 	]
 
-	] ; OUTPUTELF
+	]
 
 	END
