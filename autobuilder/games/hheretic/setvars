@@ -2,6 +2,7 @@
 AB_URL=http://sourceforge.net/projects/hhexen/files/hheretic/0.2.2/hheretic-0.2.2-src.tgz
 
 AB_PVERSION=0.2.2
+AB_ROVERSION=2
 
 AB_CONFLAGS='--disable-gl --with-audio=sdlmixer'
 
@@ -14,4 +15,4 @@ ab_package () {
   $AB_HOME/add-riscpkg -unixlib -copyrightfile LICENSE
 }
 
-export LIBS='-lvorbisidec -logg'
+export LIBS='-lvorbisidec -logg -lmikmod'
