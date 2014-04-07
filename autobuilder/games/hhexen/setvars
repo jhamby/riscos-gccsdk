@@ -2,6 +2,7 @@
 AB_URL=http://sourceforge.net/projects/hhexen/files/hhexen/1.6.2/hhexen-1.6.2-src.tgz
 
 AB_PVERSION=1.6.2
+AB_ROVERSION=2
 
 AB_CONFLAGS='--disable-gl --with-audio=sdlmixer'
 
@@ -15,4 +16,4 @@ ab_package () {
   $AB_HOME/add-riscpkg -unixlib -copyrightfile LICENSE
 }
 
-export LIBS='-lvorbisidec -logg'
+export LIBS='-lvorbisidec -logg -lmikmod'
