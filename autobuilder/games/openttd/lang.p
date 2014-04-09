@@ -2,10 +2,10 @@ Index: src/lang/portuguese.txt
 ===================================================================
 --- src/lang/portuguese.txt	(revision 17960)
 +++ src/lang/portuguese.txt	(working copy)
-@@ -1348,6 +1348,7 @@
+@@ -1662,6 +1662,7 @@
  STR_OSNAME_MORPHOS                                              :MorphOS
  STR_OSNAME_AMIGAOS                                              :AmigaOS
- STR_OSNAME_OS2                                                  :SO/2
+ STR_OSNAME_OS2                                                  :OS/2
 +STR_OSNAME_RISCOS                                               :RISC OS
  STR_OSNAME_SUNOS                                                :SunOS
  
@@ -96,8 +96,8 @@ Index: src/lang/malay.txt
  # Abandon game
 Index: src/lang/unfinished/thai.txt
 ===================================================================
---- src/lang/unfinished/thai.txt	(revision 17960)
-+++ src/lang/unfinished/thai.txt	(working copy)
+--- src/lang/thai.txt	(revision 17960)
++++ src/lang/thai.txt	(working copy)
 @@ -938,6 +938,7 @@
  STR_OSNAME_MORPHOS                                              :MorphOS
  STR_OSNAME_AMIGAOS                                              :AmigaOS
