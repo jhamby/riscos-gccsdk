@@ -4,8 +4,8 @@
  # GENERAL OPTIONS (customize as required)
 
  # X directory
--X11BASE   ?=/usr/X11R6
-+X11BASE   ?=$(GCCSDK_INSTALL_ENV)
+-X11BASE    =/usr/X11R6
++X11BASE    =$(GCCSDK_INSTALL_ENV)
  # the sdl-config command
  SDL_CONFIG?=sdl-config
  SDL_CFLAGS = $(shell $(SDL_CONFIG) --cflags 2> /dev/null)
