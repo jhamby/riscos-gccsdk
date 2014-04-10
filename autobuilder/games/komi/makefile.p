@@ -14,8 +14,9 @@
  MANPATH=/usr/local/man/man6/
  
 -MIXER=-lSDL_mixer
-+MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile
- SDL_LIB=$(shell sdl-config --static-libs) $(MIXER)
+-SDL_LIB=$(shell sdl-config --libs) $(MIXER)
++MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile -lmikmod
++SDL_LIB=$(shell sdl-config --static-libs) $(MIXER)
  
  CFLAGS=-Wall -pedantic -std=c99 -O2 \
 @@ -35,6 +35,6 @@
