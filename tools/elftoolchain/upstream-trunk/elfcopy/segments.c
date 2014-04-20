@@ -34,7 +34,7 @@
 
 #include "elfcopy.h"
 
-ELFTC_VCSID("$Id: segments.c 2542 2012-08-12 16:14:15Z kaiwang27 $");
+ELFTC_VCSID("$Id: segments.c 3019 2014-04-17 14:53:40Z jkoshy $");
 
 static void	insert_to_inseg_list(struct segment *seg, struct section *sec);
 
@@ -96,7 +96,7 @@ adjust_addr(struct elfcopy *ecp)
 	struct section *s, *s0;
 	struct segment *seg;
 	struct sec_action *sac;
-	uint64_t dl, lma, old_vma, start, end;
+	uint64_t dl, lma, start, end;
 	int found, i;
 
 	/*
@@ -113,8 +113,6 @@ adjust_addr(struct elfcopy *ecp)
 			s->lma += ecp->change_addr;
 
 		if (!s->pseudo) {
-			old_vma = s->vma;
-
 			/* Apply global VMA adjustment. */
 			if (ecp->change_addr != 0)
 				s->vma += ecp->change_addr;

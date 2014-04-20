@@ -1,5 +1,5 @@
 #
-# $Id: elftoolchain.lib.mk 2985 2014-03-06 03:24:35Z jkoshy $
+# $Id: elftoolchain.lib.mk 3026 2014-04-18 16:20:30Z jkoshy $
 #
 
 .if !defined(TOP)
@@ -12,6 +12,9 @@
 
 # Support a 'clobber' target.
 clobber:	clean os-specific-clobber .PHONY
+
+# Remove '.depend' files on a "make clean".
+CLEANFILES+=	.depend
 
 # Adjust CFLAGS
 CFLAGS+=	-I.			# OBJDIR

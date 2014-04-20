@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: string_table.m4 2984 2014-03-02 16:47:14Z jkoshy $
+ * $Id: string_table.m4 3021 2014-04-17 16:32:00Z jkoshy $
  */
 
 /*
@@ -33,6 +33,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <libelf.h>
 #include <libelftc.h>
 #include <stdlib.h>
 #include <stdio.h>
