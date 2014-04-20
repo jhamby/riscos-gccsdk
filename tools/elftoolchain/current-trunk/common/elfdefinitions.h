@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: elfdefinitions.h 2950 2013-06-15 13:36:02Z jkoshy $
+ * $Id: elfdefinitions.h 3014 2014-04-08 17:24:16Z jkoshy $
  */
 
 /*
@@ -819,7 +819,8 @@ enum {
 	EM__LAST__
 };
 
-/* Older synonyms. */
+/* Other synonyms. */
+#define	EM_AMD64		EM_X86_64
 #define	EM_ARC_A5		EM_ARC_COMPACT
 
 /*
