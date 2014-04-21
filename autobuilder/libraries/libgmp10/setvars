@@ -1,5 +1,8 @@
-
+AB_ROVERSION=2
 AB_INSTALL=yes
+
+# As we've patched mpn/{Makeasm.am,m4-ccas}, regenerate the Makefile.in files.
+aclocal && automake
 
 ab_package() {
   ab_create_app LibGMP Apps/Library libgmp-dev
