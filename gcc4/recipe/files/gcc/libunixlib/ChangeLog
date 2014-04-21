@@ -1,3 +1,15 @@
+Tue Apr 22 00:07:32 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* signal/_signal.s (__h_sigill): Undo lr correction.
+	(__h_sigbus): Likewise.
+	(__h_sigsegv0): Likewise.
+	(__h_sigsegv1): Likewise.
+	* signal/post.c (extract_name): Use __valid_address to check incoming
+	pc value. Don't return NULL but pointer to "?" when failing.
+	(__write_backtrace_thread): More accurate __valid_address checking.
+	Simplify extract_name calling.  Fix pc adjusting.
+	* test/sys/handlers.c: Add.
+
 Sun Mar  9 15:22:24 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* time/localtime_r.c (localtime_r): Reduce ordinals entries from 15 to

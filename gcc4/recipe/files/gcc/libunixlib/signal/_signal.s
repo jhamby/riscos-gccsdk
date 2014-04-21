@@ -1,5 +1,5 @@
 @ Signal exception handling
-@ Copyright (c) 2002-2012 UnixLib Developers
+@ Copyright (c) 2002-2014 UnixLib Developers
 
 @ This file handles all the hairy exceptions that can occur when a
 @ program runs. This includes hardware exceptions like data abort and
@@ -101,8 +101,6 @@ __raise:
 	.global	__h_sigill
 	NAME	__h_sigill
 __h_sigill:
-	SUB	lr, lr, #4
-
  PICEQ "STMFD	sp!, {r7, r8}"
 
  PICEQ "LDR	r7, =__GOTT_BASE__"
@@ -151,8 +149,6 @@ __h_sigill:
 	.global	__h_sigbus
 	NAME	__h_sigbus
 __h_sigbus:
-	SUB	lr, lr, #4
-
  PICEQ "STMFD	sp!, {r7, r8}"
 
  PICEQ "LDR	r7, =__GOTT_BASE__"
@@ -199,8 +195,6 @@ __h_sigbus:
 	.global	__h_sigsegv0
 	NAME	__h_sigsegv0
 __h_sigsegv0:
-	SUB	lr, lr, #4
-
  PICEQ "STMFD	sp!, {r7, r8}"
 
  PICEQ "LDR	r7, =__GOTT_BASE__"
@@ -276,8 +270,6 @@ __h_sigsegv0:
 	.global	__h_sigsegv1
 	NAME	__h_sigsegv1
 __h_sigsegv1:
-	SUB	lr, lr, #8
-
  PICEQ "STMFD	sp!, {r7, r8}"
 
  PICEQ "LDR	r7, =__GOTT_BASE__"
@@ -326,9 +318,9 @@ __h_sigsegv1:
 @ callback, because the exception occurs in non USR mode.
 @ The software exceptions of interest are:
 @
-@	Error		raise (SIGOSERROR  SIGEMT  SIGFPE)
+@	Error		raise (SIGOSERROR, SIGEMT, SIGFPE)
 @	Escape		raise (SIGINT)
-@	Event		on Internet event, raise (SIGIO  SIGURG  SIGPIPE)
+@	Event		on Internet event, raise (SIGIO, SIGURG, SIGPIPE)
 @	Exit		see sys/_syslib.s
 @	Unused SWI	raise (SIGSYS)
 @	UpCall		restore handlers on UpCall 256
@@ -881,7 +873,7 @@ __setup_signalhandler_stack:
 	@		   the pc value)
 	.global	__cbreg
 __cbreg:
-	.space	68	@ 4 * 17
+	.space	4 * 17
 	DECLARE_OBJECT __cbreg
 
 	@ bit 0 Escape condition flag

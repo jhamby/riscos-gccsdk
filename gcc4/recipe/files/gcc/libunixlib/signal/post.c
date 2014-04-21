@@ -1,6 +1,6 @@
 /* Perform delivery of a signal to a process.
    Written by Nick Burrett.
-   Copyright (c) 1996-2012 UnixLib Developers.  */
+   Copyright (c) 1996-2014 UnixLib Developers.  */
 
 #include <errno.h>
 #include <pthread.h>
@@ -35,35 +35,37 @@ __signal_have_saved_regs (int signo)
 static const char *
 extract_name (const unsigned int *pc)
 {
-  if ((unsigned int) pc < 0x8000)
-    return NULL;
-
   const char *name = NULL;
-  for (int address = 0; address > -8; address--)
+  if (__valid_address (pc - 7, pc + 1))
     {
-      if ((pc[address] & 0xffffff00) == 0xff000000)
+      for (int address = 0; address > -8; address--)
 	{
-	  name = (const char *)(pc + address) - (pc[address] & 0xff);
-	  break;
+	  if ((pc[address] & 0xffffff00) == 0xff000000)
+	    {
+	      name = (const char *)(pc + address) - (pc[address] & 0xff);
+
+	      /* Function name sanity check.  */
+	      if (__valid_address (name, name + 256) && strnlen (name, 256) < 256)
+		{
+		  static char *demangled;
+		  static size_t size;
+		  int status;
+
+		  const char *tdname = name[0] == '^' || name[0] == '#' ? name + 1 : name;
+		  demangled = __unixlib_cxa_demangle (tdname, demangled,
+						      &size, &status);
+		  if (demangled != NULL && status == 0)
+		    name = demangled;
+		}
+	      else
+		name = NULL;
+	      break;
+	    }
 	}
     }
 
-  /* Function name sanity check.  */
-  if (name != NULL
-      && (!__valid_address (name, name + 256) || strnlen (name, 256) == 256))
-    name = NULL;
-
-  if (name != NULL)
-    {
-      static char *demangled;
-      static size_t size;
-      int status;
-
-      demangled = __unixlib_cxa_demangle ((name[0] == '^' || name[0] == '#') ? name + 1 : name,
-					  demangled, &size, &status);
-      if (demangled != NULL && status == 0)
-        name = demangled;
-    }
+  if (name == NULL)
+    name = "?";
 
   return name;
 }
@@ -231,6 +233,7 @@ __write_backtrace_thread (const unsigned int *fp)
 		    : [is32bit] "=r" (is32bit)
 		    : /* no inputs */
 		    : "cc");
+  const unsigned int pcmask = is32bit ? 0xfffffffcu : 0x03fffffcu;
 
   int features;
   if (_swix (OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
@@ -243,8 +246,6 @@ __write_backtrace_thread (const unsigned int *fp)
   const unsigned int *oldfp = NULL;
   while (fp != NULL)
     {
-      unsigned int *pc, *lr;
-
       /* Check that FP is different.  */
       if (fp == oldfp)
 	{
@@ -253,130 +254,111 @@ __write_backtrace_thread (const unsigned int *fp)
 	}
 
       /* Validate FP address.  */
-      if (!__valid_address (fp - 3, fp))
+      if (!__valid_address (fp - 3, fp + 1))
 	{
 	  fprintf (stderr, "Stack frame has gone out of bounds "
-			   "with address %x\n", (unsigned int)fp - 12);
+			   "with address %x\n", (unsigned int)(fp - 3));
 	  break;
 	}
 
-      /* Retrieve PC counter.  */
-      if (is32bit)
-	pc = (unsigned int *)(fp[0] & 0xfffffffc);
-      else
-	pc = (unsigned int *)(fp[0] & 0x03fffffc);
+      /* Retrieve PC counter.
+	 PC counter has been saved using STMxx ..., { ..., PC } so it can be
+	 8 or 12 bytes away from the STMxx instruction depending on the ARM
+	 processor flavor.  Correct it so it is aways 8 bytes away.  */
+      const unsigned int *pc = (unsigned int *)(fp[0] & pcmask);
       if (!(features & 0x8))
-	pc++;
+	--pc;
 
-      if (!__valid_address (pc, pc))
+      if (!__valid_address (pc, pc + 4))
 	{
 	  fprintf (stderr, "Invalid pc address %x\n", (unsigned int)pc);
 	  break;
 	}
 
       /* Retrieve lr.  */
-      if (is32bit)
-	lr = (unsigned int *)(fp[-1] & 0xfffffffc);
-      else
-	lr = (unsigned int *)(fp[-1] & 0x03fffffc);
+      const unsigned int * const lr = (unsigned int *)(fp[-1] & pcmask);
 
       fprintf (stderr, "  (%8x) pc: %8x lr: %8x sp: %8x ",
 	       (unsigned int)fp, (unsigned int)pc, (unsigned int)lr,
 	       (unsigned int)fp[-2]);
 
       /* Retrieve function name.  */
-      if (!__valid_address (pc - 7, pc))
-	fputs ("[invalid address]\n", stderr);
-      else
-	{
-	  const char *name = extract_name (pc);
-	  if (!name)
-	    fputs (" ?()\n", stderr);
-	  else
-	    fprintf (stderr, " %s()\n", name);
-	}
+      const char *name = extract_name (pc);
+      fprintf (stderr, " %s()\n", name);
 
       oldfp = fp;
-      fp = (unsigned int *)fp[-3];
+      fp = (const unsigned int *)fp[-3];
 
-      if (fp != NULL && fp == __ul_callbackfp)
+      if (__ul_callbackfp != NULL && fp == __ul_callbackfp)
 	{
-	  const char * const rname[16] =
-	    { "a1", "a2", "a3", "a4", "v1", "v2", "v3", "v4",
-	      "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc"
-	    };
-
 	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
 	  fprintf (stderr, "\n  Register dump at %08x:\n",
-		   (unsigned int)&oldfp[1]);
+		   (unsigned int) &oldfp[1]);
 
-	  if (__valid_address (oldfp, oldfp + 17))
+	  if (!__valid_address (oldfp + 1, oldfp + 18))
+	    fputs ("\n    [bad register dump address]\n", stderr);
+	  else
 	    {
+	      const char rnames[] = "a1a2a3a4v1v2v3v4v5v6slfpipsplrpc";
 	      for (int reg = 0; reg < 16; reg++)
 		{
 		  if ((reg & 0x3) == 0)
 		    fputs ("\n   ", stderr);
 		  
-		  fprintf (stderr, " %s: %8x", rname[reg], oldfp[reg + 2]);
+		  fprintf (stderr, " %c%c: %8x",
+			   rnames[2*reg + 0], rnames[2*reg + 1], oldfp[reg + 2]);
 		}
 
 	      if (is32bit)
 		fprintf (stderr, "\n    cpsr: %8x\n", oldfp[1]);
 	      else
 		{
-		  const char * const pmode[4] =
-		    { "USR", "FIQ", "IRQ", "SVC" };
-		  fprintf (stderr, "\n    Mode %s, flags set: ",
-		    pmode[oldfp[15 + 2] & 3]);
-		  fputc ((oldfp[15 + 2] & (1<<31)) ? 'N' : 'n', stderr);
-		  fputc ((oldfp[15 + 2] & (1<<30)) ? 'Z' : 'z', stderr);
-		  fputc ((oldfp[15 + 2] & (1<<29)) ? 'C' : 'c', stderr);
-		  fputc ((oldfp[15 + 2] & (1<<28)) ? 'V' : 'v', stderr);
-		  fputc ((oldfp[15 + 2] & (1<<27)) ? 'I' : 'i', stderr);
-		  fputc ((oldfp[15 + 2] & (1<<26)) ? 'F' : 'f', stderr);
-		  fputc ('\n', stderr);
+		  const char * const pmode[4] = { "USR", "FIQ", "IRQ", "SVC" };
+		  fprintf (stderr, "\n    Mode %s, flags set: %c%c%c%c%c%c\n",
+			   pmode[oldfp[15 + 2] & 3],
+			   (oldfp[15 + 2] & (1<<31)) ? 'N' : 'n',
+			   (oldfp[15 + 2] & (1<<30)) ? 'Z' : 'z',
+			   (oldfp[15 + 2] & (1<<29)) ? 'C' : 'c',
+			   (oldfp[15 + 2] & (1<<28)) ? 'V' : 'v',
+			   (oldfp[15 + 2] & (1<<27)) ? 'I' : 'i',
+			   (oldfp[15 + 2] & (1<<26)) ? 'F' : 'f');
 		}
-	    }
-	  else
-	    fputs ("\n    [bad register dump address]\n", stderr);
 
-	  if (is32bit)
-	    pc = (unsigned int *) (oldfp[17] & 0xfffffffc);
-	  else
-	    pc = (unsigned int *) (oldfp[17] & 0x03fffffc);
+	      pc = (unsigned int *) (oldfp[17] & pcmask);
 
-	  /* Try LR if PC invalid */
-	  if (pc < (unsigned int *)0x8000 || !__valid_address (pc - 5, pc + 3))
-	    pc = (unsigned int *)oldfp[16];
+	      /* Try LR if PC invalid (e.g. with a prefetch abort).  */
+	      if (pc < (unsigned int *)0x8000 || !__valid_address (pc - 5, pc + 4))
+		pc = (unsigned int *) (oldfp[16] & pcmask);
 
-	  if (pc > (unsigned int *)0x8000 && __valid_address (pc - 5, pc + 3))
-	    {
-	      for (unsigned int *diss = pc - 5; diss <= pc + 3; diss++)
+	      if (pc >= (unsigned int *)0x8000 && __valid_address (pc - 5, pc + 4))
 		{
-		  const char *ins;
-		  int length;
-		  _swix (Debugger_Disassemble, _INR(0,1) | _OUTR(1,2),
-			 *diss, diss, &ins, &length);
-
-		  const unsigned char c[4] =
+		  for (unsigned int *diss = pc - 5; diss < pc + 4; diss++)
 		    {
-		      (*diss >>  0) & 0xFF,
-		      (*diss >>  8) & 0xFF,
-		      (*diss >> 16) & 0xFF,
-		      (*diss >> 24)
-		    };
-		  fprintf (stderr, "\n  %08x : %c%c%c%c : %08x : ",
-		    (unsigned int) diss,
-		    (c[0] >= ' ' && c[0] != 127) ? c[0] : '.',
-		    (c[1] >= ' ' && c[1] != 127) ? c[1] : '.',
-		    (c[2] >= ' ' && c[2] != 127) ? c[2] : '.',
-		    (c[3] >= ' ' && c[3] != 127) ? c[3] : '.',
-		    *diss);
-		  fwrite (ins, length, 1, stderr);
+		      const char *ins;
+		      int length;
+		      _swix (Debugger_Disassemble, _INR(0,1) | _OUTR(1,2),
+			     *diss, diss, &ins, &length);
+
+		      const unsigned char c[4] =
+			{
+			  (*diss >>  0) & 0xFF,
+			  (*diss >>  8) & 0xFF,
+			  (*diss >> 16) & 0xFF,
+			  (*diss >> 24)
+			};
+		      fprintf (stderr, "\n  %08x : %c%c%c%c : %08x : ",
+			       (unsigned int) diss,
+			       (c[0] >= ' ' && c[0] != 127) ? c[0] : '.',
+			       (c[1] >= ' ' && c[1] != 127) ? c[1] : '.',
+			       (c[2] >= ' ' && c[2] != 127) ? c[2] : '.',
+			       (c[3] >= ' ' && c[3] != 127) ? c[3] : '.',
+			       *diss);
+		      fwrite (ins, length, 1, stderr);
+		    }
 		}
+	      else
+		fputs ("\n  [Disassembly not available]", stderr);
 	    }
-	  else
-	    fputs ("\n  [Disassembly not available]", stderr);
 
 	  fputs ("\n\n", stderr);
 	}
@@ -460,8 +442,7 @@ post_signal (struct unixlib_sigstate *ss, int signo)
   enum
   {
     stop, ignore, core, term, handle
-  }
-  act;
+  } act;
 
   /* 0 is the special signo used for posting any pending signals.  */
   if (signo == 0)
@@ -619,9 +600,9 @@ death:
 	  }
 
 	if (signo == SIGOSERROR && __pthread_running_thread->errbuf_valid)
-	  fprintf(stderr, "\nError 0x%x: %s\n  pc: %08x\n",
+	  fprintf(stderr, "\nError 0x%x: %s\n  pc: %x\n",
 			  __ul_errbuf.errnum, __ul_errbuf.errmess,
-			  (int)((int *)__ul_errbuf.pc - 1));
+			  (int)(int *)__ul_errbuf.pc);
 
 	if (act == term)
 	  write_termination (signo);
