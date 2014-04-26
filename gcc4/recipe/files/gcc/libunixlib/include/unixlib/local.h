@@ -1,5 +1,5 @@
 /* UnixLib internal function declarations.
-   Copyright (c) 2002-2013 UnixLib Developers.  */
+   Copyright (c) 2002-2014 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_LOCAL_H
 #define __UNIXLIB_LOCAL_H 1
@@ -122,7 +122,7 @@ extern int __set_customselect (int fd,
    previous specified non-NULL directory gets used, or the directory specified
    by OS system variables (in order) UnixEnv$<program name>$coredump and
    UnixEnv$coredump when defined.  */
-extern _kernel_oserror *__unixlib_write_coredump (const char *__dir);
+extern const _kernel_oserror *__unixlib_write_coredump (const char *__dir);
 
 /* Output detailed backtrace of current thread and all other threads via
    stderr. When a non zero signal number 'signo' is supplied, the corresponding

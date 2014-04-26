@@ -609,7 +609,7 @@ death:
 	else if (act == core)
 	  {
 	    __write_backtrace (signo);
-	    _kernel_oserror *roerr;
+	    const _kernel_oserror *roerr;
 	    if ((roerr = __unixlib_write_coredump (NULL)) != NULL)
 	      fprintf (stderr, "Failed to coredump: %s\n", roerr->errmess);
 	    status |= WCOREFLAG;

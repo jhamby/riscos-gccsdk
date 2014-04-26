@@ -1,5 +1,5 @@
 /* Map or unmap memory.
-   Copyright (c) 1996-2012 UnixLib Developers.  */
+   Copyright (c) 1996-2014 UnixLib Developers.  */
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
 /* sys/mman.c: Written by Peter Burwood, 1 November 1996, June 1997  */
@@ -68,7 +68,7 @@ __init_coredump (const char *dir)
     strcpy (coredump_dir, dir);
 }
 
-_kernel_oserror *
+const _kernel_oserror *
 __unixlib_write_coredump (const char *dir)
 {
   if (dir != NULL)

@@ -1,3 +1,10 @@
+Sat Apr 26 16:55:28 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/unixlib/local.h (__unixlib_write_coredump): Constify return
+	pointer.
+	* sys/mman.c (__unixlib_write_coredump): Likewise.
+	* signal/post.c (post_signal): Follow.
+
 Tue Apr 22 00:07:32 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* signal/_signal.s (__h_sigill): Undo lr correction.
