@@ -808,18 +808,21 @@ Input_GetString (size_t *len)
 		    }
 		  else
 		    {
-		      i |= 0x20;
-		      c = i >= 'a' ? i - 'a' + 10 : i - '0';
-		      Input_Skip ();
-		      i = Input_Look ();
-		      if (!isxdigit (i))
-			Error (ErrorWarning, "Not a hex escape sequence");
-		      else
+		      unsigned intResult = 0;
+		      bool gaveWarning = false;
+		      do
 			{
 			  i |= 0x20;
-			  c = 16*c + (i >= 'a' ? i - 'a' + 10 : i - '0');
+			  intResult = 16*intResult + (i >= 'a' ? i - 'a' + 10 : i - '0');
+			  if (intResult >= 0x100 && !gaveWarning)
+			    {
+			      gaveWarning = true;
+			      Error (ErrorWarning, "Hex escape sequence out of range");
+			    }
 			  Input_Skip ();
-			}
+			  i = Input_Look ();
+			} while (isxdigit (i));
+		      c = intResult & 0xFF;
 		    }
 		  break;
 		}
@@ -853,11 +856,10 @@ Input_GetString (size_t *len)
 		break;
 
 	      case '\\':
-		c = '\\';
-		break;
-
 	      case '\"':
-		c = '\"';
+	      case '\?':
+	      case '\'':
+		/* Nothing to do.  */
 		break;
 
 	      default:
