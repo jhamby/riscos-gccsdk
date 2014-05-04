@@ -1,3 +1,8 @@
+Sun May  4 15:35:43 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/compare/core/def.s: Add disable & currently failing
+	test case.
+
 Sun May  4 15:32:44 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/lex.c (Lex_Char2Int): Merge into...
