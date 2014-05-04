@@ -1,3 +1,11 @@
+Sun May  4 15:32:44 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/lex.c (Lex_Char2Int): Merge into...
+	(Lex_GetPrim): ...this. Add check on empty character constant.  Give
+	warning on non-standard multi-character constant and implement it
+	differently.
+	* unittests/compare/core/directive_data_integer.s: Update test case.
+
 Sun Apr  6 01:04:42 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/directive_storagemap.c: Drop support for ValueCode.

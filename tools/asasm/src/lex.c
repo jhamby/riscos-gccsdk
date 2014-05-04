@@ -1071,22 +1071,6 @@ Lex_GetBuiltinVariable (void)
 }
 
 
-static ARMWord
-Lex_Char2Int (size_t len, const char *str)
-{
-  assert (len <= 4);
-
-  ARMWord result = 0;
-  for (size_t i = 0; i != 4; ++i)
-    {
-      result >>= 8;
-      if (i < len)
-	result |= (unsigned)str[i] << 24;
-    }
-  return result;
-}
-
-
 /**
  * Tries to parse an integer (LexInt or LexInt64) or float (LexFloat) literal.
  * Any base indication (like "0x", "&", "4_", etc.) has already been parsed.
@@ -1410,28 +1394,32 @@ Lex_GetPrim (void)
 
       case '\'':
 	{
-	  char in[4];
-	  int i;
+	  uint32_t intResult = 0;
 	  unsigned char ci;
-	  for (i = 0; (ci = Input_GetC ()) != '\''; ++i)
-	    {
-	      if (ci == '\\')
-		ci = Input_GetC ();
-	      if (ci == '\0')
-		{
-		  Error (ErrorError, "Constant specification continues over newline");
-		  break;
-		}
-	      if (i == 4)
-		{
-		  Error (ErrorError, "Illegal constant specification");
-		  break;
-		}
-	      in[i] = ci;
-	    }
-
+	  if (Input_Look () == '\'')
+	    Error (ErrorError, "Empty character constant");
+	  else
+	    for (unsigned i = 0; (ci = Input_GetC ()) != '\''; ++i)
+	      {
+		if (ci == '\\')
+		  ci = Input_GetC (); /* FIXME: not 100% ok */
+		if (ci == '\0')
+		  {
+		    Error (ErrorError, "Constant specification continues over newline");
+		    break;
+		  }
+		if (i == 1)
+		  Error (ErrorWarning, "Non-standard multi-character character constant");
+		else if (i == 4)
+		  {
+		    Error (ErrorError, "Illegal constant specification");
+		    break;
+		  }
+		intResult <<= 8;
+		intResult |= ci;
+	      }
 	  result.tag = LexInt;
-	  result.Data.Int.value = Lex_Char2Int (i, in);
+	  result.Data.Int.value = intResult;
 	  break;
 	}
 
