@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
- * Copyright (c) 2009-2011 Kai Wang
+ * Copyright (c) 2009-2014 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: _libdwarf.h 2075 2011-10-27 03:47:28Z jkoshy $
+ * $Id: _libdwarf.h 3034 2014-05-02 20:09:08Z kaiwang27 $
  */
 
 #ifndef	__LIBDWARF_H_
@@ -89,6 +89,7 @@ extern struct _libdwarf_globals _libdwarf;
 			goto gen_fail;					\
 	} while(0)
 
+typedef struct _Dwarf_CU *Dwarf_CU;
 
 struct _Dwarf_AttrDef {
 	uint64_t	ad_attrib;		/* DW_AT_XXX */
@@ -333,11 +334,14 @@ struct _Dwarf_CU {
 	uint64_t	cu_lineno_offset; /* Offset into .debug_lineno. */
 	uint8_t		cu_pointer_size;/* Number of bytes in pointer. */
 	uint8_t		cu_dwarf_size;	/* CU section dwarf size. */
+	Dwarf_Sig8	cu_type_sig;	/* Type unit's signature. */
+	uint64_t	cu_type_offset; /* Type unit's type offset. */
 	Dwarf_Off	cu_next_offset; /* Offset to the next CU. */
 	uint64_t	cu_1st_offset;	/* First DIE offset. */
 	int		cu_pass2;	/* Two pass DIE traverse. */
 	Dwarf_LineInfo	cu_lineinfo;	/* Ptr to Dwarf_LineInfo. */
 	Dwarf_Abbrev	cu_abbrev_hash; /* Abbrev hash table. */
+	Dwarf_Bool	cu_is_info;	/* Compilation/type unit flag. */
 	STAILQ_ENTRY(_Dwarf_CU) cu_next; /* Next compilation unit. */
 };
 
@@ -399,16 +403,21 @@ struct _Dwarf_Debug {
 	Dwarf_Section	*dbg_section;	/* Dwarf section list. */
 	Dwarf_Section	*dbg_info_sec;	/* Pointer to info section. */
 	Dwarf_Off	dbg_info_off;	/* Current info section offset. */
+	Dwarf_Section	*dbg_types_sec; /* Pointer to type section. */
+	Dwarf_Off	dbg_types_off;	/* Current types section offset. */
 	Dwarf_Unsigned	dbg_seccnt;	/* Total number of dwarf sections. */
 	int		dbg_mode;	/* Access mode. */
 	int		dbg_pointer_size; /* Object address size. */
 	int		dbg_offset_size;  /* DWARF offset size. */
 	int		dbg_info_loaded; /* Flag indicating all CU loaded. */
+	int		dbg_types_loaded; /* Flag indicating all TU loaded. */
 	Dwarf_Half	dbg_machine;	/* ELF machine architecture. */
 	Dwarf_Handler	dbg_errhand;	/* Error handler. */
 	Dwarf_Ptr	dbg_errarg;	/* Argument to the error handler. */
 	STAILQ_HEAD(, _Dwarf_CU) dbg_cu;/* List of compilation units. */
+	STAILQ_HEAD(, _Dwarf_CU) dbg_tu;/* List of type units. */
 	Dwarf_CU	dbg_cu_current; /* Ptr to the current CU. */
+	Dwarf_CU	dbg_tu_current; /* Ptr to the current TU. */
 	TAILQ_HEAD(, _Dwarf_Loclist) dbg_loclist; /* List of location list. */
 	Dwarf_NameSec	dbg_globals;	/* Ptr to pubnames lookup section. */
 	Dwarf_NameSec	dbg_pubtypes;	/* Ptr to pubtypes lookup section. */
@@ -553,9 +562,12 @@ Dwarf_Unsigned	_dwarf_get_reloc_type(Dwarf_P_Debug, int);
 int		_dwarf_get_reloc_size(Dwarf_Debug, Dwarf_Unsigned);
 void		_dwarf_info_cleanup(Dwarf_Debug);
 int		_dwarf_info_first_cu(Dwarf_Debug, Dwarf_Error *);
+int		_dwarf_info_first_tu(Dwarf_Debug, Dwarf_Error *);
 int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
-int		_dwarf_info_load(Dwarf_Debug, int, Dwarf_Error *);
+int		_dwarf_info_load(Dwarf_Debug, Dwarf_Bool, Dwarf_Bool,
+		    Dwarf_Error *);
 int		_dwarf_info_next_cu(Dwarf_Debug, Dwarf_Error *);
+int		_dwarf_info_next_tu(Dwarf_Debug, Dwarf_Error *);
 void		_dwarf_info_pro_cleanup(Dwarf_P_Debug);
 int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Handler,
 		    Dwarf_Ptr, Dwarf_Error *);

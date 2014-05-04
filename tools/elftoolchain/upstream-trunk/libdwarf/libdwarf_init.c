@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_init.c 2948 2013-05-30 21:25:52Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_init.c 3029 2014-04-21 23:26:02Z kaiwang27 $");
 
 static int
 _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
@@ -97,6 +97,9 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_INFO_NULL);
 		return (DW_DLE_DEBUG_INFO_NULL);
 	}
+
+	/* Try to find the optional DWARF4 .debug_types section. */
+	dbg->dbg_types_sec = _dwarf_find_section(dbg, ".debug_types");
 
 	/* Initialise call frame API related parameters. */
 	_dwarf_frame_params_init(dbg);

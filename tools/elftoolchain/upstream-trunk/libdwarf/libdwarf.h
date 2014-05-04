@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
- * Copyright (c) 2009-2011 Kai Wang
+ * Copyright (c) 2009-2011,2014 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: libdwarf.h 2576 2012-09-13 09:16:11Z jkoshy $
+ * $Id: libdwarf.h 3034 2014-05-02 20:09:08Z kaiwang27 $
  */
 
 #ifndef	_LIBDWARF_H_
@@ -47,7 +47,6 @@ typedef struct _Dwarf_ArangeSet	*Dwarf_ArangeSet;
 typedef struct _Dwarf_Attribute	*Dwarf_Attribute;
 typedef struct _Dwarf_Attribute *Dwarf_P_Attribute;
 typedef struct _Dwarf_AttrDef	*Dwarf_AttrDef;
-typedef struct _Dwarf_CU	*Dwarf_CU;
 typedef struct _Dwarf_Cie	*Dwarf_Cie;
 typedef struct _Dwarf_Cie	*Dwarf_P_Cie;
 typedef struct _Dwarf_Debug	*Dwarf_Debug;
@@ -626,6 +625,9 @@ int		dwarf_get_cu_die_offset(Dwarf_Arange, Dwarf_Off *,
 		    Dwarf_Error *);
 int		dwarf_get_cu_die_offset_given_cu_header_offset(Dwarf_Debug,
 		    Dwarf_Off, Dwarf_Off *, Dwarf_Error *);
+int		dwarf_get_cu_die_offset_given_cu_header_offset_b(Dwarf_Debug,
+		    Dwarf_Off, Dwarf_Bool, Dwarf_Off *, Dwarf_Error *);
+Dwarf_Bool	dwarf_get_die_infotypes_flag(Dwarf_Die);
 int		dwarf_get_elf(Dwarf_Debug, Elf **, Dwarf_Error *);
 int		dwarf_get_fde_at_pc(Dwarf_Fde *, Dwarf_Addr, Dwarf_Fde *,
 		    Dwarf_Addr *, Dwarf_Addr *, Dwarf_Error *);
@@ -735,10 +737,16 @@ int		dwarf_next_cu_header(Dwarf_Debug, Dwarf_Unsigned *,
 int		dwarf_next_cu_header_b(Dwarf_Debug, Dwarf_Unsigned *,
 		    Dwarf_Half *, Dwarf_Off *, Dwarf_Half *, Dwarf_Half *,
 		    Dwarf_Half *, Dwarf_Unsigned *, Dwarf_Error *);
+int		dwarf_next_cu_header_c(Dwarf_Debug, Dwarf_Bool,
+		    Dwarf_Unsigned *, Dwarf_Half *, Dwarf_Off *, Dwarf_Half *,
+		    Dwarf_Half *, Dwarf_Half *, Dwarf_Sig8 *, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_object_finish(Dwarf_Debug, Dwarf_Error *);
 int		dwarf_object_init(Dwarf_Obj_Access_Interface *, Dwarf_Handler,
 		    Dwarf_Ptr, Dwarf_Debug *, Dwarf_Error *);
 int		dwarf_offdie(Dwarf_Debug, Dwarf_Off, Dwarf_Die *,
+		    Dwarf_Error *);
+int		dwarf_offdie_b(Dwarf_Debug, Dwarf_Off, Dwarf_Bool, Dwarf_Die *,
 		    Dwarf_Error *);
 Dwarf_Unsigned	dwarf_producer_finish(Dwarf_P_Debug, Dwarf_Error *);
 Dwarf_P_Debug	dwarf_producer_init(Dwarf_Unsigned, Dwarf_Callback_Func,
@@ -765,6 +773,8 @@ int		dwarf_set_reloc_application(int);
 Dwarf_Ptr	dwarf_seterrarg(Dwarf_Debug, Dwarf_Ptr);
 Dwarf_Handler	dwarf_seterrhand(Dwarf_Debug, Dwarf_Handler);
 int		dwarf_siblingof(Dwarf_Debug, Dwarf_Die, Dwarf_Die *, Dwarf_Error *);
+int		dwarf_siblingof_b(Dwarf_Debug, Dwarf_Die, Dwarf_Die *, Dwarf_Bool,
+		    Dwarf_Error *);
 int		dwarf_srcfiles(Dwarf_Die, char ***, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_srclang(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_srclines(Dwarf_Die, Dwarf_Line **, Dwarf_Signed *,
