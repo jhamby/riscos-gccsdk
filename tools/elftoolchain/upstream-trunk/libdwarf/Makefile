@@ -1,4 +1,4 @@
-# $Id: Makefile 2937 2013-04-27 04:48:23Z jkoshy $
+# $Id: Makefile 3035 2014-05-05 19:16:27Z kaiwang27 $
 
 TOP=	${.CURDIR}/..
 
@@ -42,6 +42,7 @@ SRCS=	\
 	dwarf_pubtypes.c	\
 	dwarf_ranges.c		\
 	dwarf_reloc.c		\
+	dwarf_sections.c	\
 	dwarf_seterror.c	\
 	dwarf_str.c		\
 	dwarf_types.c		\
