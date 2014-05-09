@@ -24,7 +24,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: libdwarf.h 3034 2014-05-02 20:09:08Z kaiwang27 $
+ * $Id: libdwarf.h 3035 2014-05-05 19:16:27Z kaiwang27 $
  */
 
 #ifndef	_LIBDWARF_H_
@@ -680,6 +680,16 @@ int		dwarf_get_relocation_info_count(Dwarf_P_Debug, Dwarf_Unsigned *,
 		    int *, Dwarf_Error *);
 Dwarf_Ptr	dwarf_get_section_bytes(Dwarf_P_Debug, Dwarf_Signed,
 		    Dwarf_Signed *, Dwarf_Unsigned *, Dwarf_Error *);
+int		dwarf_get_section_max_offsets(Dwarf_Debug, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *);
+int		dwarf_get_section_max_offsets_b(Dwarf_Debug, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Unsigned *);
 int		dwarf_get_str(Dwarf_Debug, Dwarf_Off, char **, Dwarf_Signed *,
 		    Dwarf_Error *);
 int		dwarf_get_types(Dwarf_Debug, Dwarf_Type **, Dwarf_Signed *,
