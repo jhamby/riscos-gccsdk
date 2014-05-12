@@ -1,0 +1,35 @@
+Cairo V1.12.16
+--------------
+
+This version of Cairo does not include an XLib surface. It has deliberately been
+disabled in an attempt to create a RISC OS specific solution.
+
+--
+
+This version of Cairo includes a RISC OS Sprite Surface. Based on the standard
+Cairo Image surface, anything that can be rendered to an Image surface
+can be rendered to a RISC OS Sprite Surface.
+
+To use, simply replace a call to cairo_image_surface_create with a call to
+cairo_riscos_sprite_surface_create. The arguments and return type are
+identical, eg:
+
+    cairo_surface_t *surface =
+	cairo_riscos_sprite_surface_create (CAIRO_FORMAT_ARGB32, 256, 256);
+
+This will create a sprite 256 pixels wide by 256 pixels high. All cairo operations
+that act on the surface are then used in the same way.
+
+To save the surface as a sprite file, use a call like:
+
+    cairo_riscos_sprite_surface_write_to_file (surface, "ram:$.sprite-file");
+
+It can also be saved as a PNG file:
+
+    cairo_surface_write_to_png (surface, "ram:$.png-file");
+
+--
+
+Although there is some code in the library to render RISC OS Fonts, it's not
+adequate for serious use. Instead, freetype/fontconfig is known to give
+good results using TrueType fonts.

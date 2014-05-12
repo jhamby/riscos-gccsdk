@@ -1,4 +1,7 @@
 zlib1g
 libpng12-0
+libpixman-1-0
 gdk-pixbuf
-librsvg2-2
+fontconfig
+libfreetype6
+oslib
