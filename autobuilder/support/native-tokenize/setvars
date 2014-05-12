@@ -6,7 +6,7 @@
 # note spelling of 'tokenise' and 'tokenize' is somewhat haphazard.  The
 # author's webpage refers to it as 'tokenize' so that is what is used.
 
-AB_URL=http://www.stevefryatt.org.uk/software/build/tokenise2244src.zip
+AB_SVN=svn://svn.riscos.info/tokenize/trunk/
 AB_PACKAGES=tokenize
 
 AB_PRECONF=:

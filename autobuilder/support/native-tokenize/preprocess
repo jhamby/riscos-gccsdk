@@ -1,3 +1,2 @@
 #!/bin/sh
 AB_PACKAGES=native-tokenize
-AB_FULLNAME=native-tokenize
