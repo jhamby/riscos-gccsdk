@@ -17,7 +17,7 @@ export ac_cv_gnu_library_2_1=yes
 export glib_cv_g_atomic_lock_free=no
 export glib_flag_works=no
 
-AB_CONFLAGS="--with-pcre=system --with-threads=posix --enable-modular_tests=no"
+AB_CONFLAGS="--with-pcre=system --with-threads=posix"
 
 mkdir -p $D/bin
 
@@ -28,7 +28,13 @@ ab_package() {
 
   # Shared libraries package
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    slibdir=$D/libglib2.0-0/Resources/\!SharedLibs/lib
+    abi_dir=abi-2.0
+    gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
+    if [[ "$gcc_version" == *4.1.2* ]]; then
+      abi_dir=abi-1.0
+    fi
+
+    slibdir=$D/libglib2.0-0/Resources/\!SharedLibs/lib/$abi_dir
     mkdir -p $slibdir
   fi
 

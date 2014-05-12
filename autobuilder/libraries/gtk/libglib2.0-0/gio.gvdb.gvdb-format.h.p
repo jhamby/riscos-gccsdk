@@ -1,6 +1,6 @@
---- gio/gvdb/gvdb-format.h.orig	2013-10-09 12:13:29.000000000 +0100
-+++ gio/gvdb/gvdb-format.h	2013-10-09 12:13:49.173950480 +0100
-@@ -24,7 +24,7 @@
+--- gio/gvdb/gvdb-format.h.orig	2014-02-03 17:40:41.000000000 +0000
++++ gio/gvdb/gvdb-format.h	2014-05-08 17:08:34.116137594 +0100
+@@ -22,7 +22,7 @@
  
  #include <glib.h>
  

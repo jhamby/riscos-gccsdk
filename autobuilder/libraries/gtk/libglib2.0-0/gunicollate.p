@@ -1,6 +1,6 @@
---- glib/gunicollate.c.orig	2013-05-07 19:26:07.000000000 +0100
-+++ glib/gunicollate.c	2013-10-09 12:21:28.189944500 +0100
-@@ -37,7 +37,7 @@
+--- glib/gunicollate.c.orig	2014-02-22 15:29:07.000000000 +0000
++++ glib/gunicollate.c	2014-05-08 17:08:34.148137594 +0100
+@@ -36,7 +36,7 @@
  #include "gstrfuncs.h"
  #include "gtestutils.h"
  #include "gcharset.h"
@@ -9,7 +9,7 @@
  #include "gconvert.h"
  #endif
  
-@@ -103,7 +103,7 @@
+@@ -102,7 +102,7 @@
    g_free (str2_utf16);
    g_free (str1_utf16);
  
@@ -18,7 +18,7 @@
  
    gunichar *str1_norm;
    gunichar *str2_norm;
-@@ -381,7 +381,7 @@
+@@ -379,7 +379,7 @@
    g_return_val_if_fail (str != NULL, NULL);
    result = carbon_collate_key (str, len);
  

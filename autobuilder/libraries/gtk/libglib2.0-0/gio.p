@@ -1,6 +1,6 @@
---- gio/gunixmounts.c.orig	2013-08-07 15:34:32.000000000 +0100
-+++ gio/gunixmounts.c	2013-10-09 12:21:28.173944500 +0100
-@@ -716,6 +716,20 @@
+--- gio/gunixmounts.c.orig	2014-02-12 20:08:36.000000000 +0000
++++ gio/gunixmounts.c	2014-05-08 17:08:34.092137593 +0100
+@@ -722,6 +722,20 @@
  
    return return_list;
  }
@@ -21,7 +21,7 @@
  #else
  #error No _g_get_unix_mounts() implementation for system
  #endif
-@@ -1110,6 +1124,15 @@
+@@ -1118,6 +1132,15 @@
  {
    return _g_get_unix_mounts ();
  }
