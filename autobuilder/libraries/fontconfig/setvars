@@ -1,9 +1,19 @@
+
 AB_CATEGORY=Fonts
-AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev"
+AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1-lib"
 AB_CONFLAGS=\''--with-baseconfigdir=/\<UnixFC\$$Dir\>/fonts'\'
 AB_INSTALL=env
 # Only install library files
 AB_INSTALLTARGET="-C src install"
+
+if [ -d $S/b ]; then
+  # Note: Debian patch adds the documentation and other missing files, but places them
+  # in a directory called 'b' by mistake; merge 'b' into main source tree.
+  cp -R $S/b/* $S/
+  rm -rf $S/b
+fi
+
+autoreconf -fi
 
 ab_package() {
 
@@ -54,7 +64,7 @@ ab_package() {
   cp -av $AVAIL_CONF $A/fonts/conf.avail
   cp -av $CONFD_CONF $A/fonts/conf.d
 
-  ab_docs AUTHORS ChangeLog COPYING README
+  ab_docs AUTHORS COPYING README
   cp -av $H/\!RISCOS $A/docs
 
   $AB_HOME/add-riscpkg -package "fontconfig-config"
