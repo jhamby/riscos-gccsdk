@@ -1,0 +1,36 @@
+Loaders location
+----------------
+The default loaders directory is:
+
+/SharedLibs:lib/abi-2.0/gdk-pixbuf-2.0/2.10.0/loaders
+
+That is, abi-2.0 (as used by versions of GCC from V4.6
+onwards) is assumed.
+
+This default can be overridden by using the command:
+
+*set GDK_PIXBUF_MODULEDIR /SharedLibs:lib/abi-1.0/gdk-pixbuf-2.0/2.10.0/loaders
+
+for abi-1.0 (GCC v4.1.2) or to use any other location.
+
+Utilities
+---------
+Two utilities are provided:
+
+gdk-pixbuf-query-loaders
+This program is used to scan the available loaders and
+cache information about what formats they understand.
+The results are sent to standard output for redirection
+to a cache file. Normally, the results would be stored
+in a file called loaders.cache located at
+/SharedLibs:lib/abi-2.0/gdk-pixbuf-2.0/2.10.0/.
+Such a file is provided for the loaders that are built
+with libgdk-pixbuf, so normally this utility will not
+be required unless loaders are added from somewhere else.
+
+gdk-pixbuf-csource
+This program is used to convert a graphic into a format
+that can be included in C source files.
+
+Please see the relevant man pages for further details
+about these utilities.

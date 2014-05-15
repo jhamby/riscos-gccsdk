@@ -3,3 +3,85 @@ AB_INSTALL=yes
 
 export gio_can_sniff=yes
 
+autoreconf -fi
+
+ab_package() {
+  ab_create_command_app GdkPixbuf2 Apps/Library gdk-pixbuf2-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/gdk-pixbuf-2.0/gdk-pixbuf gdk-pixbuf
+  rm -rf include
+
+  mv lib/*.a .
+  
+  rm -rf lib
+  rm -rf doc
+
+  cp $H/!ReadMe .
+
+  cd $HERE
+
+  ab_docs AUTHORS COPYING NEWS
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_add_commands $S/gdk-pixbuf/.libs/gdk-pixbuf-query-loaders$AB_EXEEXT
+    ab_add_commands $S/gdk-pixbuf/.libs/gdk-pixbuf-csource$AB_EXEEXT
+  else
+    ab_add_commands $S/gdk-pixbuf/gdk-pixbuf-query-loaders$AB_EXEEXT
+    ab_add_commands $S/gdk-pixbuf/gdk-pixbuf-query-csource$AB_EXEEXT
+  fi
+
+  $AB_HOME/add-riscpkg -unixlib -name GdkPixbuf2-Dev -copyrightfile COPYING
+  
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_app SharedLibs Apps/Library gdk-pixbuf2-lib
+
+    # Create a skeleton !SharedLibs directory and copy shared library.
+    # Determine which ABI is in use and therefor which directory to install
+    # to. We assume that GCC 4.1.1 is obsolete. For GCC 4.1.2, the ABI
+    # directory is "abi-1.0", for newer versions of GCC, it is "abi-2.0".
+    abi_dir=abi-2.0
+    gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
+    if [[ "$gcc_version" == *4.1.2* ]]; then
+      abi_dir=abi-1.0
+    fi
+
+    mkdir -p $A/lib/$abi_dir
+    
+    ux_lib_name=$(readlink gdk-pixbuf/.libs/libgdk_pixbuf-2.0.so)
+    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
+    cp -T $S/gdk-pixbuf/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libgdk_pixbuf-2.0.so,1C8
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libgdk_pixbuf-2.0.so.0,1C8
+
+    loaders_version_dir=`ls $GCCSDK_INSTALL_ENV/lib/gdk-pixbuf-2.0`
+    loaders_dir=$A/lib/$abi_dir/gdk-pixbuf-2.0/$loaders_version_dir/loaders
+    mkdir -p $loaders_dir
+    for file in $GCCSDK_INSTALL_ENV/lib/gdk-pixbuf-2.0/$loaders_version_dir/loaders/*.so*
+      do
+	# Just copy the actual shared libraries and not the links (we'll create our
+	# own links later).
+        if [ ! -L $file ]; then
+          cp $file $loaders_dir
+	else
+	  # Remove path element, keep basename and extension.
+	  ux_lib_name=$(readlink $file)
+	  # Convert to RISC OS format
+	  ro_lib_name=$(echo $ux_lib_name | tr /. ./)
+	  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $loaders_dir/${file##*/},1c8
+	fi
+      done
+
+    cp $H/loaders.cache $loaders_dir/..
+
+    $AB_HOME/add-riscpkg -package gdk-pixbuf2-lib \
+	-depends SharedLibs
+
+    # Don't overwrite the original !SharedLibs.!Boot.
+    rm $A/\!Boot,feb
+  fi
+}
