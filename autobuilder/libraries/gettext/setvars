@@ -12,6 +12,9 @@ AB_CONFLAGS="--with-included-gettext --enable-nls --disable-java --disable-nativ
 
 ab_package()
 {
+
+  rm -f man/man3
+
   ab_create_app LibGetText Apps/Library libgettext-dev
 
   # Run time libraries
