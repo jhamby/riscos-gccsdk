@@ -4,17 +4,31 @@ AB_CONFLAGS='--with-icu=no'
 
 ab_package() {
   #libharfbuzz-dev
-  ab_create_app Harfbuzz Apps/Library libharfbuzz-dev
+  ab_create_app LibHarfbuzz Apps/Library libharfbuzz-dev
 
-  mkdir -p $A/harfbuzz
-  cp -av $GCCSDK_INSTALL_ENV/include/harfbuzz/*.h $A/harfbuzz
-  cp -av $S/src/.libs/libharfbuzz*.a $A
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/harfbuzz harfbuzz
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
 
   $AB_HOME/add-riscpkg -package "libharfbuzz-dev"
 
   #libharfbuzz-lib
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
     ab_create_app SharedLibs Apps/Library libharfbuzz-lib
+
+    AB_COMPONENTS=""
 
     # Create a skeleton !SharedLibs directory and copy shared library.
     # Determine which ABI is in use and therefor which directory to install
@@ -42,7 +56,7 @@ ab_package() {
     fi
 
     $AB_HOME/add-riscpkg -package "libharfbuzz-lib" \
-	-SharedLibs
+	-depends SharedLibs
 
     # Don't overwrite the original !SharedLibs.!Boot.
     rm $A/\!Boot,feb
