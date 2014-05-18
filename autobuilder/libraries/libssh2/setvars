@@ -1,14 +1,21 @@
 # libssh2 just builds.  No autobuilder magic required!
 AB_INSTALL=yes
 
+if [ ! -d docs/man3 ] ; then
+  ln -s ../docs docs/man3
+fi
+
 ab_package() {
+
+  rm -f docs/man3
+
   ab_create_app LibSSH2 Apps/Library libssh2-dev
 
   HERE=`pwd`
   cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
-  
+
   # Need to retype the converted manual files
   MANFILES=$(find man -type f)
   for FILE in $MANFILES ; do
@@ -25,6 +32,6 @@ ab_package() {
   rm -rf doc/$RO_PKG
 
   cd $HERE
-  
+
   $AB_HOME/add-riscpkg -unixlib -name LibSSH2-Dev -copyrightfile COPYING
 }
