@@ -1,5 +1,7 @@
 AB_INSTALL=yes
 
+AB_CONFLAGS='--with-icu=no'
+
 ab_package() {
   #libharfbuzz-dev
   ab_create_app Harfbuzz Apps/Library libharfbuzz-dev
@@ -7,7 +9,7 @@ ab_package() {
   mkdir -p $A/harfbuzz
   cp -av $GCCSDK_INSTALL_ENV/include/harfbuzz/*.h $A/harfbuzz
   cp -av $S/src/.libs/libharfbuzz*.a $A
-  
+
   $AB_HOME/add-riscpkg -package "libharfbuzz-dev"
 
   #libharfbuzz-lib

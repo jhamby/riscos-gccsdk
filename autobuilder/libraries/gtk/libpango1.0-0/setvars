@@ -1,7 +1,7 @@
 
 AB_INSTALL=yes
 
-AB_CONFLAGS="--with-included-modules=basic-x,basic-fc"
+AB_CONFLAGS="--with-included-modules=basic-fc,basic-coretext"
 
 ab_package() {
   #libpango1-dev
@@ -11,7 +11,7 @@ ab_package() {
   cp -av $GCCSDK_INSTALL_ENV/include/pango-1.0/pango/*.h $A/pango
   cp -av $S/pango/.libs/libpango*.a $A
   cp -av $GCCSDK_INSTALL_ENV/lib/pango/*/modules/*.a $A
-  
+
   $AB_HOME/add-riscpkg -package "libpango1-dev"
 
   #libpango1-lib
