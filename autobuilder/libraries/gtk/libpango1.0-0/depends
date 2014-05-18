@@ -1,2 +1,11 @@
-cairo-gtk2
+libcairo2
 libglib2.0-0
+libpcre3
+fontconfig
+libfreetype6
+libffi5
+gettext
+libpixman-1-0
+libpng12-0
+zlib1g
+harfbuzz

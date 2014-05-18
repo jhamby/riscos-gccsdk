@@ -5,14 +5,25 @@ AB_CONFLAGS="--with-included-modules=basic-fc,basic-coretext"
 
 ab_package() {
   #libpango1-dev
-  ab_create_app Pango1 Apps/Library libpango1-dev
+  ab_create_app LibPango1 Apps/Library libpango1-dev
 
-  mkdir -p $A/pango
-  cp -av $GCCSDK_INSTALL_ENV/include/pango-1.0/pango/*.h $A/pango
-  cp -av $S/pango/.libs/libpango*.a $A
-  cp -av $GCCSDK_INSTALL_ENV/lib/pango/*/modules/*.a $A
+  HERE=`pwd`
+  cd $A
 
-  $AB_HOME/add-riscpkg -package "libpango1-dev"
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/pango-1.0/pango pango
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package "libpango1-dev" -name LibPango1-Dev
 
   #libpango1-lib
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
@@ -35,6 +46,18 @@ ab_package() {
     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpango-1.0.so,1C8
     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpango-1.0.so.0,1C8
 
+    ux_lib_name=$(readlink pango/.libs/libpangocairo-1.0.so)
+    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
+    cp -T $S/pango/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpangocairo-1.0.so,1C8
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpangocairo-1.0.so.0,1C8
+
+    ux_lib_name=$(readlink pango/.libs/libpangoft2-1.0.so)
+    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
+    cp -T $S/pango/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpangoft2-1.0.so,1C8
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpangoft2-1.0.so.0,1C8
+
     HERE=`pwd`
     cd $GCCSDK_INSTALL_ENV/lib/pango
     pango_version=$(find -maxdepth 1 ! -name '.' -type d)
@@ -45,11 +68,33 @@ ab_package() {
     cp -av $GCCSDK_INSTALL_ENV/lib/pango/$pango_version/modules/pango-*-lang.so \
 	   $A/lib/$abi_dir/pango/$pango_version/modules
 
-    # FIXME: Need dependencies adding
     $AB_HOME/add-riscpkg -package libpango1-lib \
-	-SharedLibs
+	-depends SharedLibs -depends LibCairo2-Lib -depends FontConfig-Lib \
+	-depends LibFreeType6-Lib -depends LibGlib2.0-Lib -suggests UnixFont
 
     # Don't overwrite the original !SharedLibs.!Boot.
     rm $A/\!Boot,feb
   fi
+
+  #libpango-examples
+  ab_create_app LibPangoExamples Apps/Library libpango1-examples
+
+  mkdir $A/examples
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    cp $S/examples/.libs/*,e1f $A/examples
+  else
+    cp $S/examples/*,e1f $A/examples
+  fi
+
+  mkdir $A/pango-view
+  cp $S/pango-view/*.txt $A/pango-view
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    cp $S/pango-view/.libs/pango-view,e1f $A/pango-view
+  else
+    cp $S/pango-view/pango-view,e1f $A/pango-view
+  fi
+
+  cp -T $H/examples-ReadMe $A/!ReadMe
+
+  $AB_HOME/add-riscpkg -package libpango1-examples
 }
