@@ -1,23 +1,23 @@
 --- goo/gfile.cc.orig	2013-05-23 16:42:45.240000000 +0100
 +++ goo/gfile.cc	2013-05-23 16:54:46.711061462 +0100
-@@ -53,6 +53,8 @@
+@@ -53,6 +53,7 @@
  #endif // _WIN32
  #include <stdio.h>
  #include <limits>
 +#include <errno.h>
-+#include <sys/types.h>
  #include "GooString.h"
  #include "gfile.h"
 
-@@ -62,6 +62,11 @@
+@@ -62,6 +62,12 @@
  #define PATH_MAX 1024
  #endif
 
 +typedef long _ssize_t;
++typedef _ssize_t ssize_t;
 +
 +static ssize_t goo_pread(int fd, void *buf, size_t count, off_t offset);
 +static ssize_t read_in_full(int fd, void *buf, size_t count);
-+
++static ssize_t xread(int fd, void *buf, size_t len);
  //------------------------------------------------------------------------
 
  GooString *getCurrentDir() {

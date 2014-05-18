@@ -1,8 +1,9 @@
 
-AB_URL=http://poppler.freedesktop.org/poppler-0.23.1.tar.xz
-AB_ROVERSION=2
+AB_URL=http://poppler.freedesktop.org/poppler-0.26.0.tar.xz
 
 AB_CONFLAGS='--enable-zlib --enable-libcurl'
+
+autoreconf -fi
 
 ab_package() {
   # Package programs
