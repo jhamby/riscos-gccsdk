@@ -12,7 +12,7 @@
 # The package version should be updated with each
 # release and reset only if the upstream version changes
 
-export RPKG_SHAREDLIBS_VERSION=2.0-$GCCSDK_RELEASE_NAME-1
+export RPKG_SHAREDLIBS_VERSION=4.0-$GCCSDK_RELEASE_NAME-1
 
 # The C shared libraries includes libunixlib, libgcc
 # and libm so use the GCCSDK version, but remember

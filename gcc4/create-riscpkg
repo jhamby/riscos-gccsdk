@@ -31,16 +31,14 @@ GCCSDK_UNPACKED=$GCCSDK_RELEASE_AREA/kits
 GCCSDK_RISCPKG=$GCCSDK_RELEASE_AREA/riscpkg
 
 # Location in kits folder
-BKIT_GCCCORE_NAME=gccsdk-gcc-core-bin-$GCCSDK_FULL_RELEASE_NAME
-BKIT_GCCGPP_NAME=gccsdk-gcc-g++-bin-$GCCSDK_FULL_RELEASE_NAME
+BKIT_GCC_NAME=gccsdk-gcc-bin-$GCCSDK_FULL_RELEASE_NAME
+BKIT_SHAREDLIBS_NAME=gccsdk-sharedlibs
 BKIT_SYSTEM_NAME=system
-BKIT_SHAREDLIBSCORE_NAME=gccsdk-sharedlibs-core
-BKIT_SHAREDLIBSGPP_NAME=gccsdk-sharedlibs-g++
 
 RPKG_GCCCORE_NAME=GCC4
 RPKG_GCCGPP_NAME=GCC4-C++
-RPKG_SHAREDLIBSC_NAME=SharedLibs-C
-RPKG_SHAREDLIBSGPP_NAME=SharedLibs-C++
+RPKG_SHAREDLIBSC_NAME=SharedLibs-C2
+RPKG_SHAREDLIBSGPP_NAME=SharedLibs-C++2
 
 GCCSDK_MAINTAINER="GCCSDK mailing list <gcc@gccsdk.riscos.info>"
 
@@ -147,10 +145,17 @@ cd $GCCSDK_RISCPKG
 mkdir temp
 cd temp
 mkdir -p Apps/Development
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC Apps/Development
+cp -r $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC Apps/Development
 
 # Add Examples
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/Examples Apps/Development/\!GCC
+cp -r $GCCSDK_UNPACKED/$BKIT_GCC_NAME/Examples Apps/Development/\!GCC
+
+# Remove C++ compiler and support
+rm -f Apps/Development/\!GCC/lib/libstdc++.a
+rm -f Apps/Development/\!GCC/lib/libsupc++.a
+rm -rf Apps/Development/\!GCC/bin/g++,e1f
+rm -rf Apps/Development/\!GCC/include/c++
+
 
 mkdir RiscPkg
 
@@ -160,10 +165,11 @@ echo "Version: $GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
 echo "Section: Development" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
-echo "Standards-Version: 0.1.0" >> RiscPkg/Control
+echo "Standards-Version: 0.4.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
-echo "Depends: $RPKG_SHAREDLIBSC_NAME (>= $RPKG_SHAREDLIBSC_VERSION)" >> RiscPkg/Control
+echo "Depends: $RPKG_SHAREDLIBSC_NAME (>= $RPKG_SHAREDLIBSC_VERSION), $RPKG_SHAREDLIBSGPP_NAME (>=$RPKG_SHAREDLIBSGPP_VERSION)" >> RiscPkg/Control
 echo "Conflicts: GCC-Common" >> RiscPkg/Control
+echo "Components: Apps.Development.!GCC (Movable LookAt)" >> RiscPkg/Control
 echo "Description: RISC OS port of the GNU Compiler Connection including the C Compiler and core tools" >> RiscPkg/Control
 
 # Create copyright
@@ -176,17 +182,17 @@ gpl_copyright
 
 echo "cmunge copyright" >> RiscPkg/Copyright
 echo "----------------" >> RiscPkg/Copyright
-cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/cmunge/Copyright >> RiscPkg/Copyright
+cat  $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/docs/cmunge/Copyright >> RiscPkg/Copyright
 echo "" >> RiscPkg/Copyright
 
 echo "mkresfs copyright" >> RiscPkg/Copyright
 echo "-----------------" >> RiscPkg/Copyright
-cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/mkresfs/COPYING >> RiscPkg/Copyright
+cat  $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/docs/mkresfs/COPYING >> RiscPkg/Copyright
 echo "" >> RiscPkg/Copyright
 
 echo "UnixLib / SCL stubs copyright" >> RiscPkg/Copyright
 echo "-----------------------------" >> RiscPkg/Copyright
-cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPkg/Copyright
+cat  $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPkg/Copyright
 
 set_file_types
 
@@ -202,8 +208,15 @@ rm -rf temp
 
 mkdir temp
 cd temp
-mkdir -p Apps/Development
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/\!GCC Apps/Development
+mkdir -p Apps/Development/\!GCC
+mkdir -p Apps/Development/\!GCC/lib
+mkdir -p Apps/Development/\!GCC/bin
+mkdir -p Apps/Development/\!GCC/include
+
+cp -f $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/lib/libstdc++.a Apps/Development/\!GCC/lib/libstdc++.a
+cp -f $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/lib/libsupc++.a Apps/Development/\!GCC/lib/libsupc++.a
+cp -f $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/bin/g++,e1f Apps/Development/\!GCC/bin/g++,e1f
+cp -rf $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/include/c++ Apps/Development/\!GCC/include
 
 mkdir RiscPkg
 
@@ -213,9 +226,9 @@ echo "Version: $GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
 echo "Section: Development" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
-echo "Standards-Version: 0.1.0" >> RiscPkg/Control
+echo "Standards-Version: 0.4.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
-echo "Depends: $RPKG_GCCCORE_NAME (>=$GCCSDK_FULL_RELEASE_NAME), $RPKG_SHAREDLIBSGPP_NAME (>=$RPKG_SHAREDLIBSGPP_VERSION)" >> RiscPkg/Control
+echo "Depends: $RPKG_GCCCORE_NAME (>=$GCCSDK_FULL_RELEASE_NAME)" >> RiscPkg/Control
 echo "Description: RISC OS port of the GNU C++ Compiler" >> RiscPkg/Control
 
 # Create copyright
@@ -239,12 +252,10 @@ rm -rf temp
 mkdir temp
 cd temp
 mkdir -p Resources
-cp -r $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSCORE_NAME/\!SharedLibs Resources
+cp -r $GCCSDK_UNPACKED/$BKIT_SHAREDLIBS_NAME/\!SharedLibs Resources
 
-# Remove C Libraries
-rm Resources/\!SharedLibs/lib/libgcc*
-rm Resources/\!SharedLibs/lib/libunixlib*
-rm Resources/\!SharedLibs/lib/libm*
+# Remove C/C++ Libraries
+rm -rf Resources/\!SharedLibs/lib/abi-2.0
 
 mkdir RiscPkg
 
@@ -267,16 +278,12 @@ copyright_header
 
 echo "SharedLibs copyright" >> RiscPkg/Copyright
 echo "====================" >> RiscPkg/Copyright
-cat $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSCORE_NAME/\!SharedLibs/docs/COPYRIGHT >> RiscPkg/Copyright
+cat $GCCSDK_UNPACKED/$BKIT_SHAREDLIBS_NAME/\!SharedLibs/docs/COPYRIGHT >> RiscPkg/Copyright
 
+
+# Currently (May 2014) the packaging system has no way to boot after first install
+# so we still have to rely on the boot vars for this.
 scan_boot_file Resources/\!SharedLibs/\!Boot,feb Resources SharedLibs
-
-# Sprites
-mkdir Sprites
-
-echo '<Packages$@Resources.!SharedLibs>.!Sprites' > Sprites/file_e1f
-echo '<Packages$@Resources.!SharedLibs>.!Sprites' > Sprites/file_1c8
-echo '<Packages$@Resources.!SharedLibs>.!Sprites' > Sprites/\!sharedlibs
 
 set_file_types
 
@@ -290,12 +297,11 @@ rm -rf temp
 
 mkdir temp
 cd temp
-mkdir -p Resources/\!SharedLibs
-cp -r $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSCORE_NAME/\!SharedLibs/lib Resources/\!SharedLibs
+mkdir -p Resources/\!SharedLibs/lib
+cp -rf $GCCSDK_UNPACKED/$BKIT_SHAREDLIBS_NAME/\!SharedLibs/lib/abi-2.0 Resources/\!SharedLibs/lib
 
-# Remove Non GCC C Libraries
-rm Resources/\!SharedLibs/lib/ld*
-rm Resources/\!SharedLibs/lib/libdl*
+# Remove C++ Libraries
+rm Resources/\!SharedLibs/lib/abi-2.0/libstdc++*
 
 mkdir RiscPkg
 
@@ -306,7 +312,7 @@ echo "Version: $RPKG_SHAREDLIBSC_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
 echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
-echo "Standards-Version: 0.1.0" >> RiscPkg/Control
+echo "Standards-Version: 0.4.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
 echo "Description: The C Shared libraries" >> RiscPkg/Control
 echo "Depends: $RPKG_SHAREDLIBS_NAME (>=$RPKG_SHAREDLIBS_VERSION)" >> RiscPkg/Control
@@ -318,7 +324,7 @@ copyright_header
 
 echo "C SharedLibs copyright" >> RiscPkg/Copyright
 echo "======================" >> RiscPkg/Copyright
-cat $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSCORE_NAME/\!SharedLibs/docs/COPYRIGHT >> RiscPkg/Copyright
+cat $GCCSDK_UNPACKED/$BKIT_SHAREDLIBS_NAME/\!SharedLibs/docs/COPYRIGHT >> RiscPkg/Copyright
 
 set_file_types
 
@@ -333,8 +339,8 @@ rm -rf temp
 
 mkdir temp
 cd temp
-mkdir -p Resources
-cp -r $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs Resources
+mkdir -p Resources/\!SharedLibs/lib/abi-2.0
+cp -r $GCCSDK_UNPACKED/$BKIT_SHAREDLIBS_NAME/\!SharedLibs/lib/abi-2.0/libstdc++* Resources/\!SharedLibs/lib/abi-2.0
 
 mkdir RiscPkg
 
@@ -343,7 +349,7 @@ echo "Version: $RPKG_SHAREDLIBSGPP_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
 echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
-echo "Standards-Version: 0.1.0" >> RiscPkg/Control
+echo "Standards-Version: 0.4.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
 echo "Description: The GNU C++ shared libraries" >> RiscPkg/Control
 echo "Depends: $RPKG_SHAREDLIBSC_NAME (>=$RPKG_SHAREDLIBSC_VERSION)" >> RiscPkg/Control
@@ -391,7 +397,7 @@ echo "UnixLib" > RiscPkg/Copyright
 copyright_header
 
 # UnixLib has its own copyright file
-cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPkg/Copyright
+cat  $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPkg/Copyright
 
 set_file_types
 
