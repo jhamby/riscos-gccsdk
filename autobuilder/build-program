@@ -206,6 +206,69 @@ ab_add_commands() {
   done
 }
 
+ab_create_sharedlib_skeleton() {
+  local package
+
+  package=$1
+
+  local check
+  local found=false
+  for check in $AB_PACKAGES; do
+    if [ "$check" == "$package" ] ; then
+      found=true
+      break
+    fi
+  done
+
+  if ! $found; then
+    AB_PACKAGES="$AB_PACKAGES $package"
+  fi
+
+  if [ -z "$AB_CATEGORY" ] ; then
+    AB_CATEGORY="Library"
+  fi
+  
+  AB_COMPONENTS=""
+  
+  export AB_SUBPACKAGE=$package
+
+  A=$D/$package/Resources/!SharedLibs
+  
+  local abi_dir
+  
+  abi_dir=abi-2.0
+  
+  # The following lines could be reinstated if abi-1.0 support is required
+  # gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
+  # if [[ "$gcc_version" == *4.1.2* ]]; then
+  #   abi_dir=abi-1.0
+  # fi
+
+  AA=$A/lib/$abi_dir
+  mkdir -p $AA
+}
+
+ab_add_sharedlib()
+{
+  local lib_dir
+  local lib_name
+  local ux_lib_name
+  local ro_lib_name
+  
+  lib_dir=$1
+  lib_name=$2
+  
+  ux_lib_name=$(readlink $lib_dir/$lib_name)
+  ro_lib_name=$(echo $ux_lib_name | tr /. ./)
+  cp -T $lib_dir/$ux_lib_name $AA/$ux_lib_name,E1F
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $AA/$lib_name,1C8
+
+  # For simplicity put the development link in with the shared library  
+  local base_lib_name
+  base_lib_name=${lib_name%.*}
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $AA/$base_lib_name,1C8
+}
+
 ab_docs() {
   local doc
   local help=false

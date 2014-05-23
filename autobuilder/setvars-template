@@ -157,7 +157,11 @@
 #
 # ab_package () {
 #   ab_create_app MyApp Apps/Graphics     # !MyApp will be copied from $H, and the package section will be Graphics
+#   ab_create_command_app MyApp Apps/Graphics # As ab_create_app, but !MyApp will be set up for commands
 #   ab_add_commands $S/myapp${AB_EXEEXT}  # For applications containing command line utilities, this adds aliases to !Boot 
+#   ab_create_sharedlib_skeleton libname  # Set up package to add shared libs
+#   ab_add_sharedlib $S/.libs libname.so.1 # Use libname.so.1 to find the shared library and add it and create RISC OS links in the sharedlib skeleton
+#
 #
 #   $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
 # }
