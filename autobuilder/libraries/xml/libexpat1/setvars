@@ -28,4 +28,13 @@ ab_package() {
   cd $HERE
 
   $AB_HOME/add-riscpkg -unixlib -name LibExpat1-Dev -copyrightfile COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libexpat1
+    ab_add_sharedlib $S/.libs libexpat.so.1
+
+    $AB_HOME/add-riscpkg -package "libexpat1" \
+        -depends SharedLibs-C2
+  fi
+
 }
