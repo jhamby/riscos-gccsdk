@@ -22,4 +22,11 @@ ab_package() {
   cd $HERE
 
   $AB_HOME/add-riscpkg -unixlib -name LibPixman-1-Dev -copyrightfile COPYING
+  
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libpixman-1-0
+     ab_add_sharedlib $S/pixman/.libs libpixman-1.so.0     
+     
+     $AB_HOME/add-riscpkg -package libpixman-1-0 -name LibPixman-1-0 -depends SharedLibs-C2
+  fi
 }

@@ -41,46 +41,21 @@ ab_package() {
 	-copyrightfile COPYING
 
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    ab_create_app SharedLibs Apps/Library libcairo2-lib
+    ab_create_sharedlib_skeleton libcairo2
 
-    # Create a skeleton !SharedLibs directory and copy shared library.
-    # Determine which ABI is in use and therefor which directory to install
-    # to. We assume that GCC 4.1.1 is obsolete. For GCC 4.1.2, the ABI
-    # directory is "abi-1.0", for newer versions of GCC, it is "abi-2.0".
-    abi_dir=abi-2.0
-    gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
-    if [[ "$gcc_version" == *4.1.2* ]]; then
-      abi_dir=abi-1.0
-    fi
-
-    mkdir -p $A/lib/$abi_dir
-    ux_lib_name=$(readlink src/.libs/libcairo.so.2)
-    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
-    cp -T $S/src/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libcairo.so,1C8
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libcairo.so.2,1C8
-
-    ux_lib_name=$(readlink util/cairo-script/.libs/libcairo-script-interpreter.so.2)
-    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
-    cp -T $S/util/cairo-script/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libcairo-script-interpreter.so,1C8
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libcairo-script-interpreter.so.2,1C8
-
+    ab_add_sharedlib $S/src/.libs libcairo.so.2
+    ab_add_sharedlib $S/util/cairo-script/.libs libcairo-script-interpreter.so.2
+    
     if [ -e $S/util/cairo-gobject/.libs/libcairo-gobject.so ]; then
       # libcairo-gobject will only exist if glib was built first.
-      ux_lib_name=$(readlink util/cairo-gobject/.libs/libcairo-gobject.so.2)
-      ro_lib_name=$(echo $ux_lib_name | tr /. ./)
-      cp -T $S/util/cairo-gobject/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
-      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libcairo-gobject.so,1C8
-      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libcairo-gobject.so.2,1C8
+      ab_add_sharedlib $S/util/cairo-gobject/.libs libcairo-gobject.so.2
     fi
 
-    $AB_HOME/add-riscpkg -package "libcairo2-lib" -name LibCairo2-Lib \
-	-depends SharedLibs -depends FontConfig-Lib -depends LibFreeType6-Lib \
-	-depends LibPixman-1-Lib -depends LibPNG12-Lib -suggests UnixFont
+    $AB_HOME/add-riscpkg -package "libcairo2" -name LibCairo2 \
+	-depends SharedLibs -depends LibFontConfig1 -depends LibFreeType6 \
+	-depends LibPixman-1-0 -depends LibPNG12-0 -suggests UnixFont
 
     # Don't overwrite the original !SharedLibs.!Boot.
-    rm $A/\!Boot,feb
   fi
 
   if [ -e $S/doc/public/html/index.html ]; then
@@ -89,6 +64,7 @@ ab_package() {
     mkdir -p $A/doc/html
     cp -av $S/doc/public/html/* $A/doc/html
 
+    AB_COMPONENTS=""
     $AB_HOME/add-riscpkg -package "libcairo2-doc" -name LibCairo2-Doc
   fi
 }

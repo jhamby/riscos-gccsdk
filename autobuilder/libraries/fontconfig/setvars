@@ -1,6 +1,6 @@
 
 AB_CATEGORY=Fonts
-AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1-lib"
+AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
 AB_CONFLAGS=\''--with-baseconfigdir=/\<UnixFC\$$Dir\>/fonts'\'
 AB_INSTALL=env
 # Only install library files
@@ -67,7 +67,7 @@ ab_package() {
   ab_docs AUTHORS COPYING README
   cp -av $H/\!RISCOS $A/docs
 
-  $AB_HOME/add-riscpkg -package "fontconfig-config"
+  $AB_HOME/add-riscpkg -package "fontconfig-config" -name "FontConfig-Config"
 
   #fontconfig - all programs fc-* to /usr/bin
   ab_create_command_app UnixFC Apps/Fonts fontconfig
@@ -88,8 +88,9 @@ ab_package() {
   cp -av $S/doc/fontconfig-user.txt $A/docs
   ab_docs $S/fc-*/fc-*.1
 
-  $AB_HOME/add-riscpkg -package fontconfig \
-    -unixlib -depends "fontconfig-config"
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package fontconfig -name "FontConfig" \
+    -unixlib -depends "FontConfig-Config"
 
   # Remove/move automatically created stuff not needed
   rm $A/\!Run,feb
@@ -98,7 +99,7 @@ ab_package() {
   rm -f "$D/fontconfig/SysVars/UnixFC=24Dir,fff"
 
   #libfontconfig1-dev
-  ab_create_app UnixFC Apps/Fonts libfontconfig1-dev
+  ab_create_app UnixFC Apps/Library libfontconfig1-dev
 
   mkdir -p $A/fontconfig
   cp -av $S/fontconfig/*.h $A/fontconfig
@@ -110,37 +111,20 @@ ab_package() {
   cp -av $S/doc/fontconfig-devel.txt $A/docs
   cp -av $S/doc/fontconfig-devel $A/docs
 
-  $AB_HOME/add-riscpkg -package libfontconfig1-dev \
-    -unixlib -depends "fontconfig-config"
+  $AB_HOME/add-riscpkg -package libfontconfig1-dev -name LibFontConfig1-Dev \
+    -section Library -unixlib -depends "FontConfig-Config"
 
   rm -rf $D/libfontconfig1-dev/SysVars
   rm $A/\!Boot,feb
 
-  #libfontconfig1-lib
+  #libfontconfig1
+
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    ab_create_app SharedLibs Apps/Library libfontconfig1-lib
+    ab_create_sharedlib_skeleton libfontconfig1
+    ab_add_sharedlib $S/src/.libs libfontconfig.so.1
 
-    # Create a skeleton !SharedLibs directory and copy shared library.
-    # Determine which ABI is in use and therefor which directory to install
-    # to. We assume that GCC 4.1.1 is obsolete. For GCC 4.1.2, the ABI
-    # directory is "abi-1.0", for newer versions of GCC, it is "abi-2.0".
-    abi_dir=abi-2.0
-    gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
-    if [[ "$gcc_version" == *4.1.2* ]]; then
-      abi_dir=abi-1.0
-    fi
+    $AB_HOME/add-riscpkg -package libfontconfig1 -name LibFontConfig1 \
+	-section Library -depends "FontConfig-Config" -depends LibExpat1
 
-    mkdir -p $A/lib/$abi_dir
-    ux_lib_name=$(readlink src/.libs/libfontconfig.so)
-    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
-    cp -T $S/src/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libfontconfig.so,1C8
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libfontconfig.so.1,1C8
-
-    $AB_HOME/add-riscpkg -package libfontconfig1-lib \
-	-unixlib -depends "fontconfig-config"
-
-    # Don't overwrite the original !SharedLibs.!Boot.
-    rm $A/\!Boot,feb
   fi
 }

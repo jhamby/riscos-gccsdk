@@ -2,6 +2,13 @@ AB_INSTALL=yes
 AB_PRECONF=:
 AB_ROVERSION=3
 
+ab_make() {
+ $AB_MAKE
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     $AB_MAKE -f Makefile-libbz2_so
+  fi
+}
+
 ab_package() {
   cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
   ab_create_command_app bzip2 Apps/Utilities bzip2
@@ -55,5 +62,12 @@ ab_package() {
   echo " predecessor, bzip (.bz)." >> $D/libbz2-dev/RiscPkg/Control,fff
 
   cd $HERE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libbz2-1.0
+    ab_add_sharedlib $S libbz2.so.1.0
+
+    $AB_HOME/add-riscpkg -package libbz2-1.0 -name LibBZ2-1.0 -section Library -depends SharedLibs-C2 -copyrightfile $S/LICENSE
+  fi
 
 }
