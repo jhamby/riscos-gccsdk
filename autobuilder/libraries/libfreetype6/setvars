@@ -50,4 +50,13 @@ ab_package() {
 
   $AB_HOME/add-riscpkg -package libfreetype6-dev -name LibFreeType6-Dev -unixlib \
     -depends "ZLib1g-Dev" -depends "LibBZ2-Dev" -copyrightfile $S/docs/GPLv2.TXT
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libfreetype6
+    ab_add_sharedlib $S/objs/.libs libfreetype.so.6
+
+    $AB_HOME/add-riscpkg -package libfreetype6 -name LibFreeType6 -section Library \
+      -depends ZLib1g -depends LibBZ2-1.0 -copyrightfile $S/docs/GPLv2.TXT
+  fi
+
 }
