@@ -1,0 +1,10 @@
+gdk-pixbuf
+libatk1.0-0
+libpango1.0-0
+libglib2.0-0
+libcairo2
+libffi5
+libpcre3
+fontconfig
+libfreetype6
+oslib

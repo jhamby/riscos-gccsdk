@@ -1,0 +1,48 @@
+include $(top_srcdir)/Makefile.decl
+
+libgdkincludedir = $(includedir)/gtk-3.0/gdk
+libgdkriscosincludedir = $(includedir)/gtk-3.0/gdk/riscos
+
+AM_CPPFLAGS =			\
+	-DG_LOG_DOMAIN=\"Gdk\"	\
+	-DGDK_COMPILATION	\
+	-I$(top_srcdir)		\
+	-I$(top_srcdir)/gdk	\
+	-I$(top_builddir)/gdk	\
+	$(GTK_DEBUG_FLAGS)	\
+	$(GDK_DEP_CFLAGS)
+
+LDADDS = $(GDK_DEP_LIBS)
+
+noinst_LTLIBRARIES = libgdk-riscos.la
+
+libgdkinclude_HEADERS = 	\
+	gdkriscos.h
+
+libgdkriscosinclude_HEADERS = 	\
+	gdkriscosdisplaymanager.h	\
+	gdkriscoswindow.h		\
+	gdkriscoscursor.h		\
+	gdkriscosvisual.h
+
+libgdk_riscos_la_SOURCES =	\
+	gdkcursor-riscos.c	\
+	gdkdisplay-riscos.c	\
+	gdkdisplay-riscos.h	\
+	gdkdisplaymanager-riscos.c \
+	gdkprivate-riscos.h	\
+	gdkproperty-riscos.c	\
+	gdkscreen-riscos.c	\
+	gdkscreen-riscos.h	\
+	gdkwindow-riscos.c	\
+	gdkwindow-riscos.h	\
+	gdkvisual-riscos.c	\
+	gdkdnd-riscos.c		\
+	gdkselection-riscos.c	\
+	gdkkeys-riscos.c	\
+	gdkdevice-riscos.c	\
+	gdkdevicemanager-riscos.c \
+	gdkevents-riscos.c	\
+	gdkglobals-riscos.c
+
+-include $(top_srcdir)/git.mk

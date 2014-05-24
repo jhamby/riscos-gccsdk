@@ -1,0 +1,132 @@
+# Need gobject-introspection package installed on host system so that automake doesn't
+# fail with 'HAVE_INTROSPECTION does not appear in AM_CONDITIONAL' error.
+# Need libgtk2.0-bin package installed on host for gtk-update-icon-cache program.
+
+AB_URL=http://ftp.gnome.org/pub/gnome/sources/gtk+/3.8/gtk+-3.8.6.tar.xz
+
+AB_INSTALL=yes
+
+if [ -z "$(which gtk-update-icon-cache)" ] ; then
+ echo "RISC OS GTK 3 build requires native 'gtk-update-icon-cache' (try libgtk2.0-bin package)" 1>&2
+ exit 1
+fi
+
+#if [ -z "$(which gdk-pixbuf-csource)" ] ; then
+# echo "RISC OS GTK 3 build requires native 'gdk-pixbuf-csource' (try libgtk2.0-dev package)" 1>&2
+# exit 1
+#fi
+
+export ac_cv_path_CUPS_CONFIG=no
+export gio_can_sniff=no
+
+#chmod +x mkinstalldirs
+
+AB_CONFLAGS="--disable-xkb --disable-glibtest --disable-cups --disable-papi --enable-gtk2-dependency --enable-riscos-backend"
+
+mkdir -p $S/gdk/riscos
+ln -T -s -f $H/gdk.riscos.gdkwindow-riscos.c $S/gdk/riscos/gdkwindow-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkwindow-riscos.h $S/gdk/riscos/gdkwindow-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkcursor-riscos.c $S/gdk/riscos/gdkcursor-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkscreen-riscos.h $S/gdk/riscos/gdkscreen-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkscreen-riscos.c $S/gdk/riscos/gdkscreen-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkvisual-riscos.c $S/gdk/riscos/gdkvisual-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkevents-riscos.c $S/gdk/riscos/gdkevents-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkglobals-riscos.c $S/gdk/riscos/gdkglobals-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkkeys-riscos.c $S/gdk/riscos/gdkkeys-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkdnd-riscos.c $S/gdk/riscos/gdkdnd-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkselection-riscos.c $S/gdk/riscos/gdkselection-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkproperty-riscos.c $S/gdk/riscos/gdkproperty-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkdisplaymanager-riscos.c $S/gdk/riscos/gdkdisplaymanager-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkdisplay-riscos.c $S/gdk/riscos/gdkdisplay-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkdisplay-riscos.h $S/gdk/riscos/gdkdisplay-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkdevice-riscos.h $S/gdk/riscos/gdkdevice-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkdevice-riscos.c $S/gdk/riscos/gdkdevice-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkdevicemanager-riscos.h $S/gdk/riscos/gdkdevicemanager-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkdevicemanager-riscos.c $S/gdk/riscos/gdkdevicemanager-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkriscos.h $S/gdk/riscos/gdkriscos.h
+ln -T -s -f $H/gdk.riscos.gdkprivate-riscos.h $S/gdk/riscos/gdkprivate-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkriscosdisplaymanager.h $S/gdk/riscos/gdkriscosdisplaymanager.h
+ln -T -s -f $H/gdk.riscos.gdkriscoscursor.h $S/gdk/riscos/gdkriscoscursor.h
+ln -T -s -f $H/gdk.riscos.gdkriscosvisual.h $S/gdk/riscos/gdkriscosvisual.h
+ln -T -s -f $H/gdk.riscos.gdkriscoswindow.h $S/gdk/riscos/gdkriscoswindow.h
+ln -T -s -f $H/gdk.riscos.Makefile.am $S/gdk/riscos/Makefile.am
+
+autoreconf --force
+
+# $1 = app name
+# $2 = binary location (not including .libs)
+# $3 = binary name
+create_test_app() {
+  dot_libs=
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    dot_libs="/.libs"
+  fi
+
+  mkdir $A/$1
+
+  # We're not too concerned about the size of the wimp slot, these are
+  # just test programs, so it doesn't matter if it's oversized.
+  echo "Wimpslot -min 1000k -max 1000k" >> $A/$1/!Run,feb
+  echo "Set XDG_CONFIG_HOME /Boot:Choices/config" >> $A/$1/!Run,feb
+  echo "Run <Obey\$Dir>.$3 > <Obey\$Dir>.debug 2>&1" >> $A/$1/!Run,feb
+
+  cp $2$dot_libs/$3$AB_EXEEXT $A/$1/$3$AB_EXEEXT
+}
+
+ab_package() {
+  #libgtk+3-dev
+  ab_create_app LibGTK+3 Apps/Library libgtk+3-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/gtk-3.0 gtk-3.0
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  cp $H/ReadMe $A/!ReadMe
+
+  $AB_HOME/add-riscpkg -unixlib -name LibGTK+3-Dev -copyrightfile COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libgtk+3
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/gdk/.libs libgdk-3.so.0
+    ab_add_sharedlib $S/gtk/.libs libgtk-3.so.0
+
+    $AB_HOME/add-riscpkg -package "libgtk+3" -name LibGtk+3 \
+	-depends SharedLibs-C2 -depends LibCairo2 -depends LibGlib2.0 \
+	-depends LibPango1 -depends LibAtk1
+  fi
+
+  #libgtk+3-tests
+  ab_create_app LibGTK+3Tests Apps/Library libgtk+3-tests
+
+  create_test_app !GridPacking $S/examples grid-packing
+  create_test_app !HelloWorld $S/examples hello-world
+  create_test_app !BloatPad $S/examples bloatpad
+  create_test_app !Drawing $S/examples drawing
+  create_test_app !Sunny $S/examples sunny
+  create_test_app !TestBBox $S/tests testbbox
+  create_test_app !TestCairo $S/tests testcairo
+  create_test_app !TestEllipsise $S/tests testellipsise
+  create_test_app !TestScrolledWindow $S/tests testscrolledwindow
+  create_test_app !TestToolTips $S/tests testtooltips
+
+  # Simple !Run file that opens the application directory when double
+  # clicked to show all the available tests.
+  cp $H/tests-run-file $A/!Run,feb
+
+  $AB_HOME/add-riscpkg -package libgtk+3-tests
+}

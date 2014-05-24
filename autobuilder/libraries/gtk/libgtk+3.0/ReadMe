@@ -1,0 +1,26 @@
+This is an alpha version of GTK 3.8.6 and is a work in progress.
+
+Notes
+-----
+* Use SELECT shift drag to resize windows.
+
+* GTK+3 is customisable by creating the file:
+
+!Boot.Choices.config.gtk-3/0.gtk/css
+
+and uses a subset of the CSS3 standard.
+
+* Uses the RISC OS Sprite Surface in Cairo as a backing store
+which is then rendered into a window.
+
+
+Known problems/things to fix (not a complete list)
+----------------------------
+* Clicking a spin button causes an infinite update loop.
+* Text entry - sometimes, key presses are interpreted as if a modifier
+key was pressed, eg, pressing Q will cause the program to quit
+as if ctrl-Q was pressed instead of inserting the Q character
+at the cursor.
+* There is no visible text entry cursor.
+* Delete/backspace keys don't work (keyboard handling needs
+some work).
