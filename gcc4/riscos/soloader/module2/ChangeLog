@@ -1,6 +1,20 @@
+Sat May 24 12:13:15 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Check availability of cmunge.
+	* src/Makefile.am: Use cmunge found during configure stage.
+
 Wed Feb 12 02:16:03 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
+Fri Feb 07 19:52:51 UTC 2014  Lee Noar  <leenoar@sky.com>
+
+	* som_register(deregister_shared_object): Don't free the client R/W
+	segment as we didn't allocate it in the first place. It will be
+	either a block set aside in application space during initialisaton
+	which will simply disappear when the client exits, or it will have
+	been malloc'd by dlopen() in which case dlclose() should take care
+	of it.
 
 Sun May 12 17:42:11 BST 2013  Lee Noar  <leenoar@sky.com>
 
@@ -8,6 +22,10 @@ Sun May 12 17:42:11 BST 2013  Lee Noar  <leenoar@sky.com>
 	free the gott_base array when the client exits.
 	* som_array.c (som_generate_runtime_array): Fix memory leak;
 	free the old gott_base array before allocating a new one.
+
+Tue Aug 07 00:17:36 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac (AC_PREREQ): Quote parameter.
 
 Mon Apr 30 19:46:47 BST 2012  Lee Noar  <leenoar@sky.com>
 

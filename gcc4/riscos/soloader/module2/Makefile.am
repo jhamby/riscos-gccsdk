@@ -15,13 +15,15 @@ SOManager_CCASFLAGS=-O3 -mmodule -Wall -std=gnu99
 SOManager_LDFLAGS=-mmodule
 
 # CMunge invocation:
+AM_V_CMUNGE = $(am__v_CMUNGE_$(V))
+am__v_CMUNGE_ = $(am__v_CMUNGE_$(AM_DEFAULT_VERBOSITY))
+am__v_CMUNGE_0 = @echo "  CMUNGE" $@;
 SUFFIXES=.cmhg
-CMUNGE = cmunge
 CMUNGEFLAGS = -tgcc -32bit -p -DPACKAGE_VERSION=$(PACKAGE_VERSION)
 .cmhg.h:
-	$(CMUNGE) $(CMUNGEFLAGS) -d $@ $<
+	$(AM_V_CMUNGE)@CMUNGE@ $(CMUNGEFLAGS) -d $@ $<
 .cmhg.o:
-	$(CMUNGE) $(CMUNGEFLAGS) -o $@ $<
+	$(AM_V_CMUNGE)@CMUNGE@ $(CMUNGEFLAGS) -o $@ $<
 
 # Add ,ffa suffix to RISC OS Module filename during installation:
 install-exec-hook:
