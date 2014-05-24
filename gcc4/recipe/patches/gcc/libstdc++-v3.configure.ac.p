@@ -1,6 +1,6 @@
 Index: libstdc++-v3/configure.ac
 ===================================================================
---- libstdc++-v3/configure.ac	(revision 193302)
+--- libstdc++-v3/configure.ac	(revision 209821)
 +++ libstdc++-v3/configure.ac	(working copy)
 @@ -88,6 +88,11 @@
  # up critical shell variables.
@@ -14,7 +14,19 @@ Index: libstdc++-v3/configure.ac
  # Libtool setup.
  if test "x${with_newlib}" != "xyes"; then
    AC_LIBTOOL_DLOPEN
-@@ -140,7 +145,14 @@
+@@ -110,7 +115,10 @@
+ # creating position-independent objects. This varies with the target
+ # hardware and operating system, but is often: -DPIC -fPIC.
+ if test "$enable_shared" = yes; then
+-  glibcxx_lt_pic_flag="-prefer-pic"
++# RISC OS: Do not use -prefer-pic flag, otherwise we end up with PIC code
++# in the static library.
++#  glibcxx_lt_pic_flag="-prefer-pic"
++  glibcxx_lt_pic_flag=
+   glibcxx_compiler_pic_flag="$lt_prog_compiler_pic_CXX"
+   glibcxx_compiler_shared_flag="-D_GLIBCXX_SHARED"
+ 
+@@ -140,7 +148,14 @@
  # Enable compiler support that doesn't require linking.
  GLIBCXX_ENABLE_SJLJ_EXCEPTIONS
  GLIBCXX_ENABLE_PCH($is_hosted)
@@ -29,7 +41,7 @@ Index: libstdc++-v3/configure.ac
  GLIBCXX_ENABLE_ATOMIC_BUILTINS
  GLIBCXX_ENABLE_DECIMAL_FLOAT
  GLIBCXX_ENABLE_INT128_FLOAT128
-@@ -369,7 +381,10 @@
+@@ -369,7 +384,10 @@
  GLIBCXX_CONFIGURE_TESTSUITE
  
  # For gthread support.  Depends on GLIBCXX_ENABLE_SYMVERS.
