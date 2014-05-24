@@ -21,6 +21,7 @@ STRIPFLAGS_HOST := -O binary
 CURDIR := ./
 EXTMOD = ,ffa
 endif
+PREFIX ?= .
 
 SRCDIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
@@ -40,6 +41,13 @@ ifeq "$(RONATIVE)" "YES"
 	remove DRenderer$(EXTMOD)
 else
 	-rm DRenderer$(EXTMOD)
+endif
+
+ifneq "$(RONATIVE)" "YES"
+install: DRenderer$(EXTMOD)
+	mkdir -p $(PREFIX)/module/
+	cp DRenderer$(EXTMOD) $(PREFIX)/module/
+	chmod 755 $(PREFIX)/module/DRenderer$(EXTMOD)
 endif
 
 .PHONY: all clean dist-clean
