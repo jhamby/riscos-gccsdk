@@ -1,3 +1,9 @@
+Sat May 24 12:16:07 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Check availability of cmunge.
+	(AC_INIT): Fix project name.
+	* src/Makefile.am: Use cmunge found during configure stage.
+
 Wed Feb 12 02:43:04 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ChangeLog: Add.
