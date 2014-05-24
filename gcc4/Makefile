@@ -456,12 +456,12 @@ cross-gdb-built: src-gdb-copied
 
 # Build the RISC OS related tools (cmunge, elf2aif, asasm, etc) cross:
 cross-riscostools-built: cross-gcc-built
-	cd $(RISCOSTOOLSDIR) && ./build-it cross
+	cd $(RISCOSTOOLSDIR) && ./build-it -f cross
 	touch $(BUILDSTEPSDIR)/$@
 
 # Build the RISC OS related tools (cmunge, elf2aif, asasm, etc) ronative:
 ronative-riscostools-built: ronative-gcc-built
-	cd $(RISCOSTOOLSDIR) && ./build-it riscos
+	cd $(RISCOSTOOLSDIR) && ./build-it -f riscos
 	touch $(BUILDSTEPSDIR)/$@
 
 # -- Source unpacking.

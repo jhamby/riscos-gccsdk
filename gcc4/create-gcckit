@@ -1,6 +1,6 @@
 #!/bin/bash -ue
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007-2011 GCCSDK Developers
+# Copyright (c) 2007-2014 GCCSDK Developers
 #
 # Creates the RISC OS GCCSDK kits
 #
@@ -21,7 +21,7 @@ give_help() {
 }
 
 # Setup the default values which can be overruled by user options given:
-GCCSDK_DO_PKG="NO"
+GCCSDK_DO_PKG=false
 for param in $@ ; do
   case "$param" in
     -h | -help)
@@ -29,7 +29,7 @@ for param in $@ ; do
        exit 0
        ;;
     -pkg)
-       GCCSDK_DO_PKG="YES"
+       GCCSDK_DO_PKG=true
        ;;
     -*)
        echo "Unknown option $param" && echo
@@ -62,15 +62,9 @@ SKIT_RISCOS_NAME=gccsdk-riscos-tools-src-$GCCSDK_FULL_RELEASE_NAME
 # FIXME: needs to be linked to Makefile's TARGET
 GCCSDK_TARGET_NAME=arm-unknown-riscos
 
-# In $GCCSDK_RELEASE_AREA/full we will have the full unpacked binary kits.
-# We first make sure that this gets fully populated, then we make a copy to
-# $GCCSDK_RELEASE_AREA/kits and use that to distribute to all the binary
-# kits.
-GCCSDK_UNPACKED=$GCCSDK_RELEASE_AREA/full
-
 # Do a sanity check to see if the native RISC OS compiler has been built.
-if [ ! -d $GCCSDK_UNPACKED/\!GCC/bin ] ; then
-  echo "The native RISC OS compiler doesn't seem to be built at $GCCSDK_UNPACKED/\!GCC/bin."
+if [ ! -d $GCCSDK_RISCOS_PREFIX/\!GCC/bin ] ; then
+  echo "The native RISC OS compiler doesn't seem to be built at $GCCSDK_RISCOS_PREFIX/\!GCC/bin."
   echo "Use 'make ronative' for doing this."
   exit 1
 fi
@@ -304,6 +298,16 @@ create_gcc_kit() {
 }
 
 # Here starts the real work:
+
+# Installed gcc for RISC OS is at $GCCSDK_RISCOS_PREFIX/!GCC but it is not
+# really usable for usage as-is (e.g. via NFS).  We need to tweek a little
+# bit and will do that on a copy (at $GCCSDK_UNPACKED) in order that we
+# can still be 'make install' at $GCCSDK_RISCOS_PREFIX/!GCC afterwards.
+# From $GCCSDK_UNPACKED, we'll create the kits at $GCCSDK_KITS
+GCCSDK_UNPACKED=$GCCSDK_RELEASE_AREA/full-ro
+remove_if_there $GCCSDK_UNPACKED
+cp -r $GCCSDK_RISCOS_PREFIX $GCCSDK_UNPACKED
+
 create_examples_tree
 create_gcc_tree
 
@@ -322,7 +326,7 @@ create_sharedlibs_kit
 create_gcc_kit
 # Create BKIT_SYSTEM_NAME: already there.
 
-if [ "$GCCSDK_DO_PKG" == "YES" ] ; then
+if $GCCSDK_DO_PKG ; then
   # Package all the kits:
   if [ ! -f $GCCSDK_INSTALL_ENV/bin/zip ] ; then
     echo Unable to create kits because of missing zip executable $GCCSDK_INSTALL_ENV/bin/zip.
