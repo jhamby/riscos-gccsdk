@@ -1,3 +1,8 @@
+Sat May 24 11:30:55 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Check availability of cmunge.
+	* src/Makefile.am: Use cmunge found during configure stage.
+
 Wed Feb 12 02:11:58 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac: Add support for AM_SILENT_RULES (default enabled).

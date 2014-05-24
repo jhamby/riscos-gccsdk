@@ -1,6 +1,6 @@
 # GDBServer -- a RISC OS remote debug server for the GNU debugger (gdb)
 # Copyright 2009 J-M Bell
-# Copyright 2010 GCCSDK Developers
+# Copyright 2010-2014 GCCSDK Developers
 
 bin_PROGRAMS=GDBServer
 
@@ -17,13 +17,15 @@ GDBServer_CCASFLAGS=-O3 -mmodule $(OURWARNFLAGS) -std=gnu99
 GDBServer_LDFLAGS=-mmodule
 
 # CMunge invocation:
+AM_V_CMUNGE = $(am__v_CMUNGE_$(V))
+am__v_CMUNGE_ = $(am__v_CMUNGE_$(AM_DEFAULT_VERBOSITY))
+am__v_CMUNGE_0 = @echo "  CMUNGE" $@;
 SUFFIXES=.cmhg
-CMUNGE = cmunge
 CMUNGEFLAGS = -p -tgcc -32bit -apcs 3/32/nonreent/fpe2/noswst/nofpr/nofp
 .cmhg.h:
-	$(CMUNGE) $(CMUNGEFLAGS) -d $@ $<
+	$(AM_V_CMUNGE)@CMUNGE@ $(CMUNGEFLAGS) -d $@ $<
 .cmhg.o:
-	$(CMUNGE) $(CMUNGEFLAGS) -o $@ $<
+	$(AM_V_CMUNGE)@CMUNGE@ $(CMUNGEFLAGS) -o $@ $<
 
 # Add ,ffa suffix to RISC OS Module filename during installation:
 install-exec-hook:
