@@ -1,3 +1,13 @@
+Sun May 25 19:23:20 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* input.c (Input_Symbol): Update comment.
+	* lex.c (Lex_ReadReferringLocalLabel): Use Input_Symbol iso
+	Input_Symbol2.
+
+	unittests/compare:
+	* core/local_label0.s: Update test case.
+
 Sun May 25 18:59:30 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

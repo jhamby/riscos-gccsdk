@@ -192,7 +192,7 @@ Lex_ReadReferringLocalLabel (void)
 
   /* If a routinename is given, check if thats the one given with ROUT.  */
   size_t routLen;
-  const char *rout = Input_Symbol2 (&routLen, '\0');
+  const char *rout = Input_Symbol (&routLen);
   if (Lex_CheckForROUTMismatch (rout, routLen))
     return UINT_MAX;
 

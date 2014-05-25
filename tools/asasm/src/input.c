@@ -705,9 +705,8 @@ Input_Symbol (size_t *ilen)
     }
   else
     {
-      /* Symbol needs to start with a letter (upper- or lowercase), followed by
-	 letter, digits and underscore.
-	 We do allow an underscore as starting character as well.  */
+      /* Symbol needs to start with a letter (upper- or lowercase) or
+	 underscore, followed by letter, digits and underscore.  */
       rslt = input_pos;
       for (len = 0; input_pos[len] != '\0'; ++len)
 	{
