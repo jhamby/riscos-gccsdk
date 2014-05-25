@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2013 GCCSDK Developers
+ * Copyright (c) 2004-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,15 +22,16 @@
 #ifndef variables_header_included
 #define variables_header_included
 
-#include "lex.h"
-#include "phase.h"
-#include "symbol.h"
+#include <stdbool.h>
 
+#include "phase.h"
+
+struct Lex;
 struct VarPos;
 
 bool c_gbl (void);
 bool c_lcl (void);
-bool c_set (const Lex *label);
+bool c_set (const struct Lex *label);
 
 void Var_PrepareForPhase (Phase_e phase);
 void Var_RestoreLocals (const struct VarPos *);	/* called on macro exit */

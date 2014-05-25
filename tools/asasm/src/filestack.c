@@ -3,7 +3,7 @@
  * Copyright (c) Andy Duplain, August 1992.
  *     Added line numbers  Niklas Röjemo
  *     Added filenames     Darren Salt
- * Copyright (c) 2000-2013 GCCSDK Developers
+ * Copyright (c) 2000-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,11 +27,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#elif HAVE_INTTYPES_H
-#  include <inttypes.h>
-#endif
+#include <stdint.h>
 #include <string.h>
 
 #include "error.h"

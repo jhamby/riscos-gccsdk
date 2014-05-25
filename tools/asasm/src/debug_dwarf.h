@@ -1,6 +1,6 @@
 /*
  * AsAsm an assembler for ARM
- * Copyright (c) 2013 GCCSDK Developers
+ * Copyright (c) 2013-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,18 +21,15 @@
 #ifndef debug_dwarf_header_included
 #define debug_dwarf_header_included
 
-#ifdef HAVE_INTTYPES_H
-#  include <inttypes.h>
-#elif HAVE_STDINT_H
-#  include <stdint.h>
-#endif
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "libelf.h"
 #include "libdwarf.h"
 
 #include "output.h" /* for shstrtab_t */
-#include "symbol.h"
+
+struct Symbol;
 
 /* For each area.  */
 typedef struct
@@ -52,7 +49,7 @@ typedef struct
 void DWARF_InitializeState (DWARF_State_t *stateP);
 void DWARF_FinalizeState (DWARF_State_t *stateP);
 
-void DWARF_MarkAs (const Symbol *areaSymP, uint32_t offset,
+void DWARF_MarkAs (const struct Symbol *areaSymP, uint32_t offset,
 		   const char *fileNameP, unsigned lineNumber);
 
 typedef struct

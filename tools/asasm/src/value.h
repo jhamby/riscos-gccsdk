@@ -58,7 +58,7 @@ typedef enum
   eIntType_CoProNum		/* c0 - c15 : Not really a register... */
 } IntType_e;
 
-typedef struct
+typedef struct Value
 {
   ValueTag Tag;
   union

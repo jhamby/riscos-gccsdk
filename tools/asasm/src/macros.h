@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2013 GCCSDK Developers
+ * Copyright (c) 2002-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,10 +23,12 @@
 #define macros_header_included
 
 #include <stdbool.h>
+#include <stddef.h>
 
-#include "lex.h"
 #include "phase.h"
 #include "variables.h"
+
+struct Lex;
 
 #define MACRO_ARG_LIMIT (18)
 /* Characters MACRO_ARG0 up to MACRO_ARG0 + MACRO_ARG_LIMIT may not appear
@@ -72,7 +74,7 @@ void FS_PopMacroPObject (bool noCheck);
 const char *Macro_GetSuffix (const Macro *macroP);
 const char *Macro_GetSuffixValue (const PObject_Macro *mP);
 
-bool Macro_Call (const char *macroName, size_t macroNameLen, const Lex *lbl);
+bool Macro_Call (const char *macroName, size_t macroNameLen, const struct Lex *lbl);
 
 bool c_macro (void);
 bool c_mexit (void);

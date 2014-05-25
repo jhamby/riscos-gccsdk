@@ -22,11 +22,7 @@
 #ifndef global_header_included
 #define global_header_included
 
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#elif HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 
 typedef uint32_t ARMWord;
 typedef double ARMFloat;

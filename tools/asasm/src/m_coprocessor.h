@@ -1,6 +1,6 @@
 /*
  * AsAsm an assembler for ARM
- * Copyright (c) 2010-2013 GCCSDK Developers
+ * Copyright (c) 2010-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,8 +22,6 @@
 #define m_coprocessor_header_included
 
 #include <stdbool.h>
-
-#include "decode.h"
 
 bool m_cdp (bool doLowerCase);
 bool m_mcr (bool doLowerCase);

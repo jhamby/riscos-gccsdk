@@ -22,18 +22,15 @@
 #ifndef reloc_header_included
 #define reloc_header_included
 
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#elif HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 
 #include "libelf.h"
 
 #include "aoffile.h"
 #include "main.h"
-#include "symbol.h"
 #include "value.h"
+
+struct Symbol;
 
 typedef struct
 {
@@ -44,7 +41,7 @@ typedef struct
     {
       uint32_t how; /* AOF: HOW2_* bits.  ELF: R_ARM_* value.  */
       uint32_t offset; /* Area offset.  */
-      Symbol *symP; /* For ELF, this can be NULL (= relocation against
+      struct Symbol *symP; /* For ELF, this can be NULL (= relocation against
         anonymous symbol, i.e. symbol 0 of the symbol table).  */
     } *relocIntP;
   uint32_t offsetForExplicitReloc; /* When non-UINT32_MAX, RELOC can be used
@@ -70,7 +67,7 @@ typedef struct
     ValueInt or ValueAddr otherwise.  */
 } RelocAndAddend_t;
 RelocAndAddend_t Reloc_SplitRelocAndAddend (const Value *valP,
-					    const Symbol *pcRelSymP,
+					    const struct Symbol *pcRelSymP,
 					    uint32_t instrOffset,
 					    bool intAddendOk);
 

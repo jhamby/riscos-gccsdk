@@ -23,14 +23,9 @@
 #define directive_data_header_included
 
 #include <stdbool.h>
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#endif
-#ifdef HAVE_INTTYPES_H
-#  include <inttypes.h>
-#endif
+#include <stdint.h>
 
-#include "value.h"
+struct Value;
 
 bool c_align (void);
 bool c_ampersand (void);
@@ -48,6 +43,6 @@ bool c_reserve (void);
 
 bool DefineInt_HandleSymbols (unsigned size, bool allowUnaligned,
 			      bool swapHalfwords, uint32_t offset,
-			      const Value *valueP);
+			      const struct Value *valueP);
 
 #endif

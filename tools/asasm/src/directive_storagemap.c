@@ -22,11 +22,7 @@
 #include "config.h"
 
 #include <assert.h>
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#elif HAVE_INTTYPES_H
-#  include <inttypes.h>
-#endif
+#include <stdint.h>
 
 #include "code.h"
 #include "directive_storagemap.h"
@@ -36,6 +32,7 @@
 #include "get.h"
 #include "input.h"
 #include "main.h"
+#include "symbol.h"
 #include "value.h"
 
 static Value oStorageMapValue =

@@ -22,6 +22,8 @@
 #ifndef output_header_included
 #define output_header_included
 
+#include <stddef.h>
+
 #include "global.h"
 #include "phase.h"
 

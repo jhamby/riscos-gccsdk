@@ -23,11 +23,7 @@
 
 #include <assert.h>
 #include <ctype.h>
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#elif HAVE_INTTYPES_H
-#  include <inttypes.h>
-#endif
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 

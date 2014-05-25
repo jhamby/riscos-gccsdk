@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2013 GCCSDK Developers
+ * Copyright (c) 2004-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,8 +26,9 @@
 
 #include "lex.h"
 #include "phase.h"
-#include "symbol.h"
 #include "value.h"
+
+struct Symbol;
 
 typedef enum
 {
@@ -49,7 +50,7 @@ void Code_PrepareForPhase (Phase_e phase);
 void Code_Init (void);
 
 void Code_Operator (Operator_e op);
-void Code_Symbol (Symbol *symbol, int offset);
+void Code_Symbol (struct Symbol *symbol, int offset);
 void Code_Int (int value);
 void Code_String (const char *str, size_t len, bool owns);
 void Code_Float (ARMFloat value);

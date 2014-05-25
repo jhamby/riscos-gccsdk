@@ -1,6 +1,6 @@
 /*
  * AsAsm an assembler for ARM
- * Copyright (c) 2010-2013 GCCSDK Developers
+ * Copyright (c) 2010-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,11 +21,7 @@
 #include "config.h"
 
 #include <assert.h>
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#elif HAVE_INTTYPES_H
-#  include <inttypes.h>
-#endif
+#include <stdint.h>
 
 #include "area.h"
 #include "error.h"

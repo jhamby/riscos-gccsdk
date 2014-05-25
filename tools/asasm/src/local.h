@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2013 GCCSDK Developers
+ * Copyright (c) 2002-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,8 +25,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "lex.h"
 #include "phase.h"
+
+struct Lex;
 
 typedef enum
 {
@@ -63,7 +64,7 @@ void Local_CreateSymbol (Local_Label_t *lblP, unsigned macroDepth, bool next, ch
 
 void Local_FinishMacro (bool noCheck);
 
-bool c_rout (const Lex *label);
+bool c_rout (const struct Lex *label);
 
 bool Local_IsLocalLabel (const char *);
 const char *Local_GetCurROUTId (const char **fileNamePP, unsigned *lineNumP);

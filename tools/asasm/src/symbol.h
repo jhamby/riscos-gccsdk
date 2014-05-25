@@ -23,6 +23,7 @@
 #define symbol_header_included
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "phase.h"
 #include "value.h"

@@ -27,12 +27,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#endif
-#if HAVE_INTTYPES_H
-#  include <inttypes.h>
-#endif
+#include <stdint.h>
 
 #include "libelf.h"
 

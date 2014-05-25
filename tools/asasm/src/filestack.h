@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) Andy Duplain, August 1992.
- * Copyright (c) 2004-2013 GCCSDK Developers
+ * Copyright (c) 2004-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +27,6 @@
 
 #include "phase.h"
 #include "macros.h"
-#include "whileif.h"
 
 /* Linked list of filenames used during assembling.  They remain valid until
    the very end of execution.  */

@@ -22,11 +22,7 @@
 #ifndef help_cpu_header_included
 #define help_cpu_header_included
 
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#elif HAVE_INTTYPES_H
-#  include <inttypes.h>
-#endif
+#include <stdint.h>
 
 uint32_t HelpCPU_Imm8s4 (uint32_t value) __attribute__ ((__const__));
 unsigned HelpCPU_SplitByImm8s4 (uint32_t cnst, uint32_t c[4]);

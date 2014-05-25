@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2013 GCCSDK Developers
+ * Copyright (c) 2004-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,8 @@
 
 #include "state.h"
 #include "value.h"
+
+struct Symbol;
 
 typedef enum
 {
@@ -72,7 +74,7 @@ typedef enum
       - Thumb : bits 7-0.  */
 } Lit_eAddrType;
 
-void Lit_RemoveLiterals (Symbol *areaSymbolP);
+void Lit_RemoveLiterals (struct Symbol *areaSymbolP);
 Value Lit_RegisterInt (const Value *valueP, Lit_eSize size,
                        Lit_eAddrType addrType, InstrType_e instrType);
 Value Lit_RegisterFloat (const Value *valueP, Lit_eSize size,

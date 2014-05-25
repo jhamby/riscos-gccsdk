@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2013 GCCSDK Developers
+ * Copyright (c) 2001-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,12 +40,7 @@
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>
 #endif
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#endif
-#ifdef HAVE_INTTYPES_H
-#  include <inttypes.h>
-#endif
+#include <stdint.h>
 #include <kernel.h>
 #include <swis.h>
 

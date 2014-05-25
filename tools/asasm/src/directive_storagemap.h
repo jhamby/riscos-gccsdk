@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2013 GCCSDK Developers
+ * Copyright (c) 2004-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,12 +24,12 @@
 
 #include <stdbool.h>
 
-#include "value.h"
-#include "symbol.h"
+struct Lex;
+struct Value;
 
-const Value *StorageMap_Value (void);
+const struct Value *StorageMap_Value (void);
 
 bool c_record (void);
-bool c_alloc (const Lex *lex);
+bool c_alloc (const struct Lex *lex);
 
 #endif

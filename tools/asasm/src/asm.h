@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2013 GCCSDK Developers
+ * Copyright (c) 2004-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,10 +22,13 @@
 #ifndef asm_header_included
 #define asm_header_included
 
-#include "lex.h"
-#include "symbol.h"
+#include <stdbool.h>
+#include <stdint.h>
+
+struct Lex;
+struct Symbol;
 
 void ASM_Assemble (const char *asmFile, bool doOnePassOnly);
-Symbol *ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping);
+struct Symbol *ASM_DefineLabel (const struct Lex *label, uint32_t offset, bool isMapping);
 
 #endif
