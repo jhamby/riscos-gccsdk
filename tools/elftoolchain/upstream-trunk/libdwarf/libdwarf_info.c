@@ -27,7 +27,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_info.c 3032 2014-05-02 11:02:41Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_info.c 3041 2014-05-18 15:11:03Z kaiwang27 $");
 
 int
 _dwarf_info_first_cu(Dwarf_Debug dbg, Dwarf_Error *error)
@@ -121,12 +121,12 @@ _dwarf_info_next_tu(Dwarf_Debug dbg, Dwarf_Error *error)
 		return (DW_DLE_NONE);
 	}
 
-	if (dbg->dbg_info_loaded) {
+	if (dbg->dbg_types_loaded) {
 		dbg->dbg_tu_current = NULL;
 		return (DW_DLE_NO_ENTRY);
 	}
 
-	ret = _dwarf_info_load(dbg, 0, 1, error);
+	ret = _dwarf_info_load(dbg, 0, 0, error);
 	if (ret != DW_DLE_NONE)
 		return (ret);
 
@@ -194,7 +194,10 @@ _dwarf_info_load(Dwarf_Debug dbg, Dwarf_Bool load_all, Dwarf_Bool is_info,
 
 		/* Compute the offset to the next compilation unit: */
 		next_offset = offset + length;
-		dbg->dbg_info_off = next_offset;
+		if (is_info)
+			dbg->dbg_info_off = next_offset;
+		else
+			dbg->dbg_types_off = next_offset;
 
 		/* Initialise the compilation unit. */
 		cu->cu_length		 = length;
@@ -216,7 +219,10 @@ _dwarf_info_load(Dwarf_Debug dbg, Dwarf_Bool load_all, Dwarf_Bool is_info,
 		}
 
 		/* Add the compilation unit to the list. */
-		STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
+		if (is_info)
+			STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
+		else
+			STAILQ_INSERT_TAIL(&dbg->dbg_tu, cu, cu_next);
 
 		if (cu->cu_version < 2 || cu->cu_version > 4) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_VERSION_STAMP_ERROR);
@@ -232,8 +238,13 @@ _dwarf_info_load(Dwarf_Debug dbg, Dwarf_Bool load_all, Dwarf_Bool is_info,
 			break;
 	}
 
-	if ((Dwarf_Unsigned) dbg->dbg_info_off >= ds->ds_size)
-		dbg->dbg_info_loaded = 1;		
+	if (is_info) {
+		if ((Dwarf_Unsigned) dbg->dbg_info_off >= ds->ds_size)
+			dbg->dbg_info_loaded = 1;
+	} else {
+		if ((Dwarf_Unsigned) dbg->dbg_types_off >= ds->ds_size)
+			dbg->dbg_types_loaded = 1;
+	}
 
 	return (ret);
 }
@@ -255,8 +266,18 @@ _dwarf_info_cleanup(Dwarf_Debug dbg)
 		free(cu);
 	}
 
+	_dwarf_type_unit_cleanup(dbg);
+}
+
+void
+_dwarf_type_unit_cleanup(Dwarf_Debug dbg)
+{
+	Dwarf_CU cu, tcu;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_READ);
+
 	STAILQ_FOREACH_SAFE(cu, &dbg->dbg_tu, cu_next, tcu) {
-		STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
+		STAILQ_REMOVE(&dbg->dbg_tu, cu, _Dwarf_CU, cu_next);
 		_dwarf_abbrev_cleanup(cu);
 		free(cu);
 	}
