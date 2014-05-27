@@ -46,7 +46,7 @@
 #include <time.h>
 #include <unistd.h>
 
-ELFTC_VCSID("$Id: readelf.c 3042 2014-05-18 15:11:07Z kaiwang27 $");
+ELFTC_VCSID("$Id: readelf.c 3051 2014-05-26 20:36:21Z kaiwang27 $");
 
 /*
  * readelf(1) options.
@@ -4515,18 +4515,20 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Attribute *attr_list;
 	Dwarf_Die ret_die;
 	Dwarf_Off dieoff, cuoff, culen;
-	Dwarf_Unsigned ate, v_udata;
+	Dwarf_Unsigned ate, lang, v_udata, v_sig;
 	Dwarf_Signed attr_count, v_sdata;
 	Dwarf_Off v_off;
 	Dwarf_Addr v_addr;
 	Dwarf_Half tag, attr, form;
 	Dwarf_Block *v_block;
 	Dwarf_Bool v_bool, is_info;
+	Dwarf_Sig8 v_sig8;
 	Dwarf_Error de;
-	const char *tag_str, *attr_str, *ate_str;
+	Dwarf_Ptr v_expr;
+	const char *tag_str, *attr_str, *ate_str, *lang_str;
 	char unk_tag[32], unk_attr[32];
 	char *v_str;
-	uint8_t *b;
+	uint8_t *b, *p;
 	int i, j, abc, ret;
 
 	if (dwarf_dieoffset(die, &dieoff, &de) != DW_DLV_OK) {
@@ -4578,13 +4580,17 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 		printf("     %-18s: ", attr_str);
 		switch (form) {
 		case DW_FORM_ref_addr:
+		case DW_FORM_sec_offset:
 			if (dwarf_global_formref(attr_list[i], &v_off, &de) !=
 			    DW_DLV_OK) {
 				warnx("dwarf_global_formref failed: %s",
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("<%jx>", (uintmax_t) v_off);
+			if (form == DW_FORM_ref_addr)
+				printf("<0x%jx>", (uintmax_t) v_off);
+			else
+				printf("0x%jx", (uintmax_t) v_off);
 			break;
 
 		case DW_FORM_ref1:
@@ -4599,7 +4605,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				continue;
 			}
 			v_off += cuoff;
-			printf("<%jx>", (uintmax_t) v_off);
+			printf("<0x%jx>", (uintmax_t) v_off);
 			break;
 
 		case DW_FORM_addr:
@@ -4623,7 +4629,10 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%ju", (uintmax_t) v_udata);
+			if (attr == DW_AT_high_pc)
+				printf("0x%jx", (uintmax_t) v_udata);
+			else
+				printf("%ju", (uintmax_t) v_udata);
 			break;
 
 		case DW_FORM_sdata:
@@ -4644,6 +4653,10 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				continue;
 			}
 			printf("%jd", (intmax_t) v_bool);
+			break;
+
+		case DW_FORM_flag_present:
+			putchar('1');
 			break;
 
 		case DW_FORM_string:
@@ -4670,11 +4683,35 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%ju byte block:", v_block->bl_len);
+			printf("%ju byte block:", (uintmax_t) v_block->bl_len);
 			b = v_block->bl_data;
 			for (j = 0; (Dwarf_Unsigned) j < v_block->bl_len; j++)
 				printf(" %x", b[j]);
 			break;
+
+		case DW_FORM_exprloc:
+			if (dwarf_formexprloc(attr_list[i], &v_udata, &v_expr,
+			    &de) != DW_DLV_OK) {
+				warnx("dwarf_formexprloc failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("%ju byte block:", (uintmax_t) v_udata);
+			b = v_expr;
+			for (j = 0; (Dwarf_Unsigned) j < v_udata; j++)
+				printf(" %x", b[j]);
+			break;
+
+		case DW_FORM_ref_sig8:
+			if (dwarf_formsig8(attr_list[i], &v_sig8, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formsig8 failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			p = (uint8_t *)(uintptr_t) &v_sig8.signature[0];
+			v_sig = re->dw_decode(&p, 8);
+			printf("signature: 0x%jx", (uintmax_t) v_sig);
 		}
 		switch (attr) {
 		case DW_AT_encoding:
@@ -4685,6 +4722,35 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				ate_str = "DW_ATE_UNKNOWN";
 			printf("\t(%s)", &ate_str[strlen("DW_ATE_")]);
 			break;
+
+		case DW_AT_language:
+			if (dwarf_attrval_unsigned(die, attr, &lang, &de) !=
+			    DW_DLV_OK)
+				break;
+			if (dwarf_get_LANG_name(lang, &lang_str) != DW_DLV_OK)
+				break;
+			printf("\t(%s)", &lang_str[strlen("DW_LANG_")]);
+			break;
+
+		case DW_AT_location:
+		case DW_AT_string_length:
+		case DW_AT_return_addr:
+		case DW_AT_data_member_location:
+		case DW_AT_frame_base:
+		case DW_AT_segment:
+		case DW_AT_static_link:
+		case DW_AT_use_location:
+		case DW_AT_vtable_elem_location:
+			switch (form) {
+			case DW_FORM_data4:
+			case DW_FORM_data8:
+			case DW_FORM_sec_offset:
+				printf("\t(location list)");
+				break;
+			default:
+				break;
+			}
+
 		default:
 			break;
 		}
@@ -4717,7 +4783,7 @@ dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 	struct section *s;
 	Dwarf_Die die;
 	Dwarf_Error de;
-	Dwarf_Half tag, version, pointer_size;
+	Dwarf_Half tag, version, pointer_size, off_size;
 	Dwarf_Off cu_offset, cu_length;
 	Dwarf_Off aboff;
 	Dwarf_Unsigned typeoff;
@@ -4742,7 +4808,7 @@ dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 		printf("\nDump of debug contents of section %s:\n", sn);
 
 		while ((ret = dwarf_next_cu_header_c(re->dbg, is_info, NULL,
-		    &version, &aboff, &pointer_size, NULL, NULL, &sig8,
+		    &version, &aboff, &pointer_size, &off_size, NULL, &sig8,
 		    &typeoff, NULL, &de)) == DW_DLV_OK) {
 			die = NULL;
 			while (dwarf_siblingof_b(re->dbg, die, &die, is_info,
@@ -4773,15 +4839,21 @@ dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 				continue;
 			}
 
+			cu_length -= off_size == 4 ? 4 : 12;
+
+			sig = 0;
 			if (!is_info) {
 				p = (uint8_t *)(uintptr_t) &sig8.signature[0];
 				sig = re->dw_decode(&p, 8);
 			}
 
-			printf("  Type Unit @ %jd:\n", (intmax_t) cu_offset);
-			printf("    Length:\t\t%jd\n", (intmax_t) cu_length);
+			printf("\n  Type Unit @ offset 0x%jx:\n",
+			    (uintmax_t) cu_offset);
+			printf("    Length:\t\t%#jx (%d-bit)\n",
+			    (uintmax_t) cu_length, off_size == 4 ? 32 : 64);
 			printf("    Version:\t\t%u\n", version);
-			printf("    Abbrev Offset:\t%ju\n", (uintmax_t) aboff);
+			printf("    Abbrev Offset:\t0x%jx\n",
+			    (uintmax_t) aboff);
 			printf("    Pointer Size:\t%u\n", pointer_size);
 			if (!is_info) {
 				printf("    Signature:\t\t0x%016jx\n",
