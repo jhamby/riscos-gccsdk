@@ -1,6 +1,6 @@
 Index: gcc/collect2.c
 ===================================================================
---- gcc/collect2.c	(revision 200565)
+--- gcc/collect2.c	(revision 210657)
 +++ gcc/collect2.c	(working copy)
 @@ -50,6 +50,11 @@
  #include "intl.h"
@@ -36,7 +36,7 @@ Index: gcc/collect2.c
  const char *c_file_name;		/* pathname of gcc */
  static char *initname, *fininame;	/* names of init and fini funcs */
  
-@@ -1009,6 +1022,87 @@
+@@ -1009,6 +1022,99 @@
        post_ld_pass (false);
      }
  }
@@ -48,6 +48,17 @@ Index: gcc/collect2.c
 +static void
 +do_riscos_binary_postprocessing (void)
 +{
++#ifndef CROSS_DIRECTORY_STRUCTURE
++  /* When doing _kernel_*() calls or calling SCL programs like elf2aif, we
++     need the RISC OS filename instead of the Unix one.  */
++  char robuf[_POSIX_PATH_MAX];
++  const char *ro_output_file;
++  if (__riscosify_std (output_file, 0, robuf, sizeof (robuf), NULL))
++    ro_output_file = robuf;
++  else
++    ro_output_file = NULL;
++#endif
++
 +  if (!shared_obj && riscos_module)
 +    {
 +      /* Take the binary only part of ELF binary.  */
@@ -71,17 +82,14 @@ Index: gcc/collect2.c
 +	}
 +
 +#ifndef CROSS_DIRECTORY_STRUCTURE
-+      {
-+	char robuf[_POSIX_PATH_MAX];
-+	/* Set filetype Module.  */
-+	if (__riscosify_std (output_file, 0, robuf, sizeof (robuf), NULL))
-+	  {
-+	    _kernel_osfile_block bl;
++      /* Set filetype Module.  */
++      if (ro_output_file != NULL)
++	{
++	  _kernel_osfile_block bl;
 +
-+	    bl.load = 0xFFA; /* RISC OS Module */
-+	    _kernel_osfile (18, robuf, &bl);
-+	  }
-+      }
++	  bl.load = 0xFFA; /* RISC OS Module */
++	  _kernel_osfile (18, robuf, &bl);
++	}
 +#endif
 +    }
 +  else if (!shared_obj && riscos_libscl)
@@ -89,8 +97,8 @@ Index: gcc/collect2.c
 +      /* Run elf2aif on the ELF binary.  */
 +#ifdef CROSS_DIRECTORY_STRUCTURE
 +      /* When we are building the cross-compiler, we don't have elf2aif in
-+	 our build-tree as it gets built later. The test on CROSS_DIRECTORY_STRUCTURE is
-+	 therefore a little bit too wide.  */
++	 our build-tree as it gets built later. The test on
++	 CROSS_DIRECTORY_STRUCTURE is therefore too strong.  */
 +      if (elf2aif_file_name == NULL)
 +	notice ("'%s' has not been found so therefore not used.\n", "elf2aif");
 +      else
@@ -99,8 +107,13 @@ Index: gcc/collect2.c
 +	  char **real_elf2aif_argv = (char **) xcalloc (sizeof (char *), 3);
 +	  const char ** elf2aif_argv = CONST_CAST2 (const char **, char **, real_elf2aif_argv);
 +
++
 +	  elf2aif_argv[0] = elf2aif_file_name;
++#ifdef CROSS_DIRECTORY_STRUCTURE
 +	  elf2aif_argv[1] = output_file;
++#else
++	  elf2aif_argv[1] = ro_output_file;
++#endif
 +	  elf2aif_argv[2] = NULL;
 +	  fork_execute ("elf2aif", real_elf2aif_argv);
 +	}
@@ -108,9 +121,8 @@ Index: gcc/collect2.c
 +  else
 +    {
 +#ifndef CROSS_DIRECTORY_STRUCTURE
-+      char robuf[_POSIX_PATH_MAX];
 +      /* Set filetype ELF.  */
-+      if (__riscosify_std (output_file, 0, robuf, sizeof (robuf), NULL))
++      if (ro_output_file != NULL)
 +	{
 +	  _kernel_osfile_block bl;
 +
@@ -124,7 +136,7 @@ Index: gcc/collect2.c
  
  /* Main program.  */
  
-@@ -1026,6 +1120,9 @@
+@@ -1026,6 +1132,9 @@
  #endif
    static const char *const strip_suffix = "strip";
    static const char *const gstrip_suffix = "gstrip";
@@ -134,7 +146,7 @@ Index: gcc/collect2.c
  
  #ifdef CROSS_DIRECTORY_STRUCTURE
    /* If we look for a program in the compiler directories, we just use
-@@ -1316,6 +1413,12 @@
+@@ -1316,6 +1425,12 @@
    if (strip_file_name == 0)
      strip_file_name = find_a_file (&path, full_strip_suffix);
  
@@ -147,7 +159,7 @@ Index: gcc/collect2.c
    /* Determine the full path name of the C compiler to use.  */
    c_file_name = getenv ("COLLECT_GCC");
    if (c_file_name == 0)
-@@ -1378,6 +1481,12 @@
+@@ -1378,6 +1493,12 @@
  	*c_ptr++ = xstrdup (q);
        if (strcmp (q, "-shared") == 0)
  	shared_obj = 1;
@@ -160,7 +172,7 @@ Index: gcc/collect2.c
        if (*q == '-' && q[1] == 'B')
  	{
  	  *c_ptr++ = xstrdup (q);
-@@ -1717,6 +1826,10 @@
+@@ -1717,6 +1838,10 @@
  #endif
        fprintf (stderr, "strip_file_name     = %s\n",
  	       (strip_file_name ? strip_file_name : "not found"));
@@ -171,7 +183,7 @@ Index: gcc/collect2.c
        fprintf (stderr, "c_file              = %s\n",
  	       (c_file ? c_file : "not found"));
        fprintf (stderr, "o_file              = %s\n",
-@@ -1776,6 +1889,11 @@
+@@ -1776,6 +1901,11 @@
  
  	maybe_unlink (c_file);
  	maybe_unlink (o_file);
@@ -183,7 +195,7 @@ Index: gcc/collect2.c
  	return 0;
        }
    }
-@@ -1848,6 +1966,11 @@
+@@ -1848,6 +1978,11 @@
  
        maybe_unlink (c_file);
        maybe_unlink (o_file);
@@ -195,7 +207,7 @@ Index: gcc/collect2.c
        return 0;
      }
  
-@@ -1948,6 +2071,10 @@
+@@ -1948,6 +2083,10 @@
    maybe_unlink (export_file);
  #endif
  
