@@ -344,7 +344,6 @@ The counters for each sample point are 16 bits wide which means that each can co
 <p>This is a short list of the most interesting and useful predefines set:
 
 <dl>
-<dt>__arm
 <dt>__arm__
 <dd>Always defined in the RISC&nbsp;OS port and can be used to make a difference between ARM specific vs non-ARM code.
 <dt>__riscos
@@ -363,6 +362,8 @@ The counters for each sample point are 16 bits wide which means that each can co
 </dl>
 
 <p>GCCSDK 3 defines the predefine __aof__ which is no longer the case in GCCSDK 4 as it is now fully ELF based. So this can be used to distinguish between AOF and ELF compilations.
+
+<p>GCCSDK 3 also defines __arm (together with __arm__) while GCCSDK 4 only defines __arm__.
 
 <p>More common predefines are documented in the section "Common Predefined Macros" of the <a href="gcc/cpp/index.html">GNU C preprocessor manual</a>.
 
