@@ -17,6 +17,6 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -name PipeNightDreams
 }
 
-export LIBS="-lSDL_image -ljpeg -lpng -ltiff -lz"
+export LIBS="-lSDL_image -ljpeg -lpng -ltiff -lz -static"
 AB_CONFLAGS=\''--datadir=/<PipeNight$$Dir>/'\'
 
