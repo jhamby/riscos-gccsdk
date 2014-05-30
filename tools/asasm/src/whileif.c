@@ -120,9 +120,9 @@ If_Skip (IfSkip_eToDo toDo)
       else if (Input_Look () == '$')
 	{
 	  size_t len;
-	  (void) Input_Symbol2 (&len, '\0');
+	  (void) Input_SymbolNoBar (&len);
 	  if (Input_Match ('.', false))
-	    (void) Input_Symbol2 (&len, '\0');
+	    (void) Input_SymbolNoBar (&len);
 	  labelPresent = true;
 	}
       else
@@ -378,9 +378,9 @@ While_Skip (void)
       else if (Input_Look () == '$')
 	{
 	  size_t len;
-	  (void) Input_Symbol2 (&len, '\0');
+	  (void) Input_SymbolNoBar (&len);
 	  if (Input_Match ('.', false))
-	    (void) Input_Symbol2 (&len, '\0');
+	    (void) Input_SymbolNoBar (&len);
 	  labelPresent = true;
 	}
       else

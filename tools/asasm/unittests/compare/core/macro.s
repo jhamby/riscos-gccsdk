@@ -118,4 +118,88 @@ $label
 	B	{PC}
 	]
 
+	; Macro name can be bracketed with one or more bar characters.
+	AREA	Code12, CODE
+	[ :LNOT: REFERENCE
+	MACRO
+	|Test12a|		; Macro name is Test12a
+	MOV	r0, #12
+	MEND
+
+	MACRO
+	|.Test12b|		; Macro name is .Test12b
+	MOV	r1, #12
+	MEND
+
+	MACRO
+	||.Test12c||		; Macro name is .Test12c
+	MOV	r2, #12
+	MEND
+
+	MACRO
+	|ADD|			; Bars needed for instruction mnemonics & directives.
+	MOV	r3, #12
+	MEND
+
+	MACRO
+	||SUB||			; Bars needed for instruction mnemonics & directives.
+	MOV	r4, #12
+	MEND
+
+	MACRO
+	|INFO|			; Bars needed for instruction mnemonics & directives.
+	MOV	r5, #12
+	MEND
+
+	MACRO
+	||ASSERT||		; Bars needed for instruction mnemonics & directives.
+	MOV	r6, #12
+	MEND
+
+	Test12a
+	|Test12a|
+	||Test12a||
+
+	|.Test12b|
+	||.Test12b||
+
+	|.Test12c|
+	||.Test12c||
+
+	|ADD|			; Calls macro ADD, not instruction mnemonic ADD.
+	||ADD||
+
+	|SUB|			; Calls macro SUB, not instruction mnemonic SUB.
+	||SUB||
+
+	|INFO|			; Calls macro INFO, not directive INFO.
+	||INFO||
+
+	|ASSERT|		; Calls macro ASSERT, not directive ASSERT.
+	||ASSERT||
+
+	|
+	MOV	r0, #12
+	MOV	r0, #12
+	MOV	r0, #12
+
+	MOV	r1, #12
+	MOV	r1, #12
+
+	MOV	r2, #12
+	MOV	r2, #12
+
+	MOV	r3, #12
+	MOV	r3, #12
+
+	MOV	r4, #12
+	MOV	r4, #12
+
+	MOV	r5, #12
+	MOV	r5, #12
+
+	MOV	r6, #12
+	MOV	r6, #12
+	]
+
 	END

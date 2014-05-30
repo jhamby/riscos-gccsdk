@@ -321,12 +321,12 @@ Lex_GetDefiningLabel (void)
 	(void) Input_GetC ();
       /* Possibly followed by a ROUT identifier.  */
       size_t routLen;
-      (void) Input_Symbol2 (&routLen, '\0');
+      (void) Input_Symbol (&routLen);
 
       Lex result =
 	{
 	  .tag = LexLocalLabel,
-	  .Data.LocalLabel.len = Input_GetMark () - beginLabel,
+	  .Data.LocalLabel.len = Input_GetMark () - beginLabel, /* FIXME: not correct for e.g. 02|.xyz| local labels.  */
 	  .Data.LocalLabel.str = beginLabel
 	};
       return result;
@@ -381,7 +381,7 @@ Lex_SkipDefiningLabel (void)
 	} while (isdigit ((unsigned char)Input_Look ()));
 
       size_t len;
-      (void) Input_Symbol2 (&len, '\0');
+      (void) Input_Symbol (&len);
       return true;
     }
 

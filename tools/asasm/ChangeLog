@@ -1,3 +1,26 @@
+Fri May 30 15:53:03 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* input.c (Input_Symbol2): Split into...
+	(Input_SymbolNoBar): ...this and...
+	(Input_Argument): ...this.
+	(Input_Symbol): Make use of Input_SymbolNoBar.
+	* input.h (Input_Symbol2): Remove.
+	(Input_SymbolNoBar): Add.
+	(Input_Argument): Add.
+	* lex.c (Lex_GetDefiningLabel): Use Input_Symbol iso Input_Symbol2.
+	Add FIXME for a case which is not working.
+	(Lex_SkipDefiningLabel): Use Input_Symbol iso Input_Symbol2.
+	* macros.c (Macro_Call): Use Input_Argument iso Input_Symbol2.
+	(c_macro): Use Input_SymbolNoBar & Input_Argument iso Input_Symbol2.
+	* whileif.c (If_Skip): Use Input_SymbolNoBar iso Input_Symbol2.
+	(While_Skip): Likewise.
+
+	unittests/compare:
+	* core/local_label0.s: Add two new testcases (whom one disabled).
+	* core/macro.s: Add testcase.
+	* core/macro_args.s: Likewise.
+
 Fri May 30 13:12:56 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/macros.c: Add missing whileif.h include.

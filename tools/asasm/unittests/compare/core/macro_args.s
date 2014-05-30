@@ -2,6 +2,7 @@
 
 	AREA	Code, CODE, READONLY
 
+	; -------------------------------------------------------
 	; Test basic support using a well known macro:
 	[ :LNOT: REFERENCE
 	MACRO
@@ -52,23 +53,24 @@ ratio	MOV	r2, r4
 
 	]
 
+	; -------------------------------------------------------
 	; Test '.' support in macro argument expansion.
 	[ :LNOT: REFERENCE
 	MACRO
-$Lbl	Test1
+$Lbl	Test1a
 $Lbl	DCD	1
 	B	Tst1
 	MEND
 
-Tst1	Test1
+Tst1	Test1a
 
 	MACRO
-$Lbl	Test2
+$Lbl	Test1b
 $Lbl.X	DCD	2
 	B	Tst2X
 	MEND
 
-Tst2	Test2
+Tst2	Test1b
 
 	|
 
@@ -79,25 +81,47 @@ Tst2	Test2
 
 	]
 
+	; -------------------------------------------------------
 	; Test '|' support for macro arguments.
 	[ :LNOT: REFERENCE
         MACRO
-$label  Test3	$reg, $what, $iswhat, $reg2
-        AND	$reg2, $reg, #Test3_$|what|_Mask
-        TEQ	$reg2, #Test3_$|what|_$iswhat
+$label  Test2	$reg, $what, $iswhat, $reg2
+        AND	$reg2, $reg, #Test2_$|what|_Mask
+        TEQ	$reg2, #Test2_$|what|_$iswhat
         MEND
 
-Test3_Foo_Mask	*	3 :SHL: 0
-Test3_Foo_Val0	*	0 :SHL: 0
-Test3_Foo_Val1	*	1 :SHL: 0
-Test3_Foo_Val2	*	2 :SHL: 0
+Test2_Foo_Mask	*	3 :SHL: 0
+Test2_Foo_Val0	*	0 :SHL: 0
+Test2_Foo_Val1	*	1 :SHL: 0
+Test2_Foo_Val2	*	2 :SHL: 0
 
-	Test3 r0, Foo, Val1, r14
+	Test2 r0, Foo, Val1, r14
 	|
 	AND	r14, r0, #3
 	TEQ	r14, #1
 	]
 
+	; -------------------------------------------------------
+	; Another '|' related test
+	[ :LNOT: REFERENCE
+	MACRO
+	Test3b $a,$b=R1,$c
+	SUB $a,$b,$c
+	MEND
+
+	MACRO
+	Test3a $a,$b
+	LCLS def
+def	SETS "|"
+	Test3b $a,$def,$b
+	MEND
+
+	Test3a r4, r5
+	|
+	SUB R4, R1, R5
+	]
+
+	; -------------------------------------------------------
 	; Test the macro default argument value:
 	[ :LNOT: REFERENCE
 
@@ -135,6 +159,7 @@ Test3_Foo_Val2	*	2 :SHL: 0
 
 	]
 
+	; -------------------------------------------------------
 	; Test macro label and suffix argument
 	AREA	LblSfxData1, DATA
 	[ :LNOT: REFERENCE
@@ -184,6 +209,7 @@ lbl3	LSTest3SFX2 ARG1, ARG2
 	= "LSTest3, sfx is 'SFX2', lbl is 'lbl3' (00000132), arg1 is 'ARG1', arg2 is 'ARG2'\n"
 	]
 
+	; -------------------------------------------------------
 	; Test macro suffix support doesn't get triggered for macros without
 	; suffix.
 	AREA	LblSfxData2, DATA

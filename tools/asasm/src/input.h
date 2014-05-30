@@ -1,7 +1,7 @@
 /*
  * AsAsm an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2013 GCCSDK Developers
+ * Copyright (c) 2001-2014 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -74,7 +74,9 @@ void Input_SkipN (size_t n);
 char *Input_GetString (size_t *len);
 
 const char *Input_Symbol (size_t *ilen);
-const char *Input_Symbol2 (size_t *ilen, char del);
+const char *Input_SymbolNoBar (size_t *ilen);
+
+const char *Input_Argument (size_t *ilen);
 
 const char *Input_GetMark (void);
 void Input_RollBackToMark (const char *mark);

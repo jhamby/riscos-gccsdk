@@ -232,6 +232,7 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
 	    free ((void *)args[i]);
 	  return false;
 	}
+
       const char *arg;
       size_t len;
       if (Input_Match ('"', false))
@@ -242,17 +243,10 @@ Macro_Call (const char *macroName, size_t macroNameLen, const Lex *label)
       else
 	{
 	  /* Unquoted argument.  */
-	  arg = Input_Symbol2 (&len, ',');
-	  /* Discard comment start.  */
-	  for (size_t i = 0; i != len; ++i)
-	    if (arg[i] == ';')
-	      {
-	        len = i;
-		break;
-	      }
-	  /* Discard the white space characters before comma.  */
-	  while (len != 0 && isspace ((unsigned char)arg[len - 1]))
-	    len--;
+	  arg = Input_Argument (&len);
+	  /* Strip trailing whitespace characters.  */
+	  while (len && isspace ((unsigned char)arg[len - 1]))
+	    --len;
 	  if ((arg = strndup (arg, len)) == NULL)
 	    Error_OutOfMem ();
 	}
@@ -445,7 +439,7 @@ c_macro (void)
   if (Input_Match ('$', false))
     {
       size_t lblLen;
-      const char *lbl = Input_Symbol2 (&lblLen, '\0');
+      const char *lbl = Input_SymbolNoBar (&lblLen);
       if (lblLen)
 	{
 	  m.labelArg = true;
@@ -544,6 +538,8 @@ c_macro (void)
 	  Error (ErrorError, "Illegal parameter start in macro definition");
 	  break;
 	}
+
+      /* Read macro parameter name.  */
       const char *arg;
       size_t argLen;
       arg = Input_Symbol (&argLen);
@@ -552,6 +548,8 @@ c_macro (void)
 	  Error (ErrorError, "Failed to parse macro parameter");
 	  break;
 	}
+
+      /* Pickup default parameter value when specified.  */
       Input_SkipWS ();
       const char *defValue;
       if (Input_Match ('=', false))
@@ -570,13 +568,16 @@ c_macro (void)
 	      /* We do NOT skip spaces, nor do we remove the spaces before
 	         the next comma found.  */
 	      size_t defValueLen;
-	      const char *defValueRaw = Input_Symbol2 (&defValueLen, ',');
+	      const char *defValueRaw = Input_Argument (&defValueLen);
 	      if ((defValue = strndup (defValueRaw, defValueLen)) == NULL)
 		Error_OutOfMem ();
 	    }
 	}
       else
 	defValue = NULL;
+
+      /* Register the macro parameter with its default value (when
+	 specified).  */
       AddMacroArg (&m, arg, argLen, defValue);
 
       if (!Input_Match (',', true))
@@ -628,7 +629,7 @@ c_macro (void)
 		  /* Token ? Check list and substitute.  */
 		  bool vbar_symbol = Input_Match ('|', false);
 		  size_t tokenLen;
-		  const char *token = Input_Symbol2 (&tokenLen, '\0');
+		  const char *token = Input_SymbolNoBar (&tokenLen);
 		  if (vbar_symbol && !Input_Match ('|', false))
 		    Error (ErrorError, "Missing vertical bar");
 		  (void) Input_Match ('.', false);

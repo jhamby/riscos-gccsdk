@@ -666,67 +666,90 @@ Input_IsEndOfKeywordN (size_t n)
 
 
 /**
- * Try to read a symbol.
+ * Try to read a symbol bracketed with zero, one or two bars.
  * \return NULL on error, otherwise points to begin of symbol and symbol length
  * is *ilen bytes.
  */
 const char *
 Input_Symbol (size_t *ilen)
 {
-  const char *rslt;
+  if (*input_pos != '|')
+    return Input_SymbolNoBar (ilen);
+
+  /* Symbol is bracketed between two '|'.  Support double '||' bracketing
+     as well.  */
+  bool isDbl = input_pos[1] == '|';
+  if (isDbl)
+    ++input_pos;
+
+  const char *rslt = ++input_pos;
   size_t len;
-  if (*input_pos == '|')
+  for (len = 0;
+       input_pos[len] != '\0' && !(input_pos[len] == '|' && (!isDbl || input_pos[len + 1] == '|'));
+       ++len)
+    /* */;
+  if (input_pos[len] == '\0')
     {
-      /* Symbol is bracketed between two '|'.  Support double '||' bracketing
-         as well.  */
-      bool isDbl;
-      if (input_pos[1] == '|')
-	{
-	  ++input_pos;
-	  isDbl = true;
-	}
-      else
-	isDbl = false;
-      rslt = ++input_pos;
-      for (len = 0;
-	   input_pos[len] != '\0' && !(input_pos[len] == '|' && (!isDbl || input_pos[len + 1] == '|'));
-	   ++len)
-	/* */;
-      if (input_pos[len] == '\0')
-	{
-	  Error (ErrorError, "Failed to read symbol (forgot second '%s' ?)", isDbl ? "||" : "|");
-	  *ilen = 0;
-	  return NULL;
-	}
-      if (isDbl)
-	input_pos += 2; /* Skip second '||'  */
-      else
-        input_pos += 1; /* Skip second '|'.  */
+      Error (ErrorError, "Failed to read symbol (forgot second '%s' ?)", isDbl ? "||" : "|");
+      *ilen = 0;
+      return NULL;
     }
+  if (isDbl)
+    input_pos += 2; /* Skip second '||'  */
   else
-    {
-      /* Symbol needs to start with a letter (upper- or lowercase) or
-	 underscore, followed by letter, digits and underscore.  */
-      rslt = input_pos;
-      for (len = 0; input_pos[len] != '\0'; ++len)
-	{
-          if (len == 0)
-	    {
-	      if (!isalpha ((unsigned char)input_pos[len])
-	          && input_pos[len] != '_')
-	        break;
-	    }
-          else
-	    {
-	      if (!isalnum ((unsigned char)input_pos[len])
-	          && input_pos[len] != '_')
-	        break;
-	    }
-        }
-    }
+    input_pos += 1; /* Skip second '|'.  */
+
   *ilen = len;
   input_pos += len;
   return len ? rslt : NULL;
+}
+
+
+/**
+ * Try to read symbol (no bar support).
+ */
+const char *
+Input_SymbolNoBar (size_t *ilen)
+{
+  /* Symbol needs to start with a letter (upper- or lowercase) or
+     underscore, followed by letter, digits or underscore.  */
+  const char *rslt = input_pos;
+  size_t len;
+  for (len = 0; input_pos[len] != '\0'; ++len)
+    {
+      if (len == 0)
+	{
+	  if (!isalpha ((unsigned char)input_pos[len])
+	      && input_pos[len] != '_')
+	    break;
+	}
+      else
+	{
+	  if (!isalnum ((unsigned char)input_pos[len])
+	      && input_pos[len] != '_')
+	    break;
+	}
+    }
+
+  *ilen = len;
+  input_pos += len;
+  return len ? rslt : NULL;
+}
+
+
+/**
+ * Read an argument (terminated by EOL, comma or comment).
+ * Does not skip white space characters at the front, nor trailing white space
+ * characters.
+ */
+const char *
+Input_Argument (size_t *ilen)
+{
+  const char *rslt = input_pos;
+  while (!Input_IsEolOrCommentStart () && *input_pos != ',')
+    ++input_pos;
+  *ilen = input_pos - rslt;
+  return rslt;
 }
 
 
@@ -881,29 +904,6 @@ Input_GetString (size_t *len)
   *len = curLen;
   
   return result;
-}
-
-
-const char *
-Input_Symbol2 (size_t *ilen, char del)
-{
-  const char *p = input_pos;
-
-  if (del)
-    {
-      unsigned char c;
-      while ((c = *p) != 0 && c != del && c != ';')
-	p++;
-    }
-  else
-    {
-      unsigned char c;
-      while ((c = *p) != 0 && (isalnum (c) || c == '_'))
-	p++;
-    }
-  *ilen = p - input_pos;
-  input_pos = p;
-  return input_pos - *ilen;
 }
 
 void
