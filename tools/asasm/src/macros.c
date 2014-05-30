@@ -37,6 +37,7 @@
 #include "opt.h"
 #include "phase.h"
 #include "variables.h"
+#include "whileif.h"
 
 #ifdef DEBUG
 //#  define DEBUG_MACRO
