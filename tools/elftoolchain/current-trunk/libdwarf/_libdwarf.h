@@ -24,7 +24,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: _libdwarf.h 3041 2014-05-18 15:11:03Z kaiwang27 $
+ * $Id: _libdwarf.h 3055 2014-05-30 21:40:42Z kaiwang27 $
  */
 
 #ifndef	__LIBDWARF_H_
@@ -576,10 +576,12 @@ int		_dwarf_lineno_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_lineno_init(Dwarf_Die, uint64_t, Dwarf_Error *);
 void		_dwarf_lineno_cleanup(Dwarf_LineInfo);
 void		_dwarf_lineno_pro_cleanup(Dwarf_P_Debug);
-int		_dwarf_loc_fill_locdesc(Dwarf_Debug, Dwarf_Locdesc *, uint8_t *,
-		    uint64_t, uint8_t, Dwarf_Error *);
+int		_dwarf_loc_fill_locdesc(Dwarf_Debug, Dwarf_Locdesc *,
+		    uint8_t *, uint64_t, uint8_t, uint8_t, uint8_t,
+		    Dwarf_Error *);
 int		_dwarf_loc_fill_locexpr(Dwarf_Debug, Dwarf_Locdesc **,
-		    uint8_t *, uint64_t, uint8_t, Dwarf_Error *);
+		    uint8_t *, uint64_t, uint8_t, uint8_t, uint8_t,
+		    Dwarf_Error *);
 int		_dwarf_loc_add(Dwarf_Die, Dwarf_Attribute, Dwarf_Error *);
 int		_dwarf_loc_expr_add_atom(Dwarf_Debug, uint8_t *, uint8_t *,
 		    Dwarf_Small, Dwarf_Unsigned, Dwarf_Unsigned, int *,
