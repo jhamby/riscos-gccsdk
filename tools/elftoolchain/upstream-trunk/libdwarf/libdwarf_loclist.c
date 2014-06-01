@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_loclist.c 2978 2014-01-21 20:13:58Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_loclist.c 3055 2014-05-30 21:40:42Z kaiwang27 $");
 
 static int
 _dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
@@ -75,6 +75,7 @@ _dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 		if (ld != NULL) {
 			ret = _dwarf_loc_fill_locdesc(dbg, ld[i],
 			    ds->ds_data + *off, len, cu->cu_pointer_size,
+			    cu->cu_length_size == 4 ? 4 : 8, cu->cu_version,
 			    error);
 			if (ret != DW_DLE_NONE)
 				return (ret);
