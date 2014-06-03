@@ -22,5 +22,3 @@ key was pressed, eg, pressing Q will cause the program to quit
 as if ctrl-Q was pressed instead of inserting the Q character
 at the cursor.
 * There is no visible text entry cursor.
-* Delete/backspace keys don't work (keyboard handling needs
-some work).

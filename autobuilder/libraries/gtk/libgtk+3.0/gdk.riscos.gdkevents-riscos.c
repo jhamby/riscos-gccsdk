@@ -809,9 +809,11 @@ check_key_down (GdkRiscosDisplay *rdisplay,
 	    event->key.keyval = map_keyboard_wimp_to_gdk (code);
 	    event->key.length = 0;
 	    event->key.string = NULL;
-	    event->key.hardware_keycode = code;
+	    event->key.hardware_keycode = event->key.keyval;
 	    event->key.group = 0;
 	    event->key.is_modifier = FALSE;
+
+	    gdk_event_set_device (event, rdisplay->parent_instance.core_pointer);
 
 	    send_event (event);
 #if 0
@@ -968,9 +970,11 @@ gdk_riscos_handle_key_press (GdkRiscosDisplay *rdisplay)
   event->key.keyval = map_keyboard_wimp_to_gdk (key->c);
   event->key.length = 0;
   event->key.string = NULL;
-  event->key.hardware_keycode = key->c;
+  event->key.hardware_keycode = event->key.keyval;
   event->key.group = 0;
   event->key.is_modifier = FALSE;
+
+  gdk_event_set_device (event, rdisplay->parent_instance.core_pointer);
 
   send_event (event);
 #if 0
