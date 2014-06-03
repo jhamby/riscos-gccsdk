@@ -24,7 +24,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: libdwarf.h 3055 2014-05-30 21:40:42Z kaiwang27 $
+ * $Id: libdwarf.h 3061 2014-06-02 00:42:41Z kaiwang27 $
  */
 
 #ifndef	_LIBDWARF_H_
@@ -59,7 +59,6 @@ typedef struct _Dwarf_FrameSec	*Dwarf_FrameSec;
 typedef struct _Dwarf_Line	*Dwarf_Line;
 typedef struct _Dwarf_LineFile	*Dwarf_LineFile;
 typedef struct _Dwarf_LineInfo	*Dwarf_LineInfo;
-typedef struct _Dwarf_Loclist	*Dwarf_Loclist;
 typedef struct _Dwarf_MacroSet	*Dwarf_MacroSet;
 typedef struct _Dwarf_NamePair	*Dwarf_NamePair;
 typedef struct _Dwarf_NamePair	*Dwarf_Func;
@@ -712,6 +711,8 @@ int		dwarf_hasattr(Dwarf_Die, Dwarf_Half, Dwarf_Bool *,
 int		dwarf_hasform(Dwarf_Attribute, Dwarf_Half, Dwarf_Bool *,
 		    Dwarf_Error *);
 int		dwarf_highpc(Dwarf_Die, Dwarf_Addr *, Dwarf_Error *);
+int		dwarf_highpc_b(Dwarf_Die, Dwarf_Addr *, Dwarf_Half *,
+		    enum Dwarf_Form_Class *, Dwarf_Error *);
 int		dwarf_init(int, int, Dwarf_Handler, Dwarf_Ptr, Dwarf_Debug *,
 		    Dwarf_Error *);
 int		dwarf_line_srcfileno(Dwarf_Line, Dwarf_Unsigned *,
