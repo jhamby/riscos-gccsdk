@@ -1,6 +1,11 @@
 --- Makefile.orig	2008-01-26 22:52:48.000000000 -0800
 +++ Makefile	2008-01-26 22:54:23.000000000 -0800
-@@ -17,16 +17,16 @@
+@@ -13,20 +13,20 @@
+ # ------------------------------------------------------------------
+
+ somajor=1.0
+-sominor=$(somajor).4
++sominor=$(somajor).6
  SHELL=/bin/sh
 
  # To assist in cross-compiling
@@ -27,7 +32,7 @@
        bzlib.o
 
 -all: libbz2.a bzip2 bzip2recover # test
-+all: libbz2.a bzip2$(AB_EXEEXT) bzip2recover$(AB_EXEEXT) # test
++all: libbz2.a bzip2$(AB_EXEEXT) bzip2recover$(AB_EXEEXT) libbz2.so # test
 
 -bzip2: libbz2.so bzip2.o
 -	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2
@@ -41,6 +46,15 @@
 
  libbz2.a: $(OBJS)
  	rm -f libbz2.a
+@@ -61,7 +61,7 @@
+ 	ln -sf $^ $@
+
+ libbz2.so.$(sominor): $(OBJS:%.o=%.sho)
+-	$(CC) $(LDFLAGS) -o libbz2.so.$(sominor) -shared \
++	$(CC) -o libbz2.so.$(sominor) -shared \
+ 	  -Wl,-soname,libbz2.so.$(somajor) $^ -lc
+
+ %.sho: %.c
 @@ -93,47 +93,47 @@
  	cmp sample3.tst sample3.ref
  	@cat words3
@@ -73,8 +87,7 @@
 +	#chmod a+r $(PREFIX)/man/man1/bzip2.1
  	cp -f bzlib.h $(PREFIX)/include
  	chmod a+r $(PREFIX)/include/bzlib.h
--	cp -fa libbz2.a libbz2.so* $(PREFIX)/lib
-+	cp -fa libbz2.a $(PREFIX)/lib
+	cp -fa libbz2.a libbz2.so* $(PREFIX)/lib
  	chmod a+r $(PREFIX)/lib/libbz2.a
 -	cp -f bzexe $(PREFIX)/bin/bzexe
 -	chmod a+x $(PREFIX)/bin/bzexe
