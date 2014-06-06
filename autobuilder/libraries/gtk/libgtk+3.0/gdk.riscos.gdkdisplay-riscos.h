@@ -76,6 +76,8 @@ struct _GdkRiscosDisplay
 
   GSList* key_down_list;
 
+  GdkWindow *focus_window;
+
   wimp_block poll_block;
 };
 

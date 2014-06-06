@@ -62,6 +62,8 @@ gdk_riscos_display_init (GdkRiscosDisplay *display)
   display->key_down_list = NULL;
 
   display->raw_event_handlers = NULL;
+
+  display->focus_window = NULL;
 }
 
 static void

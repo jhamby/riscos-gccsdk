@@ -651,6 +651,86 @@ gdk_riscos_handle_mouse_click (GdkRiscosDisplay *rdisplay)
   rdisplay->last_click = *mouse;
 }
 
+static GdkEvent *
+create_focus_event (GdkRiscosDisplay *rdisplay,
+		    GdkWindow *window,
+		    gboolean   in)
+{
+  GdkEvent *event;
+  GdkRISCOSDeviceManager *device_manager;
+
+  event = gdk_event_new (GDK_FOCUS_CHANGE);
+  event->focus_change.window = window;
+  event->focus_change.in = in;
+
+  device_manager = GDK_RISCOS_DEVICE_MANAGER (rdisplay->parent_instance.device_manager);
+  gdk_event_set_device (event, device_manager->core_keyboard);
+
+  return event;
+}
+
+void
+_gdk_riscos_update_focus_window (GdkRiscosDisplay *rdisplay,
+				 GdkWindow *window,
+				 gboolean got_focus)
+{
+  GdkEvent *event;
+
+  if (got_focus && window == rdisplay->focus_window)
+    return;
+
+  if (!got_focus && window == rdisplay->focus_window)
+    {
+      event = create_focus_event (rdisplay, rdisplay->focus_window, FALSE);
+      send_event (event);
+      g_object_unref (rdisplay->focus_window);
+      rdisplay->focus_window = NULL;
+    }
+
+  if (got_focus)
+    {
+      if (rdisplay->focus_window)
+	{
+	  event = create_focus_event (rdisplay, rdisplay->focus_window, FALSE);
+	  send_event (event);
+	  g_object_unref (rdisplay->focus_window);
+	  rdisplay->focus_window = NULL;
+	}
+
+      event = create_focus_event (rdisplay, window, TRUE);
+      send_event (event);
+      rdisplay->focus_window = g_object_ref (window);
+    }
+}
+
+static void
+gdk_riscos_handle_gain_focus_event (GdkRiscosDisplay *rdisplay)
+{
+  wimp_caret *riscos_event = &rdisplay->poll_block.caret;
+  GdkWindow *gdk_window;
+
+  gdk_window = g_hash_table_lookup (rdisplay->id_ht,
+				    riscos_event->w);
+  if (gdk_window == NULL)
+    return;
+
+  _gdk_riscos_update_focus_window (rdisplay, gdk_window, TRUE);
+}
+
+static void
+gdk_riscos_handle_lose_focus_event (GdkRiscosDisplay *rdisplay)
+{
+  wimp_caret *riscos_event = &rdisplay->poll_block.caret;
+  GdkWindow *gdk_window;
+
+  gdk_window = g_hash_table_lookup (rdisplay->id_ht,
+				    riscos_event->w);
+  if (gdk_window == NULL)
+    return;
+
+  _gdk_riscos_update_focus_window (rdisplay, gdk_window, FALSE);
+}
+
 static void
 gdk_riscos_handle_enter_event (GdkRiscosDisplay *rdisplay)
 {
@@ -1100,6 +1180,12 @@ _gdk_riscos_display_queue_events (GdkDisplay *display)
       break;
     case wimp_KEY_PRESSED:
       gdk_riscos_handle_key_press (riscos_display);
+      break;
+    case wimp_LOSE_CARET:
+      gdk_riscos_handle_lose_focus_event (riscos_display);
+      break;
+    case wimp_GAIN_CARET:
+      gdk_riscos_handle_gain_focus_event (riscos_display);
       break;
     case wimp_USER_MESSAGE:
       gdk_riscos_handle_message (riscos_display);
