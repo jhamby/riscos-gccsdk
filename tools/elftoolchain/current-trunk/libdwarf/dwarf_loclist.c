@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: dwarf_loclist.c 3061 2014-06-02 00:42:41Z kaiwang27 $");
+ELFTC_VCSID("$Id: dwarf_loclist.c 3066 2014-06-06 19:36:06Z kaiwang27 $");
 
 static int
 copy_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *dst, Dwarf_Locdesc *src,
@@ -105,6 +105,7 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 		case DW_FORM_block1:
 		case DW_FORM_block2:
 		case DW_FORM_block4:
+		case DW_FORM_exprloc:
 			if (at->at_ld == NULL) {
 				ret = _dwarf_loc_add(at->at_die, at, error);
 				if (ret != DW_DLE_NONE)

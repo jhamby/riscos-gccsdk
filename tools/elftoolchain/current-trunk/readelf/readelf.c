@@ -46,7 +46,7 @@
 #include <time.h>
 #include <unistd.h>
 
-ELFTC_VCSID("$Id: readelf.c 3062 2014-06-02 00:42:45Z kaiwang27 $");
+ELFTC_VCSID("$Id: readelf.c 3067 2014-06-06 19:36:13Z kaiwang27 $");
 
 /*
  * readelf(1) options.
@@ -274,7 +274,7 @@ static void dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info);
 static void dump_dwarf_macinfo(struct readelf *re);
 static void dump_dwarf_line(struct readelf *re);
 static void dump_dwarf_line_decoded(struct readelf *re);
-static void dump_dwarf_loc(Dwarf_Loc *lr);
+static void dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr);
 static void dump_dwarf_loclist(struct readelf *re);
 static void dump_dwarf_pubnames(struct readelf *re);
 static void dump_dwarf_ranges(struct readelf *re);
@@ -4546,7 +4546,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 {
 	Dwarf_Attribute *attr_list;
 	Dwarf_Die ret_die;
-	Dwarf_Off dieoff, cuoff, culen;
+	Dwarf_Off dieoff, cuoff, culen, attroff;
 	Dwarf_Unsigned ate, lang, v_udata, v_sig;
 	Dwarf_Signed attr_count, v_sdata;
 	Dwarf_Off v_off;
@@ -4568,7 +4568,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 		goto cont_search;
 	}
 
-	printf("<%d><%jx>: ", level, (uintmax_t) dieoff);
+	printf(" <%d><%jx>: ", level, (uintmax_t) dieoff);
 
 	if (dwarf_die_CU_offset_range(die, &cuoff, &culen, &de) != DW_DLV_OK) {
 		warnx("dwarf_die_CU_offset_range failed: %s",
@@ -4609,7 +4609,12 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			    "[Unknown AT: %#x]", attr);
 			attr_str = unk_attr;
 		}
-		printf("     %-18s: ", attr_str);
+		if (dwarf_attroffset(attr_list[i], &attroff, &de) !=
+		    DW_DLV_OK) {
+			warnx("dwarf_attroffset failed: %s", dwarf_errmsg(de));
+			attroff = 0;
+		}
+		printf("    <%jx>   %-18s: ", (uintmax_t) attroff, attr_str);
 		switch (form) {
 		case DW_FORM_ref_addr:
 		case DW_FORM_sec_offset:
@@ -5794,6 +5799,9 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 			nla->la_at = attr_list[i];
 			nla->la_off = off;
 			nla->la_lowpc = lowpc;
+			nla->la_cu_psize = re->cu_psize;
+			nla->la_cu_osize = re->cu_osize;
+			nla->la_cu_ver = re->cu_ver;
 			TAILQ_INSERT_TAIL(&lalist, nla, la_next);
 		}
 	}
@@ -5815,10 +5823,12 @@ cont_search:
 }
 
 static void
-dump_dwarf_loc(Dwarf_Loc *lr)
+dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr)
 {
 	const char *op_str;
 	char unk_op[32];
+	uint8_t *b, n;
+	int i;
 
 	if (dwarf_get_OP_name(lr->lr_atom, &op_str) !=
 	    DW_DLV_OK) {
@@ -5922,6 +5932,12 @@ dump_dwarf_loc(Dwarf_Loc *lr)
 	case DW_OP_lt:
 	case DW_OP_ne:
 	case DW_OP_nop:
+	case DW_OP_push_object_address:
+	case DW_OP_form_tls_address:
+	case DW_OP_call_frame_cfa:
+	case DW_OP_stack_value:
+	case DW_OP_GNU_push_tls_address:
+	case DW_OP_GNU_uninit:
 		break;
 
 	case DW_OP_const1u:
@@ -5990,8 +6006,49 @@ dump_dwarf_loc(Dwarf_Loc *lr)
 		break;
 
 	case DW_OP_addr:
+	case DW_OP_GNU_encoded_addr:
 		printf(": %#jx", (uintmax_t)
 		    lr->lr_number);
+		break;
+
+	case DW_OP_GNU_implicit_pointer:
+		printf(": <0x%jx> %jd", (uintmax_t) lr->lr_number,
+		    (intmax_t) lr->lr_number2);
+		break;
+
+	case DW_OP_implicit_value:
+		printf(": %ju byte block:", (uintmax_t) lr->lr_number);
+		b = (uint8_t *)(uintptr_t) lr->lr_number2;
+		for (i = 0; (Dwarf_Unsigned) i < lr->lr_number; i++)
+			printf(" %x", b[i]);
+		break;
+
+	case DW_OP_GNU_entry_value:
+		printf(": (");
+		dump_dwarf_block(re, (uint8_t *)(uintptr_t) lr->lr_number2,
+		    lr->lr_number);
+		putchar(')');
+		break;
+
+	case DW_OP_GNU_const_type:
+		printf(": <0x%jx> ", (uintmax_t) lr->lr_number);
+		b = (uint8_t *)(uintptr_t) lr->lr_number2;
+		n = *b;
+		for (i = 1; (uint8_t) i < n; i++)
+			printf(" %x", b[i]);
+		break;
+
+	case DW_OP_GNU_regval_type:
+		/* TODO: show reg name */
+		printf(": %ju <0x%jx>", (uintmax_t) lr->lr_number,
+		    (uintmax_t) lr->lr_number2);
+		break;
+
+	case DW_OP_GNU_convert:
+	case DW_OP_GNU_deref_type:
+	case DW_OP_GNU_parameter_ref:
+	case DW_OP_GNU_reinterpret:
+		printf(": <0x%jx>", (uintmax_t) lr->lr_number);
 		break;
 
 	default:
@@ -6014,7 +6071,7 @@ dump_dwarf_block(struct readelf *re, uint8_t *b, Dwarf_Unsigned len)
 	}
 
 	for (i = 0; (Dwarf_Half) i < llbuf->ld_cents; i++) {
-		dump_dwarf_loc(&llbuf->ld_s[i]);
+		dump_dwarf_loc(re, &llbuf->ld_s[i]);
 		if (i < llbuf->ld_cents - 1)
 			printf("; ");
 	}
@@ -6123,7 +6180,7 @@ dump_dwarf_loclist(struct readelf *re)
 
 			putchar('(');
 			for (j = 0; (Dwarf_Half) j < llbuf[i]->ld_cents; j++) {
-				dump_dwarf_loc(&llbuf[i]->ld_s[j]);
+				dump_dwarf_loc(re, &llbuf[i]->ld_s[j]);
 				if (j < llbuf[i]->ld_cents - 1)
 					printf("; ");
 			}
