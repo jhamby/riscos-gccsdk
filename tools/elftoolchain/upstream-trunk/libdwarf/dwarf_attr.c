@@ -27,7 +27,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: dwarf_attr.c 3058 2014-06-02 00:42:21Z kaiwang27 $");
+ELFTC_VCSID("$Id: dwarf_attr.c 3064 2014-06-06 19:35:55Z kaiwang27 $");
 
 int
 dwarf_attr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Attribute *atp,
@@ -109,6 +109,23 @@ dwarf_hasattr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Bool *ret_bool,
 	}
 
 	*ret_bool = (_dwarf_attr_find(die, attr) != NULL);
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_attroffset(Dwarf_Attribute at, Dwarf_Off *ret_off, Dwarf_Error *error)
+{
+	Dwarf_Debug dbg;
+
+	dbg = at != NULL ? at->at_die->die_dbg : NULL;
+
+	if (at == NULL || ret_off == NULL) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
+	*ret_off = at->at_offset;
 
 	return (DW_DLV_OK);
 }
