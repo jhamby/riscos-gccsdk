@@ -37,7 +37,7 @@ components="$AB_COMPONENTS"
 # look up a version for the specific subpackage based on a
 # variable with the package name- eg AB_PVERSION_zip
 # illegal characters in package names are replaced by underlines
-subpkg_clean=$(echo ${AB_SUBPACKAGE} | sed s/\[-.,]/_/g )
+subpkg_clean=$(echo ${AB_SUBPACKAGE} | sed s/\[-.,+]/_/g )
 subpkg_varname=AB_PVERSION_${subpkg_clean}
 eval subpkg_version=\$${subpkg_varname}
 if [ -z "$subpkg_version" ] ; then

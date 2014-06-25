@@ -345,7 +345,7 @@ ab_subpackage_versions() {
   
   # inherit variable 'package' with current subpackage
   # illegal characters in package names are replaced by underlines
-  subpkg_clean=$(echo ${package} | sed s/\[-.,\]/_/g )
+  subpkg_clean=$(echo ${package} | sed s/\[-.,\+]/_/g )
   subpkg_varname=AB_PVERSION_${subpkg_clean}
   eval subpkg_version=\$${subpkg_varname}
   if [ -z "$subpkg_version" ] ; then
