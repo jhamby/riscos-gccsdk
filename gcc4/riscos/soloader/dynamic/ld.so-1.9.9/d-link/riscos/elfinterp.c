@@ -189,8 +189,12 @@ void _dl_parse_lazy_relocation_information(struct elf_resolve * tpnt, int rel_ad
   }
 }
 
-int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
-       int rel_size, int type){
+int
+_dl_parse_relocation_information(struct elf_resolve * reloc_obj,
+				 int rel_addr,
+				 int rel_size,
+				 int type)
+{
   int i;
   char * strtab;
   int reloc_type;
@@ -200,40 +204,40 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
   unsigned int * reloc_addr;
   unsigned int symbol_addr;
   int symtab_index;
-  unsigned int *client_reloc_addr,symbol_offset;
-  struct som_rt_elem *objinfo;
-  struct elf_resolve *dst_lib = NULL;
+  unsigned int *client_reloc_addr;
+  struct som_rt_elem *reloc_obj_info;
+  struct elf_resolve *target_obj = NULL;
 
-  objinfo = get_runtime_data (tpnt->loadaddr);
+  reloc_obj_info = get_runtime_data (reloc_obj->loadaddr);
 
   /* Now parse the relocation information */
 
-  rpnt = (Elf32_Rel *) (rel_addr + tpnt->loadaddr);
+  rpnt = (Elf32_Rel *) (rel_addr + reloc_obj->loadaddr);
   rel_size = rel_size / sizeof(Elf32_Rel);
 
-  symtab =  (Elf32_Sym *) (tpnt->dynamic_info[DT_SYMTAB] + tpnt->loadaddr);
-  strtab = ( char *) (tpnt->dynamic_info[DT_STRTAB] + tpnt->loadaddr);
+  symtab =  (Elf32_Sym *) (reloc_obj->dynamic_info[DT_SYMTAB] + reloc_obj->loadaddr);
+  strtab = ( char *) (reloc_obj->dynamic_info[DT_STRTAB] + reloc_obj->loadaddr);
 
   for(i=0; i< rel_size; i++, rpnt++)
   {
-    reloc_addr = (unsigned int *) (tpnt->loadaddr + (int)rpnt->r_offset);
+    reloc_addr = (unsigned int *) (reloc_obj->loadaddr + (int)rpnt->r_offset);
     reloc_type = ELF32_R_TYPE(rpnt->r_info);
     symtab_index = ELF32_R_SYM(rpnt->r_info);
     symbol_addr = 0;
 
 
-    if(!symtab_index && tpnt->libtype == program_interpreter) continue;
+    if(!symtab_index && reloc_obj->libtype == program_interpreter) continue;
 
     if(symtab_index) {
 
-      if(tpnt->libtype == program_interpreter &&
+      if(reloc_obj->libtype == program_interpreter &&
 	 _dl_symbol(strtab + symtab[symtab_index].st_name))
 	continue;
 
       symbol_addr = (unsigned int)
 	_dl_find_hash(strtab + symtab[symtab_index].st_name,
-			      tpnt->symbol_scope, &dst_lib,
-		      (reloc_type == R_ARM_JUMP_SLOT ? tpnt : NULL), 0);
+			      reloc_obj->symbol_scope, &target_obj,
+		      (reloc_type == R_ARM_JUMP_SLOT ? reloc_obj : NULL), 0);
 
       /*
        * We want to allow undefined references to weak symbols - this might
@@ -251,14 +255,9 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
     switch(reloc_type){
     case R_ARM_NONE:
       break;
-/*    case R_386_32:
-      *reloc_addr += symbol_addr;
-      break;
-    case R_386_PC32:
-      *reloc_addr += symbol_addr - (unsigned int) reloc_addr;
-      break;*/
     case R_ARM_GLOB_DAT:
     case R_ARM_ABS32:
+      {
 	if (symbol_addr == 0)
 	{
 	  /* Normal undefined symbols have already been dealt with above, so this
@@ -266,58 +265,53 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	  break;
 	}
 
-	if ((unsigned int)reloc_addr < (unsigned int)objinfo->public_rw_ptr)
+	if ((unsigned int)reloc_addr < (unsigned int)reloc_obj_info->public_rw_ptr)
 	{ /* Address of relocation is in text segment */
 	  _dl_fdprintf(2,"%s: Text relocation of data symbol '%s' found:\r\n %s (offset 0x%X)\r\n",
-		_dl_progname, strtab + symtab[symtab_index].st_name, tpnt->libname,
-		(unsigned int)reloc_addr - (unsigned int)tpnt->loadaddr);
+		_dl_progname, strtab + symtab[symtab_index].st_name, reloc_obj->libname,
+		(unsigned int)reloc_addr - (unsigned int)reloc_obj->loadaddr);
 
 	  /* _dl_exit() would deregister the library from the client, but it would
 	   * remain in memory until expiry and block attempts to replace it without
 	   * reinitialising SOManager.
 	   */
-	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from client. */
-	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from global list - clean up. */
+	  _dl_deregister_lib((unsigned int)reloc_obj->loadaddr); /* Deregister from client. */
+	  _dl_deregister_lib((unsigned int)reloc_obj->loadaddr); /* Deregister from global list - clean up. */
 
 	  DL_INTERNAL(_dl_exit)(1);
 	}
 
 	client_reloc_addr = (unsigned int *)(((unsigned int)reloc_addr -
-		(unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr);
+					      (unsigned int)reloc_obj_info->public_rw_ptr) +
+					      (unsigned int)reloc_obj_info->private_rw_ptr);
+	struct som_rt_elem *target_obj_info;
+	unsigned int symbol_offset;
 
-	symbol_offset = symbol_addr - (unsigned int)objinfo->public_rw_ptr;
+	target_obj_info = (target_obj == reloc_obj) ?
+			  reloc_obj_info :
+			  get_runtime_data (target_obj->loadaddr);
+	symbol_offset = symbol_addr - (unsigned int)target_obj_info->public_rw_ptr;
 
-	/*
-	 * If the symbol exists in this library's R/W segment, then relocate to client's
-	 * copy.
-	 */
-	if (symbol_offset >= 0 && symbol_offset < objinfo->rw_size)
-	  symbol_addr = (unsigned int)objinfo->private_rw_ptr + symbol_offset;
-	else if ((char *)symbol_addr < tpnt->loadaddr || (char *)symbol_addr >= objinfo->public_rw_ptr + objinfo->rw_size)
+	if (symbol_offset >= 0 && symbol_offset < target_obj_info->rw_size)
 	{
-	  /*
-	   * Check if the symbol exists in another library's R/W segment and relocate if so.
-	   */
-	struct som_rt_elem *dst_obj = get_runtime_data (dst_lib->loadaddr);
-
-	  symbol_offset = symbol_addr - (unsigned int)dst_obj->public_rw_ptr;
-	  if (symbol_offset >= 0 && symbol_offset < dst_obj->rw_size)
-	    symbol_addr = (unsigned int)dst_obj->private_rw_ptr + symbol_offset;
+	  /* Symbol is in R/W segment, relocate to client's private copy.  */
+	  symbol_addr = (unsigned int)target_obj_info->private_rw_ptr + symbol_offset;
 	}
+	/* else if symbol is in R/O segment, then leave symbol_addr as is.  */
 
-	*client_reloc_addr += symbol_addr;
-
-      break;
+	*client_reloc_addr = symbol_addr;
+	break;
+      }
     case R_ARM_JUMP_SLOT:
       /* These relocations are used when LD_BIND_NOW is given in the environment */
       /* For the executable, reloc_addr already points to the right place, otherwise
          relocate it to the library's private GOT */
-      if (tpnt->libtype == elf_executable)
+      if (reloc_obj->libtype == elf_executable)
         client_reloc_addr = reloc_addr;
       else
       {
         client_reloc_addr = (unsigned int *)(((unsigned int)reloc_addr -
-		(unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr);
+		(unsigned int)reloc_obj_info->public_rw_ptr) + (unsigned int)reloc_obj_info->private_rw_ptr);
       }
       /* symbol_addr does not need any manipulation - it already points to the correct
          function */
@@ -325,19 +319,19 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
       *client_reloc_addr = symbol_addr;
       break;
     case R_ARM_RELATIVE:
-	if ((unsigned int)reloc_addr < (unsigned int)objinfo->public_rw_ptr)
+	if ((unsigned int)reloc_addr < (unsigned int)reloc_obj_info->public_rw_ptr)
 	{
 	  /* Address of relocation is in text segment.  */
 	  _dl_fdprintf(2,"%s: Text relocation of data symbol '%s' found:\r\n %s (offset 0x%X)\n",
 		_dl_progname,strtab + symtab[symtab_index].st_name,
-		tpnt->libname,(unsigned int)reloc_addr - (unsigned int)tpnt->loadaddr);
+		reloc_obj->libname,(unsigned int)reloc_addr - (unsigned int)reloc_obj->loadaddr);
 
 	  /* _dl_exit() would deregister the library from the client, but it would
 	   * remain in memory until expiry and block attempts to replace it without
 	   * reinitialising SOManager.
 	   */
-	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from client. */
-	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from global list - clean up. */
+	  _dl_deregister_lib((unsigned int)reloc_obj->loadaddr); /* Deregister from client. */
+	  _dl_deregister_lib((unsigned int)reloc_obj->loadaddr); /* Deregister from global list - clean up. */
 
 	  DL_INTERNAL(_dl_exit)(1);
 	}
@@ -350,15 +344,15 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	 * as an absolute address in client's private R/W segment.
 	 */
 	client_reloc_addr = (unsigned int *)(((unsigned int)reloc_addr -
-		(unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr);
+		(unsigned int)reloc_obj_info->public_rw_ptr) + (unsigned int)reloc_obj_info->private_rw_ptr);
 
-	if (*reloc_addr < (objinfo->public_rw_ptr - tpnt->loadaddr))
+	if (*reloc_addr < (reloc_obj_info->public_rw_ptr - reloc_obj->loadaddr))
 	{
 	  /*
 	   * If the relocated address is in the R/O segment, then keep it there - don't
 	   * relocate in to the client's private R/W segment
 	   */
-	  *client_reloc_addr = (unsigned int)tpnt->loadaddr + *reloc_addr;
+	  *client_reloc_addr = (unsigned int)reloc_obj->loadaddr + *reloc_addr;
 	}
 	else
 	{
@@ -369,8 +363,8 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	   * library's public R/W segment. Finally, use this offset to find absolute address in
 	   * client's private R/W segment.
 	   */
-	  client_reloc = (((*reloc_addr) + (unsigned int)tpnt->loadaddr) -
-		(unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr;
+	  client_reloc = (((*reloc_addr) + (unsigned int)reloc_obj->loadaddr) -
+		(unsigned int)reloc_obj_info->public_rw_ptr) + (unsigned int)reloc_obj_info->private_rw_ptr;
 	  *client_reloc_addr = client_reloc;
 	}
       break;
