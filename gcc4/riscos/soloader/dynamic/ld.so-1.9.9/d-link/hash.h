@@ -49,6 +49,9 @@ struct elf_resolve{
   /* Pointer to a string in the image that gives the version of the
      shared library ABI.  */
   char *abi_version;
+
+  /* Pointer to the client R/W data. Used by dlclose() to free the memory.  */
+  void *rw_addr;
 };
 
 #if 0

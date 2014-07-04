@@ -418,7 +418,7 @@ resolved a coredump would occur. Rob Ryan (robr@cmu.edu)*/
 			}
 #endif
 			_dl_deregister_lib((unsigned int)tpnt->loadaddr);
-//			_dl_munmap (rpnt->dyn->loadaddr, end);
+			free (tpnt->rw_addr);
 
 			/* Next, remove rpnt->dyn from the loaded_module list */
 			if (_dl_loaded_modules == rpnt->dyn)

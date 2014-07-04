@@ -563,6 +563,11 @@ _dl_load_elf_shared_library(char * libname, int flag)
       if ((objinfo.private_rw_ptr = _dl_malloc(objinfo.rw_size)) == NULL)
 	goto null_exit;
 
+      /* Save this so that dlclose() can free client R/W data segments when unloading
+       * a library. A library loaded during initialisation has its R/W segment stored
+       * outside the heap and so should never be freed.  */
+      tpnt->rw_addr = objinfo.private_rw_ptr;
+
       /* Register the library with the support module. During registration an object index
        * is written into the GOT. This index needs to be copied into the private version
        * along with the rest of the GOT contents. It's therefore important that registration
