@@ -95,7 +95,6 @@ typedef struct
 extern void _dl_riscos_resolve(void);
 extern struct elf_resolve *
 _dl_load_shared_library(struct elf_resolve *,
-			struct elf_resolve *,
 			char * libname);
 extern void * _dl_malloc(int size);
 extern int _dl_map_cache(void);

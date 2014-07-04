@@ -147,7 +147,6 @@ unsigned int _dl_internal_error_number;
 
 struct elf_resolve *
 _dl_load_shared_library(struct elf_resolve * app_tpnt,
-			struct elf_resolve * tpnt,
 			char * full_libname)
 {
   char * pnt, *pnt1, *pnt2;
@@ -183,6 +182,7 @@ _dl_load_shared_library(struct elf_resolve * app_tpnt,
    * the default path of /usr/lib.
    * Check in rpath directories
    */
+  struct elf_resolve *tpnt;
   for (tpnt = _dl_loaded_modules; tpnt; tpnt = tpnt->next) {
     if (tpnt->libtype == elf_executable) {
       pnt1 = (char *)tpnt->dynamic_info[DT_RPATH];

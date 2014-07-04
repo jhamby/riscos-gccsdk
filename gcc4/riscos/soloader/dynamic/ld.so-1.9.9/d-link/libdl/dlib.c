@@ -73,14 +73,10 @@ static void dl_cleanup(void)
 
 void * _dlopen(const char * libname, int flag)
 {
-	struct elf_resolve * tpnt, *tfrom;
+	struct elf_resolve * tpnt;
 	struct dyn_elf * rpnt;
 	struct dyn_elf * dyn_chain;
-	struct dyn_elf * dpnt;
-	char *  from;
 	int (*dl_elf_init)(void);
-
-	from = __builtin_return_address(0);
 
 	/* Cover the trivial case first */
 	if (!libname) return _dl_symbol_tables;
@@ -89,25 +85,7 @@ void * _dlopen(const char * libname, int flag)
 	_dl_map_cache();
 #endif
 
-	/*
-	 * Try and locate the module we were called from - we
-	 * need this so that we get the correct RPATH.  Note that
-	 * this is the current behavior under Solaris, but the
-	 * ABI+ specifies that we should only use the RPATH from
-	 * the application.  Thus this may go away at some time
-	 * in the future.
-	 */
-	tfrom = NULL;
-	for(dpnt = _dl_symbol_tables; dpnt; dpnt = dpnt->next)
-	  {
-	    tpnt = dpnt->dyn;
-	    if(   tpnt->loadaddr < from
-	       && (   tfrom == NULL
-		   || tfrom->loadaddr < tpnt->loadaddr))
-	      tfrom = tpnt;
-	  }
-
-	if(!(tpnt = _dl_load_shared_library(_dl_loaded_modules, tfrom, libname)))
+	if(!(tpnt = _dl_load_shared_library(_dl_loaded_modules, libname)))
 	{
 #ifdef USE_CACHE
 	  _dl_unmap_cache();
@@ -145,7 +123,7 @@ void * _dlopen(const char * libname, int flag)
 		    {
 		      lpnt = tcurr->loadaddr + tcurr->dynamic_info[DT_STRTAB] +
 			dpnt->d_un.d_val;
-		      if(!(tpnt1 = _dl_load_shared_library(_dl_loaded_modules, tcurr, lpnt)))
+		      if(!(tpnt1 = _dl_load_shared_library(_dl_loaded_modules, lpnt)))
 			goto oops;
 
 		      rpnt->next =

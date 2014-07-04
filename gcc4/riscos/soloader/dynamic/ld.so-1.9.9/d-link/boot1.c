@@ -628,7 +628,7 @@ void _dl_boot(int args)
 	*str2 = '\0';
 	if (!_dl_secure || _dl_strchr(str, '/') == NULL) {
 
-	  tpnt1 = _dl_load_shared_library(app_tpnt, NULL, str);
+	  tpnt1 = _dl_load_shared_library(app_tpnt, str);
 	  if (!tpnt1) {
 	    if (_dl_trace_loaded_objects)
 	      _dl_fdprintf(1, "\t%s => not found\n", str);
@@ -705,7 +705,7 @@ void _dl_boot(int args)
 	      c = *cp;
 	      *cp = '\0';
 
-	      tpnt1 = _dl_load_shared_library(app_tpnt, NULL, cp2);
+	      tpnt1 = _dl_load_shared_library(app_tpnt, cp2);
 	      if (!tpnt1) {
 		if (_dl_trace_loaded_objects)
 		  _dl_fdprintf(1, "\t%s => not found\n", cp2);
@@ -769,7 +769,7 @@ void _dl_boot(int args)
 	    tpnt = NULL;
 	    continue;
 	  }
-	  if (!(tpnt1 = _dl_load_shared_library(app_tpnt, tcurr, lpnt)))
+	  if (!(tpnt1 = _dl_load_shared_library(app_tpnt, lpnt)))
 	  {
 	    if (_dl_trace_loaded_objects)
 	      _dl_fdprintf(1, "\t%s => not found\n", lpnt);
