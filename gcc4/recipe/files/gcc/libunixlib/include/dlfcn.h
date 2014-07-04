@@ -18,6 +18,7 @@
 #define RTLD_GLOBAL	0x100
 
 /* For dlsym */
+#define RTLD_DEFAULT	((void *)0)
 #define RTLD_NEXT	((void *)-1)
 
 __BEGIN_DECLS
