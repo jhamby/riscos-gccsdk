@@ -372,6 +372,21 @@ _dl_alloc_lib (unsigned int size)
   return addr;
 }
 
+static inline void *
+_dl_alloc (unsigned int __size)
+{
+  register int size __asm ("r0") = __size;
+  register void *result __asm ("r0");
+
+  asm volatile ("	swi	%[XSOM_Alloc];\n"
+		"	movvs	r0, #0;\n"
+		: "=r" (result)
+		: "r" (size),
+		  [XSOM_Alloc] "i" (XSOM_ALLOC)
+		: "cc");
+  return result;
+}
+
 struct object_info
 {
   char *base_addr;	/* Base address of the library */
@@ -631,3 +646,12 @@ get_runtime_data (void *load_addr)
 }
 
 extern void _dl_exit_internal (int status);
+
+extern const os_error *
+_dl_canonicalise_filename (char *filename,
+			   char *buffer,
+			   int buffer_size,
+			   int *bytes_free);
+
+extern char *
+_dl_normalise_filename (char *filename);

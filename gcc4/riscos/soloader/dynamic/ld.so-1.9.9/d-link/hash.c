@@ -84,17 +84,38 @@ unsigned long _dl_elf_hash(const char * name){
 /*
  * Check to see if a library has already been added to the hash chain.
  */
-struct elf_resolve * _dl_check_hashed_files(char * libname){
+struct elf_resolve *
+_dl_check_hashed_files(char * libname)
+{
   struct elf_resolve * tpnt;
-  int len = _dl_strlen(libname);
+  char *normalised_libname;
+  int len;
 
-  for (tpnt = _dl_loaded_modules; tpnt; tpnt = tpnt->next) {
-    if (_dl_strncmp(tpnt->libname, libname, len) == 0 &&
-	(tpnt->libname[len] == '\0' || tpnt->libname[len] == '.'))
-      return tpnt;
+  normalised_libname = _dl_normalise_filename (libname);
+  len = _dl_strlen(normalised_libname);
+
+  for (tpnt = _dl_loaded_modules; tpnt; tpnt = tpnt->next)
+  {
+    char *normalised_tpnt_libname;
+    int result;
+
+    normalised_tpnt_libname = _dl_normalise_filename (tpnt->libname);
+    result = _dl_strncmp(normalised_tpnt_libname, normalised_libname, len);
+
+    result = (result == 0 && (normalised_tpnt_libname[len] == '\0' ||
+			      normalised_tpnt_libname[len] == '.'));
+
+    if (normalised_tpnt_libname != tpnt->libname)
+      _dl_som_free (normalised_tpnt_libname);
+
+    if (result)
+      break;
   }
 
-  return NULL;
+  if (normalised_libname != libname)
+    _dl_som_free (normalised_libname);
+
+  return tpnt;
 }
 
 /*
