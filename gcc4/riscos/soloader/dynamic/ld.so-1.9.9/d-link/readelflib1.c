@@ -162,20 +162,19 @@ _dl_load_shared_library(struct elf_resolve * app_tpnt,
     goto goof;
 
   pnt = libname = full_libname;
-#ifndef __riscos
+
   while (*pnt) {
-    if(*pnt == '.') libname = pnt+1;
+    if(*pnt == '/') libname = pnt+1;
     pnt++;
   }
 
- /* If the filename has any '.', try it straight and leave it at that. */
+ /* If the filename has any '/', try it straight and leave it at that. */
   if (libname != full_libname) {
     tpnt1 = _dl_load_elf_shared_library(full_libname, 0);
     if (tpnt1)
       return tpnt1;
     goto goof;
   }
-#endif
 
   /*
    * The ABI specifies that RPATH is searched before LD_*_PATH or
@@ -190,7 +189,7 @@ _dl_load_shared_library(struct elf_resolve * app_tpnt,
 	pnt1 += (unsigned int) tpnt->loadaddr + tpnt->dynamic_info[DT_STRTAB];
 	while(*pnt1){
 	  pnt2 = mylibname;
-	  while(*pnt1 && *pnt1 != ':') {
+	  while(*pnt1 && *pnt1 != ',') {
 	    if (pnt2 - mylibname < 1024)
 	      *pnt2++ = *pnt1++;
 	    else
@@ -204,7 +203,7 @@ _dl_load_shared_library(struct elf_resolve * app_tpnt,
 	  *pnt2++ = 0;
 	  tpnt1 = _dl_load_elf_shared_library(mylibname, 0);
 	  if(tpnt1) return tpnt1;
-	  if(*pnt1 == ':') pnt1++;
+	  if(*pnt1 == ',') pnt1++;
 	}
       }
     }
@@ -223,7 +222,7 @@ _dl_load_shared_library(struct elf_resolve * app_tpnt,
       }
       if (pnt2 - mylibname >= 1024)
 	break;
-      if(pnt2[-1] != '.' && pnt2[-1] != ':') *pnt2++ = '.';
+      if(pnt2[-1] != '.' && pnt2[-1] != ',') *pnt2++ = '.';
       pnt = libname;
       while(*pnt) *pnt2++  = *pnt++;
       *pnt2++ = 0;
