@@ -20,7 +20,7 @@
 #define SOM_MAX_DA_SIZE			1024 * 1024	/* 1Mb */
 #define SOM_INIT_DA_SIZE		4 * 1024	/* 4Kb (multiple of 4Kb) */
 
-#define SOM_MAX_LIBDA_SIZE		1024 * 1024 * 128	/* 128MB */
+#define SOM_MAX_LIBDA_SIZE		1024 * 1024 * 256	/* 256MB */
 #define SOM_INIT_LIBDA_SIZE		4 * 1024	/* 4KB */
 
 #define SOM_CALL_EVERY_CS_DELAY		(1 * 100 * 60) + 1	/* 1 minute */
