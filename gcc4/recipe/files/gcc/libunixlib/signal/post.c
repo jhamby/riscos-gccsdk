@@ -33,9 +33,14 @@ __signal_have_saved_regs (int signo)
 /* Given an address to the approximate start of a function, try
    to obtain an embedded function name.  */
 static const char *
-extract_name (const unsigned int *pc)
+extract_name (const unsigned int *pc,
+	      int *cplusplus_name)
 {
   const char *name = NULL;
+
+  if (cplusplus_name)
+    *cplusplus_name = 0;
+
   if (__valid_address (pc - 7, pc + 1))
     {
       for (int address = 0; address > -8; address--)
@@ -55,7 +60,11 @@ extract_name (const unsigned int *pc)
 		  demangled = __unixlib_cxa_demangle (tdname, demangled,
 						      &size, &status);
 		  if (demangled != NULL && status == 0)
-		    name = demangled;
+		    {
+		      name = demangled;
+		      if (cplusplus_name)
+			*cplusplus_name = 1;
+		    }
 		}
 	      else
 		name = NULL;
@@ -81,7 +90,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 {
   struct ul_memory *mem = &__ul_memory;
 
-  /* Case the function pointer to a standard void pointer here to reduce
+  /* Cast the function pointer to a standard void pointer here to reduce
      compiler warnings and number of places we have to apply this cast.  */
   unsigned int handler_addr = (unsigned int) handler;
 
@@ -114,7 +123,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 #ifdef DEBUG
   debug_printf ("-- sigsetup: signo=%d (%s)\n",	signo, sys_siglist[signo]);
   debug_printf ("-- sigsetup: handler=%08x (%s)\n", handler_addr,
-		extract_name ((unsigned int *) handler_addr));
+		extract_name ((unsigned int *) handler_addr, NULL));
 #endif
   /* Zero if we are to execute the signal handler routine on a user
      supplied stack.  Non-zero if we are to use the normal system stack.  */
@@ -283,8 +292,9 @@ __write_backtrace_thread (const unsigned int *fp)
 	       (unsigned int)fp[-2]);
 
       /* Retrieve function name.  */
-      const char *name = extract_name (pc);
-      fprintf (stderr, " %s()\n", name);
+      int cplusplus_name;
+      const char *name = extract_name (pc, &cplusplus_name);
+      fprintf (stderr, (cplusplus_name) ? " %s\n" : " %s()\n", name);
 
       oldfp = fp;
       fp = (const unsigned int *)fp[-3];
@@ -477,7 +487,7 @@ post_signal:
 	else if (handler == SIG_IGN)
 	  name = "SIG_IGN";
 	else
-	  name = extract_name ((const unsigned int *) (unsigned int) handler);
+	  name = extract_name ((const unsigned int *) (unsigned int) handler, NULL);
 	debug_printf ("-- post_signal: handler=%08x (%s)\n",
 		      handler, name);
       }
