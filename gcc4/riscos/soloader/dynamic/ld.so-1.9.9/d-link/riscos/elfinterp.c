@@ -299,7 +299,9 @@ _dl_parse_relocation_information(struct elf_resolve * reloc_obj,
 	}
 	/* else if symbol is in R/O segment, then leave symbol_addr as is.  */
 
-	*client_reloc_addr = symbol_addr;
+	/* The contents of client_reloc_addr can be non zero and should be added to the
+	 * symbol address; this can occur in, for example, C++ virtual function tables.  */
+	*client_reloc_addr += symbol_addr;
 	break;
       }
     case R_ARM_JUMP_SLOT:
