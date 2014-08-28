@@ -1,8 +1,42 @@
 Index: libgcc/unwind-arm-common.inc
 ===================================================================
---- libgcc/unwind-arm-common.inc	(revision 182584)
+--- libgcc/unwind-arm-common.inc	(revision 214062)
 +++ libgcc/unwind-arm-common.inc	(working copy)
-@@ -101,8 +101,9 @@
+@@ -87,6 +87,33 @@
+ 
+ /* Assembly helper functions.  */
+ 
++#ifdef __riscos__
++
++static inline unsigned int
++clear_status_bits (unsigned int pc_in)
++{
++  unsigned int pc_out = pc_in;
++
++  asm volatile ("	TEQ	r0, r0\n"
++		"	TEQ	pc, pc\n"
++		"	BICNE	%[pc_out], %[pc_in], #0xfc000003\n"
++		: [pc_out] "=r" (pc_out)
++		: [pc_in] "r" (pc_in)
++		: "cc");
++
++  return pc_out;
++}
++
++#define VRS_PC_NO_PSR(vrs) clear_status_bits((vrs)->core.r[R_PC])
++#define VRS_RETURN_NO_PSR(vrs) clear_status_bits((vrs)->core.r[R_LR])
++
++#else
++
++#define VRS_PC_NO_PSR(vrs) ((vrs)->core.r[R_PC])
++#define VRS_RETURN_NO_PSR(vrs) ((vrs)->core.r[R_LR])
++
++#endif
++
+ /* Restore core register state.  Never returns.  */
+ void __attribute__((noreturn)) restore_core_regs (struct core_regs *);
+ 
+@@ -101,8 +128,9 @@
  extern int __data_start;
  
  /* The exception index table location.  */
@@ -14,7 +48,16 @@ Index: libgcc/unwind-arm-common.inc
  
  /* Core unwinding functions.  */
  
-@@ -284,6 +285,14 @@
+@@ -144,7 +172,7 @@
+ #define uw_restore_core_regs(TARGET, CORE)				      \
+   do									      \
+     {									      \
+-      void *handler = __builtin_frob_return_addr ((void *) VRS_PC (TARGET));  \
++      void *handler = __builtin_frob_return_addr ((void *) VRS_PC_NO_PSR (TARGET));  \
+       _Unwind_DebugHook (0, handler);					      \
+       restore_core_regs (CORE);						      \
+     }									      \
+@@ -284,11 +312,19 @@
  
    do
      {
@@ -27,9 +70,16 @@ Index: libgcc/unwind-arm-common.inc
 +#endif
 +
        /* Find the entry for this routine.  */
-       if (get_eit_entry (ucbp, VRS_PC(vrs)) != _URC_OK)
+-      if (get_eit_entry (ucbp, VRS_PC(vrs)) != _URC_OK)
++      if (get_eit_entry (ucbp, VRS_PC_NO_PSR(vrs)) != _URC_OK)
  	abort ();
-@@ -299,6 +308,10 @@
+ 
+-      UCB_SAVED_CALLSITE_ADDR (ucbp) = VRS_PC(vrs);
++      UCB_SAVED_CALLSITE_ADDR (ucbp) = VRS_PC_NO_PSR(vrs);
+ 
+       /* Call the pr to decide what to do.  */
+       pr_result = ((personality_routine) UCB_PR_ADDR (ucbp))
+@@ -299,6 +335,10 @@
    if (pr_result != _URC_INSTALL_CONTEXT)
      abort();
  
@@ -40,7 +90,7 @@ Index: libgcc/unwind-arm-common.inc
    uw_restore_core_regs (vrs, &vrs->core);
  }
  
-@@ -328,6 +341,14 @@
+@@ -328,8 +368,16 @@
        _Unwind_Reason_Code entry_code;
        _Unwind_Reason_Code stop_code;
  
@@ -53,9 +103,21 @@ Index: libgcc/unwind-arm-common.inc
 +#endif
 +
        /* Find the entry for this routine.  */
-       entry_code = get_eit_entry (ucbp, VRS_PC (&saved_vrs));
+-      entry_code = get_eit_entry (ucbp, VRS_PC (&saved_vrs));
++      entry_code = get_eit_entry (ucbp, VRS_PC_NO_PSR (&saved_vrs));
  
-@@ -384,6 +405,10 @@
+       if (resuming)
+ 	{
+@@ -341,7 +389,7 @@
+ 
+       if (entry_code == _URC_OK)
+ 	{
+-	  UCB_SAVED_CALLSITE_ADDR (ucbp) = VRS_PC (&saved_vrs);
++	  UCB_SAVED_CALLSITE_ADDR (ucbp) = VRS_PC_NO_PSR (&saved_vrs);
+ 
+ 	  next_vrs = saved_vrs;
+ 
+@@ -384,6 +432,10 @@
        return _URC_FAILURE;
      }
  
@@ -66,7 +128,7 @@ Index: libgcc/unwind-arm-common.inc
    uw_restore_core_regs (&saved_vrs, &saved_vrs.core);
  }
  
-@@ -413,6 +438,10 @@
+@@ -413,8 +465,12 @@
    phase1_vrs saved_vrs;
    _Unwind_Reason_Code pr_result;
  
@@ -75,9 +137,12 @@ Index: libgcc/unwind-arm-common.inc
 +#endif
 +
    /* Set the pc to the call site.  */
-   VRS_PC (entry_vrs) = VRS_RETURN(entry_vrs);
+-  VRS_PC (entry_vrs) = VRS_RETURN(entry_vrs);
++  VRS_PC (entry_vrs) = VRS_RETURN_NO_PSR(entry_vrs);
  
-@@ -424,6 +453,14 @@
+   /* Save the core registers.  */
+   saved_vrs.core = entry_vrs->core;
+@@ -424,8 +480,16 @@
    /* Unwind until we reach a propagation barrier.  */
    do
      {
@@ -90,9 +155,21 @@ Index: libgcc/unwind-arm-common.inc
 +#endif
 +
        /* Find the entry for this routine.  */
-       if (get_eit_entry (ucbp, VRS_PC (&saved_vrs)) != _URC_OK)
+-      if (get_eit_entry (ucbp, VRS_PC (&saved_vrs)) != _URC_OK)
++      if (get_eit_entry (ucbp, VRS_PC_NO_PSR (&saved_vrs)) != _URC_OK)
  	return _URC_FAILURE;
-@@ -487,6 +524,10 @@
+ 
+       /* Call the pr to decide what to do.  */
+@@ -463,7 +527,7 @@
+   UCB_FORCED_STOP_ARG (ucbp) = (_uw) stop_arg;
+ 
+   /* Set the pc to the call site.  */
+-  VRS_PC (entry_vrs) = VRS_RETURN(entry_vrs);
++  VRS_PC (entry_vrs) = VRS_RETURN_NO_PSR(entry_vrs);
+ 
+   return unwind_phase2_forced (ucbp, entry_vrs, 0);
+ }
+@@ -487,6 +551,10 @@
        abort ();
      }
  
@@ -103,7 +180,7 @@ Index: libgcc/unwind-arm-common.inc
    /* Call the cached PR.  */
    pr_result = ((personality_routine) UCB_PR_ADDR (ucbp))
  	(_US_UNWIND_FRAME_RESUME, ucbp, (_Unwind_Context *) entry_vrs);
-@@ -494,6 +535,9 @@
+@@ -494,6 +562,9 @@
    switch (pr_result)
      {
      case _URC_INSTALL_CONTEXT:
@@ -113,7 +190,7 @@ Index: libgcc/unwind-arm-common.inc
        /* Upload the registers to enter the landing pad.  */
        uw_restore_core_regs (entry_vrs, &entry_vrs->core);
  
-@@ -516,6 +560,10 @@
+@@ -516,8 +587,12 @@
    if (!UCB_FORCED_STOP_FN (ucbp))
      return __gnu_Unwind_RaiseException (ucbp, entry_vrs);
  
@@ -122,9 +199,21 @@ Index: libgcc/unwind-arm-common.inc
 +#endif
 +
    /* Set the pc to the call site.  */
-   VRS_PC (entry_vrs) = VRS_RETURN (entry_vrs);
+-  VRS_PC (entry_vrs) = VRS_RETURN (entry_vrs);
++  VRS_PC (entry_vrs) = VRS_RETURN_NO_PSR (entry_vrs);
    /* Continue unwinding the next frame.  */
-@@ -563,6 +611,14 @@
+   return unwind_phase2_forced (ucbp, entry_vrs, 0);
+ }
+@@ -554,7 +629,7 @@
+   _Unwind_Control_Block *ucbp = &ucb;
+ 
+   /* Set the pc to the call site.  */
+-  VRS_PC (entry_vrs) = VRS_RETURN (entry_vrs);
++  VRS_PC (entry_vrs) = VRS_RETURN_NO_PSR (entry_vrs);
+ 
+   /* Save the core registers.  */
+   saved_vrs.core = entry_vrs->core;
+@@ -563,8 +638,16 @@
    
    do
      {
@@ -137,5 +226,8 @@ Index: libgcc/unwind-arm-common.inc
 +#endif
 +
        /* Find the entry for this routine.  */
-       if (get_eit_entry (ucbp, VRS_PC (&saved_vrs)) != _URC_OK)
+-      if (get_eit_entry (ucbp, VRS_PC (&saved_vrs)) != _URC_OK)
++      if (get_eit_entry (ucbp, VRS_PC_NO_PSR (&saved_vrs)) != _URC_OK)
  	{
+ 	  code = _URC_FAILURE;
+ 	  break;
