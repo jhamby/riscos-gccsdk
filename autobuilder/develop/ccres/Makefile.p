@@ -7,7 +7,7 @@
 -CROSS_CCFLAGS = -I${GCCSDK_INSTALL_ENV}/include -mpoke-function-name -mlibscl
 +# For autobuilder using unixlib as it doesn't build a libscl version of oslib
 +# CROSS_CCFLAGS = -I${GCCSDK_INSTALL_ENV}/include -mpoke-function-name -mlibscl
-+CROSS_CCFLAGS = -I${GCCSDK_INSTALL_ENV}/include -mpoke-function-name -mlibscl -static  -DHAVE_STRCASECMP -DHAVE_STRNCASECMP
++CROSS_CCFLAGS = -I${GCCSDK_INSTALL_ENV}/include -mpoke-function-name -static  -DHAVE_STRCASECMP -DHAVE_STRNCASECMP
  
  ifeq ($(CROSS_COMPILE),)
  CC=$(HOST_CC)

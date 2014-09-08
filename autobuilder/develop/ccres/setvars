@@ -3,7 +3,7 @@ AB_SVN=svn://svn.riscos.info/ccres/trunk/
 AB_PVERSION=1.13-svn-$(date +%Y%m%d)
 
 # Have to specify gcc for Cygwin builds
-AB_MAKE="$AB_MAKE CROSS_COMPILE=1 CROSS_CC=$HOST_CC"
+AB_MAKE="$AB_MAKE CROSS_COMPILE=1"
 
 # Set version for program
 sed "s/VERSION \".*\"/VERSION \"1.13-svn ($(date +%d-%b-%Y))\"/" -i CCres_Convert.h
@@ -13,7 +13,7 @@ ab_package()
   ab_create_app CCRes Apps/Development
   cp -av Release/!CCres/* $A
   ab_add_commands Release/ccres$AB_EXEEXT
-  mv $A/!RunImage,e1f $A/!RunImage,ff8
+  AB_COMPONENTS="Apps.Development.!CCRes (Movable LookAt)"
 
   $AB_HOME/add-riscpkg -package CCRes -copyrightfile $S/Doc/COPYING 
 }
