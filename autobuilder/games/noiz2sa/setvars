@@ -1,3 +1,5 @@
+AB_PVERSION=`echo "$AB_PVERSION" | sed -e"s/.orig//"`
+AB_ROVERSION=2
 
 cd src
 
