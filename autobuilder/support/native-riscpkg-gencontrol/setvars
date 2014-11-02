@@ -1,0 +1,8 @@
+AB_SVN=http://source.riscpkg.org/svn/RiscPkg-GenControl/trunk/
+
+cp $H/Makefile $S
+make
+make install
+
+
+echo "all:" > Makefile
