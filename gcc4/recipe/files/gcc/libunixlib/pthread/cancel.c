@@ -55,23 +55,3 @@ pthread_cancel (pthread_t thread)
 
   return 0;
 }
-
-#ifndef PIC
-
-/* This function is never called or referenced. Its only purpose is to ensure
-   that the enclosed functions are pulled in by the static linker for the sake
-   of the gthread implementation in libstdc++. */
-static void __attribute__((used))
-__pthread_pull_gthr_weak(void)
-{
-  pthread_once(NULL, NULL);
-  pthread_key_create(NULL, NULL);
-  pthread_key_delete(0);
-  pthread_getspecific(0);
-  pthread_setspecific(0, NULL);
-  pthread_mutex_lock(NULL);
-  pthread_mutex_trylock(NULL);
-  pthread_mutex_unlock(NULL);
-}
-
-#endif

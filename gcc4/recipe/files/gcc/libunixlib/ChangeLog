@@ -1,3 +1,9 @@
+Sun Nov 23 14:53:00 GMT  2014  Lee Noar  <leenoar@sky.com>
+
+	* pthread/cancel.c(__pthread_pull_gthr_weak): Remove. We
+	now disable weak pthread symbols when building libstdc++
+	as static.
+
 Mon Jul  7 19:33:00 BST  2014  Lee Noar  <leenoar@sky.com>
 
 	* signal/post.c(extract_name): Return whether the function name
