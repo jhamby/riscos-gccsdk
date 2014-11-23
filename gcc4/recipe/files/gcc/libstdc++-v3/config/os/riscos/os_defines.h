@@ -33,7 +33,7 @@
 // System-specific #define, typedefs, corrections, etc, go here.  This
 // file will come before all others.
 
-#ifndef __PIC__
+#ifndef __TARGET_SCL__
 #define _GLIBCXX_GTHREAD_USE_WEAK 0
 #endif
 
