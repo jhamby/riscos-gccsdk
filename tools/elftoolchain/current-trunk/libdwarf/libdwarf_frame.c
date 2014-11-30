@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_frame.c 2529 2012-07-29 23:31:12Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_frame.c 3100 2014-10-25 20:34:29Z jkoshy $");
 
 static int
 _dwarf_frame_find_cie(Dwarf_FrameSec fs, Dwarf_Unsigned offset,
