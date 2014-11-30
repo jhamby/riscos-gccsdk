@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID("$Id: libdwarf_frame.c 2529 2012-07-29 23:31:12Z kaiwang27 $");
+ELFTC_VCSID("$Id: libdwarf_frame.c 3100 2014-10-25 20:34:29Z jkoshy $");
 
 static int
 _dwarf_frame_find_cie(Dwarf_FrameSec fs, Dwarf_Unsigned offset,
@@ -905,7 +905,6 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 	uint8_t *p, *pe;
 	uint8_t high2, low6;
 	uint64_t reg, reg2, uoff, soff, blen;
-	int ret;
 
 #define	SET_BASE_OP(x)						\
 	do {							\
@@ -970,7 +969,6 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 		}							\
 	} while(0)
 
-	ret = DW_DLE_NONE;
 	*count = 0;
 
 	p = insts;

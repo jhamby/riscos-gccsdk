@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: elfdefinitions.h 3014 2014-04-08 17:24:16Z jkoshy $
+ * $Id: elfdefinitions.h 3078 2014-07-26 08:22:03Z jkoshy $
  */
 
 /*
@@ -2113,11 +2113,11 @@ typedef struct {
 
 /* 64-bit entry. */
 typedef struct {
-	Elf64_Word l_name;
-	Elf64_Word l_time_stamp;
-	Elf64_Word l_checksum;
-	Elf64_Word l_version;
-	Elf64_Word l_flags;
+	Elf64_Word l_name;	     /* The name of a shared object. */
+	Elf64_Word l_time_stamp;     /* 32-bit timestamp. */
+	Elf64_Word l_checksum;	     /* Checksum of visible symbols, sizes. */
+	Elf64_Word l_version;	     /* Interface version string index. */
+	Elf64_Word l_flags;	     /* Flags (LL_*). */
 } Elf64_Lib;
 
 #define	_ELF_DEFINE_LL_FLAGS()			\
@@ -2365,12 +2365,12 @@ typedef struct {
 /* 64 bit PHDR entry. */
 typedef struct {
 	Elf64_Word	p_type;	     /* Type of segment. */
-	Elf64_Word	p_flags;     /* File offset to segment. */
-	Elf64_Off	p_offset;    /* Virtual address in memory. */
-	Elf64_Addr	p_vaddr;     /* Physical address (if relevant). */
-	Elf64_Addr	p_paddr;     /* Size of segment in file. */
-	Elf64_Xword	p_filesz;    /* Size of segment in memory. */
-	Elf64_Xword	p_memsz;     /* Segment flags. */
+	Elf64_Word	p_flags;     /* Segment flags. */
+	Elf64_Off	p_offset;    /* File offset to segment. */
+	Elf64_Addr	p_vaddr;     /* Virtual address in memory. */
+	Elf64_Addr	p_paddr;     /* Physical address (if relevant). */
+	Elf64_Xword	p_filesz;    /* Size of segment in file. */
+	Elf64_Xword	p_memsz;     /* Size of segment in memory. */
 	Elf64_Xword	p_align;     /* Alignment constraints. */
 } Elf64_Phdr;
 
@@ -2454,11 +2454,11 @@ typedef struct {
 
 typedef struct {
 	Elf64_Word	st_name;     /* index of symbol's name */
-	unsigned char	st_info;     /* value for the symbol */
-	unsigned char	st_other;    /* size of associated data */
-	Elf64_Half	st_shndx;    /* type and binding attributes */
-	Elf64_Addr	st_value;    /* visibility */
-	Elf64_Xword	st_size;     /* index of related section */
+	unsigned char	st_info;     /* type and binding attributes */
+	unsigned char	st_other;    /* visibility */
+	Elf64_Half	st_shndx;    /* index of related section */
+	Elf64_Addr	st_value;    /* value for the symbol */
+	Elf64_Xword	st_size;     /* size of associated data */
 } Elf64_Sym;
 
 #define ELF32_ST_BIND(I)	((I) >> 4)
