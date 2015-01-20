@@ -1,5 +1,5 @@
 /* UnixLib process initialisation and finalisation.
-   Copyright (c) 2002-2012 UnixLib Developers.  */
+   Copyright (c) 2002-2015 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +32,7 @@
 #  include <sys/debug.h>
 #endif
 
-void (*__atexit_function_array[__MAX_ATEXIT_FUNCTION_COUNT]) (void);
+struct __atexit_function_entry __atexit_function_array[__MAX_ATEXIT_FUNCTION_COUNT];
 int __atexit_function_count = 0;
 
 static void initialise_unix_io (void);
@@ -345,7 +345,14 @@ exit (int status)
      whilst calling the functions. Anything calling atexit from an already
      registered function is on dodgy ground anyway. */
   while (__atexit_function_count-- > 0)
-    __funcall ((*__atexit_function_array[__atexit_function_count]), ());
+    {
+      void (*handler)(void *) = __atexit_function_array[__atexit_function_count].func;
+      if (handler)
+        {
+	  void *handler_arg = __atexit_function_array[__atexit_function_count].arg;
+	  __funcall ((*handler), (handler_arg));
+        }
+    }
 
   _Exit (status);
 }

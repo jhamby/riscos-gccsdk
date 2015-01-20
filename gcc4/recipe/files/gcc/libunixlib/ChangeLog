@@ -1,3 +1,12 @@
+Tue Jan 20 20:46:45 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* incl-local/stdlib.h(__atexit_function_array): Convert
+	to array of __atexit_function_entry so that we can support
+	__cxa_atexit.
+	* stdlib/atexit.c(__cxa_atexit): Add.
+	(atexit): Implement using __cxa_atexit.
+	* unix/unix.c(exit): Follow changes above.
+
 Sun Nov 23 14:53:00 GMT  2014  Lee Noar  <leenoar@sky.com>
 
 	* pthread/cancel.c(__pthread_pull_gthr_weak): Remove. We
