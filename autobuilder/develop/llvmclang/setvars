@@ -6,15 +6,15 @@
 
 AB_CATEGORY="Development"
 
-AB_URL=http://llvm.org/releases/3.5.0/llvm-3.5.0.src.tar.xz
+AB_URL=http://llvm.org/releases/3.5.1/llvm-3.5.1.src.tar.xz
 
 pushd .
 cd ..
-wget http://llvm.org/releases/3.5.0/cfe-3.5.0.src.tar.xz
+wget http://llvm.org/releases/3.5.1/cfe-3.5.1.src.tar.xz
 popd
 cd tools
 mkdir -p clang
-tar xfJ ../../cfe-3.5.0.src.tar.xz -C clang --strip-components=1
+tar xfJ ../../cfe-3.5.1.src.tar.xz -C clang --strip-components=1
 cd ..
 
 echo Patching clang...

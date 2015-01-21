@@ -1,5 +1,5 @@
---- lib/Target/ARM/ARMFrameLowering.cpp.orig	2014-06-26 20:29:59.000000000 +0100
-+++ lib/Target/ARM/ARMFrameLowering.cpp	2015-01-18 20:09:36.512288833 +0000
+--- lib/Target/ARM/ARMFrameLowering.cpp.orig	2014-12-04 22:59:55.000000000 +0000
++++ lib/Target/ARM/ARMFrameLowering.cpp	2015-01-21 15:35:32.495779739 +0000
 @@ -54,6 +54,12 @@
      return true;
  
@@ -136,7 +136,25 @@
      unsigned MaxAlign = MFI->getMaxAlignment();
      assert (!AFI->isThumb1OnlyFunction());
      if (!AFI->isThumbFunction()) {
-@@ -613,7 +677,7 @@
+@@ -601,9 +665,14 @@
+     // Add the default predicate in Thumb mode.
+     if (STI.isThumb()) MIB.addImm(ARMCC::AL).addReg(0);
+   } else if (RetOpcode == ARM::TCRETURNri) {
+-    BuildMI(MBB, MBBI, dl,
+-            TII.get(STI.isThumb() ? ARM::tTAILJMPr : ARM::TAILJMPr)).
+-      addReg(JumpTarget.getReg(), RegState::Kill);
++    if (STI.isTargetRISCOS() && !STI.hasV4TOps()) {
++      BuildMI(MBB, MBBI, dl, TII.get(ARM::MOVPCRX)).
++        addReg(JumpTarget.getReg(), RegState::Kill);
++    } else {
++      BuildMI(MBB, MBBI, dl,
++              TII.get(STI.isThumb() ? ARM::tTAILJMPr : ARM::TAILJMPr)).
++        addReg(JumpTarget.getReg(), RegState::Kill);
++    }
+   }
+ 
+   MachineInstr *NewMI = std::prev(MBBI);
+@@ -663,7 +732,7 @@
  
      // Reset SP based on frame pointer only if the stack frame extends beyond
      // frame pointer stack slot or target is ELF and the function has FP.
@@ -145,7 +163,7 @@
        NumBytes = AFI->getFramePtrSpillOffset() - NumBytes;
        if (NumBytes) {
          if (isARM)
-@@ -645,7 +709,7 @@
+@@ -695,7 +764,7 @@
                                   ARM::SP)
              .addReg(FramePtr));
        }
@@ -154,34 +172,16 @@
                 !tryFoldSPUpdateIntoPushPop(STI, MF, MBBI, NumBytes))
          emitSPUpdate(isARM, MBB, MBBI, dl, TII, NumBytes);
  
-@@ -684,9 +748,14 @@
-       // Add the default predicate in Thumb mode.
-       if (STI.isThumb()) MIB.addImm(ARMCC::AL).addReg(0);
-     } else if (RetOpcode == ARM::TCRETURNri) {
--      BuildMI(MBB, MBBI, dl,
--              TII.get(STI.isThumb() ? ARM::tTAILJMPr : ARM::TAILJMPr)).
--        addReg(JumpTarget.getReg(), RegState::Kill);
-+      if (STI.isTargetRISCOS() && !STI.hasV4TOps()) {
-+        BuildMI(MBB, MBBI, dl, TII.get(ARM::MOVPCRX)).
-+          addReg(JumpTarget.getReg(), RegState::Kill);
-+      } else {
-+        BuildMI(MBB, MBBI, dl,
-+                TII.get(STI.isThumb() ? ARM::tTAILJMPr : ARM::TAILJMPr)).
-+          addReg(JumpTarget.getReg(), RegState::Kill);
-+      }
-     }
+@@ -713,7 +782,7 @@
  
-     MachineInstr *NewMI = std::prev(MBBI);
-@@ -698,7 +767,7 @@
-     MBBI = NewMI;
-   }
+   fixTCReturn(MF, MBB);
  
 -  if (ArgRegsSaveSize)
 +  if (ArgRegsSaveSize && !STI.isTargetRISCOS())
      emitSPUpdate(isARM, MBB, MBBI, dl, TII, ArgRegsSaveSize);
  }
  
-@@ -776,8 +845,10 @@
+@@ -791,8 +860,10 @@
          FrameReg = RegInfo->getFrameRegister(MF);
          return FPOffset;
        }
@@ -193,7 +193,7 @@
        FrameReg = RegInfo->getFrameRegister(MF);
        return FPOffset;
      }
-@@ -849,8 +920,12 @@
+@@ -864,8 +935,12 @@
        MachineInstrBuilder MIB =
          AddDefaultPred(BuildMI(MBB, MI, DL, TII.get(StmOpc), ARM::SP)
                         .addReg(ARM::SP).setMIFlags(MIFlags));
@@ -208,7 +208,7 @@
      } else if (Regs.size() == 1) {
        MachineInstrBuilder MIB = BuildMI(MBB, MI, DL, TII.get(StrOpc),
                                          ARM::SP)
-@@ -919,11 +994,27 @@
+@@ -934,11 +1009,27 @@
      if (Regs.empty())
        continue;
      if (Regs.size() > 1 || LdrOpc == 0) {
@@ -240,7 +240,7 @@
        if (DeleteRet) {
          MIB.copyImplicitOps(&*MI);
          MI->eraseFromParent();
-@@ -1393,6 +1484,20 @@
+@@ -1408,6 +1499,20 @@
    MachineRegisterInfo &MRI = MF.getRegInfo();
    unsigned FramePtr = RegInfo->getFrameRegister(MF);
  
