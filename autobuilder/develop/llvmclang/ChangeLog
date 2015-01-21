@@ -1,0 +1,160 @@
+Mon Jan 19 22:30:25 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	Initial revision.
+
+	* configure: Add RISC OS.
+	* include/llvm/ADT/Triple.h(enum OSType): Add RISCOS.
+	(Triple::isOSRISCOS): New function. Return whether the OS in this
+	triple is RISC OS.
+	* include/llvm/CodeGen/RuntimeLibcalls.h(enum Libcall): Add
+	alloca related functions.
+	* include/llvm/MC/MCAsmInfo.h(class MCAsmInfo::hasBigEndianDoubles):
+	New function. Return whether the target has the two words of a 64 bit
+	double swapped (as RISC OS does).
+	* include/llvm/Target/TargetMachine.h(class TargetMachine::
+	hasBigEndianDoubles): Likewise.
+	* lib/Target/TargetMachine.cpp(TargetMachine::hasBigEndianDoubles):
+	Likewise.
+	* include/llvm/MC/MCELFObjectWriter.h(MCELFObjectTargetWriter::getOSABI):
+	Return ELF::ELFOSABI_ARM for a RISC OS triple.
+	* lib/CodeGen/AsmPrinter/EHStreamer.cpp(EHStreamer::emitExceptionTable):
+	Don't switch sections. Despite what the comment says (i.e. no section
+	switch for ARM EHABI due to LDSASection being NULL) we still see the
+	section switch. libstdc++/libgcc aren't expecting this.
+	* lib/CodeGen/RegisterScavenging.cpp(RegScavenger::forward): Debug code
+	fails when emitting sub r11, r12, #4 in prologue. Disable debug code for
+	now; no ill effects detected.
+	* lib/CodeGen/SelectionDAG/DAGCombiner.cpp(DAGCombiner::visitBITCAST):
+	When generating inline code for FNEG/FABS, take into account that the
+	two words of a 64 bit double are swapped. The sign bit is at bit 31,
+	not bit 63.
+	(DAGCombiner::visitFNEG): Likewise for FNEG.
+	(DAGCombiner::visitFABS): Likewise for FABS.
+	* lib/CodeGen/SelectionDAG/LegalizeDAG.cpp(ExpandUnalignedLoad):
+	When loading a signed halfword using two byte loads, don't use LDRSB
+	when targeting a StrongARM processor. Instead use LDRB and shift
+	the result left and then right 16bits to sign extend.
+	(SelectionDAGLegalize::LegalizeStoreOps): When targeting a StrongARM
+	processor, don't use STRH instructions, use 2 STRBs instead.
+	(SelectionDAGLegalize::LegalizeLoadOps): Likewise for LDRH/LDRSH.
+	* lib/CodeGen/SelectionDAG/LegalizeFloatTypes.cpp(DAGTypeLegalizer::
+	SoftenFloatRes_FABS): When generating inline code for FABS, take into
+	account that the two words of a 64 bit double are swapped. The sign
+	bit is at bit 31, not bit 63.
+	* lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp(SelectionDAGBuilder::
+	visitIntrinsicCall): When dealing with stacksave/stackrestore alloca
+	intrinsics, force library calls to be generated instead of inline code.
+	Likewise for __builtin_return_{frame/address}.
+	* lib/CodeGen/TargetLoweringBase.cpp(InitLibcallNames): Define symbol
+	names for alloca functions.
+	* lib/MC/ELFObjectWriter.cpp(ELFObjectWriter::WriteHeader): Make sure
+	object files are marked as "position independant code" when compiled
+	with fPIC.
+	(ELFObjectWriter::computeSymbolTable): Define symbols __GOTT_BASE__
+	and __GOTT_INDEX__ and mark them as weak.
+	* lib/MC/MCAsmInfo.cpp(MCAsmInfo::MCAsmInfo): Initialise new member
+	variable HasBigEndianDoubles.
+	* lib/Support/APFloat.cpp(APFloat::convertDoubleAPFloatToAPInt):
+	Swap the two 4 byte words of the 64bit double to match GCC and RISC OS.
+	(initFromDoubleAPInt): Likewise.
+	* lib/Support/Triple(getOSTypeName): Recognise RISC OS.
+	(parseOS): Likewise.
+	(Triple::getARMCPUForArch): Return strongarm as the default CPU for
+	RISC OS.
+	* lib/Target/ARM/ARMAsmPrinter.cpp(ARMAsmPrinter::EmitFunctionEntryLabel):
+	Implement -mpoke-function-name.
+	(ARMAsmPrinter::EmitUnwindingInstruction): Emit padding instruction for
+	the PC register pushed at function entry. Add support for r12 being used
+	as a temporary stack pointer on function entry.
+	(ARMAsmPrinter::EmitInstruction): Alter code for case ARM::PICADD to emit
+	fPIC code suitable for RISC OS and compaitble with GCC 4.7.
+	* lib/Target/ARM/ARMBaseRegisterInfo.cpp(ARMBaseRegisterInfo::getCalleeSavedRegs):
+	Return a register list suitable for RISC OS function entry (e.g. don't
+	save R8 or R10).
+	(ARMBaseRegisterInfo::getCallPreservedMask): Return a register save mask
+	suitable for a standard RISC OS function.
+	(ARMBaseRegisterInfo::getThisReturnPreservedMask): As above, but also include
+	R0.
+	(ARMBaseRegisterInfo::getReservedRegs): Reserve R10 as the stack limit.
+	* lib/Target/ARM/ARMCallingConv.td: Define register lists for RISC OS.
+	*lib/Target/ARM/ARMFrameLowering.cpp(ARMFrameLowering::hasFP): Frame pointer
+	also required if more than 256 bytes of stack required or if other functions
+	are called (regardless of -fomit-frame-pointer).
+	(ARMFrameLowering::emitPrologue): Generate instruction "mov ip,sp" as required.
+	Take into account different register list when determining spill area sizes and
+	frame offsets.
+	Add support for stack extension.
+	Suppress stack alignment for now.
+	(ARMFrameLowering::emitEpilogue): Suppress stack adjustment when restoring
+	from R11.
+	(ARMFrameLowering::ResolveFrameIndexReference): Always use SP when accessing 
+	local variables and FP when accessing stacked arguments.
+	(ARMFrameLowering::emitPushInst): On function entry, stack R12 instead of
+	SP.
+	(ARMFrameLowering::emitPopInst): Restore stack frame from FP instead of SP.
+	We stack LR and PC on entry, but only LR should be restored on exit.
+	(ARMFrameLowering::processFunctionBeforeCalleeSavedScan): Make sure we get
+	a stack check if more than 256 bytes of stack required.
+	* lib/Target/ARM/ARMInstrInfo.td(PICADD): Change size to 8 bytes as two
+	instructions are now generated.
+	* lib/Target/ARM/ARMISelLowering.cpp(ARMTargetLowering::ARMTargetLowering):
+	Set alloca intrinsic to be custom generated.
+	(ARMTargetLowering::LowerGlobalAddressELF): Disable use of GOTOFF relocations.
+	(ARMTargetLowering::LowerOperation): Call a function to customise alloca
+	generation.
+	(ARMTargetLowering::LowerDYNAMIC_STACKALLOC): Implement alloca as a function
+	call instead of inline stack adjustment.
+	* lib/Target/ARM/ARMMachineFunctionInfo.h(class ARMFunctionInfo): Add new
+	member variable to track whether function requires a stack check.
+	* lib/Target/ARM/ARMMachineFunctionInfo.cpp(ARMFunctionInfo::ARMFunctionInfo):
+	Initialise new member variable HasStackExtension.
+	* lib/Target/ARM/ARMSubtarget.h(class ARMSubtarget): Add new member variables
+	to allow RISC OS target to be identified and to track use of
+	-mpoke-function-name and -mapcs-stack-check options.
+	* lib/Target/ARM/ARMSubtarget.cpp: Initialise new member variables.
+	* lib/Target/ARM/AsmParser/ARMAsmParser.cpp(ARMAsmParser::isTargetRISCOS):
+	Allow RISC OS target to be identified.
+	(MemoryOp::OffsetExpr): New member variable to record __GOTT_INDEX__ as
+	an immediate operand.
+	(ARMAsmParser::parseMemory): Parse __GOTT_INDEX__ operand.
+	* lib/Target/ARM/InstPrinter/ARMInstPrinter.cpp(ARMInstPrinter::
+	printAddrModeImm12Operand): Output __GOTT_INDEX__ symbol.
+	* lib/Target/ARM/MCTargetDesc/ARMAsmBackend.cpp(adjustFixupValue): Handle
+	__GOTT_INDEX__ relocation.
+	(getFixupKindNumBytes): Likewise.
+	* lib/Target/ARM/MCTargetDesc/ARMELFObjectWriter.cpp(ARMELFObjectWriter::
+	GetRelocTypeInner): Handle __GOTT_BASE__ and __GOTT_INDEX__.
+	* lib/Target/ARM/MCTargetDesc/ARMFixupKinds.h: Define fixups for
+	__GOTT_BASE__ and __GOTT_INDEX__.
+	* lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp(ARMELFMCAsmInfo::ARMELFMCAsmInfo):
+	Record that RISC OS HasBigEndianDoubles.
+	* lib/Target/ARM/MCTargetDesc/ARMMCCodeEmitter.cpp(ARMMCCodeEmitter::
+	getMachineOpValue): Allow expressions through for the sake of __GOTT_INDEX__.
+	(ARMMCCodeEmitter::EncodeAddrModeOpValues): Handle __GOTT_INDEX__.
+	* lib/Target/ARM/MCTargetDesc/ARMMCTargetDesc.cpp(createMCStreamer):
+	Set ARMEABI as unknown and soft float flags in ELF header.
+	* Makefile.rules: Copy clang binary to GCCSDK installation and create
+	clang++ symlink.
+	* tools/clang/include/clang/Driver/Options.td: Define mpoke-function-name
+	and mapcs-stack-check options.
+	* tools/clang/lib/Basic/Targets.cpp(class RISCOSTargetInfo): New class.
+	(RISCOSTargetInfo::getOSDefines): Define preprocessor symbols __riscos__,
+	__riscos and __ELF__.
+	(RISCOSTargetInfo::RISCOSTargetInfo): Set the type of ptrdiff_t to long
+	int (default is int) to match GCC. This important when ptrdiff_t is
+	used as a C++ function argument.
+	(AllocateTarget): Idenitiy RISC OS and create appropriate target object.
+	* tools/clang/lib/Driver/ToolChains.h(class RISCOS): New class defining
+	a RISC OS toolchain based on Generic ELF.
+	* tools/clang/lib/Driver/ToolChains.cpp(class RISCOS): Likewise.
+	(ARMTriples): Add arm-unknown-riscos as a known triple.
+	* tools/clang/lib/Driver/Tools.cpp(tools::arm::getARMFloatABI): Define
+	soft float as the default for RISC OS.
+	(Clang::AddARMTargetArgs): Pass option mpoke-funtion-name and mapcs-stack-check
+	to the backend.
+	* tools/clang/lib/Frontend/InitHeaderSearch.cpp(InitHeaderSearch::
+	AddDefaultCIncludePaths): Suppress "/usr/local/include" as a directory
+	to search for headers.
+	(AddDefaultCPlusPlusIncludePaths): Add directory in GCCSDK that contains
+	C++ headers. The setvars script uses sed to insert the actual directory.
+	* tools/clang/lib/Headers/Makefile: Install the clang headers into GCCSDK.

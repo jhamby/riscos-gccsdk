@@ -1,0 +1,52 @@
+# clang and llvm are different and separate packages, but clang can be
+# inserted into the llvm source tree and built automatically.
+# clang patches have a slightly different file suffix so that the
+# autobuilder ignores them allowing us to apply them later after
+# the source has been downloaded.
+
+AB_CATEGORY="Development"
+
+AB_URL=http://llvm.org/releases/3.5.0/llvm-3.5.0.src.tar.xz
+
+pushd .
+cd ..
+wget http://llvm.org/releases/3.5.0/cfe-3.5.0.src.tar.xz
+popd
+cd tools
+mkdir -p clang
+tar xfJ ../../cfe-3.5.0.src.tar.xz -C clang --strip-components=1
+cd ..
+
+echo Patching clang...
+
+patch_ok=true
+clang_patches=$(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.pp\$" || true)
+for clang_patch in $clang_patches; do
+  echo "clang RISC OS patch: $clang_patch"
+  if ! patch -p0 -l < $clang_patch; then
+    patch_ok=false
+  fi
+done
+if ! $patch_ok; then
+  echo "Failed to patch clang"
+  exit 1
+fi
+
+# Insert the location of the C++ headers for the cross compiler.
+sed -i.bak s:GCCSDK_CROSS_C++_HEADERS:$GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/include/c++/4.7.4: \
+  $S/tools/clang/lib/Frontend/InitHeaderSearch.cpp
+
+echo ...done
+
+mkdir -p native-build native-env
+cd native-build
+
+CC=/usr/bin/gcc CXX=/usr/bin/g++ ../configure --prefix=$PWD/../native-env --enable-targets=arm --with-c-include-dirs=$GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/include --with-gcc-toolchain=$GCCSDK_INSTALL_CROSSBIN/..
+
+make -j6
+make install
+
+sed -e "s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:" -e "s:GCCSDK_BIN:$GCCSDK_INSTALL_CROSSBIN:" \
+       <$H/arm-unknown-riscos-clang >$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang
+chmod 755 $GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang
+ln -s -f $GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang $GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang++
