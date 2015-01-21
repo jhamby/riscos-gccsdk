@@ -152,6 +152,7 @@ pc_to_address (unsigned int pc)
 
   return result;
 }
+strong_alias(__gcc_alloca_save,__llvm_alloca_save)
 
 
 unsigned int
@@ -222,6 +223,15 @@ __gcc_alloca_restore (unsigned int fp, unsigned int block)
     }
 }
 
+/* Compatibility wrapper for llvm.  */
+void
+__llvm_alloca_restore (unsigned int block)
+{
+  register unsigned int *fp __asm("fp");
+
+  unsigned int callee_fp = fp[-3];
+  __gcc_alloca_restore (callee_fp, block);
+}
 
 void *
 __gcc_alloca (size_t size)
@@ -295,6 +305,7 @@ __gcc_alloca (size_t size)
 
   return chunk->data;
 }
+strong_alias(__gcc_alloca,__llvm_alloca)
 
 
 /* Free any pre-allocated alloca chunks for the current function which have

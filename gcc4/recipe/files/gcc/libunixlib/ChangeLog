@@ -1,3 +1,12 @@
+Wed Jan 21 13:51:23 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* gcccompat/galloca.c(__llvm_alloca_save): Create strong
+	alias to __gcc_alloca_save.
+	(__llvm_alloca): Create strong alias to __gcc_alloca.
+	(__llvm_alloca_restore): Wrapper for __gcc_alloca_restore.
+	llvm generates code that only passes the block id, whereas
+	__gcc_alloca_restore also requires a frame pointer.
+
 Tue Jan 20 20:46:45 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* incl-local/stdlib.h(__atexit_function_array): Convert
