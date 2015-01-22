@@ -1,3 +1,8 @@
+Thu Jan 22 20:00:26 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* lib/Target/ARM/ARMFrameLowering.cpp(ARMFrameLowering::emitPopInst):
+	Allow return instruction to be folded into LDM.
+
 Wed Jan 21 16:07:09 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* setvars: Update to V3.5.1.
@@ -53,7 +58,7 @@ Mon Jan 19 22:30:25 GMT  2015  Lee Noar  <leenoar@sky.com>
 	* lib/CodeGen/TargetLoweringBase.cpp(InitLibcallNames): Define symbol
 	names for alloca functions.
 	* lib/MC/ELFObjectWriter.cpp(ELFObjectWriter::WriteHeader): Make sure
-	object files are marked as "position independant code" when compiled
+	object files are marked as "position independent code" when compiled
 	with fPIC.
 	(ELFObjectWriter::computeSymbolTable): Define symbols __GOTT_BASE__
 	and __GOTT_INDEX__ and mark them as weak.
@@ -72,7 +77,7 @@ Mon Jan 19 22:30:25 GMT  2015  Lee Noar  <leenoar@sky.com>
 	the PC register pushed at function entry. Add support for r12 being used
 	as a temporary stack pointer on function entry.
 	(ARMAsmPrinter::EmitInstruction): Alter code for case ARM::PICADD to emit
-	fPIC code suitable for RISC OS and compaitble with GCC 4.7.
+	fPIC code suitable for RISC OS and compatible with GCC 4.7.
 	* lib/Target/ARM/ARMBaseRegisterInfo.cpp(ARMBaseRegisterInfo::getCalleeSavedRegs):
 	Return a register list suitable for RISC OS function entry (e.g. don't
 	save R8 or R10).
@@ -148,7 +153,7 @@ Mon Jan 19 22:30:25 GMT  2015  Lee Noar  <leenoar@sky.com>
 	(RISCOSTargetInfo::RISCOSTargetInfo): Set the type of ptrdiff_t to long
 	int (default is int) to match GCC. This important when ptrdiff_t is
 	used as a C++ function argument.
-	(AllocateTarget): Idenitiy RISC OS and create appropriate target object.
+	(AllocateTarget): Identify RISC OS and create appropriate target object.
 	* tools/clang/lib/Driver/ToolChains.h(class RISCOS): New class defining
 	a RISC OS toolchain based on Generic ELF.
 	* tools/clang/lib/Driver/ToolChains.cpp(class RISCOS): Likewise.

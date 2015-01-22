@@ -1,5 +1,5 @@
 --- lib/Target/ARM/ARMFrameLowering.cpp.orig	2014-12-04 22:59:55.000000000 +0000
-+++ lib/Target/ARM/ARMFrameLowering.cpp	2015-01-21 15:35:32.495779739 +0000
++++ lib/Target/ARM/ARMFrameLowering.cpp	2015-01-22 19:54:31.831491599 +0000
 @@ -54,6 +54,12 @@
      return true;
  
@@ -208,6 +208,15 @@
      } else if (Regs.size() == 1) {
        MachineInstrBuilder MIB = BuildMI(MBB, MI, DL, TII.get(StrOpc),
                                          ARM::SP)
+@@ -914,7 +989,7 @@
+         continue;
+ 
+       if (Reg == ARM::LR && !isTailCall && !isVarArg && !isInterrupt &&
+-          STI.hasV5TOps()) {
++          (STI.hasV5TOps() || STI.isTargetRISCOS())) {
+         Reg = ARM::PC;
+         LdmOpc = AFI->isThumbFunction() ? ARM::t2LDMIA_RET : ARM::LDMIA_RET;
+         // Fold the return instruction into the LDM.
 @@ -934,11 +1009,27 @@
      if (Regs.empty())
        continue;
