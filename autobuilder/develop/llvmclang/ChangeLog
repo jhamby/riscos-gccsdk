@@ -1,3 +1,8 @@
+Mon Jan 26 16:41:01 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* lib/CodeGen/AsmPrinter/EHStreamer.cpp(EHStreamer::emitExceptionTable):
+	Fix logic.
+
 Thu Jan 22 20:00:26 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* lib/Target/ARM/ARMFrameLowering.cpp(ARMFrameLowering::emitPopInst):
