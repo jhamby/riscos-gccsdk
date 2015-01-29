@@ -1,3 +1,13 @@
+Thu Jan 29 15:11:49 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* tools/clang/lib/CodeGen/ItaniumCXXABI.cpp(ARMCXXABI::HasThisReturn):
+	The ARM EABI declares that constructors should return the 'this' pointer.
+	Clang adheres to this by default, meaning that it does not preserve 'this'
+	across a call to a constructor. However, RISCOS GCC 4.7.4 does not return
+	'this' from a constructor (although it could and probably should) and does
+	preserve 'this' across a constructor call.
+	Here we match the behaviour of GCC to be compatible.
+
 Mon Jan 26 16:41:01 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* lib/CodeGen/AsmPrinter/EHStreamer.cpp(EHStreamer::emitExceptionTable):
