@@ -1,3 +1,10 @@
+Sun Feb 01 14:17:15 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* Makefile: Don't build unittests. Too many build errors
+	when building RISC OS compiler binaries.
+	* tools/clang/Makefile: Likewise.
+	* utils/Makefile: Likewise.
+
 Sun Feb 01 14:02:55 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* lib/Support/Unix/Signals.inc(RegisterHandler): RISC OS binary: We
