@@ -1,3 +1,8 @@
+Sun Feb 01 14:02:55 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* lib/Support/Unix/Signals.inc(RegisterHandler): RISC OS binary: We
+	don't support SA_NODEFER or SA_RESETHAND, so just zero the flags.
+
 Thu Jan 29 15:11:49 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* tools/clang/lib/CodeGen/ItaniumCXXABI.cpp(ARMCXXABI::HasThisReturn):
