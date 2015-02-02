@@ -1,3 +1,10 @@
+Mon Feb 02 21:00:03 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	CLANG
+	* tools/clang/lib/Frontend/InitHeaderSearch.cpp(InitHeaderSearch::
+	AddDefaultCIncludePaths): Should have changed back to
+	"GCCSDK_CROSS_C++_HEADERS/" before making patch.
+
 Mon Feb 02 20:24:11 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	CLANG

@@ -1,5 +1,5 @@
 --- tools/clang/lib/Frontend/InitHeaderSearch.cpp.orig	2014-06-10 22:07:12.000000000 +0100
-+++ tools/clang/lib/Frontend/InitHeaderSearch.cpp	2015-02-01 12:48:40.994488841 +0000
++++ tools/clang/lib/Frontend/InitHeaderSearch.cpp	2015-02-02 20:59:50.876396373 +0000
 @@ -231,6 +231,7 @@
      case llvm::Triple::NetBSD:
      case llvm::Triple::OpenBSD:
@@ -25,7 +25,7 @@
                                  "i386-pc-solaris2.11", "", "", triple);
      break;
 +  case llvm::Triple::RISCOS:
-+    AddGnuCPlusPlusIncludePaths("/home/lee/ProgDev/gccsdk/llvmclang-dev/cross/bin/../arm-unknown-riscos/include/c++/4.7.4/",
++    AddGnuCPlusPlusIncludePaths("GCCSDK_CROSS_C++_HEADERS/",
 +                                "arm-unknown-riscos", "", "", triple);
 +    break;
    default:
