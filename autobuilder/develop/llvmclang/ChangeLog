@@ -1,3 +1,25 @@
+Sun Feb 01 17:54:53 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	CLANG
+	* tools/clang/lib/Frontend/InitHeaderSearch.cpp(InitHeaderSearch::
+	AddDefaultCIncludePaths): RISC OS binary: Split paths on commas; colons
+	have special meaning in RISC OS filenames.
+
+	LLVM
+	* lib/ExecutionEngine/RTDyldMemoryManager.cpp(RTDyldMemoryManager::
+	registerEHFrames): I think this is part of the JIT, which I'm not
+	really interested in, however, due to a missing symbol, it causes a
+	general failure when trying to build the RISC OS compiler binaries.
+	For now, call abort to remind me in future should it ever become
+	of interest.
+	(RTDyldMemoryManager::deregisterEHFrames): Likewise.
+	* lib/Support/LockFileManager.cpp(LockFileManager::processStillExecuting):
+	RISC OS binary: Unix code doesn't really relate to RISC OS - always
+	return true instead.
+	* lib/Support/Unix/Path.inc(test_dir): RISC OS binary: A more suitable
+	version that doesn't use realpath().
+	(getMainExecutable): RISC OS binary: Use the __linux__ case.
+
 Sun Feb 01 14:17:15 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* Makefile: Don't build unittests. Too many build errors
