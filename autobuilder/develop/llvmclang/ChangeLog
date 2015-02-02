@@ -1,3 +1,10 @@
+Mon Feb 02 20:24:11 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	CLANG
+	* tools/clang/lib/Driver/Tools.cpp(gcc::Common::ConstructJob):
+	RISC OS binary: Prefix the default gcc/g++ names with the GCCbin:
+	path variable so that clang can find them.
+
 Sun Feb 01 17:54:53 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	CLANG

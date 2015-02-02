@@ -1,5 +1,5 @@
 --- tools/clang/lib/Driver/Tools.cpp.orig	2014-08-07 05:51:51.000000000 +0100
-+++ tools/clang/lib/Driver/Tools.cpp	2014-10-17 18:15:58.642875787 +0100
++++ tools/clang/lib/Driver/Tools.cpp	2015-02-02 19:39:49.556334155 +0000
 @@ -628,6 +628,9 @@
          break;
        }
@@ -32,3 +32,21 @@
  }
  
  /// getAArch64TargetCPU - Get the (LLVM) name of the AArch64 cpu we are
+@@ -4954,9 +4972,17 @@
+   if (!customGCCName.empty())
+     GCCName = customGCCName.c_str();
+   else if (D.CCCIsCXX()) {
++#ifdef __riscos__
++    GCCName = "GCCbin:g++";
++#else
+     GCCName = "g++";
++#endif
+   } else
++#ifdef __riscos__
++    GCCName = "GCCbin:gcc";
++#else
+     GCCName = "gcc";
++#endif
+ 
+   const char *Exec =
+     Args.MakeArgString(getToolChain().GetProgramPath(GCCName));
