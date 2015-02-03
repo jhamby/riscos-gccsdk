@@ -1,3 +1,9 @@
+Tue Feb 03 19:43:17 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	CLANG
+	* tools/clang/lib/Frontend/InitHeaderSearch.cpp(InitHeaderSearch::
+	AddDefaultCIncludePaths): RISC OS binary: Add C++ header path.
+
 Mon Feb 02 21:00:03 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	CLANG
