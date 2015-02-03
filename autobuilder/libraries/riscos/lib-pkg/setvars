@@ -1,6 +1,0 @@
-
-AB_SVN=http://source.riscpkg.org/svn/LibPkg/trunk
-
-AB_INSTALL=env
-
-cd \!LibPkg

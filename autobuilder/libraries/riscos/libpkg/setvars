@@ -1,0 +1,77 @@
+
+AB_SVN=http://source.riscpkg.org/svn/LibPkg/trunk
+AB_PVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2`
+AB_COPYSOURCE=yes
+
+AB_INSTALL=env
+
+cd \!LibPkg
+
+ab_package()
+{
+   # Create documentation
+   doxygen -u
+   cp -f footer.html,faf footer.html
+   doxygen
+
+   ab_create_app LibPkg Apps/Library LibPkg-Common
+   cp -f $S/!* $A
+   cp -f $S/Copyright $A
+   cp -f $S/History $A
+   cp -f $S/README $A
+   
+   # Create package control record
+   rpkg_dir=$D/LibPkg-Common/RiscPkg
+   mkdir -p $rpkg_dir
+   cp -f $S/../RiscPkg/Copyright $rpkg_dir
+   $GCCSDK_INSTALL_ENV/bin/riscpkg-gencontrol LibPkg-Common < $S/../RiscPkg/Control > $rpkg_dir/Control
+
+   ab_create_app LibPkg Apps/Library LibPkg-Dev
+   
+   # Boot is created in the common package so remove it
+   rm -f $A/!Boot,feb
+   
+   cp -f $S/libpkg.a $A
+   mkdir -p $A/libpkg/h
+   mkdir -p $A/libpkg/os/h
+   
+   # Convert headers to RISC OS format
+   hdrs=libpkg/*.h
+   for hdr in $hdrs; do
+      dhdr=$(basename $hdr | sed s#\.h\$##)
+      cp -av $hdr $A/libpkg/h/$dhdr
+   done
+   hdrs=libpkg/os/*.h
+   for hdr in $hdrs; do
+      dhdr=$(basename $hdr | sed s#\.h\$##)
+      cp -av $hdr $A/libpkg/os/h/$dhdr
+   done
+
+   # Create package control record
+   rpkg_dir=$D/LibPkg-Dev/RiscPkg
+   mkdir -p $rpkg_dir
+   cp -f $S/../RiscPkg/Copyright $rpkg_dir
+   
+   $GCCSDK_INSTALL_ENV/bin/riscpkg-gencontrol LibPkg-Dev < $S/../RiscPkg/Control > $rpkg_dir/Control
+   
+   ab_create_app LibPkg Apps/Library LibPkg-Doc
+   
+   # Boot is created in the common package so remove it
+   rm -f $A/!Boot,feb
+
+   mkdir -p $A/html
+   cp $S/html/* $A/html
+   
+   # Fix html file types
+   html_files=$A/html/*.html
+   for html_file in $html_files; do
+      mv $html_file $html_file,faf
+   done
+   
+   # Create package control record
+   rpkg_dir=$D/LibPkg-Doc/RiscPkg
+   mkdir -p $rpkg_dir
+   cp -f $S/../RiscPkg/Copyright $rpkg_dir
+   $GCCSDK_INSTALL_ENV/bin/riscpkg-gencontrol LibPkg-Doc < $S/../RiscPkg/Control > $rpkg_dir/Control
+}
+
