@@ -1,3 +1,13 @@
+Thu Feb  5 19:33:01 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* gcccompat/atomics.c: Implement various atomic/sync functions.
+	I've disabled the pthread interrupt around these operations,
+	but I'm not sure if that's the correct thing to do, or if it's
+	even necessary. These operations are purely arithmetic with no
+	system calls. As I understand it, a pthread context switch only
+	occurs when exiting operating system code.
+	* Makefile.am: Add above file to list of Unixlib source.
+
 Wed Jan 21 13:51:23 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* gcccompat/galloca.c(__llvm_alloca_save): Create strong

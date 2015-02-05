@@ -150,7 +150,8 @@ endif
 if UNIXLIB_BUILDING_SCL
 gcccompat_src =
 else
-gcccompat_src =
+gcccompat_src = \
+	gcccompat/atomics.c
 endif
 if UNIXLIB_CHUNKED_STACK
 gcccompat_src += \
