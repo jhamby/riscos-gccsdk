@@ -6,12 +6,21 @@
 
 AB_CATEGORY="Development"
 
-AB_URL=http://llvm.org/releases/3.5.1/llvm-3.5.1.src.tar.xz
+CLANG_VERSION=3.5.1
 
-pushd .
+AB_URL=http://llvm.org/releases/3.5.1/llvm-3.5.1.src.tar.xz
+AB_MAKE=
+AB_PRECONF=":"
+AB_CONFIG=
+
+# We need shared libraries because the binaries are otherwise too large
+# to link.
+RO_SHAREDLIBS=yes
+
+pushd . >/dev/null
 cd ..
 wget http://llvm.org/releases/3.5.1/cfe-3.5.1.src.tar.xz
-popd
+popd >/dev/null
 cd tools
 mkdir -p clang
 tar xfJ ../../cfe-3.5.1.src.tar.xz -C clang --strip-components=1
@@ -39,6 +48,8 @@ sed -i.bak s:GCCSDK_CROSS_C++_HEADERS:$GCCSDK_INSTALL_CROSSBIN/../arm-unknown-ri
 echo ...done
 
 mkdir -p native-build native-env
+
+pushd . >/dev/null
 cd native-build
 
 CC=/usr/bin/gcc CXX=/usr/bin/g++ ../configure --prefix=$PWD/../native-env --enable-targets=arm --with-c-include-dirs=$GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/include --with-gcc-toolchain=$GCCSDK_INSTALL_CROSSBIN/..
@@ -50,3 +61,74 @@ sed -e "s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:" -e "s:GCCSDK_BIN:$GCCSDK_INSTALL_CROS
        <$H/arm-unknown-riscos-clang >$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang
 chmod 755 $GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang
 ln -s -f $GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang $GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang++
+
+popd >/dev/null
+
+mkdir -p riscos-build riscos-env
+
+pushd . >/dev/null
+cd riscos-build
+
+CC=$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang CXX=$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang++ ../configure --host=arm-unknown-riscos \
+  --prefix=$PWD/../riscos-env --enable-targets=arm --with-c-include-dirs="/GCCbin:../arm-unknown-riscos/include" \
+  --with-gcc-toolchain="/ClangGCCBin:" --enable-shared --enable-pthread=no --enable-threads=no --enable-keep-symbols \
+  --enable-jit=no --enable-zlib=no
+
+# If NO_DEAD_STRIP is not defined, --gc-sections is added to the final link
+# of executables which incorrectly strips the '.riscos.abi.version' section.
+make -j6 NO_DEAD_STRIP=1
+make install
+
+popd >/dev/null
+
+ab_make () {
+  :
+}
+
+ab_package() {
+  ab_create_app Clang Apps/Develop
+
+  mkdir -p $A/bin $A/lib/clang/$CLANG_VERSION/include/h
+
+  cp -T $S/riscos-env/bin/clang $A/bin/clang,e1f
+
+  # Copy any headers that may be of use to RISC OS Clang.
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/arm_neon.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/arm_neon
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/float.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/float
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/iso646.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/iso646
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/limits.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/limits
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/stdalign.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/stdalign
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/stdarg.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/stdarg
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/stdbool.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/stdbool
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/stddef.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/stddef
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/stdint.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/stdint
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/stdnoreturn.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/stdnoreturn
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/tgmath.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/tgmath
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/unwind.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/unwind
+  cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/varargs.h \
+        $A/lib/clang/$CLANG_VERSION/include/h/varargs
+
+  cp $S/LICENSE.TXT $A/Docs
+
+  $AB_HOME/add-riscpkg -package clang -name "Clang" \
+    -unixlib
+
+  ab_create_sharedlib_skeleton libLLVM
+  ab_add_sharedlib $S/riscos-env/lib libLLVM-3.5.1.so
+
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package "libLLVM" -name LibLLVM \
+	-section Library -depends SharedLibs
+}

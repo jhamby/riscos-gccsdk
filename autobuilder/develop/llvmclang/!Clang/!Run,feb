@@ -1,0 +1,14 @@
+Run <Obey$Dir>.!Boot
+
+If "<GCC$Dir>" = "" Then Error 0 !GCC must have been seen by the filer
+
+If "<Clang$Path>" = "" Then Set Run$Path <Run$Path>,Clang:
+Set ClangGCCBin$Path <GCC$Dir>.
+Set Clang$Path <Clang$Dir>.bin.
+
+| The same compiler binary is used for both C and C++. The file extension
+| is used to determine which mode to run it in. For convenience, provide
+| a clang++ alias.
+Set Alias$clang++ clang %*1
+
+Set UnixEnv$clang$sfix "cc:cxx:cpp:c++:C:i:c:m:h:hh:s:S:ll:o:y:tcc:cmhg"

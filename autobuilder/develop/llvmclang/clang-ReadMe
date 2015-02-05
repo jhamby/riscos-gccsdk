@@ -1,4 +1,4 @@
-				LLVM/CLANG 3.5.0
+				LLVM/CLANG 3.5.1
 
 This is a cross compiler only version of clang that targets RISC OS,
 there are no compiler binaries for RISC OS as yet.
@@ -12,18 +12,18 @@ RISC OS GCC options:
 
 -mpoke-function-name
 Embed function name before each function to aid debugging.
-This is on by default.
+This is on by default (use -mno-poke-function-name to disable).
 
 -mapcs-stack-check
 Generate code in function to check and extend the stack as required.
-This is on by default.
+This is on by default (use -mno-apcs-stack-check to disable).
 
 Runtime libraries
 -----------------
 Clang uses the include files from GCCSDK (there are some additional
-ones installed at $GCCSDK_CROSS_BIN/../lib/clang/3.5.0/include).
+ones installed at $GCCSDK_INSTALL_CROSSBIN/../lib/clang/3.5.0/include).
 Clang uses libunixlib, libstdc++ and libgcc (from the GCCSDK installation,
-and therefor not compiled by clang) as its runtime libraries and
+and therefore not compiled by clang) as its runtime libraries and
 does not currently support libscl or module code generation. Only
 soft float is supported (float operations are provided in software by
 libgcc).
@@ -52,8 +52,6 @@ See above. I should be able to copy module code generation from GCC.
 
 Support NEON/VFP
 Need to investigate how float registers are stacked on function entry/exit.
-
-Create RISC OS clang binary.
 
 Lee Noar
 <leenoar@sky.com>
