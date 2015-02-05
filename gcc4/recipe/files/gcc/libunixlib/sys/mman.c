@@ -35,7 +35,7 @@
    would need an extra page. If malloc was called with a request for an
    integral number of pages then we would waste two pages. */
 typedef struct mmap_info {
-  caddr_t   addr;
+  void *   addr;
   int	    number;
   size_t    len;
   int	    prot;
@@ -53,7 +53,7 @@ static mmap_info mmaps[MAX_MMAPS] = {
 #define page_align(gbl, len) \
   (((len) + (gbl)->pagesize - 1) & ~((gbl)->pagesize - 1))
 
-extern void __mmap_page_copy (caddr_t dst, caddr_t src, int len);
+extern void __mmap_page_copy (void * dst, void * src, int len);
 
 static char coredump_dir[256];
 
@@ -140,12 +140,12 @@ __munmap_all (void)
    is nonzero, it is the desired mapping address.  If the MAP_FIXED bit is
    set in FLAGS, the mapping will be at ADDR exactly (which must be
    page-aligned); otherwise the system chooses a convenient nearby address.
-   The return value is the actual mapping address chosen or (caddr_t) -1
+   The return value is the actual mapping address chosen or (void *) -1
    for errors (in which case `errno' is set).  A successful `mmap' call
    deallocates any previous mapping for the affected region.  */
 
-caddr_t
-mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
+void *
+mmap (void * addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
   struct ul_global *gbl = &__ul_global;
 
@@ -153,11 +153,11 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   /* We don't support MAP_FIXED.  */
   if (flags & MAP_FIXED)
-    return (caddr_t) __set_errno (((size_t)addr & (gbl->pagesize - 1)) ? EINVAL : ENOSYS);
+    return (void *) __set_errno (((size_t)addr & (gbl->pagesize - 1)) ? EINVAL : ENOSYS);
 
   /* We don't support MAP_COPY.  */
   if (flags & MAP_COPY)
-    return (caddr_t) __set_errno (ENOSYS);
+    return (void *) __set_errno (ENOSYS);
 
   /* We don't support MAP_PRIVATE. However, we will just use MAP_SHARED instead
      rather than changing all the user code calling us.  */
@@ -165,7 +165,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   /* We only support PROT_READ or PROT_WRITE.  */
   if (((prot & PROT_EXEC) == PROT_EXEC)
       || ((prot & (PROT_READ | PROT_WRITE)) == 0))
-    return (caddr_t) __set_errno (ENOSYS);
+    return (void *) __set_errno (ENOSYS);
 
   /* Find spare mmap_info index.  */
   int i;
@@ -177,7 +177,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   /* Maximum number of mmap sections reached.  */
   if (i == MAX_MMAPS)
-    return (caddr_t) __set_errno (ENOMEM);
+    return (void *) __set_errno (ENOMEM);
 
   len = page_align (gbl, len);
 
@@ -221,7 +221,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
     {
       /* Non-zero offset only makes sense for mmap onto files.  */
       if (offset != 0)
-	return (caddr_t) __set_errno (EINVAL);
+	return (void *) __set_errno (EINVAL);
 
       if (prot & PROT_READ)
 	{
@@ -239,10 +239,10 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
     }
 
   if (__os_swi (OS_DynamicArea, regs))
-    return (caddr_t) __set_errno (ENOMEM);
+    return (void *) __set_errno (ENOMEM);
 
   mmaps[i].number = regs[1];
-  mmaps[i].addr	  = (caddr_t)regs[3];
+  mmaps[i].addr	  = (void *)regs[3];
   mmaps[i].len	  = len;
   mmaps[i].prot	  = prot;
   mmaps[i].flags  = flags;
@@ -268,7 +268,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 	  int save_errno = errno;
 	  munmap (mmaps[i].addr, len);
 	  lseek (fd, oldpos, SEEK_SET);
-	  return (caddr_t) __set_errno (save_errno);
+	  return (void *) __set_errno (save_errno);
 	}
       else if (size == 0)
 	break;
@@ -283,7 +283,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 /* Deallocate any mapping for the region starting at ADDR and extending LEN
    bytes.  Returns 0 if successful, -1 for errors (and sets errno).  */
 int
-munmap (caddr_t addr, size_t len)
+munmap (void * addr, size_t len)
 {
   PTHREAD_UNSAFE
 
@@ -329,7 +329,7 @@ munmap (caddr_t addr, size_t len)
    extending LEN bytes to PROT.  Returns 0 if successful, -1 for errors
    (and sets errno).  */
 int
-mprotect (caddr_t addr __attribute__ ((__unused__)),
+mprotect (void * addr __attribute__ ((__unused__)),
 	  size_t len __attribute__ ((__unused__)),
 	  int prot __attribute__ ((__unused__)))
 {
@@ -342,7 +342,7 @@ mprotect (caddr_t addr __attribute__ ((__unused__)),
    file it maps.  Filesystem operations on a file being mapped are
    unpredictable before this is done.  */
 int
-msync (caddr_t addr, size_t len)
+msync (void * addr, size_t len)
 {
   const struct ul_global *gbl = &__ul_global;
 
@@ -390,7 +390,7 @@ msync (caddr_t addr, size_t len)
 /* Advise the system about particular usage patterns the program follows
    for the region starting at ADDR and extending LEN bytes.  */
 int
-madvise (caddr_t addr __attribute__ ((__unused__)),
+madvise (void * addr __attribute__ ((__unused__)),
 	 size_t len __attribute__ ((__unused__)),
 	 int advice __attribute__ ((__unused__)))
 {
@@ -400,10 +400,10 @@ madvise (caddr_t addr __attribute__ ((__unused__)),
 /* Remap addresses mapped by the range [ADDR,ADDR+OLD_LEN) to new length
    NEW_LEN.  If MAY_MOVE is MREMAP_MAYMOVE the returned address may differ
    from ADDR.  The return value is the actual mapping address chosen or
-   (caddr_t) -1 for errors (in which case `errno' is set).  */
+   (void *) -1 for errors (in which case `errno' is set).  */
 
-caddr_t
-mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
+void *
+mremap (void * addr, size_t old_len, size_t new_len, int may_move)
 {
   struct ul_global *gbl = &__ul_global;
 
@@ -418,17 +418,17 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 
   /* If we couldn't find the mmap mapping, then return an error.  */
   if (i == MAX_MMAPS)
-    return (caddr_t) __set_errno (EINVAL);
+    return (void *) __set_errno (EINVAL);
 
   /* For simplicity don't allow remapping of mapped files.  */
   if (mmaps[i].fd != -1)
-    return (caddr_t) __set_errno (ENOSYS);
+    return (void *) __set_errno (ENOSYS);
 
   old_len = page_align (gbl, old_len);
 
   /* Check correct length was passed.  */
   if (old_len != mmaps[i].len)
-    return (caddr_t) __set_errno (EINVAL);
+    return (void *) __set_errno (EINVAL);
 
   new_len = page_align (gbl, new_len);
   int regs[10];
@@ -451,19 +451,19 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	  return addr;
 	}
       if ((may_move & MREMAP_MAYMOVE) == 0)
-	return (caddr_t) __ul_seterr (err, EOPSYS); /* XXX Should we return ENOMEM ? */
+	return (void *) __ul_seterr (err, EOPSYS); /* XXX Should we return ENOMEM ? */
 
       /* Create a new mmap section to replace this section and copy over the
 	 data.  */
       int old_area = mmaps[i].number;
       mmaps[i].number = -1;
-      caddr_t new_addr = mmap (0, new_len, mmaps[i].prot, mmaps[i].flags, -1, 0);
-      if (new_addr == (caddr_t)-1)
+      void * new_addr = mmap (0, new_len, mmaps[i].prot, mmaps[i].flags, -1, 0);
+      if (new_addr == (void *)-1)
 	{
 	  /* If mmap failed, then keep the old area.  */
 	  mmaps[i].addr	  = addr;
 	  mmaps[i].number = old_area;
-	  return (caddr_t) -1;
+	  return (void *) -1;
 	}
       /* Fast page copy.  */
       __mmap_page_copy (new_addr, addr, old_len);
