@@ -1,3 +1,9 @@
+Fri Feb 06 18:54:09 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	LLVM
+	* lib/Support/PrettyStackTrace.cpp(PrintCurStackTrace):
+	RISC OS binary: Print a Unixlib stack backtrace as well.
+
 Thu Feb 05 20:10:31 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* Add !Clang application files.
