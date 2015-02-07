@@ -179,13 +179,13 @@ mmap (void * addr, size_t len, int prot, int flags, int fd, off_t offset)
   if (i == MAX_MMAPS)
     return (void *) __set_errno (ENOMEM);
 
-  len = page_align (gbl, len);
+  size_t mapped_size = page_align (gbl, len);
 
   /* Create the dynamic area.  */
   int regs[10];
   regs[0] = 0;
   regs[1] = -1;
-  regs[2] = len;
+  regs[2] = mapped_size;
   regs[3] = -1;
   regs[6] = 0;
   regs[7] = 0;
@@ -243,7 +243,7 @@ mmap (void * addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   mmaps[i].number = regs[1];
   mmaps[i].addr	  = (void *)regs[3];
-  mmaps[i].len	  = len;
+  mmaps[i].len	  = mapped_size;
   mmaps[i].prot	  = prot;
   mmaps[i].flags  = flags;
   mmaps[i].fd     = fd;
@@ -259,14 +259,14 @@ mmap (void * addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   lseek (fd, offset, SEEK_SET);
 
-  while (count < len)
+  while (count < mapped_size)
     {
-      ssize_t size = read (fd, mmaps[i].addr + count, len - count);
+      ssize_t size = read (fd, mmaps[i].addr + count, mapped_size - count);
 
       if (size < 0)
 	{
 	  int save_errno = errno;
-	  munmap (mmaps[i].addr, len);
+	  munmap (mmaps[i].addr, mapped_size);
 	  lseek (fd, oldpos, SEEK_SET);
 	  return (void *) __set_errno (save_errno);
 	}
@@ -276,6 +276,14 @@ mmap (void * addr, size_t len, int prot, int flags, int fd, off_t offset)
       count += size;
     }
   lseek (fd, oldpos, SEEK_SET);
+
+  /* Ref: http://linux.die.net/man/2/mmap
+   * "For a file that is not a multiple of the page size, the remaining memory
+   * is zeroed when mapped, and writes to that region are not written out to
+   * the file."
+   */
+  if (mapped_size - len > 0)
+    memset (mmaps[i].addr + len, 0, mapped_size - len);
 
   return mmaps[i].addr;
 }

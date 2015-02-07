@@ -1,3 +1,8 @@
+Sat Feb  7 12:28:58 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* sys/mman.c(mmap): If a mapped file is not a multiple of
+	the page size, zero the remaining memory.
+
 Thu Feb  5 19:53:47 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* include/sys/mman.h: Replace use of __caddr_t with void *.
