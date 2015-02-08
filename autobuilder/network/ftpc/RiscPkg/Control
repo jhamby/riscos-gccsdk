@@ -1,0 +1,12 @@
+Licence: Non-free
+Description: A desktop FTP client
+ Features include:
+ - a graphical user interface;
+ - the ability to upload directories and files;
+ - the ability to download directories and files;
+ - resumption of uploads and downloads (where supported by the server);
+ - the ability to connect to more than one site;
+ - support for setting filetype from filename extension; and
+ - an API for use by other programs.
+Components: Apps.Network.!FTPc (Movable)
+
