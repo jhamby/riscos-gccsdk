@@ -1,3 +1,16 @@
+Sun Feb 08 18:25:17 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	CLANG
+	* tools/clang/include/clang/Basic/Specifiers.h(struct WrittenBuiltinSpecs):
+	RISC OS binary: Pad so that sizeof(struct) == 4 and not 2, otherwise the
+	assertion at the bottom of TypeLocBuilder::pushImpl() fails.
+	* tools/clang/lib/Basic/Targets.cpp(shouldUseInlineAtomic):
+	Always return true. Clang is not able to generate code to call some
+	of the atomic functions and produces an error to that effect.
+	I'm not sure of the implications of this, e.g., will this cause it
+	to generate instructions that a StrongARM doesn't support?
+	Fortunately, I've not see any evidence of this.
+
 Fri Feb 06 18:54:09 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	LLVM

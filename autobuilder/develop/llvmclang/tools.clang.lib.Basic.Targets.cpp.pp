@@ -1,6 +1,15 @@
 --- tools/clang/lib/Basic/Targets.cpp.orig	2014-08-08 23:59:37.000000000 +0100
-+++ tools/clang/lib/Basic/Targets.cpp	2015-01-17 18:04:56.708103004 +0000
-@@ -6012,6 +6012,27 @@
++++ tools/clang/lib/Basic/Targets.cpp	2015-02-08 12:19:55.856926714 +0000
+@@ -3495,6 +3495,8 @@
+   static const Builtin::Info BuiltinInfo[];
+ 
+   static bool shouldUseInlineAtomic(const llvm::Triple &T) {
++    if (T.getOS() == llvm::Triple::RISCOS)
++      return true;
+     StringRef ArchName = T.getArchName();
+     if (T.getArch() == llvm::Triple::arm ||
+         T.getArch() == llvm::Triple::armeb) {
+@@ -6012,6 +6014,27 @@
  };
  } // end anonymous namespace.
  
@@ -28,7 +37,7 @@
  
  //===----------------------------------------------------------------------===//
  // Driver code
-@@ -6056,6 +6077,8 @@
+@@ -6056,6 +6079,8 @@
      }
  
    case llvm::Triple::arm:
