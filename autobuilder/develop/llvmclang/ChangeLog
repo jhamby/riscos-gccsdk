@@ -1,3 +1,18 @@
+Mon Feb 09 16:04:11 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* !Clang/!Run,feb: Don't create an alias for the C++ compiler as it
+	doesn't work. Clang uses the name of the compiler binary to
+	determine whether to call gcc or g++ to do the linking. Using an
+	alias means that the compiler is always clang even when compiling
+	C++ so the wrong GCC driver is used.
+	Add a sfix system variable for the C++ compiler.
+	* setvars: Install a copy of the compiler as clang++.
+
+	LLVM
+	* lib/Support/MemoryBuffer.cpp(shouldUseMmap): RISC OS binary:
+	Always return false. Don't use mmap if it can be helped. Unixlib
+	only supports up to 8 mmap areas and we can easily exceed that.
+
 Sun Feb 08 18:25:17 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	CLANG

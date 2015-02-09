@@ -88,9 +88,10 @@ ab_make () {
 ab_package() {
   ab_create_app Clang Apps/Develop
 
-  mkdir -p $A/bin $A/lib/clang/$CLANG_VERSION/include/h
+  mkdir -p $A/bin $A/lib/clang/$CLANG_VERSION/include/h $A/Docs
 
   cp -T $S/riscos-env/bin/clang $A/bin/clang,e1f
+  cp -T $S/riscos-env/bin/clang $A/bin/clang++,e1f
 
   # Copy any headers that may be of use to RISC OS Clang.
   cp -T $S/riscos-env/lib/clang/$CLANG_VERSION/include/arm_neon.h \
