@@ -1,3 +1,9 @@
+Sat Feb 21 10:53:02 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	CLANG
+	* tools/clang/lib/Basic/Targets.cpp(RISCOSTargetInfo::getOSDefines):
+	Define _GNU_SOURCE by default for C++ to match GCC behaviour.
+
 Mon Feb 09 16:04:11 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* !Clang/!Run,feb: Don't create an alias for the C++ compiler as it

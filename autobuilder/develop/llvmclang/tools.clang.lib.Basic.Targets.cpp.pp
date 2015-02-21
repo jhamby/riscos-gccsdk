@@ -1,5 +1,5 @@
 --- tools/clang/lib/Basic/Targets.cpp.orig	2014-08-08 23:59:37.000000000 +0100
-+++ tools/clang/lib/Basic/Targets.cpp	2015-02-08 12:19:55.856926714 +0000
++++ tools/clang/lib/Basic/Targets.cpp	2015-02-19 18:52:52.078705140 +0000
 @@ -3495,6 +3495,8 @@
    static const Builtin::Info BuiltinInfo[];
  
@@ -9,7 +9,7 @@
      StringRef ArchName = T.getArchName();
      if (T.getArch() == llvm::Triple::arm ||
          T.getArch() == llvm::Triple::armeb) {
-@@ -6012,6 +6014,27 @@
+@@ -6012,6 +6014,29 @@
  };
  } // end anonymous namespace.
  
@@ -22,6 +22,8 @@
 +    Builder.defineMacro("__riscos__");
 +    Builder.defineMacro("__riscos");
 +    Builder.defineMacro("__ELF__");
++    if (Opts.CPlusPlus)
++      Builder.defineMacro("_GNU_SOURCE");
 +  }
 +public:
 +  RISCOSTargetInfo(const llvm::Triple &Triple) : OSTargetInfo<Target>(Triple) {
@@ -37,7 +39,7 @@
  
  //===----------------------------------------------------------------------===//
  // Driver code
-@@ -6056,6 +6079,8 @@
+@@ -6056,6 +6081,8 @@
      }
  
    case llvm::Triple::arm:
