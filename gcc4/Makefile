@@ -62,7 +62,6 @@ ifeq ($(TARGET),arm-unknown-riscos)
 # you only end up with UnixLib/softfloat support.
 # Note: --enable-multilib is the default.  Don't specify it unless you want to get hit
 # by PR43328/PR45174.
-## FIXME: Consider --enable-__cxa_atexit (but this can require UnixLib changes).
 GCC_CONFIG_ARGS := \
 	--enable-threads=posix \
 	--enable-sjlj-exceptions=no \
@@ -71,7 +70,8 @@ GCC_CONFIG_ARGS := \
 	--disable-c-mbchar \
 	--disable-wchar_t \
 	--disable-libstdcxx-pch \
-	--disable-tls
+	--disable-tls \
+	--enable-__cxa_atexit
 # FIXME: for Java support: --without-x --enable-libgcj
 BINUTILS_CONFIG_ARGS :=
 GDB_CONFIG_ARGS :=

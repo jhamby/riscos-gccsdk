@@ -32,9 +32,6 @@
 #  include <sys/debug.h>
 #endif
 
-struct __atexit_function_entry __atexit_function_array[__MAX_ATEXIT_FUNCTION_COUNT];
-int __atexit_function_count = 0;
-
 static void initialise_unix_io (void);
 static void check_fd_redirection (const char *filename,
 				  unsigned int fd_to_replace);
@@ -344,15 +341,7 @@ exit (int status)
      Although this accesses globals, we don't want to disable threads
      whilst calling the functions. Anything calling atexit from an already
      registered function is on dodgy ground anyway. */
-  while (__atexit_function_count-- > 0)
-    {
-      void (*handler)(void *) = __atexit_function_array[__atexit_function_count].func;
-      if (handler)
-        {
-	  void *handler_arg = __atexit_function_array[__atexit_function_count].arg;
-	  __funcall ((*handler), (handler_arg));
-        }
-    }
+  __cxa_finalize (NULL);
 
   _Exit (status);
 }

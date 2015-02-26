@@ -586,6 +586,8 @@ misc_src = \
 	misc/dirname.c \
 	misc/abi.c
 endif
+misc_src += \
+	misc/linklist.c
 
 if UNIXLIB_BUILDING_SCL
 netlib_src = \

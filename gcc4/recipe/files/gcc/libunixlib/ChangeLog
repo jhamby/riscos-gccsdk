@@ -1,3 +1,19 @@
+Thu Feb 26 20:09:05 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* incl-local/internal/linklist.h: Simple linked list
+	implementation.
+	* misc/linklist.c: Likewise.
+	* Makefile.am: Add above file.
+	* stdlib/atexit.c(__cxa_atexit): Use a linked list instead
+	of an array so that atexit handlers can be removed when a
+	shared library is dlclose'd. Also removes the maximum limit
+	of 33 handlers.
+	Add __cxa_finalize implementation.
+	* incl-local/stdlib.h: Remove atexit array. Add declaration
+	for __cxa_finalize.
+	* unix/unix.c(exit): Replace atexit array processing with
+	call to __cxa_finalize.
+
 Sat Feb  7 12:28:58 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* sys/mman.c(mmap): If a mapped file is not a multiple of
