@@ -16,18 +16,23 @@ my @blacklist = ( 'firefox-riscpc', 'GCC', 'CPP-2.95', 'GCC-2.95', 'G++',
   'StrongED-Modes-Internet', 'StrongED-Modes-Misc', 'StrongED-Modes-Program',
   'StrongED-Modes-RISCOS', 'StrongED-Modes-Scripting',
   'RiscTerm',
-  'MagicMush', 'FTPc', # not armv7
+  'MagicMush', # not armv7
   'bison', 'flex', 'm4', # package name clash
   'RiscPkg',  # won't handle firmware updates correctly
-  'Manuals', # Misc v Miscellaneous sections - tidies the index (ROOL version in Miscellaenous)
+#  'Manuals', # Misc v Miscellaneous sections - tidies the index (ROOL version in Miscellaenous)
   'BumpRace',  # sprite file issue
 #  'Alienblaster',
-  'Anagramarama', 'Flobopuyo', 'Defendguin', # crashes
+#  'Anagramarama', 'Flobopuyo', 'Defendguin', # crashes (not armv5 but armv7)
   'Arcem', # missing UnixHome dependency
 #  'Bc', # missing description
   'Fillets-Ng', 'Fillets-Ng-Data', # huge, install breaks
-  'GCC4','GCC4-C++', # thrashes SD until it crashes
-  'UnZip' # new package is 'Unzip'
+#  'GCC4','GCC4-C++', # thrashes SD until it crashes
+  'UnZip', # new package is 'Unzip'
+#  'PDFUtils', 'FLAC', 'Sox', 'Vorbis-Tools', # no wimpslot set
+  'Decor', # executable missing
+  'Airstrike', 'GLHack', # fail to run
+  'MimeMan', 'PopStop', # require SysLog
+#  'CoreUtils' # clashes
   );
 
 # fetch the packages file
