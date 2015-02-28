@@ -696,7 +696,7 @@ endif
 # Download gmp source:
 $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.bz2:
 	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && wget -c ftp://ftp.gmplib.org/pub/gmp-$(GMP_VERSION)/gmp-$(GMP_VERSION).tar.bz2
+	cd $(SRCORIGDIR) && wget -c https://gmplib.org/download/gmp-$(GMP_VERSION)/gmp-$(GMP_VERSION).tar.bz2
 	touch $@
 
 # Download mpc source:
