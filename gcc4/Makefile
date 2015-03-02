@@ -591,6 +591,7 @@ src-ppl-copied: $(SRCORIGDIR)/ppl-$(PPL_VERSION).tar.gz
 	cd $(SRCORIGDIR) && tar xf $<
 	-mkdir -p $(SRCDIR)/ppl
 	cp -T -p -r $(SRCORIGDIR)/ppl-$(PPL_VERSION) $(SRCDIR)/ppl
+	cd $(SRCDIR)/ppl && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 	touch $(BUILDSTEPSDIR)/$@
 
 # Unpack & copy cloog source:
