@@ -18,9 +18,13 @@ ab_package() {
 
  rman -f HTML $S/doc/m4.1 > $A/\!Help,faf
 
- cp -av $S/README $A
+ cp -av $S/README $S/THANKS $A
  cp -av $S/AUTHORS $S/COPYING $A
  cp -av $S/NEWS $S/ChangeLog $A
+ cp -av $S/TODO $A
+ mkdir -p $A/examples
+ cp -av $S/examples/* $A/examples
+ rm -rf $A/examples/Makefile*
 
  $AB_HOME/add-riscpkg -unixlib
 }
