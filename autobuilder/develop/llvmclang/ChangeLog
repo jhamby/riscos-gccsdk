@@ -1,3 +1,10 @@
+Tue Mar 10 21:09:47 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	LLVM
+	* lib/Target/ARM/ARMInstrInfo.td(ARMadde): Prevent MOVW instruction
+	from being emitted unless supported by the chosen architecture. Note
+	that this is fixed upstream.
+
 Sat Feb 21 10:53:02 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	CLANG
