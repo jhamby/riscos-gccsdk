@@ -1,3 +1,11 @@
+Thu Mar 12 19:38:23 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	LLVM
+	* lib/CodeGen/GlobalMerge.cpp(GlobalMerge::doMerge): Reverse the
+	order of the sort so that byte sized globals are placed at the
+	end of the area and those requiring word alignment at the
+	beginning.
+
 Tue Mar 10 21:09:47 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	LLVM
