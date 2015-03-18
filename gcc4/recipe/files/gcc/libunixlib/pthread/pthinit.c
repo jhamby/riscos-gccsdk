@@ -1,6 +1,6 @@
 /* Pthread initialisation.
    Written by Martin Piper and Alex Waugh.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 UnixLib Developers.  */
+   Copyright (c) 2002-2008, 2010, 2015 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <pthread.h>
@@ -28,6 +28,14 @@ unsigned int GOT;
 }
 #endif
 
+static struct __stack_chunk *
+__get_main_stack_base (void)
+{
+  register unsigned int sl __asm__ ("r10");
+
+  return (struct __stack_chunk *)(sl - 536);
+}
+
 /* Called once, at program initialisation.  */
 void
 __pthread_prog_init (void)
@@ -49,6 +57,7 @@ __pthread_prog_init (void)
   if (mainthread.saved_context == NULL)
     __unixlib_fatal ("pthreads initialisation error: out of memory");
   mainthread.magic = PTHREAD_MAGIC;
+  mainthread.stack = __get_main_stack_base ();  
 
   /* Allocate a small block of RMA to hold some data that remains
    * constant over the life of the program. A pointer to this block

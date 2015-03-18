@@ -654,6 +654,7 @@ pthread_src = \
 	pthread/mutex.c \
 	pthread/mutexattr.c \
 	pthread/newnode.c \
+	pthread/np.c \
 	pthread/once.c \
 	pthread/pthinit.c \
 	pthread/pthsignal.c \

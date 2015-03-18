@@ -1,11 +1,12 @@
 /* Internal thread node creation.
    Written by Martin Piper and Alex Waugh.
-   Copyright (c) 2002-2012 UnixLib Developers.  */
+   Copyright (c) 2002-2015 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <errno.h>
 #include <malloc.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <internal/os.h>
 #include <internal/unix.h>
@@ -80,6 +81,20 @@ __pthread_new_node (pthread_t node)
   pthread_cond_init (&(node->sigwait_cond), NULL);
   sigemptyset (&(node->pending));
   sigemptyset (&(node->blocked));
+
+  /* By default, all threads created by pthread_create inherit the program name.
+     The main thread creation occurs before the name of the program is determined,
+     so that is the exception.  */
+  if (program_invocation_short_name != NULL)
+    {
+      strncpy (node->name, program_invocation_short_name, PTHREAD_MAX_NAMELEN_NP);
+      node->name[PTHREAD_MAX_NAMELEN_NP - 1] = '\0';
+    }
+  else
+    {
+      static const char main_thread_name[] = "Main Thread";
+      strncpy (node->name, main_thread_name, sizeof (main_thread_name));
+    }
 
   return node;
 }

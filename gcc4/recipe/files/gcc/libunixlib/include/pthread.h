@@ -1,7 +1,7 @@
 /*
  * pthread.h - IEEE Std 1003.1-2001 threads
  * Written by Alex Waugh
- * Copyright (c) 2002-2010 UnixLib Developers
+ * Copyright (c) 2002-2015 UnixLib Developers
  */
 
 #ifndef __PTHREAD_H
@@ -255,6 +255,10 @@ extern int pthread_attr_setschedparam (pthread_attr_t *__restrict attr,
 extern int pthread_attr_getschedparam (const pthread_attr_t *__restrict attr,
 				       struct sched_param *__restrict param);
 
+extern int pthread_attr_getstack(const pthread_attr_t *attr,
+				 void **stackaddr,
+				 size_t *stacksize);
+
 /* Mutexes */
 
 /* Static default initialiser for a pthread_mutex_t */
@@ -451,6 +455,28 @@ extern int pthread_getschedparam (pthread_t __thr,
 				  int *__policy,
 				  struct sched_param *__param)
      __THROW;
+
+#ifdef __USE_GNU
+     
+/* np functions
+   Non portable/posix GNU extensions */
+
+/*
+ * Maximum length of a thread's name, including the terminating NUL.
+ */
+#define	PTHREAD_MAX_NAMELEN_NP	32
+
+extern int pthread_setname_np (pthread_t thread_id,
+			       const char *name);
+
+extern int pthread_getname_np (pthread_t thread_id,
+			       char *name,
+			       size_t len);
+
+extern int pthread_getattr_np (pthread_t thread_id,
+			       pthread_attr_t *attr);
+
+#endif /* __USE_GNU */
 
 #endif /* __PTHREAD_H */
 

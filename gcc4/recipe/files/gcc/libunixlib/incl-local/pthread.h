@@ -1,6 +1,6 @@
 /* Internal UnixLib pthread.h
  * Written by Alex Waugh.
- * Copyright (c) 2002-2012 UnixLib Developers.
+ * Copyright (c) 2002-2015 UnixLib Developers.
  */
 
 #ifdef __TARGET_SCL__
@@ -93,6 +93,9 @@ struct __pthread_thread
   __sigset_t blocked; /* Signal mask for this thread. */
   __sigset_t pending; /* Pending signals for this thread */
   pthread_cond_t sigwait_cond;
+
+  /* Human readable name of thread.  */
+  char name[PTHREAD_MAX_NAMELEN_NP];
 };
 
 extern pthread_t __pthread_running_thread; /* Currently running thread */

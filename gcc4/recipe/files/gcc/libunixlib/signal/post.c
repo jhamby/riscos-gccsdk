@@ -1,6 +1,6 @@
 /* Perform delivery of a signal to a process.
    Written by Nick Burrett.
-   Copyright (c) 1996-2014 UnixLib Developers.  */
+   Copyright (c) 1996-2015 UnixLib Developers.  */
 
 #include <errno.h>
 #include <pthread.h>
@@ -402,8 +402,8 @@ __write_backtrace (int signo)
 #endif
 
   /* Dump first the details of the current thread.  */
-  fprintf (stderr, "Stack backtrace:\n\nRunning thread %p\n",
-	   __pthread_running_thread);
+  fprintf (stderr, "Stack backtrace:\n\nRunning thread %p (%s)\n",
+	   __pthread_running_thread, __pthread_running_thread->name);
   __write_backtrace_thread (fp);
 
   /* And then the other suspended threads if any.  */
@@ -412,7 +412,7 @@ __write_backtrace (int signo)
       if (th == __pthread_running_thread)
         continue;
 
-      fprintf (stderr, "\nThread %p\n", th);
+      fprintf (stderr, "\nThread %p (%s)\n", th, th->name);
       const unsigned int fakestackframe[] =
         {
           (unsigned int)th->saved_context->r[11],
@@ -686,7 +686,7 @@ death:
 	ss->blocked = blocked;
 
 	/* If the signal handler changed the PC of the saved registers, then
-	   restore all registers and passs control to the location. */
+	   restore all registers and pass control to the new location. */
 	if (__signal_have_saved_regs (signo) &&
 	    ss->ucontext.arm_pc != ss->ucontext.fault_address)
 	  {

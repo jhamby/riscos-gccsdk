@@ -1,6 +1,6 @@
 /* Thread attribute manipulation functions.
    Written by Alex Waugh.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
+   Copyright (c) 2002-2015 UnixLib Developers.  */
 
 #include <pthread.h>
 #include <errno.h>
@@ -157,6 +157,20 @@ pthread_attr_getschedparam (const pthread_attr_t *attr, struct sched_param *para
     return EINVAL;
 
   *param = attr->param;
+
+  return 0;
+}
+
+/* <http://linux.die.net/man/3/pthread_attr_getstack> */
+int pthread_attr_getstack(const pthread_attr_t *attr,
+			  void **stackaddr,
+			  size_t *stacksize)
+{
+  if (attr == NULL || stackaddr == NULL || stacksize == NULL)
+    return EINVAL;
+
+  *stackaddr = attr->stackaddr;
+  *stacksize = attr->stacksize;
 
   return 0;
 }

@@ -1,3 +1,26 @@
+Wed Mar 18 14:27:11 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	* pthread/np.c: New file.
+	(pthread_getattr_np): Read the stack attributes of the
+	given thread.
+	(pthread_setname_np): Set the name of the given thread.
+	(pthread_getname_np): Retrieve the name of the given thread.
+	Note: The standard indicates that names are limited to
+	16 chars, but some libraries use longer names, so I've
+	set the limit at 32.
+	* Makefile.am: Add above file to list of Unixlib source.
+	* include/pthread.h: Add new function declarations.
+	* incl-local/pthread.h(struct __pthread_thread): Add member
+	to record thread name.
+	* pthread/newnode.c(__pthread_new_node): Set the default
+	thread name.
+	* pthread/attr.c(pthread_attr_getstack): Read stack details
+	from attributes.
+	* signal/post.c(__write_backtrace): Output the name of the
+	thread when printing the backtrace.
+	* pthread/pthinit.c(__pthread_prog_init): Record the stack
+	base of the main thread.
+
 Thu Feb 26 20:09:05 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* incl-local/internal/linklist.h: Simple linked list
