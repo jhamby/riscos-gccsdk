@@ -1,20 +1,46 @@
+AB_URL=ftp://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
 
-AB_CATEGORY=Development
+AB_CONFLAGS="--prefix=/home"
 
 ab_package() {
 
-  A=$D/$AB_PACKAGE/Apps/$AB_CATEGORY/\!GCC
-  mkdir -p $A/bin/
-  mkdir -p $A/docs/
+  ab_create_command_app Bison Apps/Development
+  ab_add_commands $S/src/bison$AB_EXEEXT
+  
+  echo -e "\nSet Bison\$Path <Obey\$Dir>." >> $A/\!Boot,feb
+  echo -e "\nSet BISON_PKGDATADIR /Bison:data" >> $A/\!Boot,feb
 
+  rman -f HTML $S/doc/bison.1 > $A/!Help,faf
+  cp $S/AUTHORS $S/ChangeLog $S/COPYING $A
+  cp $S/README $S/THANKS $S/TODO $A
 
-  cp $S/src/bison$AB_EXEEXT $A/bin
-  rman -f HTML $S/doc/bison.1 > $A/docs/bison.html,faf
+  mkdir -p $A/data
+  cp -avr $S/data/* $A/data
+  
+  # Convert c, cc abd hh files to RISC OS format
+  mkdir -p $A/data/c
+  mkdir -p $A/data/cc
+  mkdir -p $A/data/hh
+  
+  files=$A/data/*.c
+  for file in $files; do
+    nfile=$(basename $file | sed s#\.c\$##)
+    mv -f $file $A/data/c/$nfile
+  done
 
-  export AB_SUBPACKAGE=$AB_PACKAGE
-
+  files=$A/data/*.cc
+  for file in $files; do
+    nfile=$(basename $file | sed s#\.cc\$##)
+    mv -f $file $A/data/cc/$nfile
+  done
+  
+  files=$A/data/*.hh
+  for file in $files; do
+    nfile=$(basename $file | sed s#\.hh\$##)
+    mv -f $file $A/data/hh/$nfile
+  done
+  
   $AB_HOME/add-riscpkg -unixlib
-
 }
 
 touch --date="Jan 01 2000" \
