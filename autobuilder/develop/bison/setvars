@@ -2,6 +2,18 @@ AB_URL=ftp://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
 
 AB_CONFLAGS="--prefix=/home"
 
+# Helper to swap suffixes for package
+ab_swap_suffix() {
+    dirname=$1
+    suffix=$2
+    mkdir -p $dirname/$suffix
+    files=$dirname/*.$suffix
+    for file in $files; do
+      nfile=$(basename $file | sed s#\.$suffix\$##)
+      mv -f $file $dirname/$suffix/$nfile
+    done
+}
+
 ab_package() {
 
   ab_create_command_app Bison Apps/Development
@@ -9,6 +21,7 @@ ab_package() {
   
   echo -e "\nSet Bison\$Path <Obey\$Dir>." >> $A/\!Boot,feb
   echo -e "\nSet BISON_PKGDATADIR /Bison:data" >> $A/\!Boot,feb
+  echo -e "\nSet UnixEnv\$bison\$sfix \"y:c:cc:c++:cpp:cxx:h:hh\"" >> $A/\!Boot,feb
 
   rman -f HTML $S/doc/bison.1 > $A/!Help,faf
   cp $S/AUTHORS $S/ChangeLog $S/COPYING $A
@@ -17,29 +30,11 @@ ab_package() {
   mkdir -p $A/data
   cp -avr $S/data/* $A/data
   
-  # Convert c, cc abd hh files to RISC OS format
-  mkdir -p $A/data/c
-  mkdir -p $A/data/cc
-  mkdir -p $A/data/hh
-  
-  files=$A/data/*.c
-  for file in $files; do
-    nfile=$(basename $file | sed s#\.c\$##)
-    mv -f $file $A/data/c/$nfile
-  done
-
-  files=$A/data/*.cc
-  for file in $files; do
-    nfile=$(basename $file | sed s#\.cc\$##)
-    mv -f $file $A/data/cc/$nfile
-  done
-  
-  files=$A/data/*.hh
-  for file in $files; do
-    nfile=$(basename $file | sed s#\.hh\$##)
-    mv -f $file $A/data/hh/$nfile
-  done
-  
+  # Convert c, cc, hh files to RISC OS format  
+  ab_swap_suffix $A/data c
+  ab_swap_suffix $A/data cc
+  ab_swap_suffix $A/data hh
+    
   $AB_HOME/add-riscpkg -unixlib
 }
 
