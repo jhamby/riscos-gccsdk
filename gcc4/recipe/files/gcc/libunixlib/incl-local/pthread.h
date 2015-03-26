@@ -130,8 +130,12 @@ struct __pthread_saved_context
   int r[16]; /* User mode integer registers */
   int spsr;
 #ifndef __SOFTFP__
+#  ifdef __VFP_FP__
+  int vfpcontext; /* VFPSupport context ptr. If bit 0 set, was stack allocated, else malloc'd */
+#  else
   char fpregs[12*8]; /* Floating point registers */
   int fpstatus; /* Floating point status register */
+#  endif
 #endif
 };
 

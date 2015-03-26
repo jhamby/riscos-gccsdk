@@ -7,6 +7,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <malloc.h>
+#include <swis.h>
 
 #include <internal/os.h>
 #include <internal/unix.h>
@@ -38,6 +39,14 @@ __pthread_cleanup_idle (pthread_t node)
 
   if (node->saved_context)
     {
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+      int context = node->saved_context->vfpcontext;
+      /* Paranoia - just in case the context is active */
+      _swix(VFPSupport_DestroyContext, _INR(0, 1), context & ~1, 0);
+      /* Free the memory if it wasn't stack allocated */
+      if (!(context & 1))
+        free_unlocked (gbl->malloc_state, context);
+#endif
       free_unlocked (gbl->malloc_state, node->saved_context);
       node->saved_context = NULL;
     }

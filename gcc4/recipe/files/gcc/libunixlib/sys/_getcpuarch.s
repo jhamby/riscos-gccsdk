@@ -51,9 +51,21 @@ __get_cpu_arch:
 	MOVEQ	a1, #6
 	LDMEQFD R13!, {PC}
 
-	TEQ	a2, #15<<16		@ ARM architecture 7 (in fact, use CPUID scheme)
-	MOVEQ	a1, #7
+	TEQ	a2, #15<<16		@ ARM architecture 7 (in fact, use feature registers)
 	MOVNE	a1, #0			@ Currently unknown !
+	LDMNEFD	R13!, {PC}
+
+	@ Some ARMv6 CPUs (e.g. ARM1176JZF-S) use the feature registers.
+	@ Use the cache type register to work out if we're on ARMv6
+	@ or ARMv7 (or above)
+	MRS	a2, CPSR
+	SWI	XOS_EnterOS
+	MVNVS	a1, #0
+	MRCVC	p15, 0, a1, c0, c0, 1	@ get cache type register
+	MSR	CPSR_c, a2
+	TST	a1, #0x80000000		@ ARMv6 or ARMv7 format?
+	MOVNE	a1, #7
+	MOVEQ	a1, #6
 	LDMFD	R13!, {PC}
 
 cpu_is_arm7:

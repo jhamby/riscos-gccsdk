@@ -1,3 +1,44 @@
+Thu Mar 26 18:33:45 GMT  2015  Lee Noar  <leenoar@sky.com>
+
+	Submitted by Jeffery Lee <me@phlamethrower.co.uk>
+
+	* fenv/fclrexcpt.c(feclearexcept): Add support for VFP.
+	* incl-local/pthread.h(__pthread_saved_context): Likewise.
+	* incl-local/errno.h(__ul_fp_registers): Add alternative
+	definition for VFP.
+	* incl-local/internal/asm_dec.s: Add VFP error and
+	SWI numbers. Add definition for GBL_VFP_REGCOUNT.
+	* incl-local/internal/unix.h(struct ul_global): Add
+	member to record number of double word registers that
+	should be requested for VFP contexts.
+	* include/swis.h: Add VFP module SWI numbers.
+	* module/sul.s: Ensure any active VFP context is disabled
+	when a client exits.
+	* pthread/_context.s: Give each thread its own VFP context.
+	* pthread/context.c(__pthread_cleanup_idle): Clean up the
+	VFP context.
+	* pthread/pthinit.c(__pthread_prog_init): Register the VFP
+	context of the main thread.
+	* signal/_signal.s(__h_error): Fix bug whereby serious errors
+	were not being detected.
+	(unrecoverable_error): Store the VFP registers in the event of
+	an FP exception.
+	* signal/post.c(__write_backtrace): Updated to produce a VFP/NEON
+	register dump if a VFP exception has been caught (only a hex dump,
+	since we don't know what data types are in the registers).
+	* sys/_getcpuarch.s: Use the cache type register to work out whether
+	a CPU with architecture field of 15 is ARMv6 or ARMv7 (e.g.
+	Raspberry Pi 1 was previously being detected as ARMv7).
+	* sys/_syslib.s: Update SUL version checks to require SUL 1.13 if
+	the code was built for VFP/NEON. Add some logic to check for
+	required VFP/NEON features - or at least as many features as we can
+	assume the program might require (GCC doesn't seem to be very good
+	at letting code know what VFP/NEON variant is being targeted).
+	Add logic to set up the initial VFP context and to make a note of
+	how many registers are available (for creating future contexts).
+	* sys/_vfork.s: Deactivate & reactivate VFP context over the fork
+	to make sure the state is duplicated correctly.
+
 Wed Mar 18 14:27:11 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* pthread/np.c: New file.

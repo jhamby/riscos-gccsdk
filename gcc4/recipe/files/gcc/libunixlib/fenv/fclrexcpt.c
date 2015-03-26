@@ -40,7 +40,11 @@ int feclearexcept (int excepts)
   _FPU_GETCW (temp);
 
   /* Clear the relevant bits.  */
+#ifdef __VFP_FP__
+  temp = (temp & ~FE_ALL_EXCEPT) | (temp & FE_ALL_EXCEPT & ~excepts);
+#else
   temp &= excepts ^ FE_ALL_EXCEPT;
+#endif
 
   /* Put the new data in effect.  */
   _FPU_SETCW (temp);

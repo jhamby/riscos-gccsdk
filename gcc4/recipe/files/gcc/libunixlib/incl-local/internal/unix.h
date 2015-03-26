@@ -196,6 +196,11 @@ struct ul_global
     small block of RMA that contains several values that remain constant for
     the life of the program. This block is passed to the call_every handler in
     r12.  */
+
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+  int vfp_regcount; /* Number of doubleword registers we should request for
+    VFP contexts */
+#endif
 };
 
 /* This structure must be kept in perfect synchronisation with:

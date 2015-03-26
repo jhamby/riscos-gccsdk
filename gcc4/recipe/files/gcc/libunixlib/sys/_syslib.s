@@ -10,6 +10,8 @@
 .set	ERR_NO_FPE, 3
 .set	ERR_UNRECOVERABLE, 4
 .set	ERR_TOO_LOW_CPU_ARCH, 5
+.set	ERR_NO_VFP, 6
+.set	ERR_BAD_VFP, 7
 
 @ Constants for field offsets within a stack chunk
 @ The stack is allocated in chunks, each chunk is a multiple of 4KB, and
@@ -46,16 +48,23 @@
 
 	@ RMEnsure the minimum version of the SharedUnixLibrary we need.
 	@ Now check System modules first as UnixLib package is deprecated.
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+.set	SUL_MIN_VERSION, 113
+#define SUL_VERSION_STRING "1.13"
+#else
 .set	SUL_MIN_VERSION, 107
+#define SUL_VERSION_STRING "1.07"
+#endif
 rmensure1:
-	.ascii	"RMEnsure SharedUnixLibrary 1.07 "
+	.ascii	"RMEnsure SharedUnixLibrary " SUL_VERSION_STRING " "
 	.asciz	"RMLoad System:Modules.SharedULib"
 rmensure2:
-	.ascii	"RMEnsure SharedUnixLibrary 1.07 "
+	.ascii	"RMEnsure SharedUnixLibrary " SUL_VERSION_STRING " "
 	.asciz	"RMLoad UnixLib:Modules.SharedULib"
 	@ The exact error message is not important as it will get ignored.
 rmensure3:
-	.asciz	"RMEnsure SharedUnixLibrary 1.07 Error XYZ"
+	.ascii	"RMEnsure SharedUnixLibrary " SUL_VERSION_STRING " "
+	.asciz	"Error XYZ"
 	.align
 
 	.global	__main
@@ -401,6 +410,47 @@ no_dynamic_area:
 	STR	a1, [ip, #GBL_PAGESIZE]		@ __ul_global.pagesize
 
 #ifndef __SOFTFP__
+#ifdef __VFP_FP__
+	@ Check that VFPSupport is available
+	SWI	XVFPSupport_Version
+	MOVVS	a1, #0
+	CMP	a1, #2		@ We need 0.02 or above
+	MOVLO	a1, #ERR_NO_VFP
+	BLO	__exit_with_error_num
+	@ Check that the hardware has the features we expect
+	@ Unfortunately GCC doesn't give us any #defines indicating VFP version, register count,
+	@ etc., so we can only do a couple of simple generic checks here
+	MOV	a1, #0
+	SWI	VFPSupport_Features @ No X bit, SWI should be available
+	@ a2 & a3 = MVFR registers
+	@ MVFR0 checks:
+	TST	a2, #0x0000000f @ Check at least some registers exist
+	TSTNE	a2, #0x000000f0	@ Single precision floats
+	TSTNE	a2, #0x00000f00	@ Double precision floats
+	TSTNE	a2, #0x000f0000 @ Divide
+	TSTNE	a2, #0x00f00000 @ Square root
+	@ MVFR1 checks:
+#ifdef __ARM_NEON__
+	TSTNE	a3, #0x00000f00 @ NEON load/store
+	TSTNE	a3, #0x0000f000 @ NEON integer
+	TSTNE	a3, #0x000f0000 @ NEON single precision floats
+#endif
+	MOVEQ	a1, #ERR_BAD_VFP
+	BEQ	__exit_with_error_num
+	@ Allocate some stack space for our initial context (since malloc isn't available yet)
+	@ We don't know whether we're targeting D16 or D32 hardware, so request a context
+	@ of maximum size
+	TST	a2, #0xe	@ EQ -> 16 registers, NE -> 32 (or more?)
+	MOV	a1, #0x80000003	@ User mode, application space, activate now
+	MOVEQ	a2, #16
+	MOVNE	a2, #32
+	SWI	XVFPSupport_CheckContext
+	MOVVS	a1, #ERR_BAD_VFP
+	BVS	__exit_with_error_num
+	SUB	sp, sp, a1
+	BIC	sp, sp, #7	@ AAPCS wants 8 byte alignment
+	STR	a2, [ip, #GBL_VFP_REGCOUNT]	@ __ul_global.vfp_regcount
+#else
 	@ Recognise the Floating Point facility by determining whether
 	@ the SWI FPEmulator_Version actually exists (and works).
 	@ We insist on having at least version 4.00.
@@ -410,6 +460,7 @@ no_dynamic_area:
 	CMP	a1, #400	@ We want 4.00 or above so we can use SFM/LFM
 	MOVCC	a1, #ERR_NO_FPE
 	BCC	__exit_with_error_num
+#endif
 #endif
 
 	@ Now we'll initialise the C library, then call the user program.
@@ -421,6 +472,17 @@ no_dynamic_area:
 	STR	a1, [ip, #GBL_SULPROC]
 	STR	a2, [ip, #GBL_UPCALL_HANDLER_ADDR]
 	STR	a3, [ip, #GBL_UPCALL_HANDLER_R12]
+
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+	@ Create and activate the VFP context we allocated space for earlier
+	@ This is done after SUL initialisation just so we don't have to worry
+	@ about cleaning it up if SUL fails
+	MOV	a1, #0x80000003
+	LDR	a2, [ip, #GBL_VFP_REGCOUNT]
+	MOV	a3, sp
+	MOV	a4, #0
+	SWI	VFPSupport_CreateContext
+#endif
 
 	@ Initialise the malloc memory allocator.
 	BL	__ul_malloc_init
@@ -566,6 +628,8 @@ error_table:
 	.word	error_no_fpe
 	.word	error_unrecoverable_loop
 	.word	error_too_low_cpu_arch
+	.word	error_no_vfp
+	.word	error_bad_vfp
 error_table_end:
 	DECLARE_OBJECT error_table
 
@@ -583,11 +647,11 @@ error_no_memory:
 	.align
 error_no_sharedunixlib:
 	.word	SharedUnixLibrary_Error_NotRecentEnough
-	.ascii	"This application requires at least version "
-	.asciz	"1.07 of the SharedUnixLibrary module"
+	.ascii	"This application requires at least version " SUL_VERSION_STRING " "
+	.asciz	"of the SharedUnixLibrary module"
 	.align
 error_no_fpe:
-#ifndef __SOFTFP__
+#if !defined(__SOFTFP__) && !defined(__VFP_FP__)
 	.word	SharedUnixLibrary_Error_NoFPE
 	.ascii	"This application requires version 4.00 "
 	.asciz	"or later of the FPEmulator module"
@@ -603,6 +667,24 @@ error_too_low_cpu_arch:
 	.ascii	"an ARM Architecture " __ARM_ARCH_STR__ " CPU "
 	.asciz	"at runtime."
 	.align
+error_no_vfp:
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+	.word	SharedUnixLibrary_Error_NoVFP
+	.ascii	"This program requires version 0.02 "
+	.asciz	"or later of the VFPSupport module"
+	.align
+#endif
+error_bad_vfp:
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+	.word	SharedUnixLibrary_Error_BadVFP
+#if defined(__ARM_NEON__)
+	.ascii	"VFP/NEON "
+#else
+	.ascii	"VFP "
+#endif
+	.asciz	"feature check failure. This program is not compatible with this CPU."
+	.align
+#endif
 
 	.global	__dynamic_area_exit
 	NAME	__dynamic_area_exit

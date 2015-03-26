@@ -56,6 +56,14 @@ __pthread_prog_init (void)
 		     sizeof (struct __pthread_saved_context));
   if (mainthread.saved_context == NULL)
     __unixlib_fatal ("pthreads initialisation error: out of memory");
+
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+  /* Store the ID of the VFP context that was created earlier on */
+  _swi(VFPSupport_ActiveContext, _OUT(0), &mainthread.saved_context->vfpcontext);
+  /* Set the bottom bit to flag that it wasn't malloc'd */
+  mainthread.saved_context->vfpcontext |= 1;
+#endif
+
   mainthread.magic = PTHREAD_MAGIC;
   mainthread.stack = __get_main_stack_base ();  
 

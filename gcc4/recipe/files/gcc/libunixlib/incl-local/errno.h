@@ -12,6 +12,7 @@
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
 #endif
+#include <stdint.h>
 
 /* Macro useful to test for a specific RISC OS filing system error number.  It
    ignores the RISC OS FS number encoded in the error number (see PRM 2-528
@@ -52,8 +53,13 @@ extern struct
 #ifndef __SOFTFP__
 extern struct
 {
+#ifdef __VFP_FP__
+  int fpscr;
+  uint64_t d[32];
+#else
   int fpsr;
   double f[8];
+#endif
 } __ul_fp_registers;
 #endif
 

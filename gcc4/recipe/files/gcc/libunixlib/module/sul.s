@@ -1,5 +1,5 @@
 @ SharedUnixLibrary
-@ Copyright (c) 2002-2011 UnixLib Developers
+@ Copyright (c) 2002-2015 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -139,11 +139,11 @@ module_start:
 help:
 	.ascii	"SharedUnixLibrary"
 	.byte	9
-	.ascii	"1.12 (05 Feb 2011) "
+	.ascii	"1.13 (27 Feb 2015) "
 #if DEBUG_PROC_MATCHING
 	.ascii	"(debug) "
 #endif
-	.asciz	"(C) UnixLib Developers, 2001-2011"
+	.asciz	"(C) UnixLib Developers, 2001-2015"
 	.align
 
 title:
@@ -1283,8 +1283,12 @@ no_copy_needed:
 	BL	restore_wimpslot
 
 do_exec:
-	LDR	a1, [v2, #PROC_CLI]
+	@ Ensure the new program doesn't inherit any VFP context
+	MOV	a1, #0
+	MOV	a2, #0
+	SWI	XVFPSupport_ChangeContext
 #if DEBUG_PROC_MATCHING
+	LDR	a1, [v2, #PROC_CLI]
 	SWI	OS_WriteS
 	.asciz	"About to exec: "
 	.align
@@ -1377,6 +1381,11 @@ exit_error_handler_common:
 sul_exit:
 	MOV	v2, a1, LSL #2 @ expand pid to 32-bits
 	MOV	v3, a2
+
+	@ Disable any active VFP context
+	MOV	a1, #0
+	MOV	a2, #0
+	SWI	XVFPSupport_ChangeContext
 
 	@ Restore old exit and error handlers if necessary
 	MOV	a1, #11

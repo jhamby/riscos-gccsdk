@@ -360,7 +360,20 @@ __pthread_callback:
 
 #ifndef __SOFTFP__
 #  ifdef __VFP_FP__
-	@ FIXME: Add VFP support
+	@ Save the thread's VFP registers, and create a new context on the stack for the
+	@ thread scheduler to use
+	LDR	a3, .L2			@=__ul_global
+ PICEQ "LDR	a3, [v1, a3]"
+	MOV	a1, #0x40000003	@ User mode, application space, lazy activate
+	LDR	a2, [a3, #GBL_VFP_REGCOUNT]
+	SWI	VFPSupport_CheckContext
+	MOV	v2, sp		@ Remember old SP
+	SUB	a3, sp, a1
+	BIC	a3, a3, #7	@ AAPCS wants 8 byte alignment
+	MOV	sp, a3
+	MOV	a1, #0x40000003
+	MOV	a4, #0
+	SWI	VFPSupport_CreateContext
 #  else
 	@ Save floating point regs
 	SFM	f0, 4, [a1], #48
@@ -381,7 +394,12 @@ __pthread_callback:
 
 #ifndef __SOFTFP__
 #  ifdef __VFP_FP__
-	@ FIXME: Add VFP support
+	@ Destroy our temp context, and in the process switch to the target context
+	LDR	a2, [a2, #17*4]
+	MOV	a1, sp
+	BIC	a2, a2, #1
+	SWI	VFPSupport_DestroyContext
+	MOV	sp, v2
 #  else
 	ADD	a2, a2, #17*4
 	LFM	f0, 4, [a2], #48
@@ -462,6 +480,31 @@ skip_contextswitch:
 __pthread_init_save_area:
 #ifndef __SOFTFP__
 #  ifdef __VFP_FP__
+	@ Allocate a VFP context from the heap
+	@ Make sure we specify the 'application space' flag if we're not using a DA
+	STMFD	sp!, {a1, v1, lr}
+ PICEQ "LDR	ip, =__GOTT_BASE__"
+ PICEQ "LDR	ip, [ip, #0]"
+ PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	LDR	a2, .L0			@=__ul_global
+ PICEQ "LDR	a2, [ip, a2]"
+
+	LDR	a1, [a2, #GBL_DYNAMIC_NUM]
+	CMP	a1, #-1
+	MOVEQ	a1, #0x3	@ User mode, application space
+	MOVNE	a1, #0x1	@ User mode, dynamic area
+	LDR	a2, [a2, #GBL_VFP_REGCOUNT]
+	MOV	v1, a1
+	SWI	VFPSupport_CheckContext
+	STMFD	sp!, {a2}
+	BL	malloc		@ TODO check for null
+	LDMFD	sp!, {a2}
+	MOV	a3, a1
+	MOV	a1, v1
+	MOV	a4, #0
+	SWI	VFPSupport_CreateContext
+	LDMFD	sp!, {a2, v1, lr}
+	STR	a1, [a2, #17*4]
 #  else
 	ADD	a2, a1, #17*4
 	SFM	f0, 4, [a2], #48

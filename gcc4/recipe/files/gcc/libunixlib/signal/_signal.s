@@ -214,7 +214,7 @@ __h_sigsegv0:
  PICEQ "LDMFD	sp!, {r7, r8}"
 
  PICNE "STR	lr, __cbreg + 15*4"
- PICNE "ADR	lr, __cbreg"
+ PICNE "ADRL	lr, __cbreg"
 
 	STMIA	lr!, {a1-ip}		@ store non-banked registers
 	STMIA	lr, {sp, lr}^		@ store banked registers
@@ -350,8 +350,9 @@ __h_sigsegv1:
 @	0x80000100 - &800001FF		CoProcessor exceptions
 @	0x80000200 - &800002FF		Floating Point exceptions
 @	0x80000300 - &800003FF		Econet exceptions
+@	0x80000500 - &800005FF		VFP exceptions
 @
-@ For these classes of exceptions, we map Floating Point exceptions
+@ For these classes of exceptions, we map Floating Point & VFP exceptions
 @ to SIGFPE and all others to SIGEMT.
 @ For non-serious errors, bit 31 = 0, raise SIGOSERROR.
 @
@@ -410,7 +411,7 @@ __h_error:
 	@ Check bit 31 of the error number.  If it is set, then it
 	@ indicates a serious error, usually a hardware exception e.g.
 	@ a page-fault or a floating point exception.
-	LDR	a3, [v1, #0]
+	LDR	a3, [v1, #__PTHREAD_ERRBUF_OFFSET]
 	TST	a3, #0x80000000
 	BNE	unrecoverable_error
 
@@ -442,32 +443,84 @@ unrecoverable_error:
 	BIC	a3, a3, #0x80000000
 	MOV	a3, a3, LSR #8
 	AND	a3, a3, #0xFF
+#  if defined(__VFP_FP__)
+	CMP	a3, #0x05
+#  else
 	CMP	a3, #0x02
+#  endif
 	MOVNE	a2, #SIGEMT	@  A RISC OS exception.
 	BNE	non_fp_exception
 
 	@ Store FP registers.
-	LDR	a1, .L6+16	@=__ul_fp_registers
- PICEQ "LDR	a1, [v4, a1]"
+	LDR	v2, .L6+16	@=__ul_fp_registers
+ PICEQ "LDR	v2, [v4, v2]"
 
 #  if defined(__VFP_FP__)
-	@ FIXME: expand this to cope with VFP exceptions
+	@ When a VFP exception occurs, the context which caused the exception
+	@ will be left inactive. Find which context it was.
+	MOV	a1, #2
+	SWI	VFPSupport_ExceptionDump
+	MOV	lr, a2		@ Remember the context ID
+	@ We want to reactivate the context so that the signal handler can
+	@ use FP. However the FPEXC & FPINST registers will be in their
+	@ original state, so if we reactivate the context straight away we'll
+	@ most likely trigger another exception on the next FP instruction.
+	@ FPEXC can only be modified when in privileged modes, so use
+	@ VFPSupport_ExamineContext to access the saved value. We'll also
+	@ pull out all the other registers via the same mechanism.
+	MOV	a1, a2
+	MOV	a2, #1
+	SWI	VFPSupport_ExamineContext
+	@ a2 = register count
+	@ a4 = dump descriptor block
+	MOV	a1, lr
+	CMP	a2, #32
+	MOVHI	a2, #32		@ We only have space for 32 registers
+	MOV	a2, a2, LSL #3	@ Convert to byte count
+	@ Walk the descriptor block
+.L15:
+	LDRSH	lr, [a4], #2
+	CMP	lr, #-1
+	BEQ	.L16
+	LDRH	a3, [a4], #2
+	CMP	lr, #0		@ FPSCR offset
+	LDREQ	lr, [a1, a3]
+	STREQ	lr, [v2]	@ Store in our register dump
+	BEQ	.L15
+	CMP	lr, #1		@ FPEXC offset
+	MOVEQ	lr, #0x40000000	@ Reset FPEXC to default state
+	STREQ	lr, [a1, a3]
+	BEQ	.L15
+	CMP	lr, #5		@ Register dump offset
+	BNE	.L15
+	ADD	a3, a1, a3
+	ADD	a3, a3, a2
+.L17:
+	LDR	lr, [a3, #-4]!
+	STR	lr, [v2, a2]	@ n.b. extra +4 offset to skip FPSCR
+	SUBS	a2, a2, #4
+	BNE	.L17
+	B	.L15 
+.L16:
+	@ Now we can reactivate the context
+	MOV	a2, #1
+	SWI	VFPSupport_ChangeContext
 #  else
 	RFS	a2		@ Read FP status register
-	STR	a2, [a1], #4
+	STR	a2, [v2], #4
 	BIC	a3, a3, #0xFF<<16@ Disable all exceptions to prevent the
 	WFS	a3		@ signal handler triggering another exception
 
 	@ We can't use SFM because we really want to write double
 	@ values.
-	STFD	f0, [a1], #8
-	STFD	f1, [a1], #8
-	STFD	f2, [a1], #8
-	STFD	f3, [a1], #8
-	STFD	f4, [a1], #8
-	STFD	f5, [a1], #8
-	STFD	f6, [a1], #8
-	STFD	f7, [a1], #8
+	STFD	f0, [v2], #8
+	STFD	f1, [v2], #8
+	STFD	f2, [v2], #8
+	STFD	f3, [v2], #8
+	STFD	f4, [v2], #8
+	STFD	f5, [v2], #8
+	STFD	f6, [v2], #8
+	STFD	f7, [v2], #8
 
 	WFS	a2		@ Restore FPE status
 #  endif
@@ -1160,8 +1213,11 @@ __ul_errbuf_errblock:
 #ifndef __SOFTFP__
 	.global	__ul_fp_registers
 __ul_fp_registers:
-	@ FIXME: Adjust for VFP case
+#  ifdef __VFP_FP__
+	.space	260	@ (4 + 32*8) FPSCR and 32 double-precision registers
+#  else
 	.space	68	@ (4 + 8*8)  FPSR and 8 double-precision registers
+#  endif
 	DECLARE_OBJECT __ul_fp_registers
 #endif
 

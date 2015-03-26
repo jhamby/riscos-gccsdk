@@ -103,6 +103,8 @@
 .set	SharedUnixLibrary_Error_StillActive, SharedUnixLibrary_ErrorChunk + 0x02
 .set	SharedUnixLibrary_Error_TooOld, SharedUnixLibrary_ErrorChunk + 0x03
 @ ...
+.set	SharedUnixLibrary_Error_BadVFP, SharedUnixLibrary_ErrorChunk + 0x38
+.set	SharedUnixLibrary_Error_NoVFP, SharedUnixLibrary_ErrorChunk + 0x39
 .set	SharedUnixLibrary_Error_TooLowCPUArch, SharedUnixLibrary_ErrorChunk + 0x3A
 .set	SharedUnixLibrary_Error_FatalError, SharedUnixLibrary_ErrorChunk + 0x3B
 .set	SharedUnixLibrary_Error_NoFPE, SharedUnixLibrary_ErrorChunk + 0x3C
@@ -210,6 +212,20 @@
 .set	SharedUnixLibrary_Initialise, 0x55c84
 .set	XSharedUnixLibrary_Initialise, 0x55c84 + X_Bit
 
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+.set	VFPSupport_CheckContext, 0x58ec0
+.set	XVFPSupport_CheckContext, 0x58ec0 + X_Bit
+.set	VFPSupport_CreateContext, 0x58ec1
+.set	XVFPSupport_CreateContext, 0x58ec1 + X_Bit
+.set	VFPSupport_DestroyContext, 0x58ec2
+.set	VFPSupport_ChangeContext, 0x58ec3
+.set	VFPSupport_ExamineContext, 0x58ec4
+.set	XVFPSupport_Version, 0x58ec7 + X_Bit
+.set	VFPSupport_Features, 0x58ec8
+.set	VFPSupport_ExceptionDump, 0x58ec9
+#endif
+.set	XVFPSupport_ChangeContext, 0x58ec3 + X_Bit	@ Outside the above #if for building SUL
+
 #ifndef __TARGET_SCL__
 	@ Entries into the struct proc structure.  Must be kept in sync with
 	@ incl-local/internal/unix.h.
@@ -252,6 +268,10 @@
 .set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escape_disabled
 .set	GBL_FLS_LBSTM_ON_RD, 108	@ = __ul_global.fls_lbstm_on_rd
 .set	GBL_PTH_CALLEVERY_RMA, 112	@ = __ul_global.pthread_callevery_rma
+
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+.set	GBL_VFP_REGCOUNT, 116		@ = __ul_global.vfp_regcount
+#endif
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
 	@ sys/_syslib.s.

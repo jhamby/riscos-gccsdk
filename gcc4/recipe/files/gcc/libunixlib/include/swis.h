@@ -1022,6 +1022,16 @@ __END_DECLS
 
 #define SOM_DeregisterClient           0x058584
 
+#define VFPSupport_CheckContext        0x058ec0
+#define VFPSupport_CreateContext       0x058ec1
+#define VFPSupport_DestroyContext      0x058ec2
+#define VFPSupport_ChangeContext       0x058ec3
+#define VFPSupport_ExamineContext      0x058ec4
+#define VFPSupport_FastAPI             0x058ec5
+#define VFPSupport_ActiveContext       0x058ec6
+#define VFPSupport_Version             0x058ec7
+#define VFPSupport_Features            0x058ec8
+
 #define NetMonitor_PrintChar           0x080040
 #define NetMonitor_DefineTask          0x080041
 #define NetMonitor_AbandonTask         0x080042

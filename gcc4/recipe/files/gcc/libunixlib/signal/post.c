@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <swis.h>
+#include <inttypes.h>
 
 #include <unixlib/local.h>
 #include <internal/os.h>
@@ -391,6 +392,14 @@ __write_backtrace (int signo)
 #ifndef __SOFTFP__
   if (signo == SIGFPE)
     {
+#ifdef __VFP_FP__
+      for (int i = 0; i < __ul_global.vfp_regcount; i++)
+        {
+          fprintf(stderr, "  d%02d: %016" PRIx64 "%c", i, __ul_fp_registers.d[i],
+		  ((i == __ul_global.vfp_regcount - 1) || ((i & 3) == 3)) ? '\n': '\0');
+        }
+      fprintf(stderr, "  fpscr: %x\n", __ul_fp_registers.fpscr);
+#else
       fprintf(stderr, "  f0: %f  f1: %f  f2: %f  f3: %f\n"
 		      "  f4: %f  f5: %f  f6: %f  f7: %f\n  fpsr: %x\n",
 		      __ul_fp_registers.f[0], __ul_fp_registers.f[1],
@@ -398,6 +407,7 @@ __write_backtrace (int signo)
 		      __ul_fp_registers.f[4], __ul_fp_registers.f[5],
 		      __ul_fp_registers.f[5], __ul_fp_registers.f[7],
 		      __ul_fp_registers.fpsr);
+#endif
     }
 #endif
 

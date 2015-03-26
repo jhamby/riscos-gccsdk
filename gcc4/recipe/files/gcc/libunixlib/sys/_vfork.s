@@ -56,7 +56,18 @@ fork_common:
  PICEQ "LDR	a2, [v4, a2]"
  PICEQ "LDMFD	sp!, {a4, v5}"
  PICEQ "STMIA	a2!, {a4, v5}"
-	STMIA	a2, {a3, lr}
+	STMIA	a2!, {a3, lr}
+ 
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+	@ Prepare active VFP context for the fork by nonlazily deactivating it
+	STMFD	sp!, {a1, a2}
+	MOV	a1, #0
+	MOV	a2, #0
+	SWI	VFPSupport_ChangeContext
+	LDR	a2, [sp, #4]
+	STR	a1, [a2]	@ Remember which context was active
+	LDR	a1, [sp], #8
+#endif
 
 	LDR	a2, .L0+4		@=__ul_global
  PICEQ "LDR	a2, [v4, a2]"
@@ -80,10 +91,19 @@ fork_common:
 	@ child process.
 
 	@ Tail-call __fork_post to do the remaining work
-	LDR	lr, .L0			@=__saved_lr
- PICEQ "LDR	lr, [v4, lr]"
- PICEQ "LDMIA	lr!, {v4, v5}"
-	LDMIA	lr, {a2, lr}
+	LDR	a3, .L0			@=__saved_lr
+ PICEQ "LDR	a3, [v4, a3]"
+ PICEQ "LDMIA	a3!, {v4, v5}"
+	LDMIA	a3!, {a2, lr}
+ 
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+	@ Reactivate the VFP context
+	STMFD	sp!, {a1-a2}
+	LDR	a1, [a3]
+	MOV	a2, #1
+	SWI	VFPSupport_ChangeContext
+	LDMFD	sp!, {a1-a2}
+#endif
 
 	B	__fork_post
 .L0:
@@ -99,6 +119,9 @@ fork_common:
 __saved_lr:
  PICNE ".space	8"
  PICEQ ".space	16"
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+	.space	4	@ Extra space for remembering the active VFP context
+#endif
 	DECLARE_OBJECT __saved_lr
 
 	.end
