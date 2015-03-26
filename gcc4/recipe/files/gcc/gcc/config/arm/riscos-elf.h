@@ -76,13 +76,16 @@ extern const char * riscos_multilib_dir (int argc, const char **argv);
    When libscl or module is selected without float-abi, default to hard and
    if there isn't an fpu selected, select FPA.
    When VFPv3-NEON is selected as fpu without any float-abi, default to softfp
-   and select Cortex-A8 as CPU.  */
+   and select Cortex-A8 as CPU.
+   Unless explicitly enabled, default to no-unaligned-access because the default
+   for RISC OS 5 is to have alignment exceptions enabled on ARMv6+.  */
 #define SUBTARGET_DRIVER_SELF_SPECS						   \
   " %{mmodule:%<mlibscl -static}"						   \
   " %{mlibscl:-static}"								   \
   " %{mlibscl|mmodule:%{!mfloat-abi=*:-mfloat-abi=hard} %{!mfpu=*:-mfpu=fpa}}"	   \
   " %{mfpu=vfp:%{!mfloat-abi=*:-mfloat-abi=softfp} %{!mcpu=*:-mcpu=arm1176jzf-s}}" \
-  " %{mfpu=neon:%{!mfloat-abi=*:-mfloat-abi=softfp} %{!mcpu=*:-mcpu=cortex-a8}}"
+  " %{mfpu=neon:%{!mfloat-abi=*:-mfloat-abi=softfp} %{!mcpu=*:-mcpu=cortex-a8}}"   \
+  " %{!munaligned-access:-mno-unaligned-access}"
 
 /* Default multilib is UnixLib and soft-float.  */
 #undef  MULTILIB_DEFAULTS
