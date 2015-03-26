@@ -156,6 +156,40 @@ else
   echo +++ NOT building DRenderer,ffa as it already exists
 fi
 
+install_shared_libraries() {
+  src_arch=$1
+  dst_arch=$2
+
+  if [ "$dst_arch"x != "x" ] ; then
+    mkdir -p $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch
+  fi
+
+  test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libunixlib.5.0.0.so,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libunixlib.5.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libunixlib.5.0.0.so,e1f
+  # Runtime symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libunixlib.so.5,1c8
+  # Build time symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libunixlib.so,1c8
+
+  test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libgcc_s.so.1,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libgcc_s.so.1 $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libgcc_s.so.1,e1f
+  # Runtime/build time symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libgcc_s/so/1 $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libgcc_s.so,1c8
+
+  test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libm.1.0.0.so,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libm.1.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libm.1.0.0.so,e1f
+  # Runtime symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libm/1/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libm.so.1,1c8
+  # Build time symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libm/1/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libm.so,1c8
+
+  # Added test on libstdc++*.so file as we might not have built C++ frontend.
+  if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libstdc++.6.0.17.so ] ; then
+    cp $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libstdc++.6.0.17.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libstdc++.6.0.17.so,e1f
+    # Runtime symlink in !SharedLibs:lib.<ABI version>
+    arm-unknown-riscos-ln -s -f libstdc++/6/0/17/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libstdc++.so.6,1c8
+    # Build time symlink in !SharedLibs:lib.<ABI version>
+    arm-unknown-riscos-ln -s -f libstdc++/6/0/17/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libstdc++.so,1c8
+  fi
+}
+
 if [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
   # Only for cross-compilation:
 
@@ -227,30 +261,8 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
     svn export -q --force $GCCSDK_RISCOS/soloader/dist/\!SharedLibs $GCCSDK_RISCOS_DSOPREFIX
     mkdir -p $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION
 
-    test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libunixlib.5.0.0.so,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib/libunixlib.5.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libunixlib.5.0.0.so,e1f
-    # Runtime symlink in !SharedLibs:lib.<ABI version>
-    arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libunixlib.so.5,1c8
-    # Build time symlink in !SharedLibs:lib.<ABI version>
-    arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libunixlib.so,1c8
-
-    test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libgcc_s.so.1,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib/libgcc_s.so.1 $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libgcc_s.so.1,e1f
-    # Runtime/build time symlink in !SharedLibs:lib.<ABI version>
-    arm-unknown-riscos-ln -s -f libgcc_s/so/1 $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libgcc_s.so,1c8
-
-    test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libm.1.0.0.so,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib/libm.1.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libm.1.0.0.so,e1f
-    # Runtime symlink in !SharedLibs:lib.<ABI version>
-    arm-unknown-riscos-ln -s -f libm/1/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libm.so.1,1c8
-    # Build time symlink in !SharedLibs:lib.<ABI version>
-    arm-unknown-riscos-ln -s -f libm/1/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libm.so,1c8
-
-    # Added test on libstdc++*.so file as we might not have built C++ frontend.
-    if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib/libstdc++.6.0.17.so ] ; then
-      cp $GCCSDK_RISCOS_GCCPREFIX/lib/libstdc++.6.0.17.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libstdc++.6.0.17.so,e1f
-      # Runtime symlink in !SharedLibs:lib.<ABI version>
-      arm-unknown-riscos-ln -s -f libstdc++/6/0/17/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libstdc++.so.6,1c8
-      # Build time symlink in !SharedLibs:lib.<ABI version>
-      arm-unknown-riscos-ln -s -f libstdc++/6/0/17/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION/libstdc++.so,1c8
-    fi
+    install_shared_libraries "" ""
+    install_shared_libraries "/softfp/vfp" "/vfp"
   fi
 
   # !System modules:

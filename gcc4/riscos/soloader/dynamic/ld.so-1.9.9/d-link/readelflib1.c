@@ -145,6 +145,38 @@ int _dl_unmap_cache(void)
 unsigned int _dl_error_number;
 unsigned int _dl_internal_error_number;
 
+static struct elf_resolve *
+_dl_try_path (char * const buffer,
+	      const char *abi_dir,
+	      const char *vfp_dir,
+	      const char *library_name)
+{
+  const char *root_path = "/SharedLibs:/lib/";
+  char *path_end = buffer;
+  while (*root_path) *path_end++ = *root_path++;
+
+  if (abi_dir)
+  {
+    /* Copy abi version string of application.  */
+    while (*abi_dir) *path_end++ = *abi_dir++;
+    *path_end++ = '/';
+    *path_end = '\0';
+  }
+
+  if (vfp_dir)
+  {
+    while (*vfp_dir) *path_end++ = *vfp_dir++;
+    *path_end++ = '/';
+    *path_end = '\0';
+  }
+
+  /* Copy the name of the library.  */
+  while(*library_name) *path_end++ = *library_name++;
+  *path_end = '\0';
+
+  return _dl_load_elf_shared_library(buffer, 0);
+}
+
 struct elf_resolve *
 _dl_load_shared_library(struct elf_resolve * app_tpnt,
 			char * full_libname)
@@ -257,39 +289,22 @@ _dl_load_shared_library(struct elf_resolve * app_tpnt,
   }
 #endif
 
-  /* Check in /SharedLibs:/lib/<ABI version>/ */
-  pnt1 = "/SharedLibs:/lib/";
-
-  /* Copy the root name.  */
-  pnt = mylibname;
-  while(*pnt1) *pnt++ = *pnt1++;
-
-  /* Remember where the end of the root name is.  */
-  pnt2 = pnt; 
-
-  /* Copy abi version string of application.  */
   if (app_tpnt->abi_version)
   {
-    pnt1 = app_tpnt->abi_version;
-    while(*pnt1) *pnt++ = *pnt1++;
+    if (app_tpnt->elf_flags & EF_ARM_VFP_FLOAT)
+    {
+      /* We have a VFP compiled executable; check in /SharedLibs:/lib/<ABI version>/vfp */
+      if ((tpnt1 = _dl_try_path (mylibname, app_tpnt->abi_version, "vfp", libname)) != NULL)
+	return tpnt1;
+    }
 
-    *pnt++ = '/';
-
-    /* Copy the name of the library.  */
-    pnt1 = libname;
-    while(*pnt1) *pnt++ = *pnt1++;
-    *pnt = '\0';
-
-    if ((tpnt1 = _dl_load_elf_shared_library(mylibname, 0)) != NULL)
+    /* No VFP library or not a VFP executable; check in /SharedLibs:/lib/<ABI version> */
+    if ((tpnt1 = _dl_try_path (mylibname, app_tpnt->abi_version, NULL, libname)) != NULL)
       return tpnt1;
   }
 
-  /* Check in /SharedLibs:/lib/ */
-  pnt1 = libname;
-  pnt = pnt2;
-  while(*pnt1) *pnt++ = *pnt1++;
-  *pnt = '\0';
-  if ((tpnt1 = _dl_load_elf_shared_library(mylibname, 0)) != NULL)
+  /* Last resort; check in /SharedLibs:/lib/ */
+  if ((tpnt1 = _dl_try_path (mylibname, NULL, NULL, libname)) != NULL)
     return tpnt1;
 
 goof:
@@ -519,10 +534,10 @@ _dl_load_elf_shared_library(char * libname, int flag)
     tpnt->n_phent = epnt->e_phnum;
     tpnt->abi_version = abi_version;
 
-    /* Scan for exception tables.  */
     {
     Elf32_Ehdr *elf_image_hdr = (Elf32_Ehdr *)libaddr;
 
+      /* Scan for exception tables.  */
       tpnt->endaddr = objinfo.public_rw_ptr;
       for(ppnt = (Elf32_Phdr *)(libaddr + elf_image_hdr->e_phoff),
 	  i = 0;
@@ -541,6 +556,9 @@ _dl_load_elf_shared_library(char * libname, int flag)
 	tpnt->exidx = 0;
 	tpnt->exidx_size = 0;
       }
+
+      /* Read the ELF header flags.  */
+      tpnt->elf_flags = elf_image_hdr->e_flags;
     }
 
     /*

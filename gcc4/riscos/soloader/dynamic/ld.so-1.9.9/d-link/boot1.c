@@ -569,6 +569,10 @@ void _dl_boot(int args)
       app_tpnt->abi_version = (char *)(dpnt->d_un.d_ptr + app_tpnt->loadaddr);
     else
       app_tpnt->abi_version = NULL;
+
+    /* Save the ELF header flags of the executable.  */
+    Elf32_Ehdr *elf_hdr = (Elf32_Ehdr *)0x8000;
+    app_tpnt->elf_flags = elf_hdr->e_flags;
   }
 
   if (argv[0])

@@ -52,6 +52,9 @@ struct elf_resolve{
 
   /* Pointer to the client R/W data. Used by dlclose() to free the memory.  */
   void *rw_addr;
+
+  /* The ELF flags copied from the ELF image.  */
+  unsigned elf_flags;
 };
 
 #if 0
