@@ -8,3 +8,29 @@ AB_CONFLAGS=--disable-tcl
 export TCLSH_CMD=/usr/bin/tclsh
 export CROSS_BUILDING=yes
 
+ab_package() {
+  ab_create_app sqlite3 Apps/Library libsqlite3-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package "libsqlite3-dev" -unixlib -name LibSQLite3-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libsqlite3
+     ab_add_sharedlib $S/.libs libsqlite3.so.0
+     
+     $AB_HOME/add-riscpkg -package libsqlite3 -name LibSQLite3 -depends SharedLibs \
+		-section Library
+  fi
+}
