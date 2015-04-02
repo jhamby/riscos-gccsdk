@@ -49,4 +49,12 @@ ab_package() {
   echo " This package contains the static library, headers and documentation." >> $D/libjpeg8-dev/RiscPkg/Control,fff
 
   cd $HERE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libjpeg8
+     ab_add_sharedlib $S/.libs libjpeg.so.8
+     
+     $AB_HOME/add-riscpkg -package libjpeg8 -name LibJPEG8 -depends SharedLibs \
+		-section Library
+  fi
 }
