@@ -1,0 +1,88 @@
+#AB_SVN=http://source.icu-project.org/repos/icu/icu/tags/release-52-1/
+
+ICU_VERSION=52
+
+# Need to change to the source directory to find configure.
+cd source
+
+echo "Checking for native ICU installation..."
+if [ ! -e native-env/bin/icu-config ]; then
+  echo "Building ICU natively..."
+  mkdir -p native-build native-env
+  cd native-build
+  CC=/usr/bin/gcc CXX=/usr/bin/g++ ../configure --prefix=$PWD/../native-env
+  make -j4
+  make install
+  cd ..
+fi
+
+mkdir -p $D/bin
+mkdir -p $D/lib/pkgconfig
+
+AB_CONFLAGS="--with-cross-build=$PWD/native-build"
+
+add_headers()
+{
+  local src_header_dir
+  local dst_header_dir
+
+  src_header_dir=$1
+  dst_header_dir=$2
+
+  HERE=`pwd`
+  cd $src_header_dir
+
+  mkdir -p $dst_header_dir/h
+  for f in *.h
+  do
+    filename=$(basename "$f")
+    filename="${filename%.*}"
+    echo cp -T $f $dst_header_dir/h/$filename
+    cp -T $f $dst_header_dir/h/$filename
+  done
+
+  cd $HERE
+}
+
+ab_package() {
+  ab_create_app icu Apps/Library libicu52-dev
+
+  mkdir -p $A/include/layout $A/include/unicode $A/lib $A/docs
+
+  add_headers $GCCSDK_INSTALL_ENV/include/layout $A/include/layout
+  add_headers $GCCSDK_INSTALL_ENV/include/unicode $A/include/unicode
+
+  cp $GCCSDK_INSTALL_ENV/lib/libicudata.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicui18n.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicuio.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicule.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libiculx.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicutu.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicuuc.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicutest.a $A/lib
+
+  cp $S/../license.html $A/docs/license.html
+  cp $S/../readme.html $A/docs/readme.html
+
+  ab_add_commands $S/tools/icuinfo/icuinfo
+  mv -f $A/icuinfo $A/icuinfo$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -unixlib -name libicu52-dev
+
+# We always seem to build shared libraries, so no need to check for them?
+#  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libicu52
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/lib libicudata.so.$ICU_VERSION
+    ab_add_sharedlib $S/lib libicui18n.so.$ICU_VERSION
+    ab_add_sharedlib $S/lib libicuio.so.$ICU_VERSION
+    ab_add_sharedlib $S/lib libicule.so.$ICU_VERSION
+    ab_add_sharedlib $S/lib libiculx.so.$ICU_VERSION
+    ab_add_sharedlib $S/lib libicutu.so.$ICU_VERSION
+    ab_add_sharedlib $S/lib libicuuc.so.$ICU_VERSION
+
+    $AB_HOME/add-riscpkg -name libicu52 -depends SharedLibs
+#  fi
+}
