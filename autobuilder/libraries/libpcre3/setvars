@@ -13,12 +13,6 @@ ab_package()
   # Developer package
   ab_create_app LibPcre3 Apps/Library libpcre3-dev
 
-  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-  # Shared libraries
-  slibdir=$D/libpcre3/Resources/\!SharedLibs/lib
-  mkdir -p $slibdir
-  fi
-
   HERE=`pwd`
   cd $A
 
@@ -26,12 +20,6 @@ ab_package()
 
   mv include/h h
   rm -rf include
-
-
-  # Copy shared libs to shared libs package
-  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-    mv lib/*.so.* $slibdir
-  fi
 
   # Move static libs to correct place in static package
   mv lib/*.a .
@@ -45,26 +33,15 @@ ab_package()
   cd ../man
   find . -maxdepth 1 -type f -execdir mv {} {},faf \;
 
+  $AB_HOME/add-riscpkg -package LibPcre3-Dev -copyrightfile $S/COPYING -unixlib
+
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-    cd $slibdir
-
-    # Create soft links
-    SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
-    for SLIB in $SLIBS ; do
-      ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
-      LNAME=`echo $SLIB | cut -d '.' -f 1-2`
-      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-      LNAME=`echo $SLIB | cut -d '.' -f 1-3`
-      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-      LNAME=`echo $SLIB | cut -d '.' -f 1-4`
-      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-    done
-
-    cd $HERE
+    ab_create_sharedlib_skeleton libpcre3
+    ab_add_sharedlib $S/.libs libpcre.so.1
+    ab_add_sharedlib $S/.libs libpcrecpp.so.0
+    ab_add_sharedlib $S/.libs libpcreposix.so.0
 
     $AB_HOME/add-riscpkg -package libpcre3 -unixlib \
          -depends SharedLibs -copyrightfile $S/COPYING
   fi
-
-  $AB_HOME/add-riscpkg -package LibPcre3-Dev -copyrightfile $S/COPYING -unixlib
 }
