@@ -3,8 +3,13 @@ AB_CATEGORY=Fonts
 AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
 AB_CONFLAGS=\''--with-baseconfigdir=/\<UnixFC\$$Dir\>/fonts'\'
 AB_INSTALL=env
-# Only install library files
-AB_INSTALLTARGET="-C src install"
+# Only install library files (but this prevents the headers from being installed
+# so comment it out).
+#AB_INSTALLTARGET="-C src install"
+
+# Prevent "{cp/mv} does not exist" errors when ro_install is used.
+export CPPROG=/bin/cp
+export MVPROG=/bin/mv
 
 if [ -d $S/b ]; then
   # Note: Debian patch adds the documentation and other missing files, but places them
