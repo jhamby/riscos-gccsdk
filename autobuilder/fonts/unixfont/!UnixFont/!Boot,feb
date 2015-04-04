@@ -2,3 +2,4 @@
 
 If "<UnixFont$Dir>" = "" Then Set UnixFont$Dir <Obey$Dir>
 If "<UnixFont$Path>" = "" Then Set UnixFont$Path <Obey$Dir>.
+IfThere <UnixFont$Dir>.!Sprites then IconSprites <UnixFont$Dir>.!Sprites
