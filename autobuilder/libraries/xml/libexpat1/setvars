@@ -33,7 +33,7 @@ ab_package() {
     ab_create_sharedlib_skeleton libexpat1
     ab_add_sharedlib $S/.libs libexpat.so.1
 
-    $AB_HOME/add-riscpkg -package "libexpat1" \
+    $AB_HOME/add-riscpkg -package "libexpat1" -name LibExpat1 \
         -depends SharedLibs-C2
   fi
 

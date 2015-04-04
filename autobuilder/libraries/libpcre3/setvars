@@ -41,7 +41,7 @@ ab_package()
     ab_add_sharedlib $S/.libs libpcrecpp.so.0
     ab_add_sharedlib $S/.libs libpcreposix.so.0
 
-    $AB_HOME/add-riscpkg -package libpcre3 -unixlib \
+    $AB_HOME/add-riscpkg -package libpcre3 -name LibPcre3 -unixlib \
          -depends SharedLibs -copyrightfile $S/COPYING
   fi
 }
