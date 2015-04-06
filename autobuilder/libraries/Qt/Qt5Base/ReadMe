@@ -1,0 +1,71 @@
+This is a RISC OS port of the base libraries of Qt5.
+
+Installation
+------------
+
+Library dependencies:
+
+libz
+libpng12
+icu (libicui18n, libicuuc, libicudata)
+libfontconfig
+libfreetype
+libexpat
+
+Font dependencies (supplied with Qt):
+
+ttf-vera
+ttf-dejavu
+
+These are supplied in a form that can be dragged over !UnixFont to install
+them. Loading speeds may be improved by issuing the command fc-cache at
+the command line (!UnixFC must also have been seen by the filer).
+Note, fc-cache appears to be quite slow on a RaspberryPi so be patient.
+
+
+Usage notes
+-----------
+Use Select drag with shift held down to resize windows.
+
+
+Porting notes
+-------------
+A large number of the patches to the core libraries relate to a problem
+with QChar. This class consists of a single short int, meaning that
+sizeof(QChar) is expected to be 2. This is important when QChar is used
+in an array; obviously, this is common when dealing with strings.
+In RISC OS QChar is padded to 4 bytes (ie, sizeof (QChar) == 4). To fix
+this we use the packed attribute to force the compiler to remove the
+padding, but this creates a new problem in the form of a compile time error
+because the class contains at least one member function that returns a
+reference to the enclosed short int:
+
+inline ushort &unicode() { return ucs; }
+
+where ucs is the short int data member.
+The only solution is to change this to:
+
+inline ushort *unicode() { return ucs; }
+
+and fix up all call sites to dereference the returned pointer. Making these
+changes was tedious, but it worked.
+
+
+
+The main RISC OS specific code is located at src/plugins/platforms/riscos
+as a plugin loaded by dlopen (in line with the other platforms).
+
+All window output is rendered to a RISC OS sprite which is then used
+as the window backing store. Currently, these backing stores are
+fixed at 32bit colour, so a 32bit desktop mode is required for best results.
+
+Known problems/ToDo
+-------------------
+Menu windows have a title bar when they probably shouldn't.
+Need to handle mode changes and render the backing stores correctly.
+When rendering images (png/jpg/gif?), 2 of the colour components (blue/green?)
+are swapped.
+
+
+Lee Noar
+<leenoar@sky.com>

@@ -1,0 +1,165 @@
+AB_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.0/submodules/qtbase-opensource-src-5.3.0.tar.xz
+
+AB_INSTALL=env
+
+QTBASE_VERSION=5.3.0
+
+export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
+export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
+export PKG_CONFIG_SYSROOT_DIR=$GCCSDK_INSTALL_ENV
+export RO_SHAREDLIBS=yes
+export PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
+
+# We'll be calling configure ourselves because it uses '-prefix' rather than '--prefix'.
+AB_PRECONF=:
+
+mkdir -p $S/src/plugins/platforms/riscos
+ln -T -s -f $H/src.plugins.platforms.riscos.main.cpp $S/src/plugins/platforms/riscos/main.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscos.h $S/src/plugins/platforms/riscos/qriscos.h
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscosbackingstore.h $S/src/plugins/platforms/riscos/qriscosbackingstore.h
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscosbackingstore.cpp $S/src/plugins/platforms/riscos/qriscosbackingstore.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscoseventdispatcher.cpp $S/src/plugins/platforms/riscos/qriscoseventdispatcher.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscoseventdispatcher.h $S/src/plugins/platforms/riscos/qriscoseventdispatcher.h
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscosintegration.h $S/src/plugins/platforms/riscos/qriscosintegration.h
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscosintegration.cpp $S/src/plugins/platforms/riscos/qriscosintegration.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscosmemory.cpp $S/src/plugins/platforms/riscos/qriscosmemory.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.cpp $S/src/plugins/platforms/riscos/qriscoswindow.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.h $S/src/plugins/platforms/riscos/qriscoswindow.h
+ln -T -s -f $H/src.plugins.platforms.riscos.riscos.json $S/src/plugins/platforms/riscos/riscos.json
+ln -T -s -f $H/src.plugins.platforms.riscos.riscos.pro $S/src/plugins/platforms/riscos/riscos.pro
+
+mkdir -p $S/mkspecs/arm-riscos-g++
+ln -T -s -f $H/mkspecs.arm-riscos-g++.qmake.conf $S/mkspecs/arm-riscos-g++/qmake.conf
+ln -T -s -f $H/mkspecs.arm-riscos-g++.qplatformdefs.h $S/mkspecs/arm-riscos-g++/qplatformdefs.h
+
+
+./configure -prefix $GCCSDK_INSTALL_ENV -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
+-confirm-license -no-reduce-relocations -xplatform arm-riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
+-fontconfig -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -force-asserts -riscos -qpa riscos -v
+
+
+# There are parts of the source that need to be built natively, eg, tools used in
+# the build. If we configure and build outside of the autobuilder, this works correctly.
+# However, in the autobuilder, things don't go according to plan and the cross compiler is
+# always used causing the build to fail.
+# Currently, I don't know how to correct this, so instead I use a perl script to alter the
+# relevant makefiles to use the correct compiler. There's an extra complication in the fact
+# that we need to create the makefiles first using qmake.
+# If we want to cross compile these tools as well in future, then this will have to be
+# revisited.
+
+pushd .
+cd $S/src/tools/bootstrap/
+$S/bin/qmake bootstrap.pro -o Makefile
+$H/change-compiler.pl Makefile
+
+cd $S/src/tools/moc/
+$S/bin/qmake moc.pro -o Makefile
+$H/change-compiler.pl Makefile
+
+cd $S/src/tools/qdoc/
+$S/bin/qmake qdoc.pro -o Makefile
+$H/change-compiler.pl Makefile
+
+cd $S/src/tools/qlalr/
+$S/bin/qmake qlalr.pro -o Makefile
+$H/change-compiler.pl Makefile
+
+cd $S/src/tools/rcc/
+$S/bin/qmake rcc.pro -o Makefile
+$H/change-compiler.pl Makefile
+
+cd $S/src/tools/uic/
+$S/bin/qmake uic.pro -o Makefile
+$H/change-compiler.pl Makefile
+popd
+
+#ab_make() {
+#  make $MAKEFLAGS
+#  make install
+#  make html_docs
+#}
+
+# $1 = app name
+# $2 = binary location
+# $3 = binary name
+create_test_app() {
+  mkdir "$A/!$1"
+
+  # We're not too concerned about the size of the wimp slot, these are
+  # just test programs, so it doesn't matter if it's oversized.
+  echo "Wimpslot -min 1000k -max 1000k" >> "$A/!$1/!Run,feb"
+  echo "Set $1\$Dir <Obey\$Dir>" >> "$A/!$1/!Run,feb"
+  echo "Run <$1\$Dir>.$3 > <$1\$Dir>.debug 2>&1" >> "$A/!$1/!Run,feb"
+
+  echo "[Paths]" >> "$A/!$1/qt.conf"
+  echo "Prefix=/<$1\$Dir>/" >> "$A/!$1/qt.conf"
+
+  cp $2/$3 "$A/!$1/$3$AB_EXEEXT"
+}
+
+ab_package() {
+  # Currently there is no dev package as we don't have RISC OS binaries
+  # for the Qt tools (e.g, moc).
+
+  # qt5base (We always build the shared libraries).
+  ab_create_sharedlib_skeleton Qt5Base
+
+  ab_add_sharedlib $S/lib libQt5Core.so.5
+  ab_add_sharedlib $S/lib libQt5Gui.so.5
+  ab_add_sharedlib $S/lib libQt5Network.so.5
+  ab_add_sharedlib $S/lib libQt5Widgets.so.5
+  ab_add_sharedlib $S/lib libQt5Sql.so.5
+  ab_add_sharedlib $S/lib libQt5Xml.so.5
+  ab_add_sharedlib $S/lib libQt5Concurrent.so.5
+  ab_add_sharedlib $S/lib libQt5PrintSupport.so.5
+
+  # This is a dlopen library.
+  mkdir -p $AA/Qt/plugins/platforms/
+  cp -T $S/plugins/platforms/libqriscos.so $AA/Qt/plugins/platforms/libqriscos.so,E1F
+
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package qt5base -name Qt5Base \
+	-depends SharedLibs -depends LibPNG12-0 -depends ZLib1g \
+	-depends LibJPEG8 -depends LibSQLite3 -depends LibPcre3 \
+	-depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
+	-section Library
+
+  # qt5base-fonts
+  ab_create_app UnixFont Apps/Fonts
+
+  mkdir -p $A/truetype/ttf-dejavu $A/truetype/ttf-vera
+  cp lib/fonts/DejaVu*.ttf $A/truetype/ttf-dejavu
+  cp lib/fonts/Vera*.ttf $A/truetype/ttf-vera
+
+  rm $A/\!Boot,feb
+
+  $AB_HOME/add-riscpkg -depends UnixFont
+
+  # qt5base-tests
+  ab_create_app Qt5BaseTests Apps/Library qt5base-tests
+
+  create_test_app AnalogClock $S/examples/gui/analogclock analogclock
+  create_test_app AnimatedTiles $S/examples/widgets/animation/animatedtiles animatedtiles
+  create_test_app MoveBlocks $S/examples/widgets/animation/moveblocks moveblocks
+  create_test_app AppChooser $S/examples/widgets/animation/appchooser appchooser
+  create_test_app PathStroke $S/examples/widgets/painting/pathstroke pathstroke
+  create_test_app Transforms $S/examples/widgets/painting/transformations transformations
+  create_test_app ImageComp $S/examples/widgets/painting/imagecomposition imagecomposition
+  create_test_app PainterPaths $S/examples/widgets/painting/painterpaths painterpaths
+  create_test_app Deform $S/examples/widgets/painting/deform deform
+  create_test_app Affine $S/examples/widgets/painting/affine affine
+  create_test_app Gradients $S/examples/widgets/painting/gradients gradients
+  create_test_app Lighting $S/examples/widgets/effects/lighting lighting
+  create_test_app BlurPicker $S/examples/widgets/effects/blurpicker blurpicker
+  create_test_app i18n $S/examples/widgets/tools/i18n i18n
+  create_test_app RegExp $S/examples/widgets/tools/regexp regexp
+  create_test_app Wiggly $S/examples/widgets/widgets/wiggly wiggly
+  create_test_app Movie $S/examples/widgets/widgets/movie movie
+  create_test_app Mandelbrot $S/examples/threads/mandelbrot mandelbrot
+# This one doesn't work
+#  create_test_app StickMan $S/examples/widgets/animation/stickman stickman
+
+  $AB_HOME/add-riscpkg -package qt5base-tests -depends Qt5Base \
+	-depends SharedLibs
+}
