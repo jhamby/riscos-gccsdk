@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: elfdefinitions.h 3078 2014-07-26 08:22:03Z jkoshy $
+ * $Id: elfdefinitions.h 3178 2015-03-30 18:29:13Z emaste $
  */
 
 /*
@@ -171,7 +171,7 @@ _ELF_DEFINE_DT(DT_MOVEENT,          0x6FFFFDFAUL,			\
 	"size of DT_MOVETAB entries")					\
 _ELF_DEFINE_DT(DT_MOVESZ,           0x6FFFFDFBUL,			\
 	"total size of the MOVETAB table")				\
-_ELF_DEFINE_DT(DT_FEATURE_1,        0x6FFFFDFCUL, "feature values")	\
+_ELF_DEFINE_DT(DT_FEATURE,          0x6FFFFDFCUL, "feature values")	\
 _ELF_DEFINE_DT(DT_POSFLAG_1,        0x6FFFFDFDUL,			\
 	"dynamic position flags")					\
 _ELF_DEFINE_DT(DT_SYMINSZ,          0x6FFFFDFEUL,			\
@@ -770,6 +770,8 @@ _ELF_DEFINE_EM(EM_ETPU,             178,				\
 	"Freescale Extended Time Processing Unit")			\
 _ELF_DEFINE_EM(EM_SLE9X,            179,				\
 	"Infineon Technologies SLE9X core")				\
+_ELF_DEFINE_EM(EM_AARCH64,          183,				\
+	"AArch64 (64-bit ARM)")						\
 _ELF_DEFINE_EM(EM_AVR32,            185,				\
 	"Atmel Corporation 32-bit microprocessor family")		\
 _ELF_DEFINE_EM(EM_STM8,             186,				\
@@ -1394,6 +1396,12 @@ _ELF_DEFINE_RELOC(R_386_8,		22)	\
 _ELF_DEFINE_RELOC(R_386_PC8,		23)
 
 /*
+ */
+#define	_ELF_DEFINE_AARCH64_RELOCATIONS()		\
+_ELF_DEFINE_RELOC(R_AARCH64_ABS64,		257)	\
+_ELF_DEFINE_RELOC(R_AARCH64_ABS32,		258)	\
+
+/*
  * These are the symbols used in the Sun ``Linkers and Loaders
  * Guide'', Document No: 817-1984-17.  See the X86_64 relocations list
  * below for the spellings used in the ELF specification.
@@ -1946,14 +1954,21 @@ _ELF_DEFINE_RELOC(R_X86_64_TPOFF32,	23)	\
 _ELF_DEFINE_RELOC(R_X86_64_PC64,	24)	\
 _ELF_DEFINE_RELOC(R_X86_64_GOTOFF64,	25)	\
 _ELF_DEFINE_RELOC(R_X86_64_GOTPC32,	26)	\
+_ELF_DEFINE_RELOC(R_X86_64_GOT64,	27)	\
+_ELF_DEFINE_RELOC(R_X86_64_GOTPCREL64,	28)	\
+_ELF_DEFINE_RELOC(R_X86_64_GOTPC64,	29)	\
+_ELF_DEFINE_RELOC(R_X86_64_GOTPLT64,	30)	\
+_ELF_DEFINE_RELOC(R_X86_64_PLTOFF64,	31)	\
 _ELF_DEFINE_RELOC(R_X86_64_SIZE32,	32)	\
 _ELF_DEFINE_RELOC(R_X86_64_SIZE64,	33)	\
 _ELF_DEFINE_RELOC(R_X86_64_GOTPC32_TLSDESC, 34)	\
 _ELF_DEFINE_RELOC(R_X86_64_TLSDESC_CALL, 35)	\
-_ELF_DEFINE_RELOC(R_X86_64_TLSDESC,	36)
+_ELF_DEFINE_RELOC(R_X86_64_TLSDESC,	36)	\
+_ELF_DEFINE_RELOC(R_X86_64_IRELATIVE,	37)
 
 #define	_ELF_DEFINE_RELOCATIONS()		\
 _ELF_DEFINE_386_RELOCATIONS()			\
+_ELF_DEFINE_AARCH64_RELOCATIONS()		\
 _ELF_DEFINE_AMD64_RELOCATIONS()			\
 _ELF_DEFINE_ARM_RELOCATIONS()			\
 _ELF_DEFINE_IA64_RELOCATIONS()			\

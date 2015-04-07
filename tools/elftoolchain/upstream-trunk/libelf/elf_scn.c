@@ -24,7 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/queue.h>
 
 #include <assert.h>
@@ -32,11 +31,12 @@
 #include <gelf.h>
 #include <libelf.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "_libelf.h"
 
-ELFTC_VCSID("$Id: elf_scn.c 3013 2014-03-23 06:16:59Z jkoshy $");
+ELFTC_VCSID("$Id: elf_scn.c 3177 2015-03-30 18:19:41Z emaste $");
 
 /*
  * Load an ELF section table and create a list of Elf_Scn structures.
@@ -59,8 +59,10 @@ _libelf_load_section_headers(Elf *e, void *ehdr)
 	assert((e->e_flags & LIBELF_F_SHDRS_LOADED) == 0);
 
 #define	CHECK_EHDR(E,EH)	do {				\
-		if (fsz != (EH)->e_shentsize ||			\
-		    shoff + fsz * shnum > e->e_rawsize) {	\
+		if (shoff > e->e_rawsize ||			\
+		    fsz != (EH)->e_shentsize ||			\
+		    shnum > SIZE_MAX / fsz ||			\
+		    fsz * shnum > e->e_rawsize - shoff) {	\
 			LIBELF_SET_ERROR(HEADER, 0);		\
 			return (0);				\
 		}						\

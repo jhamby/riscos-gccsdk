@@ -25,8 +25,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
@@ -34,7 +32,7 @@
 
 #include "_elftc.h"
 
-ELFTC_VCSID("$Id: acplex.l 2130 2011-11-10 06:56:46Z jkoshy $");
+ELFTC_VCSID("$Id: acplex.l 3174 2015-03-27 17:13:41Z emaste $");
 
 #include "acpyacc.h"
 
@@ -49,6 +47,7 @@ int	yylex(void);
 
 %}
 
+%option nounput
 %option noyywrap
 
 %%
