@@ -27,7 +27,7 @@ my @blacklist = ( 'firefox-riscpc', 'GCC', 'CPP-2.95', 'GCC-2.95', 'G++',
 #  'Bc', # missing description
   'Fillets-Ng', 'Fillets-Ng-Data', # huge, install breaks
 #  'GCC4','GCC4-C++', # thrashes SD until it crashes
-  'UnZip', # new package is 'Unzip'
+#  'UnZip', # new package is 'Unzip'
 #  'PDFUtils', 'FLAC', 'Sox', 'Vorbis-Tools', # no wimpslot set
   'Decor', # executable missing
   'Airstrike', 'GLHack', # fail to run
