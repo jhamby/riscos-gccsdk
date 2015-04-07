@@ -26,7 +26,6 @@
 
 #include "_elftc.h"
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <err.h>
 #include <dwarf.h>
@@ -39,7 +38,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-ELFTC_VCSID("$Id: findtextrel.c 2185 2011-11-19 16:07:16Z jkoshy $");
+ELFTC_VCSID("$Id: findtextrel.c 3174 2015-03-27 17:13:41Z emaste $");
 
 static struct option longopts[] = {
 	{"help", no_argument, NULL, 'H'},

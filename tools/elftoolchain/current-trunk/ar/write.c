@@ -28,7 +28,6 @@
 #include "config.h"
 #endif
 
-#include <sys/cdefs.h>
 #include <sys/queue.h>
 #include <sys/stat.h>
 
@@ -45,7 +44,7 @@
 
 #include "ar.h"
 
-ELFTC_VCSID("$Id: write.c 3102 2014-10-29 21:09:01Z jkoshy $");
+ELFTC_VCSID("$Id: write.c 3174 2015-03-27 17:13:41Z emaste $");
 
 #define _ARMAG_LEN 8		/* length of the magic string */
 #define _ARHDR_LEN 60		/* length of the archive header */

@@ -60,8 +60,6 @@
 
 #include "_elftc.h"
 
-#include <sys/cdefs.h>
-
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <archive.h>
@@ -76,7 +74,7 @@
 
 #include "ar.h"
 
-ELFTC_VCSID("$Id: ar.c 2485 2012-04-07 15:54:59Z kaiwang27 $");
+ELFTC_VCSID("$Id: ar.c 3174 2015-03-27 17:13:41Z emaste $");
 
 enum options
 {

@@ -24,17 +24,17 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/queue.h>
 #include <err.h>
 #include <gelf.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "elfcopy.h"
 
-ELFTC_VCSID("$Id: segments.c 3019 2014-04-17 14:53:40Z jkoshy $");
+ELFTC_VCSID("$Id: segments.c 3177 2015-03-30 18:19:41Z emaste $");
 
 static void	insert_to_inseg_list(struct segment *seg, struct section *sec);
 
@@ -72,17 +72,21 @@ add_to_inseg_list(struct elfcopy *ecp, struct section *s)
 	 */
 	loadable = 0;
 	STAILQ_FOREACH(seg, &ecp->v_seg, seg_list) {
-		if (s->off < seg->off)
+		if (s->off < seg->off || (s->vma < seg->addr && !s->pseudo))
 			continue;
 		if (s->off + s->sz > seg->off + seg->fsz &&
 		    s->type != SHT_NOBITS)
 			continue;
 		if (s->off + s->sz > seg->off + seg->msz)
 			continue;
+		if (s->vma + s->sz > seg->addr + seg->msz)
+			continue;
 
 		insert_to_inseg_list(seg, s);
 		if (seg->type == PT_LOAD)
 			s->seg = seg;
+		else if (seg->type == PT_TLS)
+			s->seg_tls = seg;
 		s->lma = seg->addr + (s->off - seg->off);
 		loadable = 1;
 	}
@@ -436,7 +440,7 @@ copy_phdr(struct elfcopy *ecp)
 		seg->fsz = seg->msz = 0;
 		for (i = 0; i < seg->nsec; i++) {
 			s = seg->v_sec[i];
-			seg->msz = s->off + s->sz - seg->off;
+			seg->msz = s->vma + s->sz - seg->addr;
 			if (s->type != SHT_NOBITS)
 				seg->fsz = seg->msz;
 		}

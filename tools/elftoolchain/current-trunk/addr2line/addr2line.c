@@ -26,7 +26,6 @@
 
 #include "_elftc.h"
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <dwarf.h>
 #include <err.h>
@@ -40,7 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-ELFTC_VCSID("$Id: addr2line.c 2185 2011-11-19 16:07:16Z jkoshy $");
+ELFTC_VCSID("$Id: addr2line.c 3174 2015-03-27 17:13:41Z emaste $");
 
 static struct option longopts[] = {
 	{"target" , required_argument, NULL, 'b'},
@@ -399,8 +398,10 @@ main(int argc, char **argv)
 		for (i = 0; i < argc; i++)
 			translate(dbg, argv[i]);
 	else
-		while (fgets(line, sizeof(line), stdin) != NULL)
+		while (fgets(line, sizeof(line), stdin) != NULL) {
 			translate(dbg, line);
+			fflush(stdout);
+		}
 
 	dwarf_finish(dbg, &de);
 

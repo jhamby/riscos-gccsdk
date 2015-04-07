@@ -26,7 +26,6 @@
 
 #include "_elftc.h"
 
-#include <sys/cdefs.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -46,7 +45,7 @@
 #include <libelftc.h>
 #include <gelf.h>
 
-ELFTC_VCSID("$Id: strings.c 2351 2011-12-19 11:20:37Z jkoshy $");
+ELFTC_VCSID("$Id: strings.c 3174 2015-03-27 17:13:41Z emaste $");
 
 enum return_code {
 	RETURN_OK,
@@ -75,9 +74,9 @@ enum encoding_style {
 	      (encoding == ENCODING_8BIT && (c) > 127)))
 
 
-int encoding_size, entire_file, min_len, show_filename, show_loc;
-enum encoding_style encoding;
-enum radix_style radix;
+static int encoding_size, entire_file, min_len, show_filename, show_loc;
+static enum encoding_style encoding;
+static enum radix_style radix;
 
 static struct option strings_longopts[] = {
 	{ "all",		no_argument,		NULL,	'a'},

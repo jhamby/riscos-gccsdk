@@ -24,7 +24,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: _libdwarf.h 3061 2014-06-02 00:42:41Z kaiwang27 $
+ * $Id: _libdwarf.h 3164 2015-02-19 01:20:12Z kaiwang27 $
  */
 
 #ifndef	__LIBDWARF_H_
@@ -49,7 +49,7 @@
 struct _libdwarf_globals {
 	Dwarf_Handler	errhand;
 	Dwarf_Ptr	errarg;
-	int		applyrela;
+	int		applyreloc;
 };
 
 extern struct _libdwarf_globals _libdwarf;
@@ -190,6 +190,7 @@ struct _Dwarf_LineInfo {
 	Dwarf_Half	li_version;	/* Version of line info. */
 	Dwarf_Unsigned	li_hdrlen;	/* Length of line info header. */
 	Dwarf_Small	li_minlen;	/* Minimum instrutction length. */
+	Dwarf_Small	li_maxop;	/* Maximum operations per inst. */
 	Dwarf_Small	li_defstmt;	/* Default value of is_stmt. */
 	int8_t		li_lbase;    	/* Line base for special opcode. */
 	Dwarf_Small	li_lrange;    	/* Line range for special opcode. */
@@ -258,6 +259,8 @@ struct _Dwarf_Cie {
 	Dwarf_Half	cie_version;	/* CIE version. */
 	uint8_t		*cie_augment;	/* CIE augmentation (UTF-8). */
 	Dwarf_Unsigned	cie_ehdata;	/* Optional EH Data. */
+	uint8_t		cie_addrsize;	/* Address size. (DWARF4) */
+	uint8_t		cie_segmentsize; /* Segment size. (DWARF4) */
 	Dwarf_Unsigned	cie_caf;	/* Code alignment factor. */
 	Dwarf_Signed	cie_daf;	/* Data alignment factor. */
 	Dwarf_Unsigned	cie_ra;		/* Return address register. */
@@ -538,8 +541,9 @@ void		_dwarf_frame_cleanup(Dwarf_Debug);
 int		_dwarf_frame_fde_add_inst(Dwarf_P_Fde, Dwarf_Small,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
 int		_dwarf_frame_gen(Dwarf_P_Debug, Dwarf_Error *);
-int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
-		    Dwarf_Frame_Op **, Dwarf_Signed *, Dwarf_Error *);
+int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t, uint8_t *,
+		    Dwarf_Unsigned, Dwarf_Frame_Op **, Dwarf_Signed *,
+		    Dwarf_Error *);
 int		_dwarf_frame_get_internal_table(Dwarf_Fde, Dwarf_Addr,
 		    Dwarf_Regtable3 **, Dwarf_Addr *, Dwarf_Error *);
 int		_dwarf_frame_interal_table_init(Dwarf_Debug, Dwarf_Error *);
