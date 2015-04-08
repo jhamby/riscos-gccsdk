@@ -55,14 +55,15 @@ changes was tedious, but it worked.
 The main RISC OS specific code is located at src/plugins/platforms/riscos
 as a plugin loaded by dlopen (in line with the other platforms).
 
-All window output is rendered to a RISC OS sprite which is then used
-as the window backing store. Currently, these backing stores are
-fixed at 32bit colour, so a 32bit desktop mode is required for best results.
+32bit sprites are used as window backing stores and Qt paints directly
+into them. These are then rendered in the WIMP redraw loop of the window
+using either osspriteop_put_sprite_user_coords when rendering to a
+32bit mode or xosspriteop_put_sprite_scaled when translation is required
+to a mode of a different depth.
 
 Known problems/ToDo
 -------------------
 Menu windows have a title bar when they probably shouldn't.
-Need to handle mode changes and render the backing stores correctly.
 When rendering images (png/jpg/gif?), 2 of the colour components (blue/green?)
 are swapped.
 

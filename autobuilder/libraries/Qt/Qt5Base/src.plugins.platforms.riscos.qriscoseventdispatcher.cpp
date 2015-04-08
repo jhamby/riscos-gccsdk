@@ -313,9 +313,7 @@ void
 QRiscosEventDispatcherPrivate::handleRedrawEvent()
 {
     QGuiApplication *app = static_cast<QGuiApplication *>(QCoreApplication::instance());
-    assert(app);
     QRiscosScreen *screen = static_cast<QRiscosScreen *>(app->primaryScreen()->handle());
-    assert(screen);
     wimp_draw &redraw = m_pollBlock.redraw;
     os_error *err;
 
@@ -339,7 +337,14 @@ QRiscosEventDispatcherPrivate::handleRedrawEvent()
 	       screen->yPixelToOS(surface->height());
     
     while (more) {
-	err = surface->render (origin.x, origin.y);
+        if (screen->depth() == 32) {
+	    // Fast case; render 32 bit to 32 bit.
+	    err = surface->render (origin.x, origin.y);
+	} else {
+	    // Render 32 bit to something else...
+	    err = surface->render (origin.x, origin.y,
+				   screen->translationTable());
+	}
 	xwimp_get_rectangle (&redraw, &more);
     }
 }
@@ -594,6 +599,15 @@ QRiscosEventDispatcherPrivate::handleNullEvent()
 }
 
 void
+QRiscosEventDispatcherPrivate::handleModeChange()
+{
+    QGuiApplication *app = static_cast<QGuiApplication *>(QCoreApplication::instance());
+    QRiscosScreen *screen = static_cast<QRiscosScreen *>(app->primaryScreen()->handle());
+
+    screen->update();
+}
+
+void
 QRiscosEventDispatcherPrivate::handleWimpUserMessage()
 {
     const wimp_message *message = &m_pollBlock.message;
@@ -601,10 +615,11 @@ QRiscosEventDispatcherPrivate::handleWimpUserMessage()
     switch (message->action)
     {
     case message_QUIT:
-	{
-	    QCoreApplication::instance()->quit();
-	    break;
-	}
+	QCoreApplication::instance()->quit();
+	break;
+    case message_MODE_CHANGE:
+        handleModeChange();
+	break;
     }
 }
 #if 0

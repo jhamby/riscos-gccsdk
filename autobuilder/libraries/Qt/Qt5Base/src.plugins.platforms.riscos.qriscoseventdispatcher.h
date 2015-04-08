@@ -159,6 +159,7 @@ private:
     void handleRedrawEvent();
     void handleMouseEvent();
     void handleKeyPressEvent();
+    void handleModeChange();
     void startResizeWindow(wimp_pointer &mouse);
     void foreignMouseEvent(QWindow *, wimp_pointer &);
 

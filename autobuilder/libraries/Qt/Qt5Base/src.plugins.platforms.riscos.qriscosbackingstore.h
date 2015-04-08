@@ -81,6 +81,22 @@ public:
 						   os_ACTION_OVERWRITE);
     }
 
+    os_error *render (int x, int y,
+		      osspriteop_trans_tab const *table,
+		      os_factors *factors = nullptr) const {
+	if (isNull())
+	    return nullptr;
+
+	return xosspriteop_put_sprite_scaled (osspriteop_PTR,
+					      m_surfaceSpriteArea,
+					      (osspriteop_id)m_surfaceSpritePtr,
+					      x,
+					      y,
+					      os_ACTION_OVERWRITE,
+					      factors,
+					      table);
+    }
+
     int width() const {
 	return m_image.width();
     }
@@ -99,6 +115,8 @@ public:
 					    filename);
     }
 
+    static os_mode typeFromQImageFormat (QImage::Format format);
+
 private:
     QDynamicArea *m_dynamicArea;
     osspriteop_area *m_surfaceSpriteArea;
@@ -109,7 +127,6 @@ private:
     QImage m_image;
 
 private:
-    os_mode spriteTypeFromQImageFormat (QImage::Format format) const;
     void *getSpriteDataPtr () const;
     osspriteop_header *getSpritePtr () const;
 };
@@ -126,6 +143,12 @@ public:
 
     os_error *render (int x, int y) const {
 	return m_sprite.render (x, y);
+    }
+
+    os_error *render (int x, int y,
+		      osspriteop_trans_tab const *table,
+		      os_factors *factors = nullptr) const {
+	return m_sprite.render (x, y, table, factors);
     }
 
     int width() const {

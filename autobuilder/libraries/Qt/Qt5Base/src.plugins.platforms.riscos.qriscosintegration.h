@@ -51,6 +51,7 @@
 #include <qpa/qplatformintegration.h>
 #include <qpa/qplatformscreen.h>
 #include "oslib/wimp.h"
+#include "oslib/colourtrans.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -62,6 +63,9 @@ class QRiscosScreen : public QPlatformScreen
 {
 public:
     QRiscosScreen();
+
+    // Called on a mode change to cache its values.
+    void update();
 
     void addSurface(QRiscosBackingStore *);
     void removeSurface(QRiscosBackingStore *);
@@ -139,12 +143,23 @@ public:
 
     QHash<WId, QRiscosBackingStore *> m_surfaceHash;
 
+    osspriteop_trans_tab const *translationTable() const {
+	return mTranslationTable;
+    }
+
+private:
+    void generateTranslationTable();
+
 private:
     QRect mGeometry;
     int mDepth;
     QImage::Format mFormat;
     int mXEigenFactor;
     int mYEigenFactor;
+
+    // The translation table to use when plotting a 32bit sprite to this screen.
+    // NULL if the screen is also 32bit.
+    osspriteop_trans_tab *mTranslationTable;
 };
 
 class QRiscosIntegration : public QPlatformIntegration

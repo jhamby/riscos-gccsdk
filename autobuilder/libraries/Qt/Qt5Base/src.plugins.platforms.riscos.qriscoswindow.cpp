@@ -282,7 +282,14 @@ QRiscosWindow::update() const
     QRiscosBackingStore *surface = m_screen->surfaceFromId(update.w);
 
     while (more) {
-	surface->render (origin.x, origin.y);
+        if (m_screen->depth() == 32) {
+	    // Fast case; render 32 bit to 32 bit.
+	    surface->render (origin.x, origin.y);
+	} else {
+	    // Render 32 bit to something else...
+	    surface->render (origin.x, origin.y,
+			     m_screen->translationTable());
+	}
 	xwimp_get_rectangle (&update, &more);
     }
 }

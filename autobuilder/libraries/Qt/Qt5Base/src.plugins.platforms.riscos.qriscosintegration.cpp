@@ -59,12 +59,20 @@
 
 QT_BEGIN_NAMESPACE
 
-QRiscosScreen::QRiscosScreen ()
+QRiscosScreen::QRiscosScreen () :
+	mTranslationTable(nullptr)
 {
-    os_VDU_VAR_LIST(5) var_list = { { os_VDUVAR_XEIG_FACTOR,
+    update();
+}
+
+void
+QRiscosScreen::update()
+{
+    os_VDU_VAR_LIST(6) var_list = { { os_VDUVAR_XEIG_FACTOR,
 				      os_VDUVAR_YEIG_FACTOR,
 				      os_VDUVAR_XWIND_LIMIT,
 				      os_VDUVAR_YWIND_LIMIT,
+				      os_VDUVAR_LOG2_BPP,
 				      os_VDUVAR_END_LIST } };
 
     xos_read_vdu_variables ((os_vdu_var_list *)&var_list, (int *)&var_list);
@@ -72,8 +80,77 @@ QRiscosScreen::QRiscosScreen ()
     mXEigenFactor = var_list.var[0];
     mYEigenFactor = var_list.var[1];
     mGeometry = QRect(0, 0, var_list.var[2] + 1, var_list.var[3] + 1);
-    mDepth = 32;
-    mFormat = QImage::Format_RGB32;
+    mDepth = 1 << var_list.var[4];
+
+    // These need to match up with what QSprite::typeFromQImageFormat returns.
+    switch (mDepth)
+    {
+    case 32:
+      mFormat = QImage::Format_RGB32;
+      break;
+    case 16:
+      mFormat = QImage::Format_RGB16;
+      break;
+    case 8:
+      mFormat = QImage::Format_Indexed8;
+      break;
+    default:
+      mFormat = QImage::Format_Invalid;
+      break;
+    }
+
+    generateTranslationTable();
+}
+
+void
+QRiscosScreen::generateTranslationTable()
+{
+    if (mDepth == 32) {
+	// Don't need a translation table going from 32bit to 32bit.
+	if (mTranslationTable) {
+	    free (mTranslationTable);
+	    mTranslationTable = nullptr;
+	}
+	return;
+    }
+
+    int size;
+    os_error *err;
+    err = xcolourtrans_generate_table (QSprite::typeFromQImageFormat(QImage::Format_RGB32),
+				       /* source_palette=*/nullptr,	// Default palette for mode
+				       QSprite::typeFromQImageFormat(mFormat),
+				       /* dest_palette=*/nullptr,	// Default palette for mode
+				       /* trans_tab=*/nullptr, 		// NULL means return required size
+				       /* flags=*/0,
+				       /* workspace=*/0,
+				       /* transfer_fn=*/nullptr,
+				       &size);
+    if (err) {
+	qWarning("Failed to read translation table size because %s\n", err->errmess);
+	return;
+    }
+
+    mTranslationTable = (osspriteop_trans_tab *)malloc (size);
+    if (mTranslationTable == nullptr) {
+	qWarning("Failed to allocate memory for translation table\n");
+	return;
+    }
+
+    err = xcolourtrans_generate_table (QSprite::typeFromQImageFormat(QImage::Format_RGB32),
+				       /* source_palette=*/nullptr,
+				       QSprite::typeFromQImageFormat(mFormat),
+				       /* dest_palette=*/nullptr,
+				       mTranslationTable,
+				       /* flags=*/0,
+				       /* workspace=*/0,
+				       /* transfer_fn=*/nullptr,
+				       nullptr);
+    if (!err)
+	return;
+
+    qWarning("Failed to create translation table because %s\n", err->errmess);
+    free(mTranslationTable);
+    mTranslationTable = nullptr;
 }
 
 void

@@ -103,7 +103,7 @@ QSprite::create (int width, int height, QImage::Format format)
 				     false,
 				     width,
 				     height,
-				     spriteTypeFromQImageFormat(format));
+				     QSprite::typeFromQImageFormat(format));
     if (err != nullptr) {
         fprintf (stderr, "Failed to create sprite; %s.\n", err->errmess);
 	return false;
@@ -129,7 +129,7 @@ QSprite::destroy()
 }
 
 os_mode
-QSprite::spriteTypeFromQImageFormat (QImage::Format format) const
+QSprite::typeFromQImageFormat (QImage::Format format)
 {
     /* Using new style sprite mode word.  */
     osspriteop_mode_word type = osspriteop_NEW_STYLE;
