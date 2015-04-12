@@ -1,0 +1,54 @@
+# LevelDB is a fast key-value storage library written at Google that
+# provides an ordered mapping from string keys to string values.
+
+AB_INSTALL=env
+
+export TARGET_OS="RISC_OS"
+export PREFIX=$GCCSDK_INSTALL_ENV
+
+install_headers()
+{
+  local src_header_dir
+  local dst_header_dir
+
+  src_header_dir=$1
+  dst_header_dir=$2
+
+  HERE=`pwd`
+  cd $src_header_dir
+
+  mkdir -p $dst_header_dir/h
+  for f in *
+  do
+    if [ -d "$f" ] ; then
+      install_headers $src_header_dir/$f $dst_header_dir/$f
+    else
+      filename=$(basename "$f")
+      extension="${filename##*.}"
+      filename="${filename%.*}"
+      cp -v -T $f $dst_header_dir/h/$filename
+    fi
+  done
+
+  cd $HERE
+}
+
+ab_package() {
+  ab_create_app leveldb Library libleveldb-dev
+
+  install_headers $GCCSDK_INSTALL_ENV/include/leveldb $A
+  cp $S/*.a $A
+
+  $AB_HOME/add-riscpkg -package "libleveldb-dev" -unixlib -name LibLevelDB-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libleveldb
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S libleveldb.so.1
+     
+    $AB_HOME/add-riscpkg -package libleveldb -name LibLevelDB -depends SharedLibs \
+		-section Library
+  fi
+}
