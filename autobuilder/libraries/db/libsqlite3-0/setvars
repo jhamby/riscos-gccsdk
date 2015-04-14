@@ -1,28 +1,26 @@
 
 export config_TARGET_EXEEXT=$AB_EXEEXT
 
-AB_INSTALL=yes
+AB_INSTALL=env
 
 AB_CONFLAGS=--disable-tcl
 
 export TCLSH_CMD=/usr/bin/tclsh
 export CROSS_BUILDING=yes
 
+# Prevent "{cp/mv} does not exist" errors when ro-install is used.
+export CPPROG=/bin/cp
+export MVPROG=/bin/mv
+
 ab_package() {
   ab_create_app sqlite3 Apps/Library libsqlite3-dev
 
-  HERE=`pwd`
-  cd $A
-
-  unzip $AB_OUTPUTLIB/$RO_PKG.zip
-
-  mv include/h h
-  rm -rf include
-
-  mv lib/*.a .
-  rm -rf lib
-
-  cd $HERE
+  mkdir -p $A/h
+  cp $GCCSDK_INSTALL_ENV/include/sqlite3.h $A/h/sqlite3
+  cp $GCCSDK_INSTALL_ENV/include/sqlite3ext.h $A/h/sqlite3ext
+  cp $GCCSDK_INSTALL_ENV/lib/libsqlite3.a $A
+# The sqlite3 binary causes an assertion to fail in rpcemu.
+#  cp $GCCSDK_INSTALL_ENV/bin/sqlite3$AB_EXEEXT $A
 
   $AB_HOME/add-riscpkg -package "libsqlite3-dev" -unixlib -name LibSQLite3-Dev
 
