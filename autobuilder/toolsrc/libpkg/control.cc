@@ -149,10 +149,10 @@ control::parse_error::parse_error(const char* message):
 
 std::ostream& operator<<(std::ostream& out,const control& ctrl)
 {
-	for (control::const_iterator i=ctrl.begin();i!=ctrl.end();++i)
+	for (control::const_iterator ci=ctrl.begin();ci!=ctrl.end();++ci)
 	{
-		out << (*i).first << ':';
-		string value((*i).second);
+		out << (*ci).first << ':';
+		string value((*ci).second);
 		string::size_type i=0;
 		string::size_type f=value.find('\n',i);
 		while (f!=string::npos)
