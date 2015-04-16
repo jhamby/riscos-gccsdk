@@ -1,6 +1,6 @@
---- mkspecs/linux-g++/qplatformdefs.h.orig	2014-05-15 18:12:18.000000000 +0100
-+++ mkspecs/linux-g++/qplatformdefs.h	2014-05-28 20:35:25.335739715 +0100
-@@ -42,6 +42,13 @@
+--- mkspecs/linux-g++/qplatformdefs.h.orig	2015-02-17 04:56:54.000000000 +0000
++++ mkspecs/linux-g++/qplatformdefs.h	2015-04-12 13:43:51.592657031 +0100
+@@ -34,6 +34,13 @@
  #ifndef QPLATFORMDEFS_H
  #define QPLATFORMDEFS_H
  
@@ -14,7 +14,7 @@
  // Get Qt defines/settings
  
  #include "qglobal.h"
-@@ -97,4 +104,5 @@
+@@ -89,4 +96,5 @@
  #define QT_VSNPRINTF            ::vsnprintf
  #endif
  

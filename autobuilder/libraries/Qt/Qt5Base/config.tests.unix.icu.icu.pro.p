@@ -1,8 +1,8 @@
---- config.tests/unix/icu/icu.pro.orig	2014-05-15 18:12:18.000000000 +0100
-+++ config.tests/unix/icu/icu.pro	2014-08-22 19:04:34.383630507 +0100
-@@ -14,3 +14,7 @@
+--- config.tests/unix/icu/icu.pro.orig	2015-02-17 04:56:55.000000000 +0000
++++ config.tests/unix/icu/icu.pro	2015-04-12 13:43:51.632657032 +0100
+@@ -15,3 +15,7 @@
  } else {
-     LIBS += -licui18n -licuuc
+     LIBS += -licui18n -licuuc -licudata
  }
 +
 +*riscos* {

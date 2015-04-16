@@ -1,6 +1,6 @@
---- src/platformsupport/platformsupport.pro.orig	2014-05-15 18:12:11.000000000 +0100
-+++ src/platformsupport/platformsupport.pro	2014-05-27 19:55:16.358522842 +0100
-@@ -21,4 +21,6 @@
+--- src/platformsupport/platformsupport.pro.orig	2015-02-17 04:56:38.000000000 +0000
++++ src/platformsupport/platformsupport.pro	2015-04-12 13:43:51.604657031 +0100
+@@ -22,4 +22,6 @@
  include(linuxaccessibility/linuxaccessibility.pri)
  include(clipboard/clipboard.pri)
  

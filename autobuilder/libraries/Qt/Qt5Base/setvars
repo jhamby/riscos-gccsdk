@@ -1,8 +1,8 @@
-AB_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.0/submodules/qtbase-opensource-src-5.3.0.tar.xz
+AB_URL=http://download.qt-project.org/official_releases/qt/5.4/5.4.1/submodules/qtbase-opensource-src-5.4.1.tar.xz
 
 AB_INSTALL=env
 
-QTBASE_VERSION=5.3.0
+QTBASE_VERSION=5.4.1
 
 export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
 export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
@@ -35,7 +35,7 @@ ln -T -s -f $H/mkspecs.arm-riscos-g++.qplatformdefs.h $S/mkspecs/arm-riscos-g++/
 
 ./configure -prefix $GCCSDK_INSTALL_ENV -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
 -confirm-license -no-reduce-relocations -xplatform arm-riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
--fontconfig -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -force-asserts -riscos -qpa riscos -v
+-fontconfig -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -no-harfbuzz -force-asserts -riscos -qpa riscos -v
 
 
 # There are parts of the source that need to be built natively, eg, tools used in
@@ -156,7 +156,7 @@ ab_package() {
   create_test_app RegExp $S/examples/widgets/tools/regexp regexp
   create_test_app Wiggly $S/examples/widgets/widgets/wiggly wiggly
   create_test_app Movie $S/examples/widgets/widgets/movie movie
-  create_test_app Mandelbrot $S/examples/threads/mandelbrot mandelbrot
+  create_test_app Mandelbrot $S/examples/corelib/threads/mandelbrot mandelbrot
 # This one doesn't work
 #  create_test_app StickMan $S/examples/widgets/animation/stickman stickman
 

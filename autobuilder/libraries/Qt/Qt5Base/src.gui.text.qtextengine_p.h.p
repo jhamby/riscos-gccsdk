@@ -1,6 +1,6 @@
---- src/gui/text/qtextengine_p.h.orig	2014-05-15 18:12:15.000000000 +0100
-+++ src/gui/text/qtextengine_p.h	2014-06-12 20:10:44.249644237 +0100
-@@ -164,7 +164,7 @@
+--- src/gui/text/qtextengine_p.h.orig	2015-02-17 04:56:47.000000000 +0000
++++ src/gui/text/qtextengine_p.h	2015-04-12 13:43:51.576657030 +0100
+@@ -156,7 +156,7 @@
      uchar dontPrint     : 1;
      uchar justification : 4;
      uchar reserved      : 2;

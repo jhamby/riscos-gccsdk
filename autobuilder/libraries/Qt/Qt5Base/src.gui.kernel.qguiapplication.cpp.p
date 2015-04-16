@@ -1,6 +1,6 @@
---- src/gui/kernel/qguiapplication.cpp.orig	2014-05-15 18:12:16.000000000 +0100
-+++ src/gui/kernel/qguiapplication.cpp	2014-05-27 20:38:56.546556795 +0100
-@@ -1124,6 +1124,12 @@
+--- src/gui/kernel/qguiapplication.cpp.orig	2015-02-17 04:56:48.000000000 +0000
++++ src/gui/kernel/qguiapplication.cpp	2015-04-12 13:43:51.548657029 +0100
+@@ -1161,6 +1161,12 @@
          argv[j] = 0;
          argc = j;
      }

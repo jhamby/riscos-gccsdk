@@ -1,6 +1,6 @@
---- src/corelib/thread/qwaitcondition_unix.cpp.orig	2013-08-25 19:03:37.000000000 +0100
-+++ src/corelib/thread/qwaitcondition_unix.cpp	2013-11-12 19:50:15.792050731 +0000
-@@ -78,7 +78,7 @@
+--- src/corelib/thread/qwaitcondition_unix.cpp.orig	2015-02-17 04:56:49.000000000 +0000
++++ src/corelib/thread/qwaitcondition_unix.cpp	2015-04-12 13:43:51.552657030 +0100
+@@ -70,7 +70,7 @@
      pthread_condattr_t condattr;
  
      pthread_condattr_init(&condattr);

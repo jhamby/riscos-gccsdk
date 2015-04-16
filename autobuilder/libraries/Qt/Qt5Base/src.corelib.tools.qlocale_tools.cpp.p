@@ -1,6 +1,6 @@
---- src/corelib/tools/qlocale_tools.cpp.orig	2014-05-15 18:12:16.000000000 +0100
-+++ src/corelib/tools/qlocale_tools.cpp	2014-05-27 19:55:16.378522842 +0100
-@@ -2157,7 +2157,12 @@
+--- src/corelib/tools/qlocale_tools.cpp.orig	2015-02-17 04:56:49.000000000 +0000
++++ src/corelib/tools/qlocale_tools.cpp	2015-04-12 13:43:51.636657032 +0100
+@@ -2149,7 +2149,12 @@
      feholdexcept(&envp);
  #endif
  

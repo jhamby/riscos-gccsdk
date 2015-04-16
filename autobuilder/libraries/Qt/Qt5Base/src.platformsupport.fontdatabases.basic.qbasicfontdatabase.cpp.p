@@ -1,6 +1,6 @@
---- src/platformsupport/fontdatabases/basic/qbasicfontdatabase.cpp.orig	2014-05-15 18:12:11.000000000 +0100
-+++ src/platformsupport/fontdatabases/basic/qbasicfontdatabase.cpp	2014-05-27 19:55:15.910522836 +0100
-@@ -67,7 +67,7 @@
+--- src/platformsupport/fontdatabases/basic/qbasicfontdatabase.cpp.orig	2015-02-17 04:56:38.000000000 +0000
++++ src/platformsupport/fontdatabases/basic/qbasicfontdatabase.cpp	2015-04-12 13:43:51.632657032 +0100
+@@ -59,7 +59,7 @@
      quint16 searchRange;
      quint16 entrySelector;
      quint16 rangeShift;
@@ -9,7 +9,7 @@
  
  typedef struct {
      quint32 tag;
-@@ -80,7 +80,7 @@
+@@ -72,7 +72,7 @@
      quint16 fontSelector;
      quint16 nrCount;
      quint16 storageOffset;
@@ -18,7 +18,7 @@
  
  typedef struct {
      quint16 platformID;
-@@ -89,7 +89,7 @@
+@@ -81,7 +81,7 @@
      quint16 nameID;
      quint16 stringLength;
      quint16 stringOffset;

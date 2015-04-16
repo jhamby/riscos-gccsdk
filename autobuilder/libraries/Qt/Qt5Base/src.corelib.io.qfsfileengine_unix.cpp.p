@@ -1,6 +1,6 @@
---- src/corelib/io/qfsfileengine_unix.cpp.orig	2014-05-15 18:12:17.000000000 +0100
-+++ src/corelib/io/qfsfileengine_unix.cpp	2015-04-06 14:30:04.062590857 +0100
-@@ -274,7 +274,7 @@
+--- src/corelib/io/qfsfileengine_unix.cpp.orig	2015-02-17 04:56:51.000000000 +0000
++++ src/corelib/io/qfsfileengine_unix.cpp	2015-04-12 13:43:51.580657030 +0100
+@@ -266,7 +266,7 @@
  bool QFSFileEnginePrivate::nativeSyncToDisk()
  {
      Q_Q(QFSFileEngine);

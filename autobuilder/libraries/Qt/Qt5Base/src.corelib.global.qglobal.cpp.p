@@ -1,6 +1,6 @@
---- src/corelib/global/qglobal.cpp.orig	2014-05-15 18:12:17.000000000 +0100
-+++ src/corelib/global/qglobal.cpp	2014-05-27 19:55:16.374522842 +0100
-@@ -2448,7 +2448,8 @@
+--- src/corelib/global/qglobal.cpp.orig	2015-02-17 04:56:50.000000000 +0000
++++ src/corelib/global/qglobal.cpp	2015-04-12 13:43:51.644657032 +0100
+@@ -3192,7 +3192,8 @@
  */
  void qsrand(uint seed)
  {
@@ -10,7 +10,7 @@
      SeedStorage *seedStorage = randTLS();
      if (seedStorage) {
          SeedStorageType *pseed = seedStorage->localData();
-@@ -2502,7 +2503,8 @@
+@@ -3246,7 +3247,8 @@
  */
  int qrand()
  {

@@ -1,6 +1,6 @@
---- src/corelib/tools/qunicodetools_p.h.orig	2014-05-15 18:12:16.000000000 +0100
-+++ src/corelib/tools/qunicodetools_p.h	2014-06-11 21:20:23.051535166 +0100
-@@ -67,7 +67,7 @@
+--- src/corelib/tools/qunicodetools_p.h.orig	2015-02-17 04:56:49.000000000 +0000
++++ src/corelib/tools/qunicodetools_p.h	2015-04-12 13:43:51.596657031 +0100
+@@ -59,7 +59,7 @@
      uchar wordStart        : 1;
      uchar wordEnd          : 1;
      uchar mandatoryBreak   : 1;

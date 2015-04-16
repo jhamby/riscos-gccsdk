@@ -1,6 +1,6 @@
---- src/corelib/kernel/qvariant_p.h.orig	2013-08-25 19:03:38.000000000 +0100
-+++ src/corelib/kernel/qvariant_p.h	2013-11-13 19:18:27.582317996 +0000
-@@ -215,8 +215,8 @@
+--- src/corelib/kernel/qvariant_p.h.orig	2015-02-17 04:56:50.000000000 +0000
++++ src/corelib/kernel/qvariant_p.h	2015-04-12 13:43:51.640657032 +0100
+@@ -207,8 +207,8 @@
  #if defined(Q_COMPILER_DECLTYPE) // C++11 version
      template<typename T>
      class HasIsNullMethod {

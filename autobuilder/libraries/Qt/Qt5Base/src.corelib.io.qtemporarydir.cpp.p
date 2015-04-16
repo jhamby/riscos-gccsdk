@@ -1,6 +1,6 @@
---- src/corelib/io/qtemporarydir.cpp.orig	2014-05-15 18:12:17.000000000 +0100
-+++ src/corelib/io/qtemporarydir.cpp	2014-06-12 19:35:04.989616516 +0100
-@@ -144,6 +144,15 @@
+--- src/corelib/io/qtemporarydir.cpp.orig	2015-02-17 04:56:51.000000000 +0000
++++ src/corelib/io/qtemporarydir.cpp	2015-04-12 13:43:51.636657032 +0100
+@@ -139,6 +139,15 @@
      return 0;
  }
  

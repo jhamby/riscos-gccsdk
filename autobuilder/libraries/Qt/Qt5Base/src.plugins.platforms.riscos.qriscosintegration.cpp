@@ -194,6 +194,8 @@ QRiscosIntegration::QRiscosIntegration ()
 {
     QRiscosScreen *mPrimaryScreen = new QRiscosScreen ();
 
+    m_riscosPlatformNativeInterface = new QRiscosPlatformNativeInterface();
+
     screenAdded (mPrimaryScreen);
 
     QString app_name = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
@@ -207,6 +209,14 @@ QRiscosIntegration::QRiscosIntegration ()
 QRiscosIntegration::~QRiscosIntegration ()
 {
     delete mWindowSprites;
+    delete m_riscosPlatformNativeInterface;
+}
+
+
+QPlatformNativeInterface *
+QRiscosIntegration::nativeInterface() const
+{
+    return m_riscosPlatformNativeInterface;
 }
 
 QPlatformWindow *

@@ -1,6 +1,6 @@
---- src/corelib/io/qlockfile_unix.cpp.orig	2014-05-15 18:12:17.000000000 +0100
-+++ src/corelib/io/qlockfile_unix.cpp	2014-05-27 19:55:16.338522841 +0100
-@@ -87,7 +87,7 @@
+--- src/corelib/io/qlockfile_unix.cpp.orig	2015-02-17 04:56:51.000000000 +0000
++++ src/corelib/io/qlockfile_unix.cpp	2015-04-12 13:43:51.612657031 +0100
+@@ -79,7 +79,7 @@
      if (!file.open())
          return 0;
      const int fd = file.d_func()->engine()->handle();
@@ -9,7 +9,7 @@
      if (flock(fd, LOCK_EX | LOCK_NB) == -1) // other threads, and other processes on a local fs
          return 0;
  #endif
-@@ -124,7 +124,7 @@
+@@ -116,7 +116,7 @@
  
  static bool setNativeLocks(int fd)
  {

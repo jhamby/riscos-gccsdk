@@ -1,6 +1,6 @@
---- src/gui/painting/qrgb.h.orig	2014-05-15 18:12:16.000000000 +0100
-+++ src/gui/painting/qrgb.h	2014-05-27 19:55:16.242522840 +0100
-@@ -53,23 +53,43 @@
+--- src/gui/painting/qrgb.h.orig	2015-02-17 04:56:47.000000000 +0000
++++ src/gui/painting/qrgb.h	2015-04-12 13:43:51.544657029 +0100
+@@ -45,23 +45,43 @@
  // non-namespaced Qt global variable
  const Q_DECL_UNUSED QRgb  RGB_MASK    = 0x00ffffff;     // masks RGB values
  

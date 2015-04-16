@@ -1,6 +1,6 @@
---- src/corelib/global/qsystemdetection.h.orig	2014-05-15 18:12:17.000000000 +0100
-+++ src/corelib/global/qsystemdetection.h	2014-05-27 19:55:16.354522842 +0100
-@@ -177,6 +177,9 @@
+--- src/corelib/global/qsystemdetection.h.orig	2015-02-17 04:56:50.000000000 +0000
++++ src/corelib/global/qsystemdetection.h	2015-04-12 13:43:51.556657030 +0100
+@@ -169,6 +169,9 @@
  #  define Q_OS_INTEGRITY
  #elif defined(VXWORKS) /* there is no "real" VxWorks define - this has to be set in the mkspec! */
  #  define Q_OS_VXWORKS

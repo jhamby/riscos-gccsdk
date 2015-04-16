@@ -50,6 +50,7 @@
 #include <QWindow>
 #include <qpa/qplatformintegration.h>
 #include <qpa/qplatformscreen.h>
+#include <qpa/qplatformnativeinterface.h>
 #include "oslib/wimp.h"
 #include "oslib/colourtrans.h"
 
@@ -162,6 +163,10 @@ private:
     osspriteop_trans_tab *mTranslationTable;
 };
 
+class QRiscosPlatformNativeInterface : public QPlatformNativeInterface
+{
+};
+
 class QRiscosIntegration : public QPlatformIntegration
 {
 public:
@@ -172,6 +177,7 @@ public:
     QPlatformBackingStore *createPlatformBackingStore(QWindow *window) const;
     QAbstractEventDispatcher *createEventDispatcher() const;
     QPlatformFontDatabase *fontDatabase() const;
+    QPlatformNativeInterface *nativeInterface() const;
 
     QDynamicArea *windowSprites() const {
         return mWindowSprites;
@@ -184,6 +190,7 @@ private:
 
 private:
     QPlatformFontDatabase *m_fontDb;
+    QRiscosPlatformNativeInterface *m_riscosPlatformNativeInterface;
 
     wimp_t mTaskHandle;
     wimp_i mIconbarIconHandle;
