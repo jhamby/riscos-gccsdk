@@ -16,6 +16,7 @@ typedef struct atexit_entry
   void (*func)(void *);
   void *arg;
   void *dso_handle;
+  unsigned called : 1;
 } atexit_entry;
 
 static __link_list atexit_function_list;
@@ -40,6 +41,7 @@ __cxa_atexit(void (*destructor)(void *),
   entry->func = destructor;
   entry->arg = arg;
   entry->dso_handle = dso_handle;
+  entry->called = 0;
 
   return 0;
 }
@@ -58,15 +60,19 @@ __cxa_finalize(void *dso_handle)
   /* __cxa_atexit adds handlers to the front of the list, so running through
    * it forwards here means that we process the handlers in reverse order as
    * the standard requires.
+   * Rather than remove the entries once called, they are simply marked as
+   * finished. __cxa_finalize can be called recursively, so removing links
+   * from the list can be problematic (the next entry may no longer exist).
+   * As __cxa_finalize is called at program exit, the memory loss shouldn't
+   * be an issue.
    */
   while (entry)
     {
       atexit_entry *next = (atexit_entry *)__linklist_next (&entry->link);
-      if (dso_handle == NULL || dso_handle == entry->dso_handle)
+      if (!entry->called && (dso_handle == NULL || dso_handle == entry->dso_handle))
         {
+	  entry->called = 1;
 	  __funcall ((*entry->func), (entry->arg));
-	  __linklist_remove (&atexit_function_list, &entry->link);
-	  free (entry);
 	}
       entry = next;
     }
