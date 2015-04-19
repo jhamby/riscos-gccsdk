@@ -60,6 +60,47 @@ using either osspriteop_put_sprite_user_coords when rendering to a
 32bit mode or xosspriteop_put_sprite_scaled when translation is required
 to a mode of a different depth.
 
+Additional RISC OS specfic interfaces
+-------------------------------------
+class QDynamicArea;
+
+This is a class that provides memory allocation from a dynamic area. Its
+main use is for allocating large amounts of memory or when a specific
+memory alignment is required.
+The libqriscos plugin backend uses this to allocate memory for the
+window backing store sprites.
+To use it, you must tell the compiler where to find the QtCore header
+files if it doesn't already know:
+
+-I$GCCSDK_INSTALL_ENV/QtCore
+
+and then include the header in your source file:
+
+#include <QDynamicArea>
+
+A dynamic area can them be create and used like so:
+
+{
+  QDynamicArea *da;
+  da = new QDynamicArea("My dynamic area", // Name of DA (max 31 characters)
+			50 * 1024 * 1024,  // Maximum size of DA
+			4 * 1024);	   // Initial size of DA (min. 4KB)
+  da->create();				   // Actually create the DA
+  void *ptr;
+  ptr = da->alloc(0x1000);		   // Allocate 0x1000 bytes
+  
+  // Do something with ptr.
+
+  da->free(ptr, 0x1000);		   // Free block
+}
+
+It's possible to free only part of a block as long as what you
+free is wholly contained within an allocated block.
+This is useful in some packages that required a page aligned
+block of memory. They do this by allocating twice as much as
+they need, identifying the position of the page aligned block
+they need and then freeing the surplus at each end.
+
 Known problems/ToDo
 -------------------
 Menu windows have a title bar when they probably shouldn't.

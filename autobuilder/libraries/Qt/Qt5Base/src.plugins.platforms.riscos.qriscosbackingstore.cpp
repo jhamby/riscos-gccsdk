@@ -48,7 +48,7 @@
 #include "qriscosintegration.h"
 #include "qriscoswindow.h"
 #include "qscreen.h"
-#include <qriscos.h>
+#include <qdynamicarea.h>
 #include <private/qguiapplication_p.h>
 
 QT_BEGIN_NAMESPACE

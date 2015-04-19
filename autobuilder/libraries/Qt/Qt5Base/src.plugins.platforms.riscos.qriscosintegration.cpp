@@ -201,7 +201,8 @@ QRiscosIntegration::QRiscosIntegration ()
     QString app_name = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
     QByteArray appNameByteArray = app_name.toUtf8();
     
-    mWindowSprites = new QDynamicArea (appNameByteArray.constData());
+    mWindowSprites = new QDynamicArea (appNameByteArray.constData(), 200 * 1024 * 1024);
+    mWindowSprites->create();
 
     wimpInit ();
 }

@@ -28,6 +28,11 @@ ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.h $S/src/plugins/platf
 ln -T -s -f $H/src.plugins.platforms.riscos.riscos.json $S/src/plugins/platforms/riscos/riscos.json
 ln -T -s -f $H/src.plugins.platforms.riscos.riscos.pro $S/src/plugins/platforms/riscos/riscos.pro
 
+ln -T -s -f $H/include.QDynamicArea $S/include/QDynamicArea
+ln -T -s -f $H/include.qdynamicarea.h $S/include/qdynamicarea.h
+ln -T -s -f $H/src.corelib.tools.qdynamicarea.h $S/src/corelib/tools/qdynamicarea.h
+ln -T -s -f $H/src.corelib.tools.qdynamicarea.cpp $S/src/corelib/tools/qdynamicarea.cpp
+
 mkdir -p $S/mkspecs/arm-riscos-g++
 ln -T -s -f $H/mkspecs.arm-riscos-g++.qmake.conf $S/mkspecs/arm-riscos-g++/qmake.conf
 ln -T -s -f $H/mkspecs.arm-riscos-g++.qplatformdefs.h $S/mkspecs/arm-riscos-g++/qplatformdefs.h

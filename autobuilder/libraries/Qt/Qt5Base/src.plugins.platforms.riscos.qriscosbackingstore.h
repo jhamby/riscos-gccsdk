@@ -49,7 +49,7 @@
 
 #include <qpa/qplatformbackingstore.h>
 #include <qpa/qplatformwindow.h>
-#include <qriscos.h>
+#include <qdynamicarea.h>
 #include "oslib/osspriteop.h"
 
 #include <QtGui/QImage>

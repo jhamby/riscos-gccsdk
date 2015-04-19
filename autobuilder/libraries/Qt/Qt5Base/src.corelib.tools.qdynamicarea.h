@@ -3,7 +3,7 @@
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the RISC OS platform plugin of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:BSD$
 ** You may use this file under the terms of the BSD license as follows:
@@ -46,158 +46,79 @@
 **
 ****************************************************************************/
 
-#ifndef QRISCOS_H
-#define QRISCOS_H
+#ifndef QDYNAMICAREA_H
+#define QDYNAMICAREA_H
 
+#include <QLinkedList>
 #include "oslib/os.h"
 
-//#define DEBUG_MEMORY 1
-//#define SANITY_CHECK 1
+//#define DEBUG_MEMORY
 
-class QDynamicArea
+QT_BEGIN_NAMESPACE
+
+#define os_DYNAMIC_AREA_INVALID os_DYNAMIC_AREA_APPLICATION_SPACE
+
+class Q_CORE_EXPORT QDynamicArea
 {
 public:
-    QDynamicArea (const char *da_name,
-		  int init_da_size = 4 * 1024,		// 4KB
-		  int max_da_size = 200 * 1024 * 1024); // 200MB
-    ~QDynamicArea ();
+    QDynamicArea(const char *da_name,
+		  int max_da_size,
+		  int init_da_size = 4 * 1024);		// 4KB
+    ~QDynamicArea();
 
-    void *alloc (size_t size);
-    void free (void *ptr, size_t size);
-    
+    bool create();
+    void *alloc(size_t size);
+    void free(void *ptr, size_t size);
+
+    bool exists() const {
+        return m_handle != os_DYNAMIC_AREA_INVALID;
+    }
+
+    // Return true if the given address is in the dynamic area's current
+    // address range (not whether it is allocated).
+    bool contains(void *addr) const {
+	return addr >= m_baseAddr && addr < m_baseAddr + m_size;
+    }
+
 #ifdef DEBUG_MEMORY
-    void dump (const char *title);
+    void dump(const char *title);
 #endif
 
 private:
-    void Remove ();
+    void Remove();
 
     struct memory_node
     {
-	memory_node (void *addr, size_t size)
+	memory_node(void *addr, size_t size)
 	{
-	  m_prev = m_next = nullptr;
 	  m_addr = addr;
 	  m_size = size;
 	}
+
+	~memory_node() { }
 
 	void adjustAddress(int by) { m_addr = static_cast<char *>(m_addr) + by; }
 	void adjustSize(int by) { m_size += by; }
 	void setAddress(void *addr) { m_addr = addr; }
 
-	memory_node *prev() const { return m_prev; }
-	memory_node *next() const { return m_next; }
 	void *addr() const { return m_addr; }
 	void *endAddr() const { return static_cast<char *>(m_addr) + m_size; }
 	size_t size() const { return m_size; }
 
-//    private:
-	struct memory_node *m_prev;
-	struct memory_node *m_next;
+    private:
 	void *m_addr;
 	size_t m_size;
-    };
-
-    struct memory_node_list
-    {
-	memory_node_list ()
-	{
-	  m_first = m_last = nullptr;
-	  m_count = 0;
-	}
-
-	void addToEnd (memory_node *link)
-	{
-	    memory_node *oldlast;
-
-	    oldlast = m_last;
-	    link->m_next = nullptr;
-	    link->m_prev = oldlast;
-
-	    if (oldlast == nullptr)
-		m_first = link;
-	    else
-		oldlast->m_next = link;
-
-	    m_last = link;
-	    m_count++;
-	}
-
-	void addToFront (memory_node *link)
-	{
-	    memory_node *oldfirst;
-
-	    oldfirst = m_first;
-	    link->m_next = oldfirst;
-	    link->m_prev = nullptr;
-
-	    if (oldfirst == NULL)
-		m_last = link;
-	    else
-		oldfirst->m_prev = link;
-
-	    m_first = link;
-	    m_count++;
-	}
-
-	void addBefore (memory_node *at, memory_node *link)
-	{
-	    memory_node *oldprev;
-
-	    if (at == nullptr)
-	    {
-		addToEnd (link);
-		return;
-	    }
-
-	    oldprev = at->m_prev;
-	    if (oldprev == nullptr)
-		addToFront (link);
-	    else
-	    {
-		oldprev->m_next = link;
-		link->m_prev = oldprev;
-		at->m_prev = link;
-		link->m_next = at;
-		m_count++;
-	    }
-	}
-
-	void remove (memory_node *link)
-	{
-	    memory_node *prev, *next;
-
-	    next = link->m_next;
-	    prev = link->m_prev;
-
-	    if (next == nullptr)
-		m_last = prev;
-	    else
-		next->m_prev = prev;
-
-	    if (prev == nullptr)
-		m_first = nullptr;
-	    else
-		prev->m_next = next;
-
-	    link->m_next = link->m_prev = NULL;
-	    m_count--;
-	}
-
-	memory_node *first() const { return m_first; }
-	memory_node *last() const { return m_last; }
-	int count() const { return m_count; }
-
-    private:
-	memory_node *m_first;
-	memory_node *m_last;
-	int m_count;
     };
 
     os_dynamic_area_no m_handle;
     byte *m_baseAddr;
     size_t m_size;
-    memory_node_list m_freeList;
+    size_t m_maxSize;
+    QLinkedList<memory_node> m_freeList;
+
+    char m_name[32];
 };
+
+QT_END_NAMESPACE
 
 #endif
