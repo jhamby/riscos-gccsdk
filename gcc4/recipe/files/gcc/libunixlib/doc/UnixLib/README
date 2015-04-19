@@ -223,6 +223,20 @@ Specifies the maximum size to use in bytes when creating a dynamic area for
 the heap. When not defined, it defaults to 32MB. Can always be overridden by
 the <program name>$HeapMax integer variable (in MB).
 
+6. __stack_size
+
+Header file: <features.h>.
+
+extern int __stack_size __attribute__ ((__weak__));
+
+When defined, specifies the size in bytes of the initial stack chunk. In
+effect, this emulates a flat stack (assuming the given size is big enough
+for the program's needs).
+When not defined, an initial stack chunk size of 4096 bytes is used as
+normal.
+This is an experimental feature for a small number of programs that don't
+work well with a chunked stack.
+
 
 Compile-time features
 ~~~~~~~~~~~~~~~~~~~~~

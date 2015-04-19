@@ -423,6 +423,12 @@ extern const char * const __dynamic_da_name __attribute__ ((__weak__));
    used for the heap. If undefined, UnixLib defaults to 32MB.
    Note: this is a weak symbol.  */
 extern int __dynamic_da_max_size __attribute__ ((__weak__));
+
+/* When defined, gives the size of the initial stack chunk in bytes.
+   If undefined, UnixLib defaults to 4096 (4KB).
+   Note: this is a weak symbol.  */
+extern int __stack_size __attribute__ ((__weak__));
+
 #endif
 
 

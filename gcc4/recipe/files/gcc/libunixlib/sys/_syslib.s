@@ -45,6 +45,7 @@
 	.weak	__dynamic_no_da
 	.weak	__dynamic_da_name
 	.weak	__dynamic_da_max_size
+	.weak   __stack_size
 
 	@ RMEnsure the minimum version of the SharedUnixLibrary we need.
 	@ Now check System modules first as UnixLib package is deprecated.
@@ -167,7 +168,18 @@ __main:
 	@ for the stackalloc heap
 	SUB	sp, sp, #8
 
-	SUB	a1, sp, #4096
+	@ If __stack_size is defined, use its value as the intial stack chunk size.
+	@ This can be used to mimic a flat stack of any required size, with the
+	@ benefit of stack extension if things do get critical.
+	LDR	v1, ___stack_size
+ PICEQ "LDR	v1, [v4, v1]"
+	TEQ	v1, #0
+	LDRNE	v1, [v1]
+	MOVEQ	v1, #4096
+	CMP	v1, #4096
+	MOVLT	v1, #4096
+
+	SUB	a1, sp, v1
 	ADD	sl, a1, #512 + CHUNK_OVERHEAD
 
 	SUB	a3, a1, #8
@@ -186,8 +198,7 @@ __main:
 	STR	a2, [a1, #CHUNK_RETURN]
 	LDR	a2, __stackchunk_magic_number
 	STR	a2, [a1, #CHUNK_MAGIC]
-	MOV	a2, #4096
-	STR	a2, [a1, #CHUNK_SIZE]
+	STR	v1, [a1, #CHUNK_SIZE]
 #else
 	@ Flat stack in application space: reserve 4 KByte for signal handler
 	@ and what's below is for application stack.
@@ -590,6 +601,9 @@ ___dynamic_da_max_size:
 ___dynamic_no_da:
 	WORD	__dynamic_no_da
 	DECLARE_OBJECT ___dynamic_no_da
+___stack_size:
+	WORD	__stack_size
+	DECLARE_OBJECT ___stack_size
 
 	@ Can only be used to report fatal errors under certain conditions.
 	@ Be sure that at this point the UnixLib environment handlers

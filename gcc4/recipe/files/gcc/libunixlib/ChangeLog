@@ -1,3 +1,13 @@
+Sun Apr 19 17:57:09 BST  2015  Lee Noar  <leenoar@sky.com>
+
+	* include/features.h(__stack_size): Declare new weak symbol.
+	* sys/_syslib.s: Allow the size of the initial stack chunk
+	to be set by defining the variable __stack_size in the client
+	program. This can be used to mimic a flat stack when a chunked
+	stack may be a problem, for example, in javascript interpreters.
+	If __stack_size is not defined, then the initial stack chunk
+	size is 4096 bytes as normal.
+
 Sun Apr 19 17:40:12 BST  2015  Lee Noar  <leenoar@sky.com>
 
 	* stdlib/atexit.c: It seems that __cxa_finalize can be called
