@@ -1,0 +1,78 @@
+This is the Qt5Webkit/QtTestBrowser for RISC OS.
+
+Currently, only Webkit1 is built, Webkit2 may follow if there are
+no serious show stoppers.
+
+The purpose of this browser is to test the functionality of Qt5Webkit.
+It is not designed to be a fully fledged browser, so there are no
+bookmarks or tabs.
+
+
+Installation
+------------
+
+Library/package dependencies:
+
+Qt5Base
+LevelDB
+libz
+libpng12
+icu (libicui18n, libicuuc, libicudata)
+libfontconfig
+libfreetype
+libexpat
+libjpeg
+sqlite3
+
+Please be aware that you require at least r6818 of libunixlib for
+QtTestBrowser to work.
+
+Font dependencies (supplied with Qt5Base):
+
+ttf-vera
+ttf-dejavu
+
+These are supplied in Qt5Base, in a form that can be dragged over
+!UnixFont to install them. Loading speeds may be improved by issuing
+the command fc-cache at the command line (!UnixFC must also have been
+seen by the filer). Note, fc-cache appears to be quite slow on a
+RaspberryPi so please do be patient.
+
+
+JIT
+---
+The JIT is currently disabled as I'm unsure of its stability and it
+outputs VFP instructions for floating point code. I test on rpcemu
+for convenience, so VFP instructions cause problems.
+When enabled, the JIT is likely to be ARMv6+ only. I did a lot of
+work on making it ARMv4 compatible, but with no FPA or soft float
+library support, it looks like that work was in vain.
+
+
+Usage
+-----
+Windows are resized by shift dragging within the workarea.
+
+
+Memory requirements
+-------------------
+On initial loading, shared library usage is about 90MB. There are a number
+of other dynamic areas in use:
+
+VM Stack - seems fixed at 4MB - max. size set to 8MB.
+GC Heap - variable use - max. set to 100MB.
+Fast Malloc - very little use - max. size set to 200KB.
+JIT Code (when JIT enabled) - max. size set to 10MB.
+
+
+Known problems
+--------------
+The red and blue components are swapped in some of the graphics.
+Crashes have been observed in QRiscosScreen::windowFromId().
+Menus have title bars when they shouldn't.
+There is no SSL yet.
+QtWebkit is obsolete (replaced by QtWebEngine).
+
+
+Lee Noar
+leenoar@sky.com

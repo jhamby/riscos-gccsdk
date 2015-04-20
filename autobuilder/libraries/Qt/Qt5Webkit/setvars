@@ -1,0 +1,54 @@
+AB_URL=http://download.qt-project.org/official_releases/qt/5.4/5.4.1/submodules/qtwebkit-opensource-src-5.4.1.tar.xz
+
+AB_INSTALL=no
+
+export RO_SHAREDLIBS=yes
+
+export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
+export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
+export PKG_CONFIG_SYSROOT_DIR=$GCCSDK_INSTALL_ENV
+export PATH=$GCCSDK_INSTALL_CROSSBIN:$GCCSDK_INSTALL_ENV/bin:$PATH
+
+ln -T -s -f $H/Source.WTF.wtf.OSAllocatorRiscos.cpp $S/Source/WTF/wtf/OSAllocatorRiscos.cpp
+ln -T -s -f $H/Source.WTF.wtf.RiscosBrkpntHandler.cpp $S/Source/WTF/wtf/RiscosBrkpntHandler.cpp
+ln -T -s -f $H/Source.WTF.wtf.OSAllocatorRiscos.h $S/Source/WTF/wtf/OSAllocatorRiscos.h
+ln -T -s -f $H/Source.WTF.wtf.Riscos.h $S/Source/WTF/wtf/Riscos.h
+
+ab_make() {
+  ./Tools/Scripts/build-webkit --qt --minimal \
+			     --install-libs=$GCCSDK_INSTALL_ENV \
+			     --install-headers=$GCCSDK_INSTALL_ENV \
+			     --makeargs="-j4"
+  cd $S/WebKitBuild/Release
+  make install
+  cd $S
+}
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton Qt5Webkit
+
+    ab_add_sharedlib $S/WebKitBuild/Release/lib libJavaScriptCore.so.1
+    ab_add_sharedlib $S/WebKitBuild/Release/lib libQt5WebKit.so.5
+    ab_add_sharedlib $S/WebKitBuild/Release/lib libQt5WebKitWidgets.so.5
+    ab_add_sharedlib $S/WebKitBuild/Release/lib libWebCore.so.1
+    ab_add_sharedlib $S/WebKitBuild/Release/lib libWebKit1.so.1
+    ab_add_sharedlib $S/WebKitBuild/Release/lib libWTF.so.1
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package Qt5Webkit -name Qt5Webkit \
+	-depends SharedLibs -depends Qt5Base
+  fi
+
+  ab_create_command_app JSC Apps/Utilities jsc
+  ab_add_commands $S/WebKitBuild/Release/bin/jsc
+  mv -f -T $A/jsc $A/jsc$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -package "jsc" -name "jsc" -depends Qt5Webkit
+
+  ab_create_app QtTestBrowser Apps qt5testbrowser
+  cp -T $S/WebKitBuild/Release/bin/QtTestBrowser $A/QtTestBrowser$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -package qt5testbrowser -depends Qt5Webkit \
+	-depends SharedLibs
+}
