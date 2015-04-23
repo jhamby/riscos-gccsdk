@@ -2,6 +2,8 @@
 
 ICU_VERSION=52
 
+AB_INSTALL=env
+
 # Need to change to the source directory to find configure.
 cd source
 
@@ -20,6 +22,10 @@ mkdir -p $D/bin
 mkdir -p $D/lib/pkgconfig
 
 AB_CONFLAGS="--with-cross-build=$PWD/native-build"
+
+# Prevent "{cp/mv} does not exist" errors when ro-install is used.
+export CPPROG=/bin/cp
+export MVPROG=/bin/mv
 
 add_headers()
 {
@@ -65,12 +71,14 @@ ab_package() {
   cp $S/../readme.html $A/docs/readme.html
 
   ab_add_commands $S/tools/icuinfo/icuinfo
-  mv -f $A/icuinfo $A/icuinfo$AB_EXEEXT
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    # elf extension is missing for some reason, so add it on.
+    mv -f $A/icuinfo $A/icuinfo$AB_EXEEXT
+  fi
 
   $AB_HOME/add-riscpkg -unixlib -name libicu52-dev
 
-# We always seem to build shared libraries, so no need to check for them?
-#  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
     ab_create_sharedlib_skeleton libicu52
 
     AB_COMPONENTS=""
@@ -84,5 +92,5 @@ ab_package() {
     ab_add_sharedlib $S/lib libicuuc.so.$ICU_VERSION
 
     $AB_HOME/add-riscpkg -name libicu52 -depends SharedLibs
-#  fi
+  fi
 }
