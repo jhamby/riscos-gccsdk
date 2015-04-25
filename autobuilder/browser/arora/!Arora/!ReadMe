@@ -1,0 +1,17 @@
+                    Arora Web Browser - RISC OS port
+
+
+Windows can be resized by shift select dragging in the window work area.
+
+If you find that sites default to the mobile version, then setting the
+User Agent from the Tools menu to, eg, Internet Explorer should ensure
+that the full versions of sites are visited instead.
+
+All config/cache files are saved in !Boot.Choices.Qt5. In future, the cache
+files should be moved to !Scrap.
+
+Although reasonably stable in use, there are issues:
+
+* Downloading of web pages can sometimes 'stick' for no apparent reason.
+* On the IGEPv5 platform logical address space exhaustion can be a
+problem.
