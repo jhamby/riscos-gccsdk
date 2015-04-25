@@ -1,0 +1,23 @@
+AB_URL=http://download.qt.io/official_releases/qt/5.4/5.4.1/submodules/qtscript-opensource-src-5.4.1.tar.xz
+
+AB_INSTALL=no
+
+export RO_SHAREDLIBS=yes
+
+PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
+
+ab_make() {
+  qmake
+  $AB_MAKE
+}
+
+ab_package() {
+  ab_create_sharedlib_skeleton Qt5Script
+
+  ab_add_sharedlib $S/lib libQt5Script.so.5
+  ab_add_sharedlib $S/lib libQt5ScriptTools.so.5
+
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package Qt5Script -name Qt5Script \
+	-depends SharedLibs -depends Qt5Script -depends Qt5Base
+}
