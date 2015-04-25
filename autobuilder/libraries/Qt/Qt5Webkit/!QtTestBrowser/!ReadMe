@@ -67,7 +67,6 @@ JIT Code (when JIT enabled) - max. size set to 10MB.
 
 Known problems
 --------------
-The red and blue components are swapped in some of the graphics.
 Crashes have been observed in QRiscosScreen::windowFromId().
 Menus have title bars when they shouldn't.
 There is no SSL yet.

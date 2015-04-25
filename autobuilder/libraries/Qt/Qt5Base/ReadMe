@@ -104,8 +104,6 @@ they need and then freeing the surplus at each end.
 Known problems/ToDo
 -------------------
 Menu windows have a title bar when they probably shouldn't.
-When rendering images (png/jpg/gif?), 2 of the colour components (blue/green?)
-are swapped.
 
 
 Lee Noar
