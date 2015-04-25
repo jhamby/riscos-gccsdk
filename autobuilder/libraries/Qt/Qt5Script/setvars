@@ -19,5 +19,5 @@ ab_package() {
 
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package Qt5Script -name Qt5Script \
-	-depends SharedLibs -depends Qt5Script -depends Qt5Base
+	-depends SharedLibs -depends Qt5Base
 }
