@@ -1,19 +1,47 @@
 
 AB_CATEGORY=Development
-AB_ROVERSION=3
+AB_ROVERSION=1
+AB_COPYSOURCE=yes
+
+# Helper to swap suffixes for package
+ab_swap_suffix() {
+    dirname=$1
+    suffix=$2
+    mkdir -p $dirname/$suffix
+    files=$dirname/*.$suffix
+    for file in $files; do
+      nfile=$(basename $file | sed s#\.$suffix\$##)
+      mv -f $file $dirname/$suffix/$nfile
+    done
+}
 
 ab_package() {
 
-  A=$D/$AB_PACKAGE/Apps/$AB_CATEGORY/\!GCC
-  mkdir -p $A/bin/
-  mkdir -p $A/docs/
+  ab_create_command_app Flex Apps/Development
+  ab_add_commands $S/flex$AB_EXEEXT
+  
+  echo -e "\nSet UnixEnv\$flex\$sfix \"l:y:c:cc:c++:cpp:cxx:h:hh\"" >> $A/\!Boot,feb
+  
+  rman -f HTML $S/doc/flex.info-1 > $A/!Help,faf
+  cp -f $S/doc/flex.pdf $A/flex.pdf,adf
+  cp $S/AUTHORS $S/ChangeLog $S/COPYING $A
+  cp $S/README $S/THANKS $S/TODO $A  
+  
+  mkdir -p $A/examples
+  cp -rf $S/examples/* $A/examples
+  rm -f $A/examples/Makefile.in
+  rm -f $A/examples/Makefile.am
+  rm -f $A/examples/fastwc/Makefile.in
+  rm -f $A/examples/fastwc/Makefile.am
+  rm -f $A/examples/manual/Makefile.in
+  rm -f $A/examples/manual/Makefile.am
 
-
-  cp $S/flex$AB_EXEEXT $A/bin
-  rman -f HTML $S/doc/flex.1 > $A/docs/flex.html,faf
-
-  export AB_SUBPACKAGE=$AB_PACKAGE
-
+  # Convert c, cc, hh files to RISC OS format  
+  ab_swap_suffix $A/examples l
+  ab_swap_suffix $A/examples/fastwc c
+  ab_swap_suffix $A/examples/fastwc l
+  ab_swap_suffix $A/examples/manual y
+   
   $AB_HOME/add-riscpkg -unixlib
 
 }
