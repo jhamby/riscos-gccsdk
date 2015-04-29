@@ -69,7 +69,6 @@ Known problems
 --------------
 Crashes have been observed in QRiscosScreen::windowFromId().
 Menus have title bars when they shouldn't.
-There is no SSL yet.
 QtWebkit is obsolete (replaced by QtWebEngine).
 
 

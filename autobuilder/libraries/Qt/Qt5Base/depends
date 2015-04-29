@@ -7,3 +7,4 @@ libfreetype6
 fontconfig
 libexpat1
 icu
+libssl1.0.0

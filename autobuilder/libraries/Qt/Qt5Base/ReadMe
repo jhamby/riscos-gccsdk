@@ -2,6 +2,8 @@ This is a RISC OS port of the base libraries of Qt5.
 
 Installation
 ------------
+Due to the number and size of shared libraries used by Qt5, anything based
+on it, will only run on a 32 bit OS (eg, RISC OS 5).
 
 Library dependencies:
 
@@ -11,6 +13,7 @@ icu (libicui18n, libicuuc, libicudata)
 libfontconfig
 libfreetype
 libexpat
+libssl
 
 Font dependencies (supplied with Qt):
 
@@ -59,6 +62,14 @@ into them. These are then rendered in the WIMP redraw loop of the window
 using either osspriteop_put_sprite_user_coords when rendering to a
 32bit mode or xosspriteop_put_sprite_scaled when translation is required
 to a mode of a different depth.
+
+SSL support depends on the OpenSSL include headers being seen by the
+configure tests (specifically, it looks for openssl/opensslv.h).
+libssl1.0.0 is listed as a dependency for Qt5Base, so these tests
+should always succeed.
+At runtime the SSL libraries are loaded via dlopen so they should only
+be loaded when actually needed.
+
 
 Additional RISC OS specfic interfaces
 -------------------------------------
