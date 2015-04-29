@@ -1,13 +1,6 @@
---- src/main.cpp.orig	2015-04-10 20:47:29.380351907 +0100
-+++ src/main.cpp	2015-04-11 18:07:10.248022422 +0100
-@@ -18,24 +18,53 @@
-  */
- 
- #include "browserapplication.h"
-+#include <QSslConfiguration>
-+#include <QSslCipher>
- 
- #ifdef Q_OS_WIN
+--- src/main.cpp.orig	2014-04-06 19:17:48.000000000 +0100
++++ src/main.cpp	2015-04-29 13:21:18.571078840 +0100
+@@ -25,6 +25,15 @@
  #include "explorerstyle.h"
  #endif
  
@@ -20,27 +13,12 @@
 +int __stack_size __attribute__ ((visibility ("default"))) = 1024 * 1024; // 1MB stack
 +#endif
 +
-+#ifndef Q_OS_RISCOS
-+void setReasonableSslConfiguration() {
-+    QSslConfiguration conf = QSslConfiguration::defaultConfiguration();
-+    QList<QSslCipher> wantedCiphers;
-+    Q_FOREACH(const QSslCipher& cipher, conf.ciphers()) {
-+        if(cipher.usedBits()>=128) {
-+	    wantedCiphers << cipher;
-+	}
-+    }
-+    conf.setCiphers(wantedCiphers);
-+    QSslConfiguration::setDefaultConfiguration(conf);
-+}
-+#endif
-+
- int main(int argc, char **argv)
- {
+ void setReasonableSslConfiguration() {
+     QSslConfiguration conf = QSslConfiguration::defaultConfiguration();
+     QList<QSslCipher> wantedCiphers;
+@@ -42,8 +51,12 @@
      Q_INIT_RESOURCE(htmls);
      Q_INIT_RESOURCE(data);
--#ifdef Q_WS_X11
--    QApplication::setGraphicsSystem(QString::fromLatin1("raster"));
--#endif
      BrowserApplication application(argc, argv);
 +    
 +#ifndef Q_OS_RISCOS
@@ -51,9 +29,3 @@
  #ifdef Q_OS_WIN
      application.setStyle(new ExplorerStyle);
  #endif
-+#ifndef __riscos__
-+    setReasonableSslConfiguration();
-+#endif
-     application.newMainWindow();
-     return application.exec();
- }

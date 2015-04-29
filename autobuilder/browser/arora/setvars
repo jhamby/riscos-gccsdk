@@ -1,6 +1,6 @@
 # Require host package qt4-linguist-tools for lrelease-qt4 command.
 
-AB_URL=https://arora.googlecode.com/files/arora-0.11.0.tar.gz
+AB_URL=http://http.debian.net/debian/pool/main/a/arora/arora_0.11.0+qt5+git2014-04-06.orig.tar.xz
 
 AB_INSTALL=no
 
