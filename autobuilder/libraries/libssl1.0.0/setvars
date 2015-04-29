@@ -1,12 +1,11 @@
-AB_INSTALL=yes
+# The build system for libssl doesn't use the autotools, so building both
+# a shared version and a static version isn't straight forward. The INSTALL
+# file has a note at the bottom about how to support multiple builds. The
+# idea is to create a build directory, symlink the source tree into it
+# and then build from there. That's what I've done here for static-build
+# and shared-build.
 
-AB_MAKE="$AB_MAKE -j1"
-
-if [ "$AB_ELFBUILD" == "yes" ] ; then
-  perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads no-shared no-idea no-mdc2 no-rc5
-else
-  perl Configure --prefix=$GCCSDK_INSTALL_ENV riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
-fi
+AB_INSTALL=no
 
 ln -s ssl/ssl.pod doc/ssl.pod
 ln -s crypto/crypto.pod doc/crypto.pod
@@ -14,24 +13,118 @@ ln -s apps/openssl.pod doc/openssl.pod
 
 AB_CONFIG='make depend'
 
-ab_package() {
-  ab_create_app LibSSL Apps/Library libssl-dev
+export OPENSSL_SOURCE=$S
+
+#
+# Create directory for static build.
+#
+mkdir -p static-build
+cd static-build
+(cd $OPENSSL_SOURCE; find . -type f -o -type l) | while read F; do
+  if [[ $F != *-build* ]]; then
+    mkdir -p `dirname $F`
+    ln -s $OPENSSL_SOURCE/$F $F
+    echo $F '->' $OPENSSL_SOURCE/$F
+  fi
+done
+cd $S
+
+#
+# Create directory for shared build if required.
+#
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+  mkdir -p shared-build
+  cd shared-build
+  (cd $OPENSSL_SOURCE; find . -type f -o -type l) | while read F; do
+    if [[ $F != *-build* ]]; then
+      mkdir -p `dirname $F`
+      ln -s $OPENSSL_SOURCE/$F $F
+      echo $F '->' $OPENSSL_SOURCE/$F
+    fi
+  done
+  cd $S
+fi
+
+ab_make() {
+  cd static-build
+
+  if [ "$AB_ELFBUILD" == "yes" ] ; then
+    perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads no-shared no-idea no-mdc2 no-rc5
+  else
+    perl Configure --prefix=$GCCSDK_INSTALL_ENV riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
+  fi
+
+  $AB_MAKE -j1
+  make install
+  cd $S
+
+  # The static build has installed all the headers and static libraries,
+  # all we have to do here is copy the shared libraries into $GCCSDK_INSTALL_ENV.
+  # Note that the static archives built in shared-build contain PIC code, so are
+  # no use for static builds.
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    cd shared-build
+
+    perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads shared no-idea no-mdc2 no-rc5
+
+    $AB_MAKE -j1
+    cp -f libcrypto.so.1.0.0 $GCCSDK_INSTALL_ENV/lib
+    ln -sfT libcrypto.1.0.0 $GCCSDK_INSTALL_ENV/lib/libcrypto.so
+    cp -f libssl.so.1.0.0 $GCCSDK_INSTALL_ENV/lib
+    ln -sfT libssl.1.0.0 $GCCSDK_INSTALL_ENV/lib/libssl.so
+    cd $S
+  fi
+}
+
+add_headers()
+{
+  local src_header_dir
+  local dst_header_dir
+
+  src_header_dir=$1
+  dst_header_dir=$2
 
   HERE=`pwd`
-  cd $A
+  cd $src_header_dir
 
-  unzip $AB_OUTPUTLIB/$RO_PKG.zip
-  
-  mv include/openssl openssl
-  rm -rf include
-
-  mv lib/*.a .
-  rm -rf lib
-
-  mv doc/$RO_PKG/* doc
-  rm -rf doc/$RO_PKG
+  mkdir -p $dst_header_dir/h
+  for f in *
+  do
+    if [ -d "$f" ] ; then
+      add_headers $src_header_dir/$f $dst_header_dir/$f
+    else
+      filename=$(basename "$f")
+      extension="${filename##*.}"
+      filename="${filename%.*}"
+      cp -v -T $f $dst_header_dir/h/$filename
+    fi
+  done
 
   cd $HERE
+}
+
+ab_package() {
+  ab_create_command_app LibSSL Apps/Library libssl-dev
+
+  add_headers $GCCSDK_INSTALL_ENV/include/openssl $A
+  cp $S/static-build/*.a $A
+
+  # We use the statically built openssl tool because the shared version wont
+  # work due to the binary containing PIC code (plus we know that the static
+  # version always exists).
+  ab_add_commands $S/static-build/apps/openssl$AB_EXEEXT
 
   $AB_HOME/add-riscpkg -unixlib -name LibSSL-Dev -copyrightfile LICENSE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libssl
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/shared-build libcrypto.so
+    ab_add_sharedlib $S/shared-build libssl.so
+
+    $AB_HOME/add-riscpkg -package libssl -name LibSSL \
+	-depends SharedLibs -copyrightfile LICENSE
+  fi
 }
