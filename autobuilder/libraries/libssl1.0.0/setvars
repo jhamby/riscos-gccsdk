@@ -69,9 +69,9 @@ ab_make() {
 
     $AB_MAKE -j1
     cp -f libcrypto.so.1.0.0 $GCCSDK_INSTALL_ENV/lib
-    ln -sfT libcrypto.1.0.0 $GCCSDK_INSTALL_ENV/lib/libcrypto.so
+    ln -sfT libcrypto.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/libcrypto.so
     cp -f libssl.so.1.0.0 $GCCSDK_INSTALL_ENV/lib
-    ln -sfT libssl.1.0.0 $GCCSDK_INSTALL_ENV/lib/libssl.so
+    ln -sfT libssl.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/libssl.so
     cd $S
   fi
 }
