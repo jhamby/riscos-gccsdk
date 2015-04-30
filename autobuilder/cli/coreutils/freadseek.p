@@ -1,9 +1,9 @@
---- lib/freadseek.c.orig	2009-07-25 09:12:47.000000000 -0700
-+++ lib/freadseek.c	2009-07-25 09:14:34.000000000 -0700
-@@ -55,6 +55,9 @@
-   fp->_Next += increment;
- #elif defined __MINT__              /* Atari FreeMiNT */
+--- lib/freadseek.c.orig	2015-04-29 21:11:40.280379202 +0100
++++ lib/freadseek.c	2015-04-29 21:20:05.008389626 +0100
+@@ -62,6 +62,9 @@
    fp->__bufp += increment;
+ #elif defined EPLAN9                /* Plan9 */
+   fp->rp += increment;
 +#elif defined __riscos__
 +  fp->i_ptr += increment;
 +  fp->i_cnt -= increment;

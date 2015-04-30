@@ -1,9 +1,9 @@
---- lib/freadptr.c.orig	2009-07-25 09:04:48.000000000 -0700
-+++ lib/freadptr.c	2009-07-25 09:10:51.000000000 -0700
-@@ -93,6 +93,14 @@
+--- lib/freadptr.c.orig	2015-04-29 21:11:40.252379201 +0100
++++ lib/freadptr.c	2015-04-29 21:16:53.440385669 +0100
+@@ -108,6 +108,14 @@
      return NULL;
-   *sizep = size;
-   return fp->__bufp;
+   *sizep = fp->wp - fp->rp;
+   return fp->rp;
 +#elif defined __riscos__
 +  if (fp->__mode.__bits.__read != 0)
 +    return NULL;
