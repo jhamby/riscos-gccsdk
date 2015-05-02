@@ -6,15 +6,14 @@ AB_INSTALL=no
 
 PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
 
-export QT_WEBKIT=webkit_trunk
-export WEBKITDIR=$S/../../Qt5Webkit/qtwebkit-opensource-src-5.4.1
-export WEBKITOUTPUTDIR=$S/../../Qt5Webkit/qtwebkit-opensource-src-5.4.1/WebKitBuild
 PREFIX=$GCCSDK_INSTALL_ENV
 
 if [ -z "$(which lrelease-qt4)" ] ; then
   echo "RISC OS Arora build requires native qt4-linguist-tools package installed on host" 1>&2
   exit 1
 fi
+
+AB_DISTCLEAN="$AB_MAKE -C build distclean"
 
 ab_make() {
   mkdir -p build
