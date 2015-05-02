@@ -2,6 +2,10 @@ AB_URL=http://download.qt-project.org/official_releases/qt/5.4/5.4.1/submodules/
 
 AB_INSTALL=no
 
+# "make -C WebKitBuild/Release distclean" gets stuck in an infinite loop so disable
+# packaging of source for now.
+AB_COPYSOURCE=no
+
 export RO_SHAREDLIBS=yes
 
 export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
@@ -14,6 +18,14 @@ ln -T -s -f $H/Source.WTF.wtf.RiscosBrkpntHandler.cpp $S/Source/WTF/wtf/RiscosBr
 ln -T -s -f $H/Source.WTF.wtf.OSAllocatorRiscos.h $S/Source/WTF/wtf/OSAllocatorRiscos.h
 ln -T -s -f $H/Source.WTF.wtf.Riscos.h $S/Source/WTF/wtf/Riscos.h
 
+# $1 = base library name
+install_lib() {
+  cp -f lib/$1.so.1.0.0 $GCCSDK_INSTALL_ENV/lib
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/$1.so.1.0
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/$1.so.1
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/$1.so
+}
+
 ab_make() {
   ./Tools/Scripts/build-webkit --qt --minimal \
 			     --install-libs=$GCCSDK_INSTALL_ENV \
@@ -21,6 +33,12 @@ ab_make() {
 			     --makeargs="-j4"
   cd $S/WebKitBuild/Release
   make install
+  # The install target does not copy these libraries to $GCCSDK_INSTALL_ENV/lib,
+  # so do it manually here.
+  install_lib libJavaScriptCore
+  install_lib libWebCore
+  install_lib libWebKit1
+  install_lib libWTF
   cd $S
 }
 
