@@ -114,7 +114,13 @@ they need and then freeing the surplus at each end.
 
 Known problems/ToDo
 -------------------
-Menu windows have a title bar when they probably shouldn't.
+Menus tend to be a bit too temporary when trying to make selections. They
+need to be a bit more persistent.
+Crashes have been observed in QRiscosScreen::windowFromId().
+
+Examples known not to work correctly:
+widgets/animation/stickman - doesn't respond to key presses
+widgets/widgets/tooltips - tooltips don't show
 
 
 Lee Noar

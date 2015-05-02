@@ -119,7 +119,8 @@ void QRiscosWindow::create()
 	Qt::WindowFlags flags = window()->flags();
 	if (flags & Qt::WindowMinMaxButtonsHint)
 	    window_blk.flags |= wimp_WINDOW_TOGGLE_ICON;
-	if (flags & Qt::Window && flags & Qt::WindowTitleHint)
+	if (flags & Qt::Window && (flags & Qt::WindowTitleHint) &&
+	  (flags & Qt::WindowType_Mask) != Qt::Popup)
 	    window_blk.flags |= wimp_WINDOW_TITLE_ICON;
 	if (flags & Qt::WindowCloseButtonHint)
 	    window_blk.flags |= wimp_WINDOW_CLOSE_ICON;

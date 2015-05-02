@@ -67,8 +67,6 @@ JIT Code (when JIT enabled) - max. size set to 10MB.
 
 Known problems
 --------------
-Crashes have been observed in QRiscosScreen::windowFromId().
-Menus have title bars when they shouldn't.
 QtWebkit is obsolete (replaced by QtWebEngine).
 
 
