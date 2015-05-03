@@ -204,7 +204,11 @@ QRiscosBackingStore::QRiscosBackingStore(QWindow *window)
 
 QRiscosBackingStore::~QRiscosBackingStore()
 {
-    // m_sprite should be destructed automatically.
+    QRiscosScreen *screen = static_cast<QRiscosScreen *>(window()->screen()->handle());
+
+    screen->removeSurface(this);
+
+    // m_sprite is destructed automatically.
 }
 
 QPaintDevice *
