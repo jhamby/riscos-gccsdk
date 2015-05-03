@@ -239,6 +239,7 @@ void QRiscosEventDispatcher::unregisterSocketNotifier(QSocketNotifier *notifier)
     Q_UNUSED(notifier)
 }
 #endif
+
 void
 QRiscosEventDispatcherPrivate::handleOpenEvent()
 {
@@ -562,6 +563,7 @@ QRiscosEventDispatcherPrivate::handleNullEvent()
 
     if (m_systemDrag) {
         if (old_buttons != 0 && buttons == 0) {
+	    m_lastClick = mouse;
 	    m_systemDrag = false;
 	    return;
 	}
@@ -569,6 +571,7 @@ QRiscosEventDispatcherPrivate::handleNullEvent()
 	// FIXME: Looking at the Qt docs, this is over simplified. We should be able to
 	// work out which button was pressed even if another button was already pressed.
 	if (old_buttons != 0 && buttons == 0) {
+	    m_lastClick = mouse;
 	    QMouseEvent event(QEvent::MouseButtonRelease,
 			      localPos,
 			      globalPos,

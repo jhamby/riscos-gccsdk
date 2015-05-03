@@ -75,7 +75,7 @@ QSprite::create (int width, int height, QImage::Format format)
 {
     const os_error *err = nullptr;
 
-    // FIXME: Hard coded to 32 bits.
+    // Backing store sprites are always 32 bits.
     int byte_width = 4 * width;
 
     // Start with the size of a sprite area header which is 4 words and the
