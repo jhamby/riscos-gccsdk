@@ -1,5 +1,4 @@
 
-
 ab_package() {
   ab_create_command_app CoreUtils Apps/Utilities
   
@@ -10,6 +9,10 @@ ab_package() {
   ab_add_commands $S/src/*$AB_EXEEXT
 
   cp $S/COPYING $A
+  cp $S/AUTHORS $A
+  cp $S/THANKS $A
+  cp $S/NEWS $A/!Help
+  cp $S/README $A/!Help
 
   $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/COPYING -name CoreUtils
 }
@@ -26,4 +29,8 @@ export gl_cv_func_rename_trailing_slash_bug=no
 export gl_cv_func_rename_dest_exists_bug=no
 
 export fu_cv_sys_mounted_fread=yes
+
+export ac_cv_exeext=,e1f
+
+
 
