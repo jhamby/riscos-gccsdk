@@ -1,6 +1,6 @@
 AB_URL=http://download.qt.io/official_releases/qt/5.4/5.4.1/submodules/qtscript-opensource-src-5.4.1.tar.xz
 
-AB_INSTALL=no
+AB_INSTALL=env
 
 export RO_SHAREDLIBS=yes
 
