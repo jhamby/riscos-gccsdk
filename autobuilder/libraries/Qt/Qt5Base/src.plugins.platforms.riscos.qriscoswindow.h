@@ -66,6 +66,8 @@ public:
     ~QRiscosWindow();
 
     // Virtual functions that have been overridden.
+    bool isActive() const;
+
     void setVisible(bool visible);
     
     void setGeometry(const QRect &rect);

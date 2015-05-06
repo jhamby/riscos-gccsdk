@@ -119,11 +119,14 @@ void QRiscosWindow::create()
 	Qt::WindowFlags flags = window()->flags();
 	if (flags & Qt::WindowMinMaxButtonsHint)
 	    window_blk.flags |= wimp_WINDOW_TOGGLE_ICON;
-	if (flags & Qt::Window && (flags & Qt::WindowTitleHint) &&
-	  (flags & Qt::WindowType_Mask) != Qt::Popup)
-	    window_blk.flags |= wimp_WINDOW_TITLE_ICON;
 	if (flags & Qt::WindowCloseButtonHint)
 	    window_blk.flags |= wimp_WINDOW_CLOSE_ICON;
+	switch (flags & Qt::WindowType_Mask) {
+	case Qt::Window:
+	case Qt::Dialog:
+	    window_blk.flags |= wimp_WINDOW_TITLE_ICON;
+	    break;
+	}
 
 	window_blk.title_fg = wimp_COLOUR_BLACK;
 
@@ -312,15 +315,12 @@ void
 QRiscosWindow::setGeometry(const QRect &rect)
 {
     QPlatformWindow::setGeometry(rect);
-	
-    // Leave top level window extents at full screen size.
-    if (!window()->isTopLevel() && rect != geometry()) {
-	os_error *err;
 
-	err = setExtent(rect);
-	if (err)
-	    qWarning ("RISC OS: Failed to set window extent; %s\n", err->errmess);
-
+    if (window()->isVisible() && m_window != wimp_INVALID_WINDOW) {
+	if (parent())
+	    openNested();
+	else
+	    openToplevel();
     }
 }
 
@@ -333,4 +333,12 @@ void
 QRiscosWindow::propagateSizeHints()
 {
     //shut up warning from default implementation
+}
+
+bool
+QRiscosWindow::isActive() const
+{
+    // FIXME: Do we need to check for something here to determine
+    // if the window is active? For example, is the pointer within it.
+    return true;
 }
