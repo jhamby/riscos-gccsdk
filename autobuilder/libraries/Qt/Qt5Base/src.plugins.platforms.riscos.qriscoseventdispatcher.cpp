@@ -169,8 +169,11 @@ QRiscosEventDispatcherPrivate::QRiscosEventDispatcherPrivate() :
 }
 
 QRiscosEventDispatcher::QRiscosEventDispatcher(QObject *parent)
+#ifdef USE_QEventDispatcherUNIX_BASE
     : QEventDispatcherUNIX(*new QRiscosEventDispatcherPrivate, parent)
-//    : QAbstractEventDispatcher(*new QRiscosEventDispatcherPrivate, parent)
+#else
+    : QAbstractEventDispatcher(*new QRiscosEventDispatcherPrivate, parent)
+#endif
 {
 //    Q_D(QRiscosEventDispatcher);
 }
@@ -228,17 +231,6 @@ bool QRiscosEventDispatcher::hasPendingEvents()
 {
     return true;
 }
-#if 0
-void QRiscosEventDispatcher::registerSocketNotifier(QSocketNotifier *notifier)
-{
-    Q_UNUSED(notifier)
-}
-
-void QRiscosEventDispatcher::unregisterSocketNotifier(QSocketNotifier *notifier)
-{
-    Q_UNUSED(notifier)
-}
-#endif
 
 void
 QRiscosEventDispatcherPrivate::handleOpenEvent()
@@ -546,7 +538,11 @@ QRiscosEventDispatcherPrivate::handleNullEvent()
 
     xwimp_get_pointer_info(&mouse);
 
+#ifndef USE_QEventDispatcherUNIX_BASE
+    handleTimers();
+#else
     q->activateTimers();
+#endif
 
     QRiscosWindow *rwindow = screen->windowFromId (mouse.w);
     if (!rwindow)
@@ -625,7 +621,19 @@ QRiscosEventDispatcherPrivate::handleWimpUserMessage()
 	break;
     }
 }
-#if 0
+
+#ifndef USE_QEventDispatcherUNIX_BASE
+
+void QRiscosEventDispatcher::registerSocketNotifier(QSocketNotifier *notifier)
+{
+    Q_UNUSED(notifier)
+}
+
+void QRiscosEventDispatcher::unregisterSocketNotifier(QSocketNotifier *notifier)
+{
+    Q_UNUSED(notifier)
+}
+
 bool
 QRiscosEventDispatcherPrivate::unregisterTimers(QObject *obj)
 {
@@ -756,7 +764,6 @@ QRiscosEventDispatcher::registeredTimers(QObject *object) const
 
     return d->registeredTimers(object);
 }
-#include "/home/lee/ProgDev/debug-inlines.h"
 
 void
 QRiscosEventDispatcherPrivate::handleTimers()
@@ -765,8 +772,6 @@ QRiscosEventDispatcherPrivate::handleTimers()
 
     foreach (RiscosTimerInfo *timer, m_timerDict) {
 	if (time_now >= timer->expire_time && !timer->in_timer) {
-//report_text0("Fire timer!");
-//report_dec(timer->interval);
 	    int timer_id = timer->timerId;
 
 	    timer->in_timer = true;

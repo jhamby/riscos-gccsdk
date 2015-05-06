@@ -64,11 +64,14 @@
 #include <QPoint>
 #include "oslib/wimp.h"
 
+#define USE_QEventDispatcherUNIX_BASE
+
 QT_BEGIN_NAMESPACE
 
 class QWindow;
 
-/*struct RiscosTimerInfo
+#ifndef USE_QEventDispatcherUNIX_BASE
+struct RiscosTimerInfo
 {
     QObject *obj;
     uint32_t expire_time;
@@ -76,10 +79,16 @@ class QWindow;
     int interval;
     Qt::TimerType type;
     bool in_timer;
-};*/
+};
+#endif
 
 class QRiscosEventDispatcherPrivate;
-class QRiscosEventDispatcher : public QEventDispatcherUNIX//public QAbstractEventDispatcher
+class QRiscosEventDispatcher :
+#ifndef USE_QEventDispatcherUNIX_BASE
+public QAbstractEventDispatcher
+#else
+public QEventDispatcherUNIX
+#endif
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(QRiscosEventDispatcher)
@@ -92,7 +101,7 @@ public:
     bool processEvents(QEventLoop::ProcessEventsFlags flags);
     bool hasPendingEvents();
 
-#if 0
+#ifndef USE_QEventDispatcherUNIX_BASE
     // These are required if QAbstractEventDispatcher is the base class. If QEventDispatcherUNIX
     // is the base class then we inherit them.
     void registerSocketNotifier(QSocketNotifier *notifier);
@@ -111,7 +120,12 @@ public:
     void flush();
 };
 
-class QRiscosEventDispatcherPrivate : public QEventDispatcherUNIXPrivate//public QAbstractEventDispatcherPrivate
+class QRiscosEventDispatcherPrivate :
+#ifndef USE_QEventDispatcherUNIX_BASE
+public QAbstractEventDispatcherPrivate
+#else
+public QEventDispatcherUNIXPrivate
+#endif
 {
     Q_DECLARE_PUBLIC(QRiscosEventDispatcher)
 
@@ -125,7 +139,8 @@ public:
     wimp_event_no getNextEvent () const {
 	return m_eventType;
     }
-#if 0
+
+#ifndef USE_QEventDispatcherUNIX_BASE
     // These are required if QAbstractEventDispatcherPrivate is the base class.
     // If QEventDispatcherUNIXPrivate is the base class then we inherit them.
     void registerTimer(RiscosTimerInfo *t) {
@@ -150,7 +165,9 @@ public:
     int remainingTime(int timerId);
 #endif
 private:
-//    void handleTimers();
+#ifndef USE_QEventDispatcherUNIX_BASE
+    void handleTimers();
+#endif
 
     void handleNullEvent();
     void handleOpenEvent();
@@ -173,7 +190,9 @@ private:
 
     QPoint m_lastMouseMovePos;
 
-//    QHash<int, RiscosTimerInfo *> m_timerDict;
+#ifndef USE_QEventDispatcherUNIX_BASE
+    QHash<int, RiscosTimerInfo *> m_timerDict;
+#endif
 };
 
 QT_END_NAMESPACE
