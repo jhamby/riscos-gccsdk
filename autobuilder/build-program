@@ -794,7 +794,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
   if [ "$AB_COPYSOURCE" == "yes" ] && [ "$AB_DEBUG" != "yes" ] ; then
     echo "Autobuilder: Packaging source"
     ab_package_source
-    if [ -z $AB_SRCRDIR ] && [ -d $AB_SRCDIR ] ; then
+    if [ -z $AB_SRCDIR ] && [ -d $AB_SRCDIR ] ; then
       AB_SRCZIP=$(echo "$AB_ZIP" | sed s#"\.zip$"#"-src.zip"#)
       if [ -e $AB_SRCZIP ] ; then
         rm $AB_SRCZIP
