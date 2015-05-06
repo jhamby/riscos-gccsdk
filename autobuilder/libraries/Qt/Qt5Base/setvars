@@ -28,8 +28,7 @@ ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.h $S/src/plugins/platf
 ln -T -s -f $H/src.plugins.platforms.riscos.riscos.json $S/src/plugins/platforms/riscos/riscos.json
 ln -T -s -f $H/src.plugins.platforms.riscos.riscos.pro $S/src/plugins/platforms/riscos/riscos.pro
 
-ln -T -s -f $H/include.QDynamicArea $S/include/QDynamicArea
-ln -T -s -f $H/include.qdynamicarea.h $S/include/qdynamicarea.h
+ln -T -s -f $H/include.qdynamicarea.h $S/include/QtCore/qdynamicarea.h
 ln -T -s -f $H/src.corelib.tools.qdynamicarea.h $S/src/corelib/tools/qdynamicarea.h
 ln -T -s -f $H/src.corelib.tools.qdynamicarea.cpp $S/src/corelib/tools/qdynamicarea.cpp
 
@@ -37,6 +36,8 @@ mkdir -p $S/mkspecs/arm-riscos-g++
 ln -T -s -f $H/mkspecs.arm-riscos-g++.qmake.conf $S/mkspecs/arm-riscos-g++/qmake.conf
 ln -T -s -f $H/mkspecs.arm-riscos-g++.qplatformdefs.h $S/mkspecs/arm-riscos-g++/qplatformdefs.h
 
+# Insert qdynamicarea.h into the build system.
+$S/bin/syncqt.pl
 
 ./configure -prefix $GCCSDK_INSTALL_ENV -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
 -confirm-license -no-reduce-relocations -xplatform arm-riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
@@ -161,8 +162,9 @@ ab_package() {
   create_test_app RegExp $S/examples/widgets/tools/regexp regexp
   create_test_app Wiggly $S/examples/widgets/widgets/wiggly wiggly
   create_test_app Movie $S/examples/widgets/widgets/movie movie
+  create_test_app ToolTips $S/examples/widgets/widgets/tooltips tooltips
   create_test_app Mandelbrot $S/examples/corelib/threads/mandelbrot mandelbrot
-# This one doesn't work
+# This one doesn't work - doesn't respond to key presses
 #  create_test_app StickMan $S/examples/widgets/animation/stickman stickman
 
   $AB_HOME/add-riscpkg -package qt5base-tests -depends Qt5Base \
