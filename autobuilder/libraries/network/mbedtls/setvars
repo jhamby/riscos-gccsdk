@@ -1,0 +1,25 @@
+AB_URL=https://tls.mbed.org/download/mbedtls-1.3.10-gpl.tgz
+AB_CATEGORY=Library
+AB_PACKAGE=mbedtls
+
+ab_package() {
+	export DD=$D/mbedtls/Apps/Library/!mbedTLS
+	mkdir -p $DD
+        mkdir -p $DD/include/polarssl
+        cp -r $S/include/polarssl $DD/include
+        
+        mkdir -p $DD/lib
+        cp $S/library/libpolarssl.* $S/library/libmbedtls.* $DD/lib
+        
+        mkdir -p $DD/bin
+        for p in $S/programs/*/* ; do              \
+            if [ -x $$p ] && [ ! -d $$p ] ;     \
+            then                                \
+                f=$(PREFIX)`basename $$p` ;     \
+                o=$(OLDPREFIX)`basename $$p` ;  \
+                cp $$p $DD/bin/$$f ;     \
+#                ln -sf $$f $DD/bin/$$o ; \
+            fi                                  \
+        done
+
+}
