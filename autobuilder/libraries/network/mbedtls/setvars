@@ -12,14 +12,14 @@ ab_package() {
         cp $S/library/libpolarssl.* $S/library/libmbedtls.* $DD/lib
         
         mkdir -p $DD/bin
-        for p in $S/programs/*/* ; do              \
-            if [ -x $$p ] && [ ! -d $$p ] ;     \
-            then                                \
-                f=$(PREFIX)`basename $$p` ;     \
-                o=$(OLDPREFIX)`basename $$p` ;  \
-                cp $$p $DD/bin/$$f ;     \
-#                ln -sf $$f $DD/bin/$$o ; \
-            fi                                  \
+        for prog in $S/programs/*/* ; do              
+            if [[ -x "$prog" ]] && [[ ! -d "$prog" ]] 
+            then                                
+                base=`basename $prog` 
+#                o=$(OLDPREFIX)`basename $$p`
+                cp $prog $DD/bin/$base
+#                ln -sf $$f $DD/bin/$$o
+            fi
         done
 
 }
