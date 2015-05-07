@@ -16,7 +16,7 @@ my @blacklist = ( 'firefox-riscpc', 'GCC', 'CPP-2.95', 'GCC-2.95', 'G++',
   'StrongED-Modes-Internet', 'StrongED-Modes-Misc', 'StrongED-Modes-Program',
   'StrongED-Modes-RISCOS', 'StrongED-Modes-Scripting',
   'RiscTerm',
-  'MagicMush', # not armv7
+#  'MagicMush', # not armv7
   'bison', 'flex', 'm4', # package name clash
   'RiscPkg',  # won't handle firmware updates correctly
 #  'Manuals', # Misc v Miscellaneous sections - tidies the index (ROOL version in Miscellaenous)
