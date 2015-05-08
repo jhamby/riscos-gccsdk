@@ -1,5 +1,5 @@
 
-AB_URL=http://www.parallelrealities.co.uk/download/starfighter/starfighter-1.1-1.tar.gz
+AB_URL=http://downloads.sourceforge.net/project/pr-starfighter/starfighter-1.2.tar.gz
 
 ab_package() {
   ab_create_app StarFighter Apps/Games

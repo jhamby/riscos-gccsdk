@@ -21,6 +21,8 @@ ab_package() {
   ab_add_commands $S/flex$AB_EXEEXT
   
   echo -e "\nSet UnixEnv\$flex\$sfix \"l:y:c:cc:c++:cpp:cxx:h:hh\"" >> $A/\!Boot,feb
+  echo -e "Set Alias\$lex WimpSlot -min 665k|MRun <Flex\$Dir>.flex -i -I %%*0" >> $A/\!Boot,feb
+  echo -e "Set Alias\$flex++ WimpSlot -min 665k|MRun <Flex\$Dir>.flex %%*0" >> $A/\!Boot,feb
   
   rman -f HTML $S/doc/flex.info-1 > $A/!Help,faf
   cp -f $S/doc/flex.pdf $A/flex.pdf,adf
@@ -31,10 +33,16 @@ ab_package() {
   cp -rf $S/examples/* $A/examples
   rm -f $A/examples/Makefile.in
   rm -f $A/examples/Makefile.am
+  rm -f $A/examples/Makefile
+  rm -f $A/examples/fastwc/Makefile
   rm -f $A/examples/fastwc/Makefile.in
   rm -f $A/examples/fastwc/Makefile.am
+  rm -f $A/examples/manual/Makefile
   rm -f $A/examples/manual/Makefile.in
   rm -f $A/examples/manual/Makefile.am
+  
+  # Move examples makefile to more convenient name for RISC OS
+  mv $A/examples/manual/Makefile.examples $A/examples/manual/Makefile
 
   # Convert c, cc, hh files to RISC OS format  
   ab_swap_suffix $A/examples l
@@ -43,6 +51,22 @@ ab_package() {
   ab_swap_suffix $A/examples/manual y
    
   $AB_HOME/add-riscpkg -unixlib
+  
+  ab_create_app LibFL Apps/Library libfl-dev
+  
+  echo "Set LibFL$Path <LibFL$Dir>." >> $A/!Boot,feb
+  echo "*/!Boot" > $A/!Run,feb"
+  
+  mkdir -p $A/h
+  cp -f $S/FlexLexer.h $A/h/FlexLexer
+  cp -f $S/.libs/libfl.a $A
+  cp -f $S/.libs/libfl.a $A/libl.a
+  
+  cp $S/COPYING $A
+  cp $S/README $A    
 
+  $AB_HOME/add-riscpkg -package LibFL-Dev -section Library \
+          -components "Apps.Library.!LibFL (Movable)" \
+          -unixlib
 }
 

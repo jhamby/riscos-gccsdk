@@ -58,7 +58,7 @@ fi
 
 #echo "Category $category package $package version $pkgversion-$pkgroversion"
 
-for param in $@ ; do
+for param in "$@" ; do
   case "$param" in
   -unixlib)
      depends="$depends, SharedUnixLibrary (>= 1.11)"
@@ -145,6 +145,9 @@ for param in $@ ; do
          ;;
      -roversion)
          pkgroversion="$param"
+         ;;
+     -components)
+         components="$param"
          ;;
      *)
        echo "add-riscpkg: Invalid parameter $last_param"

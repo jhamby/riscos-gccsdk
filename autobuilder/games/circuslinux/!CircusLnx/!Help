@@ -3,6 +3,8 @@ RISCOS port
 Alan Buckley 7th December 2001.
 Latest version autobuilt after Jan 2007.
 
+Another deploy test
+
 RISCOS port requires 7½MB of memory. Adding the --nosound option to the
 command line in !RunImage will speed the game up at the expense of dumping
 the sound.

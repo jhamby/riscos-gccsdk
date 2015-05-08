@@ -1,4 +1,5 @@
 AB_URL=ftp://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
+AB_ROVERSION=2
 
 AB_CONFLAGS="--prefix=/home"
 
@@ -22,6 +23,7 @@ ab_package() {
   echo -e "\nSet Bison\$Path <Obey\$Dir>." >> $A/\!Boot,feb
   echo -e "\nSet BISON_PKGDATADIR /Bison:data" >> $A/\!Boot,feb
   echo -e "\nSet UnixEnv\$bison\$sfix \"y:c:cc:c++:cpp:cxx:h:hh\"" >> $A/\!Boot,feb
+  echo -e "\nSet Alias\$yacc WimpSlot -min 663k|MRun <Bison\$Dir>.bison -d -y %%*0" >> $A/\!Boot,feb
 
   rman -f HTML $S/doc/bison.1 > $A/!Help,faf
   cp $S/AUTHORS $S/ChangeLog $S/COPYING $A
