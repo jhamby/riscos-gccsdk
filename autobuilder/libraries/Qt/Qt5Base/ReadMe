@@ -23,12 +23,25 @@ ttf-dejavu
 These are supplied in a form that can be dragged over !UnixFont to install
 them. Loading speeds may be improved by issuing the command fc-cache at
 the command line (!UnixFC must also have been seen by the filer).
-Note, fc-cache appears to be quite slow on a RaspberryPi so be patient.
+Note, fc-cache appears to be quite slow on a RaspberryPi so be patient
+(although this could be specific to the sdcard that I'm using).
 
 
 Usage notes
 -----------
 Use Select drag with shift held down to resize windows.
+
+The default behaviour when rendering graphics in Qt is to swap the red
+and blue components of colours so that they display correctly in RISC OS.
+On newer hardware, for example IGEPv5, RISC OS may already make allowances
+for swapping the red and blue. In such cases, the swapping that Qt does
+will not be required and can be switched off by issuing the following
+command at the command line.
+
+*set Qt$NoRedBlueSwap 1
+
+This will take effect in any program that is subsequently run, but will not
+affect those already running.
 
 
 Porting notes
@@ -112,16 +125,15 @@ block of memory. They do this by allocating twice as much as
 they need, identifying the position of the page aligned block
 they need and then freeing the surplus at each end.
 
+
 Known problems/ToDo
 -------------------
-* On IGEPv5 platforms the red and blue colour components are
-switched (need to make the red/blue switching code configurable?).
 * The text caret isn't always visible.
+* Make mouse pointer context sensitive
 
 
 Examples known not to work correctly:
 widgets/animation/stickman - doesn't respond to key presses
-widgets/widgets/tooltips - tooltips don't show
 
 
 Lee Noar
