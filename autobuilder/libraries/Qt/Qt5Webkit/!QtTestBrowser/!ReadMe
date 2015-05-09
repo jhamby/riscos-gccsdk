@@ -53,6 +53,18 @@ Usage
 -----
 Windows are resized by shift dragging within the workarea.
 
+The default behaviour when rendering graphics in Qt is to swap the red
+and blue components of colours so that they display correctly in RISC OS.
+On newer hardware, for example IGEPv5, RISC OS may already make allowances
+for swapping the red and blue. In such cases, the swapping that Qt does
+will not be required and can be switched off by issuing the following
+command at the command line.
+
+*set Qt$NoRedBlueSwap 1
+
+This will take effect in any program that is subsequently run, but will not
+affect those already running.
+
 
 Memory requirements
 -------------------
