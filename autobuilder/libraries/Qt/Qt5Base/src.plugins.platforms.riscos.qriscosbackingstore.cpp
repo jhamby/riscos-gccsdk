@@ -112,7 +112,12 @@ QSprite::create (int width, int height, QImage::Format format)
     m_surfaceSpriteData = getSpriteDataPtr();
     m_surfaceSpritePtr = getSpritePtr();
 
-    m_image = QImage (static_cast<uchar*>(m_surfaceSpriteData), width, height, format);
+    m_image = QImage (static_cast<uchar*>(m_surfaceSpriteData),
+		      width,
+		      height,
+		      QSysInfo::requireRedBlueSwap() ?
+			     QImage::Format_RGBX8888 :
+			     QImage::Format_RGB32);
 
     return true;
 }

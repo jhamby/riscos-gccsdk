@@ -70,11 +70,16 @@ inline ushort &unicode() { ushort *ptr = &ucs; return *ptr; }
 The main RISC OS specific code is located at src/plugins/platforms/riscos
 as a plugin loaded by dlopen (in line with the other platforms).
 
-32bit sprites are used as window backing stores and Qt paints directly
-into them. These are then rendered in the WIMP redraw loop of the window
-using either osspriteop_put_sprite_user_coords when rendering to a
-32bit mode or xosspriteop_put_sprite_scaled when translation is required
-to a mode of a different depth.
+Backing stores work by creating a RISC OS 32bit sprite the same size as
+the window. A QImage is then created but without allocating any memory to
+represent its pixel data. Instead the QImage is created using the RISC OS
+sprite's pixel data as the QImage pixel data. A QImage is a painting
+surface in Qt and the Qt API (QRiscosBackingStore::paintDevice) is used to
+pass the QImage back to the rendering system. Now anything rendered to this
+QImage is rendered into the sprite. Finally, the sprite is rendered in the
+WIMP redraw loop of the window using either osspriteop_put_sprite_user_coords
+when rendering to a 32bit mode or xosspriteop_put_sprite_scaled when
+translation is required to a mode of a different depth.
 
 SSL support depends on the OpenSSL include headers being seen by the
 configure tests (specifically, it looks for openssl/opensslv.h).
