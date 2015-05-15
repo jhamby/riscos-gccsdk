@@ -54,8 +54,8 @@ ab_package() {
   
   ab_create_app LibFL Apps/Library libfl-dev
   
-  echo "Set LibFL$Path <LibFL$Dir>." >> $A/!Boot,feb
-  echo "*/!Boot" > $A/!Run,feb"
+  echo "Set LibFL\$Path <LibFL\$Dir>." >> $A/!Boot,feb
+  echo "*/<Obey\$Dir>.!Boot" > $A/!Run,feb
   
   mkdir -p $A/h
   cp -f $S/FlexLexer.h $A/h/FlexLexer

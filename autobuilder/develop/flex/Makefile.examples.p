@@ -6,7 +6,7 @@
  
 -CC       = gcc -g
 +SHELL    = /bin/sh
-+CC       = gcc -static
++CC       = gcc -static -LLibFL:
  LEX      = flex -i -I 
  YACC     = bison -d -y
  ALLOCA   =
