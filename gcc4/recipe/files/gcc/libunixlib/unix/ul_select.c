@@ -298,8 +298,14 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	    }
 	  else
 	    {
-	      __pthread_enable_ints();
-	      return __set_errno (EBADF);
+	      /* Only report a file descriptor as bad if it was given in one of the sets.  */
+	      if ((readfds && FD_ISSET(fd, readfds)) ||
+		  (writefds && FD_ISSET(fd, writefds)) ||
+		  (exceptfds && FD_ISSET(fd, exceptfds)))
+		{
+		  __pthread_enable_ints();
+		  return __set_errno (EBADF);
+		}
 	    }
 	}
 

@@ -1,3 +1,8 @@
+Sat May 16 21:07:57 BST  2015  Lee Noar  <leenoar@sky.com>
+
+	* unix/ul_select.c(select): Only report a file descriptor
+	as bad if it was given in one of the sets.
+
 Sun Apr 19 17:57:09 BST  2015  Lee Noar  <leenoar@sky.com>
 
 	* include/features.h(__stack_size): Declare new weak symbol.
