@@ -109,6 +109,8 @@ ab_package() {
   add_headers $GCCSDK_INSTALL_ENV/include/openssl $A
   cp $S/static-build/*.a $A
 
+  touch $S/Makefile
+
   # We use the statically built openssl tool because the shared version wont
   # work due to the binary containing PIC code (plus we know that the static
   # version always exists).

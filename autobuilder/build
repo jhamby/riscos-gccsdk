@@ -74,7 +74,7 @@ check_dependencies() {
        popd
     fi
   fi
-  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext unzip autoconf2.13 flex bison gperf glib-genmarshal xsltproc intltoolize automake-1.9 ; do
+  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext unzip autoconf2.13 flex bison gperf glib-genmarshal xsltproc intltoolize automake-1.11 ; do
     if ! type $build_prog > /dev/null 2>&1 ; then
       echo "Autobuilder: $build_prog not found; is it installed on your path?"
       exit 1;
