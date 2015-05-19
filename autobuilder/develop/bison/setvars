@@ -20,11 +20,11 @@ ab_package() {
   ab_create_command_app Bison Apps/Development
   ab_add_commands $S/src/bison$AB_EXEEXT
   
-  echo -e "\nSet Bison\$Path <Obey\$Dir>." >> $A/\!Boot,feb
-  echo -e "\nSet BISON_PKGDATADIR /Bison:data" >> $A/\!Boot,feb
-  echo -e "\nSet UnixEnv\$bison\$sfix \"y:c:cc:c++:cpp:cxx:h:hh\"" >> $A/\!Boot,feb
-  echo -e "\nSet Alias\$yacc WimpSlot -min 663k|MRun <Bison\$Dir>.bison -d -y %%*0" >> $A/\!Boot,feb
-
+  echo -e "Set Bison\$Path <Obey\$Dir>." >> $A/\!Boot,feb
+  echo -e "Set BISON_PKGDATADIR /Bison:data" >> $A/\!Boot,feb
+  echo -e "Set UnixEnv\$bison\$sfix \"y:c:cc:c++:cpp:cxx:h:hh\"" >> $A/\!Boot,feb
+  echo -e "Set Alias\$yacc WimpSlot -min 663k|MRun <Bison\$Dir>.bison -d -y %%*0" >> $A/\!Boot,feb
+  
   rman -f HTML $S/doc/bison.1 > $A/!Help,faf
   cp $S/AUTHORS $S/ChangeLog $S/COPYING $A
   cp $S/README $S/THANKS $S/TODO $A
@@ -38,6 +38,20 @@ ab_package() {
   ab_swap_suffix $A/data hh
     
   $AB_HOME/add-riscpkg -unixlib
+  
+  ab_create_app LibBison Apps/Library libbison-dev
+  
+  echo "Set LibBison\$Path <LibBison\$Dir>." >> $A/!Boot,feb
+  echo "*/<Obey\$Dir>.!Boot" > $A/!Run,feb
+  
+  cp -f $S/lib/liby.a $A
+  
+  cp $S/COPYING $A
+  cp $S/README $A    
+
+  $AB_HOME/add-riscpkg -package LibBison-Dev -section Library \
+          -components "Apps.Library.!LibBison (Movable)" \
+          -unixlib
 }
 
 touch --date="Jan 01 2000" \
