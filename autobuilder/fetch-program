@@ -46,7 +46,18 @@ elif [ "$AB_GIT" != "" ] ; then
   git clone $AB_GIT
 
 elif [ "$AB_HG" != "" ] ; then
+   AB_HGTMP=(${AB_HG//[\'\"]/})
+   if [ -e "${AB_HGTMP[1]}/.hg" ] ; then
+    cd ${AB_HGTMP[1]}
+    echo "doing hg pull ${AB_HGTMP[0]}"
+    hg pull ${AB_HGTMP[0]}
+    echo "doing hg update -C "
+    hg update -C
+    cd ..
+   else
+    echo "doing hg clone $AB_HG"
   hg clone $AB_HG
+   fi
 
 elif [ "$AB_URL" != "" ] ; then
   wget -U "GCCSDK Autobuilder for RISC OS" -nv $AB_URL
