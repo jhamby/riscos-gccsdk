@@ -1,3 +1,11 @@
+Sun Jun 28 15:12:13 BST  2015  Lee Noar  <leenoar@sky.com>
+
+	Submitted by Jeffrey Lee <me@phlamethrower.co.uk>
+
+	* signal/_signal.s: Change VFP exception error base to match
+	the value that's now being used by RISC OS (changed in OS
+	to avoid potential clash with ROL allocation).
+
 Sat May 16 21:07:57 BST  2015  Lee Noar  <leenoar@sky.com>
 
 	* unix/ul_select.c(select): Only report a file descriptor

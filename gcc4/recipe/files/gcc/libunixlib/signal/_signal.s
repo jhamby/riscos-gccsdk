@@ -350,7 +350,7 @@ __h_sigsegv1:
 @	0x80000100 - &800001FF		CoProcessor exceptions
 @	0x80000200 - &800002FF		Floating Point exceptions
 @	0x80000300 - &800003FF		Econet exceptions
-@	0x80000500 - &800005FF		VFP exceptions
+@	0x80000600 - &800006FF		VFP exceptions
 @
 @ For these classes of exceptions, we map Floating Point & VFP exceptions
 @ to SIGFPE and all others to SIGEMT.
@@ -444,7 +444,7 @@ unrecoverable_error:
 	MOV	a3, a3, LSR #8
 	AND	a3, a3, #0xFF
 #  if defined(__VFP_FP__)
-	CMP	a3, #0x05
+	CMP	a3, #0x06
 #  else
 	CMP	a3, #0x02
 #  endif
