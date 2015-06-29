@@ -1,7 +1,14 @@
 
 AB_CATEGORY=Fonts
-AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
+if [ "$RO_SHAREDLIBS" == "yes" ]; then
+  AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
+else
+  AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev"
+fi
+
 AB_CONFLAGS=\''--with-baseconfigdir=/\<UnixFC\$$Dir\>/fonts'\'
+AB_CONFLAGS+=" --disable-docs"
+
 AB_INSTALL=env
 # Only install library files (but this prevents the headers from being installed
 # so comment it out).
