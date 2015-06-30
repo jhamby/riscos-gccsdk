@@ -1,8 +1,8 @@
 Index: gcc/config.gcc
 ===================================================================
---- gcc/config.gcc	(revision 196619)
+--- gcc/config.gcc	(revision 221600)
 +++ gcc/config.gcc	(working copy)
-@@ -930,6 +930,18 @@
+@@ -930,6 +930,19 @@
  	esac
  	tm_file="${tm_file} arm/aout.h arm/arm.h"
  	;;
@@ -17,6 +17,7 @@ Index: gcc/config.gcc
 +	extra_options="${extra_options} arm/riscos.opt"
 +	extra_objs="riscos.o"
 +	extra_gcc_objs="riscos-gcc.o"
++	need_64bit_hwint=yes
 +	;;
  arm*-*-elf)
  	tm_file="dbxelf.h elfos.h newlib-stdint.h arm/unknown-elf.h arm/elf.h arm/aout.h arm/arm.h"
