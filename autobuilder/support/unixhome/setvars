@@ -1,5 +1,9 @@
 AB_NOREMOTE=yes
 AB_PVERSION=1.03
+AB_ROVERSION=2
+AB_LICENCE=Free
+AB_COMPONENTS="Apps.Support.!UnixHome (Movable LookAt)"
+AB_COPYSOURCE=no
 
 cp $H/!UnixHome/c/SetHome $S/SetHome.c
 
@@ -11,5 +15,5 @@ ab_package() {
 
   cp -av $S/SetHome$AB_EXEEXT $A
 
-  $AB_HOME/add-riscpkg -package UnixFont -unixlib
+  $AB_HOME/add-riscpkg -package UnixHome -unixlib
 }
