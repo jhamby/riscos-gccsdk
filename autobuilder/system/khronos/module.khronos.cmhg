@@ -6,7 +6,7 @@ swi-chunk-base-number: 0x59800
 
 swi-handler-code: khronos_swi_handler
 
-swi-decoding-table: Khronos, EGL, GL, OpenVG, VC, Initialise
+swi-decoding-table: Khronos, EGL, GL, OpenVG, VC
 
 initialisation-code: khronos_init
 

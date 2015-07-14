@@ -99,9 +99,6 @@ khronos_swi_handler(int swi_no,_kernel_swi_regs *r,void *private_word)
 {
   switch (swi_no)
   {
-  case Khronos_Initialise - Khronos_00:
-    bcm_host_init();
-    break;
   case Khronos_EGL - Khronos_00:
     return egl_swi(r);
   case Khronos_GL - Khronos_00:
