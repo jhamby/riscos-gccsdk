@@ -1,0 +1,181 @@
+AB_GIT=https://github.com/raspberrypi/userland
+
+AB_PRECONF=:
+
+mkdir -p $S/../bcm_host \
+	 $S/../EGL \
+	 $S/../GLESv2 \
+	 $S/../OpenVG \
+	 $S/../module \
+	 $S/interface/vcos/riscos \
+	 $S/../wimp_test
+
+ln -Tsf $H/config.mk $S/../config.mk
+ln -Tsf $H/EGL.api-asm.s $S/../EGL/api-asm.s
+ln -Tsf $H/EGL.makefile $S/../EGL/makefile
+
+ln -Tsf $H/bcm_host.api-asm.s $S/../bcm_host/api-asm.s
+ln -Tsf $H/bcm_host.api.c $S/../bcm_host/api.c
+ln -Tsf $H/bcm_host.makefile $S/../bcm_host/makefile
+
+ln -Tsf $H/GLESv2.api-asm.s $S/../GLESv2/api-asm.s
+ln -Tsf $H/GLESv2.api.c $S/../GLESv2/api.c
+ln -Tsf $H/GLESv2.makefile $S/../GLESv2/makefile
+
+ln -Tsf $H/OpenVG.api-asm.s $S/../OpenVG/api-asm.s
+ln -Tsf $H/OpenVG.api.c $S/../OpenVG/api.c
+ln -Tsf $H/OpenVG.makefile $S/../OpenVG/makefile
+
+ln -Tsf $H/enums.h $S/../enums.h
+ln -Tsf $H/macros.s $S/../macros.s
+ln -Tsf $H/makefile $S/../makefile
+ln -Tsf $H/module.asm.s $S/../module/asm.s
+ln -Tsf $H/module.khronos.cmhg $S/../module/khronos.cmhg
+ln -Tsf $H/module.main.c $S/../module/main.c
+ln -Tsf $H/module.main.h $S/../module/main.h
+ln -Tsf $H/module.swi_vc.c $S/../module/swi_vc.c
+ln -Tsf $H/module.swi_egl.c $S/../module/swi_egl.c
+ln -Tsf $H/module.swi_gl.c $S/../module/swi_gl.c
+ln -Tsf $H/module.swi_openvg.c $S/../module/swi_openvg.c
+ln -Tsf $H/module.makefile $S/../module/makefile
+ln -Tsf $H/rules.mk $S/../rules.mk
+ln -Tsf $H/types.h $S/../types.h
+ln -Tsf $H/inline_swis.h $S/../inline_swis.h
+
+ln -Tsf $H/interface.vchiq_arm.vchiq_module.h $S/interface/vchiq_arm/vchiq_module.h
+ln -Tsf $H/interface.vcos.riscos.riscosbits.h $S/interface/vcos/riscos/riscosbits.h
+ln -Tsf $H/interface.vcos.riscos.vcos_platform.h $S/interface/vcos/riscos/vcos_platform.h
+ln -Tsf $H/interface.vcos.riscos.vcos_platform_types.h $S/interface/vcos/riscos/vcos_platform_types.h
+ln -Tsf $H/interface.vcos.riscos.vcos_threads.c $S/interface/vcos/riscos/vcos_threads.c
+
+# Make a copy of this file. There's no GPU stuff here, so it can go directly into
+# the library rather than calling into the module.
+ln -Tsf $S/interface/khronos/vg/vg_int_mat3x3.c $S/../OpenVG/vg_int_mat3x3.c
+
+ln -Tsf $H/wimp_test.main.c $S/../wimp_test/main.c
+ln -Tsf $H/wimp_test.makefile $S/../wimp_test/makefile
+
+cd $S/..
+
+ab_make() {
+  $AB_MAKE
+  $AB_MAKE install
+
+  ( cd userland/host_applications/linux/apps/hello_pi/hello_triangle; $AB_MAKE )
+  ( cd userland/host_applications/linux/apps/hello_pi/hello_triangle2; $AB_MAKE )
+  ( cd userland/host_applications/linux/apps/hello_pi/hello_tiger; $AB_MAKE )
+  ( cd wimp_test; $AB_MAKE )
+}
+
+add_headers()
+{
+  local src_header_dir
+  local dst_header_dir
+  local f
+  local HERE
+
+  src_header_dir=$1
+  dst_header_dir=$2
+
+  HERE=`pwd`
+  cd $src_header_dir
+
+  mkdir -p $dst_header_dir/h
+  for f in *
+  do
+    if [ -d "$f" ] ; then
+      add_headers $src_header_dir/$f $dst_header_dir/$f
+    else
+      filename=$(basename "$f")
+      filename="${filename%.*}"
+      cp -v -T $f $dst_header_dir/h/$filename
+    fi
+  done
+
+  cd $HERE
+}
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton khronos
+
+    # There are no symlinks, so use cp rather than ab_add_sharedlib.
+    cp $S/libbcm_host.so,e1f "$A/lib/abi-2.0"
+    cp $S/libEGL.so,e1f "$A/lib/abi-2.0"
+    cp $S/libGLESv2.so,e1f "$A/lib/abi-2.0"
+    cp $S/libOpenVG.so,e1f "$A/lib/abi-2.0"
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -name khronos -section System
+  fi
+
+  ab_create_app hello_triangle System
+
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/hello_triangle,e1f $A
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Djenne_128_128.raw $A
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Gaudi_128_128.raw $A
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Lucca_128_128.raw $A
+  
+  echo "Set Khronos\$Test <Obey\$Dir>" >> "$A/!Run,feb"
+  echo "WimpSlot -min 400k -max 400k" >> "$A/!Run,feb"
+  echo "Run <Khronos\$Test>.hello_triangle > <Khronos\$Test>.debug 2>&1" >> "$A/!Run,feb"
+  
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -unixlib -name hello_triangle -section System
+
+  ab_create_app hello_triangle2 System
+
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle2/hello_triangle2,e1f $A
+  
+  echo "Set Khronos\$Test <Obey\$Dir>" >> "$A/!Run,feb"
+  echo "WimpSlot -min 400k -max 400k" >> "$A/!Run,feb"
+  echo "Run <Khronos\$Test>.hello_triangle2 > <Khronos\$Test>.debug 2>&1" >> "$A/!Run,feb"
+  
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -unixlib -name hello_triangle2 -section System
+
+  ab_create_app hello_tiger System
+
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_tiger/hello_tiger,e1f $A
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_tiger/license.txt $A
+  
+  echo "Set Khronos\$Test <Obey\$Dir>" >> "$A/!Run,feb"
+  echo "WimpSlot -min 400k -max 400k" >> "$A/!Run,feb"
+  echo "Run <Khronos\$Test>.hello_tiger > <Khronos\$Test>.debug 2>&1" >> "$A/!Run,feb"
+  
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -unixlib -name hello_tiger -section System
+
+  ab_create_app wimp_opengl System
+
+  cp "$S/wimp_test/!RunImage,e1f" $A
+  
+  echo "Set Khronos\$Test <Obey\$Dir>" >> "$A/!Run,feb"
+  echo "WimpSlot -min 400k -max 400k" >> "$A/!Run,feb"
+  echo "Run <Khronos\$Test>.!RunImage > <Khronos\$Test>.debug 2>&1" >> "$A/!Run,feb"
+
+  $AB_HOME/add-riscpkg -unixlib -name WimpOpenGL -section System
+
+  ab_create_app Khronos System
+
+  add_headers $GCCSDK_INSTALL_ENV/include/EGL $A/EGL
+  add_headers $GCCSDK_INSTALL_ENV/include/GLES $A/GLES
+  add_headers $GCCSDK_INSTALL_ENV/include/GLES2 $A/GLES2
+  add_headers $GCCSDK_INSTALL_ENV/include/VG $A/VG
+  add_headers $GCCSDK_INSTALL_ENV/include/WF $A/WF
+  add_headers $GCCSDK_INSTALL_ENV/include/KHR $A/KHR
+  add_headers $GCCSDK_INSTALL_ENV/include/vcinclude $A/vcinclude
+  add_headers $GCCSDK_INSTALL_ENV/include/interface $A/interface
+
+  # Remove empty directories created above.
+  rmdir $A/interface/h
+  rmdir $A/interface/vmcs_host/khronos/h
+  
+  mkdir -p $A/h
+  cp -f $GCCSDK_INSTALL_ENV/include/bcm_host.h $A/h/bcm_host
+  cp -f $S/*.a $A
+  cp -f $S/khronos,ffa $A
+
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -unixlib -name Khronos -section System
+}

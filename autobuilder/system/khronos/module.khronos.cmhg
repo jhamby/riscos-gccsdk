@@ -1,0 +1,30 @@
+help-string: Khronos 1.00
+
+title-string: Khronos
+
+swi-chunk-base-number: 0x59800
+
+swi-handler-code: khronos_swi_handler
+
+swi-decoding-table: Khronos, EGL, GL, OpenVG, VC, Initialise
+
+initialisation-code: khronos_init
+
+finalisation-code: khronos_final
+
+error-chunk-base-number: 0x81DC20
+
+error-identifiers: khronos_no_vchiq("Khronos requires a machine with a VCHIQ module (eg. RaspberryPi)"),
+		   khronos_nomem("Out of memory"),
+		   khronos_bad_vc_reason("Unknown VC SWI reason code"),
+		   khronos_bad_egl_reason("Unknown EGL SWI reason code"),
+		   khronos_bad_openvg_reason("Unknown OpenVG SWI reason code"),
+		   khronos_bad_gl_reason("Unknown GL SWI reason code")
+
+command-keyword-table: module_command
+  KhronosStatus(min-args: 0, max-args: 0,
+                invalid-syntax: "Syntax: *KhronosStatus",
+                help-text: "*KhronosStatus shows the last known errors returned by the graphics hardware, if any.\n"),
+  KhronosInfo(min-args: 0, max-args: 0,
+              invalid-syntax: "Syntax: *KhronosInfo",
+              help-text: "*KhronosInfo shows the current stats of the graphics hardware.\n")
