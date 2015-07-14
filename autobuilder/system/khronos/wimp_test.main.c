@@ -40,8 +40,6 @@
 
 #include "interface/vmcs_host/vc_vchi_dispmanx.h"
 
-#include "/home/lee/ProgDev/debug-inlines.h"
-
 #define wimp_INVALID_WINDOW (wimp_w)0xFFFFFFFF
 
 #define CHECK(x) if (!(x)) { fprintf(stderr, "Failed at line %d\n", __LINE__); }
