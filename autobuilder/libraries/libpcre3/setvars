@@ -6,7 +6,7 @@ fi
 AB_INSTALL=yes
 AB_LICENCE=Free
 AB_ROVERSION=2
-AB_CONFLAGS="$AB_CONFLAGS --enable-utf8 --enable-unicode-properties"
+AB_CONFLAGS="$AB_CONFLAGS --enable-utf8 --enable-unicode-properties --enable-pcre16"
 
 ab_package()
 {
@@ -40,6 +40,7 @@ ab_package()
     ab_add_sharedlib $S/.libs libpcre.so.1
     ab_add_sharedlib $S/.libs libpcrecpp.so.0
     ab_add_sharedlib $S/.libs libpcreposix.so.0
+    ab_add_sharedlib $S/.libs libpcre16.so.0
 
     $AB_HOME/add-riscpkg -package libpcre3 -name LibPcre3 -unixlib \
          -depends SharedLibs -copyrightfile $S/COPYING
