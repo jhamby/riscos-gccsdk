@@ -58,11 +58,11 @@ $(MODULE_OBJECT): $(MODULE_CMHG)
 
 
 ifeq ($(MODULE_CMHG),)
-$(TARGET): $(TARGET).so,e1f $(TARGET).a $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
+$(TARGET): $(TARGET).so $(TARGET).a $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
 
-$(TARGET).so,e1f: $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
-	@echo Generating shared library $(TARGET).so,e1f
-	$(LINK) -o $(TARGET).so,e1f $(SHOBJS) $(LIBS) $(SYSTEM_LIBS) -shared -Wl,--no-undefined
+$(TARGET).so: $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
+	@echo Generating shared library $(TARGET).so
+	$(LINK) -o $(TARGET).so $(SHOBJS) $(LIBS) $(SYSTEM_LIBS) -shared -Wl,--no-undefined
 
 $(TARGET).a: $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
 	@echo Generating archive library $(TARGET).a

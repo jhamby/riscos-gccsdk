@@ -100,10 +100,10 @@ ab_package() {
     ab_create_sharedlib_skeleton khronos
 
     # There are no symlinks, so use cp rather than ab_add_sharedlib.
-    cp $S/libbcm_host.so,e1f "$A/lib/abi-2.0"
-    cp $S/libEGL.so,e1f "$A/lib/abi-2.0"
-    cp $S/libGLESv2.so,e1f "$A/lib/abi-2.0"
-    cp $S/libOpenVG.so,e1f "$A/lib/abi-2.0"
+    cp -T $S/libbcm_host.so "$A/lib/abi-2.0/libbcm_host.so,e1f"
+    cp -T $S/libEGL.so "$A/lib/abi-2.0/libEGL.so,e1f"
+    cp -T $S/libGLESv2.so "$A/lib/abi-2.0/libGLESv2.so,e1f"
+    cp -T $S/libOpenVG.so "$A/lib/abi-2.0/libOpenVG.so,e1f"
 
     AB_COMPONENTS=""
     $AB_HOME/add-riscpkg -name khronos -section System
