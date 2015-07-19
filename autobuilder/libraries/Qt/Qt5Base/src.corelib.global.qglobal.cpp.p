@@ -1,6 +1,6 @@
---- src/corelib/global/qglobal.cpp.orig	2015-02-17 04:56:50.000000000 +0000
-+++ src/corelib/global/qglobal.cpp	2015-05-08 20:06:12.264661240 +0100
-@@ -2676,6 +2676,22 @@
+--- src/corelib/global/qglobal.cpp.orig	2015-06-29 21:04:58.000000000 +0100
++++ src/corelib/global/qglobal.cpp	2015-07-15 18:24:20.410735903 +0100
+@@ -2778,6 +2778,22 @@
      return unknownText();
  }
  
@@ -23,7 +23,7 @@
  /*!
      \macro void Q_ASSERT(bool test)
      \relates <QtGlobal>
-@@ -3192,7 +3208,8 @@
+@@ -3344,7 +3360,8 @@
  */
  void qsrand(uint seed)
  {
@@ -33,7 +33,7 @@
      SeedStorage *seedStorage = randTLS();
      if (seedStorage) {
          SeedStorageType *pseed = seedStorage->localData();
-@@ -3246,7 +3263,8 @@
+@@ -3398,7 +3415,8 @@
  */
  int qrand()
  {

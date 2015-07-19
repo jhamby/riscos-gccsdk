@@ -1,6 +1,6 @@
---- src/network/socket/qnativesocketengine_unix.cpp.orig	2015-02-17 04:56:38.000000000 +0000
-+++ src/network/socket/qnativesocketengine_unix.cpp	2015-04-12 13:43:51.612657031 +0100
-@@ -622,7 +622,9 @@
+--- src/network/socket/qnativesocketengine_unix.cpp.orig	2015-06-29 21:04:47.000000000 +0100
++++ src/network/socket/qnativesocketengine_unix.cpp	2015-07-15 18:24:19.938735896 +0100
+@@ -589,7 +589,9 @@
              setError(QAbstractSocket::SocketResourceError, NotSocketErrorString);
              break;
          case EPROTONOSUPPORT:

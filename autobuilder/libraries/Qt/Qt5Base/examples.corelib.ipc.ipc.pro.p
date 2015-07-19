@@ -1,9 +1,9 @@
---- examples/corelib/ipc/ipc.pro.orig	2015-02-17 04:56:28.000000000 +0000
-+++ examples/corelib/ipc/ipc.pro	2015-04-12 18:59:14.737199712 +0100
+--- examples/corelib/ipc/ipc.pro.orig	2015-07-15 18:24:20.210735900 +0100
++++ examples/corelib/ipc/ipc.pro	2015-07-15 19:56:27.390807524 +0100
 @@ -2,5 +2,5 @@
  
  TEMPLATE      = subdirs
  # no QSharedMemory
--!vxworks:!qnx:SUBDIRS = sharedmemory
-+!vxworks:!qnx:!*riscos*:SUBDIRS = sharedmemory
+-!vxworks:SUBDIRS = sharedmemory
++!vxworks:!*riscos*:SUBDIRS = sharedmemory
  !wince*:qtHaveModule(network): SUBDIRS += localfortuneserver localfortuneclient

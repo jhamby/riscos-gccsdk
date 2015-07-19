@@ -1,8 +1,8 @@
-AB_URL=http://download.qt-project.org/official_releases/qt/5.4/5.4.1/submodules/qtbase-opensource-src-5.4.1.tar.xz
+AB_URL=http://download.qt-project.org/official_releases/qt/5.5/5.5.0/submodules/qtbase-opensource-src-5.5.0.tar.xz
 
 AB_INSTALL=env
 
-QTBASE_VERSION=5.4.1
+QTBASE_VERSION=5.5.0
 
 export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
 export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
@@ -15,14 +15,12 @@ AB_PRECONF=:
 
 mkdir -p $S/src/plugins/platforms/riscos
 ln -T -s -f $H/src.plugins.platforms.riscos.main.cpp $S/src/plugins/platforms/riscos/main.cpp
-ln -T -s -f $H/src.plugins.platforms.riscos.qriscos.h $S/src/plugins/platforms/riscos/qriscos.h
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscosbackingstore.h $S/src/plugins/platforms/riscos/qriscosbackingstore.h
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscosbackingstore.cpp $S/src/plugins/platforms/riscos/qriscosbackingstore.cpp
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoseventdispatcher.cpp $S/src/plugins/platforms/riscos/qriscoseventdispatcher.cpp
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoseventdispatcher.h $S/src/plugins/platforms/riscos/qriscoseventdispatcher.h
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscosintegration.h $S/src/plugins/platforms/riscos/qriscosintegration.h
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscosintegration.cpp $S/src/plugins/platforms/riscos/qriscosintegration.cpp
-ln -T -s -f $H/src.plugins.platforms.riscos.qriscosmemory.cpp $S/src/plugins/platforms/riscos/qriscosmemory.cpp
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.cpp $S/src/plugins/platforms/riscos/qriscoswindow.cpp
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.h $S/src/plugins/platforms/riscos/qriscoswindow.h
 ln -T -s -f $H/src.plugins.platforms.riscos.riscos.json $S/src/plugins/platforms/riscos/riscos.json
@@ -41,7 +39,8 @@ $S/bin/syncqt.pl
 
 ./configure -prefix $GCCSDK_INSTALL_ENV -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
 -confirm-license -no-reduce-relocations -xplatform arm-riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
--fontconfig -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -no-harfbuzz -force-asserts -riscos -qpa riscos -v
+-fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -no-harfbuzz -force-asserts \
+-riscos -qpa riscos -v
 
 
 # There are parts of the source that need to be built natively, eg, tools used in

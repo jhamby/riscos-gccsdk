@@ -1,6 +1,6 @@
---- src/corelib/global/qsysinfo.h.orig	2015-02-17 04:56:50.000000000 +0000
-+++ src/corelib/global/qsysinfo.h	2015-05-08 12:35:48.996587940 +0100
-@@ -167,6 +167,13 @@
+--- src/corelib/global/qsysinfo.h.orig	2015-06-29 21:04:58.000000000 +0100
++++ src/corelib/global/qsysinfo.h	2015-07-15 18:24:19.858735895 +0100
+@@ -186,6 +186,13 @@
      static QString productType();
      static QString productVersion();
      static QString prettyProductName();

@@ -1,6 +1,6 @@
---- src/corelib/json/qjson_p.h.orig	2015-02-17 04:56:49.000000000 +0000
-+++ src/corelib/json/qjson_p.h	2015-04-12 13:43:51.636657032 +0100
-@@ -141,7 +141,7 @@
+--- src/corelib/json/qjson_p.h.orig	2015-06-29 21:05:03.000000000 +0100
++++ src/corelib/json/qjson_p.h	2015-07-15 18:24:20.390735902 +0100
+@@ -143,7 +143,7 @@
          val = qToLittleEndian(qFromLittleEndian(val) + i);
          return *this;
      }

@@ -1,6 +1,6 @@
---- src/corelib/thread/qthread_unix.cpp.orig	2015-02-17 04:56:49.000000000 +0000
-+++ src/corelib/thread/qthread_unix.cpp	2015-04-12 13:43:51.608657031 +0100
-@@ -273,7 +273,7 @@
+--- src/corelib/thread/qthread_unix.cpp.orig	2015-06-29 21:04:56.000000000 +0100
++++ src/corelib/thread/qthread_unix.cpp	2015-07-15 18:24:19.934735896 +0100
+@@ -267,7 +267,7 @@
  
  #ifndef QT_NO_THREAD
  
@@ -9,7 +9,7 @@
  static void setCurrentThreadName(pthread_t threadId, const char *name)
  {
  #  if defined(Q_OS_LINUX) && !defined(QT_LINUXBASE)
-@@ -282,7 +282,7 @@
+@@ -276,7 +276,7 @@
  #  elif defined(Q_OS_MAC)
      Q_UNUSED(threadId);
      pthread_setname_np(name);
@@ -18,7 +18,7 @@
      pthread_setname_np(threadId, name);
  #  endif
  }
-@@ -318,7 +318,7 @@
+@@ -312,7 +312,7 @@
      else
          createEventDispatcher(data);
  
@@ -27,7 +27,7 @@
      // sets the name of the current thread.
      QString objectName = thr->objectName();
  
-@@ -446,6 +446,8 @@
+@@ -438,6 +438,8 @@
      // as of aug 2008 VxWorks < 6.6 only supports one single core CPU
      cores = 1;
  #  endif

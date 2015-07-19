@@ -44,15 +44,15 @@
 **
 ****************************************************************************/
 
-#include "qriscosintegration.h"
-#include "qriscosbackingstore.h"
-#include "qriscoseventdispatcher.h"
-#include "qriscoswindow.h"
-
 #include <QtPlatformSupport/private/qfontconfigdatabase_p.h>
 #include <QtGui/private/qguiapplication_p.h>
 #include "qcoreapplication.h"
 #include "qfileinfo.h"
+
+#include "qriscosintegration.h"
+#include "qriscosbackingstore.h"
+#include "qriscoseventdispatcher.h"
+#include "qriscoswindow.h"
 
 #include "oslib/os.h"
 #include "oslib/wimp.h"
