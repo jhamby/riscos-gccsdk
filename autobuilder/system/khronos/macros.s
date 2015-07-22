@@ -47,6 +47,8 @@
 	.endif
 	SWI	\swi
 	MOV	pc, lr
+	.type	\name, %function
+	.size	\name, . - \name
 	.endm
 
 	@ For functions with 5 arguments
@@ -63,6 +65,8 @@
 	SWI	\swi
 	LDR	r4, [sp], #4
 	MOV	pc, lr
+	.type	\name, %function
+	.size	\name, . - \name
 	.endm
 
 	@ For functions with 6 arguments
@@ -80,6 +84,8 @@
 	SWI	\swi
 	LDMIA	sp!, {r4, r5}
 	MOV	pc, lr
+	.type	\name, %function
+	.size	\name, . - \name
 	.endm
 
 	@ For functions with 7 arguments
@@ -97,4 +103,6 @@
 	SWI	\swi
 	LDMIA	sp!, {r4, r5, r6}
 	MOV	pc, lr
+	.type	\name, %function
+	.size	\name, . - \name
 	.endm
