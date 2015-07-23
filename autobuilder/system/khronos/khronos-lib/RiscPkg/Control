@@ -1,0 +1,4 @@
+Description: Khronos - shared libraries
+ ELF Shared libraries to provide access to the OpenGL
+ hardware of the RaspberryPi.
+

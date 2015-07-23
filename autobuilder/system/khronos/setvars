@@ -1,5 +1,8 @@
 AB_GIT=https://github.com/raspberrypi/userland
 
+AB_PVERSION=1.00
+AB_PACKAGES="khronos khronos-lib khronos-dev khronos-examples"
+
 AB_PRECONF=:
 
 mkdir -p $S/../bcm_host \
@@ -97,7 +100,7 @@ add_headers()
 
 ab_package() {
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-    ab_create_sharedlib_skeleton khronos
+    ab_create_sharedlib_skeleton khronos-lib
 
     # There are no symlinks, so use cp rather than ab_add_sharedlib.
     cp -T $S/libbcm_host.so "$A/lib/abi-2.0/libbcm_host.so,e1f"
@@ -106,57 +109,70 @@ ab_package() {
     cp -T $S/libOpenVG.so "$A/lib/abi-2.0/libOpenVG.so,e1f"
 
     AB_COMPONENTS=""
-    $AB_HOME/add-riscpkg -name khronos -section System
+    $AB_HOME/add-riscpkg -name Khronos-Lib -section System -package khronos-lib \
+         -depends Khronos -depends SharedLibs-C2
   fi
 
-  ab_create_app hello_triangle System
+  ex_package="khronos-examples"
+  A=$D/$ex_package/Apps/Development/KhronosEx/
+  mkdir -p $A
+  
+  ex_app=$A/!HelloTriangle
+  mkdir $ex_app
 
-  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/hello_triangle,e1f $A
-  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Djenne_128_128.raw $A
-  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Gaudi_128_128.raw $A
-  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Lucca_128_128.raw $A
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/hello_triangle,e1f $ex_app
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Djenne_128_128.raw $ex_app
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Gaudi_128_128.raw $ex_app
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle/Lucca_128_128.raw $ex_app
   
-  echo "Set Khronos\$Test <Obey\$Dir>" >> "$A/!Run,feb"
-  echo "WimpSlot -min 400k -max 400k" >> "$A/!Run,feb"
-  echo "Run <Khronos\$Test>.hello_triangle > <Khronos\$Test>.debug 2>&1" >> "$A/!Run,feb"
+  echo "Set Khronos\$Test <Obey\$Dir>" >> "$ex_app/!Run,feb"
+  echo "WimpSlot -min 400k -max 400k" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.00 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.00 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
+  echo "Run <Khronos\$Test>.hello_triangle > <Khronos\$Test>.debug 2>&1" >> "$ex_app/!Run,feb"
+
+  ex_app=$A/!HelloTriangle2
+  mkdir $ex_app
   
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle2/hello_triangle2,e1f $ex_app
+  
+  echo "Set Khronos\$Test <Obey\$Dir>" >> "$ex_app/!Run,feb"
+  echo "WimpSlot -min 400k -max 400k" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.00 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.00 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
+  echo "Run <Khronos\$Test>.hello_triangle2 > <Khronos\$Test>.debug 2>&1" >> "$ex_app/!Run,feb"
+ 
+  ex_app=$A/!HelloTiger
+  mkdir $ex_app
+  
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_tiger/hello_tiger,e1f $ex_app
+  cp $S/userland/host_applications/linux/apps/hello_pi/hello_tiger/license.txt $ex_app
+  
+  echo "Set Khronos\$Test <Obey\$Dir>" >> "$ex_app/!Run,feb"
+  echo "WimpSlot -min 400k -max 400k" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.00 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.00 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
+  echo "Run <Khronos\$Test>.hello_tiger > <Khronos\$Test>.debug 2>&1" >> "$ex_app/!Run,feb"
+  
+  ex_app=$A/!WimpOpenGL
+  mkdir $ex_app
+
+  cp "$S/wimp_test/!RunImage,e1f" $ex_app
+  
+  echo "Set Khronos\$Test <Obey\$Dir>" >> "$ex_app/!Run,feb"
+  echo "WimpSlot -min 400k -max 400k" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.00 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.00 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
+  echo "Run <Khronos\$Test>.!RunImage > <Khronos\$Test>.debug 2>&1" >> "$ex_app/!Run,feb"
+
+  AB_SUBPACKAGE=""
+  AB_COMPONENTS="Apps.Development.KhronosEx (Movable)"
+  $AB_HOME/add-riscpkg -name Khronos-Examples -section Development \
+       -package khronos-examples \
+       -depends Khronos -depends SharedLibs-C2
+
   AB_COMPONENTS=""
-  $AB_HOME/add-riscpkg -unixlib -name hello_triangle -section System
-
-  ab_create_app hello_triangle2 System
-
-  cp $S/userland/host_applications/linux/apps/hello_pi/hello_triangle2/hello_triangle2,e1f $A
-  
-  echo "Set Khronos\$Test <Obey\$Dir>" >> "$A/!Run,feb"
-  echo "WimpSlot -min 400k -max 400k" >> "$A/!Run,feb"
-  echo "Run <Khronos\$Test>.hello_triangle2 > <Khronos\$Test>.debug 2>&1" >> "$A/!Run,feb"
-  
-  AB_COMPONENTS=""
-  $AB_HOME/add-riscpkg -unixlib -name hello_triangle2 -section System
-
-  ab_create_app hello_tiger System
-
-  cp $S/userland/host_applications/linux/apps/hello_pi/hello_tiger/hello_tiger,e1f $A
-  cp $S/userland/host_applications/linux/apps/hello_pi/hello_tiger/license.txt $A
-  
-  echo "Set Khronos\$Test <Obey\$Dir>" >> "$A/!Run,feb"
-  echo "WimpSlot -min 400k -max 400k" >> "$A/!Run,feb"
-  echo "Run <Khronos\$Test>.hello_tiger > <Khronos\$Test>.debug 2>&1" >> "$A/!Run,feb"
-  
-  AB_COMPONENTS=""
-  $AB_HOME/add-riscpkg -unixlib -name hello_tiger -section System
-
-  ab_create_app wimp_opengl System
-
-  cp "$S/wimp_test/!RunImage,e1f" $A
-  
-  echo "Set Khronos\$Test <Obey\$Dir>" >> "$A/!Run,feb"
-  echo "WimpSlot -min 400k -max 400k" >> "$A/!Run,feb"
-  echo "Run <Khronos\$Test>.!RunImage > <Khronos\$Test>.debug 2>&1" >> "$A/!Run,feb"
-
-  $AB_HOME/add-riscpkg -unixlib -name WimpOpenGL -section System
-
-  ab_create_app Khronos System
+  ab_create_app Khronos Apps/Library khronos-dev
 
   add_headers $GCCSDK_INSTALL_ENV/include/EGL $A/EGL
   add_headers $GCCSDK_INSTALL_ENV/include/GLES $A/GLES
@@ -174,8 +190,17 @@ ab_package() {
   mkdir -p $A/h
   cp -f $GCCSDK_INSTALL_ENV/include/bcm_host.h $A/h/bcm_host
   cp -f $S/*.a $A
-  cp -f $S/khronos,ffa $A
+ 
+  $AB_HOME/add-riscpkg -name Khronos-Dev -section Library -package khronos-dev \
+       -unixlib -depends Khronos
+ 
+   A=$D/khronos/System/500/Modules
+   mkdir -p $A
+  
+   cp -f $S/khronos,ffa $A
 
-  AB_COMPONENTS=""
-  $AB_HOME/add-riscpkg -unixlib -name Khronos -section System
+   AB_SUBPACKAGE=""
+   AB_COMPONENTS=""
+   $AB_HOME/add-riscpkg -name Khronos -section Library -package khronos
 }
+
