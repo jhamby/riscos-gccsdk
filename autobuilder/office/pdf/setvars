@@ -7,6 +7,7 @@ AB_MAKE="$AB_MAKE -f Makefile.cross"
 
 v=`grep -e"[0-9]" -m1 History`
 AB_PVERSION=`echo $v`
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_app PDF Apps/Document
@@ -39,7 +40,7 @@ ab_package() {
   cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/COPYING $A/gsfonts
   
   $AB_HOME/add-riscpkg -unixlib -name PDF \
-        -copyrightfile LICENCES/README
+        -copyrightfile LICENCES/README \
+        -components "Apps.Document.!PDF (Movable LookAt)"
 }
-
 
