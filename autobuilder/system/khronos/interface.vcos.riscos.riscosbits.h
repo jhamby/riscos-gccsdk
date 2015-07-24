@@ -39,8 +39,6 @@
 #include <string.h>
 #include "kernel.h"
 
-#define __init
-#define __exit
 #define __attribute__(X)
 #define kzalloc(X,Y) malloc(X)
 #define kmalloc(X,Y) malloc(X)
