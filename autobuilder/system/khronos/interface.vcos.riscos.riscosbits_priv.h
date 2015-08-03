@@ -42,7 +42,7 @@
 #define list_add(ITEM,HEAD) do { (ITEM)->next = (HEAD)->next; (ITEM)->prev = (HEAD); (HEAD)->next = (ITEM); (ITEM)->next->prev = (ITEM); } while(0)
 
 struct key {
-    struct list_head link;
+    struct __vcos_list_head link;
     uint32_t key;
     uint32_t value;
 };

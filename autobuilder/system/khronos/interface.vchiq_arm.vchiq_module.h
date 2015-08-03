@@ -44,7 +44,7 @@ enum {
 typedef struct remote_event_struct {
 	int armed;
 	int fired;
-	struct semaphore *event;
+	VCOS_SEMAPHORE_T *event;
 } REMOTE_EVENT_T;
 
 typedef struct vchiq_shared_state_struct {
@@ -117,7 +117,7 @@ typedef struct vchiq_service_quota_struct {
 	unsigned short slot_use_count;
 	unsigned short message_quota;
 	unsigned short message_use_count;
-	struct semaphore quota_event;
+	VCOS_SEMAPHORE_T quota_event;
 	int previous_tx_index;
 } VCHIQ_SERVICE_QUOTA_T;
 
@@ -173,9 +173,9 @@ typedef struct vchiq_service_struct {
 	VCHIQ_BULK_QUEUE_T bulk_tx;
 	VCHIQ_BULK_QUEUE_T bulk_rx;
 
-	struct semaphore remove_event;
-	struct semaphore bulk_remove_event;
-	struct mutex bulk_mutex;
+	VCOS_SEMAPHORE_T remove_event;
+	VCOS_SEMAPHORE_T bulk_remove_event;
+	VCOS_MUTEX_T bulk_mutex;
 
 	struct service_stats_struct {
 		int quota_stalls;
@@ -210,44 +210,44 @@ struct vchiq_state_struct {
 	unsigned short default_message_quota;
 
 	/* Event indicating connect message received */
-	struct semaphore connect;
+	VCOS_SEMAPHORE_T connect;
 
 	/* Mutex protecting services */
-	struct mutex mutex;
+	VCOS_MUTEX_T mutex;
 	VCHIQ_INSTANCE_T *instance;
 
 	/* Processes incoming messages */
-	struct task_struct *slot_handler_thread;
+	VCOS_TASK_T slot_handler_thread;
 
 	/* Processes recycled slots */
-	struct task_struct *recycle_thread;
+	VCOS_TASK_T recycle_thread;
 
 	/* Processes synchronous messages */
-	struct task_struct *sync_thread;
+	VCOS_TASK_T sync_thread;
 
 	/* Local implementation of the trigger remote event */
-	struct semaphore trigger_event;
+	VCOS_SEMAPHORE_T trigger_event;
 
 	/* Local implementation of the recycle remote event */
-	struct semaphore recycle_event;
+	VCOS_SEMAPHORE_T recycle_event;
 
 	/* Local implementation of the sync trigger remote event */
-	struct semaphore sync_trigger_event;
+	VCOS_SEMAPHORE_T sync_trigger_event;
 
 	/* Local implementation of the sync release remote event */
-	struct semaphore sync_release_event;
+	VCOS_SEMAPHORE_T sync_release_event;
 
 	char *tx_data;
 	char *rx_data;
 	VCHIQ_SLOT_INFO_T *rx_info;
 
-	struct mutex slot_mutex;
+	VCOS_MUTEX_T slot_mutex;
 
-	struct mutex recycle_mutex;
+	VCOS_MUTEX_T recycle_mutex;
 
-	struct mutex sync_mutex;
+	VCOS_MUTEX_T sync_mutex;
 
-	struct mutex bulk_transfer_mutex;
+	VCOS_MUTEX_T bulk_transfer_mutex;
 
 	/* Indicates the byte position within the stream from where the next
 	** message will be read. The least significant bits are an index into
@@ -281,12 +281,12 @@ struct vchiq_state_struct {
 	int unused_service;
 
 	/* Signalled when a free slot becomes available. */
-	struct semaphore slot_available_event;
+	VCOS_SEMAPHORE_T slot_available_event;
 
-	struct semaphore slot_remove_event;
+	VCOS_SEMAPHORE_T slot_remove_event;
 
 	/* Signalled when a free data slot becomes available. */
-	struct semaphore data_quota_event;
+	VCOS_SEMAPHORE_T data_quota_event;
 
 	/* Incremented when there are bulk transfers which cannot be processed
 	 * whilst paused and must be processed on resume */
@@ -313,8 +313,8 @@ struct vchiq_instance_struct {
 
 	int connected;
 
-	struct list_head bulk_waiter_list;
-	struct mutex bulk_waiter_list_mutex;
+	struct __vcos_list_head bulk_waiter_list;
+	VCOS_MUTEX_T bulk_waiter_list_mutex;
 
 	void *private_word;
 } *vchiq_instance;

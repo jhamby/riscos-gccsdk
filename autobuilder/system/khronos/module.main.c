@@ -61,7 +61,7 @@ khronos_init(const char *cmd_tail,int podule_base,void *pw)
 
   INIT_LIST_HEAD(&globals->tasks);
 
-  struct task_struct *fg = &globals->foreground;
+  struct __vcos_task_struct *fg = &globals->foreground;
   /* Mostly useless zero'ing because already used memset above.  */
   fg->rt_handle = 0;
   fg->stop = false;

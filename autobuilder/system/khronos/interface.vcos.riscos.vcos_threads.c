@@ -149,7 +149,7 @@ extern VCOS_STATUS_T vcos_thread_at_exit(void (*pfn)(void*), void *cxt)
 
 /* Threads */
 
-static void thread_wrapper(struct task_struct *t)
+static void thread_wrapper(VCOS_TASK_T t)
 {
 	/* Initialise t->rt_handle */
 	_swix(RT_ReadInfo,_IN(0)|_OUT(0),RTReadInfo_Handle,&t->rt_handle);
@@ -160,17 +160,17 @@ static void thread_wrapper(struct task_struct *t)
 	_swix(RT_Deregister,_INR(0,1),0,t->rt_handle);
 }
 
-struct task_struct *
+VCOS_TASK_T
 kthread_create(int (*func)(void *),void *param,const char *name)
 {
 	(void) name;
 	
-	struct task_struct *thread = malloc(sizeof(struct task_struct));
+	VCOS_TASK_T thread = malloc(sizeof(struct __vcos_task_struct));
 	if(!thread)
 	{
 		return 0;
 	}
-	memset(thread,0,sizeof(struct task_struct));
+	memset(thread,0,sizeof(struct __vcos_task_struct));
 	_kernel_stack_chunk *stack = malloc(THREAD_STACK_SIZE);
 	if(!stack)
 	{
@@ -207,21 +207,21 @@ kthread_create(int (*func)(void *),void *param,const char *name)
 	return thread;
 }
 
-struct task_struct * __attribute__((noinline))
+VCOS_TASK_T __attribute__((noinline))
 kthread_self(void)
 {
   int irq = ensure_irqs_off();
 
   uint32_t self_handle;
   struct module_globals *glob = globals;
-  struct list_head *l,*n;
-  struct task_struct *self = 0;
+  struct __vcos_list_head *l,*n;
+  VCOS_TASK_T self = 0;
 
   _swix(RT_ReadInfo,_IN(0)|_OUT(0),RTReadInfo_Handle,&self_handle);
 
   list_for_each_safe(l, n, &glob->tasks) {
-    if (list_entry(l, struct task_struct, link)->rt_handle == self_handle) {
-      self = list_entry(l, struct task_struct, link);
+    if (list_entry(l, struct __vcos_task_struct, link)->rt_handle == self_handle) {
+      self = list_entry(l, struct __vcos_task_struct, link);
       break;
     }
   }
@@ -231,7 +231,7 @@ kthread_self(void)
   return self;
 }
 
-static struct mutex once_mutex = { 1, 0 };
+static VCOS_MUTEX_T once_mutex = { 1, 0 };
 
 int kthread_once(VCOS_ONCE_T *once, void (*ctor)(void))
 {
@@ -255,7 +255,7 @@ int kthread_key_create(VCOS_TLS_KEY_T *key, void (*dtor)(void *))
   static uint32_t next_key = -1;
   int irq = ensure_irqs_off(), ret = 0;
   struct key *k;
-  struct task_struct *self = kthread_self();
+  VCOS_TASK_T self = kthread_self();
 
   if ((k = malloc(sizeof(struct key))) != NULL) {
     list_add(&k->link, &self->keys);
@@ -274,8 +274,8 @@ void kthread_key_delete(VCOS_TLS_KEY_T key)
 {
   int irq = ensure_irqs_off();
 
-  struct list_head *l,*n;
-  struct task_struct *self = kthread_self();
+  struct __vcos_list_head *l,*n;
+  VCOS_TASK_T self = kthread_self();
 
   list_for_each_safe(l, n, &self->keys) {
     if (list_entry(l, struct key, link)->key == key) {
@@ -291,8 +291,8 @@ int kthread_setspecific(VCOS_TLS_KEY_T key, void *value)
 {
   int irq = ensure_irqs_off();
 
-  struct list_head *l;
-  struct task_struct *self = kthread_self();
+  struct __vcos_list_head *l;
+  VCOS_TASK_T self = kthread_self();
   int rc = -1;
   
   list_for_each(l, &self->keys) {
@@ -312,8 +312,8 @@ void *kthread_getspecific(VCOS_TLS_KEY_T key)
 {
   int irq = ensure_irqs_off();
 
-  struct list_head *l;
-  struct task_struct *self = kthread_self();
+  struct __vcos_list_head *l;
+  VCOS_TASK_T self = kthread_self();
   void *rc = NULL;
   
   list_for_each(l, &self->keys) {
@@ -506,17 +506,17 @@ VCOS_STATUS_T vcos_once(VCOS_ONCE_T *once_control,
 
 /* Mutexes */
 
-void mutex_init(struct mutex *m)
+void mutex_init(VCOS_MUTEX_T *m)
 {
 	m->pollword = 1;
 }
 
-int mutex_trylock(struct mutex *m)
+int mutex_trylock(VCOS_MUTEX_T *m)
 {
   return mutex_lock(m);
 }
 
-int mutex_lock(struct mutex *m)
+int mutex_lock(VCOS_MUTEX_T *m)
 {
 	uint32_t rt_handle = _swi(RT_ReadInfo,_IN(0)|_RETURN(0),RTReadInfo_Handle);
 	int irqs = ensure_irqs_off();
@@ -534,7 +534,7 @@ int mutex_lock(struct mutex *m)
 	return 0;
 }
 
-void mutex_unlock(struct mutex *m)
+void mutex_unlock(VCOS_MUTEX_T *m)
 {
 	m->pollword = 1;
 	/* Wake up any waiting threads */
@@ -543,17 +543,17 @@ void mutex_unlock(struct mutex *m)
 
 /* Semaphores */
 
-void sem_init(struct semaphore *s,int i)
+void sem_init(VCOS_SEMAPHORE_T *s,int i)
 {
 	s->pollword = i;
 }
 
-int sem_destroy(struct semaphore *s)
+int sem_destroy(VCOS_SEMAPHORE_T *s)
 {
   return 0;
 }
 
-int sem_wait (struct semaphore *s)
+int sem_wait (VCOS_SEMAPHORE_T *s)
 {
   int irqs = ensure_irqs_off();
   if (s->pollword > 0) {
@@ -577,7 +577,7 @@ int sem_wait (struct semaphore *s)
   return 0;
 }
 
-int sem_trywait (struct semaphore *s)
+int sem_trywait (VCOS_SEMAPHORE_T *s)
 {
   int irqs = ensure_irqs_off();
   if (s->pollword > 0) {
@@ -592,7 +592,7 @@ int sem_trywait (struct semaphore *s)
   return -1;
 }
 
-int sem_getvalue(struct semaphore *s, int *ret)
+int sem_getvalue(VCOS_SEMAPHORE_T *s, int *ret)
 {
   int irqs = ensure_irqs_off();
   *ret = s->pollword;
@@ -600,7 +600,7 @@ int sem_getvalue(struct semaphore *s, int *ret)
   return 0;
 }
 
-int sem_post(struct semaphore *s)
+int sem_post(VCOS_SEMAPHORE_T *s)
 {
   int irqs = ensure_irqs_off();
   s->pollword++;

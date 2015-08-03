@@ -38,25 +38,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct list_head {
-	struct list_head *next;
-	struct list_head *prev;
+struct __vcos_list_head {
+	struct __vcos_list_head *next;
+	struct __vcos_list_head *prev;
 };
 
-struct semaphore {
+struct __vcos_semaphore {
 	uint32_t pollword;
 };
 
-struct mutex {
+struct __vcos_mutex {
 	uint32_t pollword; /* 1 if free, 0 if claimed */
 	uint32_t rt_handle; /* Current owner. Not really needed, but might be useful for debugging? */
 };
 
-struct thread_cond {
+struct __vcos_thread_cond {
 	uint32_t cond;
 };
 
-struct task_struct {
+struct __vcos_task_struct {
 	uint32_t rt_handle;
 	bool stop;
 	int retval;
@@ -67,31 +67,31 @@ struct task_struct {
 	int (*thread_function)(void *);
 	void *data;
 
-	struct list_head keys;
+	struct __vcos_list_head keys;
 
-	struct list_head link;
+	struct __vcos_list_head link;
 };
 
-extern void mutex_init(struct mutex *m);
-extern int mutex_lock_interruptible(struct mutex *m);
-extern int mutex_lock(struct mutex *m);
-extern int mutex_trylock(struct mutex *m);
-extern void mutex_unlock(struct mutex *m);
+extern void mutex_init(struct __vcos_mutex *m);
+extern int mutex_lock_interruptible(struct __vcos_mutex *m);
+extern int mutex_lock(struct __vcos_mutex *m);
+extern int mutex_trylock(struct __vcos_mutex *m);
+extern void mutex_unlock(struct __vcos_mutex *m);
 
-extern void sem_init(struct semaphore *s,int i);
-extern int sem_destroy(struct semaphore *s);
-extern int sem_wait(struct semaphore *s);
-extern int sem_trywait(struct semaphore *s);
-extern int sem_post(struct semaphore *s);
-extern int sem_getvalue(struct semaphore *s,int *ret);
+extern void sem_init(struct __vcos_semaphore *s,int i);
+extern int sem_destroy(struct __vcos_semaphore *s);
+extern int sem_wait(struct __vcos_semaphore *s);
+extern int sem_trywait(struct __vcos_semaphore *s);
+extern int sem_post(struct __vcos_semaphore *s);
+extern int sem_getvalue(struct __vcos_semaphore *s,int *ret);
 
 extern void msleep(uint32_t ms);
 
-extern struct task_struct *kthread_create(int (*func)(void *),void *param,const char *name);
+extern struct __vcos_task_struct *kthread_create(int (*func)(void *),void *param,const char *name);
 extern int kthread_key_create(uint32_t *, void (*)(void *));
 extern void kthread_key_delete(uint32_t);
 int kthread_setspecific(uint32_t key, void *value);
 void *kthread_getspecific(uint32_t key);
-extern struct task_struct *kthread_self(void);
+extern struct __vcos_task_struct *kthread_self(void);
 
 #endif

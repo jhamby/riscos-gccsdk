@@ -101,23 +101,23 @@ extern "C" {
 #define VCOS_TIMER_MARGIN_EARLY 0
 #define VCOS_TIMER_MARGIN_LATE 15
 
-typedef struct semaphore      VCOS_SEMAPHORE_T;
-typedef uint32_t              VCOS_UNSIGNED;
-typedef uint32_t              VCOS_OPTION;
-typedef uint32_t              VCOS_TLS_KEY_T;
-typedef struct task_struct *  VCOS_TASK;
-typedef struct thread_cond *  VCOS_THREAD_COND;
-typedef uint32_t              VCOS_ONCE_T;
+typedef struct __vcos_semaphore    VCOS_SEMAPHORE_T;
+typedef uint32_t                   VCOS_UNSIGNED;
+typedef uint32_t                   VCOS_OPTION;
+typedef uint32_t                   VCOS_TLS_KEY_T;
+typedef struct __vcos_task_struct *VCOS_TASK_T;
+typedef struct __vcos_thread_cond *VCOS_THREAD_COND;
+typedef uint32_t                   VCOS_ONCE_T;
 
 typedef struct VCOS_LLTHREAD_T
 {
-  VCOS_TASK thread; // Must be first field.
+  VCOS_TASK_T thread; // Must be first field.
 } VCOS_LLTHREAD_T;
 
 /* VCOS_CASSERT(offsetof(VCOS_LLTHREAD_T, thread) == 0); */
 
 #ifndef VCOS_USE_VCOS_FUTEX
-typedef struct mutex          VCOS_MUTEX_T;
+typedef struct __vcos_mutex   VCOS_MUTEX_T;
 #else
 #include "vcos_futex_mutex.h"
 #endif /* VCOS_USE_VCOS_FUTEX */
@@ -132,7 +132,7 @@ typedef struct
 
 typedef struct VCOS_TIMER_T
 {
-   VCOS_TASK thread;                      /**< id of the timer thread */
+   VCOS_TASK_T thread;                      /**< id of the timer thread */
 
    VCOS_MUTEX_T lock;                  /**< lock protecting all other members of the struct */
    VCOS_THREAD_COND settings_changed;     /**< cond. var. for informing the timer thread about changes*/
@@ -169,7 +169,7 @@ typedef struct VCOS_THREAD_EXIT_T
 
 typedef struct VCOS_THREAD_T
 {
-   VCOS_TASK thread;             /**< The thread itself */
+   VCOS_TASK_T thread;             /**< The thread itself */
    VCOS_THREAD_ENTRY_FN_T entry; /**< The thread entry point */
    void *arg;                    /**< The argument to be passed to entry */
    VCOS_SEMAPHORE_T suspend;     /**< For support event groups and similar - a per thread semaphore */

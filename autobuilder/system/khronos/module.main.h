@@ -44,9 +44,9 @@ typedef struct module_globals {
   VCHI_SERVICE_HANDLE_T services[VCHIQ_MAX_INSTANCE_SERVICES];
 
   VCHI_INSTANCE_T *instance_handle;
-  struct list_head tasks;
+  struct __vcos_list_head tasks;
 
-  struct task_struct foreground;
+  struct __vcos_task_struct foreground;
 
   void *private_word;
 
