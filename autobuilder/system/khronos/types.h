@@ -71,7 +71,7 @@ struct glTexImage2D_params {
   const GLvoid *pixels;
 };
 
-struct glTexSubImage2D {
+struct glTexSubImage2D_params {
   GLenum target;
   GLint level;
   GLint xoffset;
@@ -83,7 +83,7 @@ struct glTexSubImage2D {
   const GLvoid *pixels;
 };
 
-struct texSubImage2DAsync {
+struct texSubImage2DAsync_params {
   GLenum target;
   GLint level;
   GLint xoffset;
@@ -92,7 +92,7 @@ struct texSubImage2DAsync {
   GLsizei height;
   GLenum format;
   GLenum type;
-  const GLint hpixels;
+  GLint hpixels;
 };
 
 struct glCompressedTexImage2D_params {

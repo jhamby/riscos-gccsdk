@@ -562,7 +562,7 @@ _kernel_oserror *gl_swi(_kernel_swi_regs *r)
       glTexParameterxv ((GLenum)r->r[0], (GLenum)r->r[1], (const GLfixed *)r->r[2]);
       break;
     case gl_TexSubImage2D: {
-      struct glTexSubImage2D *params = (struct glTexSubImage2D *)r->r[0];
+      struct glTexSubImage2D_params *params = (struct glTexSubImage2D_params *)r->r[0];
       glTexSubImage2D(params->target,
 		      params->level,
 		      params->xoffset,
@@ -575,7 +575,7 @@ _kernel_oserror *gl_swi(_kernel_swi_regs *r)
       break;
     }
     case _texSubImage2DAsync: {
-      struct texSubImage2DAsync *params = (struct texSubImage2DAsync *)r->r[0];
+      struct texSubImage2DAsync_params *params = (struct texSubImage2DAsync_params *)r->r[0];
       texSubImage2DAsync (params->target,
 			  params->level,
 			  params->xoffset,

@@ -58,6 +58,62 @@ GL_API void GL_APIENTRY glTexImage2D (GLenum target, GLint level,
 		  : "r0", "r8");
 }
 
+GL_API void GL_APIENTRY glTexSubImage2D (GLenum target, GLint level,
+					 GLint xoffset, GLint yoffset,
+					 GLsizei width, GLsizei height,
+					 GLenum format, GLenum type,
+					 const GLvoid *pixels)
+{
+  volatile struct glTexSubImage2D_params params;
+
+  params.target = target;
+  params.level = level;
+  params.xoffset = xoffset;
+  params.yoffset = yoffset;
+  params.width = width;
+  params.height = height;
+  params.format = format;
+  params.type = type;
+  params.pixels = pixels;
+
+  __asm volatile ("	MOV	r0, %[params];\n"
+		  "	MOV	r8, %[gl_TexSubImage2D];\n"
+		  "	SWI	%[SWI_GL];\n"
+		  :
+		  : [gl_TexSubImage2D] "I" (gl_TexSubImage2D),
+		    [SWI_GL] "i" (SWI_GL),
+		    [params] "r" (&params)
+		  : "r0", "r8");
+}
+
+GL_API void GL_APIENTRY texSubImage2DAsync (GLenum target, GLint level,
+					    GLint xoffset, GLint yoffset,
+					    GLsizei width, GLsizei height,
+					    GLenum format, GLenum type,
+					    const GLint hpixels)
+{
+  volatile struct texSubImage2DAsync_params params;
+
+  params.target = target;
+  params.level = level;
+  params.xoffset = xoffset;
+  params.yoffset = yoffset;
+  params.width = width;
+  params.height = height;
+  params.format = format;
+  params.type = type;
+  params.hpixels = hpixels;
+
+  __asm volatile ("	MOV	r0, %[params];\n"
+		  "	MOV	r8, %[texSubImage2DAsync];\n"
+		  "	SWI	%[SWI_GL];\n"
+		  :
+		  : [texSubImage2DAsync] "I" (_texSubImage2DAsync),
+		    [SWI_GL] "i" (SWI_GL),
+		    [params] "r" (&params)
+		  : "r0", "r8");
+}
+
 GL_API void GL_APIENTRY glCompressedTexImage2D (GLenum target, GLint level,
 						GLenum internalformat,
 						GLsizei width, GLsizei height,

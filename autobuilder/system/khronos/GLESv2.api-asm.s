@@ -172,8 +172,6 @@ DEFINE_FUNC	glTexParameteri		SWI_GL	gl_TexParameteri
 DEFINE_FUNC	glTexParameterx		SWI_GL	gl_TexParameterx
 DEFINE_FUNC	glTexParameteriv	SWI_GL	gl_TexParameteriv
 DEFINE_FUNC	glTexParameterxv	SWI_GL	gl_TexParameterxv
-DEFINE_FUNC	glTexSubImage2D		SWI_GL	gl_TexSubImage2D
-DEFINE_FUNC	texSubImage2DAsync	SWI_GL	_texSubImage2DAsync
 DEFINE_FUNC	glTranslatex		SWI_GL	gl_Translatex
 DEFINE_FUNC	glVertexPointer		SWI_GL	gl_VertexPointer
 DEFINE_FUNC	glViewport		SWI_GL	gl_Viewport
