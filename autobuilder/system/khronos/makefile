@@ -28,11 +28,15 @@ install:
 	cp -f $(USERLAND_DIR)/interface/vcos/*.h $(GCCSDK_INSTALL_ENV)/include/interface/vcos
 	cp -f $(USERLAND_DIR)/interface/vcos/riscos/*.h \
 			$(GCCSDK_INSTALL_ENV)/include/interface/vcos
+	# Not the private one:
+	rm -f $(GCCSDK_INSTALL_ENV)/include/interface/vcos/riscosbits_priv.h
 	mkdir -p $(GCCSDK_INSTALL_ENV)/include/interface/vcos/generic
 	cp -f $(USERLAND_DIR)/interface/vcos/generic/*.h \
 			$(GCCSDK_INSTALL_ENV)/include/interface/vcos/generic
 	mkdir -p $(GCCSDK_INSTALL_ENV)/include/interface/vchiq_arm
 	cp -f $(USERLAND_DIR)/interface/vchiq_arm/*.h $(GCCSDK_INSTALL_ENV)/include/interface/vchiq_arm
+	# Don't need to make this one public:
+	rm -f $(GCCSDK_INSTALL_ENV)/include/interface/vchiq_arm/vchiq_module.h
 	mkdir -p $(GCCSDK_INSTALL_ENV)/include/interface/vchi
 	cp -f $(USERLAND_DIR)/interface/vchi/*.h $(GCCSDK_INSTALL_ENV)/include/interface/vchi
 	mkdir -p $(GCCSDK_INSTALL_ENV)/include/interface/vchi/connections

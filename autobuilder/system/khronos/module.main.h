@@ -32,8 +32,8 @@
 #include "GLES/gl.h"
 #include "EGL/egl.h"
 #include "VG/openvg.h"
+#include "riscosbits_priv.h"
 #include "interface/vchi/vchi_common.h"
-#include "riscosbits.h"
 #include <kernel.h>
 
 #define VCHIQ_MAX_INSTANCE_SERVICES 32

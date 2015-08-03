@@ -30,6 +30,7 @@
 #include "../types.h"
 #include "../enums.h"
 #include "interface/vmcs_host/vc_dispmanx.h"
+#include <stdio.h>
 #include <assert.h>
 #include <swis.h>
 

@@ -160,7 +160,7 @@ typedef struct vchiq_service_struct {
 	char auto_close;
 	char sync;
 	char closing;
-	atomic_t poll_flags;
+	int32_t poll_flags;
 	short version;
 	short version_min;
 	short peer_version;
@@ -275,7 +275,7 @@ struct vchiq_state_struct {
 	unsigned short data_quota;
 
 	/* An array of bit sets indicating which services must be polled. */
-	atomic_t poll_services[BITSET_SIZE(VCHIQ_MAX_SERVICES)];
+	int32_t poll_services[BITSET_SIZE(VCHIQ_MAX_SERVICES)];
 
 	/* The number of the first unused service */
 	int unused_service;

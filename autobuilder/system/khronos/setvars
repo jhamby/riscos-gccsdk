@@ -47,6 +47,7 @@ ln -Tsf $H/inline_swis.h $S/../inline_swis.h
 
 ln -Tsf $H/interface.vchiq_arm.vchiq_module.h $S/interface/vchiq_arm/vchiq_module.h
 ln -Tsf $H/interface.vcos.riscos.riscosbits.h $S/interface/vcos/riscos/riscosbits.h
+ln -Tsf $H/interface.vcos.riscos.riscosbits_priv.h $S/interface/vcos/riscos/riscosbits_priv.h
 ln -Tsf $H/interface.vcos.riscos.vcos_platform.h $S/interface/vcos/riscos/vcos_platform.h
 ln -Tsf $H/interface.vcos.riscos.vcos_platform_types.h $S/interface/vcos/riscos/vcos_platform_types.h
 ln -Tsf $H/interface.vcos.riscos.vcos_threads.c $S/interface/vcos/riscos/vcos_threads.c

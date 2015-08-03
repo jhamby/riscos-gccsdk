@@ -45,6 +45,7 @@ extern "C" {
 #endif
 
 #ifdef __riscos__
+#include <string.h>
 #include <time.h>
 #include <errno.h>
 #include <assert.h>
