@@ -57,3 +57,5 @@ install:
 	mkdir -p $(GCCSDK_INSTALL_ENV)/include/interface/vmcs_host/khronos/IL
 	cp -f $(USERLAND_DIR)/interface/vmcs_host/khronos/IL/*.h \
 			$(GCCSDK_INSTALL_ENV)/include/interface/vmcs_host/khronos/IL
+	mkdir -p $(GCCSDK_INSTALL_ENV)/include/interface/peer
+	cp -f $(USERLAND_DIR)/interface/peer/*.h $(GCCSDK_INSTALL_ENV)/include/interface/peer
