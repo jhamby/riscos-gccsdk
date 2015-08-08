@@ -1,7 +1,11 @@
 
 AB_CATEGORY=Development
 
+AB_PVERSION=4.0
+
 AB_PRECONF="CFLAGS=\"-DNO_ARCHIVES -DSYS_SIGLIST_DECLARED -O2\""
+
+autoreconf -fi
 
 ab_package() {
 
