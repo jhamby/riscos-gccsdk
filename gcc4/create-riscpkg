@@ -302,6 +302,7 @@ cp -rf $GCCSDK_UNPACKED/$BKIT_SHAREDLIBS_NAME/\!SharedLibs/lib/abi-2.0 Resources
 
 # Remove C++ Libraries
 rm Resources/\!SharedLibs/lib/abi-2.0/libstdc++*
+rm Resources/\!SharedLibs/lib/abi-2.0/vfp/libstdc++*
 
 mkdir RiscPkg
 
@@ -339,8 +340,9 @@ rm -rf temp
 
 mkdir temp
 cd temp
-mkdir -p Resources/\!SharedLibs/lib/abi-2.0
+mkdir -p Resources/\!SharedLibs/lib/abi-2.0/vfp
 cp -r $GCCSDK_UNPACKED/$BKIT_SHAREDLIBS_NAME/\!SharedLibs/lib/abi-2.0/libstdc++* Resources/\!SharedLibs/lib/abi-2.0
+cp -r $GCCSDK_UNPACKED/$BKIT_SHAREDLIBS_NAME/\!SharedLibs/lib/abi-2.0/vfp/libstdc++* Resources/\!SharedLibs/lib/abi-2.0/vfp
 
 mkdir RiscPkg
 

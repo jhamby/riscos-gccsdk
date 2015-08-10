@@ -201,8 +201,8 @@ When compiling against Unixlib, GCC can also generate floating point code that t
 </pre>
 
 In this case, the binary is dynamically linked (no -static flag) and the -mfpu option is used for both compiling and linking.
-In the latter case specifying -mfpu=vfp forces the static linker to set the ELF flags in the executable header to indicate that it uses VFP instructions.
-The dynamic linker with detect this at runtime and load the VFP enabled runtime libraries as well as any VFP specific third party libraries that may be installed.
+When linking specifying -mfpu=vfp forces the static linker to set the ELF flags in the executable header to indicate that it uses VFP instructions.
+The dynamic linker will detect this at runtime and load the VFP enabled runtime libraries as well as any VFP specific third party libraries that may be installed.
 If a third party library does not require a special VFP version, perhaps because it doesn't actually use floating point operations, then it is not necessary to build or install one; if the dynamic linker does not find a VFP specific library, it will fall back to the soft float version.
 
 <h5>1.3.4.1. VFP - How to detect a VFP build</h5>
