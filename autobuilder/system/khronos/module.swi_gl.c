@@ -172,7 +172,7 @@ _kernel_oserror *gl_swi(_kernel_swi_regs *r)
       glActiveTexture ((GLenum)r->r[0]);
       break;
     case gl_AlphaFuncx:
-      glAlphaFuncx ((GLenum)r->r[0], RPC_FLOAT_RES(r->r[1]));
+      glAlphaFuncx ((GLenum)r->r[0], (GLclampx)r->r[1]);
       break;
     case gl_BindBuffer:
       glBindBuffer ((GLenum)r->r[0], (GLuint)r->r[1]);
@@ -497,7 +497,7 @@ _kernel_oserror *gl_swi(_kernel_swi_regs *r)
       glRotatex ((GLfixed)r->r[0], (GLfixed)r->r[1], (GLfixed)r->r[2], (GLfixed)r->r[3]);
       break;
     case gl_SampleCoverage:
-      glSampleCoverage ((GLclampf)r->r[0], (GLboolean)r->r[1]);
+      glSampleCoverage (RPC_FLOAT_RES(r->r[0]), (GLboolean)r->r[1]);
       break;
     case gl_SampleCoveragex:
       glSampleCoveragex ((GLclampx)r->r[0], (GLboolean)r->r[1]);
@@ -613,8 +613,8 @@ _kernel_oserror *gl_swi(_kernel_swi_regs *r)
       glBindRenderbuffer ((GLenum)r->r[0], (GLuint)r->r[1]);
       break;
     case gl_BlendColor:
-      glBlendColor ((GLclampf)r->r[0], (GLclampf)r->r[1],
-		    (GLclampf)r->r[2], (GLclampf)r->r[3]);
+      glBlendColor (RPC_FLOAT_RES(r->r[0]), RPC_FLOAT_RES(r->r[1]),
+		    RPC_FLOAT_RES(r->r[2]), RPC_FLOAT_RES(r->r[3]));
       break;
     case gl_BlendEquation:
       glBlendEquation ((GLenum)r->r[0]);
