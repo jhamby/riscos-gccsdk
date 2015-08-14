@@ -21,7 +21,7 @@
 </head>
 <body>
 
-<h2>Welcome to GCCSDK GCC 4.7.4 Release 1 (Development) for RISC&nbsp;OS</h2>
+<h2>Welcome to GCCSDK GCC 4.7.4 Release 2 (Development) for RISC&nbsp;OS</h2>
 <p>
 
 <p>If you have received this copy of GCC from a CD of fetched your copy from the Internet yourself some time ago, then it is likely there is a more up-to-date version obtainable from <a href="http://gccsdk.riscos.info/">http://gccsdk.riscos.info/</a> which is also the homepage of this RISC&nbsp;OS GCC port.
@@ -219,8 +219,17 @@ If a third party library does not require a special VFP version, perhaps because
 
 <h5>1.3.4.2. VFP - Modules/SCL</h5>
 
-<p>Unfortunately, it is unlikely (although not currently prohibited by GCC) that libscl and C based modules will work with VFP. The SharedCLibrary expects the first four arguments and result of a function to be passed in floating point registers whereas GCC generates code that uses integer registers to pass such values.
-Even if you compile your code to use hard-float (ie, values passed in FP registers), the registers used in VFP are not the same as those used by FPA. It's also unclear as to whether a VFP context will exist. However, if you can create a context yourself and be careful not to call standard C library functions that take floating point arguments or return floating point results, then it may be possible.
+<p>It is possible to use VFP when targeting the SharedCLibrary using the options:
+
+<pre>
+  -mfpu=vfp -mfloat-abi=softfp
+</pre>
+
+However, there are some caveats:
+<p>
+<li>It is the responsibility of the programmer to create and destroy the VFP context as required (Unixlib would normally do this for you when it is the target runtime library).
+<li>The functions within the SharedCLibrary that take or return floating point values are disabled due to incompatibilities in the way that such values are passed.
+<li>The printf family of functions will not produce correct results when passed floating point values.
 
 <h5>1.3.4.3. VFP - Third party libraries</h5>
 
