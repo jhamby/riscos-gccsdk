@@ -2,7 +2,25 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For more details on all UnixLib changes, see !GCC.docs.libunixlib.ChangeLog.
 
-GCCSDK GCC 4.7.4 Release 1 (released xxx)
+GCCSDK GCC 4.7.4 Release 2 (released xxx)
+==========================
+  - Unixlib: Add support for __cxa_atexit (r6754,r6778).
+  - Unixlib: Add support for clang/llvm (r6755).
+  - Unixlib: When the size of an mmapped file is not a multiple of the page size,
+    zero the remainder (r6772).
+  - Unixlib: Add VFP support (r6795,r6867).
+  - Unixlib: Add support for naming pthreads.
+  - Unixlib: select() fix; only report a file descriptor as bad if it was given
+    in one of the sets (r6862).
+  - GCC: VFP fixes (r6869).
+  - GCC: Make -mno-unaligned-access the default (r6796).
+  - GCC: Fix handling of section anchors in module code (r6866,r6871).
+  - GCC: Fix potential stack frame corruption (r6897)
+  - Dynamic Linker: Fix handling of ':' in path variables (r6870).
+  - Dynamic Linker: Add VFP support (r6797).
+
+
+GCCSDK GCC 4.7.4 Release 1 (released 2 December 2014)
 ==========================
 
 Major changes:
