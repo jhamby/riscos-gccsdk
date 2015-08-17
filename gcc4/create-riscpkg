@@ -427,7 +427,7 @@ echo "Priority: Optional" >> RiscPkg/Control
 echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: Alan Buckley <alan_baa@hotmail.com>" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
-echo "Version: $RPG_DRENDERER_VERSION" >> RiscPkg/Control
+echo "Version: $RPKG_DRENDERER_VERSION" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
 echo "Description: Audio playback module" >> RiscPkg/Control
 echo " This module provide a polling, call-back or streaming interface between" >> RiscPkg/Control
