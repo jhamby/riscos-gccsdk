@@ -571,7 +571,7 @@ TitleString
         ALIGN
 
 HelpString
-        =       "DigitalRenderer",9,"0.56 beta 8 GPL (15 May 2012)",13,10
+        =       "DigitalRenderer",9,"0.56 GPL (15 May 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
