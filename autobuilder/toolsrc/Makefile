@@ -2,6 +2,8 @@
 
 TARGETS=libpkg pkgindex pkgweb
 
+TARTARGETS= pkgweb pkgindex build-website build-stats build-index dpkg_get_packageentry.pl
+
 .PHONY: $(TARGETS)
 
 all: $(TARGETS)
@@ -15,4 +17,4 @@ clean:
 	$(MAKE) -C pkgweb clean
 
 tools.tar.gz: $(TARGETS)
-	cd .. && tar cf toolsrc/tools.tar.gz pkgweb pkgindex build-website build-stats
+	cd .. && tar cf toolsrc/tools.tar.gz $(TARTARGETS)
