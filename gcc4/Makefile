@@ -81,11 +81,11 @@ GCC_CONFIG_ARGS := --disable-threads --disable-multilib target_configargs=--disa
 BINUTILS_CONFIG_ARGS := --disable-multilib
 GDB_CONFIG_ARGS :=
 endif
-GCC_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 1 Development' \
+GCC_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 2' \
 	--with-bugurl=http://gccsdk.riscos.info/
-BINUTILS_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 1 Development' \
+BINUTILS_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 2' \
 	--with-bugurl=http://gccsdk.riscos.info/
-GDB_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 1 Development' \
+GDB_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 2' \
 	--with-bugurl=http://gccsdk.riscos.info/
 BINUTILS_CONFIG_ARGS += --enable-maintainer-mode --disable-werror --with-gcc --enable-interwork --disable-nls
 # --disable-werror is added because --enable-maintainer-mode turns all warnings into errors and
