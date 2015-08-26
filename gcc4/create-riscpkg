@@ -170,7 +170,7 @@ echo "Licence: Free" >> RiscPkg/Control
 echo "Depends: $RPKG_SHAREDLIBSC_NAME (>= $RPKG_SHAREDLIBSC_VERSION), $RPKG_SHAREDLIBSGPP_NAME (>=$RPKG_SHAREDLIBSGPP_VERSION)" >> RiscPkg/Control
 echo "Conflicts: GCC-Common" >> RiscPkg/Control
 echo "Components: Apps.Development.!GCC (Movable LookAt)" >> RiscPkg/Control
-echo "Description: RISC OS port of the GNU Compiler Connection including the C Compiler and core tools" >> RiscPkg/Control
+echo "Description: RISC OS port of the GNU Compiler Collection including the C Compiler and core tools" >> RiscPkg/Control
 
 # Create copyright
 echo "GCC4 Core components" > RiscPkg/Copyright
