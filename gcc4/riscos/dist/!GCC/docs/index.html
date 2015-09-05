@@ -63,15 +63,15 @@
 </pre>
 
 <p>This will compile, assemble and link the source 'c.hellow' in one go to produce an ELF executable (filetype &amp;E1F) called 'hellow'. An
-ELF executable can make use of static libraries and/or shared libraries (whom the UnixLib runtime library). By default, the shared libraries
+ELF executable can make use of static libraries and/or shared libraries (e.g. the UnixLib runtime library). By default, the shared libraries
 will be used (use link switch -static if you want static libraries to be used).
 
 <p>ELF executables need support of a loader module in order to be usable under RISC OS and this is provided by the
-'!SharedLibs' application which containing the SOManager RISC&nbsp;OS module.  This means also that when ELF executables
+'!SharedLibs' application which contains the SOManager RISC&nbsp;OS module.  This means also that when ELF executables
 are distributed to users, they also need to have access to '!SharedLibs' application in order to be able to run
 the ELF based program.
 
-<p>It is possible to convert an ELF executable into a standalone AIF binary when the ELF executable is linked when only using
+<p>It is possible to convert an ELF executable into a standalone AIF binary when the ELF executable is linked only using
 static libraries (i.e. when -static link switch has been used).  This removes the need to distribute the '!SharedLibs'
 application together with the produced program but of course defeats the point of using shared libraries.  This is done by running:
 <pre>
@@ -101,18 +101,15 @@ or
 <p>will compile and assemble 'c.file' to 'o.file'.
 
 <p>Support has been provided for both RISC&nbsp;OS and UNIX format filenames and we recommend to use the UNIX format style
-as this is more cross-platform compatible. For example:
-<pre>
-   UNIX format (preferred)	RISC OS format
-
-   ../include/stdio.h		^.include.h.stdio
-   /work/gcc/hello.c		$.work.gcc.c.hello
-   stdlib.h			h.stdlib
-</pre>
-<p>but note that
-<pre>
-   tree.def			tree/def
-</pre>
+as this is more cross-platform compatible. For example (note in particular the last):
+<table>
+<tr><td><b>UNIX format (preferred)</b></td><td><b>RISC OS format</b></td></tr>
+<tr></tr>
+<tr><td><tt>   ../include/stdio.h</tt></td><td><tt>^.include.h.stdio</tt></td></tr>
+<tr><td><tt>/work/gcc/hello.c</tt></td><td><tt>		$.work.gcc.c.hello</tt></td></tr>
+<tr><td><tt>   stdlib.h</tt></td><td><tt>			h.stdlib</tt></td></tr>
+<tr><td><tt><b>  tree.def</b></tt></td><td><tt><b>			tree/def</b></tt></td></tr>
+</table>
 
 <p>For further examples of compilation procedures, please look at <a href="../Examples">`Examples' inside !GCC</a>.
 
@@ -120,7 +117,7 @@ as this is more cross-platform compatible. For example:
 
 <h5>1.3.1. SharedCLibrary</h5>
 
-<p>By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case it is important to use RISC&nbsp;OS' <a href="SharedCLibrary">SharedCLibrary</a> and at expense of a much more reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &amp;FF8) file having an AIF header straight away instead of producing an ELF executable (filetype &amp;E1F):
+<p>By default <a href="libunixlib">UnixLib</a> is used as runtime library.  When it is important to use RISC&nbsp;OS' <a href="SharedCLibrary">SharedCLibrary</a>, at the expense of a much reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &amp;FF8) file having an AIF header straight away instead of producing an ELF executable (filetype &amp;E1F):
 
 <pre>
    *gcc -mlibscl -o file.o -c file.c
@@ -129,7 +126,7 @@ as this is more cross-platform compatible. For example:
 
 <h5>1.3.2. RISC&nbsp;OS module support</h5>
 
-<p>When C based modules are created, you can only make use of the SharedCLibrary as runtime library or no runtime library at all.  UnixLib is not suited as runtime library for modules.  When you do not make use of SharedCLibrary in your module you're on your own to implement all your memory management, I/O, etc. (when needed) yourself (possibly using RISC OS' or third party modules' SWIs).
+<p>When C based modules are to be created, you can either have no runtime library or only the SharedCLibrary as runtime library.  UnixLib is not suitable as a runtime library for modules.  When you do not use SharedCLibrary in your module you're on your own implementing all your memory management, I/O, etc. (when needed) yourself (possibly using RISC OS' or third party modules' SWIs).
 
 <p><a href="cmunge">CMunge</a> is used to create a RISC&nbsp;OS module header and the necessary setup code for each of the user required module entries, like initialisation, finalisation, service calls, command implementations etc.  It can also be used to create veneer code acting as glue code for RISC&nbsp;OS callbacks into your C<!-- /C++ --> coded module.
 
@@ -169,13 +166,13 @@ to enforce chunk stack checking for those module object files containing code wh
 
 <h6>1.3.2.3. Module support without SharedCLibrary</h6>
 
-<p>Modules created without using SharedCLibrary have the advantage to not be dependent on the SharedCLibrary and have typically a smaller footprint.  They are created by specifying the extra CMunge switch "-znoscl" (specifying not to generate code to interface with SharedCLibrary but generate code instead to setup the runtime stack itself) and by the extra linker switches "-nostdlib -lgcc" (specifying not to use any standard library, whom the SharedCLibrary, except the GCC library which contains helper routines possibly used by its generated code).
+<p>Modules created without using SharedCLibrary have the advantage of not being dependent on the SharedCLibrary and have typically a smaller footprint.  They are created by specifying the extra CMunge switch "-znoscl" (specifying not to generate code to interface with SharedCLibrary but generate code instead to setup the runtime stack itself) and by the extra linker switches "-nostdlib -lgcc" (specifying not to use any standard library, such as the SharedCLibrary, except the GCC library which contains helper routines possibly used by its generated code).
 
-<p>Note you can still include the standard headers (like stdbool.h, limits.h, stdlib.h, etc) to get some useful type definitions or constants but that does not mean you can make use of any of the functions with their prototypes being defined there.  If you want to avoid including any of the standard headers (for whatever reason), you can specify the extra compile switch "-nostdinc".
+<p>Note you can still include the standard headers (like stdbool.h, limits.h, stdlib.h, etc) to get some useful type definitions or constants but that does not mean you can use of any of the functions whose prototypes are defined there.  If you want to avoid including any of the standard headers (for whatever reason), you can specify the extra compile switch "-nostdinc".
 
 <p>It might be that GCC generates code which contains memcmp, memset, memcpy and memmove calls.  In such a case you need to provide those routines yourself (they are the same routines as the ones defined in standard C).
 
-<p>Calling RISC&nbsp;OS SWIs can be done via inline assembler calls, custom assembler routines or making use of a C library providing SWI level access like <a href="http://ro-oslib.sourceforge.net/">OSLib</a>.  Note that such libraries can not use the SharedCLibrary as well.
+<p>Calling RISC&nbsp;OS SWIs can be done by inline assembler calls, custom assembler routines or using a C library providing SWI level access like <a href="http://ro-oslib.sourceforge.net/">OSLib</a>.  Note that such libraries can not use the SharedCLibrary as well.
 
 <h6>1.3.2.4. Module resource data</h6>
 
@@ -193,7 +190,7 @@ to enforce chunk stack checking for those module object files containing code wh
 <h5>1.3.4. VFP</h5>
 
 <p>By default, GCC generates calls to functions within libgcc to handle floating point operations. This is called soft float and is somewhat faster than executing floating point instructions when those instructions are emulated by the floating point emulator.
-When compiling against Unixlib, GCC can also generate floating point code that targets the VFP instruction set (for instance, when writing code for the RaspberryPi). You can instruct GCC to use VFP like so:
+When compiling against Unixlib, GCC can also generate floating point code that targets the VFP instruction set (for instance, when writing code for the RaspberryPi). You can instruct GCC to use VFP like this:
 
 <pre>
    *gcc -o file.o -c file.c -mfpu=vfp
@@ -201,13 +198,13 @@ When compiling against Unixlib, GCC can also generate floating point code that t
 </pre>
 
 In this case, the binary is dynamically linked (no -static flag) and the -mfpu option is used for both compiling and linking.
-When linking specifying -mfpu=vfp forces the static linker to set the ELF flags in the executable header to indicate that it uses VFP instructions.
+When linking, specifying -mfpu=vfp forces the static linker to set the ELF flags in the executable header to indicate that it uses VFP instructions.
 The dynamic linker will detect this at runtime and load the VFP enabled runtime libraries as well as any VFP specific third party libraries that may be installed.
 If a third party library does not require a special VFP version, perhaps because it doesn't actually use floating point operations, then it is not necessary to build or install one; if the dynamic linker does not find a VFP specific library, it will fall back to the soft float version.
 
 <h5>1.3.4.1. VFP - How to detect a VFP build</h5>
 
-<p>If you need to conditionally compile a piece of code depending on whether VFP is being used, then this can be achieved like so:
+<p>If you need to conditionally compile a piece of code depending on whether VFP is being used, then this can be achieved like this:
 
 <pre>
    #if defined(__VFP_FP__) && !defined(__SOFTFP__)
@@ -248,7 +245,7 @@ At runtime any VFP enabled versions should be installed in:
    *gcc -pg -o collatz collatz.c
 </pre>
 
-<p>Now, when ever the program is run, it will be profiled and upon exiting will write a file named gmon/out to the currently selected directory. This is a machine readable file and must be processed by a program called gprof before the results can be made sense of. The simplist way to do this is to pass the executable and the gmon/out file to gprof on the command line:
+<p>Now, whenever the program is run, it will be profiled and upon exiting will write a file named gmon/out to the currently selected directory. This is a machine-readable file and must be processed by a program called gprof before the results can be made sense of. The simplist way to do this is to pass the executable and the gmon/out file to gprof on the command line:
 
 <pre>
    *gprof collatz gmon/out >gprof-output
@@ -257,7 +254,7 @@ At runtime any VFP enabled versions should be installed in:
 Note that the output of the command is written to a file, as the output from gprof contains formfeed characters (ASCII char 12) which cause unwanted effects when printed directly to the screen.
 For an explanation of the gprof results, please see the <a href="gprof/index.html">gprof manual</a>.
 
-<p>Optimising code (that is, using the -O switch when compiling) can effect how the code is profiled, for example, functions can apparently disappear and fail to be listed in the profiling results. This is most likely due to GCC inlining the function so that it does not exist as a function is its own right but becomes part of another function. One way around this is to tell GCC not to inline such functions by using:
+<p>Optimising code (that is, using the -O switch when compiling) can effect how the code is profiled, for example, functions can apparently disappear and fail to be listed in the profiling results. This is most likely due to GCC inlining the function so that it does not exist as a function is its own right but becomes embedded in another function. One way around this is to tell GCC not to inline such functions by using:
 
 <pre>
    __attribute__ ((noinline))
@@ -265,7 +262,7 @@ For an explanation of the gprof results, please see the <a href="gprof/index.htm
 
 when declaring them.
 
-<p>It's possible to control manually what is and isn't profiled by using the moncontrol function, which is declared in the system header file &lt;sys/gmon.h&gt;. The value passed as the single argument to moncontrol should be 0 to stop profiling and 1 to start profiling, for example, if you have a function a() which calls b(), but you don't want b() to be profiled, then it may look like this:
+<p>It is possible to control manually what is and is not profiled by using the moncontrol function, which is declared in the system header file &lt;sys/gmon.h&gt;. The value passed as the single argument to moncontrol should be 0 to stop profiling and 1 to start profiling, for example, if you have a function a() which calls b(), but you don't want b() to be profiled, then it may look like this:
 
 <pre>
    void b(void)
