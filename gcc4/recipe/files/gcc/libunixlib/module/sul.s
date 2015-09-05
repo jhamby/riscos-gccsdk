@@ -139,7 +139,7 @@ module_start:
 help:
 	.ascii	"SharedUnixLibrary"
 	.byte	9
-	.ascii	"1.13 (27 Feb 2015) "
+	.ascii	"1.14 (05 Sep 2015) "
 #if DEBUG_PROC_MATCHING
 	.ascii	"(debug) "
 #endif
@@ -1412,18 +1412,21 @@ sul_exit:
 	MOV	a3, v2
 	BL	delink
 
+	@ Free the CLI.
+	MOV	a1, #7
+	LDR	a3, [v2, #PROC_CLI]
+	TEQ	a3, #0
+	SWINE	XOS_Module
+
 	@ If this process has no parent, then free the process structure.
 	@ The parent will free it otherwise.
 	LDR	a2, [v2, #PROC_PPID]
 	CMP	a2, #1
 	BNE	has_parent
 
-	@ Free any cli and environ still left. The program should have
+	@ Free any environ still left. The program should have
 	@ already freed anything else
-	MOV	a1, #7
-	LDR	a3, [v2, #PROC_CLI]
-	TEQ	a3, #0
-	SWINE	XOS_Module
+@	MOV	a1, #7			; already set above
 	LDR	a3, [v2, #PROC_ENVIRON]
 	TEQ	a3, #0
 	SWINE	XOS_Module

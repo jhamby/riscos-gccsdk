@@ -1,3 +1,11 @@
+Sat Sep 05 14:08:48 BST  2015  Lee Noar  <leenoar@sky.com>
+
+	Fix for bug 246 - memory leak in RMA.
+
+	* module/sul.s(sul_exit): Free the CLI memory regardless of
+	whether there is a parent.
+	Bump version number to 1.14.
+
 Sun Jun 28 15:12:13 BST  2015  Lee Noar  <leenoar@sky.com>
 
 	Submitted by Jeffrey Lee <me@phlamethrower.co.uk>
