@@ -27,7 +27,7 @@ export RPKG_SHAREDLIBSGPP_VERSION=6.0.17-$GCCSDK_RELEASE_NAME-1
 # case the version numbers must be changed.
 # The versions numbers are the version numbers of the modules
 
-export RPKG_UNIXLIB_VERSION=1.13-1
+export RPKG_UNIXLIB_VERSION=1.14-1
 
 export RPKG_DRENDERER_VERSION=0.56-r-1
 
