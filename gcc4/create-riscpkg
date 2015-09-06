@@ -16,7 +16,7 @@ popd > /dev/null
 source $GCCSDK_ROOT/setup-gccsdk-params
 
 # Packages version
-RPKG_VERSION=1
+RPKG_VERSION=2
 
 # Non GCCSDK named packages
 RPKG_SHAREDLIBS_NAME=SharedLibs
