@@ -1,4 +1,4 @@
 libssh2
-libgcrypt11
+libgcrypt20
 libgpg-error0
 zlib1g
