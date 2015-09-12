@@ -1,12 +1,20 @@
 /* atexit (), __cxa_atexit (), __cxa_finalize ()
  * Copyright (c) 2000-2015 UnixLib Developers
+ * 
+ * For __TARGET_SCL__ we don't have access to the atexit mechanism. Here
+ * we maintain our own list of finalizer functions and use the SCL atexit
+ * to ensure that they are all called at program exit.
+ * For __TARGET_UNIXLIB__, this is the atexit mechanism.
  */
 
 #include <errno.h>
 #include <stdlib.h>
 
+#ifndef __TARGET_SCL__
 #include <pthread.h>
 #include <internal/unix.h>
+#endif
+
 #include <internal/linklist.h>
 
 typedef struct atexit_entry
@@ -21,12 +29,30 @@ typedef struct atexit_entry
 
 static __link_list atexit_function_list;
 
+#ifdef __TARGET_SCL__
+static void
+__scl_finalize (void)
+{
+  __cxa_finalize (NULL);
+}
+#endif
+
 int
 __cxa_atexit(void (*destructor)(void *),
 	     void *arg,
 	     void *dso_handle)
 {
+#ifdef __TARGET_SCL__
+  static int __scl_register_finalize;
+
+  if (!__scl_register_finalize)
+    {
+      atexit (__scl_finalize);
+      __scl_register_finalize = 1;
+    }
+#else
   PTHREAD_UNSAFE
+#endif
 
   if (destructor == NULL)
     return __set_errno (EINVAL);
@@ -53,7 +79,9 @@ __cxa_atexit(void (*destructor)(void *),
 void
 __cxa_finalize(void *dso_handle)
 {
+#ifndef __TARGET_SCL__
   PTHREAD_UNSAFE
+#endif
 
   atexit_entry *entry = (atexit_entry *)__linklist_first (&atexit_function_list);
 
@@ -72,14 +100,20 @@ __cxa_finalize(void *dso_handle)
       if (!entry->called && (dso_handle == NULL || dso_handle == entry->dso_handle))
         {
 	  entry->called = 1;
+#ifndef __TARGET_SCL__
 	  __funcall ((*entry->func), (entry->arg));
+#else
+	  entry->func (entry->arg);
+#endif
 	}
       entry = next;
     }
 }
 
+#ifndef __TARGET_SCL__
 int
 atexit (void (*atexit_function) (void))
 {
   return __cxa_atexit ((void (*) (void *))atexit_function, NULL, NULL);
 }
+#endif

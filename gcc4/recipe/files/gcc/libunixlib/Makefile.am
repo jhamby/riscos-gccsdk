@@ -920,7 +920,8 @@ stdio_src += \
 	stdio/getdelim.c
 
 if UNIXLIB_BUILDING_SCL
-stdlib_src =
+stdlib_src = \
+	stdlib/atexit.c
 else
 stdlib_src = \
 	stdlib/abort.c \

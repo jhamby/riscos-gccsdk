@@ -1,3 +1,13 @@
+Sat Sep 12 17:55:18 BST  2015  Lee Noar  <leenoar@sky.com>
+
+	* stdlib/atexit.c: Make SCL friendly when building for SCL.
+	For UnixLib nothing has changed. For SCL, don't compile
+	anything related to pthreads. Don't compile atexit as SCL
+	already provides that. Maintain our own destructor list
+	separate from atexit and use the SCL atexit to ensure all
+	destructors are called on program exit.
+	* Makefile.am: Add stdlib/atexit.c to the SCL build.
+
 Sat Sep 05 14:08:48 BST  2015  Lee Noar  <leenoar@sky.com>
 
 	Fix for bug 246 - memory leak in RMA.
