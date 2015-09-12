@@ -1,0 +1,14 @@
+Wimpslot -min 16384k -max 16384k
+
+| These are only relevant if the JIT is enabled.
+Set JSC_useHalfWord false
+Set JSC_useBX false
+Set JSC_useDoubleWord false
+
+X removeda otter-browser
+X removeda "Webkit Fast Malloc"
+X removeda "Webkit GC Heap"
+X removeda "Webkit VM Stack"
+
+Set Otter-browser$Dir <Obey$Dir>
+Run <Otter-browser$Dir>.otter-browser ><Otter-browser$Dir>.debug 2>&1
