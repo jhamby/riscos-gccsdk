@@ -1,6 +1,9 @@
 AB_INSTALL=yes
 AB_PVERSION=`echo "$AB_PVERSION" | sed -e "s/error-//"`
 
+cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabihf.h \
+   src/syscfg/lock-obj-pub.riscos.h
+
 ab_package() {
   ab_create_app LibGPGError Apps/Library libgpg-error-dev
 
