@@ -5,7 +5,18 @@ if [ ! -d docs/man3 ] ; then
   ln -s ../docs docs/man3
 fi
 
+export LIBS='-ldl'
+
 ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libssh2
+
+    ab_add_sharedlib $S/src/.libs libssh2.so.1
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -name LibSSH2 -section Apps/Library -package libssh2 \
+         -depends SharedLibs-C2
+  fi
 
   rm -f docs/man3
 
