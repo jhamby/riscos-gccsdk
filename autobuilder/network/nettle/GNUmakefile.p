@@ -17,7 +17,7 @@ diff -u -r1.3 GNUmakefile
  CONFIG = -DWITH_SSH
 
 -LIBS = -L/home/riscos/gccsdk/env/lib -lssh2 -lgcrypt -lgpg-error -lcrypto
-+LIBS = -lssh2 -lz -lgcrypt -lgpg-error -lcrypto
++LIBS = -lssh2 -lz -lgcrypt -lgpg-error -lcrypto -ldl
  OBJS = chardefn.o choices.o dnslib.o globals.o init.o keyboard.o lineedit.o \
         main.o misc.o hotlist.o nettle.o process.o socket.o quit.o seln.o \
         wimp.o zapgen.o fortify.o sockwatch.o messages.o termlist.o url.o \
