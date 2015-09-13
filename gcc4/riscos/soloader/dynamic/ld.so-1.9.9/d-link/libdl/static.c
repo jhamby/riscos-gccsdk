@@ -9,7 +9,7 @@ void *dlopen(void) {
 }
 
 char *dlerror(void) {
-  return "Dynmaic linking required";
+  return "Dynamic linking required";
 }
 
 int dlclose(void) {
@@ -21,4 +21,10 @@ void *dlsym(void) {
   perror("Using 'dlsym' requires dynamic linking");
   errno = ENOSYS;
   return NULL;
+}
+
+int dladdr(void) {
+  perror("Using 'dladdr' requires dynamic linking");
+  errno = ENOSYS;
+  return -1;
 }
