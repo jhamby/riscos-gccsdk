@@ -2,9 +2,9 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For more details on all UnixLib changes, see !GCC.docs.libunixlib.ChangeLog.
 
-GCCSDK GCC 4.7.4 Release 2 (released 7 September 2015)
+GCCSDK GCC 4.7.4 Release 2 (released 13 September 2015)
 ==========================
-  - Unixlib: Add support for __cxa_atexit (r6754,r6778).
+  - Unixlib: Add support for __cxa_atexit (r6754,r6778,r6916).
   - Unixlib: Add support for clang/llvm (r6755).
   - Unixlib: When the size of an mmapped file is not a multiple of the page size,
     zero the remainder (r6772).
