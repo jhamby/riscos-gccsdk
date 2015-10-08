@@ -1,8 +1,8 @@
 # Binary package of FTPc as riscpkg site version is out of date and not
 # being updated.
-AB_URL=http://www.ftpc.iconbar.com/FTPc148.zip
+AB_URL=http://www.ftpc.iconbar.com/FTPc150.zip
 AB_PACKAGE=FTPc
-AB_PVERSION=1.48
+AB_PVERSION=1.50
 AB_CATEGORY=Network
 AB_COPYSOURCE=no
 
@@ -13,7 +13,7 @@ AB_MAKE=
 ab_package()
 {
    mkdir -p $D/FTPc/Apps/Network
-   cp -fr $S/../!FTPc $D/FTPc/Apps/Network
+   cp -fr $S/ftpc/\!FTPc $D/FTPc/Apps/Network
    $AB_HOME/add-riscpkg -package FTPc
 }
 
