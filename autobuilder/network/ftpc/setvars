@@ -1,8 +1,8 @@
 # Binary package of FTPc as riscpkg site version is out of date and not
 # being updated.
-AB_URL=http://www.ftpc.iconbar.com/FTPc150.zip
+AB_URL=http://www.ftpc.iconbar.com/FTPc151.zip
 AB_PACKAGE=FTPc
-AB_PVERSION=1.50
+AB_PVERSION=1.51
 AB_CATEGORY=Network
 AB_COPYSOURCE=no
 
