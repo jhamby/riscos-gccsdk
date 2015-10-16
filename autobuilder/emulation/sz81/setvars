@@ -1,0 +1,18 @@
+AB_URL=http://192.168.1.4/sz81-2.1.7-source.tar.gz
+
+ab_package() {
+
+  ab_create_app Sz81 Apps/Emulation
+  ab_makerun $S/sz81 sz81
+
+  mkdir -p $A/docs
+
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/README $A/docs
+  cp -av $S/ChangeLog.z81 $S/GAMENOTES $S/NEWS $S/NEWS.z81 $S/TODO.z81 $A/docs
+  cp -av $S/README $S/README.z81 $A/docs
+  cp -av data $A
+  cp -av $S/*.pbm $A
+
+  $AB_HOME/add-riscpkg -unixlib -package Sz81 -copyrightfile COPYING
+}
+

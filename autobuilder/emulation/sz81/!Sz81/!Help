@@ -1,0 +1,27 @@
+sz81 - Sinclair ZX80/ZX81 emulator (v2.1.7)
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+See the "doc" subdirectory for more documentation or the official sz81
+website at http://sz81.sourceforge.net/
+
+Getting Started
+---------------
+
+Click in the window or press 'F1' in fuse to access the built-in UI.
+
+History
+-------
+RISC OS Version 1.00 (16-Oct-15)
+- this is the initial version of fuse built for RISC OS.
+
+Issues
+------
+
+There's no RISC OS integration. Sz81 uses it's own UI. Press 'F1' to bring up the menu.
+
+Not done much testing so there could be bugs/misfeatures.
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net
