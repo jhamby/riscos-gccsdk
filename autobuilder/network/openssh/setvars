@@ -7,7 +7,8 @@ AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp -
 ab_package () {
   ab_create_command_app SSH Apps/Network
   
-  for command in scp sftp ssh-keygen ssh-keyscan ssh; do
+  # for command in ssh ssh-add ssh-agent scp sftp ssh-keygen ssh-keyscan ssh-pkcs11-helper ; do
+  for command in ssh ssh-keygen ssh-keyscan ; do
      ab_add_commands $S/$command$AB_EXEEXT
   done
 
