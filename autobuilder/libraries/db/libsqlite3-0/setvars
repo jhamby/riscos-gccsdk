@@ -3,7 +3,11 @@ export config_TARGET_EXEEXT=$AB_EXEEXT
 
 AB_INSTALL=env
 
-AB_CONFLAGS=--disable-tcl
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+  AB_CONFLAGS="--disable-tcl"
+else
+  AB_CONFLAGS="--disable-tcl --disable-load-extension"
+fi
 
 export TCLSH_CMD=/usr/bin/tclsh
 export CROSS_BUILDING=yes
@@ -27,7 +31,7 @@ ab_package() {
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
      ab_create_sharedlib_skeleton libsqlite3
      ab_add_sharedlib $S/.libs libsqlite3.so.0
-     
+
      $AB_HOME/add-riscpkg -package libsqlite3 -name LibSQLite3 -depends SharedLibs \
 		-section Library
   fi
