@@ -1,0 +1,84 @@
+AB_LICENCE=Free
+
+# Although it should be compiled for each use, GCC kept running
+# out of memory on RISC OS so provide a compiled library as well.
+
+ab_make()
+{
+    # Install for use with cross compiler
+    cp -fvr $S/include $GCCSDK_INSTALL_ENV
+    mkdir -p $GCCSDK_INSTALL_ENV/src/gtest
+    cp -fvr $S/src $GCCSDK_INSTALL_ENV/src/gtest
+
+    # Build as libraries for running on RISCOS
+    here=`$pwd`
+    cd $S/make
+    $AB_MAKE
+    $AB_MAKE gtest.a    
+    cd $here
+}
+
+
+add_swapped()
+{
+  local src_dir
+  local dst_dir
+  local suffix
+  local f
+  local HERE
+
+  src_dir=$1
+  dst_dir=$2
+  suffix=$3
+
+  HERE=`pwd`
+  cd $src_dir
+
+  mkdir -p $dst_dir/$suffix
+  for f in *.$suffix
+  do
+    if [ -d "$f" ] ; then
+      add_swapped $src_dir/$f $dst_dir/$f $suffix
+    else
+      filename=$(basename "$f")
+      filename="${filename%.*}"
+      cp -v -T $f $dst_dir/$suffix/$filename
+    fi
+  done
+
+  cd $HERE
+}
+
+
+ab_package() {
+  ab_create_app GTest Apps/Library gtest
+  echo 'Set GTest$Path <Obey$Dir>.' >> $A/!Boot,feb
+  echo '/<Obey$Dir>.!Boot' > $A/!Run,feb
+
+  add_swapped $S/include/gtest $A/gtest h
+  add_swapped $S/include/gtest/internal $A/gtest/internal h
+  mkdir -p $A/docs
+  cp -av $S/CHANGES $S/CONTRIBUTORS $S/LICENSE $S/README $A/docs
+
+  mkdir -p $A/examples/samples
+  add_swapped $S/samples $A/examples/samples h
+  add_swapped $S/samples $A/examples/samples cc
+  
+  mkdir -p $A/src
+  add_swapped $S/src $A/src h
+  add_swapped $S/src $A/src cc
+
+  # pre-built libraries as RISC OS runs out of memory if
+  # it tries to build them from source
+  cp -f $S/make/gtest.a $A/libgtest.a
+  cp -f $S/make/gtest_main.a $A/libgtest_main.a
+  
+  mkdir -p $A/examples/make
+  cp -f $H/Makefile.riscos $A/examples/make/Makefile
+  cp -f $S/make/Makefile $A/examples/make/Makefile.cross
+
+
+  $AB_HOME/add-riscpkg -package gtest -name GTest -unixlib \
+      -copyrightfile $S/LICENSE
+}
+

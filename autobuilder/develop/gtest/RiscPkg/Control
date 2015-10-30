@@ -1,0 +1,12 @@
+Description: Google C++ Testing Framework
+ Google's framework for writing C++ tests on a variety of platforms
+ (Linux, Mac OS X, Windows, Windows CE, Symbian, etc).  Based on the
+ xUnit architecture.  Supports automatic test discovery, a rich set of
+ assertions, user-defined assertions, death tests, fatal and non-fatal
+ failures, various options for running the tests, and XML test report
+ generation.
+ .
+ Please see the project page above for more information as well as the
+ mailing list for questions, discussions, and development.  There is
+ also an IRC channel on OFTC (irc.oftc.net) #gtest available.  Please
+ join us!
