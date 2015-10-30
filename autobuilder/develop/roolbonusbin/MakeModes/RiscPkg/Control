@@ -1,0 +1,7 @@
+Licence: Non-free
+Description: MakeModes is a tool used to generate and edit Risc PC monitor definition files (MDFs)
+ Before using the MakeModes application, you should take the
+ time to read the application note 'Creating monitor definition files for the
+ Risc PC' (available upon request from Acorn Customer Services).
+Components: Apps.Development.!MakeModes (Movable)
+Depends: ROLicence (>= 1.1)

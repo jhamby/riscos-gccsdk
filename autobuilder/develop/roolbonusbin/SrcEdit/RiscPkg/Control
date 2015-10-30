@@ -1,0 +1,6 @@
+Licence: Non-free
+Description: Source code editor
+ !SrcEdit is a text editor that derives from !Edit, with the addition that it supports
+ throwback. It can be used as a full replacement for !Edit.
+Components: Apps.Development.!SrcEdit (Movable LookAt)
+Depends: ROLicence (>= 1.1)

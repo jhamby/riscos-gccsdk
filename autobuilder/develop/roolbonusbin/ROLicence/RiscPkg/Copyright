@@ -1,0 +1,149 @@
+Document No.1852007 version 1 dated 18 May 2007
+
+LICENCE TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION OF
+RISC OS AND ITS DERIVATIVES
+
+This licence agreement ("Licence") is between Castle Technology Limited
+("Castle") and any person ("You", "Your") who exercises any of the legal
+rights over any components of the computer operating system known as RISC OS
+granted by Castle in this Licence. The phrase "RISC OS" used in this Licence
+refers to those components of version 5.0 of RISC OS that Castle chooses to
+release from time to time and any subsequent release of RISC OS which is
+made generally available by Castle pursuant to this Licence. The phrase
+"Derivative Work" means any derivative work which is based on, or derived
+from, RISC OS or any part of RISC OS (whether by modification or
+translation) and any work subsequently derived from such Derivative Work or
+any part of it PROVIDED THAT such work is only intended to be used in
+conjunction with an embodiment (whether physical or emulated) of one or more
+versions of the ARM processor architecture. By exercising any of the rights
+granted to You by Castle pursuant to this Licence You indicate Your
+acceptance of all of the terms and conditions of this Licence which shall
+therefore be legally binding on You.
+
+
+1:      LICENCE GRANT
+
+1.1:    Subject to the restrictions set out in the remainder of this Licence
+Castle hereby grants to You a non-exclusive royalty free worldwide licence
+to use, copy and distribute the RISC OS source code and object code in any
+medium PROVIDED THAT you ensure that each copy You distribute incorporates
+the text of, or an Internet link to, this Licence.
+
+1.2:    You may modify your copy of RISC OS or any part of it (and any
+Derivative Work or any part of it) to create a Derivative Work and You may
+copy and distribute the source code and object code of such Derivative Work
+in any medium PROVIDED THAT you meet all of the following conditions:
+
+1.2.1:  You shall ensure that each Derivative Work You distribute carries a
+notice stating that it is ultimately derived from RISC OS and the date of
+Your modifications;
+
+1.2.2:  You shall ensure that each Derivative Work You distribute as source
+code prominently carries the following header text in each individual source
+code file:
+
+This source code in this file is licensed to You by Castle Technology
+Limited ("Castle") and its licensors on contractual terms and conditions
+("Licence") which entitle you freely to modify and/or to distribute this
+source code subject to Your compliance with the terms of the Licence.
+
+This source code has been made available to You without any warranties
+whatsoever. Consequently, Your use, modification and distribution of this
+source code is entirely at Your own risk and neither Castle, its licensors
+nor any other person who has contributed to this source code shall be liable
+to You for any loss or damage which You may suffer as a result of Your use,
+modification or distribution of this source code.
+
+Full details of Your rights and obligations are set out in the Licence. You
+should have received a copy of the Licence with this source code file. If
+You have not received a copy, the text of the Licence is available online at
+www.castle-technology.co.uk/riscosbaselicence.htm
+
+1.2.3:  You shall ensure that each Derivative Work distributed by You is
+distributed and licensed in its entirety at no charge on the terms of this
+Licence to any third party who is prepared to accept the terms of this
+Licence. If any part of any Derivative Work distributed by You can
+reasonably be considered an independent and separate work then this Licence
+shall not apply to any such part where You distribute such part as an
+independent and separate work;
+
+1.2.4:  You undertake, in respect of each Derivative Work that You
+distribute, to make the whole source code of every individual component of
+the Derivative Work available for unrestricted access by third parties by
+including a copy of the source code with Your distribution and/or by
+uploading the source code to the official RISC OS source code repository at
+www.riscosopen.org/content/sources
+
+1.2.5:  You hereby grant to Castle a royalty free worldwide licence (with
+the right to grant sub-licences) to incorporate into RISC OS or any
+Derivative Work produced by Castle, the whole or any part of any Derivative
+Work which You create or distribute pursuant to this Licence. You
+acknowledge that Castle may make the whole or any part of RISC OS or any
+Derivative Work produced by Castle available to OEM organisations on
+commercial terms for incorporation into hardware products intended for sale.
+Your hereby waive any moral rights You may have in any part of any
+Derivative Work which Castle so incorporates into RISC OS or any Derivative
+Work produced by Castle. Nothing in this Clause 1.2.5 shall oblige Castle to
+incorporate into RISC OS or any Derivative Work produced by Castle any part
+of any Derivative Work which You create or distribute pursuant to this
+Licence.
+
+
+2:      LICENCE RESTRICTIONS
+
+2.1:    You may not copy, modify, sublicense or distribute RISC OS or any
+Derivative Work except as expressly provided under this Licence. Any attempt
+by You otherwise to copy, modify, sublicense or distribute RISC OS or any
+Derivative Work shall be void and shall lead to the automatic termination of
+Your rights under this Licence but such termination shall not affect the
+rights of any person to whom You have distributed RISC OS or any Derivative
+Work provided they continue to comply with the terms and conditions of this
+Licence.
+
+2.2:    You may not impose on any third party to whom You have distributed
+copies of RISC OS or any Derivative Work any licence restrictions other than
+those set out in this Licence.
+
+2.3:    If, as a consequence of any court judgment, allegation of
+infringement of any proprietary right or any other reason You are unable to
+comply fully with the terms and conditions of this Licence then You shall
+refrain from distributing RISC OS or such Derivative Works (as appropriate)
+for the duration of such non-compliance.
+
+2.4:    This Licence is not an OEM licence. Consequently, You may not
+incorporate or embed RISC OS or any Derivative Work or any part of them in
+any hardware product which is intended for commercial sale, nor may You
+distribute, sell, supply or otherwise dispose of any such hardware product
+unless You have obtained the prior written consent of Castle. Castle is
+generally prepared to grant OEM licences on commercial terms to any person
+who wishes to incorporate or embed RISC OS or any Derivative Work or any
+part of them into a hardware product and/or to sell, supply or otherwise
+dispose of such hardware products. Details of Castle's standard OEM
+licensing terms are available from Castle's website at www.castle-techology.
+co.uk/riscosoemlicence.htm or by email from oem.enquiries@castle-technology.
+co.uk
+
+
+3:      NO WARRANTY
+
+3.1:    RISC OS AND ALL DERIVATIVE WORKS ARE SUPPLIED "AS IS" WITHOUT ANY
+WARRANTIES OF ANY KIND WHETHER EXPRESS OR IMPLIED INCLUDING BUT NOT LIMITED
+TO ANY IMPLIED WARRANTIES OR CONDITIONS THAT RISC OS AND/OR ANY DERIVATIVE
+WORK IS ERROR FREE, FIT FOR ANY PARTICULAR PURPOSE OR THAT ITS USE,
+MODIFICATION OR DISTRIBUTION SHALL NOT LEAD TO INFRINGEMENT OF ANY THIRD
+PARTY PROPRIETARY RIGHTS. ALL IMPLIED WARRANTIES AND CONDITIONS ARE EXCLUDED
+TO THE EXTENT PERMITTED BY LAW.
+
+
+4:      DISCLAIMER OF LIABILITY
+
+4.1:    IN NO EVENT SHALL CASTLE OR ANY PERSON WHO HAS MODIFIEID AND/OR
+DISTRIBUTED THE WHOLE OR ANY PART OF RISC OS OR ANY DERIVATIVE WORK IN
+ACCORDANCE WITH THIS LICENCE BE LIABLE TO YOU FOR ANY LOSS OR DAMAGE
+WHATSOEVER ARISING OUT OF YOUR USE, MODIFICATION OR DISTRIBUTION OR YOUR
+INABILITY TO USE, MODIFY OR DISTRIBUTE RISC OS OR ANY DERIVATIVE WORK OR
+YOUR EXERCISE OF ANY OF THE RIGHTS GRANTED UNDER THIS LICENCE (INCLUDING BUT
+NOT LIMITED TO LOSS OF OR DAMAGE TO YOUR OR ANY THIRD PARTY'S DATA CAUSED BY
+ANY DEFECT IN RISC OS OR ANY DERIVATIVE WORK OR ANY INCOMPATIBILITY BETWEEN
+RISC OS OR ANY DERIVATIVE WORK AND ANY OTHER SOFTWARE). ALL SUCH LIABILITIES
+ARE EXCLUDED TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW.

@@ -1,0 +1,23 @@
+Licence: Non-free
+Description: various very low level diagnosis tools
+ The debug tools module provides a whole pile of very useful debugging facilities
+ both SWIs and *commands.
+ It has a full functional specification at 
+ .
+ https://www.riscosopen.org/wiki/documentation/show/DebugTools%20Module%20API%20Specification
+ .
+ which gives more detail on all of the features, but  here are just a few:
+ - Enhanced Where command
+ - List claimants of vectors, tickers and IRQ devices 
+ - Forcibly kill/remove broken modules
+ - Command line EvalHex and EvalBin commands
+ - Replace or change behaviour of OS SWIs
+ Just double-click the module to run it. Putting it into your PreDesk directory
+ will mean it  is always present so that you can access its features when you
+ most need them.
+ Known issues
+ The IRQInfo command is not compatable with the RISC OS 5 HAL at present
+ so will not work on an IYONIX. Some of the other features probably won’t
+ work correctly on RISC OS 4 or 6.
+Components: Apps.Development.Modules.DebugTools (Movable)
+Depends: ROLicence (>= 1.1)

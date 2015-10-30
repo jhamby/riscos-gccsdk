@@ -1,0 +1,4 @@
+Licence: Non-free
+Description: WIMP Template editor
+Components: Apps.Development.!WinEdit (Movable LookAt)
+Depends: ROLicence (>= 1.1)

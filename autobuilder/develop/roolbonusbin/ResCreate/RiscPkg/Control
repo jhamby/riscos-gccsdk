@@ -1,0 +1,6 @@
+Licence: Non-free
+Description: Toolbox resource file prototype creator
+ The ResCreate application allows you to create a prototype
+ object of a new class, or a prototype gadget of a new type.
+Components: Apps.Development.!ResCreate (Movable)
+Depends: ROLicence (>= 1.1)

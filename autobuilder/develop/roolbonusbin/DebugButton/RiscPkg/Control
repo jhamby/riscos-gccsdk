@@ -1,0 +1,10 @@
+Licence: Non-free
+Description: dump useful information when an application explodes
+ This module adds an extra Debug button onto error boxes for serious errors.
+ Clicking this button will drop you into a command line where you can do
+ useful stuff like *Where and *Memory whilst the task which crashed is still
+ paged into memory.
+ .
+ Just double-click the module to start it.
+Components: Apps.Development.Modules.DebugButtn (Movable)
+Depends: ROLicence (>= 1.1)

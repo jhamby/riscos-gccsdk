@@ -1,0 +1,79 @@
+# Create packages from ROOL bonus binaries developer tools
+
+AB_URL=https://www.riscosopen.org/zipfiles/platform/common/BonusBinDev.zip
+AB_CATEGORY=Development
+AB_COPYSOURCE=no
+
+# Binary so no configure or build
+AB_CONFIG=
+AB_MAKE=
+
+AB_PACKAGES="ResCreate ResEd ResTest SrcEdit FontEd MakeModes WinEdit ROLicence DebugButton DebugTools"
+
+package_dev_app()
+{
+   hddir=$1
+   pkgname=$2
+   ver=$3
+   pkgdir=$D/$pkgname/Apps/Development
+   mkdir -p $pkgdir
+   cp -fr $hddir $pkgdir
+   
+   $AB_HOME/add-riscpkg -package $pkgname -pversion $ver \
+     -copyrightfile $H/COPYRIGHT
+}
+
+# Extract version from messages file _Version tag
+set_version()
+{
+   eval $1=`grep '_Version:' $2 | cut -d':' -f2 | cut -d' ' -f1`
+}
+
+set_module_version()
+{
+   eval $1=`tr '[\000-\011\013-\037\177-\377]' '\012' < $2 | grep '\.[0-9][0-9]' | cut -d' ' -f1`
+}
+
+ab_package()
+{      
+   set_version AB_PVERSION_ResCreate $S/Apps/DDE/!ResCreate/Messages
+   set_version AB_PVERSION_ResEd $S/Apps/DDE/!ResEd/Messages
+   # Extract version from template for RestTest
+   AB_PVERSION_ResTest=`tr '[\000-\011\013-\037\177-\377]' '\012' < $S/Apps/DDE/!ResTest/Templates,fec | grep '\.[0-9][0-9]' | cut -d' ' -f1`
+   set_version AB_PVERSION_SrcEdit $S/Apps/DDE/!SrcEdit/Messages
+   set_version AB_PVERSION_FontEd $S/Utilities/Developer/!FontEd/Messages
+   set_version AB_PVERSION_MakeModes $S/Utilities/Developer/!MakeModes/Messages
+   set_version AB_PVERSION_WinEdit $S/Utilities/Developer/!WinEdit/Messages
+   set_module_version AB_PVERSION_DebugButton $S/Modules/Developer/DebugButtn,ffa
+   set_module_version AB_PVERSION_DebugTools $S/Modules/Developer/DebugTools,ffa
+   
+   AB_PVERSION_ROLicence=1.1
+
+   package_dev_app $S/Apps/DDE/!ResCreate ResCreate $AB_PVERSION_ResCreate
+   package_dev_app $S/Apps/DDE/!ResEd ResEd $AB_PVERSION_ResEd
+   package_dev_app $S/Apps/DDE/!ResTest ResTest $AB_PVERSION_ResTest
+   package_dev_app $S/Apps/DDE/!SrcEdit SrcEdit $AB_PVERSION_SrcEdit
+   package_dev_app $S/Utilities/Developer/!FontEd FontEd $AB_PVERSION_FontEd
+   package_dev_app $S/Utilities/Developer/!MakeModes MakeModes $AB_PVERSION_MakeModes
+   package_dev_app $S/Utilities/Developer/!WinEdit WinEdit $AB_PVERSION_WinEdit
+   
+   # Copy licence to ROLicence package
+   # Note: packaging doesn't currently allow components with a "/" so
+   # components hasn't been set for the ROLicence package
+   mkdir -p $D/ROLicence/Manuals
+   cp $S/../Licence_v1_1.pdf,adf $D/ROLicence/Manuals
+   $AB_HOME/add-riscpkg -package ROLicence -pversion $AB_PVERSION_ROLicence \
+      -section Documentation
+   
+   # Modules
+   mkdir -p $D/DebugButton/Apps/Development/Modules
+   cp $S/Modules/Developer/DebugButtn,ffa $D/DebugButton/Apps/Development/Modules
+   $AB_HOME/add-riscpkg -package DebugButton -pversion $AB_PVERSION_DebugButton \
+        -copyrightfile $H/COPYRIGHT
+   
+   mkdir -p $D/DebugTools/Apps/Development/Modules
+   cp $S/Modules/Developer/DebugTools,ffa $D/DebugTools/Apps/Development/Modules
+   $AB_HOME/add-riscpkg -package DebugTools -pversion $AB_PVERSION_DebugTools \
+         -copyrightfile $H/COPYRIGHT
+}
+

@@ -1,0 +1,12 @@
+Licence: Non-free
+Description: Toolbox Resource file editor
+ The ResEd application allows you to create and edit
+ resource files for use by Acorn C/C++ Toolbox tasks.
+ .
+ ResEd is an extensible application that consists of
+ a shell together with a number of other applications,
+ each responsible for editing object templates of
+ certain classes. These applications can be found in
+ the CSE directory inside the ResEd application.
+Components: Apps.Development.!ResEd (Movable LookAt)
+Depends: ROLicence (>= 1.1)
