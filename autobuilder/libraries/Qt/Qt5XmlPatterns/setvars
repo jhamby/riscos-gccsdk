@@ -15,5 +15,5 @@ ab_package() {
 
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package Qt5XmlPatterns -name Qt5XmlPatterns \
-	-depends SharedLibs -depends Qt5XmlPatterns
+	-depends SharedLibs -depends Qt5Base
 }
