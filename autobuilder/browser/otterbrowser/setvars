@@ -29,7 +29,8 @@ ab_package() {
   ab_docs -h man/otter-browser.1
 
   $AB_HOME/add-riscpkg -copyrightfile COPYING  -package otter-browser -name Otter-browser \
-    -depends Qt5Webkit -depends libicu52 -depends LibExpat1 -depends LibFontConfig1 \
-    -depends LibFreeType6 -depends LibJPEG8 -depends LibLevelDB -depends LibPNG12-0 -depends \
-    -depends LibPcre3 -depends LibSQLite3 -depends LibSSL
+    -depends Qt5Webkit -depends Qt5Script -depends LibPNG12-0 -depends ZLib1g \
+	-depends LibJPEG8 -depends LibSQLite3 -depends LibPcre3 \
+	-depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
+	-depends libicu52 -depends LibSSL -depends LibLevelDB
 }

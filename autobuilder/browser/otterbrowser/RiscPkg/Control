@@ -1,0 +1,4 @@
+License: Free
+Description: Qt5 based web browser using QtWebkit backend
+  Otter Browser aims to recreate the best aspects of the classic Opera (12.x)
+  UI using Qt5.
