@@ -1,0 +1,19 @@
+
+AB_URL=http://download.qt.io/official_releases/qt/5.4/5.4.1/submodules/qtsvg-opensource-src-5.4.1.tar.xz
+
+AB_INSTALL=env
+
+ab_make() {
+  $GCCSDK_INSTALL_ENV/bin/qmake -r
+  $AB_MAKE
+}
+
+ab_package() {
+  ab_create_sharedlib_skeleton Qt5Svg
+
+  ab_add_sharedlib $S/lib libQt5Svg.so.5
+
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package Qt5Svg -name Qt5Svg \
+	-depends SharedLibs -depends Qt5Base
+}
