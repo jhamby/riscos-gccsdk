@@ -1,13 +1,13 @@
 AB_GIT=https://github.com/OtterBrowser/otter-browser.git
 
-AB_PVERSION=0.9.8
-AB_ROVERSION=2
+AB_PVERSION=0.9.8-dev
+AB_ROVERSION=1
 AB_DISTCLEAN="$AB_MAKE -C build clean"
 
 ab_make() {
    mkdir build && cd build
    cmake -DCMAKE_TOOLCHAIN_FILE=../../../../env/toolchain-riscos.cmake \
-         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lWebKit1 -lWebCore -lleveldb -lmemenv -ljpeg -lpng -lJavaScriptCore -lWTF -lsqlite3 -licui18n -licuuc -licudata -lQt5WebKit -lssl -lcrypto -lz' \
+         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lWebKit1 -lWebCore -lleveldb -lmemenv -ljpeg -lpng -lJavaScriptCore -lWTF -lsqlite3 -licui18n -licuuc -licudata -lQt5WebKit -lssl -lcrypto -lz -lpcre16' \
          ..
    $AB_MAKE
    cd ..
@@ -29,5 +29,6 @@ ab_package() {
   ab_docs -h man/otter-browser.1
 
   $AB_HOME/add-riscpkg -copyrightfile COPYING  -package otter-browser -name Otter-browser \
-    -depends Qt5Webkit
+    -depends Qt5Webkit libicu52 LibExpat1 LibFontConfig1 LibFreeType6 LibJPEG8 \
+		    LibLevelDB LibPNG12-0 LibPcre3 LibSQLite3 LibSSL
 }
