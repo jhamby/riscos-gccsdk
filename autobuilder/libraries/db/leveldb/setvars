@@ -47,7 +47,7 @@ ab_package() {
     AB_COMPONENTS=""
 
     ab_add_sharedlib $S libleveldb.so.1
-     
+
     $AB_HOME/add-riscpkg -package libleveldb -name LibLevelDB -depends SharedLibs \
 		-section Library
   fi

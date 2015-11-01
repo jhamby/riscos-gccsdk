@@ -2,6 +2,7 @@
 AB_URL=http://download.qt.io/official_releases/qt/5.4/5.4.1/submodules/qtsvg-opensource-src-5.4.1.tar.xz
 
 AB_INSTALL=env
+AB_PVERSION=5.4.1
 
 ab_make() {
   $GCCSDK_INSTALL_ENV/bin/qmake -r
@@ -12,6 +13,10 @@ ab_package() {
   ab_create_sharedlib_skeleton Qt5Svg
 
   ab_add_sharedlib $S/lib libQt5Svg.so.5
+
+  # This is a dlopen library.
+  mkdir -p $AA/Qt/plugins/platforms/imageformats
+  cp -T $S/plugins/imageformats/libqsvg.so $AA/Qt/plugins/platforms/imageformats/libqsvg.so,E1F
 
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package Qt5Svg -name Qt5Svg \

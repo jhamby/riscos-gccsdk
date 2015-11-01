@@ -1,0 +1,5 @@
+Description: QtWebKit libraries
+  QtWebKit provides a Web browser engine that makes it easy to embed content
+  from the World Wide Web into your Qt application.
+  .
+  This package contains the QtWebKit libraries.

@@ -1,0 +1,8 @@
+Description: QtSvg library
+  Qt is a cross-platform C++ application framework. Qt's primary feature
+  is its rich set of widgets that provide standard GUI functionality.
+  .
+  The QtSvg module provides classes for displaying the contents of SVG files.
+  .
+  Scalable Vector Graphics (SVG) is a language for describing two-dimensional
+  graphics and graphical applications in XML.

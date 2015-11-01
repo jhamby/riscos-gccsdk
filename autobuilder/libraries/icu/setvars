@@ -93,7 +93,7 @@ ab_package() {
     mv -f $A/icuinfo $A/icuinfo$AB_EXEEXT
   fi
 
-  $AB_HOME/add-riscpkg -unixlib -name libicu52-dev
+  $AB_HOME/add-riscpkg -unixlib -name LibICU52-Dev
 
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
     ab_create_sharedlib_skeleton libicu52
@@ -108,6 +108,6 @@ ab_package() {
     ab_add_sharedlib $S/riscos-build/lib libicutu.so.$ICU_VERSION
     ab_add_sharedlib $S/riscos-build/lib libicuuc.so.$ICU_VERSION
 
-    $AB_HOME/add-riscpkg -name libicu52 -depends SharedLibs
+    $AB_HOME/add-riscpkg -name LibICU52 -depends SharedLibs
   fi
 }
