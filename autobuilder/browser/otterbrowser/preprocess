@@ -1,0 +1,5 @@
+for i in resources/translations/*@*
+do
+toname=`echo $i|sed -e 's/@/_/g'`
+mv $i $toname
+done
