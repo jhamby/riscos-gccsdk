@@ -4,8 +4,8 @@ SET(CMAKE_SYSTEM_NAME GNU)
 SET(CMAKE_SYSTEM_VERSION 1)
 
 # specify the cross compiler
-SET(CMAKE_C_COMPILER   GCCSDK_BIN/arm-unknown-riscos-gcc.exe)
-SET(CMAKE_CXX_COMPILER GCCSDK_BIN/arm-unknown-riscos-g++.exe)
+SET(CMAKE_C_COMPILER   GCCSDK_BIN/arm-unknown-riscos-gcc)
+SET(CMAKE_CXX_COMPILER GCCSDK_BIN/arm-unknown-riscos-g++)
 
 # where is the target environment 
 SET(CMAKE_FIND_ROOT_PATH  GCCSDK_ENV)
