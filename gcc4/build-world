@@ -5,7 +5,7 @@ cd `dirname $0`
 notfound=
 
 for tool in \
-  gcc g++ make m4 libtool bison flex autogen patch makeinfo wget help2man ; do
+  gcc g++ make m4 bison flex autogen patch gperf makeinfo wget ; do
 
   if ! type $tool >/dev/null 2>&1 ; then
     notfound="$notfound $tool"
