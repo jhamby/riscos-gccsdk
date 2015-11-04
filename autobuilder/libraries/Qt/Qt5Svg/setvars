@@ -1,8 +1,8 @@
 
-AB_URL=http://download.qt.io/official_releases/qt/5.4/5.4.1/submodules/qtsvg-opensource-src-5.4.1.tar.xz
+AB_URL=http://download.qt.io/official_releases/qt/5.5/5.5.0/submodules/qtsvg-opensource-src-5.5.0.tar.xz
 
 AB_INSTALL=env
-AB_PVERSION=5.4.1
+AB_PVERSION=5.5.0
 
 ab_make() {
   $GCCSDK_INSTALL_ENV/bin/qmake -r
