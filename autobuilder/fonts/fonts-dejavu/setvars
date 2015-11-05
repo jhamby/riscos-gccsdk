@@ -1,0 +1,44 @@
+AB_MAKE="make full-ttf"
+AB_LICENCE=Free
+
+AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#dejavu-fonts-## -e "s/[^-]*-//")
+
+ab_package()
+{
+   ab_create_app UnixFont Apps/Fonts fonts-dejavu-core
+   rm -f $A/!Boot,feb
+
+   mkdir -p $A/truetype/dejavu
+   
+   cp build/DejaVuSans-Bold.ttf $A/truetype/dejavu
+   cp build/DejaVuSans.ttf $A/truetype/dejavu
+   cp build/DejaVuSansMono-Bold.ttf $A/truetype/dejavu
+   cp build/DejaVuSansMono.ttf $A/truetype/dejavu
+   cp build/DejaVuSerif-Bold.ttf $A/truetype/dejavu
+   cp build/DejaVuSerif.ttf $A/truetype/dejavu
+   
+   mkdir -p $A/doc/dejavu-core
+   cp *.txt $A/doc/dejavu-core
+   cp AUTHORS BUGS LICENSE NEWS README $A/doc/dejavu-core
+
+   AB_COMPONENTS=""
+   $AB_HOME/add-riscpkg -name TTF-DejaVu-Core -package fonts-dejavu-core -depends UnixFont
+   
+   ab_create_app UnixFont Apps/Fonts fonts-dejavu-extra
+   rm -f $A/!Boot,feb
+
+   mkdir -p $A/truetype/dejavu
+   
+   cp build/DejaVu*Condensed*.ttf $A/truetype/dejavu
+   cp build/DejaVu*ExtraLight.ttf $A/truetype/dejavu
+   cp build/DejaVu*Italic.ttf $A/truetype/dejavu
+   cp build/DejaVu*Oblique.ttf $A/truetype/dejavu
+   
+   mkdir -p $A/doc/dejavu-extra
+   cp *.txt $A/doc/dejavu-extra
+   cp AUTHORS BUGS LICENSE NEWS README $A/doc/dejavu-extra
+
+   AB_COMPONENTS=""
+   $AB_HOME/add-riscpkg -name TTF-DejaVu-Extra -package fonts-dejavu-extra -depends UnixFont
+}
+
