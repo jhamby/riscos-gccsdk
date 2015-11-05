@@ -15,6 +15,6 @@ ab_package()
    cp *.TXT $A/doc/ttf-bitstream-vera
 
    AB_COMPONENTS=""
-   $AB_HOME/add-riscpkg -depends UnixFont
+   $AB_HOME/add-riscpkg -name TTF-Bitstream-Vera -depends UnixFont
 }
 
