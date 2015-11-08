@@ -8,3 +8,5 @@ fontconfig
 libexpat1
 icu
 libssl1.0.0
+fonts-dejavu
+ttf-bitstream-vera

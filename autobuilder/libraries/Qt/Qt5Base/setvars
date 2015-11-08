@@ -140,18 +140,21 @@ ab_package() {
 	-depends LibJPEG8 -depends LibSQLite3 -depends LibPcre3 \
 	-depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
 	-depends LibICU52 -depends LibSSL \
+	-depends TTF-DejaVu-Core -depends TTF-DejaVu-Extra \
+        -depends TTF-Bitstream-Vera \
 	-section Library
 
-  # qt5base-fonts
-  ab_create_app UnixFont Apps/Fonts
+  # Use standard font packages - rather than copying from here
+  # (see depends above)
+  #
+  #  ab_create_app UnixFont Apps/Fonts qt5fonts
+  # mkdir -p $A/truetype/ttf-dejavu $A/truetype/ttf-vera
+  # cp lib/fonts/DejaVu*.ttf $A/truetype/ttf-dejavu
+  # cp lib/fonts/Vera*.ttf $A/truetype/ttf-vera
+  # rm $A/\!Boot,feb
 
-  mkdir -p $A/truetype/ttf-dejavu $A/truetype/ttf-vera
-  cp lib/fonts/DejaVu*.ttf $A/truetype/ttf-dejavu
-  cp lib/fonts/Vera*.ttf $A/truetype/ttf-vera
-
-  rm $A/\!Boot,feb
-
-  $AB_HOME/add-riscpkg -depends UnixFont
+  # AB_COMPONENTS=""
+  # $AB_HOME/add-riscpkg -package qt5fonts -name Qt5Fonts -section Fonts -depends UnixFont
 
   # qt5base-tests
   ab_create_app Qt5BaseTests Apps/Library qt5base-tests
@@ -178,6 +181,6 @@ ab_package() {
 # This one doesn't work - doesn't respond to key presses
 #  create_test_app StickMan $S/examples/widgets/animation/stickman stickman
 
-  $AB_HOME/add-riscpkg -package qt5base-tests -depends Qt5Base \
+  $AB_HOME/add-riscpkg -package qt5base-tests -name Qt5Base-Tests -depends Qt5Base \
 	-depends SharedLibs
 }
