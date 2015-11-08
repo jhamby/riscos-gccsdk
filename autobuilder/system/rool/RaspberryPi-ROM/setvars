@@ -5,20 +5,8 @@
 AB_NOREMOTE=yes
 
 AB_PACKAGE=RaspberryPi-ROM
-AB_MAINTAINER="RISC OS Open Ltd <info@riscosopen.org>"
+AB_MAINTAINER="RISC OS Open Ltd <packages@riscosopen.org>"
 AB_LICENCE="Non-free"
-
-# all this is now in the preprocess file
-#ROOLold_ROM_VERSION=5.19
-#ROOLold_ROM_UNIXSTAMP=1346224993
-#ROOLold_ROM_ARCHIVE=BCM2835Dev.${ROOL_ROM_VERSION}.zip?${ROOL_ROM_UNIXSTAMP}
-#ROOLold_URL="https://www.riscosopen.org/zipfiles/misc/${ROOL_ROM_ARCHIVE}"
-#ROOLold_ROM_DATESTAMP=$(date --date=@${ROOL_ROM_UNIXSTAMP} -u +%Y%m%d.%H%M%S)
-
-# versions of the autobuilder package
-#ABold_PVERSION=$ROOL_ROM_VERSION.$ROOL_ROM_DATESTAMP
-#ABold_ROVERSION=1
-
 
 # Command in front of invocation of RISC OS GNU configure wrapper.  If you do
 # not want this to be called, you could set this var to ":"
@@ -84,6 +72,7 @@ ab_package () {
 
     mkdir -p $D/$AB_PACKAGE/Bootloader
     cp riscos,fe5 $D/$AB_PACKAGE/Bootloader/RISCOS.IMG,fe5
+    cp -r $H/\!Boot $D/$AB_PACKAGE/
     mkdir -p $D/$AB_PACKAGE/RiscPkg
     echo "RISC OS ROM built on $ROOL_ROM_DATESTAMP" > Copyright
     echo "" >> Copyright
