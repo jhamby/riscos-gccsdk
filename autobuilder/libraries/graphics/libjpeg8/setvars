@@ -1,5 +1,5 @@
 AB_INSTALL=yes
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 

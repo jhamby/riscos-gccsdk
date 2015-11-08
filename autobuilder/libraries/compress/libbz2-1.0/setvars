@@ -1,6 +1,6 @@
 AB_INSTALL=yes
 AB_PRECONF=:
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 ab_package() {
   cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
