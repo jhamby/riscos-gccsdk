@@ -68,10 +68,10 @@ ab_make() {
     perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads shared no-idea no-mdc2 no-rc5
 
     $AB_MAKE -j1
-    cp -f libcrypto.so.1.0.0 $GCCSDK_INSTALL_ENV/lib
-    ln -sfT libcrypto.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/libcrypto.so
-    cp -f libssl.so.1.0.0 $GCCSDK_INSTALL_ENV/lib
-    ln -sfT libssl.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/libssl.so
+    cp -f libcrypto.so.1.0.2 $GCCSDK_INSTALL_ENV/lib
+    ln -sfT libcrypto.so.1.0.2 $GCCSDK_INSTALL_ENV/lib/libcrypto.so
+    cp -f libssl.so.1.0.2 $GCCSDK_INSTALL_ENV/lib
+    ln -sfT libssl.so.1.0.2 $GCCSDK_INSTALL_ENV/lib/libssl.so
     cd $S
   fi
 }

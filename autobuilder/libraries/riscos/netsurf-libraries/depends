@@ -1,6 +1,6 @@
 zlib1g
 libcares
-libssl1.0.0
+libssl1.0.2
 libcurl3
 libjpeg8
 libpng12-0
