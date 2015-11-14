@@ -3,7 +3,7 @@ This is a RISC OS port of the base libraries of Qt5.
 Installation
 ------------
 Due to the number and size of shared libraries used by Qt5, anything based
-on it, will only run on a 32 bit OS (eg, RISC OS 5).
+on it will only run on a 32 bit OS (eg, RISC OS 5).
 
 Library dependencies:
 
@@ -84,7 +84,7 @@ translation is required to a mode of a different depth.
 
 SSL support depends on the OpenSSL include headers being seen by the
 configure tests (specifically, it looks for openssl/opensslv.h).
-libssl1.0.0 is listed as a dependency for Qt5Base, so these tests
+libssl1.0.2 is listed as a dependency for Qt5Base, so these tests
 should always succeed.
 At runtime the SSL libraries are loaded via dlopen so they should only
 be loaded when actually needed.
@@ -126,10 +126,10 @@ A dynamic area can them be create and used like so:
 
 It's possible to free only part of a block as long as what you
 free is wholly contained within an allocated block.
-This is useful in some packages that required a page aligned
+This is useful in some packages that require a page aligned
 block of memory. They do this by allocating twice as much as
 they need, identifying the position of the page aligned block
-they need and then freeing the surplus at each end.
+and then freeing the surplus at each end.
 
 
 Known problems/ToDo
