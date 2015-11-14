@@ -254,19 +254,31 @@ ab_add_sharedlib()
   local lib_name
   local ux_lib_name
   local ro_lib_name
-  
+
+  local readelf
+  local vfp
+  local vfp_dir=""
+
   lib_dir=$1
   lib_name=$2
-  
+
   ux_lib_name=$(readlink $lib_dir/$lib_name)
   ro_lib_name=$(echo $ux_lib_name | tr /. ./)
-  cp -T $lib_dir/$ux_lib_name $AA/$ux_lib_name,E1F
-  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $AA/$lib_name,1C8
+
+  readelf=$(readelf -e "$lib_dir/$ux_lib_name")
+
+  if grep -q "Flags:.*VFP" <<< "$readelf" ; then
+    vfp_dir="/vfp"
+    mkdir -p "$AA/vfp"
+  fi
+
+  cp -T $lib_dir/$ux_lib_name $AA$vfp_dir/$ux_lib_name,E1F
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $AA$vfp_dir/$lib_name,1C8
 
   # For simplicity put the development link in with the shared library  
   local base_lib_name
   base_lib_name=${lib_name%.*}
-  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $AA/$base_lib_name,1C8
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $AA$vfp_dir/$base_lib_name,1C8
 }
 
 ab_docs() {
