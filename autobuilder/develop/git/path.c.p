@@ -1,16 +1,15 @@
---- path.c.orig	2014-12-18 18:42:18.000000000 +0000
-+++ path.c	2015-06-05 12:31:22.273995793 +0100
-@@ -133,8 +133,13 @@
- void home_config_paths(char **global, char **xdg, char *file)
- {
- 	char *xdg_home = getenv("XDG_CONFIG_HOME");
-+#ifndef __riscos__	
- 	char *home = getenv("HOME");
-+#endif	
- 	char *to_free = NULL;
-+#ifdef __riscos__
-+    char *home = "/<Choices$Write>";
-+#endif	
- 
- 	if (!home) {
- 		if (global)
+--- path.c.orig	2015-11-15 13:36:10.074581000 +0100
++++ path.c	2015-11-15 13:43:57.526581000 +0100
+@@ -927,8 +927,11 @@
+ 	config_home = getenv("XDG_CONFIG_HOME");
+ 	if (config_home && *config_home)
+ 		return mkpathdup("%s/git/%s", config_home, filename);
+-
++#ifndef __riscos
+ 	home = getenv("HOME");
++#else
++	home = "/<Choices$Write>";
++#endif
+ 	if (home)
+ 		return mkpathdup("%s/.config/git/%s", home, filename);
+ 	return NULL;
