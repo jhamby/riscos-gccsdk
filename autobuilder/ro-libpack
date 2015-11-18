@@ -14,6 +14,7 @@ if [ -z "$AB_INSTALLTARGET" ] ; then
 fi
 
 mkdir -p $AB_DIR/package/lib
+mkdir -p $AB_DIR/package/lib/pkgconfig
 mkdir -p $AB_DIR/package/include/
 mkdir -p $AB_DIR/package/doc/$RO_PKG
 
