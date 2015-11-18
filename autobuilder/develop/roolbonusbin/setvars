@@ -38,8 +38,7 @@ ab_package()
 {      
    set_version AB_PVERSION_ResCreate $S/Apps/DDE/!ResCreate/Messages
    set_version AB_PVERSION_ResEd $S/Apps/DDE/!ResEd/Messages
-   # Extract version from template for RestTest
-   AB_PVERSION_ResTest=`tr '[\000-\011\013-\037\177-\377]' '\012' < $S/Apps/DDE/!ResTest/Templates,fec | grep '\.[0-9][0-9]' | cut -d' ' -f1`
+   set_version AB_PVERSION_ResTest $S/Apps/DDE/!ResTest/Messages
    set_version AB_PVERSION_SrcEdit $S/Apps/DDE/!SrcEdit/Messages
    set_version AB_PVERSION_FontEd $S/Utilities/Developer/!FontEd/Messages
    set_version AB_PVERSION_MakeModes $S/Utilities/Developer/!MakeModes/Messages
