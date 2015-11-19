@@ -1,0 +1,6 @@
+| Boot file for LibTIFF5
+|
+If "<LibTIFF5$Dir>" = "" Then Set LibTIFF5$Dir <Obey$Dir>
+If "<LibTIFF5$Path>" = "" Then Set LibTIFF5$Path <Obey$Dir>.
+
+IconSprites <LibTIFF5$Dir>.!Sprites
