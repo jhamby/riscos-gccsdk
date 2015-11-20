@@ -65,7 +65,14 @@ cd $AB_DIR/package
 
 if [ -d "$AB_OUTPUTLIB" ] ; then
 
-  tar cfvz $AB_OUTPUTLIB/$RO_PKG.tgz $files
+  file_links=$(find . -type l)
+
+  tar cfvz $AB_OUTPUTLIB/$RO_PKG.tgz $files $file_links
+  
+  # Remove symbolic links from zip file
+  if [ -n "$file_links" ] ; then
+     rm -f $file_links
+  fi
 
   # Process to turn into RISC OS format filenames for zipping
 
