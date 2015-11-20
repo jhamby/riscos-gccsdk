@@ -11,6 +11,9 @@ if [ "$1" == "cp" ] ; then
 elif [ "$1" == "mv" ] ; then
   command=/bin/mv
   shift
+elif [ "$1" == "ln" ] ; then
+  command=/bin/ln
+  shift
 else
   command=/usr/bin/install
 fi

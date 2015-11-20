@@ -6,6 +6,8 @@
 
 if [ -z "$RO_PKG" ] ; then
   /bin/ln $@
+elif echo "$@" | grep -q GCCSDK_ENV ; then
+  GCCSDK_ENV/ro-install ln $@  
 else
   /bin/ln -f $@
 fi
