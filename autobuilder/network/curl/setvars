@@ -1,0 +1,15 @@
+
+AB_CONFLAGS="--with-ssl"
+AB_ROVERISON=1
+
+ab_package() {
+  ab_create_command_app Curl Apps/Network
+  ab_add_commands $S/src/*$AB_EXEEXT
+
+  ab_docs -h $S/RELEASE-NOTES $S/README $S/CHANGES $S/COPYING
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+
+export LIBS='-lcrypto -lssh2 -ldl'
+
