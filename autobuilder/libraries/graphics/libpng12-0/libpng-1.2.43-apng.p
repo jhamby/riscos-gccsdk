@@ -1587,17 +1587,6 @@ Index: pngwutil.c
  /* Initializes the row writing capability of libpng */
  void /* PRIVATE */
  png_write_start_row(png_structp png_ptr)
-@@ -2159,8 +2252,8 @@
- #ifndef PNG_WRITE_WEIGHTED_FILTER_SUPPORTED
-   if (png_ptr->row_number == 0 && filter_to_do == PNG_ALL_FILTERS)
-   {
--      /* These will never be selected so we need not test them. */
--      filter_to_do &= ~(PNG_FILTER_UP | PNG_FILTER_PAETH);
-+      /* These use previous row */
-+      filter_to_do &= ~(PNG_FILTER_UP | PNG_FILTER_AVG | PNG_FILTER_PAETH);
-   }
- #endif 
- 
 @@ -2829,4 +2922,39 @@
     }
  #endif
