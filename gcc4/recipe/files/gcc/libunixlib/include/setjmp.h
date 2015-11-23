@@ -22,13 +22,9 @@ __BEGIN_DECLS
    extra to properly unroll alloca() memory blocks.  */
 #  define __JMP_BUF_SIZE 23
 #else
-#  ifdef __SOFTFP__
-#   define __JMP_BUF_SIZE 13
-#  elif defined(__VFP_FP__)
-#    define __JMP_BUF_SIZE 29
-#  else
-#    define __JMP_BUF_SIZE 25
-#  endif
+/* Use the same size for both vfp and non-vfp libraries so that we can mix
+   the two at runtime.  */
+#  define __JMP_BUF_SIZE 29
 #endif
 
 __BEGIN_NAMESPACE_STD
