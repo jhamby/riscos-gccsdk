@@ -56,138 +56,9 @@
 
 #include "oslib/os.h"
 #include "oslib/wimp.h"
+#include "swis.h"
 
 QT_BEGIN_NAMESPACE
-
-QRiscosScreen::QRiscosScreen () :
-	mTranslationTable(nullptr)
-{
-    update();
-}
-
-void
-QRiscosScreen::update()
-{
-    os_VDU_VAR_LIST(6) var_list = { { os_VDUVAR_XEIG_FACTOR,
-				      os_VDUVAR_YEIG_FACTOR,
-				      os_VDUVAR_XWIND_LIMIT,
-				      os_VDUVAR_YWIND_LIMIT,
-				      os_VDUVAR_LOG2_BPP,
-				      os_VDUVAR_END_LIST } };
-
-    xos_read_vdu_variables ((os_vdu_var_list *)&var_list, (int *)&var_list);
-
-    mXEigenFactor = var_list.var[0];
-    mYEigenFactor = var_list.var[1];
-    mGeometry = QRect(0, 0, var_list.var[2] + 1, var_list.var[3] + 1);
-    mDepth = 1 << var_list.var[4];
-
-    // These need to match up with what QSprite::typeFromQImageFormat returns.
-    switch (mDepth)
-    {
-    case 32:
-      mFormat = QImage::Format_RGB32;
-      break;
-    case 16:
-      mFormat = QImage::Format_RGB16;
-      break;
-    case 8:
-      mFormat = QImage::Format_Indexed8;
-      break;
-    default:
-      mFormat = QImage::Format_Invalid;
-      break;
-    }
-
-    generateTranslationTable();
-}
-
-void
-QRiscosScreen::generateTranslationTable()
-{
-    if (mDepth == 32) {
-	// Don't need a translation table going from 32bit to 32bit.
-	if (mTranslationTable) {
-	    free (mTranslationTable);
-	    mTranslationTable = nullptr;
-	}
-	return;
-    }
-
-    int size;
-    os_error *err;
-    err = xcolourtrans_generate_table (QSprite::typeFromQImageFormat(QImage::Format_RGB32),
-				       /* source_palette=*/nullptr,	// Default palette for mode
-				       QSprite::typeFromQImageFormat(mFormat),
-				       /* dest_palette=*/nullptr,	// Default palette for mode
-				       /* trans_tab=*/nullptr, 		// NULL means return required size
-				       /* flags=*/0,
-				       /* workspace=*/0,
-				       /* transfer_fn=*/nullptr,
-				       &size);
-    if (err) {
-	qWarning("Failed to read translation table size because %s\n", err->errmess);
-	return;
-    }
-
-    mTranslationTable = (osspriteop_trans_tab *)malloc (size);
-    if (mTranslationTable == nullptr) {
-	qWarning("Failed to allocate memory for translation table\n");
-	return;
-    }
-
-    err = xcolourtrans_generate_table (QSprite::typeFromQImageFormat(QImage::Format_RGB32),
-				       /* source_palette=*/nullptr,
-				       QSprite::typeFromQImageFormat(mFormat),
-				       /* dest_palette=*/nullptr,
-				       mTranslationTable,
-				       /* flags=*/0,
-				       /* workspace=*/0,
-				       /* transfer_fn=*/nullptr,
-				       nullptr);
-    if (!err)
-	return;
-
-    qWarning("Failed to create translation table because %s\n", err->errmess);
-    free(mTranslationTable);
-    mTranslationTable = nullptr;
-}
-
-void
-QRiscosScreen::addSurface (QRiscosBackingStore *surface)
-{
-    // Make sure the window exists.
-    surface->window()->create();
-
-    m_surfaceHash.insert(surface->window()->winId(), surface);
-}
-
-void
-QRiscosScreen::removeSurface (QRiscosBackingStore *surface)
-{
-    m_surfaceHash.remove(surface->window()->winId());
-}
-
-QRiscosWindow *
-QRiscosScreen::windowFromId (WId handle) const
-{
-    QRiscosBackingStore *surface = surfaceFromId(handle);
-    
-    if (surface) {
-	return static_cast<QRiscosWindow *>(surface->window()->handle());
-    }
-
-    return nullptr;
-}
-
-QRiscosBackingStore *
-QRiscosScreen::surfaceFromId (WId handle) const
-{
-    if (m_surfaceHash.contains(handle))
-	return m_surfaceHash.value(handle);
-
-    return nullptr;
-}
 
 QRiscosIntegration::QRiscosIntegration ()
     : m_fontDb(new QFontconfigDatabase())
@@ -213,7 +84,6 @@ QRiscosIntegration::~QRiscosIntegration ()
     delete m_riscosPlatformNativeInterface;
 }
 
-
 QPlatformNativeInterface *
 QRiscosIntegration::nativeInterface() const
 {
@@ -221,10 +91,17 @@ QRiscosIntegration::nativeInterface() const
 }
 
 QPlatformWindow *
+QRiscosIntegration::createWindow(QWindow *window) const
+{
+    return new QRiscosWindow(window);
+}
+
+QPlatformWindow *
 QRiscosIntegration::createPlatformWindow(QWindow *window) const
 {
-    QPlatformWindow *w = new QRiscosWindow(window);
-    w->requestActivateWindow();
+    QPlatformWindow *w = createWindow(window);
+    if (window->type() != Qt::ToolTip)
+	w->requestActivateWindow();
     return w;
 }
 
@@ -268,7 +145,12 @@ QRiscosIntegration::createIconbarIcon(const char *task_name)
     } else
       memcpy(bar.icon.data.sprite, task_name, 12);
   
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    return (os_error *)_swix(Wimp_CreateIcon, _IN(1)|_OUT(0),
+			     &bar, &mIconbarIconHandle);
+#else
     return xwimp_create_icon (&bar, &mIconbarIconHandle);
+#endif
 }
 
 void
@@ -276,15 +158,23 @@ QRiscosIntegration::wimpInit ()
 {
     wimp_MESSAGE_LIST(2) message_list = { { 0 } };
 
-    os_error *err;
     QString app_name = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
     QByteArray appNameByteArray = app_name.toUtf8();
     
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _kernel_oserror *err;
+    err = _swix(Wimp_Initialise, _INR(0,3)|_OUT(1),
+		wimp_VERSION_RO38, 0x4B534154,
+		appNameByteArray.constData(), &message_list,
+		&mTaskHandle);
+#else
+    os_error *err;
     err = xwimp_initialise (wimp_VERSION_RO38,
 			    appNameByteArray.constData(),
 			    (wimp_message_list *)&message_list,
 			    NULL,
 			    &mTaskHandle);
+#endif
     if (err != NULL)
 	qWarning("Failed to initialise task; %s\n", err->errmess);
 }

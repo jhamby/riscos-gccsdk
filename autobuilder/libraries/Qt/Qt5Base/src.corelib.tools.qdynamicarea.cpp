@@ -109,7 +109,11 @@ QDynamicArea::QDynamicArea (const char *da_name,
 
 QDynamicArea::~QDynamicArea()
 {
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _swix(OS_DynamicArea, _INR(0,1), 1/*Remove*/, m_handle);
+#else
     xosdynamicarea_delete(m_handle);
+#endif
 }
 
 bool
@@ -117,8 +121,15 @@ QDynamicArea::create ()
 {
     os_error *err;
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    err = (os_error *)_swix(OS_DynamicArea, _INR(0,8)|_OUT(1)|_OUT(3),
+			    0/*Create*/, -1, m_size, (byte *)-1,
+			    os_AREA_NO_USER_DRAG, m_maxSize, 0, 0,
+			    m_name, &m_handle, &m_baseAddr);
+#else
     err = xosdynamicarea_create (-1, m_size, (byte *)-1, os_AREA_NO_USER_DRAG, m_maxSize, 0, 0,
 				 m_name, &m_handle, &m_baseAddr, nullptr);
+#endif
     if (err) {
 	printf ("[%s:%d:%s] - RISC OS Error: %s\n",
 	      __func__, __LINE__, __FILE__, err->errmess);
@@ -194,7 +205,6 @@ QDynamicArea::alloc (size_t size)
     // If allocation from free list failed, then extend DA.
     if (ptr == nullptr)
     {
-	os_error *err;
 	size_t da_inc;
 
 	if (!m_freeList.isEmpty() && m_freeList.last().endAddr() == m_baseAddr + m_size)
@@ -205,8 +215,13 @@ QDynamicArea::alloc (size_t size)
 	    // Extend the DA so the block becomes big enough.
 	    da_inc = ((size - last.size()) + 0xfff) & ~0xfff;
 
-	    if ((err = xos_change_dynamic_area (m_handle, da_inc, nullptr)) != nullptr)
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	    if (_swix(OS_ChangeDynamicArea, _INR(0,1), m_handle, da_inc) != nullptr)
 		return nullptr;
+#else
+	    if (xos_change_dynamic_area (m_handle, da_inc, nullptr) != nullptr)
+		return nullptr;
+#endif
 
 	    m_size += da_inc;
 #ifdef DEBUG_MEMORY
@@ -236,8 +251,13 @@ QDynamicArea::alloc (size_t size)
 
 	    da_inc = (size + 0xfff) & ~0xfff;
 
-	    if ((err = xos_change_dynamic_area (m_handle, da_inc, nullptr)) != nullptr)
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	    if (_swix(OS_ChangeDynamicArea, _INR(0,1), m_handle, da_inc) != nullptr)
 		return nullptr;
+#else
+	    if (xos_change_dynamic_area (m_handle, da_inc, nullptr) != nullptr)
+		return nullptr;
+#endif
 
 	    m_size += da_inc;
 #ifdef DEBUG_MEMORY

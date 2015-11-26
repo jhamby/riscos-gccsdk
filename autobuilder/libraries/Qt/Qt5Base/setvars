@@ -1,6 +1,12 @@
+# Build both normal and VFP versions by default. Set either of these to no
+# to disable that build.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
+
 AB_URL=http://download.qt-project.org/official_releases/qt/5.5/5.5.0/submodules/qtbase-opensource-src-5.5.0.tar.xz
 
-AB_INSTALL=env
+# We'll call "make install" ourselves.
+AB_INSTALL=no
 AB_PVERSION=5.5.0
 
 QTBASE_VERSION=5.5.0
@@ -10,6 +16,9 @@ export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/s
 export PKG_CONFIG_SYSROOT_DIR=$GCCSDK_INSTALL_ENV
 export RO_SHAREDLIBS=yes
 export PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
+
+# Export to subshells
+export GCCSDK_INSTALL_ENV
 
 # We'll be calling configure ourselves because it uses '-prefix' rather than '--prefix'.
 AB_PRECONF=:
@@ -22,6 +31,8 @@ ln -T -s -f $H/src.plugins.platforms.riscos.qriscoseventdispatcher.cpp $S/src/pl
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoseventdispatcher.h $S/src/plugins/platforms/riscos/qriscoseventdispatcher.h
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscosintegration.h $S/src/plugins/platforms/riscos/qriscosintegration.h
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscosintegration.cpp $S/src/plugins/platforms/riscos/qriscosintegration.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscosscreen.cpp $S/src/plugins/platforms/riscos/qriscosscreen.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscosscreen.h $S/src/plugins/platforms/riscos/qriscosscreen.h
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.cpp $S/src/plugins/platforms/riscos/qriscoswindow.cpp
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.h $S/src/plugins/platforms/riscos/qriscoswindow.h
 ln -T -s -f $H/src.plugins.platforms.riscos.riscos.json $S/src/plugins/platforms/riscos/riscos.json
@@ -31,17 +42,30 @@ ln -T -s -f $H/include.qdynamicarea.h $S/include/QtCore/qdynamicarea.h
 ln -T -s -f $H/src.corelib.tools.qdynamicarea.h $S/src/corelib/tools/qdynamicarea.h
 ln -T -s -f $H/src.corelib.tools.qdynamicarea.cpp $S/src/corelib/tools/qdynamicarea.cpp
 
-mkdir -p $S/mkspecs/arm-riscos-g++
+mkdir -p $S/mkspecs/arm-riscos-g++ $S/mkspecs/arm-riscos-vfp-g++
 ln -T -s -f $H/mkspecs.arm-riscos-g++.qmake.conf $S/mkspecs/arm-riscos-g++/qmake.conf
 ln -T -s -f $H/mkspecs.arm-riscos-g++.qplatformdefs.h $S/mkspecs/arm-riscos-g++/qplatformdefs.h
+ln -T -s -f $H/mkspecs.arm-riscos-vfp-g++.qmake.conf $S/mkspecs/arm-riscos-vfp-g++/qmake.conf
+# Use the same qplatformdefs.h for both arm-riscos-g++ and arm-riscos-vfp-g++.
+ln -T -s -f $H/mkspecs.arm-riscos-g++.qplatformdefs.h $S/mkspecs/arm-riscos-vfp-g++/qplatformdefs.h
 
 # Insert qdynamicarea.h into the build system.
 $S/bin/syncqt.pl
 
-./configure -prefix $GCCSDK_INSTALL_ENV -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
--confirm-license -no-reduce-relocations -xplatform arm-riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
--fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -no-harfbuzz -force-asserts \
--riscos -qpa riscos -v
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  mkdir -p build
+  ( cd build; ../configure -prefix $GCCSDK_INSTALL_ENV -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
+  -confirm-license -no-reduce-relocations -xplatform arm-riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
+  -fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -no-harfbuzz -force-asserts \
+  -riscos -qpa riscos -v )
+fi
+if [ "$BUILD_VFP" == "yes" ]; then
+  mkdir -p build-vfp
+  ( cd build-vfp; ../configure -prefix $GCCSDK_INSTALL_ENV/vfp -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
+  -confirm-license -no-reduce-relocations -xplatform arm-riscos-vfp-g++ -no-nis -no-cups -no-iconv -system-freetype \
+  -fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -no-harfbuzz -force-asserts \
+  -riscos -qpa riscos -v )
+fi
 
 
 # There are parts of the source that need to be built natively, eg, tools used in
@@ -54,54 +78,59 @@ $S/bin/syncqt.pl
 # If we want to cross compile these tools as well in future, then this will have to be
 # revisited.
 
-pushd .
-cd $S/src/tools/bootstrap/
-$S/bin/qmake bootstrap.pro -o Makefile
-$H/change-compiler.pl Makefile
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  ( cd build; ./bin/qmake -r ../qtbase.pro )
+  for f in bootstrap moc qdoc qlalr rcc uic; do
+    ( cd build/src/tools/$f/; $H/change-compiler.pl Makefile )
+  done
+fi
+if [ "$BUILD_VFP" == "yes" ]; then
+  ( cd build-vfp; ./bin/qmake -r ../qtbase.pro )
+  for f in bootstrap moc qdoc qlalr rcc uic; do
+    ( cd build-vfp/src/tools/$f/; $H/change-compiler.pl Makefile )
+  done
+fi
 
-cd $S/src/tools/moc/
-$S/bin/qmake moc.pro -o Makefile
-$H/change-compiler.pl Makefile
-
-cd $S/src/tools/qdoc/
-$S/bin/qmake qdoc.pro -o Makefile
-$H/change-compiler.pl Makefile
-
-cd $S/src/tools/qlalr/
-$S/bin/qmake qlalr.pro -o Makefile
-$H/change-compiler.pl Makefile
-
-cd $S/src/tools/rcc/
-$S/bin/qmake rcc.pro -o Makefile
-$H/change-compiler.pl Makefile
-
-cd $S/src/tools/uic/
-$S/bin/qmake uic.pro -o Makefile
-$H/change-compiler.pl Makefile
-popd
-
-#ab_make() {
-#  make $MAKEFLAGS
+ab_make() {
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+    ( cd build; $AB_MAKE && $AB_MAKE install )
+  fi
+  if [ "$BUILD_VFP" == "yes" ]; then
+    ( cd build-vfp; $AB_MAKE && $AB_MAKE install )
+  fi
 #  make install
 #  make html_docs
-#}
+}
 
 # $1 = app name
 # $2 = binary location
 # $3 = binary name
+# $4 = "VFP" or ""
 create_test_app() {
-  mkdir "$A/!$1"
+  mkdir -p "$A/$4/!$1"
 
   # We're not too concerned about the size of the wimp slot, these are
   # just test programs, so it doesn't matter if it's oversized.
-  echo "Wimpslot -min 1000k -max 1000k" >> "$A/!$1/!Run,feb"
-  echo "Set $1\$Dir <Obey\$Dir>" >> "$A/!$1/!Run,feb"
-  echo "Run <$1\$Dir>.$3 > <$1\$Dir>.debug 2>&1" >> "$A/!$1/!Run,feb"
+  echo "Wimpslot -min 1000k -max 1000k" >> "$A/$4/!$1/!Run,feb"
+  echo "Set $1\$Dir <Obey\$Dir>" >> "$A/$4/!$1/!Run,feb"
+  echo "Run <$1\$Dir>.$3 > <$1\$Dir>.debug 2>&1" >> "$A/$4/!$1/!Run,feb"
 
-  echo "[Paths]" >> "$A/!$1/qt.conf"
-  echo "Prefix=/<$1\$Dir>/" >> "$A/!$1/qt.conf"
+  echo "[Paths]" >> "$A/$4/!$1/qt.conf"
+  echo "Prefix=/<$1\$Dir>/" >> "$A/$4/!$1/qt.conf"
 
-  cp $2/$3 "$A/!$1/$3$AB_EXEEXT"
+  cp $2/$3 "$A/$4/!$1/$3$AB_EXEEXT"
+}
+
+# $1 = app name
+# $2 = binary location
+# $3 = binary name
+create_example() {
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+    create_test_app $1 $S/build/examples/$2 $3 ""
+  fi
+  if [ "$BUILD_VFP" == "yes" ]; then
+    create_test_app $1 $S/build-vfp/examples/$2 $3 VFP
+  fi
 }
 
 ab_package() {
@@ -111,28 +140,53 @@ ab_package() {
   # qt5base (We always build the shared libraries).
   ab_create_sharedlib_skeleton Qt5Base
 
-  ab_add_sharedlib $S/lib libQt5Core.so.5
-  ab_add_sharedlib $S/lib libQt5Gui.so.5
-  ab_add_sharedlib $S/lib libQt5Network.so.5
-  ab_add_sharedlib $S/lib libQt5Widgets.so.5
-  ab_add_sharedlib $S/lib libQt5Sql.so.5
-  ab_add_sharedlib $S/lib libQt5Xml.so.5
-  ab_add_sharedlib $S/lib libQt5Concurrent.so.5
-  ab_add_sharedlib $S/lib libQt5PrintSupport.so.5
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+    ab_add_sharedlib $S/build/lib libQt5Core.so.5
+    ab_add_sharedlib $S/build/lib libQt5Gui.so.5
+    ab_add_sharedlib $S/build/lib libQt5Network.so.5
+    ab_add_sharedlib $S/build/lib libQt5Widgets.so.5
+    ab_add_sharedlib $S/build/lib libQt5Sql.so.5
+    ab_add_sharedlib $S/build/lib libQt5Xml.so.5
+    ab_add_sharedlib $S/build/lib libQt5Concurrent.so.5
+    ab_add_sharedlib $S/build/lib libQt5PrintSupport.so.5
 
-  # This is a dlopen library.
-  mkdir -p $AA/Qt/plugins/platforms/imageformats
-  mkdir -p $AA/Qt/plugins/platforms/bearer
-  mkdir -p $AA/Qt/plugins/platforms/sqldrivers
+    # This is a dlopen library.
+    mkdir -p $AA/Qt/plugins/platforms/imageformats
+    mkdir -p $AA/Qt/plugins/platforms/bearer
+    mkdir -p $AA/Qt/plugins/platforms/sqldrivers
+    cp -T $S/build/plugins/platforms/libqriscos.so     $AA/Qt/plugins/platforms/libqriscos.so,E1F
+    cp -T $S/build/plugins/platforms/libqminimal.so    $AA/Qt/plugins/platforms/libqminimal.so,E1F
+    cp -T $S/build/plugins/platforms/libqoffscreen.so  $AA/Qt/plugins/platforms/libqoffscreen.so,E1F
+    cp -T $S/build/plugins/bearer/libqgenericbearer.so $AA/Qt/plugins/platforms/bearer/libqgenericbearer.so,E1F
+    cp -T $S/build/plugins/imageformats/libqgif.so     $AA/Qt/plugins/platforms/imageformats/libqgif.so,E1F
+    cp -T $S/build/plugins/imageformats/libqico.so     $AA/Qt/plugins/platforms/imageformats/libqico.so,E1F
+    cp -T $S/build/plugins/imageformats/libqjpeg.so    $AA/Qt/plugins/platforms/imageformats/libqjpeg.so,E1F
+    cp -T $S/build/plugins/sqldrivers/libqsqlite.so    $AA/Qt/plugins/platforms/sqldrivers/libqsqlite.so,E1F
+  fi
 
-  cp -T $S/plugins/platforms/libqriscos.so $AA/Qt/plugins/platforms/libqriscos.so,E1F
-  cp -T $S/plugins/platforms/libqminimal.so $AA/Qt/plugins/platforms/libqminimal.so,E1F
-  cp -T $S/plugins/platforms/libqoffscreen.so $AA/Qt/plugins/platforms/libqoffscreen.so,E1F
-  cp -T $S/plugins/bearer/libqgenericbearer.so $AA/Qt/plugins/platforms/bearer/libqgenericbearer.so,E1F
-  cp -T $S/plugins/imageformats/libqgif.so $AA/Qt/plugins/platforms/imageformats/libqgif.so,E1F
-  cp -T $S/plugins/imageformats/libqico.so $AA/Qt/plugins/platforms/imageformats/libqico.so,E1F
-  cp -T $S/plugins/imageformats/libqjpeg.so $AA/Qt/plugins/platforms/imageformats/libqjpeg.so,E1F
-  cp -T $S/plugins/sqldrivers/libqsqlite.so $AA/Qt/plugins/platforms/sqldrivers/libqsqlite.so,E1F
+  if [ "$BUILD_VFP" == "yes" ]; then
+    ab_add_sharedlib $S/build-vfp/lib libQt5Core.so.5
+    ab_add_sharedlib $S/build-vfp/lib libQt5Gui.so.5
+    ab_add_sharedlib $S/build-vfp/lib libQt5Network.so.5
+    ab_add_sharedlib $S/build-vfp/lib libQt5Widgets.so.5
+    ab_add_sharedlib $S/build-vfp/lib libQt5Sql.so.5
+    ab_add_sharedlib $S/build-vfp/lib libQt5Xml.so.5
+    ab_add_sharedlib $S/build-vfp/lib libQt5Concurrent.so.5
+    ab_add_sharedlib $S/build-vfp/lib libQt5PrintSupport.so.5
+
+    # This is a dlopen library.
+    mkdir -p $AA/vfp/Qt/plugins/platforms/imageformats
+    mkdir -p $AA/vfp/Qt/plugins/platforms/bearer
+    mkdir -p $AA/vfp/Qt/plugins/platforms/sqldrivers
+    cp -T $S/build-vfp/plugins/platforms/libqriscos.so     $AA/vfp/Qt/plugins/platforms/libqriscos.so,E1F
+    cp -T $S/build-vfp/plugins/platforms/libqminimal.so    $AA/vfp/Qt/plugins/platforms/libqminimal.so,E1F
+    cp -T $S/build-vfp/plugins/platforms/libqoffscreen.so  $AA/vfp/Qt/plugins/platforms/libqoffscreen.so,E1F
+    cp -T $S/build-vfp/plugins/bearer/libqgenericbearer.so $AA/vfp/Qt/plugins/platforms/bearer/libqgenericbearer.so,E1F
+    cp -T $S/build-vfp/plugins/imageformats/libqgif.so     $AA/vfp/Qt/plugins/platforms/imageformats/libqgif.so,E1F
+    cp -T $S/build-vfp/plugins/imageformats/libqico.so     $AA/vfp/Qt/plugins/platforms/imageformats/libqico.so,E1F
+    cp -T $S/build-vfp/plugins/imageformats/libqjpeg.so    $AA/vfp/Qt/plugins/platforms/imageformats/libqjpeg.so,E1F
+    cp -T $S/build-vfp/plugins/sqldrivers/libqsqlite.so    $AA/vfp/Qt/plugins/platforms/sqldrivers/libqsqlite.so,E1F
+  fi
 
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package qt5base -name Qt5Base \
@@ -159,27 +213,27 @@ ab_package() {
   # qt5base-tests
   ab_create_app Qt5BaseTests Apps/Library qt5base-tests
 
-  create_test_app AnalogClock $S/examples/gui/analogclock analogclock
-  create_test_app AnimatedTiles $S/examples/widgets/animation/animatedtiles animatedtiles
-  create_test_app MoveBlocks $S/examples/widgets/animation/moveblocks moveblocks
-  create_test_app AppChooser $S/examples/widgets/animation/appchooser appchooser
-  create_test_app PathStroke $S/examples/widgets/painting/pathstroke pathstroke
-  create_test_app Transforms $S/examples/widgets/painting/transformations transformations
-  create_test_app ImageComp $S/examples/widgets/painting/imagecomposition imagecomposition
-  create_test_app PainterPaths $S/examples/widgets/painting/painterpaths painterpaths
-  create_test_app Deform $S/examples/widgets/painting/deform deform
-  create_test_app Affine $S/examples/widgets/painting/affine affine
-  create_test_app Gradients $S/examples/widgets/painting/gradients gradients
-  create_test_app Lighting $S/examples/widgets/effects/lighting lighting
-  create_test_app BlurPicker $S/examples/widgets/effects/blurpicker blurpicker
-  create_test_app i18n $S/examples/widgets/tools/i18n i18n
-  create_test_app RegExp $S/examples/widgets/tools/regexp regexp
-  create_test_app Wiggly $S/examples/widgets/widgets/wiggly wiggly
-  create_test_app Movie $S/examples/widgets/widgets/movie movie
-  create_test_app ToolTips $S/examples/widgets/widgets/tooltips tooltips
-  create_test_app Mandelbrot $S/examples/corelib/threads/mandelbrot mandelbrot
+  create_example AnalogClock   gui/analogclock                   analogclock
+  create_example AnimatedTiles widgets/animation/animatedtiles   animatedtiles
+  create_example MoveBlocks    widgets/animation/moveblocks      moveblocks
+  create_example AppChooser    widgets/animation/appchooser      appchooser
+  create_example PathStroke    widgets/painting/pathstroke       pathstroke
+  create_example Transforms    widgets/painting/transformations  transformations
+  create_example ImageComp     widgets/painting/imagecomposition imagecomposition
+  create_example PainterPaths  widgets/painting/painterpaths     painterpaths
+  create_example Deform        widgets/painting/deform           deform
+  create_example Affine        widgets/painting/affine           affine
+  create_example Gradients     widgets/painting/gradients        gradients
+  create_example Lighting      widgets/effects/lighting          lighting
+  create_example BlurPicker    widgets/effects/blurpicker        blurpicker
+  create_example i18n          widgets/tools/i18n                i18n
+  create_example RegExp        widgets/tools/regexp              regexp
+  create_example Wiggly        widgets/widgets/wiggly            wiggly
+  create_example Movie         widgets/widgets/movie             movie
+  create_example ToolTips      widgets/widgets/tooltips          tooltips
+  create_example Mandelbrot    corelib/threads/mandelbrot        mandelbrot
 # This one doesn't work - doesn't respond to key presses
-#  create_test_app StickMan $S/examples/widgets/animation/stickman stickman
+#  create_example StickMan     widgets/animation/stickman        stickman
 
   $AB_HOME/add-riscpkg -package qt5base-tests -name Qt5Base-Tests -depends Qt5Base \
 	-depends SharedLibs

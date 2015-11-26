@@ -60,109 +60,6 @@ class QRiscosBackingStore;
 class QRiscosWindow;
 class QDynamicArea;
 
-class QRiscosScreen : public QPlatformScreen
-{
-public:
-    QRiscosScreen();
-
-    // Called on a mode change to cache its values.
-    void update();
-
-    void addSurface(QRiscosBackingStore *);
-    void removeSurface(QRiscosBackingStore *);
-
-    QRiscosWindow *windowFromId(WId handle) const;
-
-    QRiscosWindow *windowFromId(wimp_w handle) const {
-	return windowFromId((WId)handle);
-    }
-
-    QRiscosBackingStore *surfaceFromId(WId handle) const;
-
-    QRiscosBackingStore *surfaceFromId(wimp_w handle) const {
-	return surfaceFromId((WId)handle);
-    }
-
-    // Overridden from base class
-    QRect geometry() const { return mGeometry; }
-    QSize size() const { return QSize(mGeometry.width(), mGeometry.height()); }
-    int depth() const { return mDepth; }
-    QImage::Format format() const { return mFormat; }
-
-    int xPixelToOS(int x) const {
-	return x << mXEigenFactor;
-    }
-    int yPixelToOS(int y) const {
-	return y << mYEigenFactor;
-    }
-    int xOSToPixel(int x) const {
-	return x >> mXEigenFactor;
-    }
-    int yOSToPixel(int y) const {
-	return y >> mYEigenFactor;
-    }
-
-    QSize sizeOS() const {
-	return QSize(xPixelToOS(mGeometry.width()),
-		     yPixelToOS(mGeometry.height()));
-    }
-
-    int heightOS() const {
-	return yPixelToOS(mGeometry.height());
-    }
-
-    int widthOS() const {
-	return xPixelToOS(mGeometry.width());
-    }
-
-    // Pixels in
-    // Pixels out
-    QPoint globalPoint(const QPoint &point) {
-	return QPoint(point.x(),
-		      mGeometry.height() - point.y());
-    }
-
-/*    QPoint osToPixel(int x, int y) {
-	return QPoint(xOSToPixel(x), yOSToPixel(y));
-    }
-    QPoint pixelToOS(int x, int y) {
-	return QPoint(xPixelToOS(x), yPixelToOS(y));
-    }*/
-
-    QSize osSizeToPixel(int x, int y) {
-	return QSize(xOSToPixel(x), yOSToPixel(y));
-    }
-    QPoint osPointToPixel(const QPoint &point) {
-	return QPoint(xOSToPixel(point.x()), yOSToPixel(point.y()));
-    }
-    QPoint osPointToPixel(int x, int y) {
-	return QPoint(xOSToPixel(x), yOSToPixel(y));
-    }
-    QPoint pixelPointToOS(const QPoint &point) {
-	return QPoint(xPixelToOS(point.x()), yPixelToOS(point.y()));
-    }
-
-    QHash<WId, QRiscosBackingStore *> m_surfaceHash;
-
-    osspriteop_trans_tab const *translationTable() const {
-	return mTranslationTable;
-    }
-
-private:
-    void generateTranslationTable();
-
-private:
-    QRect mGeometry;
-    int mDepth;
-    QImage::Format mFormat;
-    int mXEigenFactor;
-    int mYEigenFactor;
-
-    // The translation table to use when plotting a 32bit sprite to this screen.
-    // NULL if the screen is also 32bit.
-    osspriteop_trans_tab *mTranslationTable;
-};
-
 class QRiscosPlatformNativeInterface : public QPlatformNativeInterface
 {
 };
@@ -175,13 +72,15 @@ public:
 
     QPlatformWindow *createPlatformWindow(QWindow *window) const;
     QPlatformBackingStore *createPlatformBackingStore(QWindow *window) const;
+    QPlatformNativeInterface *nativeInterface() const;
     QAbstractEventDispatcher *createEventDispatcher() const;
     QPlatformFontDatabase *fontDatabase() const;
-    QPlatformNativeInterface *nativeInterface() const;
 
     QDynamicArea *windowSprites() const {
         return mWindowSprites;
     }
+protected:
+    QPlatformWindow *createWindow(QWindow *window) const;
 
 private:
     void wimpInit ();

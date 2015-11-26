@@ -57,6 +57,7 @@
 #include "oslib/wimp.h"
 #include "oslib/osbyte.h"
 #include "oslib/report.h"
+#include "swis.h"
 
 #include <assert.h>
 
@@ -239,7 +240,11 @@ QRiscosEventDispatcherPrivate::handleOpenEvent()
     QRiscosScreen *screen = static_cast<QRiscosScreen *>(app->primaryScreen()->handle());
     wimp_open &open = m_pollBlock.open;
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _swix(Wimp_OpenWindow, _IN(1), &open);
+#else
     xwimp_open_window (&open);
+#endif
 
     QRiscosWindow *rwindow = screen->windowFromId (open.w);
     if (!rwindow)
@@ -256,15 +261,19 @@ QRiscosEventDispatcherPrivate::handleOpenEvent()
 
     // It would seem that we have to update the QWindow geometry ourselves. The
     // other platforms don't seem to, but if we don't do it here, then it doesn't happen.
+    if (newPos != oldPos || newSize != oldSize) {
+	qwindow->setGeometry(newPos.x(), newPos.y(),
+			     newSize.width(), newSize.height());
+    }
     if (newPos != oldPos) {
-	qwindow->setX(newPos.x());
-	qwindow->setY(newPos.y());
+//	qwindow->setX(newPos.x());
+//	qwindow->setY(newPos.y());
 	QMoveEvent event (newPos, oldPos);
 	QCoreApplication::sendEvent(qwindow, &event);
     }
     if (newSize != oldSize) {
-	qwindow->setWidth(newSize.width());
-	qwindow->setHeight(newSize.height());
+//	qwindow->setWidth(newSize.width());
+//	qwindow->setHeight(newSize.height());
 	QResizeEvent event (newSize, oldSize);
 	QCoreApplication::sendEvent(qwindow, &event);
     }
@@ -291,12 +300,20 @@ null_redraw (wimp_draw *redraw)
     os_error *err;
     osbool more;
 
-    qWarning ("RISCOS: Unrecognised window %p during redraw event.\n", redraw->w);
+    qWarning ("RISCOS: Unrecognised window %p during redraw event or no backingstore.\n", redraw->w);
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    err = (os_error *)_swix(Wimp_RedrawWindow, _IN(1)|_OUT(0), redraw, &more);
+#else
     err = xwimp_redraw_window (redraw, &more);
+#endif
     if (!err) {
 	while (more)
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	    err = (os_error *)_swix(Wimp_GetRectangle, _IN(1)|_OUT(0), redraw, &more);
+#else
 	    err = xwimp_get_rectangle (redraw, &more);
+#endif
     }
 
     return err;
@@ -310,36 +327,16 @@ QRiscosEventDispatcherPrivate::handleRedrawEvent()
     wimp_draw &redraw = m_pollBlock.redraw;
     os_error *err;
 
-    QRiscosBackingStore *surface = screen->surfaceFromId (redraw.w);
-    if (!surface)
-    {
+    QRiscosWindow *window = screen->windowFromId (redraw.w);
+    if (!window) {
         // This should never happen.
 	err = null_redraw(&redraw);
 	if (err)
 	    qWarning ("RISCOS: Error during redraw event; %s\n", err->errmess);
 	return;
     }
-    
-    osbool more;
-    os_coord origin;
 
-    err = xwimp_redraw_window (&redraw, &more);
-    
-    origin.x = redraw.box.x0 - redraw.xscroll;
-    origin.y = redraw.box.y1 - redraw.yscroll -
-	       screen->yPixelToOS(surface->height());
-    
-    while (more) {
-        if (screen->depth() == 32) {
-	    // Fast case; render 32 bit to 32 bit.
-	    err = surface->render (origin.x, origin.y);
-	} else {
-	    // Render 32 bit to something else...
-	    err = surface->render (origin.x, origin.y,
-				   screen->translationTable());
-	}
-	xwimp_get_rectangle (&redraw, &more);
-    }
+    window->redraw(redraw);
 }
 
 static Qt::MouseButton
@@ -380,6 +377,20 @@ read_keyboard_modifiers ()
     // errors.
     uint32_t modifiers = Qt::NoModifier;
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    // Check for shift key. Internal key code 0 covers both left and right.
+    if (_swi(OS_Byte, _INR(0,2)|_RETURN(1), osbyte_IN_KEY, 0 ^ 0xff, 0xff)) {
+	modifiers |= Qt::ShiftModifier;
+    }
+    // Check for control key. Internal key code 1 covers both left and right.
+    if (_swi(OS_Byte, _INR(0,2)|_RETURN(1), osbyte_IN_KEY, 1 ^ 0xff, 0xff)) {
+	modifiers |= Qt::ControlModifier;
+    }
+    // Check for alt key. Internal key code 2 covers both left and right.
+    if (_swi(OS_Byte, _INR(0,2)|_RETURN(1), osbyte_IN_KEY, 2 ^ 0xff, 0xff)) {
+	modifiers |= Qt::AltModifier;
+    }
+#else
     // Check for shift key. Internal key code 0 covers both left and right.
     if (osbyte1 (osbyte_IN_KEY, 0 ^ 0xff, 0xff)) {
 	modifiers |= Qt::ShiftModifier;
@@ -392,6 +403,7 @@ read_keyboard_modifiers ()
     if (osbyte1 (osbyte_IN_KEY, 2 ^ 0xff, 0xff)) {
 	modifiers |= Qt::AltModifier;
     }
+#endif
     return (Qt::KeyboardModifier)modifiers;
 }
 
@@ -450,7 +462,11 @@ QRiscosEventDispatcherPrivate::startResizeWindow(wimp_pointer &mouse)
 
     drag.w = mouse.w;
     drag.type = wimp_DRAG_SYSTEM_SIZE;
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    if (_swix(Wimp_DragBox, _IN(1), &drag) == nullptr) {
+#else
     if (xwimp_drag_box(&drag) == nullptr) {
+#endif
 	m_systemDrag = true;
     }
 }
@@ -536,7 +552,11 @@ QRiscosEventDispatcherPrivate::handleNullEvent()
 
     wimp_pointer mouse;
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _swix(Wimp_GetPointerInfo, _IN(1), &mouse);
+#else
     xwimp_get_pointer_info(&mouse);
+#endif
 
 #ifndef USE_QEventDispatcherUNIX_BASE
     handleTimers();

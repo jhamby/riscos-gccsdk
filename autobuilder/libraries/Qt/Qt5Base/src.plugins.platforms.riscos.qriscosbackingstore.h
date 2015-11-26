@@ -51,6 +51,7 @@
 #include <qpa/qplatformwindow.h>
 #include <qdynamicarea.h>
 #include "oslib/osspriteop.h"
+#include "swis.h"
 
 #include <QtGui/QImage>
 
@@ -73,12 +74,22 @@ public:
 	if (isNull())
 	    return nullptr;
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	return (os_error *)_swix(OS_SpriteOp, _INR(0,5),
+				 osspriteop_PTR | 34, // Put sprite at user coords
+				 m_surfaceSpriteArea,
+				 m_surfaceSpritePtr,
+				 x,
+				 y,
+				 os_ACTION_OVERWRITE);
+#else
 	return xosspriteop_put_sprite_user_coords (osspriteop_PTR,
 						   m_surfaceSpriteArea,
 						   (osspriteop_id)m_surfaceSpritePtr,
 						   x,
 						   y,
 						   os_ACTION_OVERWRITE);
+#endif
     }
 
     os_error *render (int x, int y,
@@ -87,6 +98,17 @@ public:
 	if (isNull())
 	    return nullptr;
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	return (os_error *)_swix(OS_SpriteOp, _INR(0,7),
+				 osspriteop_PTR | 52, // Put sprite scaled
+				 m_surfaceSpriteArea,
+				 m_surfaceSpritePtr,
+				 x,
+				 y,
+				 os_ACTION_OVERWRITE,
+				 factors,
+				 table);
+#else
 	return xosspriteop_put_sprite_scaled (osspriteop_PTR,
 					      m_surfaceSpriteArea,
 					      (osspriteop_id)m_surfaceSpritePtr,
@@ -95,6 +117,7 @@ public:
 					      os_ACTION_OVERWRITE,
 					      factors,
 					      table);
+#endif
     }
 
     int width() const {
@@ -110,9 +133,16 @@ public:
     }
 
     os_error *saveToFile(const char *filename) const {
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	return (os_error *)_swix(OS_SpriteOp, _INR(0,2),
+				 osspriteop_PTR | 12, // Save sprite file
+				 m_surfaceSpriteArea,
+				 filename);
+#else
 	return xosspriteop_save_sprite_file(osspriteop_PTR,
 					    m_surfaceSpriteArea,
 					    filename);
+#endif
     }
 
     static os_mode typeFromQImageFormat (QImage::Format format);

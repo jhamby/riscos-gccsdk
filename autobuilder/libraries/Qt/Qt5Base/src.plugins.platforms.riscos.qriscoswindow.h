@@ -51,7 +51,9 @@
 
 #include <qpa/qplatformwindow.h>
 #include "qriscosintegration.h"
+#include "qriscosscreen.h"
 #include "oslib/wimp.h"
+#include "swis.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -66,25 +68,25 @@ public:
     ~QRiscosWindow();
 
     // Virtual functions that have been overridden.
-    bool isActive() const;
+    bool isActive() const Q_DECL_OVERRIDE;
 
-    void setVisible(bool visible);
+    void setVisible(bool visible) Q_DECL_OVERRIDE;
     
-    void setGeometry(const QRect &rect);
+    void setGeometry(const QRect &rect) Q_DECL_OVERRIDE;
     
-    void setWindowTitle(const QString &title);
+    void setWindowTitle(const QString &title) Q_DECL_OVERRIDE;
 
-    WId winId() const {
+    WId winId() const Q_DECL_OVERRIDE {
 	return WId(m_window);
     }
 
-    void raise();
+    void raise() Q_DECL_OVERRIDE;
 
-    void propagateSizeHints();
+    void propagateSizeHints() Q_DECL_OVERRIDE;
 
     // This is overridden from the base class, so we must assume that the
     // input and output are both pixels.
-    QPoint mapFromGlobal(const QPoint& point) const;
+    QPoint mapFromGlobal(const QPoint& point) const Q_DECL_OVERRIDE;
 
     // Functions specific to RISC OS and therefore not virtual.
     int os_x() const {
@@ -101,6 +103,7 @@ public:
     }
 
     void update () const;
+    void redraw (wimp_draw&) const;
 
     void setCaret () const;
 
@@ -112,7 +115,11 @@ private:
 
     os_error *getState(wimp_window_state &state) const {
 	state.w = m_window;
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	return (os_error *)_swix(Wimp_GetWindowState, _IN(1), &state);
+#else
 	return xwimp_get_window_state (&state);
+#endif
     }
 
     os_error *setExtent(const QRect &rect) const {
@@ -121,7 +128,12 @@ private:
 	extent.x0 = extent.y1 = 0;
 	extent.x1 = m_screen->xPixelToOS(rect.width());
 	extent.y0 = -m_screen->yPixelToOS(rect.height());
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	return (os_error *)_swix(Wimp_SetExtent, _INR(0,1),
+				 m_window, &extent);
+#else
 	return xwimp_set_extent(m_window, &extent);
+#endif
     }
 
     QRiscosScreen *m_screen;

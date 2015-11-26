@@ -45,6 +45,8 @@
 ****************************************************************************/
 
 #include <QScreen>
+#include <QDebug>
+#include <private/qguiapplication_p.h>
 #include "qriscoswindow.h"
 #include "qriscosintegration.h"
 #include "qriscosbackingstore.h"
@@ -66,8 +68,9 @@ QRiscosWindow::QRiscosWindow (QWindow *window)
     if (window->type() != Qt::ForeignWindow)
 	create();
 #if 0
-    printf ("[%s:%d:%s] - x (%d), y (%d), width (%d), height (%d), parent (%p), id(%p), flags (%X)\n",
-	  __func__, __LINE__, __FILE__,
+    printf ("[%s:%d] - this (%p), x (%d), y (%d), width (%d), height (%d), parent (%p), id (%X), flags (%X)\n",
+	  __PRETTY_FUNCTION__, __LINE__,
+	  this,
 	  window->x(), window->y(),
 	  os_width(), os_height(),
 	  parent(), m_window,
@@ -78,9 +81,14 @@ QRiscosWindow::QRiscosWindow (QWindow *window)
 QRiscosWindow::~QRiscosWindow ()
 {
     if (m_window != wimp_INVALID_WINDOW && window()->type() != Qt::ForeignWindow) {
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	_kernel_oserror *err;
+	wimp_w block[] = { m_window };
+	err = _swix(Wimp_DeleteWindow, _IN(1), block);
+#else
 	os_error *err;
-
 	err = xwimp_delete_window (m_window);
+#endif
 	if (err)
 	    qWarning ("RISCOS: Failed to delete window; %s\n", err->errmess);
     }
@@ -96,12 +104,10 @@ void QRiscosWindow::create()
         return;
     }
 
-    os_error *err;
     wimp_window window_blk;
     
     window_blk.flags = wimp_WINDOW_NEW_FORMAT |
-		       wimp_WINDOW_MOVEABLE/* |
-		       wimp_WINDOW_AUTO_REDRAW*/;
+		       wimp_WINDOW_MOVEABLE;
 
     if (window()->isTopLevel()) {
 	m_title = new char[window_title_max_len];
@@ -165,7 +171,13 @@ void QRiscosWindow::create()
     window_blk.title_data.indirected_text_and_sprite.validation = (char *)-1;
     window_blk.title_data.indirected_text_and_sprite.size = window_title_max_len;
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _kernel_oserror *err;
+    err = _swix(Wimp_CreateWindow, _IN(1)|_OUT(0), &window_blk, &m_window);
+#else
+    os_error *err;
     err = xwimp_create_window (&window_blk, &m_window);
+#endif
     if (err) {
 	qWarning ("RISCOS: Failed to create window; %s", err->errmess);
 	m_window = wimp_INVALID_WINDOW;
@@ -176,7 +188,6 @@ void QRiscosWindow::create()
 void QRiscosWindow::openToplevel()
 {
     wimp_open open;
-    os_error *err;
 
     open.w = m_window;
 #if 1
@@ -193,7 +204,13 @@ void QRiscosWindow::openToplevel()
     open.xscroll = 0;
     open.yscroll = 0;
     open.next = wimp_BACKGROUND;
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _kernel_oserror *err;
+    err = _swix(Wimp_OpenWindow, _IN(1), &open);
+#else
+    os_error *err;
     err = xwimp_open_window (&open);
+#endif
     if (err)
 	qWarning ("RISCOS: Failed to open window; %s", err->errmess);
 }
@@ -201,7 +218,6 @@ void QRiscosWindow::openToplevel()
 void QRiscosWindow::openNested()
 {
     wimp_open open;
-    os_error *err;
     wimp_window_state parent_state;
     QRiscosWindow *my_parent = static_cast<QRiscosWindow *>(parent());
 
@@ -215,9 +231,19 @@ void QRiscosWindow::openNested()
     open.xscroll = 0;
     open.yscroll = 0;
     open.next = wimp_BACKGROUND;
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _kernel_oserror *err;
+    err = _swix(Wimp_OpenWindow, _INR(1,4),
+		&open,
+		0x4B534154, // TASK
+		my_parent->m_window,
+		wimp_CHILD_LINKS_PARENT_WORK_AREA);
+#else
+    os_error *err;
     err = xwimp_open_window_nested (&open,
 				    my_parent->m_window,
 				    wimp_CHILD_LINKS_PARENT_WORK_AREA);
+#endif
     if (err)
 	qWarning ("RISCOS: Failed to open nested window; %s", err->errmess);
 }
@@ -227,16 +253,28 @@ void QRiscosWindow::setVisible(bool visible)
     if (m_window == wimp_INVALID_WINDOW)
 	return;
 
+    QWindow *wnd = window();
+
     if (!visible) {
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	wimp_w block[1] = { m_window };
+        _swix(Wimp_CloseWindow, _IN(1), block);
+#else
 	xwimp_close_window(m_window);
+#endif
     } else {
-	QPlatformWindow::setVisible (visible);
+//	QPlatformWindow::setVisible (visible);
 
         if (parent())
 	    openNested();
 	else
 	    openToplevel();
     }
+
+    QWindowSystemInterface::handleExposeEvent(wnd, QRect(QPoint(0, 0), wnd->geometry().size()));
+
+    if (visible)
+        QWindowSystemInterface::flushWindowSystemEvents();
 }
 
 void QRiscosWindow::setWindowTitle(const QString &title)
@@ -248,7 +286,14 @@ void QRiscosWindow::setWindowTitle(const QString &title)
     m_title[m_titleMaxSize - 1] = '\0';
 
     if (window()->isVisible() && m_window != wimp_INVALID_WINDOW)
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	_swix(Wimp_ForceRedraw, _INR(0,2),
+	      m_window,
+	      0x4B534154, // TASK
+	      3); // Redraw window title
+#else
 	xwimp_force_redraw_title (m_window);
+#endif
 }
 
 // Pixels in, pixels out
@@ -269,6 +314,10 @@ QRiscosWindow::mapFromGlobal(const QPoint& point) const
 void
 QRiscosWindow::update() const
 {
+    QRiscosBackingStore *surface = m_screen->surfaceFromId (m_window);
+    if (!surface)
+      return;
+      
     wimp_draw update;
     os_coord origin;
     osbool more;
@@ -278,12 +327,14 @@ QRiscosWindow::update() const
     update.box.y0 = -os_height();
     update.box.x1 = os_width();
     update.box.y1 = 0;
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _swix(Wimp_UpdateWindow, _IN(1)|_OUT(0), &update, &more);
+#else
     xwimp_update_window (&update, &more);
+#endif
 
     origin.x = update.box.x0 - update.xscroll;
     origin.y = update.box.y1 - update.yscroll - os_height();
-
-    QRiscosBackingStore *surface = m_screen->surfaceFromId(update.w);
 
     while (more) {
         if (m_screen->depth() == 32) {
@@ -294,19 +345,68 @@ QRiscosWindow::update() const
 	    surface->render (origin.x, origin.y,
 			     m_screen->translationTable());
 	}
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	_swix(Wimp_GetRectangle, _IN(1)|_OUT(0), &update, &more);
+#else
 	xwimp_get_rectangle (&update, &more);
+#endif
+    }
+}
+
+void
+QRiscosWindow::redraw(wimp_draw &redraw) const
+{
+    QRiscosBackingStore *surface = m_screen->surfaceFromId(redraw.w);
+
+    osbool more;
+    os_coord origin;
+
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _swix(Wimp_RedrawWindow, _IN(1)|_OUT(0), &redraw, &more);
+#else
+    xwimp_redraw_window(&redraw, &more);
+#endif
+
+    origin.x = redraw.box.x0 - redraw.xscroll;
+    origin.y = redraw.box.y1 - redraw.yscroll -
+	       m_screen->yPixelToOS(surface->height());
+    
+    while (more) {
+        if (m_screen->depth() == 32) {
+	    // Fast case; render 32 bit to 32 bit.
+	    surface->render(origin.x, origin.y);
+	} else {
+	    // Render 32 bit to something else...
+	    surface->render(origin.x, origin.y,
+				   m_screen->translationTable());
+	}
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	_swix(Wimp_GetRectangle, _IN(1)|_OUT(0), &redraw, &more);
+#else
+	xwimp_get_rectangle(&redraw, &more);
+#endif
     }
 }
 
 void
 QRiscosWindow::setCaret() const
 {
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _kernel_oserror *err =
+    _swix(Wimp_SetCaretPosition, _INR(0,5),
+	  m_window,
+	  wimp_ICON_WINDOW,
+	  0, 0,
+	  1 << 25, // Flags: Invisible caret.
+	  0);
+#else
     os_error *err =
     xwimp_set_caret_position (m_window,
 			      wimp_ICON_WINDOW,
 			      0, 0,
 			      1 << 25, // Flags: Invisible caret.
 			      0);
+#endif
     if (err)
         qWarning("RISC OS: Failed to set caret; %s\n", err->errmess);
 }

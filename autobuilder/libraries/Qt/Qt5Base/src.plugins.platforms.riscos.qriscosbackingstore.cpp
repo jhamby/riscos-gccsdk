@@ -51,6 +51,8 @@
 #include <qdynamicarea.h>
 #include <private/qguiapplication_p.h>
 
+#include "swis.h"
+
 QT_BEGIN_NAMESPACE
 
 static const char sprite_name[] = "qtsurface";
@@ -73,7 +75,6 @@ QSprite::~QSprite()
 bool
 QSprite::create (int width, int height, QImage::Format format)
 {
-    const os_error *err = nullptr;
 
     // Backing store sprites are always 32 bits.
     int byte_width = 4 * width;
@@ -91,12 +92,30 @@ QSprite::create (int width, int height, QImage::Format format)
 
     m_surfaceSpriteArea->size = m_areaSize;
     m_surfaceSpriteArea->first = 16;
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    const _kernel_oserror *err;
+    err = _swix(OS_SpriteOp, _INR(0,1),
+		osspriteop_USER_AREA | 9,// Initialise
+		m_surfaceSpriteArea);
+#else
+    const os_error *err;
     err = xosspriteop_clear_sprites(osspriteop_USER_AREA, m_surfaceSpriteArea);
+#endif
     if (err != nullptr) {
         fprintf (stderr, "Failed to create sprite area; %s.\n", err->errmess);
 	return false;
     }
     
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    err = _swix(OS_SpriteOp, _INR(0,6),
+		osspriteop_USER_AREA | 15,// Create
+		m_surfaceSpriteArea,
+		sprite_name,
+		false,
+		width,
+		height,
+		QSprite::typeFromQImageFormat(format));
+#else
     err = xosspriteop_create_sprite (osspriteop_USER_AREA,
 				     m_surfaceSpriteArea,
 				     sprite_name,
@@ -104,6 +123,7 @@ QSprite::create (int width, int height, QImage::Format format)
 				     width,
 				     height,
 				     QSprite::typeFromQImageFormat(format));
+#endif
     if (err != nullptr) {
         fprintf (stderr, "Failed to create sprite; %s.\n", err->errmess);
 	return false;
@@ -180,13 +200,22 @@ QSprite::getSpriteDataPtr () const
 osspriteop_header *
 QSprite::getSpritePtr () const
 {
-    os_error *err = nullptr;
     osspriteop_header *sprite_pointer = nullptr;
 
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _kernel_oserror *err;
+    err = _swix(OS_SpriteOp, _INR(0,2)|_OUT(2),
+		osspriteop_USER_AREA | 24,// Select
+		m_surfaceSpriteArea,
+		sprite_name,
+		&sprite_pointer);
+#else
+    os_error *err = nullptr;
     err = xosspriteop_select_sprite (osspriteop_USER_AREA,
 				     m_surfaceSpriteArea,
 				     (osspriteop_id)sprite_name,
 				     &sprite_pointer);
+#endif
     return err ? nullptr : sprite_pointer;
 }
 

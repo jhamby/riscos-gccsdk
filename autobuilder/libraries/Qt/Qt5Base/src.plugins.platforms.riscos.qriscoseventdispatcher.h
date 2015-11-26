@@ -63,6 +63,7 @@
 #include <private/qeventdispatcher_unix_p.h>
 #include <QPoint>
 #include "oslib/wimp.h"
+#include "swis.h"
 
 #define USE_QEventDispatcherUNIX_BASE
 
@@ -133,7 +134,11 @@ public:
     QRiscosEventDispatcherPrivate();
 
     void poll() {
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+	_swix(Wimp_Poll, _INR(0,1)|_OUT(0), 0, &m_pollBlock, &m_eventType);
+#else
 	xwimp_poll (0, &m_pollBlock, NULL, &m_eventType);
+#endif
     }
 
     wimp_event_no getNextEvent () const {
