@@ -1,7 +1,7 @@
 AB_GIT=https://github.com/OtterBrowser/otter-browser.git
 
 AB_PVERSION=0.9.8-dev
-AB_ROVERSION=1
+AB_ROVERSION=2
 AB_DISTCLEAN="$AB_MAKE -C build clean"
 
 ab_make() {
