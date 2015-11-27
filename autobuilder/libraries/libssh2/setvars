@@ -14,7 +14,7 @@ ab_package() {
     ab_add_sharedlib $S/src/.libs libssh2.so.1
 
     AB_COMPONENTS=""
-    $AB_HOME/add-riscpkg -name LibSSH2 -section Apps/Library -package libssh2 \
+    $AB_HOME/add-riscpkg -name LibSSH2 -section Library -package libssh2 \
          -depends SharedLibs-C2
   fi
 
