@@ -2,6 +2,8 @@
 AB_CONFLAGS="--with-ssl"
 AB_ROVERISON=1
 
+export RO_SHAREDLIBS=no
+
 ab_package() {
   ab_create_command_app Curl Apps/Network
   ab_add_commands $S/src/*$AB_EXEEXT
