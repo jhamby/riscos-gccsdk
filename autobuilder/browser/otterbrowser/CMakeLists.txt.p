@@ -1,5 +1,15 @@
 --- CMakeLists.txt.orig	2015-07-17 21:12:12.939351037 +0100
 +++ CMakeLists.txt	2015-07-17 21:15:20.687346870 +0100
+@@ -15,7 +15,8 @@
+ set(PATCH_VERSION "08")
+ set(OTTER_VERSION_MAIN ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
+ set(OTTER_VERSION_WEEKLY " ")
+-set(OTTER_VERSION_CONTEXT "-dev")
++string(TIMESTAMP DATE_TIMESTAMP %Y%m%d)
++set(OTTER_VERSION_CONTEXT "-dev" ${DATE_TIMESTAMP})
+ 
+ if (EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+ 	include(InstallRequiredSystemLibraries)
 @@ -70,7 +70,7 @@
  if (EnableQtwebengine)
  	find_package(Qt5 5.5.0 REQUIRED COMPONENTS Core DBus Gui Multimedia Network PrintSupport Script Sql WebEngine WebEngineWidgets WebKit WebKitWidgets Widgets XmlPatterns)

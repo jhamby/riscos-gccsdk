@@ -1,13 +1,13 @@
 AB_GIT=https://github.com/OtterBrowser/otter-browser.git
 
-AB_PVERSION=0.9.8-dev
+AB_PVERSION=0.9.8-$(date +%Y%m%d)dev
 AB_ROVERSION=2
 AB_DISTCLEAN="$AB_MAKE -C build clean"
 
 ab_make() {
    mkdir build && cd build
    cmake -DCMAKE_TOOLCHAIN_FILE=../../../../env/toolchain-riscos.cmake \
-         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lWebKit1 -lWebCore -lleveldb -lmemenv -ljpeg -lpng -lJavaScriptCore -lWTF -lsqlite3 -licui18n -licuuc -licudata -lQt5WebKit -lssl -lcrypto -lz -lpcre16' \
+         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lWebKit1 -lWebCore -lleveldb -lmemenv -ljpeg -lpng -lJavaScriptCore -lWTF -lsqlite3 -licui18n -licuuc -licudata -lssl -lcrypto -lz -lpcre16 -lwebp' \
          ..
    $AB_MAKE
    cd ..
