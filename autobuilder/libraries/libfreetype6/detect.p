@@ -1,15 +1,13 @@
---- builds/unix/detect.mk.orig	2015-10-11 09:48:00.423430738 +0100
-+++ builds/unix/detect.mk	2015-10-11 09:50:26.911429148 +0100
-@@ -84,9 +84,9 @@
- 	      CONFIG_SHELL="$(CONFIG_SHELL)" \
- 	        $(CONFIG_SHELL) $(TOP_DIR)/builds/unix/configure $(value CFG)
+--- builds/unix/detect.mk.orig	2015-11-29 10:28:20.490809352 +0000
++++ builds/unix/detect.mk	2015-11-29 10:28:51.686808659 +0000
+@@ -82,8 +82,8 @@
+       # we are building FT2 not in the src tree
+ 	        $(TOP_DIR)/builds/unix/configure $(value CFG)
      else
 -	      cd builds/unix; \
--	      CONFIG_SHELL="$(CONFIG_SHELL)" \
--	        $(CONFIG_SHELL) ./configure $(value CFG)
+-	        ./configure $(value CFG)
 +#	      cd builds/unix; \
-+#	      CONFIG_SHELL="$(CONFIG_SHELL)" \
-+#	        $(CONFIG_SHELL) ./configure $(value CFG)
++#	        ./configure $(value CFG)
      endif
    endif
  
