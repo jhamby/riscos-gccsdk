@@ -1,5 +1,4 @@
-#AB_URL=ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.2.41.tar.bz2
-AB_ROVERSION=2
+AB_ROVERSION=3
 AB_INSTALL=yes
 
 export ECHO=echo
@@ -42,12 +41,12 @@ ab_package() {
   AB_PVERSION=`echo "$AB_PVERSION" | sed "s/~/-/"`
 
   $AB_HOME/add-riscpkg -unixlib -name LibPNG12-Dev -depends "ZLib1g-Dev"
-  
+
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
      ab_create_sharedlib_skeleton libpng12-0
      ab_add_sharedlib $S/.libs libpng.so.3
      ab_add_sharedlib $S/.libs libpng12.so.0
-     
+
      $AB_HOME/add-riscpkg -package libpng12-0 -name LibPNG12-0 -depends "ZLib1g"
   fi
 }
