@@ -1,6 +1,6 @@
 
 AB_CONFLAGS="--disable-ipv6 --enable-threads=pth --with-ssl=openssl"
-AB_ROVERISON=1
+AB_ROVERISON=2
 
 export gl_cv_func_gettimeofday_clobber=no
 
