@@ -51,7 +51,7 @@ ab_make() {
   cd static-build
 
   if [ "$AB_ELFBUILD" == "yes" ] ; then
-    perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads no-shared no-idea no-mdc2 no-rc5
+    perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads no-shared no-idea no-mdc2 no-rc5 no-dso no-engines
   else
     perl Configure --prefix=$GCCSDK_INSTALL_ENV riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
   fi
