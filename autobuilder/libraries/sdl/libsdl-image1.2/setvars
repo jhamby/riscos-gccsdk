@@ -31,5 +31,5 @@ ab_package() {
 
   $AB_HOME/add-riscpkg -unixlib -name LibSDLImage1.2-Dev \
     -depends "LibJPEG8-Dev" -depends "LibPNG12-Dev" \
-    -depends "LibTIFF4-Dev" -depends "LibSDL1.2-Dev"
+    -depends "LibTIFF5-Dev" -depends "LibSDL1.2-Dev"
 }
