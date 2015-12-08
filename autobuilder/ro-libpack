@@ -27,9 +27,6 @@ INSTALL=ro-install PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARG
 pushd . > /dev/null
 cd $AB_DIR/package
 
-# Don't package any binaries
-rm -rf bin
-
 files=$(find . -type f)
 if [ -z "$files" ] ; then
   echo "RO libpack: No files in $AB_DIR/package to pack" 1>&2
@@ -73,6 +70,12 @@ if [ -d "$AB_OUTPUTLIB" ] ; then
   if [ -n "$file_links" ] ; then
      rm -f $file_links
   fi
+  
+  # Don't package binaries in zip file
+  # They are included in the tgz file as they may contain needed
+  # configuration scripts for Jenkins.
+  rm -rf bin
+
 
   # Process to turn into RISC OS format filenames for zipping
 
