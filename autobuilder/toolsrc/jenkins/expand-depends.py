@@ -25,6 +25,7 @@ for root, subdirs, files in os.walk("."):
         if fname == "depends":
            with open(os.path.join(root, fname)) as f:
               deps = set(line.strip() for line in f)
+              deps.discard("");
               depends_dict[os.path.basename(root)] = {"location": root, "deps": deps}
 
 # Walk list and create full depends file
