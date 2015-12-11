@@ -76,6 +76,17 @@ ab_make() {
     ln -sfT libssl.so.1.0.2 $GCCSDK_INSTALL_ENV/lib/libssl.so
     cd $S
   fi
+
+  # As installation is not using standard ro-libpack, simulate it here so
+  # that Jenkins has something to work with
+  pushd . > /dev/null
+
+  cd $GCCSDK_INSTALL_ENV
+  RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
+  files="include/openssl/* lib/libssl* lib/libcrypto* lib/pkgconfig/libssl.pc"
+  tar cfvz $AB_OUTPUTLIB/$RO_PKG.tgz $files
+
+  popd > /dev/null
 }
 
 add_headers()
