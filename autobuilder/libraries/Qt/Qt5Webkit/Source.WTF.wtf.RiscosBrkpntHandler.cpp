@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "oslib/os.h"
+#include "swis.h"
 
 #include "config.h"
 
@@ -157,8 +158,20 @@ report_hex(unsigned int v)
 static void
 restoreBreakpointHandler (void)
 {
-  if (old_breakpoint_handler && old_breakpoint_r12 && old_breakpoint_registers)
+  if (old_breakpoint_handler &&
+      old_breakpoint_r12 &&
+      old_breakpoint_registers)
   {
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+    _swix(OS_ChangeEnvironment, _INR(0,3)|_OUTR(1,3),
+	  os_HANDLER_BREAK_PT,
+	  old_breakpoint_handler,
+	  old_breakpoint_r12,
+	  old_breakpoint_registers,
+	  NULL,
+	  NULL,
+	  NULL);
+#else
     xos_change_environment (os_HANDLER_BREAK_PT,
 			    old_breakpoint_handler,
 			    old_breakpoint_r12,
@@ -166,6 +179,7 @@ restoreBreakpointHandler (void)
 			    NULL,
 			    NULL,
 			    NULL);
+#endif
     old_breakpoint_handler = NULL;
     old_breakpoint_r12 = NULL;
     old_breakpoint_registers = NULL;
@@ -292,6 +306,17 @@ breakpoint_handler (void)
 void
 installBreakpointHandler (void)
 {
+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
+  _kernel_oserror *err;
+  err = _swix(OS_ChangeEnvironment, _INR(0,3)|_OUTR(1,3),
+	      os_HANDLER_BREAK_PT,
+	      breakpoint_handler,
+	      &breakpoint_registers,
+	      &breakpoint_registers,
+	      &old_breakpoint_handler,
+	      &old_breakpoint_r12,
+	      &old_breakpoint_registers);
+#else
   os_error *err;
   
   err = xos_change_environment (os_HANDLER_BREAK_PT,
@@ -301,6 +326,7 @@ installBreakpointHandler (void)
 				&old_breakpoint_handler,
 				&old_breakpoint_r12,
 				&old_breakpoint_registers);
+#endif
   if (err) {
     printf ("[%s:%d:%s] - RISC OS Error: %s\n",
 	    __func__, __LINE__, __FILE__, err->errmess);

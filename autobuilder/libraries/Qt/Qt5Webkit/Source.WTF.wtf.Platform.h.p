@@ -1,10 +1,10 @@
---- Source/WTF/wtf/Platform.h.orig	2015-02-17 04:57:01.000000000 +0000
-+++ Source/WTF/wtf/Platform.h	2015-04-16 16:49:30.229660545 +0100
+--- Source/WTF/wtf/Platform.h.orig	2015-06-29 21:11:01.000000000 +0100
++++ Source/WTF/wtf/Platform.h	2015-12-01 15:51:34.180171381 +0000
 @@ -28,6 +28,12 @@
  #ifndef WTF_Platform_h
  #define WTF_Platform_h
  
-+#ifdef __riscos__
++#if defined(__riscos__) && defined(__ARM_ARCH_3__)
 +/* GCC defines __ARM_ARCH_3__ which is technically too old, so we'll fudge
 + * it a bit.  */
 +#define __ARM_ARCH_4__
@@ -58,14 +58,18 @@
  #if !defined(HAVE_VASPRINTF)
  #if !COMPILER(MSVC) && !COMPILER(RVCT) && !COMPILER(MINGW) && !(COMPILER(GCC) && OS(QNX))
  #define HAVE_VASPRINTF 1
-@@ -732,6 +753,14 @@
+@@ -732,6 +753,18 @@
  #define ENABLE_GLOBAL_FASTMALLOC_NEW 0
  #endif
  
 +#if OS(RISCOS)
++#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
++#define ENABLE_JIT 1
++#else
 +// The JIT generates VFP floating point instructions which don't work
 +// in rpcemu.
 +#define ENABLE_JIT 0
++#endif
 +#define ENABLE_GLOBAL_FASTMALLOC_NEW 0
 +#define USE_SYSTEM_MALLOC 1
 +#endif

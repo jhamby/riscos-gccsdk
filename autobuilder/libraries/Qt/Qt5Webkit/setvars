@@ -1,5 +1,11 @@
+# Build both normal and VFP versions by default. Set either of these to no
+# to disable that build.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
+
 AB_URL=http://download.qt-project.org/official_releases/qt/5.5/5.5.0/submodules/qtwebkit-opensource-src-5.5.0.tar.xz
 
+# We'll do make install ourselves.
 AB_INSTALL=no
 AB_PVERSION=5.5.0
 
@@ -16,58 +22,105 @@ export PATH=$GCCSDK_INSTALL_CROSSBIN:$GCCSDK_INSTALL_ENV/bin:$PATH
 
 ln -T -s -f $H/Source.WTF.wtf.OSAllocatorRiscos.cpp $S/Source/WTF/wtf/OSAllocatorRiscos.cpp
 ln -T -s -f $H/Source.WTF.wtf.RiscosBrkpntHandler.cpp $S/Source/WTF/wtf/RiscosBrkpntHandler.cpp
-ln -T -s -f $H/Source.WTF.wtf.OSAllocatorRiscos.h $S/Source/WTF/wtf/OSAllocatorRiscos.h
 ln -T -s -f $H/Source.WTF.wtf.Riscos.h $S/Source/WTF/wtf/Riscos.h
 
 # $1 = base library name
+# $2 = "vfp/" or ""
 install_lib() {
-  cp -f lib/$1.so.1.0.0 $GCCSDK_INSTALL_ENV/lib
-  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/$1.so.1.0
-  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/$1.so.1
-  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/lib/$1.so
+  cp -f lib/$1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so.1.0
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so.1
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so
 }
 
 ab_make() {
-  ./Tools/Scripts/build-webkit --qt --minimal \
-			     --install-libs=$GCCSDK_INSTALL_ENV \
-			     --install-headers=$GCCSDK_INSTALL_ENV \
-			     --makeargs="-j4"
-  cd $S/WebKitBuild/Release
-  make install
-  # The install target does not copy these libraries to $GCCSDK_INSTALL_ENV/lib,
-  # so do it manually here.
-  install_lib libJavaScriptCore
-  install_lib libWebCore
-  install_lib libWebKit1
-  install_lib libWTF
-  cd $S
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+    ( ./Tools/Scripts/build-webkit --qt --minimal \
+				 --install-libs=$GCCSDK_INSTALL_ENV \
+				 --install-headers=$GCCSDK_INSTALL_ENV \
+				 --makeargs="-j4";
+      cd WebKitBuild/Release;
+      make install;
+
+      # The install target does not copy these libraries to $GCCSDK_INSTALL_ENV/vfp/lib,
+      # so do it manually here.
+      install_lib libJavaScriptCore "";
+      install_lib libWebCore        "";
+      install_lib libWebKit1        "";
+      install_lib libWTF            "" )
+  fi
+
+  if [ "$BUILD_VFP" == "yes" ]; then
+    mkdir -p build-vfp
+    ( WEBKIT_OUTPUTDIR=`pwd`/build-vfp ./Tools/Scripts/build-webkit \
+					  --qt --minimal \
+					  --install-libs=$GCCSDK_INSTALL_ENV/vfp \
+					  --install-headers=$GCCSDK_INSTALL_ENV/vfp \
+					  --makeargs="-j4" \
+					  --qmakearg="-spec arm-riscos-vfp-g++";
+      cd build-vfp/Release;
+      make install;
+
+      # The install target does not copy these libraries to $GCCSDK_INSTALL_ENV/lib,
+      # so do it manually here.
+      install_lib libJavaScriptCore "vfp/";
+      install_lib libWebCore        "vfp/";
+      install_lib libWebKit1        "vfp/";
+      install_lib libWTF            "vfp/" )
+  fi
 }
 
 ab_package() {
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
     ab_create_sharedlib_skeleton Qt5Webkit
 
-    ab_add_sharedlib $S/WebKitBuild/Release/lib libJavaScriptCore.so.1
-    ab_add_sharedlib $S/WebKitBuild/Release/lib libQt5WebKit.so.5
-    ab_add_sharedlib $S/WebKitBuild/Release/lib libQt5WebKitWidgets.so.5
-    ab_add_sharedlib $S/WebKitBuild/Release/lib libWebCore.so.1
-    ab_add_sharedlib $S/WebKitBuild/Release/lib libWebKit1.so.1
-    ab_add_sharedlib $S/WebKitBuild/Release/lib libWTF.so.1
+    if [ "$BUILD_NORMAL" == "yes" ]; then
+      ab_add_sharedlib $S/WebKitBuild/Release/lib libJavaScriptCore.so.1
+      ab_add_sharedlib $S/WebKitBuild/Release/lib libQt5WebKit.so.5
+      ab_add_sharedlib $S/WebKitBuild/Release/lib libQt5WebKitWidgets.so.5
+      ab_add_sharedlib $S/WebKitBuild/Release/lib libWebCore.so.1
+      ab_add_sharedlib $S/WebKitBuild/Release/lib libWebKit1.so.1
+      ab_add_sharedlib $S/WebKitBuild/Release/lib libWTF.so.1
+    fi
+
+    if [ "$BUILD_VFP" == "yes" ]; then
+      ab_add_sharedlib $S/build-vfp/Release/lib libJavaScriptCore.so.1
+      ab_add_sharedlib $S/build-vfp/Release/lib libQt5WebKit.so.5
+      ab_add_sharedlib $S/build-vfp/Release/lib libQt5WebKitWidgets.so.5
+      ab_add_sharedlib $S/build-vfp/Release/lib libWebCore.so.1
+      ab_add_sharedlib $S/build-vfp/Release/lib libWebKit1.so.1
+      ab_add_sharedlib $S/build-vfp/Release/lib libWTF.so.1
+    fi
 
     AB_COMPONENTS=""
     $AB_HOME/add-riscpkg -package Qt5Webkit -name Qt5Webkit \
 	-depends SharedLibs -depends Qt5Base
   fi
 
-  ab_create_command_app JSC Apps/Utilities jsc
-  ab_add_commands $S/WebKitBuild/Release/bin/jsc
-  mv -f -T $A/jsc $A/jsc$AB_EXEEXT
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+    ab_create_command_app JSC Apps/Utilities jsc
+    ab_add_commands $S/WebKitBuild/Release/bin/jsc
+    mv -f -T $A/jsc $A/jsc$AB_EXEEXT
 
-  $AB_HOME/add-riscpkg -package "jsc" -name "jsc" -depends Qt5Webkit
+    $AB_HOME/add-riscpkg -package "jsc" -name "jsc" -depends Qt5Webkit
 
-  ab_create_app QtTestBrowser Apps qt5testbrowser
-  cp -T $S/WebKitBuild/Release/bin/QtTestBrowser $A/QtTestBrowser$AB_EXEEXT
+    ab_create_app QtTestBrowser Apps qt5testbrowser
+    cp -T $S/WebKitBuild/Release/bin/QtTestBrowser $A/QtTestBrowser$AB_EXEEXT
 
-  $AB_HOME/add-riscpkg -package qt5testbrowser -depends Qt5Webkit \
-	-depends SharedLibs
+    $AB_HOME/add-riscpkg -package qt5testbrowser -depends Qt5Webkit \
+	  -depends SharedLibs
+  fi
+  if [ "$BUILD_VFP" == "yes" ]; then
+    ab_create_command_app JSC Apps/Utilities jsc-vfp
+    ab_add_commands $S/build-vfp/Release/bin/jsc
+    mv -f -T $A/jsc $A/jsc$AB_EXEEXT
+
+    $AB_HOME/add-riscpkg -package "jsc" -name "jsc" -depends Qt5Webkit
+
+    ab_create_app QtTestBrowser Apps qt5testbrowser-vfp
+    cp -T $S/build-vfp/Release/bin/QtTestBrowser $A/QtTestBrowser$AB_EXEEXT
+
+    $AB_HOME/add-riscpkg -package qt5testbrowser-vfp -depends Qt5Webkit \
+	  -depends SharedLibs
+  fi
 }

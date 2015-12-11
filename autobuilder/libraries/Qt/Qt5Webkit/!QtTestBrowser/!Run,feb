@@ -6,4 +6,4 @@ Set JSC_useBX false
 Set JSC_useDoubleWord false
 
 Set QtTestBrowser$Dir <Obey$Dir>
-Run <QtTestBrowser$Dir>.QtTestBrowser <QtTestBrowser$Dir>.debug 2>&1
+Run <QtTestBrowser$Dir>.QtTestBrowser > <QtTestBrowser$Dir>.debug 2>&1
