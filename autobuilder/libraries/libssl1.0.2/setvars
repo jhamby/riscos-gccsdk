@@ -83,7 +83,8 @@ ab_make() {
 
   cd $GCCSDK_INSTALL_ENV
   RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
-  files="include/openssl/* lib/libssl* lib/libcrypto* lib/pkgconfig/libssl.pc"
+  files="include/openssl/* lib/libssl* lib/libcrypto*"
+  files="$files lib/pkgconfig/libssl.pc lib/pkgconfig/libcrypto.pc lib/pkgconfig/openssl.pc"
   tar cfvz $AB_OUTPUTLIB/$RO_PKG.tgz $files
 
   popd > /dev/null
