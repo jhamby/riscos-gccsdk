@@ -1,2 +1,5 @@
 libsdl1.2debian
+libsdl-mixer1.2
+libsdl-image1.2
 lua50
+libfreetype6
