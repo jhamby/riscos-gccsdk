@@ -1,5 +1,6 @@
 libsdl1.2debian
 libsdl-mixer1.2
 libsdl-image1.2
+sdl-ttf2.0
 lua50
 libfreetype6
