@@ -32,6 +32,18 @@ mkdir -p riscos-build
 
 ab_make() {
   ( cd riscos-build; $AB_MAKE && $AB_MAKE install )
+
+  # As installation is not using standard ro-libpack, simulate it here so
+  # that Jenkins has something to work with
+  pushd . > /dev/null
+
+  cd $GCCSDK_INSTALL_ENV
+  RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
+  files="include/layout/* include/unicode/* lib/libicu*"
+  files="$files lib/pkgconfig/icu*.pc"
+  tar cfvz $AB_OUTPUTLIB/$RO_PKG.tgz $files
+
+  popd > /dev/null
 }
 
 add_headers()
