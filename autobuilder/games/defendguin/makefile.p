@@ -1,5 +1,5 @@
---- Makefile.orig	2009-12-19 07:17:29.000000000 -0800
-+++ Makefile	2009-12-19 07:20:21.000000000 -0800
+--- Makefile.orig	2015-12-17 17:11:56.337283978 +0000
++++ Makefile	2015-12-17 17:18:38.888599715 +0000
 @@ -14,7 +14,8 @@
  PREFIX=/usr/local
  MAN_PREFIX=$(PREFIX)
@@ -17,7 +17,7 @@
 -MIXER=-lSDL_mixer
 +MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile -lmikmod
  NOSOUNDFLAG=__SOUND
- CFLAGS=-Wall $(SDL_CFLAGS) -DDATA_PREFIX=\"$(DATA_PREFIX)\" -D$(NOSOUNDFLAG) \
+ CFLAGS=$(DEB_CFLAGS) $(SDL_CFLAGS) -DDATA_PREFIX=\"$(DATA_PREFIX)\" -D$(NOSOUNDFLAG) \
 -	-DJOY_$(JOY)
 +	-DJOY_$(JOY) -O2 -static
  SDL_LIB=$(SDL_LDFLAGS) $(MIXER)
