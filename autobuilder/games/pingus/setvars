@@ -1,12 +1,7 @@
-AB_PVERSION=0.7.3-alpha
-AB_SVN=svn://svn.berlios.de/pingus/trunk/pingus/
+AB_PVERSION=0.7.6
+AB_URL=http://pingus.googlecode.com/files/pingus-0.7.6.tar.bz2
 AB_LICENCE=Free
 AB_DISTCLEAN="$AB_MAKE -f makefile.riscos distclean"
-
-echo "Reverting to an older version of Pingus as RISC OS GCC does"
-echo "not currently have c++0x support"
-# Back date to last version that didn't use c++0x
-svn update -r 4189
 
 mkdir -p src/riscos
 cp $H/config.h src/riscos
