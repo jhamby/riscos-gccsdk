@@ -67,6 +67,9 @@ public:
     ~QDynamicArea();
 
     bool create();
+
+    void destroy();
+
     void *alloc(size_t size);
     void free(void *ptr, size_t size);
 
@@ -114,10 +117,15 @@ private:
     byte *m_baseAddr;
     size_t m_size;
     size_t m_maxSize;
+    const size_t m_pageSize;
+    size_t m_pageShift;
     QLinkedList<memory_node> m_freeList;
 
     char m_name[32];
 };
+
+extern void *qt_mmap (size_t size, int fd, off_t offset);
+extern void qt_munmap (void *address, size_t len);
 
 QT_END_NAMESPACE
 
