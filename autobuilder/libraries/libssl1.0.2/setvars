@@ -5,7 +5,7 @@
 # and then build from there. That's what I've done here for static-build
 # and shared-build.
 
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 AB_INSTALL=no
 

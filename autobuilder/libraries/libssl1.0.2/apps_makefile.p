@@ -24,3 +24,24 @@
 
  tags:
  	ctags $(SRC)
+@@ -941,9 +935,9 @@
+ speed.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
+ speed.o: ../include/openssl/ecdsa.h ../include/openssl/engine.h
+ speed.o: ../include/openssl/err.h ../include/openssl/evp.h
+-speed.o: ../include/openssl/hmac.h ../include/openssl/idea.h
++speed.o: ../include/openssl/hmac.h
+ speed.o: ../include/openssl/lhash.h ../include/openssl/md4.h
+-speed.o: ../include/openssl/md5.h ../include/openssl/mdc2.h
++speed.o: ../include/openssl/md5.h
+ speed.o: ../include/openssl/modes.h ../include/openssl/obj_mac.h
+ speed.o: ../include/openssl/objects.h ../include/openssl/ocsp.h
+ speed.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+@@ -1029,7 +1023,7 @@
+ version.o: ../include/openssl/des_old.h ../include/openssl/e_os2.h
+ version.o: ../include/openssl/ec.h ../include/openssl/ecdh.h
+ version.o: ../include/openssl/ecdsa.h ../include/openssl/engine.h
+-version.o: ../include/openssl/evp.h ../include/openssl/idea.h
++version.o: ../include/openssl/evp.h
+ version.o: ../include/openssl/lhash.h ../include/openssl/obj_mac.h
+ version.o: ../include/openssl/objects.h ../include/openssl/ocsp.h
+ version.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
