@@ -1,0 +1,35 @@
+| > !Run
+|
+| !Run file for GnuPlot 3.71 for RISC OS.
+|
+| (c) B.A. Brand, 2001.
+|
+|
+| 20040502 32 bits release
+| 20050411 bugfix in floating point handling
+|          enable dynamic areas
+|
+Set GnuPlot373$Dir <Obey$Dir>
+|
+| Check the presence of suitable viewers,
+| usually Draw and Paint
+If "<Alias$@RunType_AFF>" = "" Then Error Draw or another drawfile viewer has not been seen.
+If "<Alias$@RunType_FF9>" = "" Then Error Paint or another sprite file viewer has not been seen.
+|
+| Ensure modules.
+| This version was compiled with gcc 3.4.4 or higher and UnixLib,
+| so it needs CallASWI and the fpe and the shared unix lib.
+| (UnixLib is located automagically by the program, but it is neater
+| to check here anyway.)
+RMEnsure SharedUnixLibrary 1.02 RMLoad System:Modules.SharedULib
+RMEnsure UtilityModule 3.70 RMEnsure CallASWI 0.00 RMLoad System:Modules.CallASWI
+RMEnsure UtilityModule 3.70 RMEnsure CallASWI 0.01 Error You need CallASWI 0.01 or newer.
+|
+RMEnsure FPEmulator 0.00 RMLoad System:Modules.FPEmulator
+RMEnsure FPEmulator 2.80 Error You need FPEmulator 2.80 or newer.
+|
+| Launch the program in its own task window.
+| The 32 bits version is /very/ memory hungry!
+| So enable dynamic areas.
+Set GnuPlot373$Heap ""
+TaskWindow "<GnuPlot373$Dir>.GnuPlot373" -wimpslot 4096k -name "GnuPlot 373" -display -quit

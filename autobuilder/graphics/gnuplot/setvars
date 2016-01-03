@@ -1,0 +1,35 @@
+AB_URL=http://sourceforge.net/projects/gnuplot/files/gnuplot/3.7.3/gnuplot-3.7.3.tar.gz
+
+
+
+cp $H/term/rodraw.trm $S/term/rodraw.trm
+echo cp $H/term/rodraw.trm $S/term/rodraw.trm
+
+cp $H/term/rosprite.trm $S/term/rosprite.trm
+echo cp $H/term/rosprite.trm $S/term/rosprite.trm
+
+cp $H/riscos/readline.c $S/readline.c
+echo $H/riscos/readline.c $S/readline.c
+
+cp $H/riscos/settype.c $S/settype.c
+echo $H/riscos/settype.c $S/settype.c
+
+cp $H/riscos/viewer.c $S/viewer.c
+echo $H/riscos/viewer.c $S/viewer.c
+
+cp $H/docs/Makefile.in $S/docs/Makefile.in
+echo cp $H/docs/Makefile.in $S/docs/Makefile.in
+
+export AB_LDFLAGS=" -lOSLib32"
+
+./configure --prefix=/gnuplot
+
+
+ ab_package () {
+   ab_create_app GnuPlot373 Apps/Graphics     # !MyApp will be copied from $H, and the package section will be Graphics
+   ab_create_command_app GnuPlot373 Apps/Graphics # As ab_create_app, but !MyApp will be set up for commands
+   ab_add_commands $S/GnuPlot373${AB_EXEEXT}  # For applications containing command line utilities, this adds aliases to !Boot 
+
+
+   $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
+ }

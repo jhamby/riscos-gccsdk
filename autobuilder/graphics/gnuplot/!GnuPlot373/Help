@@ -1,0 +1,19 @@
+License: Free
+Description:  `gnuplot` is a command-driven interactive function and data plotting program.
+ It is case sensitive (commands and function names written in lowercase are
+ not the same as those written in CAPS).  All command names may be abbreviated
+ as long as the abbreviation is not ambiguous.  Any number of commands may
+ appear on a line (with the exception that `load` or `call` must be the final
+ command), separated by semicolons (;).  Strings are indicated with quotes.
+ They may be either single or double quotation marks, e.g.,
+
+       load "filename"
+       cd 'dir'
+
+ This version is based on release 3.7.3 and includes the extentions for 
+ RISC OS by B.A. Brand (taken from release 3.7.1).
+ .
+ A few additional changes to make fit for gccsdk & a bug fix have been 
+ made by M. Beerling. Jan 2016.
+ .
+ EMail beerling@freenet.de 
