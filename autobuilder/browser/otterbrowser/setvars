@@ -1,6 +1,6 @@
 AB_GIT=https://github.com/OtterBrowser/otter-browser.git
 
-AB_PVERSION=0.9.9-dev$(date +%Y%m%d)
+AB_PVERSION=0.9.10-dev$(date +%Y%m%d)
 AB_ROVERSION=2
 AB_DISTCLEAN="$AB_MAKE -C build clean"
 
@@ -33,5 +33,6 @@ ab_package() {
     -depends Qt5Svg -depends Qt5XmlPatterns -depends LibPNG12-0 \
     -depends ZLib1g -depends LibJPEG8 -depends LibSQLite3 -depends LibPcre3 \
     -depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
-    -depends LibICU52 -depends LibSSL -depver 1.0.2d-2 -depends LibLevelDB
+    -depends LibICU52 -depends LibSSL -depver 1.0.2d-2 -depends LibLevelDB \
+    -depends FontConfig --depends CaCertificates
 }
