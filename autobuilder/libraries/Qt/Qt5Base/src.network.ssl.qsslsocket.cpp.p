@@ -13,7 +13,7 @@
                                 << "/etc/openssl/certs/" // BlackBerry
                                 << "/opt/openssl/certs/"; // HP-UX
 +#else
-+    return QList<QByteArray>() << "/<Choices$Dir>/Qt5/local/share/ssl/certs/"; // RISC OS
++    return QList<QByteArray>() << "/<CaCertificates$Dir>/!CaCertificates/"; // RISC OS
 +#endif
  }
  
