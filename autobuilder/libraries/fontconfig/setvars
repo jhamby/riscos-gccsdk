@@ -1,5 +1,6 @@
 
 AB_CATEGORY=Fonts
+AB_ROVERSION=2
 if [ "$RO_SHAREDLIBS" == "yes" ]; then
   AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
 else
@@ -35,6 +36,8 @@ ab_package() {
 
   mkdir -p $A/cache
   mkdir -p $A/fonts
+  # Dummy file to work around bug in riscpkg
+  touch $A/cache/dummy.txt
   cp -av $S/README $A/
   cp -av $S/fonts.dtd $A/fonts
   # Put correct directories in font file
