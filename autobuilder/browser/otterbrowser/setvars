@@ -34,5 +34,5 @@ ab_package() {
     -depends ZLib1g -depends LibJPEG8 -depends LibSQLite3 -depends LibPcre3 \
     -depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
     -depends LibICU52 -depends LibSSL -depver 1.0.2d-2 -depends LibLevelDB \
-    -depends FontConfig --depends CaCertificates
+    -depends FontConfig -depends CaCertificates
 }

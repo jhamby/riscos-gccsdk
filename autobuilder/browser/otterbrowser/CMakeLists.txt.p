@@ -1,7 +1,7 @@
---- CMakeLists.txt.orig	2015-07-17 21:12:12.939351037 +0100
-+++ CMakeLists.txt	2015-07-17 21:15:20.687346870 +0100
+--- CMakeLists.txt.orig	2016-01-17 11:33:56.946997705 +0000
++++ CMakeLists.txt	2016-01-17 11:40:13.658998090 +0000
 @@ -15,7 +15,8 @@
- set(PATCH_VERSION "08")
+ set(PATCH_VERSION "10")
  set(OTTER_VERSION_MAIN ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
  set(OTTER_VERSION_WEEKLY " ")
 -set(OTTER_VERSION_CONTEXT "-dev")
@@ -10,16 +10,16 @@
  
  if (EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
  	include(InstallRequiredSystemLibraries)
-@@ -70,7 +70,7 @@
- if (EnableQtwebengine)
- 	find_package(Qt5 5.5.0 REQUIRED COMPONENTS Core DBus Gui Multimedia Network PrintSupport Script Sql WebEngine WebEngineWidgets WebKit WebKitWidgets Widgets XmlPatterns)
- else (EnableQtwebengine)
--	find_package(Qt5 5.2.0 REQUIRED COMPONENTS Core DBus Gui Multimedia Network PrintSupport Script Sql WebKit WebKitWidgets Widgets XmlPatterns)
-+	find_package(Qt5 5.2.0 REQUIRED COMPONENTS Core Gui Network PrintSupport Script Sql WebKit WebKitWidgets Widgets XmlPatterns)
- endif (EnableQtwebengine)
+@@ -68,7 +69,7 @@
+ option(EnableQtwebengine "Enable QtWebEngine backend (requires Qt 5.5)" OFF)
+ option(EnableQtwebkit "Enable QtWebKit backend (requires Qt 5.2)" ON)
  
- set(otter_src
-@@ -320,15 +320,6 @@
+-find_package(Qt5 5.2.0 REQUIRED COMPONENTS Core DBus Gui Multimedia Network PrintSupport Script Sql Widgets XmlPatterns)
++find_package(Qt5 5.2.0 REQUIRED COMPONENTS Core Gui Network PrintSupport Script Sql Widgets XmlPatterns)
+ find_package(KF5Sonnet)
+ 
+ if (EnableQtwebengine)
+@@ -383,15 +384,6 @@
  	)
  
  	set_source_files_properties(resources/icons/otter-browser.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -35,7 +35,7 @@
  endif (WIN32)
  
  add_executable(otter-browser WIN32 MACOSX_BUNDLE
-@@ -357,11 +348,9 @@
+@@ -417,11 +409,9 @@
  	find_library(FRAMEWORK_Foundation Foundation)
  
  	target_link_libraries(otter-browser ${FRAMEWORK_Cocoa} ${FRAMEWORK_Foundation})
