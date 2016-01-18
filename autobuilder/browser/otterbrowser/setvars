@@ -7,7 +7,7 @@ AB_DISTCLEAN="$AB_MAKE -C build clean"
 ab_make() {
    mkdir build && cd build
    cmake -DCMAKE_TOOLCHAIN_FILE=../../../../env/toolchain-riscos.cmake \
-         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lWebKit1 -lWebCore -lleveldb -lmemenv -ljpeg -lpng -lJavaScriptCore -lWTF -lsqlite3 -licui18n -licuuc -licudata -lssl -lcrypto -lz -lpcre16' \
+         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lWebKit1 -lWebCore -lleveldb -lmemenv -ljpeg -lpng -lJavaScriptCore -lQt5Sql -lWTF -lsqlite3 -licui18n -licuuc -licudata -lssl -lcrypto -lz -lpcre16' \
          ..
    $AB_MAKE
    cd ..
