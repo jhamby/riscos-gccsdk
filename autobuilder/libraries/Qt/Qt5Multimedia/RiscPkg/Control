@@ -1,0 +1,5 @@
+Description: QtMultimedia library
+  Qt is a cross-platform C++ application framework. Qt's primary feature
+  is its rich set of widgets that provide standard GUI functionality.
+  .
+  QtMultimedia is a library to handle multimedia content.
