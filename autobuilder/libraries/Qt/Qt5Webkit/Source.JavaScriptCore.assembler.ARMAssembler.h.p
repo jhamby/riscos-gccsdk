@@ -1,5 +1,5 @@
---- Source/JavaScriptCore/assembler/ARMAssembler.h.orig	2015-02-17 04:57:12.000000000 +0000
-+++ Source/JavaScriptCore/assembler/ARMAssembler.h	2015-04-16 16:13:23.093632462 +0100
+--- Source/JavaScriptCore/assembler/ARMAssembler.h.orig	2015-06-29 21:11:04.000000000 +0100
++++ Source/JavaScriptCore/assembler/ARMAssembler.h	2016-01-25 15:38:40.870688381 +0000
 @@ -32,6 +32,11 @@
  #include "AssemblerBufferWithConstantPool.h"
  #include "JITCompilationEffort.h"
@@ -12,30 +12,28 @@
  namespace JSC {
  
      typedef uint32_t ARMWord;
-@@ -637,6 +642,22 @@
+@@ -637,6 +642,20 @@
              m_buffer.putInt(BKPT | ((value & 0xff0) << 4) | (value & 0xf));
          }
  
 +#if OS(RISCOS)
-+        void breakpoint_swi(ARMWord id = 0)
++        void swi(ARMWord swi_num, bool x_bit = 0)
 +        {
-+	    m_buffer.putInt(0xef000017);
-+            // The breakpoint handler will skip this.
-+	    m_buffer.putInt(id);
++            m_buffer.putInt(0xef000000 | swi_num | (x_bit << 20));
 +        }
 +
 +        AssemblerLabel blx_v4(int rm)
-+	{
-+	    mov(ARMRegisters::lr, ARMRegisters::pc);
-+	    mov(ARMRegisters::pc, rm);
-+	    return m_buffer.label();
-+	}
++        {
++            mov(ARMRegisters::lr, ARMRegisters::pc);
++            mov(ARMRegisters::pc, rm);
++           return m_buffer.label();
++        }
 +#endif
 +
          void nop()
          {
              m_buffer.putInt(NOP);
-@@ -781,9 +802,20 @@
+@@ -781,9 +800,20 @@
          {
              // Check for call
              if ((*insn & LdrPcImmediateInstructionMask) != LdrPcImmediateInstruction) {
@@ -56,7 +54,7 @@
              }
  
              // Must be an ldr ..., [pc +/- imm]
-@@ -1069,6 +1101,8 @@
+@@ -1069,6 +1099,8 @@
              UNUSED_PARAM(size);
  #elif OS(QNX)
              msync(code, size, MS_INVALIDATE_ICACHE);

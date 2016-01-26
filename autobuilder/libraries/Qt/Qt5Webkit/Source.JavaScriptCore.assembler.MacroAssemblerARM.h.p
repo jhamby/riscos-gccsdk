@@ -1,5 +1,5 @@
---- Source/JavaScriptCore/assembler/MacroAssemblerARM.h.orig	2015-02-17 04:57:12.000000000 +0000
-+++ Source/JavaScriptCore/assembler/MacroAssemblerARM.h	2015-04-16 15:18:10.137589531 +0100
+--- Source/JavaScriptCore/assembler/MacroAssemblerARM.h.orig	2015-06-29 21:11:04.000000000 +0100
++++ Source/JavaScriptCore/assembler/MacroAssemblerARM.h	2016-01-24 17:46:56.713294131 +0000
 @@ -27,6 +27,7 @@
  
  #ifndef MacroAssemblerARM_h
@@ -40,14 +40,34 @@
          return PatchableJump(jump);
      }
  
-@@ -832,15 +849,40 @@
+@@ -832,15 +849,60 @@
          m_assembler.bkpt(0);
      }
  
 +#if OS(RISCOS)
 +    void breakpoint_riscos(ARMWord id = 0)
 +    {
-+      m_assembler.breakpoint_swi(id);
++        ASSERT((id & 0xfffff000) == 0);
++        m_assembler.swi(0x17);
++        // The breakpoint handler will skip this.
++        m_assembler.bkpt(id);
++    }
++
++    void report_hex(RegisterID reg)
++    {
++        m_assembler.push(ARMRegisters::r0);
++        m_assembler.push(ARMRegisters::r1);
++        m_assembler.push(ARMRegisters::r2);
++	move(reg, ARMRegisters::r0);
++	sub32(ARMRegisters::sp, TrustedImm32(12), ARMRegisters::r1);
++	move(TrustedImm32(12), ARMRegisters::r2);
++	m_assembler.swi(0xD4);
++	move(TrustedImm32(0), ARMRegisters::r2);
++        m_assembler.dtrUp(ARMAssembler::StoreUint8, ARMRegisters::r2, ARMRegisters::r1, 0);
++	m_assembler.swi(0x54c80);
++        m_assembler.pop(ARMRegisters::r2);
++        m_assembler.pop(ARMRegisters::r1);
++        m_assembler.pop(ARMRegisters::r0);
 +    }
 +#endif
 +
@@ -81,7 +101,7 @@
      }
  
      void call(Address address)
-@@ -850,7 +892,15 @@
+@@ -850,7 +912,15 @@
  
      void ret()
      {
@@ -97,7 +117,7 @@
      }
  
      void compare32(RelationalCondition cond, RegisterID left, RegisterID right, RegisterID dest)
-@@ -968,9 +1018,21 @@
+@@ -968,9 +1038,21 @@
  
      Call call()
      {
@@ -119,7 +139,7 @@
      }
  
      Call tailRecursiveCall()
-@@ -1357,7 +1419,15 @@
+@@ -1357,7 +1439,15 @@
      void call32(RegisterID base, int32_t offset)
      {
          load32(Address(base, offset), ARMRegisters::S1);
