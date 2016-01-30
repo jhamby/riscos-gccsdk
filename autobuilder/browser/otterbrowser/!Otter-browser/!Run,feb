@@ -6,6 +6,8 @@ Set JSC_useBX false
 Set JSC_useDoubleWord false
 
 X removeda otter-browser
+X rmreinit somanager
+X removeda "Qt mmap"
 X removeda "Webkit Fast Malloc"
 X removeda "Webkit GC Heap"
 X removeda "Webkit VM Stack"
