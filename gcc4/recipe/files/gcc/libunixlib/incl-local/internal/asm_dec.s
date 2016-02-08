@@ -1,5 +1,5 @@
 @ Global definitions used by all assembler files.
-@ Copyright (c) 2002-2012 UnixLib Developers.
+@ Copyright (c) 2002-2016 UnixLib Developers.
 
 @ Bits that control which bits are compiled into UnixLib. Note, this must be
 @ kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
@@ -225,6 +225,8 @@
 .set	VFPSupport_ExceptionDump, 0x58ec9
 #endif
 .set	XVFPSupport_ChangeContext, 0x58ec3 + X_Bit	@ Outside the above #if for building SUL
+
+.set	XSOM_DeregisterClient, 0x058584 + X_Bit
 
 #ifndef __TARGET_SCL__
 	@ Entries into the struct proc structure.  Must be kept in sync with

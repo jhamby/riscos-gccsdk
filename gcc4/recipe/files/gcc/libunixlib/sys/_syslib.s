@@ -1,5 +1,5 @@
 @ Provide program entry and initialise the UnixLib world
-@ Copyright (c) 2002-2011 UnixLib Developers
+@ Copyright (c) 2002-2016 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -182,7 +182,10 @@ __main:
 	SUB	a1, sp, v1
 	ADD	sl, a1, #512 + CHUNK_OVERHEAD
 
-	SUB	a3, a1, #8
+	SUBS	a3, a1, #8
+	MOVMI	a1, #ERR_NO_MEMORY
+	BMI	__exit_with_error_num	@ No room for stack, exit.
+
 	@ __stackalloc_init needs a minimum of 8 bytes below the initial
 	@ chunk for its heap - check this doesn't overlap the code section
 	STR	a3, [fp, #MEM_STACK]	@ __ul_memory.stack = bottom of stack
@@ -519,13 +522,13 @@ no_dynamic_area:
 	TST	a1, #1
 	BLNE	__gmon_start__
 
-	@ Normally, the dynamic loader would take care of shared library
+	@ Normally, the dynamic linker would take care of shared library
 	@ initialisation, but UnixLib has to be initialised first so that
 	@ the library initialisers can use its resources.
 
 	@ --- Shared Libraries Initialisation ---
-	@ Use the Dynamic Loader to call the _init functions of all
-	@ shared libraries. This may also reqister the _fini functions
+	@ Use the dynamic linker to call the _init functions of all
+	@ shared libraries. This may also register the _fini functions
 	@ with atexit().
  PICEQ "LDR	a1, [v2, #CRT1_LIB_INIT]"
  PICEQ "TEQ	a1, #0"
@@ -533,7 +536,7 @@ no_dynamic_area:
  PICEQ "MOVNE	pc, a1"
 
 	@ --- Shared Libraries Finalisation ---
-	@ If the dynamic loader passed a shared library finalisation
+	@ If the dynamic linker passed a shared library finalisation
 	@ function, then register it for calling at program exit. This
 	@ may be NULL, in which case we assume the LIB_INIT function
 	@ above did the job for us.
@@ -613,6 +616,8 @@ ___stack_size:
 	@ a1 contains an index to the error block to report.
 	NAME	__exit_with_error_num
 __exit_with_error_num:
+ PICEQ "SWI	XSOM_DeregisterClient"
+
  PICEQ "LDR	v4, =__GOTT_BASE__"
  PICEQ "LDR	v4, [v4, #0]"
  PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr

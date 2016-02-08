@@ -1,3 +1,18 @@
+Mon Feb  7 15:06:02 GMT  2016  Lee Noar  <leenoar@sky.com>
+
+	* incl-local/internal/asm_dec.s(XSOM_DeregisterClient): Add
+	to list of SWIs.
+	* sys/_syslib.s: Make sure that if a custom stack size is used,
+	that the wimpslot is big enough. The main test uses unsigned
+	integers because we are dealing with 32bit addresses, but this
+	doesn't catch the problem of a large stack chunk in a small
+	wimpslot producing an address below 0. Add an additional check
+	on a subtraction where we know that a negative result is a bogus
+	address.
+	(__exit_with_error_num): In the event of a serious error early
+	on in the initialisation stage, deregister the client from the
+	Shared Object Manager.
+
 Mon Nov 23 17:12:58 GMT  2015  Lee Noar  <leenoar@sky.com>
 
 	* include/setjmp.h: Fix for memory corruption when mixing
