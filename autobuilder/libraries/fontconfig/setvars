@@ -1,6 +1,6 @@
 
 AB_CATEGORY=Fonts
-AB_ROVERSION=2
+AB_ROVERSION=3
 if [ "$RO_SHAREDLIBS" == "yes" ]; then
   AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
 else
