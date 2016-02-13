@@ -3,8 +3,10 @@ AB_CATEGORY=Fonts
 AB_ROVERSION=3
 if [ "$RO_SHAREDLIBS" == "yes" ]; then
   AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
+  bin_depends="-depends LibFontConfig1"
 else
   AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev"
+  bin_depends=""
 fi
 
 AB_CONFLAGS=\''--with-baseconfigdir=/\<UnixFC\$$Dir\>/fonts'\'
@@ -105,7 +107,7 @@ ab_package() {
 
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package fontconfig -name "FontConfig" \
-    -unixlib -depends "FontConfig-Config"
+    -unixlib -depends "FontConfig-Config" $bin_depends
 
   # Remove/move automatically created stuff not needed
   rm $A/\!Run,feb
@@ -139,7 +141,7 @@ ab_package() {
     ab_add_sharedlib $S/src/.libs libfontconfig.so.1
 
     $AB_HOME/add-riscpkg -package libfontconfig1 -name LibFontConfig1 \
-	-section Library -depends "FontConfig-Config" -depends LibExpat1
+	-section Library -depends "FontConfig-Config" -depends LibExpat1 -depends LibFreeType6
 
   fi
 }
