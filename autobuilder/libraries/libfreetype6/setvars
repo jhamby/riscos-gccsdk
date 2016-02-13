@@ -1,5 +1,6 @@
 AB_INSTALL=yes
 AB_INSTALLDOCS="README docs/LICENSE docs/FTL.TXT docs/GPL.TXT docs/CHANGES"
+AB_ROVERSION=2
 
 echo "echo arm-riscos-aof" > builds/unix/config.guess
 
@@ -56,7 +57,7 @@ ab_package() {
     ab_add_sharedlib $S/objs/.libs libfreetype.so.6
 
     $AB_HOME/add-riscpkg -package libfreetype6 -name LibFreeType6 -section Library \
-      -depends ZLib1g -depends LibBZ2-1.0 -copyrightfile $S/docs/GPLv2.TXT
+      -depends ZLib1g -depends LibBZ2-1.0 -depends LibPNG12-0 -copyrightfile $S/docs/GPLv2.TXT
   fi
 
 }
