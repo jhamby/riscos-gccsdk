@@ -1,0 +1,5 @@
+| !Boot file for Qupzilla
+
+Set QupZilla$Dir <Obey$Dir>
+IfThere <QupZilla$Dir>.!Sprites then Iconsprites <QupZilla$Dir>.!Sprites
+

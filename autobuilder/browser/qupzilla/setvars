@@ -1,0 +1,47 @@
+
+AB_NOREMOTE=yes
+AB_PVERSION=1.8.9
+AB_ROVERSION=1
+AB_DISTCLEAN="$AB_MAKE -C build clean"
+
+ab_make() {
+ mkdir -p build && cd build
+  $GCCSDK_INSTALL_ENV/bin/qmake -r ../QupZilla.pro
+  $AB_MAKE -j4
+  cd ..
+ }
+
+ab_package() {
+  ab_create_app QupZilla Apps/Network qupzilla
+
+  cp -T $S/bin/qupzilla $A/qupzilla$AB_EXEEXT
+
+  for f in \
+      AUTHORS BUILDING CHANGELOG \
+      README.md COPYRIGHT GPLv3 \
+    ; do
+    cp -prL $S/$f $A
+  done
+
+    cp -prL $S/bin/locale $A
+    cp -prL $S/bin/plugins $A
+    cp -prL $S/bin/themes $A
+
+  $AB_HOME/add-riscpkg -copyrightfile COPYRIGHT -package qupzilla -name QupZilla \
+    -depends SharedLibs-C++2  -depends Qt5Webkit \
+    -depends Qt5Svg -depends Qt5XmlPatterns -depends LibPNG12-0 \
+    -depends ZLib1g -depends LibJPEG8 -depends LibSQLite3 -depends LibPcre3 \
+    -depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
+    -depends LibICU52 -depends LibSSL -depver 1.0.2d-2 -depends LibLevelDB \
+    -depends FontConfig -depends CaCertificates -depends LibHunspell \
+    -depends Qt5Multimedia -depends Hunspell -depends LibQupZilla
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libqupzilla
+     ab_add_sharedlib $S/bin libQupZilla.so.1
+
+     $AB_HOME/add-riscpkg -package libqupzilla -name LibQupZilla -depends SharedLibs \
+		-section Library
+  fi
+
+}

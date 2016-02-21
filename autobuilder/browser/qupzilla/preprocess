@@ -1,0 +1,1 @@
+git clone -b v1.8 https://github.com/QupZilla/qupzilla.git ../qupzilla

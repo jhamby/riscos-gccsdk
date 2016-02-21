@@ -1,0 +1,17 @@
+Wimpslot -min 16384k -max 16384k
+
+| These are only relevant if the JIT is enabled.
+Set JSC_useHalfWord false
+Set JSC_useBX true
+Set JSC_useDoubleWord false
+
+X rmreinit somanager
+X removeda Qupzilla
+X removeda "Qt mmap"
+X removeda "Webkit Fast Malloc"
+X removeda "Webkit GC Heap"
+X removeda "Webkit JIT Code"
+X removeda "Webkit VM Stack"
+
+Set QupZilla$Dir <Obey$Dir>
+Run <QupZilla$Dir>.qupzilla -po ><QupZilla$Dir>.debug 2>&1
