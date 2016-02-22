@@ -5,6 +5,9 @@ Set JSC_useHalfWord false
 Set JSC_useBX false
 Set JSC_useDoubleWord false
 
+| Sets the language to use for the Spell Checker
+Set UnixEnv$LANG "en-GB"
+
 X removeda otter-browser
 X rmreinit somanager
 X removeda "Qt mmap"
