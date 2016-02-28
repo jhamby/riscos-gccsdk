@@ -1,9 +1,9 @@
-
-AB_SVN=http://source.riscpkg.org/svn/LibPkg/trunk
-AB_PVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2`
+AB_GIT=https://github.com/alanbu/LibPkg.git
+AB_INSTALL=yes
+AB_PVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2 | cut -d'-' -f1`
+AB_ROVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2 | cut -d'-' -f2`
+AB_CATEGORY=Library
 AB_COPYSOURCE=yes
-
-AB_INSTALL=env
 
 cd \!LibPkg
 
