@@ -1,5 +1,5 @@
---- CMakeLists.txt.orig	2016-02-22 19:55:40.850622743 +0000
-+++ CMakeLists.txt	2016-02-22 19:57:10.122622834 +0000
+--- CMakeLists.txt.orig	2016-03-05 09:05:11.993962467 +0000
++++ CMakeLists.txt	2016-03-05 09:06:50.633962568 +0000
 @@ -15,7 +15,8 @@
  set(PATCH_VERSION "10")
  set(OTTER_VERSION_MAIN ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
@@ -36,7 +36,7 @@
  	src/core/NetworkCache.cpp
  	src/core/NetworkManager.cpp
  	src/core/NetworkManagerFactory.cpp
-@@ -396,7 +396,6 @@
+@@ -402,7 +402,6 @@
  elseif (UNIX)
  	set(otter_src
  		${otter_src}
@@ -44,7 +44,7 @@
  		3rdparty/libmimeapps/ConfigReader.cpp
  		3rdparty/libmimeapps/DesktopEntry.cpp
  		3rdparty/libmimeapps/Index.cpp
-@@ -427,11 +426,9 @@
+@@ -437,11 +436,9 @@
  	find_library(FRAMEWORK_Foundation Foundation)
  
  	target_link_libraries(otter-browser ${FRAMEWORK_Cocoa} ${FRAMEWORK_Foundation})
@@ -52,8 +52,8 @@
 -	qt5_use_modules(otter-browser DBus)
  endif (WIN32)
  
--qt5_use_modules(otter-browser Core Gui Multimedia Network PrintSupport Script WebKit WebKitWidgets Widgets XmlPatterns)
-+qt5_use_modules(otter-browser Core Gui Multimedia Network PrintSupport WebKit WebKitWidgets Widgets XmlPatterns)
+-qt5_use_modules(otter-browser Core Gui Multimedia Network PrintSupport Script Widgets XmlPatterns)
++qt5_use_modules(otter-browser Core Gui Multimedia Network PrintSupport Widgets XmlPatterns)
  
  set(OTTER_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
  set(XDG_APPS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/applications CACHE FILEPATH "Install path for .desktop files")
