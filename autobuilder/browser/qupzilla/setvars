@@ -1,7 +1,7 @@
 
 AB_NOREMOTE=yes
 AB_PVERSION=1.8.9
-AB_ROVERSION=1
+AB_ROVERSION=2
 AB_DISTCLEAN="$AB_MAKE -C build clean"
 
 ab_make() {
@@ -21,6 +21,13 @@ ab_package() {
       README.md COPYRIGHT GPLv3 \
     ; do
     cp -prL $S/$f $A
+  done
+
+  # remove invalid character in filename
+  for i in bin/locale/*@*
+  do
+  toname=`echo $i|sed -e 's/@/_/g'`
+  mv $i $toname
   done
 
     cp -prL $S/bin/locale $A
