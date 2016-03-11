@@ -1,3 +1,21 @@
+Fri Mar 11 14:51:54 GMT  2016  Lee Noar  <leenoar@sky.com>
+
+	* sys/_cpucaps.s: New file. Provide functions to probe the
+	OS for details of the CPU (currently SWP, LDREX/STREX
+	availability).
+	* Makefile.am: Add above file.
+	* include/unixlib/local.h: Add declarations for user facing
+	functions provided above.
+	* incl-local/internal/asm_dec.s(__ul_global): Add entry to
+	record CPU flags.
+	* incl-local/internal/unix.h: Likewise.
+	* pthread/_ints.s(__pthread_disable_ints,__pthread_protect_unsafe):
+	Use CPU flags to determine whether to use the SWP instruction or
+	LRDEX/STREX.
+	* sys/_syslib.s(__main): Add call to __probe_cpu_caps.
+	(__unixlib_fatal): Use CPU flags to determine whether to use the
+	SWP instruction or LRDEX/STREX.
+
 Mon Feb  7 15:06:02 GMT  2016  Lee Noar  <leenoar@sky.com>
 
 	* incl-local/internal/asm_dec.s(XSOM_DeregisterClient): Add

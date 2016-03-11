@@ -2,7 +2,7 @@
 @ disable_ints can be called multiple times, provided enable_ints is
 @ subsequently called an equal number of times
 @ Written by Martin Piper and Alex Waugh
-@ Copyright (c) 2002-2008 UnixLib Developers
+@ Copyright (c) 2002-2016 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -20,14 +20,25 @@ __pthread_disable_ints:
  PICEQ "LDR	a2, [a2, #0]"
  PICEQ "LDR	a2, [a2, #__GOTT_INDEX__]"	@ a2 = GOT ptr
 
-	LDR	a1, .L0			@=__ul_global
+	LDR	a1, .L0				@ =__ul_global
  PICEQ "LDR	a1, [a2, a1]"
+	LDR	a4, [a1, #GBL_CPU_FLAGS]
 	ADD	a1, a1, #GBL_PTH_WORKSEMAPHORE
+	TST	a4, #__CPUCAP_HAVE_SWP
+	@ From this point onwards we will not be interrupted by the callback
+	BEQ	0f
+
 	MOV	a3, #1
 	SWP	a2, a3, [a1]
-	@ From this point onwards we will not be interrupted by the callback
 	ADD	a2, a2, #1
 	STR	a2, [a1]
+	MOV	pc, lr
+0:
+	LDREX	a2, [a1]
+	ADD	a2, a2, #1
+	STREX	a3, a2, [a1]
+	TEQ	a3, #1
+	BEQ	0b
 	MOV	pc, lr
 .L0:
 	WORD	__ul_global
@@ -78,18 +89,32 @@ __pthread_protect_unsafe:
  PICEQ "LDR	a1, [a1, #0]"
  PICEQ "LDR	a1, [a1, #__GOTT_INDEX__]"	@ a1 = GOT ptr
 
-	LDR	a4, .L2			@=__ul_global
+	LDR	a4, .L2				@ =__ul_global
  PICEQ "LDR	a4, [a1, a4]"
+	LDR	a2, [a4, #GBL_CPU_FLAGS]
 	ADD	a1, a4, #GBL_PTH_WORKSEMAPHORE
+	TST	a2, #__CPUCAP_HAVE_SWP
+	@ From this point onwards we cannot be interrupted by the callback
+	BEQ	0f
+
 	MOV	a2, #1
 	SWP	a3, a2, [a1]
-	@ From this point onwards we cannot be interrupted by the callback
 	CMP	a3, #0
-	STRNE	a3, [a1, #0]	@ Restore original value
+	BEQ	1f
+	STR	a3, [a1, #0]	@ Restore original value
 	@ Return, as if ints are disabled on entry to the
 	@ calling function then they should not be reenabled
 	@ until the calling function has returned
+	MOV	pc, lr
+0:
+	LDREX	a3, [a1]
+	MOV	ip, #1
+	STREX	a2, ip, [a1]
+	TEQ	a2, #1
+	BEQ	0b
+	TEQ	a3, #0
 	MOVNE	pc, lr
+1:
 
 #if __UNIXLIB_PARANOID
 	LDR	a3, [a4, #GBL_PTH_RETURN_ADDRESS]

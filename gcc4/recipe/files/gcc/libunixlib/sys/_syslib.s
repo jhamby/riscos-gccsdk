@@ -258,6 +258,8 @@ __main:
 	BCC	__exit_with_error_num
 unknown_cpu_arch:
 
+	BL	__probe_cpu_caps
+
 	@ Use of DAs explicitly overridden if __dynamic_no_da is declared
 	MOV	lr, #-1
 	STR	lr, [ip, #GBL_DYNAMIC_NUM]
@@ -1291,9 +1293,21 @@ __unixlib_fatal:
 	@ error handling.  As last resort to avoid an infinite loop
 	@ we go for a straight OS_Exit scenario.  Anything better we
 	@ can do ?
-	MOV	a2, #1
 	ADD	a3, a4, #GBL_PANIC_MODE
+	LDR	a2, [a4, #GBL_CPU_FLAGS]
+	TST	a2, #__CPUCAP_HAVE_SWP
+	BEQ	0f
+
+	MOV	a2, #1
 	SWP	a2, a2, [a3]
+	B	1f
+0:
+	LDREX	a2, [a3]
+	MOV	ip, #1
+	STREX	lr, ip, [a3]
+	TEQ	lr, #1
+	BEQ	0b
+1:
 	TEQ	a2, #0
 	BEQ	__unixlib_fatal_cont1
 

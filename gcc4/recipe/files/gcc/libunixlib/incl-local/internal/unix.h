@@ -197,6 +197,8 @@ struct ul_global
     the life of the program. This block is passed to the call_every handler in
     r12.  */
 
+  unsigned int cpu_flags; /* Flags indicating the capabilities of the CPU.  */
+
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
   int vfp_regcount; /* Number of doubleword registers we should request for
     VFP contexts */

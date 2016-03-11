@@ -1027,6 +1027,7 @@ sys_src = \
 	sys/sigsetjmp.c \
 	sys/stackalloc.c \
 	sys/vfork.c \
+	sys/_cpucaps.s \
 	sys/_getcpuarch.s \
 	sys/_jmp.s \
 	sys/_mman.s \

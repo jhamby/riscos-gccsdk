@@ -271,8 +271,10 @@
 .set	GBL_FLS_LBSTM_ON_RD, 108	@ = __ul_global.fls_lbstm_on_rd
 .set	GBL_PTH_CALLEVERY_RMA, 112	@ = __ul_global.pthread_callevery_rma
 
+.set	GBL_CPU_FLAGS, 116		@ = __ul_global.cpu_flags
+
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
-.set	GBL_VFP_REGCOUNT, 116		@ = __ul_global.vfp_regcount
+.set	GBL_VFP_REGCOUNT, 120		@ = __ul_global.vfp_regcount
 #endif
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
@@ -324,3 +326,7 @@
 .set	CRT1_LIB_FINI, 32	@ Ptr to function to finalise shared libraries
 				@ at program exit - can be NULL.
 #endif
+
+#define __CPUCAP_HAVE_SWP    0x1
+#define __CPUCAP_HAVE_REX    0x2
+#define __CPUCAP_HAVE_REXBHD 0x4

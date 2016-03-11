@@ -133,6 +133,16 @@ extern void __write_backtrace (int __signo);
    socket.  Is -1 when socket handle is not valid.  */
 extern int __get_ro_socket (int __sockfd);
 
+/* Return 1 if the SWP instruction is available, otherwise 0.  */
+extern unsigned int __cpucap_have_swp (void);
+
+/* Return 1 if the LDREX/STREX instructions are available, otherwise 0.  */
+extern unsigned int __cpucap_have_rex (void);
+
+/* Return 1 if the LDREX/STREX instructions that operate on bytes, half-words
+   and double words are available, otherwise 0.  */
+extern unsigned int __cpucap_have_rexbhd (void);
+
 __END_DECLS
 
 #endif
