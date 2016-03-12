@@ -1,4 +1,4 @@
-#buil!/bin/bash -e
+#!/bin/bash -e
 
 AB_PACKAGES=""
 export AB_DEBUG=no     # Leave source
