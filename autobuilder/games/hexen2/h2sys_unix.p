@@ -1,24 +1,24 @@
---- engine/hexen2/sys_unix.c.orig	2014-04-08 12:21:28.000000000 +0100
-+++ engine/hexen2/sys_unix.c	2014-04-08 12:23:04.000000000 +0100
-@@ -528,6 +528,9 @@
+--- engine/hexen2/sys_unix.c.orig	2016-03-12 13:59:35.774044838 +0000
++++ engine/hexen2/sys_unix.c	2016-03-12 14:04:40.986045150 +0000
+@@ -543,6 +543,9 @@
  {
  	size_t		n;
  	const char	*home_dir = NULL;
 +#ifdef __riscos__
 +	home_dir = getenv("Choices$Write");
 +#else
- #if USE_PASSWORD_FILE
  	struct passwd	*pwent;
  
-@@ -537,6 +540,7 @@
- 	else
- 		home_dir = pwent->pw_dir;
- #endif
-+#endif
+ 	pwent = getpwuid(getuid());
+@@ -551,6 +554,7 @@
+ 	else	home_dir = pwent->pw_dir;
  	if (home_dir == NULL)
  		home_dir = getenv("HOME");
++#endif
  	if (home_dir == NULL)
-@@ -553,6 +557,15 @@
+ 		return 1;
+ 
+@@ -565,6 +569,15 @@
  					__thisfunc__, (int)dstsize, (int)n);
  	}
  
