@@ -369,7 +369,7 @@ ab_subpackage_versions() {
   subpkg_rovarname=AB_ROVERSION_${subpkg_clean}
   eval subpkg_roversion=\$${subpkg_rovarname}
   if [ -z "$subpkg_roversion" ] ; then
-     pkgroversion=$AB_ROVERSION
+     pkgroversion=${AB_ROVERSION}${AB_ROVERSION_SUFFIX}
   else
     pkgroversion=$subpkg_roversion
   fi
@@ -697,7 +697,7 @@ if true; then
     export AB_OUTPUTLIB
     export AB_INSTALLDOCS
 
-    export RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
+    export RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}${AB_ROVERSION_SUFFIX}
     $AB_HOME/ro-libpack
   fi
 fi
@@ -713,6 +713,7 @@ mkdir -p $D
 # export variable required by add-riscpkg
 export AB_PVERSION
 export AB_ROVERSION
+export AB_ROVERSION_SUFFIX
 export AB_CATEGORY
 export AB_DEBNAME
 export AB_COMPONENTS

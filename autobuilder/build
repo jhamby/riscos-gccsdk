@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#buil!/bin/bash -e
 
 AB_PACKAGES=""
 export AB_DEBUG=no     # Leave source
@@ -10,6 +10,8 @@ export AB_TARGET=      # Name added to packages and logs
 export AB_TRY=no       # Try to build Debian packages not in autobuilder yet
 export AB_ELFBUILD=yes # ELF is default
 export AB_CPUS=X       # Number of CPU cores to use for parallel make (X=guess)
+                       # suffix to append to RiscPkg package version number
+export AB_ROVERSION_SUFFIX=${AB_ROVERSION_SUFFIX:=""} 
 
 for param in $@ ; do
   case "$param" in

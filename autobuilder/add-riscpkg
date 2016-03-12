@@ -50,7 +50,7 @@ fi
 subpkg_rovarname=AB_ROVERSION_${subpkg_clean}
 eval subpkg_roversion=\$${subpkg_rovarname}
 if [ -z "$subpkg_roversion" ] ; then
- pkgroversion=$AB_ROVERSION
+ pkgroversion=${AB_ROVERSION}${AB_ROVERSION_SUFFIX}
 else
  #echo found
  pkgroversion=$subpkg_roversion
