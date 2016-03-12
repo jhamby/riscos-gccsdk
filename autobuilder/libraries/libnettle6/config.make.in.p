@@ -1,0 +1,11 @@
+--- config.make.in.orig	2016-03-12 09:54:59.446029837 +0000
++++ config.make.in	2016-03-12 09:55:12.326029850 +0000
+@@ -4,7 +4,7 @@
+ CXX = @CXX@
+ CFLAGS = @CFLAGS@
+ CXXFLAGS = @CXXFLAGS@
+-CCPIC = @CCPIC@
++CCPIC = 
+ CPPFLAGS = @CPPFLAGS@
+ DEFS = @DEFS@
+ LDFLAGS = @LDFLAGS@
