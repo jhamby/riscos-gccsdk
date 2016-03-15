@@ -1,0 +1,23 @@
+AB_GIT=https://github.com/alanbu/RiscPkg-Policy.git
+AB_PVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2 | cut -d'-' -f1`
+AB_ROVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2 | cut -d'-' -f2`
+AB_CATEGORY=Development
+AB_COPYSOURCE=no
+
+# No build steps needed
+AB_CONFIG=
+
+# Nothing to do for make
+ab_make()
+{
+  echo "No make required"
+}
+
+ab_package()
+{
+  $AB_MAKE -f RiscPkg/Rules pkg
+  # The package has already been created by ab_make, so just move
+  # it to the correct location
+  mv -f Temp $D/riscpkg-policy
+}
+
