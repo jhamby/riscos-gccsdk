@@ -44,17 +44,19 @@ def compare_count(x, y):
 # That should leave some more with no prerequisities
 # Repeat until the tree is empty, or we make no progress (ie the tree is inconsistent)
 
-def iterate_leaves(tree, file):
+def iterate_leaves(tree, filestem):
     # iterate until the list is empty
     iterations = 0
     while len(tree)>0:
     # first list all the leaf nodes
         leaves = []
+        buildorder = open(filestem+str(iterations),"w")
+
         for key in tree:
             value = tree[key]
             if (len(value)==0):
                 # leaf node, so make a note and remove it from the tree
-                file.write(key+"\n")
+                buildorder.write(key+"\n")
                 print "iter %d: remove %s" % (iterations,key)
                 leaves.append(key)
         print "leaves: %s" % (leaves)
@@ -124,8 +126,7 @@ sorted_deps = OrderedDict(sorted(inverse_list.items(), key=lambda t: len(t[1])))
 print "Sorted list: "
 print sorted_deps
 
-with open("buildorder","w") as buildorder:
-    iterate_leaves(sorted_deps, buildorder)
+iterate_leaves(sorted_deps, "buildorder-iter")
 
 #with open("buildorder","w") as buildorder:
 #    while len(sorted_deps)>0:
