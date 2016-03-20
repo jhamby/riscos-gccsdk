@@ -1,8 +1,8 @@
---- src/video/sdl_v.cpp.orig	2010-06-06 15:49:54.282230966 +0100
-+++ src/video/sdl_v.cpp	2010-06-06 16:17:57.002247170 +0100
-@@ -26,6 +26,13 @@
- #include "sdl_v.h"
- #include <SDL.h>
+--- src/video/sdl_v.cpp.orig	2015-12-01 19:38:05.000000000 +0000
++++ src/video/sdl_v.cpp	2016-03-20 16:40:27.438078486 +0000
+@@ -28,6 +28,13 @@
+ 
+ #include "../safeguards.h"
  
 +#if defined __riscos__
 +#include "kernel.h"
@@ -14,7 +14,7 @@
  static FVideoDriver_SDL iFVideoDriver_SDL;
  
  static SDL_Surface *_sdl_screen;
-@@ -335,7 +342,6 @@
+@@ -504,7 +511,6 @@
  
  	for (map = _vk_mapping; map != endof(_vk_mapping); ++map) {
  		if ((uint)(sym->sym - map->vk_from) <= map->vk_count) {
@@ -22,7 +22,7 @@
  			break;
  		}
  	}
-@@ -354,6 +360,9 @@
+@@ -523,6 +529,9 @@
  	if (sym->scancode == 49) key = WKC_BACKSPACE;
  #elif defined(__sgi__)
  	if (sym->scancode == 22) key = WKC_BACKQUOTE;
@@ -32,27 +32,7 @@
  #else
  	if (sym->scancode == 49) key = WKC_BACKQUOTE;
  #endif
-@@ -378,9 +387,19 @@
- 			if (_cursor.fix_at) {
- 				int dx = ev.motion.x - _cursor.pos.x;
- 				int dy = ev.motion.y - _cursor.pos.y;
-+#if defined __riscos__
-+					if (_fullscreen) {
-+						dx = ev.motion.xrel;
-+						dy = ev.motion.yrel;
-+					}
-+#endif
- 				if (dx != 0 || dy != 0) {
- 					_cursor.delta.x = dx;
- 					_cursor.delta.y = dy;
-+ 
-+#if defined __riscos__
-+				if (!_fullscreen)
-+#endif
- 					SDL_CALL SDL_WarpMouse(_cursor.pos.x, _cursor.pos.y);
- 				}
- 			} else {
-@@ -439,6 +458,12 @@
+@@ -597,6 +606,12 @@
  				UndrawMouseCursor(); // mouse left the window, undraw cursor
  				_cursor.in_window = false;
  			}
@@ -65,9 +45,9 @@
  			break;
  
  		case SDL_QUIT:
-@@ -452,6 +477,39 @@
- 			} else {
- 				HandleKeypress(ConvertSdlKeyIntoMy(&ev.key.keysym));
+@@ -612,6 +627,39 @@
+ 				uint keycode = ConvertSdlKeyIntoMy(&ev.key.keysym, &character);
+ 				HandleKeypress(keycode, character);
  			}
 +#if defined __riscos__
 +                if (_fullscreen && _cursor.fix_at) {

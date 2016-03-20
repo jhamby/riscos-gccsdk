@@ -11,23 +11,6 @@ Index: src/intro_gui.cpp
  #else
  		SetDParam(0, STR_OSNAME_UNIX);
  #endif
-Index: src/ini.cpp
-===================================================================
---- src/ini.cpp	(revision 17960)
-+++ src/ini.cpp	(working copy)
-@@ -17,10 +17,12 @@
- #include "string_func.h"
- #include "fileio_func.h"
- 
-+#if !defined(__riscos__)
- #if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 199309L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 500)
- # define WITH_FDATASYNC
- # include <unistd.h>
- #endif
-+#endif
- 
- #ifdef WIN32
- # include <shellapi.h>
 Index: src/network/core/os_abstraction.h
 ===================================================================
 --- src/network/core/os_abstraction.h	(revision 17960)
@@ -82,3 +65,17 @@ Index: src/stdafx.h
  #if defined(PSP)
  	#include <psptypes.h>
  	#include <pspdebug.h>
+--- src/ini.cpp.orig	2016-03-20 16:45:39.194078804 +0000
++++ src/ini.cpp	2016-03-20 16:47:35.222078923 +0000
+@@ -15,9 +15,11 @@
+ #include "string_func.h"
+ #include "fileio_func.h"
+ 
++#if !defined(__riscos__)
+ #if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 199309L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 500)
+ # include <unistd.h>
+ #endif
++#endif
+ 
+ #ifdef WIN32
+ # include <windows.h>

@@ -1,9 +1,5 @@
-AB_MAINTAINER="Peter Naulls <peter@chocky.org>"                                                                    
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="GPLv2"
-#AB_ROVERSION=1
-#AB_PVERSION=1.2.0-svn-$(date +%Y%m%d)
-
-#AB_SVN=svn://svn.openttd.org/trunk
 
 (unset CC; unset CXX; ./configure)
 make -C objs/lang
@@ -20,8 +16,7 @@ $CC -I$GCCSDK_INSTALL_ENV/include -I$GCCSDK_INSTALL_ENV/include  $GCCSDK_INSTALL
 
 
 export CFLAGS=-I$GCCSDK_INSTALL_ENV/include
-AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/OpenTTD:
-             --data-dir= --without-shared-dir --personal-dir=/OpenTTDChoices:/ --with-freetype=0 --with-fontconfig=0 --with-icu=0 --with-allegro=0 --with-lzo2=$GCCSDK_INSTALL_ENV/lib/liblzo2.a --with-midi=0"
+AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/OpenTTD: --data-dir= --without-shared-dir --personal-dir=/OpenTTDChoices:/ --with-freetype=0 --with-fontconfig=0 --with-icu=0 --with-allegro=0 --with-lzo2=$GCCSDK_INSTALL_ENV/lib/liblzo2.a --with-midi=0"
 
 ab_package () {
   ab_create_app OpenTTD Apps/Games
@@ -42,9 +37,10 @@ ab_package () {
 
   cp -av $S/frontend$AB_EXEEXT $A/Resources/Installer/\!RunImage$AB_EXEEXT
 
-  wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/releases/0.4.6.1/opengfx-0.4.6.1.zip -O opengfx.zip
+  wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/releases/0.5.2/opengfx-0.5.2.zip -O opengfx.zip
   unzip opengfx.zip
-  cp -av opengfx-0.4.6.1/*.grf opengfx-0.4.6.1/*.obg $A/data
+  tar -xvf opengfx-0.5.2.tar
+  cp -av opengfx-0.5.2/*.grf opengfx-0.5.2/*.obg $A/data
 
   wget --progress=bar:force http://bundles.openttdcoop.org/opensfx/releases/opensfx-0.2.3.zip -O opensfx.zip
   unzip opensfx.zip
