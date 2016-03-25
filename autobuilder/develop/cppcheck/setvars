@@ -1,0 +1,19 @@
+
+AB_GIT=https://github.com/danmar/cppcheck.git
+
+AB_PVERSION=1.72
+AB_ROVERSION=1
+
+ab_package() {
+  ab_create_command_app Cppheck Apps/Development
+  ab_add_commands $S/cppcheck
+
+  for f in \
+      AUTHORS cfg readme.txt COPYING \
+    ; do
+    cp -prL $S/$f $A
+  done
+
+  $AB_HOME/add-riscpkg -unixlib
+
+}
