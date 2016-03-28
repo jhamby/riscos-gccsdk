@@ -14,6 +14,8 @@ ab_package() {
     cp -prL $S/$f $A
   done
 
-  $AB_HOME/add-riscpkg -unixlib
+  cp -prL $S/readme.txt $A/!Help
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/COPYING
 
 }
