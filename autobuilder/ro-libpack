@@ -16,6 +16,7 @@ fi
 mkdir -p $AB_DIR/package/lib
 mkdir -p $AB_DIR/package/lib/pkgconfig
 mkdir -p $AB_DIR/package/include/
+mkdir -p $AB_DIR/package/bin/
 mkdir -p $AB_DIR/package/doc/$RO_PKG
 
 echo "RO libpack: Running install target: $AB_INSTALLTARGET"
@@ -38,10 +39,11 @@ for file in $files ; do
     echo "RO libpack: Temporary file \"$file\" found during packaging" 1>&2
     exit 1
   fi
-  if file $file | grep -q -E "386|x86-64" ; then
-    echo "RO libpack: Attempt to pack host binary: \"$file\"" 1>&2
-    exit 1
-  fi
+# Now including native bin files for as they may be required for Jenkins
+#  if file $file | grep -q -E "386|x86-64" ; then
+#    echo "RO libpack: Attempt to pack host binary: \"$file\"" 1>&2
+#    exit 1
+#  fi
 done
 
 popd > /dev/null
@@ -91,7 +93,7 @@ if [ -d "$AB_OUTPUTLIB" ] ; then
   if [ -e $AB_OUTPUTLIB/$RO_PKG.zip ] ; then
     rm $AB_OUTPUTLIB/$RO_PKG.zip
   fi
-  $GCCSDK_INSTALL_ENV/bin/zip -, -9 -r -D $AB_OUTPUTLIB/$RO_PKG.zip .
+  $GCCSDK_INSTALL_ENV/bin/zip -, -9 -r -D $AB_OUTPUTLIB/$RO_PKG.zip . || true
 
 else
   if [ -z "$AB_OUTPUTLIB" ] ; then
