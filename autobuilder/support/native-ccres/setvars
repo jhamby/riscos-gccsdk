@@ -1,7 +1,12 @@
 AB_SVN=svn://svn.riscos.info/ccres/trunk/
+AB_PVERSION=1.13-svn-$(date +%Y%m%d)
+AB_INSTALL=yes
 
-make
-make install
+ab_make()
+{
+   make
+}
 
 
-echo "all:" > Makefile
+
+
