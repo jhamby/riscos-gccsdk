@@ -1,5 +1,5 @@
---- CMakeLists.txt.orig	2016-03-25 08:37:13.554080349 +0000
-+++ CMakeLists.txt	2016-03-25 08:40:06.694082235 +0000
+--- CMakeLists.txt.orig	2016-04-23 10:14:35.107661530 +0100
++++ CMakeLists.txt	2016-04-23 10:18:43.079661784 +0100
 @@ -15,7 +15,8 @@
  set(PATCH_VERSION "10")
  set(OTTER_VERSION_MAIN ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
@@ -25,10 +25,10 @@
  
 -find_package(Qt5 5.2.0 REQUIRED COMPONENTS Core DBus Gui Multimedia Network PrintSupport Qml Widgets XmlPatterns)
 +find_package(Qt5 5.2.0 REQUIRED COMPONENTS Core Gui Multimedia Network PrintSupport Widgets XmlPatterns)
- find_package(Qt5 5.6.0 QUIET OPTIONAL_COMPONENTS WebEngineCore WebEngineWidgets)
- find_package(Qt5 5.2.0 QUIET OPTIONAL_COMPONENTS WebKit WebKitWidgets)
+ find_package(Qt5WebEngineWidgets 5.6.0 QUIET)
+ find_package(Qt5WebKitWidgets 5.2.0 QUIET)
  find_package(Hunspell 1.3.0 QUIET)
-@@ -104,7 +105,6 @@
+@@ -103,7 +104,6 @@
  	src/core/InputInterpreter.cpp
  	src/core/LocalListingNetworkReply.cpp
  	src/core/LongTermTimer.cpp
@@ -36,7 +36,7 @@
  	src/core/NetworkCache.cpp
  	src/core/NetworkManager.cpp
  	src/core/NetworkManagerFactory.cpp
-@@ -412,7 +412,6 @@
+@@ -414,7 +414,6 @@
  elseif (UNIX)
  	set(otter_src
  		${otter_src}
@@ -44,7 +44,7 @@
  		3rdparty/libmimeapps/ConfigReader.cpp
  		3rdparty/libmimeapps/DesktopEntry.cpp
  		3rdparty/libmimeapps/Index.cpp
-@@ -447,11 +446,9 @@
+@@ -449,11 +448,9 @@
  	find_library(FRAMEWORK_Foundation Foundation)
  
  	target_link_libraries(otter-browser ${FRAMEWORK_Cocoa} ${FRAMEWORK_Foundation})
