@@ -1,8 +1,13 @@
 
-AB_CATEGORY=Command
-
-AB_MANPAGE=doc/gperf.1
-
 ab_package() {
-  cp $S/src/gperf$AB_EXEEXT $S/COPYING $D
+  ab_create_command_app GPerf Apps/Utilities
+  ab_add_commands $S/src/gperf$AB_EXEEXT
+
+  cp -av $S/COPYING $S/NEWS $S/README $S/AUTHORS $S/ChangeLog $A
+  mkdir $A/docs
+  cp -av $S/doc/gperf.html $A/docs
+
+echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
+
+  $AB_HOME/add-riscpkg -name GPerf -unixlib -copyrightfile $S/COPYING
 }
