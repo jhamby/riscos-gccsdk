@@ -108,11 +108,14 @@ __pthread_protect_unsafe:
 	MOV	pc, lr
 0:
 	LDREX	a3, [a1]
-	MOV	ip, #1
+	CMP	a3, #0
+	MOVEQ	ip, #1
+	MOVNE	ip, a3		@ Keep original value
 	STREX	a2, ip, [a1]
-	TEQ	a2, #1
-	BEQ	0b
-	TEQ	a3, #0
+	CMP	a2, #0
+	BNE	0b
+
+	CMP	a3, #0
 	MOVNE	pc, lr
 1:
 
