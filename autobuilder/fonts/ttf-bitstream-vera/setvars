@@ -1,6 +1,7 @@
 AB_MAKE=
 AB_LICENCE=Free
 AB_COPYSOURCE=no
+AB_ROVERSION=2
 
 AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#ttf-bitstream-vera-## -e "s/[^-]*-//")
 
@@ -16,5 +17,9 @@ ab_package()
 
    AB_COMPONENTS=""
    $AB_HOME/add-riscpkg -name TTF-Bitstream-Vera -depends UnixFont
+   
+   # Add triggers for updating the font cache
+   mkdir -p $D/ttf-bitstream-vera/RiscPkg/Triggers
+   cp $H/Triggers/* $D/ttf-bitstream-vera/RiscPkg/Triggers
 }
 

@@ -1,0 +1,9 @@
+| Trigger to cache the font after installation
+Set PkgTrigger$ReturnCode 0
+| Don't need to run fc-cache if we are aborting or already done
+If "<PkgTrigger$Abort>" = "1" Then Obey
+If "<PkgTrigger$S_FcCache_Run>" = "yes" Then Obey
+| Set variable as it only needs to be run once
+Set PkgTrigger$S_FcCache_Run yes
+Echo Updating Unix font cache
+fc-cache

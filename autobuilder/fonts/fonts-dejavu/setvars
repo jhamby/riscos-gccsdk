@@ -2,6 +2,7 @@ AB_MAKE="make full-ttf"
 AB_LICENCE=Free
 
 AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#dejavu-fonts-## -e "s/[^-]*-//")
+AB_ROVERSION=2
 
 ab_package()
 {
@@ -23,6 +24,9 @@ ab_package()
 
    AB_COMPONENTS=""
    $AB_HOME/add-riscpkg -name TTF-DejaVu-Core -package fonts-dejavu-core -depends UnixFont
+   # Add triggers for updating the font cache
+   mkdir -p $D/fonts-dejavu-core/RiscPkg/Triggers
+   cp $H/Triggers/* $D/fonts-dejavu-core/RiscPkg/Triggers
    
    ab_create_app UnixFont Apps/Fonts fonts-dejavu-extra
    rm -f $A/!Boot,feb
@@ -40,5 +44,8 @@ ab_package()
 
    AB_COMPONENTS=""
    $AB_HOME/add-riscpkg -name TTF-DejaVu-Extra -package fonts-dejavu-extra -depends UnixFont
+   # Add triggers for updating the font cache
+   mkdir -p $D/fonts-dejavu-extra/RiscPkg/Triggers
+   cp $H/Triggers/* $D/fonts-dejavu-extra/RiscPkg/Triggers
 }
 
