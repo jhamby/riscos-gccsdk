@@ -1,5 +1,6 @@
+AB_URL=www.ijg.org/files/jpegsrc.v8d.tar.gz
 AB_INSTALL=yes
-AB_ROVERSION=4
+AB_ROVERSION=5
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
@@ -14,7 +15,7 @@ ab_package() {
 
   mv $D/*,faf $A/
 
-  $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib -section Graphics
+  $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib -section Graphics -copyrightfile $H/Copyright
 
   # Package libraries
   AB_COMPONENTS=""
@@ -39,7 +40,7 @@ ab_package() {
   cp $S/libjpeg.txt $A/\!Help
   cp $S/libjpeg.txt $S/README $S/structure.txt $A/doc
 
-  $AB_HOME/add-riscpkg -package libjpeg8-dev -name LibJPEG8-Dev -section Library -unixlib
+  $AB_HOME/add-riscpkg -package libjpeg8-dev -name LibJPEG8-Dev -section Library -unixlib -copyrightfile $H/Copyright
 
   mkdir -p $D/libjpeg8-dev/RiscPkg
   echo "Description: Development files for the IJG JPEG library" >> $D/libjpeg8-dev/RiscPkg/Control,fff
@@ -55,6 +56,6 @@ ab_package() {
      ab_add_sharedlib $S/.libs libjpeg.so.8
      
      $AB_HOME/add-riscpkg -package libjpeg8 -name LibJPEG8 -depends SharedLibs \
-		-section Library
+		-section Library -copyrightfile $H/Copyright
   fi
 }

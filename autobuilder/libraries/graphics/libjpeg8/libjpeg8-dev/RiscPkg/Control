@@ -1,0 +1,8 @@
+Licence: Free
+Components: Apps.Library.!LibJPEG (Movable)
+Depends: SharedUnixLibrary (>= 1.11)
+Description: Development files for the IJG JPEG library
+ The Independent JPEG Group's JPEG library is a library for handling
+ JPEG files.
+ .
+ This package contains the static library, headers and documentation.

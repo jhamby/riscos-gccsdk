@@ -1,0 +1,6 @@
+Licence: Free
+Components: Apps.Graphics.!JPEGProgs (Movable LookAt)
+Depends: SharedUnixLibrary (>= 1.11)
+Description: Independent JPEG Group's JPEG runtime library
+ The Independent JPEG Group's JPEG jpeg programs.
+
