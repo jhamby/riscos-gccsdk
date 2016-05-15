@@ -163,14 +163,11 @@ restoreBreakpointHandler (void)
       old_breakpoint_registers)
   {
 #if (defined(__VFP_FP__) && !defined(__SOFTFP__))
-    _swix(OS_ChangeEnvironment, _INR(0,3)|_OUTR(1,3),
+    _swix(OS_ChangeEnvironment, _INR(0,3),
 	  os_HANDLER_BREAK_PT,
 	  old_breakpoint_handler,
 	  old_breakpoint_r12,
-	  old_breakpoint_registers,
-	  NULL,
-	  NULL,
-	  NULL);
+	  old_breakpoint_registers);
 #else
     xos_change_environment (os_HANDLER_BREAK_PT,
 			    old_breakpoint_handler,
