@@ -36,6 +36,10 @@ ln -T -s -f $H/src.plugins.platforms.riscos.qriscosscreen.cpp $S/src/plugins/pla
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscosscreen.h $S/src/plugins/platforms/riscos/qriscosscreen.h
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.cpp $S/src/plugins/platforms/riscos/qriscoswindow.cpp
 ln -T -s -f $H/src.plugins.platforms.riscos.qriscoswindow.h $S/src/plugins/platforms/riscos/qriscoswindow.h
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscoscursor.cpp $S/src/plugins/platforms/riscos/qriscoscursor.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qriscoscursor.h $S/src/plugins/platforms/riscos/qriscoscursor.h
+ln -T -s -f $H/src.plugins.platforms.riscos.qsprite.cpp $S/src/plugins/platforms/riscos/qsprite.cpp
+ln -T -s -f $H/src.plugins.platforms.riscos.qsprite.h $S/src/plugins/platforms/riscos/qsprite.h
 ln -T -s -f $H/src.plugins.platforms.riscos.riscos.json $S/src/plugins/platforms/riscos/riscos.json
 ln -T -s -f $H/src.plugins.platforms.riscos.riscos.pro $S/src/plugins/platforms/riscos/riscos.pro
 

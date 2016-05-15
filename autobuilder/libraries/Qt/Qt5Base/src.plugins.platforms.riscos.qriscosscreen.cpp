@@ -54,6 +54,7 @@
 #include "qriscosbackingstore.h"
 #include "qriscoseventdispatcher.h"
 #include "qriscoswindow.h"
+#include "qriscoscursor.h"
 
 #include "oslib/os.h"
 #include "oslib/wimp.h"
@@ -62,9 +63,16 @@
 QT_BEGIN_NAMESPACE
 
 QRiscosScreen::QRiscosScreen () :
+	mCursor(new QRiscosCursor(this)),
 	mTranslationTable(nullptr)
 {
     update();
+}
+
+QRiscosScreen::~QRiscosScreen ()
+{
+    delete mCursor;
+    mCursor = nullptr;
 }
 
 void
@@ -124,9 +132,9 @@ QRiscosScreen::generateTranslationTable()
 #if (defined(__VFP_FP__) && !defined(__SOFTFP__))
     _kernel_oserror *err;
     err = _swix(ColourTrans_GenerateTable, _INR(0,7)|_OUT(4), 
-		QSprite::typeFromQImageFormat(QImage::Format_RGB32),
+		QRiscosBackingStore::spriteType(QImage::Format_RGB32),
 		/* source_palette=*/nullptr,	// Default palette for mode
-		QSprite::typeFromQImageFormat(mFormat),
+		QRiscosBackingStore::spriteType(mFormat),
 		/* dest_palette=*/nullptr,	// Default palette for mode
 		/* trans_tab=*/nullptr, 	// NULL means return required size
 		/* flags=*/0,
@@ -135,9 +143,9 @@ QRiscosScreen::generateTranslationTable()
 		&size);
 #else
     os_error *err;
-    err = xcolourtrans_generate_table (QSprite::typeFromQImageFormat(QImage::Format_RGB32),
+    err = xcolourtrans_generate_table (QRiscosBackingStore::spriteType(QImage::Format_RGB32),
 				       /* source_palette=*/nullptr,	// Default palette for mode
-				       QSprite::typeFromQImageFormat(mFormat),
+				       QRiscosBackingStore::spriteType(mFormat),
 				       /* dest_palette=*/nullptr,	// Default palette for mode
 				       /* trans_tab=*/nullptr, 		// NULL means return required size
 				       /* flags=*/0,
@@ -158,18 +166,18 @@ QRiscosScreen::generateTranslationTable()
 
 #if (defined(__VFP_FP__) && !defined(__SOFTFP__))
     err = _swix(ColourTrans_GenerateTable, _INR(0,7), 
-		QSprite::typeFromQImageFormat(QImage::Format_RGB32),
+		QRiscosBackingStore::spriteType(QImage::Format_RGB32),
 		/* source_palette=*/nullptr,	// Default palette for mode
-		QSprite::typeFromQImageFormat(mFormat),
+		QRiscosBackingStore::spriteType(mFormat),
 		/* dest_palette=*/nullptr,	// Default palette for mode
 		mTranslationTable,
 		/* flags=*/0,
 		/* workspace=*/0,
 		/* transfer_fn=*/nullptr);
 #else
-    err = xcolourtrans_generate_table (QSprite::typeFromQImageFormat(QImage::Format_RGB32),
+    err = xcolourtrans_generate_table (QRiscosBackingStore::spriteType(QImage::Format_RGB32),
 				       /* source_palette=*/nullptr,
-				       QSprite::typeFromQImageFormat(mFormat),
+				       QRiscosBackingStore::spriteType(mFormat),
 				       /* dest_palette=*/nullptr,
 				       mTranslationTable,
 				       /* flags=*/0,
@@ -219,6 +227,11 @@ QRiscosScreen::surfaceFromId (WId handle) const
 	return m_surfaceHash.value(handle);
 
     return nullptr;
+}
+
+QPlatformCursor *QRiscosScreen::cursor() const
+{
+    return mCursor;
 }
 
 QT_END_NAMESPACE

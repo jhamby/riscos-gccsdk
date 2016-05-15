@@ -47,6 +47,7 @@
 #include "qriscosbackingstore.h"
 #include "qriscosintegration.h"
 #include "qriscoswindow.h"
+#include "qsprite.h"
 #include "qscreen.h"
 #include <qdynamicarea.h>
 #include <private/qguiapplication_p.h>
@@ -57,104 +58,73 @@ QT_BEGIN_NAMESPACE
 
 static const char sprite_name[] = "qtsurface";
 
-QSprite::QSprite (QDynamicArea *da) :
-      m_dynamicArea(da),
-      m_surfaceSpriteArea(nullptr),
-      m_surfaceSpritePtr(nullptr),
-      m_surfaceSpriteData(nullptr),
-      m_areaSize(0)
+
+QRiscosBackingStore::QRiscosBackingStore(QWindow *window)
+    : QPlatformBackingStore(window),
+      m_sprite(static_cast<QRiscosIntegration *>(QGuiApplicationPrivate::platformIntegration())->windowSprites())    
 {
+    QRiscosScreen *screen = static_cast<QRiscosScreen *>(window->screen()->handle());
+
+    if (window->width() != 0 && window->height() != 0) {
+	m_sprite.create(sprite_name,
+			window->width(),
+			window->height(),
+			spriteType(QImage::Format_RGB32));
+	m_image = m_sprite.asQImage();
+    }
+
+    screen->addSurface(this);
+#if 0
+    printf ("[%s:%d:%s] - this (%p), x (%d), y (%d), width (%d), height (%d) - bits (%p)\n",
+	  __func__, __LINE__, __FILE__,this,
+	  window->x(),window->y(),window->width(), window->height(), m_sprite.image().bits());
+#endif
 }
 
-QSprite::~QSprite()
+QRiscosBackingStore::~QRiscosBackingStore()
 {
-    if (!isNull())
-	destroy();
+    QRiscosScreen *screen = static_cast<QRiscosScreen *>(window()->screen()->handle());
+
+    screen->removeSurface(this);
+
+    // m_sprite is destructed automatically.
 }
 
-bool
-QSprite::create (int width, int height, QImage::Format format)
+QPaintDevice *
+QRiscosBackingStore::paintDevice()
 {
+    Q_ASSERT(!m_image.isNull());
 
-    // Backing store sprites are always 32 bits.
-    int byte_width = 4 * width;
-
-    // Start with the size of a sprite area header which is 4 words and the
-    // size of a sprite header which is 11 words.
-    m_areaSize = (4 * 4) + (11 * 4) + byte_width * height;
-
-    // FIXME: How do we handle failure?
-    m_surfaceSpriteArea = static_cast<osspriteop_area*>(m_dynamicArea->alloc(m_areaSize));
-    if (m_surfaceSpriteArea == nullptr) {
-        fprintf (stderr, "Failed to allocate memory in dynamic area for sprite area.\n");
-	return false;
-    }
-
-    m_surfaceSpriteArea->size = m_areaSize;
-    m_surfaceSpriteArea->first = 16;
-#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
-    const _kernel_oserror *err;
-    err = _swix(OS_SpriteOp, _INR(0,1),
-		osspriteop_USER_AREA | 9,// Initialise
-		m_surfaceSpriteArea);
-#else
-    const os_error *err;
-    err = xosspriteop_clear_sprites(osspriteop_USER_AREA, m_surfaceSpriteArea);
-#endif
-    if (err != nullptr) {
-        fprintf (stderr, "Failed to create sprite area; %s.\n", err->errmess);
-	return false;
-    }
-    
-#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
-    err = _swix(OS_SpriteOp, _INR(0,6),
-		osspriteop_USER_AREA | 15,// Create
-		m_surfaceSpriteArea,
-		sprite_name,
-		false,
-		width,
-		height,
-		QSprite::typeFromQImageFormat(format));
-#else
-    err = xosspriteop_create_sprite (osspriteop_USER_AREA,
-				     m_surfaceSpriteArea,
-				     sprite_name,
-				     false,
-				     width,
-				     height,
-				     QSprite::typeFromQImageFormat(format));
-#endif
-    if (err != nullptr) {
-        fprintf (stderr, "Failed to create sprite; %s.\n", err->errmess);
-	return false;
-    }
-
-    m_surfaceSpriteData = getSpriteDataPtr();
-    m_surfaceSpritePtr = getSpritePtr();
-
-    m_image = QImage (static_cast<uchar*>(m_surfaceSpriteData),
-		      width,
-		      height,
-		      QSysInfo::requireRedBlueSwap() ?
-			     QImage::Format_RGBX8888 :
-			     QImage::Format_RGB32);
-
-    return true;
+    return &m_image;
 }
 
 void
-QSprite::destroy()
+QRiscosBackingStore::flush(QWindow *window, const QRegion &region, const QPoint &offset)
 {
-    m_dynamicArea->free(m_surfaceSpriteArea, m_areaSize);
+    Q_UNUSED(region);
+    Q_UNUSED(offset);
 
-    m_surfaceSpriteArea = nullptr;
-    m_surfaceSpritePtr = nullptr;
-    m_surfaceSpriteData = nullptr;
-    m_areaSize = 0;
+    QRiscosWindow *rwindow = static_cast<QRiscosWindow *>(window->handle());
+
+    rwindow->update();
+}
+
+void
+QRiscosBackingStore::resize(const QSize &size, const QRegion &staticContents)
+{
+    Q_UNUSED(staticContents);
+
+    if (width() == size.width() && height() == size.height())
+	return;
+    if (!m_sprite.isNull())
+	m_sprite.destroy();
+    m_sprite.create(sprite_name, size.width(), size.height(), spriteType(QImage::Format_RGB32));
+    // FIXME: Do we need to destroy the QImage here before recreating it?
+    m_image = m_sprite.asQImage();
 }
 
 os_mode
-QSprite::typeFromQImageFormat (QImage::Format format)
+QRiscosBackingStore::spriteType(QImage::Format format)
 {
     /* Using new style sprite mode word.  */
     osspriteop_mode_word type = osspriteop_NEW_STYLE;
@@ -185,96 +155,6 @@ QSprite::typeFromQImageFormat (QImage::Format format)
     type |= (90 << osspriteop_YRES_SHIFT);
 
     return (os_mode)type;
-}
-
-void *
-QSprite::getSpriteDataPtr () const
-{
-    osspriteop_header *sprite;
-
-    sprite = (osspriteop_header *)((unsigned)m_surfaceSpriteArea + m_surfaceSpriteArea->first);
-
-    return (void*)((unsigned)sprite + sprite->image);
-}
-
-osspriteop_header *
-QSprite::getSpritePtr () const
-{
-    osspriteop_header *sprite_pointer = nullptr;
-
-#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
-    _kernel_oserror *err;
-    err = _swix(OS_SpriteOp, _INR(0,2)|_OUT(2),
-		osspriteop_USER_AREA | 24,// Select
-		m_surfaceSpriteArea,
-		sprite_name,
-		&sprite_pointer);
-#else
-    os_error *err = nullptr;
-    err = xosspriteop_select_sprite (osspriteop_USER_AREA,
-				     m_surfaceSpriteArea,
-				     (osspriteop_id)sprite_name,
-				     &sprite_pointer);
-#endif
-    return err ? nullptr : sprite_pointer;
-}
-
-QRiscosBackingStore::QRiscosBackingStore(QWindow *window)
-    : QPlatformBackingStore(window),
-      m_sprite(static_cast<QRiscosIntegration *>(QGuiApplicationPrivate::platformIntegration())->windowSprites())    
-{
-    QRiscosScreen *screen = static_cast<QRiscosScreen *>(window->screen()->handle());
-
-    if (window->width() != 0 && window->height() != 0)
-	m_sprite.create(window->width(), window->height(), QImage::Format_RGB32);
-
-    screen->addSurface(this);
-#if 0
-    printf ("[%s:%d:%s] - this (%p), x (%d), y (%d), width (%d), height (%d) - bits (%p)\n",
-	  __func__, __LINE__, __FILE__,this,
-	  window->x(),window->y(),window->width(), window->height(), m_sprite.image().bits());
-#endif
-}
-
-QRiscosBackingStore::~QRiscosBackingStore()
-{
-    QRiscosScreen *screen = static_cast<QRiscosScreen *>(window()->screen()->handle());
-
-    screen->removeSurface(this);
-
-    // m_sprite is destructed automatically.
-}
-
-QPaintDevice *
-QRiscosBackingStore::paintDevice()
-{
-    QImage& image = m_sprite.image();
-    Q_ASSERT(!image.isNull());
-
-    return &image;
-}
-
-void
-QRiscosBackingStore::flush(QWindow *window, const QRegion &region, const QPoint &offset)
-{
-    Q_UNUSED(region);
-    Q_UNUSED(offset);
-
-    QRiscosWindow *rwindow = static_cast<QRiscosWindow *>(window->handle());
-
-    rwindow->update();
-}
-
-void
-QRiscosBackingStore::resize(const QSize &size, const QRegion &staticContents)
-{
-    Q_UNUSED(staticContents);
-
-    if (width() == size.width() && height() == size.height())
-	return;
-    if (!m_sprite.isNull())
-	m_sprite.destroy();
-    m_sprite.create(size.width(), size.height(), QImage::Format_RGB32);
 }
 
 QT_END_NAMESPACE

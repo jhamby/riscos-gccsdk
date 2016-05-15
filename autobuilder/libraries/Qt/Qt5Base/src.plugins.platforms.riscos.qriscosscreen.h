@@ -58,12 +58,14 @@ QT_BEGIN_NAMESPACE
 
 class QRiscosBackingStore;
 class QRiscosWindow;
+class QRiscosCursor;
 class QDynamicArea;
 
 class QRiscosScreen : public QPlatformScreen
 {
 public:
     QRiscosScreen();
+    ~QRiscosScreen();
 
     // Called on a mode change to cache its values.
     void update();
@@ -88,6 +90,8 @@ public:
     QSize size() const { return QSize(mGeometry.width(), mGeometry.height()); }
     int depth() const Q_DECL_OVERRIDE { return mDepth; }
     QImage::Format format() const Q_DECL_OVERRIDE { return mFormat; }
+
+    QPlatformCursor *cursor() const Q_DECL_OVERRIDE;
 
     int xPixelToOS(int x) const {
 	return x << mXEigenFactor;
@@ -157,6 +161,7 @@ private:
     QImage::Format mFormat;
     int mXEigenFactor;
     int mYEigenFactor;
+    QRiscosCursor *mCursor;
 
     // The translation table to use when plotting a 32bit sprite to this screen.
     // NULL if the screen is also 32bit.

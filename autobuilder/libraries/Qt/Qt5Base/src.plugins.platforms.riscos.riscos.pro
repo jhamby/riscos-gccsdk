@@ -13,11 +13,15 @@ SOURCES += main.cpp \
            qriscosbackingstore.cpp \
            qriscoseventdispatcher.cpp \
            qriscoswindow.cpp \
-           qriscosscreen.cpp
+           qriscosscreen.cpp \
+           qriscoscursor.cpp \
+           qsprite.cpp
 HEADERS += qriscosintegration.h \
            qriscosbackingstore.h \
            qriscoseventdispatcher.h \
            qriscoswindow.h \
-           qriscosscreen.h
+           qriscosscreen.h \
+           qriscoscursor.h \
+           qsprite.h
 
 OTHER_FILES += riscos.json

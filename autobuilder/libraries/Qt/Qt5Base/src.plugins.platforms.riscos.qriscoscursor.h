@@ -44,60 +44,41 @@
 **
 ****************************************************************************/
 
-#ifndef QBACKINGSTORE_RISCOS_H
-#define QBACKINGSTORE_RISCOS_H
+#ifndef QRISCOSCURSOR_H
+#define QRISCOSCURSOR_H
 
-#include <qpa/qplatformbackingstore.h>
-#include <qpa/qplatformwindow.h>
-#include <qdynamicarea.h>
-#include <qsprite.h>
-#include "oslib/osspriteop.h"
-#include "swis.h"
-
-#include <QtGui/QImage>
+#include <qpa/qplatformcursor.h>
+#include "qsprite.h"
 
 QT_BEGIN_NAMESPACE
 
-class QRiscosBackingStore : public QPlatformBackingStore
+class QRiscosScreen;
+class QCursor;
+
+class QRiscosCursor : public QPlatformCursor
 {
 public:
-    QRiscosBackingStore(QWindow *window);
-    ~QRiscosBackingStore();
+    QRiscosCursor(QRiscosScreen *screen);
 
-    QPaintDevice *paintDevice();
-    void flush(QWindow *window, const QRegion &region, const QPoint &offset);
-    void resize(const QSize &size, const QRegion &staticContents);
-
-    os_error *render (int x, int y) const {
-	return m_sprite.render (x, y);
-    }
-
-    os_error *render (int x, int y,
-		      osspriteop_trans_tab const *table,
-		      os_factors *factors = nullptr) const {
-	return m_sprite.render (x, y, table, factors);
-    }
-
-    int width() const {
-	return m_sprite.width();
-    }
-    int height() const {
-	return m_sprite.height();
-    }
-
-    os_error *saveToFile(const char *filename) const {
-	return m_sprite.saveToFile(filename);
-    }
-
-    QImage &image() {
-	return m_image;
-    }
-
-    static os_mode spriteType (QImage::Format format);
+    void changeCursor(QCursor * widgetCursor, QWindow * widget) Q_DECL_OVERRIDE;
+    QPoint pos() const Q_DECL_OVERRIDE;
+//    void setPos(const QPoint &pos) Q_DECL_OVERRIDE;
 
 private:
-    QSprite m_sprite;
-    QImage m_image;
+    struct riscos_pointer {
+	QSprite sprite;
+
+	// We can't trust the hot spot in the base class to be anything
+	// other than 0;
+	QPoint hot_spot;
+    };
+
+    QRiscosScreen *mScreen;
+
+    QHash<Qt::CursorShape, riscos_pointer *> mCursors;
+
+private:
+    riscos_pointer *create_cursor(QCursor *);
 };
 
 QT_END_NAMESPACE
