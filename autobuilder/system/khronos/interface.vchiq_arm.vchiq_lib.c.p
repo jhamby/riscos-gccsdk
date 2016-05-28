@@ -1,5 +1,5 @@
---- interface/vchiq_arm/vchiq_lib.c.orig	2015-07-09 19:32:50.264560720 +0100
-+++ interface/vchiq_arm/vchiq_lib.c	2015-07-14 14:11:35.009983866 +0100
+--- interface/vchiq_arm/vchiq_lib.c.orig	2016-05-28 10:25:01.527146917 +0100
++++ interface/vchiq_arm/vchiq_lib.c	2016-05-28 10:25:01.795146925 +0100
 @@ -30,6 +30,13 @@
  #include <sys/ioctl.h>
  #include <stdio.h>
@@ -944,7 +944,7 @@
  static void *
  completion_thread(void *arg)
  {
-@@ -1561,6 +1899,7 @@
+@@ -1562,6 +1900,7 @@
  
     return NULL;
  }
@@ -952,7 +952,7 @@
  
  static VCHIQ_STATUS_T
  create_service(VCHIQ_INSTANCE_T instance,
-@@ -1569,6 +1908,38 @@
+@@ -1570,6 +1909,38 @@
     int is_open,
     VCHIQ_SERVICE_HANDLE_T *phandle)
  {
@@ -991,7 +991,7 @@
     VCHIQ_SERVICE_T *service = NULL;
     VCHIQ_STATUS_T status = VCHIQ_SUCCESS;
     int i;
-@@ -1678,8 +2049,10 @@
+@@ -1679,8 +2050,10 @@
     }
  
     return status;
@@ -1002,7 +1002,7 @@
  static int
  fill_peek_buf(VCHI_SERVICE_T *service,
     VCHI_FLAGS_T flags)
-@@ -1722,7 +2095,6 @@
+@@ -1723,7 +2096,6 @@
     return ret;
  }
  
@@ -1010,7 +1010,7 @@
  static void *
  alloc_msgbuf(void)
  {
-@@ -1745,3 +2117,4 @@
+@@ -1746,3 +2118,4 @@
     free_msgbufs = buf;
     vcos_mutex_unlock(&vchiq_lib_mutex);
  }

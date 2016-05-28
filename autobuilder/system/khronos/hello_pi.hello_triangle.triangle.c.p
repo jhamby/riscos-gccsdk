@@ -1,5 +1,5 @@
---- host_applications/linux/apps/hello_pi/hello_triangle/triangle.c.orig	2015-06-18 20:04:26.000000000 +0100
-+++ host_applications/linux/apps/hello_pi/hello_triangle/triangle.c	2015-07-09 11:37:55.212028979 +0100
+--- host_applications/linux/apps/hello_pi/hello_triangle/triangle.c.orig	2016-05-28 10:35:58.991165772 +0100
++++ host_applications/linux/apps/hello_pi/hello_triangle/triangle.c	2016-05-28 10:35:59.111165776 +0100
 @@ -33,6 +33,7 @@
  #include <math.h>
  #include <assert.h>
@@ -38,7 +38,7 @@
  
     // Enable back face culling.
     glEnable(GL_CULL_FACE);
-@@ -529,12 +531,16 @@
+@@ -540,12 +542,16 @@
     // initialise the OGLES texture(s)
     init_textures(state);
  

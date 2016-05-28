@@ -1,5 +1,5 @@
---- host_applications/linux/libs/bcm_host/bcm_host.c.orig	2015-06-22 13:56:16.452700245 +0100
-+++ host_applications/linux/libs/bcm_host/bcm_host.c	2015-06-22 13:41:06.920674162 +0100
+--- host_applications/linux/libs/bcm_host/bcm_host.c.orig	2016-05-28 10:25:01.443146915 +0100
++++ host_applications/linux/libs/bcm_host/bcm_host.c	2016-05-28 10:25:01.787146925 +0100
 @@ -36,6 +36,7 @@
  static VCHI_INSTANCE_T global_initialise_instance;
  static VCHI_CONNECTION_T *global_connection;
@@ -8,7 +8,7 @@
  int32_t graphics_get_display_size( const uint16_t display_number,
                                                      uint32_t *width,
                                                      uint32_t *height)
-@@ -74,6 +75,7 @@
+@@ -68,6 +69,7 @@
  
     return success;
  }
@@ -16,7 +16,7 @@
  
  void host_app_message_handler(void)
  {
-@@ -88,27 +90,30 @@
+@@ -82,27 +84,30 @@
  
  void bcm_host_init(void)
  {
@@ -52,7 +52,7 @@
     global_connection = vchi_create_connection(single_get_func_table(),
                                                vchi_mphi_message_driver_func_table());
  
-@@ -121,11 +126,13 @@
+@@ -115,11 +120,13 @@
     vc_vchi_cec_init (global_initialise_instance, &global_connection, 1);
     //vc_vchi_bufman_init (global_initialise_instance, &global_connection, 1);
  
