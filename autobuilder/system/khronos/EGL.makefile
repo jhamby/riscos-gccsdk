@@ -5,6 +5,7 @@ TARGET	= $(DEPTH)/libEGL
 include $(DEPTH)/config.mk
 
 ASMSRCS = api-asm.s
+CSRCS =  egl_client_get_proc.c
 
 USERLAND_DIR = $(DEPTH)/userland
 

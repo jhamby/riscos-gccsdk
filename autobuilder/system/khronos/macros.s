@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GCCSDK Developers.
+ * Copyright (c) 2015, 2016 GCCSDK Developers.
  * Written by Lee Noar.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+	.macro REPORT_TEXT string
+
+	STR	lr, [sp, #-4]!
+
+	SWI	0x74c81
+	.asciz	"\string"
+	.align
+
+	LDR	lr, [sp], #4
+
+	.endm
+
 	.macro	NAME	name
 #ifndef NO_EMBED_FUNCTION_NAME
 0:
@@ -41,6 +53,7 @@
 	.global	\name
 	NAME \name
 \name:
+@REPORT_TEXT \name
 	MOV	r8, #(\reason & 0xff)
 	.if \reason > 255
 	ORR	r8, r8, #(\reason & 0xff00)
@@ -56,6 +69,7 @@
 	.global	\name
 	NAME \name
 \name:
+@REPORT_TEXT \name
 	STR	r4, [sp, #-4]!
 	LDR	r4, [sp, #4]
 	MOV	r8, #(\reason & 0xff)
@@ -74,6 +88,7 @@
 	.global	\name
 	NAME \name
 \name:
+@REPORT_TEXT \name
 	STMFD	sp!, {r4, r5}
 	ADD	r4, sp, #8
 	LDMIA	r4, {r4, r5}
@@ -93,6 +108,7 @@
 	.global	\name
 	NAME \name
 \name:
+@REPORT_TEXT \name
 	STMFD	sp!, {r4, r5, r6}
 	ADD	r4, sp, #12
 	LDMIA	r4, {r4, r5, r6}
@@ -105,4 +121,13 @@
 	MOV	pc, lr
 	.type	\name, %function
 	.size	\name, . - \name
+	.endm
+
+	# This assumes a simple stub function that immediately returns and
+	# should never be called.
+	.macro WEAK_STUB_DECL	name
+	.weak	\name
+	.type	\name, %function
+	.size	\name, 4
+\name:
 	.endm

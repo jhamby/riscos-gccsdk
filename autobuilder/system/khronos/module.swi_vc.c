@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GCCSDK Developers.
+ * Copyright (c) 2015, 2016 GCCSDK Developers.
  * Written by Lee Noar.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,6 +90,11 @@ _kernel_oserror *vc_swi(_kernel_swi_regs *r)
       break;
     case vc_DispManxUpdateSubmitSync:
       r->r[0] = (int)vc_dispmanx_update_submit_sync((DISPMANX_UPDATE_HANDLE_T)r->r[0]);
+      break;
+    case vc_DispManxUpdateSubmit:
+      r->r[0] = (int)vc_dispmanx_update_submit((DISPMANX_UPDATE_HANDLE_T)r->r[0],
+					       (DISPMANX_CALLBACK_FUNC_T)r->r[1],
+					       (void *)r->r[2]);
       break;
     case vc_DispManxDisplayGetInfo:
       r->r[0] = (int)vc_dispmanx_display_get_info((DISPMANX_UPDATE_HANDLE_T)r->r[0],

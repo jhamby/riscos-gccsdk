@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GCCSDK Developers.
+ * Copyright (c) 2015, 2016 GCCSDK Developers.
  * Written by Lee Noar.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -291,6 +291,7 @@ DEFINE_FUNC	glIsRenderbufferOES		SWI_GL gl_IsRenderbufferOES
 DEFINE_FUNC	glLoadPaletteFromModelViewMatrixOES SWI_GL gl_LoadPaletteFromModelViewMatrixOES
 DEFINE_FUNC	glMapBufferOES 			SWI_GL gl_MapBufferOES
 DEFINE_FUNC	glMatrixIndexPointerOES 	SWI_GL gl_MatrixIndexPointerOES
+DEFINE_FUNC	glGenerateMipmapOES 		SWI_GL gl_GenerateMipmapOES
 DEFINE_FUNC	glRenderbufferStorageOES 	SWI_GL gl_RenderbufferStorageOES
 DEFINE_FUNC	glWeightPointerOES 		SWI_GL gl_WeightPointerOES
 DEFINE_FUNC	glQueryMatrixxOES 		SWI_GL gl_QueryMatrixxOES

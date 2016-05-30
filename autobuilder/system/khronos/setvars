@@ -56,6 +56,11 @@ ln -Tsf $H/interface.vcos.riscos.vcos_threads.c $S/interface/vcos/riscos/vcos_th
 # the library rather than calling into the module.
 ln -Tsf $S/interface/khronos/vg/vg_int_mat3x3.c $S/../OpenVG/vg_int_mat3x3.c
 
+# Move this out of the module and into the library, otherwise we get pointers
+# to SVC module code which we can't call from C apps. Instead we want pointers
+# to the library versions which correctly call the module code via SWIs.
+ln -Tsf $S/interface/khronos/egl/egl_client_get_proc.c $S/../EGL/egl_client_get_proc.c
+
 ln -Tsf $H/wimp_test.main.c $S/../wimp_test/main.c
 ln -Tsf $H/wimp_test.makefile $S/../wimp_test/makefile
 
@@ -104,10 +109,11 @@ ab_package() {
     ab_create_sharedlib_skeleton khronos-lib
 
     # There are no symlinks, so use cp rather than ab_add_sharedlib.
-    cp -T $S/libbcm_host.so "$A/lib/abi-2.0/libbcm_host.so,e1f"
-    cp -T $S/libEGL.so "$A/lib/abi-2.0/libEGL.so,e1f"
-    cp -T $S/libGLESv2.so "$A/lib/abi-2.0/libGLESv2.so,e1f"
-    cp -T $S/libOpenVG.so "$A/lib/abi-2.0/libOpenVG.so,e1f"
+    mkdir -p "$A/lib/abi-2.0/vfp"
+    cp -T $S/libbcm_host.so "$A/lib/abi-2.0/vfp/libbcm_host.so,e1f"
+    cp -T $S/libEGL.so "$A/lib/abi-2.0/vfp/libEGL.so,e1f"
+    cp -T $S/libGLESv2.so "$A/lib/abi-2.0/vfp/libGLESv2.so,e1f"
+    cp -T $S/libOpenVG.so "$A/lib/abi-2.0/vfp/libOpenVG.so,e1f"
 
     AB_COMPONENTS=""
     $AB_HOME/add-riscpkg -name Khronos-Lib -section System -package khronos-lib \

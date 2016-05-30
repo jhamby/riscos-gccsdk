@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GCCSDK Developers.
+ * Copyright (c) 2015, 2016 GCCSDK Developers.
  * Written by Lee Noar.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,9 +141,13 @@ egl_swi(_kernel_swi_regs *r)
       r->r[0] = (int)error;
       break;
     }
+#if 0
+    // This is handled in the library interface so that we get pointers to USR code
+    // functions and not SVC module code.
     case egl_GetProcAddress:
       r->r[0] = (int)eglGetProcAddress((const char *)r->r[0]);
       break;
+#endif
     case egl_GetSyncAttribKHR:
       r->r[0] = (int)eglGetSyncAttribKHR((EGLDisplay)r->r[0], (EGLSyncKHR)r->r[1],
 					 (EGLint)r->r[2], (EGLint *)r->r[3]);
@@ -210,6 +214,34 @@ egl_swi(_kernel_swi_regs *r)
       break;
     case egl_WaitNative:
       r->r[0] = (int)eglWaitNative((EGLint)r->r[0]);
+      break;
+
+    case egl_QueryGlobalImageBRCM:
+      r->r[0] = (int)eglQueryGlobalImageBRCM((const EGLint *)r->r[0], (EGLint *)r->r[1]);
+      break;
+    case egl_CreateGlobalImageBRCM:
+      eglCreateGlobalImageBRCM((EGLint)r->r[0], (EGLint)r->r[1], (EGLint)r->r[2],
+			       (void *)r->r[3], (EGLint)r->r[4], (EGLint *)r->r[5]);
+      break;
+    case egl_CreateCopyGlobalImageBRCM:
+      eglCreateCopyGlobalImageBRCM((const EGLint *)r->r[0], (EGLint *)r->r[1]);
+      break;
+    case egl_DestroyGlobalImageBRCM:
+      r->r[0] = (int)eglDestroyGlobalImageBRCM((const EGLint *)r->r[0]);
+      break;
+    case egl_ProcStateValid:
+      eglProcStateValid((EGLDisplay)r->r[0], (EGLBoolean *)r->r[1]);
+      break;
+    case egl_InitDriverMonitorBRCM:
+      r->r[0] = (int)eglInitDriverMonitorBRCM((EGLDisplay)r->r[0], (EGLint)r->r[1],
+								   (EGLint)r->r[2]);
+      break;
+    case egl_GetDriverMonitorXMLBRCM:
+      eglGetDriverMonitorXMLBRCM((EGLDisplay)r->r[0], (EGLint)r->r[1],
+				 (EGLint *)r->r[2], (char *)r->r[3]);
+      break;
+    case egl_TermDriverMonitorBRCM:
+      r->r[0] = (int)eglTermDriverMonitorBRCM((EGLDisplay)r->r[0]);
       break;
     default:
       return khronos_bad_egl_reason;

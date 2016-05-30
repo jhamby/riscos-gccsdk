@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GCCSDK Developers.
+ * Copyright (c) 2015, 2016 GCCSDK Developers.
  * Written by Lee Noar.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,3 +42,4 @@ DEFINE_FUNC_5	vc_dispmanx_resource_write_data		SWI_VC	vc_DispManxResourceWriteDa
 DEFINE_FUNC	vc_dispmanx_snapshot			SWI_VC	vc_DispManxSnapshot
 DEFINE_FUNC	vc_dispmanx_update_start		SWI_VC	vc_DispManxUpdateStart
 DEFINE_FUNC	vc_dispmanx_update_submit_sync		SWI_VC	vc_DispManxUpdateSubmitSync
+DEFINE_FUNC	vc_dispmanx_update_submit		SWI_VC	vc_DispManxUpdateSubmit

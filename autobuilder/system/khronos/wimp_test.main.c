@@ -104,7 +104,6 @@ static void create_layer(opengl_window *window, int x, int y, int width, int hei
 static void move_resize_layer(opengl_window *window, int x, int y, int width, int height)
 {
   DISPMANX_UPDATE_HANDLE_T dispman_update;
-  int ret;
 
   VC_RECT_T dst_rect;
   dst_rect.x = x;
@@ -113,7 +112,7 @@ static void move_resize_layer(opengl_window *window, int x, int y, int width, in
   dst_rect.height = height;
 
   dispman_update = vc_dispmanx_update_start(0);
-  ret = vc_dispmanx_element_change_attributes(dispman_update,
+  vc_dispmanx_element_change_attributes(dispman_update,
 					window->nativewindow.element,
 					ELEMENT_CHANGE_DEST_RECT,
 					0,
@@ -288,7 +287,7 @@ draw_window(opengl_window *window)
 static wimp_w
 create_window(void)
 {
-  os_error *err;
+  _kernel_oserror *err;
   wimp_window window_blk;
   wimp_w handle;
   
@@ -326,7 +325,7 @@ create_window(void)
 
   strcpy(window_blk.title_data.text, title);
 
-  err = xwimp_create_window (&window_blk, &handle);
+  err = _swix(Wimp_CreateWindow, _IN(1)|_OUT(0), &window_blk, &handle);
   if (err) {
     fprintf (stderr, "RISCOS: Failed to create window; %s", err->errmess);
     return wimp_INVALID_WINDOW;
@@ -337,16 +336,17 @@ create_window(void)
 
 static void destroy_window(opengl_window *window)
 {
-   eglMakeCurrent(window->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-   eglDestroySurface(window->display, window->surface);
-   eglDestroyContext(window->display, window->context);
-   xwimp_delete_window(window->handle);
+  eglMakeCurrent(window->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  eglDestroySurface(window->display, window->surface);
+  eglDestroyContext(window->display, window->context);
+  wimp_w block[] = { window->handle };
+  _swix(Wimp_DeleteWindow, _IN(1), block);
 }
 
 static void open_window(opengl_window *window)
 {
   wimp_open open;
-  os_error *err;
+  _kernel_oserror *err;
 
   open.w = window->handle;
   open.visible.x0 = 100;
@@ -356,7 +356,7 @@ static void open_window(opengl_window *window)
   open.xscroll = 0;
   open.yscroll = 0;
   open.next = wimp_BACKGROUND;
-  err = xwimp_open_window (&open);
+  err = _swix(Wimp_OpenWindow, _IN(1), &open);
   if (err) {
     fprintf (stderr, "RISCOS: Failed to open window; %s", err->errmess);
     return;
@@ -410,7 +410,7 @@ static void app_init(void)
 
 static void handle_open_event(wimp_open *open)
 {
-  xwimp_open_window (open);
+  _swix(Wimp_OpenWindow, _IN(1), open);
 
   move_resize_layer(&main_window, open->visible.x0 >> eigen_x,
 				  screen_height - (open->visible.y1 >> eigen_y),
@@ -420,7 +420,9 @@ static void handle_open_event(wimp_open *open)
 
 static void handle_close_event(wimp_close *close)
 {
-  xwimp_close_window (close->w);
+  wimp_w block[1] = { close->w };
+  _swix(Wimp_CloseWindow, _IN(1), block);
+
   remove_layer(&main_window);
   eglMakeCurrent(main_window.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   eglDestroySurface(main_window.display, main_window.surface);
@@ -432,16 +434,14 @@ int main ()
   wimp_MESSAGE_LIST(2) message_list = { { 0 } };
   bool quit = false;
 
-  os_error *err;
-
   bcm_host_init();
   app_init();
 
-  err = xwimp_initialise (wimp_VERSION_RO38,
-			  "OpenGL",
-			  (wimp_message_list *)&message_list,
-			  NULL,
-			  &TaskHandle);
+  _kernel_oserror *err;
+  err = _swix(Wimp_Initialise, _INR(0,3)|_OUT(1),
+	      wimp_VERSION_RO38, 0x4B534154,
+	      "OpenGL", &message_list,
+	      &TaskHandle);
   if (err != NULL)
     fprintf(stderr, "Failed to initialise task; %s\n", err->errmess);
 
@@ -455,7 +455,7 @@ int main ()
   {
     wimp_event_no event_type;
 
-    xwimp_poll(0, &poll_block, NULL, &event_type);
+    _swix(Wimp_Poll, _INR(0,1)|_OUT(0), 0, &poll_block, &event_type);
 
     switch (event_type)
     {

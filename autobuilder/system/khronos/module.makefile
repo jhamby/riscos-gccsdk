@@ -37,7 +37,6 @@ KHRONOS_SRC = \
 	$(USERLAND_DIR)/interface/khronos/egl/egl_client_context.c \
 	$(USERLAND_DIR)/interface/khronos/egl/egl_client_surface.c \
 	$(USERLAND_DIR)/interface/khronos/egl/egl_client_config.c \
-	$(USERLAND_DIR)/interface/khronos/egl/egl_client_get_proc.c \
 	$(USERLAND_DIR)/interface/khronos/glxx/glxx_client.c \
 	$(USERLAND_DIR)/interface/khronos/vg/vg_client.c \
 	$(USERLAND_DIR)/interface/khronos/vg/vg_int_mat3x3.c \
@@ -65,6 +64,8 @@ KHRONOS_SRC = \
 	$(USERLAND_DIR)/interface/khronos/ext/gl_oes_query_matrix_client.c \
 	$(USERLAND_DIR)/interface/khronos/ext/egl_brcm_flush_client.c \
 	$(USERLAND_DIR)/interface/khronos/ext/ext_gl_debug_marker.c
+# This one goes in the EGL library interface.
+#	$(USERLAND_DIR)/interface/khronos/egl/egl_client_get_proc.c
 
 MODULE_SRC = main.c swi_vc.c swi_egl.c swi_gl.c swi_openvg.c
 

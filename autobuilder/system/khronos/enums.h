@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GCCSDK Developers.
+ * Copyright (c) 2015, 2016 GCCSDK Developers.
  * Written by Lee Noar.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,6 +75,7 @@
 	ENUM_VAL(vc_DispManxSnapshot)
 	ENUM_VAL(vc_DispManxUpdateStart)
 	ENUM_VAL(vc_DispManxUpdateSubmitSync)
+	ENUM_VAL(vc_DispManxUpdateSubmit)
 	ENUM_END(vc_reason_code)
 
 	ENUM_BEGIN
@@ -122,6 +123,15 @@
 	ENUM_VAL(egl_WaitClient)
 	ENUM_VAL(egl_WaitGL)
 	ENUM_VAL(egl_WaitNative)
+
+	ENUM_VAL(egl_QueryGlobalImageBRCM)
+	ENUM_VAL(egl_CreateGlobalImageBRCM)
+	ENUM_VAL(egl_CreateCopyGlobalImageBRCM)
+	ENUM_VAL(egl_DestroyGlobalImageBRCM)
+	ENUM_VAL(egl_ProcStateValid)
+	ENUM_VAL(egl_InitDriverMonitorBRCM)
+	ENUM_VAL(egl_GetDriverMonitorXMLBRCM)
+	ENUM_VAL(egl_TermDriverMonitorBRCM)
 	ENUM_END(egl_reason_code)
 
 	ENUM_BEGIN
