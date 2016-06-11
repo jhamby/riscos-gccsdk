@@ -5,7 +5,7 @@
  
  !RunImage: $(OBJS)
 -	gcc $(CXXFLAGS) -static -o !RunImage$(AB_EXEEXT) $(OBJS) -L ../DrawFile -lDrawFile -L ../GuiLib/GuiFlex -lGuiFlex -L ../GuiLib/Task -lGuiTask -L ../GuiLib/Util -lGuiUtil -L ../GuiLib/Wimp -lGuiWimp -L ../xpdf -lpdf -L ../xpdf/xpdf/goo -lGoo -L ../xpdf/xpdf/fofi -lfofi -L ../xpdf/xpdf/splash -lsplash -L/linux1/gccsdk/env/lib -lfreetype -lz -lstdc++
-+	gcc $(CXXFLAGS) -static -o !RunImage$(AB_EXEEXT) $(OBJS) -L ../DrawFile -lDrawFile -L ../GuiLib/GuiFlex -lGuiFlex -L ../GuiLib/Task -lGuiTask -L ../GuiLib/Util -lGuiUtil -L ../GuiLib/Wimp -lGuiWimp -L ../xpdf -lpdf -L ../xpdf/xpdf/goo -lGoo -L ../xpdf/xpdf/fofi -lfofi -L ../xpdf/xpdf/splash -lsplash -L/linux1/gccsdk/env/lib -lfreetype -lpng -lz -lstdc++
++	gcc $(CXXFLAGS) -static -o !RunImage$(AB_EXEEXT) $(OBJS) -L ../DrawFile -lDrawFile -L ../GuiLib/GuiFlex -lGuiFlex -L ../GuiLib/Task -lGuiTask -L ../GuiLib/Util -lGuiUtil -L ../GuiLib/Wimp -lGuiWimp -L ../xpdf -lpdf -L ../xpdf/xpdf/goo -lGoo -L ../xpdf/xpdf/fofi -lfofi -L ../xpdf/xpdf/splash -lsplash -L/linux1/gccsdk/env/lib -lfreetype -lpng -lz -lstdc++ -lbz2
  
  clean:
  	rm -f $(OBJS) !RunImage$(AB_EXEEXT)

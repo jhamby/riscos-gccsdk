@@ -3,7 +3,7 @@ AB_LICENCE=Free
 AB_SVN=svn://svn.riscos.info/pdf/trunk
 #AB_SVN=svn://localhost/trunk
 
-AB_MAKE="$AB_MAKE -f Makefile.cross"
+AB_MAKE="$AB_MAKE -j1 -f Makefile.cross"
 
 v=`grep -e"[0-9]" -m1 History`
 AB_PVERSION=`echo $v`
@@ -38,7 +38,7 @@ ab_package() {
   cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n022024l.pfb $A/gsfonts
   cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/s050000l.pfb $A/gsfonts
   cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/COPYING $A/gsfonts
-  
+
   $AB_HOME/add-riscpkg -unixlib -name PDF \
         -copyrightfile LICENCES/README \
         -components "Apps.Document.!PDF (Movable LookAt)"
