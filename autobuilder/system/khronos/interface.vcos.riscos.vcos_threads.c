@@ -92,7 +92,7 @@ ensure_irqs_off(void)
 		    "AND	%[result], r0, #1 << 7;\n"
 		    : [result] "=r" (res)
 		    :
-		    : "r0", "r1");
+		    : "r0", "r1", "cc");
   return res;
 }
 
@@ -106,7 +106,7 @@ restore_irqs(uint32_t v)
 		    "MSRNE	CPSR_c, r2;\n"
 		    :
 		    : [v] "r" (v)
-		    : "r1", "r2");
+		    : "r1", "r2", "cc");
 }
 
 void vcos_riscos_logging_assert(const char *file, const char *func, unsigned int line, const char *fmt, ...)

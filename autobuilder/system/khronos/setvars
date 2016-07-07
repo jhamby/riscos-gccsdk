@@ -1,6 +1,6 @@
 AB_GIT=https://github.com/raspberrypi/userland
 
-AB_PVERSION=1.00
+AB_PVERSION=1.02
 AB_PACKAGES="khronos khronos-lib khronos-dev khronos-examples"
 
 AB_PRECONF=:
@@ -44,6 +44,7 @@ ln -Tsf $H/module.makefile $S/../module/makefile
 ln -Tsf $H/rules.mk $S/../rules.mk
 ln -Tsf $H/types.h $S/../types.h
 ln -Tsf $H/inline_swis.h $S/../inline_swis.h
+ln -Tsf $H/reporter.h $S/../reporter.h
 
 ln -Tsf $H/interface.vchiq_arm.vchiq_module.h $S/interface/vchiq_arm/vchiq_module.h
 ln -Tsf $H/interface.vcos.riscos.riscosbits.h $S/interface/vcos/riscos/riscosbits.h
@@ -134,8 +135,8 @@ ab_package() {
   
   echo "Set Khronos\$Test <Obey\$Dir>" >> "$ex_app/!Run,feb"
   echo "WimpSlot -min 400k -max 400k" >> "$ex_app/!Run,feb"
-  echo "RMEnsure Khronos 1.00 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
-  echo "RMEnsure Khronos 1.00 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.02 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.02 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
   echo "Run <Khronos\$Test>.hello_triangle > <Khronos\$Test>.debug 2>&1" >> "$ex_app/!Run,feb"
 
   ex_app=$A/!HelloTriangle2
@@ -145,8 +146,8 @@ ab_package() {
   
   echo "Set Khronos\$Test <Obey\$Dir>" >> "$ex_app/!Run,feb"
   echo "WimpSlot -min 400k -max 400k" >> "$ex_app/!Run,feb"
-  echo "RMEnsure Khronos 1.00 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
-  echo "RMEnsure Khronos 1.00 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.02 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.02 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
   echo "Run <Khronos\$Test>.hello_triangle2 > <Khronos\$Test>.debug 2>&1" >> "$ex_app/!Run,feb"
  
   ex_app=$A/!HelloTiger
@@ -157,8 +158,8 @@ ab_package() {
   
   echo "Set Khronos\$Test <Obey\$Dir>" >> "$ex_app/!Run,feb"
   echo "WimpSlot -min 400k -max 400k" >> "$ex_app/!Run,feb"
-  echo "RMEnsure Khronos 1.00 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
-  echo "RMEnsure Khronos 1.00 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.02 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.02 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
   echo "Run <Khronos\$Test>.hello_tiger > <Khronos\$Test>.debug 2>&1" >> "$ex_app/!Run,feb"
   
   ex_app=$A/!WimpOpenGL
@@ -168,8 +169,8 @@ ab_package() {
   
   echo "Set Khronos\$Test <Obey\$Dir>" >> "$ex_app/!Run,feb"
   echo "WimpSlot -min 400k -max 400k" >> "$ex_app/!Run,feb"
-  echo "RMEnsure Khronos 1.00 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
-  echo "RMEnsure Khronos 1.00 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.02 RMLoad System:Modules.Khronos" >> "$ex_app/!Run,feb"
+  echo "RMEnsure Khronos 1.02 ERROR This example needs the Khronos module" >> "$ex_app/!Run,feb"
   echo "Run <Khronos\$Test>.!RunImage > <Khronos\$Test>.debug 2>&1" >> "$ex_app/!Run,feb"
 
   AB_SUBPACKAGE=""

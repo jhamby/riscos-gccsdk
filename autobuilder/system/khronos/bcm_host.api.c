@@ -34,7 +34,7 @@
 #include <assert.h>
 #include <swis.h>
 
-#define KHRONOS_VERSION "1.00"
+#define KHRONOS_VERSION "1.02"
 
 void bcm_host_init(void)
 {

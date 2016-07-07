@@ -50,6 +50,11 @@ typedef struct module_globals {
 
   void *private_word;
 
+  // An area of uncached memory used to transfer data to the GPU.
+  unsigned uncached_memory_handle;
+  void *uncached_memory_command;
+  void *uncached_memory_bulk;
+
 } module_globals;
 
 extern module_globals *globals;

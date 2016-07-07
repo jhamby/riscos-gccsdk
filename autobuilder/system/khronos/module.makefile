@@ -96,6 +96,7 @@ INCLUDES += \
 	-I$(USERLAND_DIR)/interface/vchiq_arm \
 	-I$(USERLAND_DIR)/interface/khronos/include \
 	-I$(USERLAND_DIR)/interface/khronos \
-	-I$(USERLAND_DIR)/host_applications/linux/libs/bcm_host/include
+	-I$(USERLAND_DIR)/host_applications/linux/libs/bcm_host/include \
+	-I$(GCCSDK_INSTALL_ENV)/include
 
 include $(DEPTH)/rules.mk

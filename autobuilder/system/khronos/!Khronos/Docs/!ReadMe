@@ -1,4 +1,4 @@
-Khronos 1.00
+Khronos 1.02
 ------------
 
 Khronos consists of the RaspberryPi Userland source code from here:
@@ -42,29 +42,29 @@ A number of examples are included, the hello examples are taken
 from the userland source code. I have made some simple changes to
 improve their use on RISC OS:
 
-Hello_triangle shows the use of OpenGL ES 1.
+Hello_triangle (!Triangle) shows the use of OpenGL ES 1.
 This shows a spinning textured cube.
 Added test for key press to exit, otherwise infinite loop. Made
 background transparent. It's possible to run this from a taskwindow
 and see RISC OS still working below.
 
-Hello_triangle2 shows the use of OpenGL ES 2.
-This shows a mandlebrot/julia set rendered in real time.
-Shows the use of vertex and fragment shaders.
+Hello_triangle2 (!Triangle2) shows the use of OpenGL ES 2.
+This shows a mandlebrot/julia set rendered in real time using vertex
+and fragment shaders.
 Added RISC OS mouse handling, use the mouse to scroll around.
 Press middle button to exit.
 
-Hello_tiger shows the use of OpenVG.
+Hello_tiger (!HelloTiger) shows the use of OpenVG.
 This shows a rotating 2D vector graphic.
 Added test for key press to exit, otherwise infinite loop.
 This example is not as stable as the other two and may fail with
-just a white screen. So far I've been unable to trace the cause.
+just a white screen. So far I've been unable to trace the cause
+although there is some zero pain.
 
 WimpOpenGL is something I quickly wrote in an attempt to see how a
 WIMP task would work with an OpenGL surface as its work area. As
 mentioned above, the main problem is that the surface is always
-on top. Another issue is if the window is moved off the left side
-of the screen, its contents appear to be "hoovered" off.
+on top.
 
 
 Compiling and linking in RISC OS
@@ -103,12 +103,9 @@ will ever change; more likely it will have to be worked around, for example,
 using multiple desktops (eg, !WorkSpace), keep an OpenGL application in its
 own space rather than mixing it with other applications.
 
-When a dispmanx element goes off the left hand side of the screen, the surface
-looks like it is hoovered off to the left. There are comments of the web
-about dispmanx having problems with negative coordinates, but they're supposed
-to be fixed?
-
 Currently, glReadPixels is not supported - hopefully this will be fixed in a
 later release.
+
+The module does not like to be reloaded and stiffs the machine.
 
 Lee Noar.

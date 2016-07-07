@@ -111,14 +111,20 @@ static void move_resize_layer(opengl_window *window, int x, int y, int width, in
   dst_rect.width = width;
   dst_rect.height = height;
 
+  VC_RECT_T src_rect;
+  src_rect.x = 0;
+  src_rect.y = 0;
+  src_rect.width = width << 16;
+  src_rect.height = height << 16;
+
   dispman_update = vc_dispmanx_update_start(0);
   vc_dispmanx_element_change_attributes(dispman_update,
 					window->nativewindow.element,
-					ELEMENT_CHANGE_DEST_RECT,
+					ELEMENT_CHANGE_DEST_RECT | ELEMENT_CHANGE_SRC_RECT,
 					0,
 					0,
 					&dst_rect,
-					NULL,
+					&src_rect,
 					0,
 					VC_IMAGE_ROT0 );
   vc_dispmanx_update_submit_sync(dispman_update);
@@ -294,12 +300,8 @@ create_window(void)
   window_blk.flags = wimp_WINDOW_NEW_FORMAT |
 		     wimp_WINDOW_MOVEABLE |
 		     wimp_WINDOW_AUTO_REDRAW |
-		     wimp_WINDOW_TOGGLE_ICON |
 		     wimp_WINDOW_CLOSE_ICON |
-		     wimp_WINDOW_TITLE_ICON |
-		     wimp_WINDOW_VSCROLL |
-		     wimp_WINDOW_SIZE_ICON |
-		     wimp_WINDOW_HSCROLL;
+		     wimp_WINDOW_TITLE_ICON;
 
   window_blk.title_fg = wimp_COLOUR_BLACK;
 
@@ -385,14 +387,18 @@ static void exit_func(void)
 
 static void app_init(void)
 {
-  static int vduvars[] = { 4, 5, 11, 12, -1 };
+  os_VDU_VAR_LIST(6) var_list = { { os_VDUVAR_XEIG_FACTOR,
+				    os_VDUVAR_YEIG_FACTOR,
+				    os_VDUVAR_XWIND_LIMIT,
+				    os_VDUVAR_YWIND_LIMIT,
+				    os_VDUVAR_END_LIST } };
 
-  _swix(OS_ReadVduVariables, _INR(0,1), vduvars, vduvars);
+  _swix(OS_ReadVduVariables, _INR(0,1), &var_list, &var_list);
 
-  eigen_x = vduvars[0];
-  eigen_y = vduvars[1];
-  screen_width = vduvars[2] + 1;
-  screen_height = vduvars[3] + 1;
+  eigen_x = var_list.var[0];
+  eigen_y = var_list.var[1];
+  screen_width = var_list.var[2] + 1;
+  screen_height = var_list.var[3] + 1;
 
   EGLBoolean result;
 

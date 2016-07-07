@@ -26,6 +26,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+//#define __REPORT_FUNCTIONS__ 1
+//#define __REPORT_ARGS__ 1
+
 	.macro REPORT_TEXT string
 
 	STR	lr, [sp, #-4]!
@@ -36,6 +39,23 @@
 
 	LDR	lr, [sp], #4
 
+	.endm
+
+	.macro	REPORT_HEX int
+	STMFD	sp!,{r0-r12,r14}
+	MOV	r0,\int
+	B	89f
+88:
+	.word	0,0,0
+89:
+	ADR	r1,88b
+	MOV	r2,#12
+	SWI	0xd4
+	MOV	r2,#0
+	STRB	r2,[r1,#0]
+	SWI	0x74c80
+
+	LDMFD	sp!,{r0-r12,r14}
 	.endm
 
 	.macro	NAME	name
@@ -53,7 +73,15 @@
 	.global	\name
 	NAME \name
 \name:
-@REPORT_TEXT \name
+#ifdef __REPORT_FUNCTIONS__
+	REPORT_TEXT \name
+#ifdef __REPORT_ARGS__
+	REPORT_HEX r0
+	REPORT_HEX r1
+	REPORT_HEX r2
+	REPORT_HEX r3
+#endif
+#endif
 	MOV	r8, #(\reason & 0xff)
 	.if \reason > 255
 	ORR	r8, r8, #(\reason & 0xff00)
@@ -69,9 +97,18 @@
 	.global	\name
 	NAME \name
 \name:
-@REPORT_TEXT \name
 	STR	r4, [sp, #-4]!
 	LDR	r4, [sp, #4]
+#ifdef __REPORT_FUNCTIONS__
+	REPORT_TEXT \name
+#ifdef __REPORT_ARGS__
+	REPORT_HEX r0
+	REPORT_HEX r1
+	REPORT_HEX r2
+	REPORT_HEX r3
+	REPORT_HEX r4
+#endif
+#endif
 	MOV	r8, #(\reason & 0xff)
 	.if \reason > 255
 	ORR	r8, r8, #(\reason & 0xff00)
@@ -88,10 +125,20 @@
 	.global	\name
 	NAME \name
 \name:
-@REPORT_TEXT \name
 	STMFD	sp!, {r4, r5}
 	ADD	r4, sp, #8
 	LDMIA	r4, {r4, r5}
+#ifdef __REPORT_FUNCTIONS__
+	REPORT_TEXT \name
+#ifdef __REPORT_ARGS__
+	REPORT_HEX r0
+	REPORT_HEX r1
+	REPORT_HEX r2
+	REPORT_HEX r3
+	REPORT_HEX r4
+	REPORT_HEX r5
+#endif
+#endif
 	MOV	r8, #(\reason & 0xff)
 	.if \reason > 255
 	ORR	r8, r8, #(\reason & 0xff00)
@@ -108,10 +155,21 @@
 	.global	\name
 	NAME \name
 \name:
-@REPORT_TEXT \name
 	STMFD	sp!, {r4, r5, r6}
 	ADD	r4, sp, #12
 	LDMIA	r4, {r4, r5, r6}
+#ifdef __REPORT_FUNCTIONS__
+	REPORT_TEXT \name
+#ifdef __REPORT_ARGS__
+	REPORT_HEX r0
+	REPORT_HEX r1
+	REPORT_HEX r2
+	REPORT_HEX r3
+	REPORT_HEX r4
+	REPORT_HEX r5
+	REPORT_HEX r6
+#endif
+#endif
 	MOV	r8, #(\reason & 0xff)
 	.if \reason > 255
 	ORR	r8, r8, #(\reason & 0xff00)

@@ -43,6 +43,8 @@
 #include "../enums.h"
 #include "../inline_swis.h"
 
+#include "oslib/os.h"
+
 module_globals *globals;
 
 _kernel_oserror *
@@ -57,7 +59,21 @@ khronos_init(const char *cmd_tail,int podule_base,void *pw)
 
   memset(globals, 0, sizeof(module_globals));
 
+  // An area of uncached memory that we can use to transfer data to the
+  // GPU. It has to be uncached, otherwise textures, for example, are corrupted.
+  _kernel_oserror *err;
+  if (_swix(OS_DynamicArea, _INR(0,8)|_OUT(1)|_OUT(3),
+	    OSDynamicArea_Create, -1, KHDISPATCH_WORKSPACE_SIZE + MERGE_BUFFER_SIZE, -1,
+	    os_AREA_NO_USER_DRAG | os_AREA_NOT_CACHEABLE,
+	    KHDISPATCH_WORKSPACE_SIZE + MERGE_BUFFER_SIZE, 0, 0,
+	    "Khronos Uncached Buffer",
+	    &globals->uncached_memory_handle,
+	    &globals->uncached_memory_command) != NULL)
+    return khronos_nomem;
+
   globals->private_word = pw;
+  globals->uncached_memory_bulk = (uint8_t *)globals->uncached_memory_command +
+				  ((MERGE_BUFFER_SIZE + 0xfff) & ~0xfff);
 
   INIT_LIST_HEAD(&globals->tasks);
 
@@ -88,6 +104,9 @@ _kernel_oserror *
 khronos_final(int fatal,int podule,void *pw)
 {
   vchiq_shutdown(globals->instance_handle);
+
+  if (globals->uncached_memory_handle != os_DYNAMIC_AREA_APPLICATION_SPACE)
+    _swix(OS_DynamicArea, _INR(0,1), OSDynamicArea_Delete, globals->uncached_memory_handle);
 
   free(globals);
 

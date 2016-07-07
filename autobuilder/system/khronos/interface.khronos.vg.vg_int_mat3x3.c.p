@@ -5,7 +5,7 @@
  */
  
 +#ifndef __TARGET_MODULE__
-+/* Avoid referencing vcos from the API libraries, ig, libOpenVG.so.  */
++/* Avoid referencing vcos from the API libraries, eg, libOpenVG.so.  */
 +#define vcos_assert assert
 +#define vcos_verify(cond) (cond) ? 1 : (printf("%s:%d - %s", __FILE__, __LINE__, #cond), 0)
 +#endif
