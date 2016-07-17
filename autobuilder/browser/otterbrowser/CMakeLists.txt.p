@@ -1,34 +1,34 @@
---- CMakeLists.txt.orig	2016-04-23 10:14:35.107661530 +0100
-+++ CMakeLists.txt	2016-04-23 10:18:43.079661784 +0100
-@@ -15,7 +15,8 @@
- set(PATCH_VERSION "10")
- set(OTTER_VERSION_MAIN ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
- set(OTTER_VERSION_WEEKLY " ")
--set(OTTER_VERSION_CONTEXT "-dev")
+--- CMakeLists.txt.orig	2016-06-18 09:35:47.237981603 +0100
++++ CMakeLists.txt	2016-06-18 09:37:20.717981237 +0100
+@@ -16,7 +16,8 @@
+ 
+ add_definitions(-DOTTER_VERSION_MAIN="${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
+ add_definitions(-DOTTER_VERSION_WEEKLY=" ")
+-add_definitions(-DOTTER_VERSION_CONTEXT="-dev")
 +string(TIMESTAMP DATE_TIMESTAMP %Y%m%d)
-+set(OTTER_VERSION_CONTEXT "-dev" ${DATE_TIMESTAMP})
++add_definitions(-DOTTER_VERSION_CONTEXT="-dev ${DATE_TIMESTAMP}")
+ add_definitions(-DOTTER_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
  
  if (EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
- 	include(InstallRequiredSystemLibraries)
-@@ -32,7 +33,7 @@
+@@ -34,7 +35,7 @@
  	set(CPACK_PACKAGE_NAME "otter-browser")
  	set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
  	set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
--	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libhunspell-1.3-0 (>= 1.3.3), libqt5multimedia5 (>=5.2.0), libqt5qml5 (>=5.2.0), libqt5webkit5 (>=5.2.0), libqt5xmlpatterns5 (>=5.2.0)")
-+	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libhunspell-1.3-0 (>= 1.3.3), libqt5multimedia5 (>=5.2.0), libqt5webkit5 (>=5.2.0), libqt5xmlpatterns5 (>=5.2.0)")
+-	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgcrypt (>= 1.6.0), libhunspell-1.3-0 (>= 1.3.3), libqt5multimedia5 (>=5.3.0), libqt5qml5 (>=5.3.0), libqt5webkit5 (>=5.3.0), libqt5xmlpatterns5 (>=5.3.0)")
++	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgcrypt (>= 1.6.0), libhunspell-1.3-0 (>= 1.3.3), libqt5multimedia5 (>=5.3.0), libqt5webkit5 (>=5.3.0), libqt5xmlpatterns5 (>=5.3.0)")
  	set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "gstreamer0.10-plugins-base, gstreamer0.10-plugins-good")
  	set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
  	set(CPACK_DEBIAN_PACKAGE_SECTION "web")
-@@ -69,7 +70,7 @@
+@@ -81,7 +82,7 @@
  option(ENABLE_QTWEBENGINE "Enable QtWebEngine backend (requires Qt 5.6)" ON)
- option(ENABLE_QTWEBKIT "Enable QtWebKit backend (requires Qt 5.2)" ON)
+ option(ENABLE_QTWEBKIT "Enable QtWebKit backend (requires Qt 5.3)" ON)
  
--find_package(Qt5 5.2.0 REQUIRED COMPONENTS Core DBus Gui Multimedia Network PrintSupport Qml Widgets XmlPatterns)
-+find_package(Qt5 5.2.0 REQUIRED COMPONENTS Core Gui Multimedia Network PrintSupport Widgets XmlPatterns)
+-find_package(Qt5 5.3.0 REQUIRED COMPONENTS Core DBus Gui Multimedia Network PrintSupport Qml Widgets XmlPatterns)
++find_package(Qt5 5.3.0 REQUIRED COMPONENTS Core Gui Multimedia Network PrintSupport Widgets XmlPatterns)
  find_package(Qt5WebEngineWidgets 5.6.0 QUIET)
- find_package(Qt5WebKitWidgets 5.2.0 QUIET)
- find_package(Hunspell 1.3.0 QUIET)
-@@ -103,7 +104,6 @@
+ find_package(Qt5WebKitWidgets 5.3.0 QUIET)
+ find_package(Gcrypt 1.6.0 QUIET)
+@@ -116,7 +117,6 @@
  	src/core/InputInterpreter.cpp
  	src/core/LocalListingNetworkReply.cpp
  	src/core/LongTermTimer.cpp
@@ -36,7 +36,7 @@
  	src/core/NetworkCache.cpp
  	src/core/NetworkManager.cpp
  	src/core/NetworkManagerFactory.cpp
-@@ -414,7 +414,6 @@
+@@ -438,7 +438,6 @@
  elseif (UNIX)
  	set(otter_src
  		${otter_src}
@@ -44,16 +44,16 @@
  		3rdparty/libmimeapps/ConfigReader.cpp
  		3rdparty/libmimeapps/DesktopEntry.cpp
  		3rdparty/libmimeapps/Index.cpp
-@@ -449,11 +448,9 @@
+@@ -475,11 +474,9 @@
  	find_library(FRAMEWORK_Foundation Foundation)
  
  	target_link_libraries(otter-browser ${FRAMEWORK_Cocoa} ${FRAMEWORK_Foundation})
 -elseif (UNIX)
--	qt5_use_modules(otter-browser DBus)
+-	target_link_libraries(otter-browser Qt5::DBus)
  endif (WIN32)
  
--qt5_use_modules(otter-browser Core Gui Multimedia Network PrintSupport Qml Widgets XmlPatterns)
-+qt5_use_modules(otter-browser Core Gui Multimedia Network PrintSupport Widgets XmlPatterns)
+-target_link_libraries(otter-browser Qt5::Core Qt5::Gui Qt5::Multimedia Qt5::Network Qt5::PrintSupport Qt5::Qml Qt5::Widgets Qt5::XmlPatterns)
++target_link_libraries(otter-browser Qt5::Core Qt5::Gui Qt5::Multimedia Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::XmlPatterns)
  
  set(OTTER_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
  set(XDG_APPS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/applications CACHE FILEPATH "Install path for .desktop files")
