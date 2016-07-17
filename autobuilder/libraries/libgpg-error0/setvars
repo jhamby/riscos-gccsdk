@@ -23,8 +23,16 @@ ab_package() {
   docdir=`echo *`
   mv $docdir/* .
   rm -rf $docdir
-  
+
   cd $HERE
 
   $AB_HOME/add-riscpkg -name LibGPG-Error-Dev -unixlib -copyrightfile $S/COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libgpg-error
+    ab_add_sharedlib $S/src/.libs libgpg-error.so.0
+
+    $AB_HOME/add-riscpkg -package libgpg-error -name LibGPG-Error -section Library \
+       -copyrightfile $S/COPYING
+  fi
 }
