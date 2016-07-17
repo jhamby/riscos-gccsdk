@@ -1,5 +1,6 @@
 
 AB_INSTALL=env
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_sharedlib_skeleton libhunspell
