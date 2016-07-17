@@ -83,12 +83,15 @@ to link this example you would then use:
 gcc triangle2.o -o triangle2 -lbcm_host -lEGL -lGLESv2
 
 This links against three extra libraries:
-libbcm_host contains the VideoCore specific routines for creating and
-manipulating elements (a kind of hardware defined window that an OpenGL
-surface can be bound to).
-libEGL contains routines that are not specified by the OpenGL standard,
-but which are needed for creating contexts and surfaces, etc.
-libGLESv2 contains the actual OpenGL ES2 API.
+
+* libbcm_host contains the VideoCore specific routines for creating and
+              manipulating elements (a kind of hardware defined window that an OpenGL
+              surface can be bound to).
+
+* libEGL      contains routines that are not specified by the OpenGL standard,
+              but which are needed for creating contexts and surfaces, etc.
+
+* libGLESv2   contains the actual OpenGL ES2 API.
 
 If the supplied shared libraries have been installed in !SharedLibs, then
 the result will be dynamically linked. There are static archives supplied
@@ -105,7 +108,5 @@ own space rather than mixing it with other applications.
 
 Currently, glReadPixels is not supported - hopefully this will be fixed in a
 later release.
-
-The module does not like to be reloaded and stiffs the machine.
 
 Lee Noar.

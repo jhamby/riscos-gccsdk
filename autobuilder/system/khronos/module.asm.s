@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GCCSDK Developers.
+ * Copyright (c) 2015-2016, GCCSDK Developers.
  * Written by Lee Noar.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,64 +26,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+	.macro CALLBACK_WRAPPER name
+
+	.global asm_\name
+asm_\name:
+	STMFD	sp!, {r0-r11,lr}
+
+	MOV	r10, r13, LSR#20
+	MOV	r10, r10, LSL#20
+	LDR	r12, [r12]
+	ADD	r10, r10, #20
+	LDMIA	r10, {r4, r5}
+	LDMIB	r12, {r11, r12}
+	STMIA	r10, {r11, r12}
+	ADD	r10, r10, #540
+	BL	\name
+	SUB	r10, r10, #540
+	STMIA	r10, {r4, r5}
+
+	LDMFD	sp!, {r0-r11,lr}
+	MOV	pc, lr
+
+	.endm
+
 	.text
 
-@ void asm_khrn_callback(void *callback_param,VCHI_CALLBACK_REASON_T reason,void *handle)
-	.global asm_khrn_callback
-asm_khrn_callback:
-	STMFD	sp!, {r0-r11,lr}
+CALLBACK_WRAPPER khrn_callback
+CALLBACK_WRAPPER khhn_callback
+CALLBACK_WRAPPER khan_callback
+CALLBACK_WRAPPER tvservice_client_callback
+CALLBACK_WRAPPER tvservice_notify_callback
 
-	MOV	r10, r13, LSR#20
-	MOV	r10, r10, LSL#20
-	LDR	r12, [r12]
-	ADD	r10, r10, #20
-	LDMIA	r10, {r4, r5}
-	LDMIB	r12, {r11, r12}
-	STMIA	r10, {r11, r12}
-	ADD	r10, r10, #540
-	BL	khrn_callback
-	SUB	r10, r10, #540
-	STMIA	r10, {r4, r5}
-
-	LDMFD	sp!, {r0-r11,lr}
-	MOV	pc, lr
-
-@ void asm_khhn_callback(void *callback_param,VCHI_CALLBACK_REASON_T reason,void *handle)
-	.global asm_khhn_callback
-asm_khhn_callback:
-	STMFD	sp!, {r0-r11,lr}
-
-	MOV	r10, r13, LSR#20
-	MOV	r10, r10, LSL#20
-	LDR	r12, [r12]
-	ADD	r10, r10, #20
-	LDMIA	r10, {r4, r5}
-	LDMIB	r12, {r11, r12}
-	STMIA	r10, {r11, r12}
-	ADD	r10, r10, #540
-	BL	khhn_callback
-	SUB	r10, r10, #540
-	STMIA	r10, {r4, r5}
-
-	LDMFD	sp!, {r0-r11,lr}
-	MOV	pc, lr
-
-@ void asm_khan_callback(void *callback_param,VCHI_CALLBACK_REASON_T reason,void *handle)
-	.global asm_khan_callback
-asm_khan_callback:
-	STMFD	sp!, {r0-r11,lr}
-
-	MOV	r10, r13, LSR#20
-	MOV	r10, r10, LSL#20
-	LDR	r12, [r12]
-	ADD	r10, r10, #20
-	LDMIA	r10, {r4, r5}
-	LDMIB	r12, {r11, r12}
-	STMIA	r10, {r11, r12}
-	ADD	r10, r10, #540
-	BL	khan_callback
-	SUB	r10, r10, #540
-	STMIA	r10, {r4, r5}
-
-	LDMFD	sp!, {r0-r11,lr}
-	MOV	pc, lr
+	.end
