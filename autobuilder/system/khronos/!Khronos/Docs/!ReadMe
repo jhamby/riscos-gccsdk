@@ -19,6 +19,10 @@ The GPU will require more memory than you may normally have allocated
 to it. I think at least 64MB. On my 512MB RaspberryPi I have allocated
 128MB in CONFIG.TXT.
 
+A very small number of OpenGL operations, i.e. those that need to
+transfer large amounts of data from the GPU, e.g. glReadPixels, require
+a version of RISC OS with at least V0.09 of the VCHIQ module installed.
+
 As you can imagine, this is a very new area for RISC OS to be dipping
 its toes into and the low level nature of this project means it's
 not always going to be plain sailing.
