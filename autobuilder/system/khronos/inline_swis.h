@@ -292,6 +292,30 @@ swi_vchiq_msg_remove(VCHIQ_SERVICE_HANDLE_T service)
   return error;
 }
 
+static inline _kernel_oserror *
+swi_vchiq_queue_bulk_receive(VCHIQ_SERVICE_HANDLE_T service,
+			     const void *data,
+			     int size,
+			     VCHI_FLAGS_T flags,
+			     void *userdata)
+{
+  register VCHIQ_SERVICE_HANDLE_T __service __asm__("r0") = service;
+  register const void * __data __asm__("r1") = data;
+  register int __size __asm__("r2") = size;
+  register VCHI_FLAGS_T __flags __asm__("r3") = flags;
+  register void *__userdata __asm__("r4") = userdata;
+  register _kernel_oserror *error __asm__("r0");
+
+  __asm__ volatile ("SWI	%[XVCHIQ_BulkQueueReceive];\n\t"
+		    "MOVVC	r0, #0;\n\t"
+		    : "=r" (error)
+		    : [XVCHIQ_BulkQueueReceive] "i" (XVCHIQ_BulkQueueReceive),
+		      "r" (__service), "r" (__data), "r" (__size),
+		      "r" (__flags), "r" (__userdata)
+		    : "r14", "cc");
+  return error;
+}
+
 static inline void *kernel_alloc(size_t size)
 {
   register int __reason __asm__("r0") = 6;

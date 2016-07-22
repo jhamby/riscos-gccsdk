@@ -1,16 +1,23 @@
---- interface/khronos/common/linux/khrn_client_rpc_linux.c.orig	2015-06-24 17:12:03.000000000 +0100
-+++ interface/khronos/common/linux/khrn_client_rpc_linux.c	2015-07-14 14:29:58.953998171 +0100
-@@ -36,6 +36,9 @@
+--- interface/khronos/common/linux/khrn_client_rpc_linux.c.orig	2016-07-17 13:30:38.234415689 +0100
++++ interface/khronos/common/linux/khrn_client_rpc_linux.c	2016-07-17 13:33:25.982420500 +0100
+@@ -25,6 +25,7 @@
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+ #define VCOS_LOG_CATEGORY (&khrn_client_log)
++#include "../inline_swis.h"
+ 
+ #include "vchiq.h"
+ #include "interface/khronos/common/khrn_int_common.h"
+@@ -36,6 +37,8 @@
  
  #include <string.h>
  #include <stdio.h>
-+#include <kernel.h>
 +#include "main.h"
-+#include "../inline_swis.h"
++#include "../reporter.h"
  
  extern VCOS_LOG_CAT_T khrn_client_log;
  
-@@ -57,48 +60,88 @@
+@@ -57,48 +60,94 @@
  
  static VCOS_EVENT_T bulk_event;
  
@@ -53,6 +60,7 @@
 -   case VCHIQ_BULK_RECEIVE_DONE:
 +   case VCHI_CALLBACK_MSG_AVAILABLE:
 +      return retrieve_message(vchiq_khrn_service, &khrn_queue);
++   case VCHI_CALLBACK_BULK_RECEIVED:
 +   case VCHI_CALLBACK_BULK_SENT:
        vcos_event_signal(&bulk_event);
        break;
@@ -64,6 +72,8 @@
 +      break;
 +   case VCHI_CALLBACK_BULK_TRANSMIT_ABORTED:
 +   case VCHI_CALLBACK_BULK_RECEIVE_ABORTED:
++   default:
++      report_text("khrn_callback: unhandle reason");
        UNREACHABLE(); /* not implemented */
     }
  
@@ -84,6 +94,7 @@
 -   case VCHIQ_BULK_RECEIVE_DONE:
 +   case VCHI_CALLBACK_MSG_AVAILABLE:
 +      return retrieve_message(vchiq_khhn_service, &khhn_queue);
++   case VCHI_CALLBACK_BULK_RECEIVED:
 +   case VCHI_CALLBACK_BULK_SENT:
        vcos_event_signal(&bulk_event);
        break;
@@ -96,6 +107,8 @@
 +      break;
 +   case VCHI_CALLBACK_BULK_TRANSMIT_ABORTED:
 +   case VCHI_CALLBACK_BULK_RECEIVE_ABORTED:
++   default:
++      report_text("khhn_callback: unhandle reason");
 +      UNREACHABLE(); /* not implemented */
     }
  
@@ -122,16 +135,15 @@
  VCHIQ_STATUS_T khan_callback(VCHIQ_REASON_T reason, VCHIQ_HEADER_T *header,
                    VCHIQ_SERVICE_HANDLE_T handle, void *bulk_userdata)
  {
-@@ -165,7 +208,7 @@
+@@ -165,6 +214,7 @@
  
     return VCHIQ_SUCCESS;
  }
--
 +#endif
+ 
  void vc_vchi_khronos_init()
  {
-    VCOS_STATUS_T status = vcos_event_create(&bulk_event, NULL);
-@@ -196,15 +239,15 @@
+@@ -196,15 +246,15 @@
     params.version_min = VC_KHRN_VERSION;
  
     params.fourcc = FOURCC_KHAN;

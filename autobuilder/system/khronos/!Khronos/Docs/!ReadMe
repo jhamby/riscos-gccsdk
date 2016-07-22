@@ -1,4 +1,4 @@
-Khronos 1.02
+Khronos 1.03
 ------------
 
 Khronos consists of the RaspberryPi Userland source code from here:
@@ -105,8 +105,5 @@ All OpenGL output is always on top of RISC OS output. I don't think this
 will ever change; more likely it will have to be worked around, for example,
 using multiple desktops (eg, !WorkSpace), keep an OpenGL application in its
 own space rather than mixing it with other applications.
-
-Currently, glReadPixels is not supported - hopefully this will be fixed in a
-later release.
 
 Lee Noar.

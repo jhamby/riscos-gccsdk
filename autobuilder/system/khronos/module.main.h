@@ -78,7 +78,8 @@ enum {
   VCHIQ_ServiceCreate,
   VCHIQ_ServiceDestroy,
   VCHIQ_ServiceUse,
-  VCHIQ_ServiceRelease
+  VCHIQ_ServiceRelease,
+  VCHIQ_BulkQueueReceive
 };
 
 enum {
@@ -96,7 +97,8 @@ enum {
   XVCHIQ_ServiceCreate,
   XVCHIQ_ServiceDestroy,
   XVCHIQ_ServiceUse,
-  XVCHIQ_ServiceRelease
+  XVCHIQ_ServiceRelease,
+  XVCHIQ_BulkQueueReceive
 };
 
 extern _kernel_oserror *vc_swi(_kernel_swi_regs *r);
