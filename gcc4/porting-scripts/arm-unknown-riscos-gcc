@@ -26,7 +26,16 @@ else
     fi
   done
 
+  if grep -q mfpu=vfp <<< $*; then
+    libs="$libs -LGCCSDK_ENV/vfp/lib"
+  fi
+
   libs="$libs -LGCCSDK_ENV/lib -LGCCSDK_BIN/../arm-unknown-riscos/lib/`$cmd $@ -print-multi-directory`"
 fi
 
-exec $cmd "$@" -isystem GCCSDK_ENV/include $libs
+includes="-isystem GCCSDK_ENV/include"
+if grep -q mfpu=vfp <<< $*; then
+  includes="-isystem GCCSDK_ENV/vfp/include $includes"
+fi
+
+exec $cmd "$@" $includes $libs
