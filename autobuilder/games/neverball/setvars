@@ -1,0 +1,31 @@
+# Requires libpng, libjpeg and libsdl2 installed natively on host to
+# build mapc.
+
+AB_GIT=https://github.com/Neverball/neverball
+
+# There's no configure
+AB_PRECONF=:
+
+export ENABLE_NLS=0
+export ENABLE_FS=stdio
+
+ab_package() {
+  ab_create_app NeverBall Apps/Games NeverBall
+
+  echo "| Run file for Neverball" >> "$A/!Run,feb"
+  echo "Set Neverball\$Dir <Obey\$Dir>" >> "$A/!Run,feb"
+  echo "Set Neverball\$Path <NeverBall\$Dir>." >> "$A/!Run,feb"
+  echo "RMEnsure Khronos 1.03 RMLoad System:Modules.Khronos" >> "$A/!Run,feb"
+  echo "RMEnsure Khronos 1.03 Error Neverball needs the Khronos module and will only work on a RaspberryPi" >> "$A/!Run,feb"
+  echo "WimpSlot -min 1000k -max 1000k" >> "$A/!Run,feb"
+  echo "Set SDL_AUDIODRIVER dsp" >> "$A/!Run,feb"
+  echo "Run <NeverBall\$Dir>.neverball > <Neverball\$Dir>.debug 2>&1" >> "$A/!Run,feb"
+
+  cp -T $S/neverball $A/neverball,e1f
+  cp $H/!Sprites,ff9 $A
+  mkdir -p $A/data $A/docs
+  cp -R $S/data/* $A/data
+  cp -R $S/doc/* $A/docs
+
+  $AB_HOME/add-riscpkg -name Neverball -unixlib -copyrightfile $S/LICENSE.md
+}
