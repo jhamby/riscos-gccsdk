@@ -19,4 +19,4 @@ INCLUDES += \
 include $(DEPTH)/rules.mk
  
 install:
-	cp -f ../libbcm_host.* $(GCCSDK_INSTALL_ENV)/lib
+	cp -f ../libbcm_host.* $(INSTALL_DIR)/lib

@@ -20,4 +20,4 @@ include $(DEPTH)/rules.mk
  
 
 install:
-	cp -f ../libEGL.* $(GCCSDK_INSTALL_ENV)/lib
+	cp -f ../libEGL.* $(INSTALL_DIR)/lib

@@ -12,11 +12,11 @@
 +	-DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -ftree-vectorize -pipe -DUSE_EXTERNAL_OMX \
 +	-DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi -mfpu=vfp
 +
-+LDFLAGS+=-L$(GCCSDK_INSTALL_ENV)/lib -lGLESv2 -lEGL -lbcm_host
++LDFLAGS+=-L$(GCCSDK_INSTALL_ENV)/vfp/lib -lGLESv2 -lEGL -lbcm_host
 +
-+INCLUDES+=-I$(GCCSDK_INSTALL_ENV)/include \
-+	  -I$(GCCSDK_INSTALL_ENV)/include/interface/vcos/riscos \
-+	  -I$(GCCSDK_INSTALL_ENV)/include/interface/vmcs_host/linux
++INCLUDES+=-I$(GCCSDK_INSTALL_ENV)/vfp/include \
++	  -I$(GCCSDK_INSTALL_ENV)/vfp/include/interface/vcos/riscos \
++	  -I$(GCCSDK_INSTALL_ENV)/vfp/include/interface/vmcs_host/linux
  
  all: $(BIN) $(LIB)
  

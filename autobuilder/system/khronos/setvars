@@ -182,21 +182,21 @@ ab_package() {
   AB_COMPONENTS=""
   ab_create_app Khronos Apps/Library khronos-dev
 
-  add_headers $GCCSDK_INSTALL_ENV/include/EGL $A/EGL
-  add_headers $GCCSDK_INSTALL_ENV/include/GLES $A/GLES
-  add_headers $GCCSDK_INSTALL_ENV/include/GLES2 $A/GLES2
-  add_headers $GCCSDK_INSTALL_ENV/include/VG $A/VG
-  add_headers $GCCSDK_INSTALL_ENV/include/WF $A/WF
-  add_headers $GCCSDK_INSTALL_ENV/include/KHR $A/KHR
-  add_headers $GCCSDK_INSTALL_ENV/include/vcinclude $A/vcinclude
-  add_headers $GCCSDK_INSTALL_ENV/include/interface $A/interface
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/EGL $A/EGL
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/GLES $A/GLES
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/GLES2 $A/GLES2
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/VG $A/VG
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/WF $A/WF
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/KHR $A/KHR
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/vcinclude $A/vcinclude
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/interface $A/interface
 
   # Remove empty directories created above.
   rmdir $A/interface/h
   rmdir $A/interface/vmcs_host/khronos/h
   
   mkdir -p $A/h
-  cp -f $GCCSDK_INSTALL_ENV/include/bcm_host.h $A/h/bcm_host
+  cp -f $GCCSDK_INSTALL_ENV/vfp/include/bcm_host.h $A/h/bcm_host
   cp -f $S/*.a $A
  
   $AB_HOME/add-riscpkg -name Khronos-Dev -section Library -package khronos-dev \

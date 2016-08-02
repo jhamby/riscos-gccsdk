@@ -20,4 +20,4 @@ include $(DEPTH)/rules.mk
  
 
 install:
-	cp -f ../libGLESv2.* $(GCCSDK_INSTALL_ENV)/lib
+	cp -f ../libGLESv2.* $(INSTALL_DIR)/lib

@@ -16,7 +16,7 @@ INCLUDES += \
 	-I$(USERLAND_DIR)/interface/khronos/include \
 	-I$(USERLAND_DIR)/host_applications/linux/libs/bcm_host/include \
 	-I$(USERLAND_DIR) \
-	-I$(GCCSDK_INSTALL_ENV)/include \
+	-I$(GCCSDK_INSTALL_ENV)/vfp/include -I$(GCCSDK_INSTALL_ENV)/include
 
 SYSTEM_BIN_LIBS += -L../ -lbcm_host -lEGL -lGLESv2
 

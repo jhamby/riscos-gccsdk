@@ -20,4 +20,4 @@ include $(DEPTH)/rules.mk
  
 
 install:
-	cp -f ../libOpenVG.* $(GCCSDK_INSTALL_ENV)/lib
+	cp -f ../libOpenVG.* $(INSTALL_DIR)/lib
