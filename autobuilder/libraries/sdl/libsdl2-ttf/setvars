@@ -1,0 +1,36 @@
+AB_INSTALL=env
+
+AB_ROVERSION=1
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libsdl2-ttf libsdl2-ttf-dev"
+else
+AB_PACKAGES="libsdl2-ttf-dev"
+fi
+
+AB_CONFLAGS="--prefix=$GCCSDK_INSTALL_ENV/vfp --with-sdl-prefix=$GCCSDK_INSTALL_ENV/vfp"
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libsdl2-ttf
+
+    ab_add_sharedlib $S/.libs libSDL2_ttf-2.0.so.0
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -name LibSDL2-ttf -section Library -package libsdl2-ttf \
+         -depends LibSDL2 -depends SharedLibs-C2 -depends LibFreeType6 \
+         -depends LibPNG12-0 -depends ZLib1g
+  fi
+
+  ab_create_app LibSDL2-ttf-Dev Apps/Library libsdl2-ttf-dev
+
+  mkdir -p $A/SDL2/h
+  cp -v -T $S/SDL_ttf.h $A/SDL2/h/SDL_ttf
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    cp -v $S/.libs/libSDL2_ttf.a $A/SDL2
+  else
+    cp -v $S/libSDL2_ttf.a $A/SDL2
+  fi
+
+  $AB_HOME/add-riscpkg -unixlib -name LibSDL2-ttf-Dev
+}

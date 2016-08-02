@@ -1,0 +1,72 @@
+# This is a VFP only build aimed at the RaspberryPi with OpenGL hardware
+# support.
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libsdl2-dev libsdl2"
+else
+AB_PACKAGES="libsdl2-dev"
+fi
+
+AB_INSTALL=env 
+AB_PRECONF=:
+
+cp -T $S/libsdl2*/src/stdlib/SDL_qsort.c $S/src/stdlib/SDL_qsort.c
+
+./autogen.sh
+
+mkdir -p build
+cd build
+
+$AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp --enable-video-opengles --disable-video-x11 \
+	   --disable-file --disable-haptic --enable-audio --enable-oss
+
+add_headers()
+{
+  local src_header_dir
+  local dst_header_dir
+  local f
+  local HERE
+
+  src_header_dir=$1
+  dst_header_dir=$2
+
+  HERE=`pwd`
+  cd $src_header_dir
+
+  mkdir -p $dst_header_dir/h
+  for f in *
+  do
+    if [ -d "$f" ] ; then
+      add_headers $src_header_dir/$f $dst_header_dir/$f
+    else
+      filename=$(basename "$f")
+      filename="${filename%.*}"
+      cp -v -T $f $dst_header_dir/h/$filename
+    fi
+  done
+
+  cd $HERE
+}
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libsdl2
+
+    ab_add_sharedlib $S/build/.libs libSDL2-2.0.so.0
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -name LibSDL2 -section Library -package libsdl2 \
+         -depends SharedLibs-C2
+  fi
+
+  ab_create_app LibSDL2 Apps/Library libsdl2-dev
+
+  add_headers $GCCSDK_INSTALL_ENV/vfp/include/SDL2 $A/SDL2
+  if [ -d "$S/build/.libs/" ]; then
+    cp -f $S/build/.libs/*.a $A
+  fi
+  cp -f $S/build/*.a $A
+
+  $AB_HOME/add-riscpkg -name LibSDL2-Dev -unixlib -copyrightfile $S/COPYING.txt \
+			-depends Khronos
+}
