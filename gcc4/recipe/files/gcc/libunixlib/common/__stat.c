@@ -85,11 +85,12 @@ __stat (unsigned objtype, unsigned loadaddr, unsigned execaddr,
 #ifndef __TARGET_SCL__
   switch (buf->st_dev)
     {
-      /* FIXME: What about DEV_DSP, DEV_CUSTOM ? */
+      /* FIXME: What about DEV_CUSTOM ? */
       case DEV_TTY:
       case DEV_NULL:
       case DEV_ZERO:
       case DEV_RANDOM:
+      case DEV_DSP:
 	/* Terminal type device file.  */
 	mode |= S_IFCHR;
 	break;

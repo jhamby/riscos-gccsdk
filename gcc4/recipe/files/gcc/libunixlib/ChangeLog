@@ -1,3 +1,8 @@
+Sun Aug  7 11:18:10 BST  2016  Lee Noar  <leenoar@sky.com>
+
+	* common/__stat.c(__stat): Set the character flag for /dev/dsp
+	so that libraries like libSDL2 can detect it correctly.
+
 Thu May  5 19:37:26 BST  2016  Lee Noar  <leenoar@sky.com>
 
 	* pthread/_ints.s(__pthread_protect_unsafe): Make the LDREX/STREX
