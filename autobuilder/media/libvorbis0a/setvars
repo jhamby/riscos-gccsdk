@@ -67,7 +67,7 @@ ab_package() {
 	ab_add_sharedlib $S/build/lib/.libs libvorbisfile.so.3
 
 	AB_COMPONENTS=""
-	$AB_HOME/add-riscpkg -name LibVorbis -section Apps/Library -package libvorbis \
+	$AB_HOME/add-riscpkg -name LibVorbis -section Library -package libvorbis \
 	    -depends LibOGG -depends SharedLibs-C2
     fi
     if [ "$BUILD_VFP" == "yes" ] ; then
@@ -78,7 +78,7 @@ ab_package() {
 	ab_add_sharedlib $S/build-vfp/lib/.libs libvorbisfile.so.3
 
 	AB_COMPONENTS=""
-	$AB_HOME/add-riscpkg -name LibVorbis-VFP -section Apps/Library -package libvorbis-vfp \
+	$AB_HOME/add-riscpkg -name LibVorbis-VFP -section Library -package libvorbis-vfp \
 	    -depends LibOGG -depends SharedLibs-C2
     fi
   fi
