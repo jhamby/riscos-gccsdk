@@ -1,29 +1,110 @@
-AB_INSTALL=yes
+# Build normal and VFP versions by default.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
+
+AB_INSTALL=no
 AB_ROVERSION=3
 
-ab_package() {
-  ab_create_app LibVorbis Apps/Library libvorbis-dev
+AB_PRECONF=:
+
+autoconf
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libvorbis-dev libvorbis"
+else
+AB_PACKAGES="libvorbis-dev"
+fi
+
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  mkdir $S/build
+  ( cd $S/build; ENABLE_VFP=no $AB_CONFIG && $AB_MAKE && $AB_MAKE install )
+fi
+
+if [ "$BUILD_VFP" == "yes" ]; then
+  mkdir $S/build-vfp
+  ( cd $S/build-vfp; ENABLE_VFP=yes $AB_CONFIG && $AB_MAKE && $AB_MAKE install )
+fi
+
+ab_make() {
+  :
+}
+
+add_headers()
+{
+  local src_header_dir
+  local dst_header_dir
+  local f
+  local HERE
+
+  src_header_dir=$1
+  dst_header_dir=$2
 
   HERE=`pwd`
-  cd $A
+  cd $src_header_dir
 
-  unzip $AB_OUTPUTLIB/$RO_PKG.zip
-
-  mv include/vorbis vorbis
-  rm -rf include
-
-  mv lib/*.a .
-  rm -rf lib
-
-  cd doc
-  docdir=`echo *`
-  mv $docdir/* .
-  rm -rf $docdir
+  mkdir -p $dst_header_dir/h
+  for f in *
+  do
+    if [ -d "$f" ] ; then
+      add_headers $src_header_dir/$f $dst_header_dir/$f
+    else
+      filename=$(basename "$f")
+      filename="${filename%.*}"
+      cp -v -T $f $dst_header_dir/h/$filename
+    fi
+  done
 
   cd $HERE
+}
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    if [ "$BUILD_NORMAL" == "yes" ] ; then
+	ab_create_sharedlib_skeleton libvorbis
+
+	ab_add_sharedlib $S/build/lib/.libs libvorbis.so.0
+	ab_add_sharedlib $S/build/lib/.libs libvorbisenc.so.2
+	ab_add_sharedlib $S/build/lib/.libs libvorbisfile.so.3
+
+	AB_COMPONENTS=""
+	$AB_HOME/add-riscpkg -name LibVorbis -section Apps/Library -package libvorbis \
+	    -depends LibOGG -depends SharedLibs-C2
+    fi
+    if [ "$BUILD_VFP" == "yes" ] ; then
+	ab_create_sharedlib_skeleton libvorbis-vfp
+
+	ab_add_sharedlib $S/build-vfp/lib/.libs libvorbis.so.0
+	ab_add_sharedlib $S/build-vfp/lib/.libs libvorbisenc.so.2
+	ab_add_sharedlib $S/build-vfp/lib/.libs libvorbisfile.so.3
+
+	AB_COMPONENTS=""
+	$AB_HOME/add-riscpkg -name LibVorbis-VFP -section Apps/Library -package libvorbis-vfp \
+	    -depends LibOGG -depends SharedLibs-C2
+    fi
+  fi
+
+  ab_create_app LibVorbis Apps/Library libvorbis-dev
+
+  add_headers $GCCSDK_INSTALL_ENV/include/vorbis $A/vorbis
+
+  if [ "$BUILD_NORMAL" == "yes" ] ; then
+    if [ -d "$S/build/lib/.libs/" ]; then
+      cp -f $S/build/lib/.libs/*.a $A
+    else
+      cp -f $S/build/lib/*.a $A
+    fi
+  fi
+  if [ "$BUILD_VFP" == "yes" ] ; then
+    mkdir -p $A/vfp
+    if [ -d "$S/build-vfp/lib/.libs/" ]; then
+      cp -f $S/build-vfp/lib/.libs/*.a $A/vfp
+    else
+      cp -f $S/build-vfp/lib/*.a $A/vfp
+    fi
+  fi
 
   # Copy HTML documentation
-  cp -r $S/doc $A
+  rsync -rv --exclude=Makefile.* $S/doc $A
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -name LibVorbis-Dev -copyrightfile $S/COPYING
 }
