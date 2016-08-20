@@ -1,5 +1,5 @@
 --- src/video/raspberry/SDL_rpievents.c.orig	2016-01-02 19:56:31.000000000 +0000
-+++ src/video/raspberry/SDL_rpievents.c	2016-07-23 19:44:22.075590169 +0100
++++ src/video/raspberry/SDL_rpievents.c	2016-08-19 20:33:25.204582307 +0100
 @@ -33,12 +33,228 @@
  #include "../../core/linux/SDL_evdev.h"
  #endif
@@ -56,7 +56,7 @@
 +    SDL_SCANCODE_KP_8,
 +    SDL_SCANCODE_KP_9,
 +    SDL_SCANCODE_PAUSE,
-+    SDL_SCANCODE_UNKNOWN,  //45	~		
++    SDL_SCANCODE_GRAVE,  	/* 45 */
 +    SDL_SCANCODE_UNKNOWN,  //46	£		
 +    SDL_SCANCODE_BACKSPACE,
 +    SDL_SCANCODE_1,
