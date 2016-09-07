@@ -1,5 +1,5 @@
---- src/core/NetworkProxyFactory.h.orig	2016-01-29 15:25:44.638728613 +0000
-+++ src/core/NetworkProxyFactory.h	2016-01-29 15:26:16.846728646 +0000
+--- src/core/NetworkProxyFactory.h.orig	2016-09-07 08:13:14.737610559 +0100
++++ src/core/NetworkProxyFactory.h	2016-09-07 08:31:27.729611677 +0100
 @@ -21,8 +21,6 @@
  #ifndef OTTER_NETWORKPROXYFACTORY_H
  #define OTTER_NETWORKPROXYFACTORY_H
@@ -21,7 +21,7 @@
  	QList<QNetworkProxy> queryProxy(const QNetworkProxyQuery &query);
  
  protected slots:
- 	void optionChanged(const QString &option);
+ 	void optionChanged(int identifier);
 -	void setupAutomaticProxy();
  
  private:

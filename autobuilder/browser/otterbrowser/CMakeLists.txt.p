@@ -1,5 +1,5 @@
---- CMakeLists.txt.orig	2016-06-18 09:35:47.237981603 +0100
-+++ CMakeLists.txt	2016-06-18 09:37:20.717981237 +0100
+--- CMakeLists.txt.orig	2016-09-07 08:13:14.701610559 +0100
++++ CMakeLists.txt	2016-09-07 08:16:15.057610744 +0100
 @@ -16,7 +16,8 @@
  
  add_definitions(-DOTTER_VERSION_MAIN="${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
@@ -14,8 +14,8 @@
  	set(CPACK_PACKAGE_NAME "otter-browser")
  	set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
  	set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
--	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgcrypt (>= 1.6.0), libhunspell-1.3-0 (>= 1.3.3), libqt5multimedia5 (>=5.3.0), libqt5qml5 (>=5.3.0), libqt5webkit5 (>=5.3.0), libqt5xmlpatterns5 (>=5.3.0)")
-+	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgcrypt (>= 1.6.0), libhunspell-1.3-0 (>= 1.3.3), libqt5multimedia5 (>=5.3.0), libqt5webkit5 (>=5.3.0), libqt5xmlpatterns5 (>=5.3.0)")
+-	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libhunspell-1.3-0 (>= 1.3.3), libqt5multimedia5 (>=5.3.0), libqt5qml5 (>=5.3.0), libqt5webkit5 (>=5.3.0), libqt5xmlpatterns5 (>=5.3.0)")
++	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libhunspell-1.3-0 (>= 1.3.3), libqt5multimedia5 (>=5.3.0), libqt5webkit5 (>=5.3.0), libqt5xmlpatterns5 (>=5.3.0)")
  	set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "gstreamer0.10-plugins-base, gstreamer0.10-plugins-good")
  	set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
  	set(CPACK_DEBIAN_PACKAGE_SECTION "web")
@@ -27,8 +27,8 @@
 +find_package(Qt5 5.3.0 REQUIRED COMPONENTS Core Gui Multimedia Network PrintSupport Widgets XmlPatterns)
  find_package(Qt5WebEngineWidgets 5.6.0 QUIET)
  find_package(Qt5WebKitWidgets 5.3.0 QUIET)
- find_package(Gcrypt 1.6.0 QUIET)
-@@ -116,7 +117,6 @@
+ find_package(Hunspell 1.3.0 QUIET)
+@@ -114,7 +115,6 @@
  	src/core/InputInterpreter.cpp
  	src/core/LocalListingNetworkReply.cpp
  	src/core/LongTermTimer.cpp
@@ -36,7 +36,7 @@
  	src/core/NetworkCache.cpp
  	src/core/NetworkManager.cpp
  	src/core/NetworkManagerFactory.cpp
-@@ -438,7 +438,6 @@
+@@ -440,7 +440,6 @@
  elseif (UNIX)
  	set(otter_src
  		${otter_src}
@@ -44,7 +44,7 @@
  		3rdparty/libmimeapps/ConfigReader.cpp
  		3rdparty/libmimeapps/DesktopEntry.cpp
  		3rdparty/libmimeapps/Index.cpp
-@@ -475,11 +474,9 @@
+@@ -477,11 +476,9 @@
  	find_library(FRAMEWORK_Foundation Foundation)
  
  	target_link_libraries(otter-browser ${FRAMEWORK_Cocoa} ${FRAMEWORK_Foundation})

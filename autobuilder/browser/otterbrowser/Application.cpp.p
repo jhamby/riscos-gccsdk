@@ -1,6 +1,6 @@
---- src/core/Application.cpp.orig	2015-11-11 19:46:35.590937053 +0000
-+++ src/core/Application.cpp	2015-11-11 19:49:58.734932544 +0000
-@@ -44,8 +44,10 @@
+--- src/core/Application.cpp.orig	2016-09-07 08:13:14.737610559 +0100
++++ src/core/Application.cpp	2016-09-07 08:28:48.289611514 +0100
+@@ -46,8 +46,10 @@
  #elif defined(Q_OS_MAC)
  #include "../modules/platforms/mac/MacPlatformIntegration.h"
  #elif defined(Q_OS_UNIX)
@@ -11,7 +11,7 @@
  #include "../ui/MainWindow.h"
  #include "../ui/NotificationDialog.h"
  #include "../ui/ReportDialog.h"
-@@ -285,9 +287,12 @@
+@@ -369,9 +371,12 @@
  #elif defined(Q_OS_MAC)
  	m_platformIntegration = new MacPlatformIntegration(this);
  #elif defined(Q_OS_UNIX)
@@ -24,12 +24,12 @@
  	if (Updater::isReadyToInstall())
  	{
  		m_isUpdating = Updater::installUpdate();
-@@ -309,7 +314,7 @@
+@@ -393,7 +398,7 @@
  
  		LongTermTimer::runTimer((interval * SECONDS_IN_DAY), this, SLOT(periodicUpdateCheck()));
  	}
 -
 +#endif
- 	setStyle(SettingsManager::getValue(QLatin1String("Interface/WidgetStyle")).toString());
+ 	setStyle(SettingsManager::getValue(SettingsManager::Interface_WidgetStyleOption).toString());
  
- 	const QString styleSheet = SettingsManager::getValue(QLatin1String("Interface/StyleSheet")).toString();
+ 	const QString styleSheet(SettingsManager::getValue(SettingsManager::Interface_StyleSheetOption).toString());
