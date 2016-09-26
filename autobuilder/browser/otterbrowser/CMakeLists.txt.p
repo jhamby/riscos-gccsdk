@@ -1,5 +1,5 @@
---- CMakeLists.txt.orig	2016-09-07 08:13:14.701610559 +0100
-+++ CMakeLists.txt	2016-09-07 08:16:15.057610744 +0100
+--- CMakeLists.txt.orig	2016-09-26 14:37:30.069513928 +0100
++++ CMakeLists.txt	1474897120.-647710720
 @@ -16,7 +16,8 @@
  
  add_definitions(-DOTTER_VERSION_MAIN="${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
@@ -19,16 +19,16 @@
  	set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "gstreamer0.10-plugins-base, gstreamer0.10-plugins-good")
  	set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
  	set(CPACK_DEBIAN_PACKAGE_SECTION "web")
-@@ -81,7 +82,7 @@
- option(ENABLE_QTWEBENGINE "Enable QtWebEngine backend (requires Qt 5.6)" ON)
+@@ -82,7 +83,7 @@
  option(ENABLE_QTWEBKIT "Enable QtWebKit backend (requires Qt 5.3)" ON)
+ option(ENABLE_CRASHREPORTS "Enable built-in crash reporting (only for official builds)" OFF)
  
 -find_package(Qt5 5.3.0 REQUIRED COMPONENTS Core DBus Gui Multimedia Network PrintSupport Qml Widgets XmlPatterns)
 +find_package(Qt5 5.3.0 REQUIRED COMPONENTS Core Gui Multimedia Network PrintSupport Widgets XmlPatterns)
  find_package(Qt5WebEngineWidgets 5.6.0 QUIET)
  find_package(Qt5WebKitWidgets 5.3.0 QUIET)
  find_package(Hunspell 1.3.0 QUIET)
-@@ -114,7 +115,6 @@
+@@ -115,7 +116,6 @@
  	src/core/InputInterpreter.cpp
  	src/core/LocalListingNetworkReply.cpp
  	src/core/LongTermTimer.cpp
@@ -36,7 +36,7 @@
  	src/core/NetworkCache.cpp
  	src/core/NetworkManager.cpp
  	src/core/NetworkManagerFactory.cpp
-@@ -440,7 +440,6 @@
+@@ -481,7 +481,6 @@
  elseif (UNIX)
  	set(otter_src
  		${otter_src}
@@ -44,15 +44,19 @@
  		3rdparty/libmimeapps/ConfigReader.cpp
  		3rdparty/libmimeapps/DesktopEntry.cpp
  		3rdparty/libmimeapps/Index.cpp
-@@ -477,11 +476,9 @@
- 	find_library(FRAMEWORK_Foundation Foundation)
+@@ -518,7 +518,6 @@
  
  	target_link_libraries(otter-browser ${FRAMEWORK_Cocoa} ${FRAMEWORK_Foundation})
--elseif (UNIX)
+ elseif (UNIX)
 -	target_link_libraries(otter-browser Qt5::DBus)
+ 
+ 	if (ENABLE_CRASHREPORTS)
+ 		target_link_libraries(otter-browser -lpthread) 		
+@@ -526,7 +525,7 @@
+ 	endif (ENABLE_CRASHREPORTS)
  endif (WIN32)
  
--target_link_libraries(otter-browser Qt5::Core Qt5::Gui Qt5::Multimedia Qt5::Network Qt5::PrintSupport Qt5::Qml Qt5::Widgets Qt5::XmlPatterns)
+-target_link_libraries(otter-browser Qt5::Core Qt5::Gui Qt5::Multimedia Qt5::Network Qt5::PrintSupport Qt5::Qml Qt5::Widgets Qt5::XmlPatterns -lpthread)
 +target_link_libraries(otter-browser Qt5::Core Qt5::Gui Qt5::Multimedia Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::XmlPatterns)
  
  set(OTTER_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
