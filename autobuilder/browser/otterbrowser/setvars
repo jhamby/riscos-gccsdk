@@ -1,6 +1,6 @@
 AB_GIT=https://github.com/OtterBrowser/otter-browser.git
 
-AB_PVERSION=0.9.11-dev$(date +%Y%m%d)
+AB_PVERSION=0.9.12-dev$(date +%Y%m%d)
 AB_ROVERSION=2
 AB_DISTCLEAN="$AB_MAKE -C build clean"
 
