@@ -162,7 +162,7 @@ else
       archtype=bz2
     fi
     if [ -z "$orig" ] ; then
-      orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
+      orig=$(grep \.orig\.tar\.gz$ files | cut -d ' ' -f 4)
       if [ -n "$orig" ] ; then
         archtype=gz
       fi
