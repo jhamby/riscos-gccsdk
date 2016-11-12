@@ -1,12 +1,12 @@
---- src/core/NetworkProxyFactory.cpp.orig	2016-09-07 08:13:14.737610559 +0100
-+++ src/core/NetworkProxyFactory.cpp	2016-09-07 08:25:09.325611290 +0100
+--- src/core/NetworkProxyFactory.cpp.orig	2016-11-12 08:32:19.850039614 +0000
++++ src/core/NetworkProxyFactory.cpp	2016-11-12 08:33:29.910039685 +0000
 @@ -31,7 +31,7 @@
  {
  
  NetworkProxyFactory::NetworkProxyFactory() : QObject(), QNetworkProxyFactory(),
--	m_automaticProxy(NULL),
-+//	m_automaticProxy(NULL),
- 	m_pacNetworkReply(NULL),
+-	m_automaticProxy(nullptr),
++//	m_automaticProxy(nullptr),
+ 	m_pacNetworkReply(nullptr),
  	m_proxyMode(SystemProxy)
  {
 @@ -42,14 +42,17 @@
