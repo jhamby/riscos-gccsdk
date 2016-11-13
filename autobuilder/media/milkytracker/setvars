@@ -1,4 +1,6 @@
 
+autoreconf -f
+
 ab_package() {
   ab_create_app MilkyTracker Apps/Audio
 
