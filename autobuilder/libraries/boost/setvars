@@ -1,6 +1,6 @@
 AB_CATEGORY=Library
 
-AB_URL=http://ftp.de.debian.org/debian/pool/main/b/boost1.42/boost1.42_1.42.0.orig.tar.bz2
+AB_URL=http://ftp.de.debian.org/debian/pool/main/b/boost1.49/boost1.49_1.49.0.orig.tar.bz2
 
 # Just install into env
 # Installation is done by hand in ab_make below
@@ -15,7 +15,7 @@ DEBVERSION=`echo "$AB_PVERSION" | cut -d. -f-2`
 AB_PACKAGES="libboost$DEBVERSION-dev libboost$DEBVERSION-doc libboost-date-time$DEBVERSION-dev libboost-filesystem$DEBVERSION-dev libboost-graph$DEBVERSION-dev libboost-graph-parallel$DEBVERSION-dev libboost-iostreams$DEBVERSION-dev libboost-math$DEBVERSION-dev libboost-program-options$DEBVERSION-dev libboost-regex$DEBVERSION-dev libboost-serialization$DEBVERSION-dev libboost-signals$DEBVERSION-dev libboost-system$DEBVERSION-dev libboost-test$DEBVERSION-dev libboost-thread$DEBVERSION-dev libboost-wave$DEBVERSION-dev"
 
 # Following packages not packaged as the static library didn't build
-# libboost-mpi-dev 
+# libboost-mpi-dev
 
 
 echo ""
@@ -27,12 +27,11 @@ echo "Proceeding in 10 seconds"
 
 sleep 10
 
-
 # Build bjam
-CC=$HOST_CC; cd tools/jam/src && sh build.sh cc; cd ../../..
+CC=$HOST_CC; cd tools/build/v2/engine && sh build.sh cc; cd ../../../..
 
 # Find it
-BJAM=`find $PWD/tools/jam -name bjam`
+BJAM=`find $PWD/tools/build/v2/engine -name bjam`
 if [ "$BJAM" == "" ] ; then
    BJAM=`find $PWD/tools/jam -name bjam.exe`
 fi
@@ -287,7 +286,7 @@ ab_package() {
 
    mv $PD/boost/thread* $DD/boost
    copylibs thread $DD
-   
+
    # TODO: Shared library
    # package libboost-wave$(SOVERSION)
    # dh_install -plibboost-wave$(SOVERSION)

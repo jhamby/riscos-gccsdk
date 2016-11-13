@@ -1,2 +1,2 @@
-wget http://ftp.de.debian.org/debian/pool/main/b/boost1.42/boost1.42_1.42.0-4.debian.tar.gz
-tar -xvzf boost1.42_1.42.0-4.debian.tar.gz
+wget http://ftp.de.debian.org/debian/pool/main/b/boost1.49/boost1.49_1.49.0-3.2.debian.tar.gz
+tar -xvzf boost1.49_1.49.0-3.2.debian.tar.gz
