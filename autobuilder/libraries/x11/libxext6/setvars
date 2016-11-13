@@ -1,3 +1,5 @@
+AB_URL=http://ftp.de.debian.org/debian/pool/main/libx/libxext/libxext_1.3.1.orig.tar.gz
+
 AB_INSTALL=yes
 
 AB_CONFLAGS="--enable-malloc0returnsnull"

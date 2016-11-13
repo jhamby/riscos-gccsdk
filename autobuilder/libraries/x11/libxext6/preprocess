@@ -1,0 +1,2 @@
+wget http://ftp.de.debian.org/debian/pool/main/libx/libxext/libxext_1.3.1-2.diff.gz
+zcat *.diff.gz | patch -p1 || true
