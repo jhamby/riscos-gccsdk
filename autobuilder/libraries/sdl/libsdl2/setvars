@@ -10,8 +10,6 @@ fi
 AB_INSTALL=env 
 AB_PRECONF=:
 
-cp -T $S/libsdl2*/src/stdlib/SDL_qsort.c $S/src/stdlib/SDL_qsort.c
-
 ./autogen.sh
 
 mkdir -p build

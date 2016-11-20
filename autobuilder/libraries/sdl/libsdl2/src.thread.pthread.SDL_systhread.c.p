@@ -1,6 +1,6 @@
---- src/thread/pthread/SDL_systhread.c.orig	2016-01-02 19:56:31.000000000 +0000
-+++ src/thread/pthread/SDL_systhread.c	2016-06-22 11:16:58.790481403 +0100
-@@ -188,7 +188,7 @@
+--- src/thread/pthread/SDL_systhread.c.orig	2016-10-20 04:56:26.000000000 +0100
++++ src/thread/pthread/SDL_systhread.c	2016-11-20 17:41:21.593470897 +0000
+@@ -183,7 +183,7 @@
  int
  SDL_SYS_SetThreadPriority(SDL_ThreadPriority priority)
  {

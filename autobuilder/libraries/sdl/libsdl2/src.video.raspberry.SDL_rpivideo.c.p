@@ -1,14 +1,14 @@
---- src/video/raspberry/SDL_rpivideo.c.orig	2016-01-02 19:56:31.000000000 +0000
-+++ src/video/raspberry/SDL_rpivideo.c	2016-07-23 19:47:27.159595477 +0100
-@@ -38,6 +38,7 @@
- #include "SDL_events.h"
+--- src/video/raspberry/SDL_rpivideo.c.orig	2016-10-20 04:56:26.000000000 +0100
++++ src/video/raspberry/SDL_rpivideo.c	2016-11-20 17:37:06.597467592 +0000
+@@ -39,6 +39,7 @@
  #include "../../events/SDL_mouse_c.h"
  #include "../../events/SDL_keyboard_c.h"
+ #include "SDL_hints.h"
 +#include "SDL_assert.h"
  
  #ifdef SDL_INPUT_LINUXEV
  #include "../../core/linux/SDL_evdev.h"
-@@ -49,6 +50,10 @@
+@@ -50,6 +51,10 @@
  #include "SDL_rpiopengles.h"
  #include "SDL_rpimouse.h"
  
@@ -19,7 +19,7 @@
  static int
  RPI_Available(void)
  {
-@@ -187,6 +192,31 @@
+@@ -188,6 +193,31 @@
      
      RPI_InitMouse(_this);
  
@@ -51,7 +51,7 @@
      return 1;
  }
  
-@@ -196,6 +226,13 @@
+@@ -197,6 +227,13 @@
  #ifdef SDL_INPUT_LINUXEV    
      SDL_EVDEV_Quit();
  #endif    
@@ -65,7 +65,7 @@
  }
  
  void
-@@ -290,6 +327,15 @@
+@@ -307,6 +344,15 @@
          if (data->egl_surface != EGL_NO_SURFACE) {
              SDL_EGL_DestroySurface(_this, data->egl_surface);
          }

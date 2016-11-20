@@ -1,5 +1,5 @@
---- src/video/SDL_egl.c.orig	2016-01-02 19:56:31.000000000 +0000
-+++ src/video/SDL_egl.c	2016-06-22 11:07:29.310465071 +0100
+--- src/video/SDL_egl.c.orig	2016-10-20 04:56:26.000000000 +0100
++++ src/video/SDL_egl.c	2016-11-20 17:19:59.225454279 +0000
 @@ -39,11 +39,20 @@
  #endif /* EGL_KHR_create_context */
  
@@ -21,7 +21,7 @@
  
  #elif SDL_VIDEO_DRIVER_ANDROID || SDL_VIDEO_DRIVER_VIVANTE
  /* Android */
-@@ -608,10 +617,11 @@
+@@ -609,10 +618,11 @@
      }
  #endif    
      
