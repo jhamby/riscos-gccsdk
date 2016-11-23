@@ -3,6 +3,9 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--disable-gopher --disable-ldap --disable-dict --disable-telnet --disable-manual"
 
+# The rman conversion in ro-install can't cope with the ".so" link
+# so copy the linked document over it.
+cp -f docs/libcurl/curl_multi_socket.3 docs/libcurl/curl_multi_socket_all.3
 
 ab_package() {
   ab_create_app LibCurl3 Apps/Library libcurl3-dev
