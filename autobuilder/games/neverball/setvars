@@ -8,6 +8,7 @@ AB_PRECONF=:
 
 export ENABLE_NLS=0
 export ENABLE_FS=stdio
+export ENABLE_OPENGLES=1
 
 ab_package() {
   ab_create_app NeverBall Apps/Games NeverBall

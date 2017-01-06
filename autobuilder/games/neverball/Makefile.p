@@ -1,5 +1,5 @@
---- Makefile.orig	2016-07-29 12:12:33.936859055 +0100
-+++ Makefile	2016-07-29 12:12:11.080858400 +0100
+--- Makefile.orig	2017-01-05 12:40:48.591558100 +0000
++++ Makefile	2017-01-05 13:32:22.409823100 +0000
 @@ -50,6 +50,8 @@
  
  # Compiler...
@@ -9,16 +9,52 @@
  ifeq ($(ENABLE_TILT),wii)
  	# -std=c99 because we need isnormal and -fms-extensions because
  	# libwiimote headers make heavy use of the "unnamed fields" GCC
-@@ -152,7 +154,7 @@
- endif
+@@ -64,8 +66,8 @@
+ 
+ # Preprocessor...
+ 
+-SDL_CPPFLAGS := $(shell sdl2-config --cflags)
+-PNG_CPPFLAGS := $(shell libpng-config --cflags)
++SDL_CPPFLAGS := $(shell $(GCCSDK_INSTALL_ENV)/vfp/bin/sdl2-config --cflags)
++PNG_CPPFLAGS := $(shell $(GCCSDK_INSTALL_ENV)/bin/libpng-config --cflags)
+ 
+ ALL_CPPFLAGS := $(SDL_CPPFLAGS) $(PNG_CPPFLAGS) -Ishare
+ 
+@@ -128,8 +130,8 @@
+ #------------------------------------------------------------------------------
+ # Libraries
+ 
+-SDL_LIBS := $(shell sdl2-config --libs)
+-PNG_LIBS := $(shell libpng-config --libs)
++SDL_LIBS := $(shell $(GCCSDK_INSTALL_ENV)/vfp/bin/sdl2-config --libs)
++PNG_LIBS := $(shell $(GCCSDK_INSTALL_ENV)/bin/libpng-config --libs)
+ 
+ ifeq ($(ENABLE_FS),stdio)
+ FS_LIBS :=
+@@ -157,9 +159,9 @@
  endif
  
--OGL_LIBS := -lGL
-+OGL_LIBS := -lGLESv2 -lbcm_host -lEGL
+ ifeq ($(ENABLE_OPENGLES),1)
+-	OGL_LIBS := -lGLESv1_CM
++	OGL_LIBS := -lGLESv2 -lbcm_host -lEGL
+ else
+-	OGL_LIBS := -lGL
++	OGL_LIBS := -lGLESv2 -lbcm_host -lEGL
+ endif
  
  ifeq ($(PLATFORM),mingw)
- 	ifneq ($(ENABLE_NLS),0)
-@@ -210,19 +212,19 @@
+@@ -180,6 +182,10 @@
+ 	OGL_LIBS  := -framework OpenGL
+ endif
+ 
++# Add lib for RISC OS
++INTL_LIBS := -lintl
++
++
+ BASE_LIBS := -ljpeg $(PNG_LIBS) $(FS_LIBS) -lm
+ 
+ ifeq ($(PLATFORM),darwin)
+@@ -218,19 +224,19 @@
  #------------------------------------------------------------------------------
  
  MAPC_OBJS := \
@@ -51,7 +87,7 @@
  BALL_OBJS := \
  	share/lang.o        \
  	share/st_common.o   \
-@@ -344,11 +346,11 @@
+@@ -352,11 +358,11 @@
  ifeq ($(ENABLE_FS),stdio)
  BALL_OBJS += share/fs_stdio.o
  PUTT_OBJS += share/fs_stdio.o
@@ -65,7 +101,7 @@
  endif
  
  ifeq ($(ENABLE_TILT),wii)
-@@ -385,7 +387,7 @@
+@@ -393,7 +399,7 @@
  
  BALL_DEPS := $(BALL_OBJS:.o=.d)
  PUTT_DEPS := $(PUTT_OBJS:.o=.d)
@@ -74,7 +110,7 @@
  
  MAPS := $(shell find data -name "*.map" \! -name "*.autosave.map")
  SOLS := $(MAPS:%.map=%.sol)
-@@ -399,12 +401,12 @@
+@@ -407,12 +413,12 @@
  #------------------------------------------------------------------------------
  
  %.o : %.c
@@ -91,7 +127,7 @@
  
  %.sol : %.map $(MAPC_TARG)
  	$(MAPC) $< data
-@@ -415,6 +417,10 @@
+@@ -423,6 +429,10 @@
  %.ico.o: dist/ico/%.ico
  	echo "1 ICON \"$<\"" | $(WINDRES) -o $@
  
@@ -102,7 +138,7 @@
  #------------------------------------------------------------------------------
  
  all : $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG) sols locales desktops
-@@ -430,13 +436,13 @@
+@@ -438,13 +448,13 @@
  endif
  
  $(BALL_TARG) : $(BALL_OBJS)
@@ -119,7 +155,7 @@
  
  # Work around some extremely helpful sdl-config scripts.
  
-@@ -455,7 +461,7 @@
+@@ -463,7 +473,7 @@
  
  clean-src :
  	$(RM) $(BALL_TARG) $(PUTT_TARG) $(MAPC_TARG)

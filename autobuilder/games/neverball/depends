@@ -1,2 +1,5 @@
+gettext
 libsdl2
 libpng12-0
+libsdl2-ttf
+libvorbis0a
