@@ -5,6 +5,8 @@ BUILD_VFP=yes
 AB_INSTALL=no
 AB_ROVERSION=3
 
+AB_DISTCLEAN="rm -rf build ; rm -rf build-vfp"
+
 AB_PRECONF=:
 
 autoconf
