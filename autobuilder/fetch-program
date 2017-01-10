@@ -157,7 +157,7 @@ else
     fi
     debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
 
-    orig=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4)
+    orig=$(grep \.orig\.tar\.bz2$ files | cut -d ' ' -f 4)
     if [ -n "$orig" ] ; then
       archtype=bz2
     fi
