@@ -1,5 +1,5 @@
 
-AB_URL=http://download.qt.io/official_releases/qt/5.5/5.5.0/submodules/qtsvg-opensource-src-5.5.0.tar.xz
+AB_URL=http://download.qt.io/archive/qt/5.5/5.5.0/submodules/qtsvg-opensource-src-5.5.0.tar.xz
 
 AB_INSTALL=env
 AB_PVERSION=5.5.0

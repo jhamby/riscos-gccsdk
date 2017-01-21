@@ -3,7 +3,7 @@
 BUILD_NORMAL=yes
 BUILD_VFP=yes
 
-AB_URL=http://download.qt.io/official_releases/qt/5.5/5.5.0/submodules/qtscript-opensource-src-5.5.0.tar.xz
+AB_URL=http://download.qt.io/archive/qt/5.5/5.5.0/submodules/qtscript-opensource-src-5.5.0.tar.xz
 AB_PVERSION=5.5.0
 
 # We'll call "make install" ourselves.
