@@ -1,5 +1,5 @@
---- CMakeLists.txt.orig	2016-10-01 09:50:44.169798999 +0100
-+++ CMakeLists.txt	2016-10-01 09:52:16.877799094 +0100
+--- CMakeLists.txt.orig	2017-01-21 08:03:14.927585286 +0000
++++ CMakeLists.txt	2017-01-21 08:05:04.757375822 +0000
 @@ -16,7 +16,8 @@
  
  add_definitions(-DOTTER_VERSION_MAIN="${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
@@ -28,15 +28,15 @@
  find_package(Qt5WebEngineWidgets 5.6.0 QUIET)
  find_package(Qt5WebKitWidgets 5.3.0 QUIET)
  find_package(Hunspell 1.3.0 QUIET)
-@@ -115,7 +116,6 @@
- 	src/core/InputInterpreter.cpp
+@@ -116,7 +117,6 @@
  	src/core/LocalListingNetworkReply.cpp
  	src/core/LongTermTimer.cpp
+ 	src/core/Migrator.cpp
 -	src/core/NetworkAutomaticProxy.cpp
  	src/core/NetworkCache.cpp
  	src/core/NetworkManager.cpp
  	src/core/NetworkManagerFactory.cpp
-@@ -482,7 +482,6 @@
+@@ -484,7 +484,6 @@
  elseif (UNIX)
  	set(otter_src
  		${otter_src}
@@ -44,9 +44,9 @@
  		3rdparty/libmimeapps/ConfigReader.cpp
  		3rdparty/libmimeapps/DesktopEntry.cpp
  		3rdparty/libmimeapps/Index.cpp
-@@ -520,14 +519,13 @@
+@@ -518,14 +517,13 @@
  
- 	target_link_libraries(otter-browser ${FRAMEWORK_Cocoa} ${FRAMEWORK_Foundation})
+ 	target_link_libraries(otter-browser Qt5::MacExtras ${FRAMEWORK_Cocoa} ${FRAMEWORK_Foundation})
  elseif (UNIX)
 -	target_link_libraries(otter-browser Qt5::DBus)
  
@@ -58,5 +58,5 @@
 -target_link_libraries(otter-browser Qt5::Core Qt5::Gui Qt5::Multimedia Qt5::Network Qt5::PrintSupport Qt5::Qml Qt5::Widgets Qt5::XmlPatterns)
 +target_link_libraries(otter-browser Qt5::Core Qt5::Gui Qt5::Multimedia Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::XmlPatterns)
  
- set(OTTER_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
  set(XDG_APPS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/applications CACHE FILEPATH "Install path for .desktop files")
+ 
