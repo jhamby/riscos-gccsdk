@@ -10,6 +10,8 @@ AB_INSTALL=no
 AB_PVERSION=5.5.0
 AB_ROVERSION=2
 
+AB_DISTCLEAN="rm -rf build ; rm -rf build-vfp"
+
 QTBASE_VERSION=5.5.0
 
 export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
