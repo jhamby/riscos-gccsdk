@@ -5,7 +5,7 @@ AB_ROVERSION=2
 ab_package() {
   ab_create_sharedlib_skeleton libhunspell
 
-  ab_add_sharedlib $S/src/hunspell/.libs libhunspell-1.3.so.0
+  ab_add_sharedlib $S/src/hunspell/.libs libhunspell-1.4.so.0
 
 
   AB_COMPONENTS=""
