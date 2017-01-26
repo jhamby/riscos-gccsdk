@@ -12,15 +12,15 @@
 # The package version should be updated with each
 # release and reset only if the upstream version changes
 
-export RPKG_SHAREDLIBS_VERSION=4.0-$GCCSDK_RELEASE_NAME-2
+export RPKG_SHAREDLIBS_VERSION=4.0-$GCCSDK_RELEASE_NAME-1
 
 # The C shared libraries includes libunixlib, libgcc
 # and libm so use the GCCSDK version, but remember
 # to update the the package version if anything
 # else changes
-export RPKG_SHAREDLIBSC_VERSION=4.7.4-$GCCSDK_RELEASE_NAME-2
+export RPKG_SHAREDLIBSC_VERSION=4.7.4-$GCCSDK_RELEASE_NAME-1
 
-export RPKG_SHAREDLIBSGPP_VERSION=6.0.17-$GCCSDK_RELEASE_NAME-2
+export RPKG_SHAREDLIBSGPP_VERSION=6.0.17-$GCCSDK_RELEASE_NAME-1
 
 # The following two modules, should only be uploaded to the
 # packaging site if they area actually changed and in this
