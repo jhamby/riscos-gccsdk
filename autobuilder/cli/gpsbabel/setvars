@@ -1,0 +1,14 @@
+AB_CONFLAGS='--without-libusb --with-zlib=system'
+
+export ac_cv_prog_QMAKE=qmake
+
+ab_package() {
+  ab_create_command_app GPSBabel Apps/Utilities
+  ab_add_commands $S/*$AB_EXEEXT
+
+  cp -av AUTHORS COPYING README.md $A
+
+  $AB_HOME/add-riscpkg -copyrightfile COPYING -package gpsbabel -name GPSBabel \
+  -depends SharedLibs-C++2  -depends Qt5Base
+}
+
