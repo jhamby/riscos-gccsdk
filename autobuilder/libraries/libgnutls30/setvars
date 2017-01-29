@@ -3,7 +3,7 @@ AB_INSTALL=yes
 export ac_cv_libgcrypt=yes
 export gl_cv_func_gettimeofday_clobber=no
 
-AB_CONFLAGS="--prefix=$GCCSDK_INSTALL_ENV --with-libnettle-prefix=$GCCSDK_INSTALL_ENV --enable-local-libopts --without-p11-kit --with-pic=no"
+AB_CONFLAGS="--prefix=$GCCSDK_INSTALL_ENV --with-libnettle-prefix=$GCCSDK_INSTALL_ENV --enable-local-libopts --without-p11-kit --with-pic=no --with-included-unistring"
 
 ab_package() {
   ab_create_app LibGNUTLS Apps/Library libgnutls-dev
