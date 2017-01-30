@@ -1,5 +1,6 @@
 
-AB_URL=http://sourceforge.net/projects/gerb2tiff/files/gerb2tiff-1.2.tar.gz
+#AB_URL=http://sourceforge.net/projects/gerb2tiff/files/gerb2tiff-1.2.tar.gz
+AB_URL=https://netassist.dl.sourceforge.net/project/gerb2tiff/gerb2tiff-1.2.tar.gz
 AB_ROVERSION=2
 
 ab_package() {
