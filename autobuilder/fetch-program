@@ -168,7 +168,7 @@ else
       fi
     fi
     if [ -z "$orig" ] ; then
-      orig=$((grep \.orig\.tar\.xz files || grep \.tar\.xz files) | cut -d ' ' -f 4)
+      orig=$((grep \.orig\.tar\.xz$ files || grep \.tar\.xz$ files) | cut -d ' ' -f 4)
       if [ -n "$orig" ] ; then
         archtype=xz
       fi
