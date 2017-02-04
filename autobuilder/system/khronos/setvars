@@ -13,6 +13,8 @@ mkdir -p $S/../bcm_host \
 	 $S/interface/vcos/riscos \
 	 $S/../wimp_test
 
+mkdir -p $GCCSDK_INSTALL_ENV/vfp/lib
+
 ln -Tsf $H/config.mk $S/../config.mk
 ln -Tsf $H/EGL.api-asm.s $S/../EGL/api-asm.s
 ln -Tsf $H/EGL.makefile $S/../EGL/makefile
