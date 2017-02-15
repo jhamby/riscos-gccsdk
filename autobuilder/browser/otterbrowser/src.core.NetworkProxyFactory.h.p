@@ -1,31 +1,12 @@
---- src/core/NetworkProxyFactory.h.orig	2016-09-07 08:13:14.737610559 +0100
-+++ src/core/NetworkProxyFactory.h	2016-09-07 08:31:27.729611677 +0100
-@@ -21,8 +21,6 @@
- #ifndef OTTER_NETWORKPROXYFACTORY_H
- #define OTTER_NETWORKPROXYFACTORY_H
- 
--#include "NetworkAutomaticProxy.h"
--
- #include <QtNetwork/QNetworkProxy>
- #include <QtNetwork/QNetworkReply>
- 
-@@ -42,18 +40,15 @@
- 	{
- 		NoProxy = 0,
- 		ManualProxy = 1,
--		SystemProxy = 2,
--		AutomaticProxy = 3
-+		SystemProxy = 2
- 	};
- 
- 	QList<QNetworkProxy> queryProxy(const QNetworkProxyQuery &query);
- 
- protected slots:
- 	void optionChanged(int identifier);
--	void setupAutomaticProxy();
+--- src/core/NetworkProxyFactory.h.orig	2017-02-15 20:46:40.382479263 +0000
++++ src/core/NetworkProxyFactory.h	2017-02-15 20:48:06.817341536 +0000
+@@ -46,7 +46,9 @@
+ 	QNetworkProxy::ProxyType getProxyType(ProxyDefinition::ProtocolType protocol);
  
  private:
--	NetworkAutomaticProxy *m_automaticProxy;
- 	QNetworkReply *m_pacNetworkReply;
- 	QStringList m_proxyExceptions;
- 	QHash<QString, QList<QNetworkProxy> > m_proxies;
++#if !defined(Q_OS_RISCOS)
+ 	NetworkAutomaticProxy *m_automaticProxy;
++#endif
+ 	ProxyDefinition m_definition;
+ 	QMap<int, QList<QNetworkProxy> > m_proxies;
+ };
