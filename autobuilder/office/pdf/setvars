@@ -6,7 +6,7 @@ AB_MAKE="$AB_MAKE -j1 -f Makefile.cross"
 
 v=`grep -e"[0-9]" -m1 History`
 AB_PVERSION=`echo $v`
-AB_ROVERSION=1
+AB_ROVERSION=3
 
 ab_package() {
   ab_create_app PDF Apps/Document
