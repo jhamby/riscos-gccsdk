@@ -1,6 +1,6 @@
---- src/core/NetworkProxyFactory.cpp.orig	2017-02-15 20:46:40.290480756 +0000
-+++ src/core/NetworkProxyFactory.cpp	2017-02-15 20:54:58.205539176 +0000
-@@ -19,22 +19,25 @@
+--- src/core/NetworkProxyFactory.cpp.orig	2017-03-12 08:09:05.047277420 +0000
++++ src/core/NetworkProxyFactory.cpp	2017-03-12 08:15:29.750000000 +0000
+@@ -19,23 +19,29 @@
  **************************************************************************/
  
  #include "NetworkProxyFactory.h"
@@ -11,9 +11,11 @@
  namespace Otter
  {
  
--NetworkProxyFactory::NetworkProxyFactory(QObject *parent) : QObject(parent), QNetworkProxyFactory(),
--	m_automaticProxy(nullptr)
-+NetworkProxyFactory::NetworkProxyFactory(QObject *parent) : QObject(parent), QNetworkProxyFactory()
+ NetworkProxyFactory::NetworkProxyFactory(QObject *parent) : QObject(parent), QNetworkProxyFactory(),
++#if !defined(Q_OS_RISCOS)
+ 	m_automaticProxy(nullptr),
++#endif
+ 	m_definition(ProxyDefinition())
  {
  }
  
@@ -28,7 +30,7 @@
  }
  
  void NetworkProxyFactory::setProxy(const QString &identifier)
-@@ -69,6 +72,7 @@
+@@ -70,6 +76,7 @@
  			}
  
  			break;
@@ -36,7 +38,7 @@
  		case ProxyDefinition::AutomaticProxy:
  			if (m_automaticProxy)
  			{
-@@ -80,6 +84,7 @@
+@@ -81,6 +88,7 @@
  			}
  
  			break;
@@ -44,7 +46,7 @@
  		default:
  			break;
  	}
-@@ -140,6 +145,7 @@
+@@ -141,6 +149,7 @@
  			}
  
  			break;
@@ -52,7 +54,7 @@
  		case ProxyDefinition::AutomaticProxy:
  			if (m_automaticProxy && m_automaticProxy->isValid())
  			{
-@@ -149,6 +155,7 @@
+@@ -150,6 +159,7 @@
  			return QNetworkProxyFactory::systemProxyForQuery(query);
  		default:
  			break;
