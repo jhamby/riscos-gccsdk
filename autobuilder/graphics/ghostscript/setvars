@@ -1,14 +1,4 @@
-AB_URL=http://ghostscript.com/releases/ghostscript-8.64.tar.bz2
-
-# Get Ghostscript fonts:
-if [ ! -e fonts/ghostscript-fonts-std-8.11.tar.gz ] ; then
-  mkdir -p fonts
-  wget -nv -O fonts/ghostscript-fonts-std-8.11.tar.gz http://ftp.de.debian.org/debian/pool/main/g/gsfonts/gsfonts_8.11+urwcyr1.0.7~pre44.orig.tar.gz
-fi
-if [ ! -e fonts/ghostscript-fonts-other-6.0.tar.gz ] ; then
-  mkdir -p fonts
-  wget -nv -O fonts/ghostscript-fonts-other-6.0.tar.gz http://ftp.de.debian.org/debian/pool/non-free/g/gsfonts-other/gsfonts-other_6.0.orig.tar.gz
-fi
+AB_URL=http://downloads.ghostscript.com/public/old-gs-releases/ghostscript-8.71.tar.xz
 
 # Copy src code sprite and gdi device:
 cp $H/gdevspr.c contrib
@@ -22,7 +12,8 @@ autoconf
 
 mkdir -p src/library/source
 
-AB_CONFLAGS='--without-jasper --without-omni --disable-cups --disable-fontconfig --with-drivers=APPLE,BMP,CANON,EPSON,FAX,JPEG,PNG,TIFF,PCLXL,PCX,PBM,SPRITE,HP,LEXMARK,BROTHER,OKI,IBM,JAPAN,PS,WTS,ETS --disable-gtk'
+AB_CONFLAGS='--without-jasper --without-omni --disable-cups --disable-fontconfig --with-drivers=APPLE,BMP,CANON,EPSON,FAX,JPEG,PNG,TIFF,PCLXL,PCX,PBM,SPRITE,HP,LEXMARK,BROTHER,OKI,IBM,JAPAN,PS,WTS,ETS --disable-gtk
+'
 
 ab_package () {
   ab_create_app GhostScr Apps/Graphics
@@ -30,15 +21,14 @@ ab_package () {
 
   cp $S/LICENSE $A
 
-  mkdir -p $A/8_64
-  cp -r $S/doc $A/8_64
-  cp -r $S/Resource $A/8_64
-  cp -r $S/lib $A/8_64
-  rm $A/8_64/lib/*.bat
-  rm $A/8_64/lib/*.pl
-  mkdir -p $A/fonts
-  ( cd $A/fonts ; tar --strip-components=1 -xzf $S/fonts/ghostscript-fonts-std-8.11.tar.gz )
-  ( cd $A ; tar -xzf $S/fonts/ghostscript-fonts-other-6.0.tar.gz )
-  
+  mkdir -p $A/8_71
+  cp -r $S/doc $A/8_71
+#  cp -r $S/Resource $A/8_71
+#  cp -r $S/lib $A/8_71
+#  rm $A/8_71/lib/*.bat
+#  rm $A/8_71/lib/*.pl
+
   $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/COPYING
 }
+
+export LIBS='-lz -llzma'

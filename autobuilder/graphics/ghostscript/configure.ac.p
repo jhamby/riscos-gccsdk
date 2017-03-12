@@ -4,7 +4,7 @@
  TIFF_DEVS="tiffs tiff12nc tiff24nc tiff32nc tiffcrle tifflzw tiffpack tiffgray tiffsep"
  PCX_DEVS="pcxmono pcxgray pcx16 pcx256 pcx24b pcxcmyk pcx2up"
  PBM_DEVS="pbm pbmraw pgm pgmraw pgnm pgnmraw pnm pnmraw ppm ppmraw pkm pkmraw pksm pksmraw pam"
-+SPRITE_DEVS="spr"
++SPRITE_DEVS="spr spr1 spr8c spr8m sprm"
  PS_DEVS="psdf psdcmyk psdrgb pdfwrite pswrite ps2write epswrite psgray psmono psrgb bbox"
  # CAIRO_DEVS is defined conditionally above
  WTS_HALFTONING_DEVS="imdi simdi wtsimdi wtscmyk"
