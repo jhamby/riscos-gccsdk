@@ -1,5 +1,6 @@
 AB_INSTALL=env
-
+# Architecute set to rpi as it depends on libsdl2 which is rpi only
+AB_ARCHITECTURE=rpi
 AB_ROVERSION=1
 
 if [ "$RO_SHAREDLIBS" == "yes" ] ; then
