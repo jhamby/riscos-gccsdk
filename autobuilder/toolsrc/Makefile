@@ -1,8 +1,8 @@
 # Make website building programs
 
-TARGETS=libpkg pkgindex pkgweb
+TARGETS=libpkg pkgindex pkgweb pkgmergeindices
 
-TARTARGETS= pkgweb pkgindex build-website build-stats build-index dpkg_get_packageentry.pl
+TARTARGETS= pkgweb pkgindex pkgmergeindices build-website build-stats build-index dpkg_get_packageentry.pl
 
 .PHONY: $(TARGETS)
 

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <list>
+#include <map>
 
 #include "summary.h"
 #include "writer.h"
@@ -17,23 +18,71 @@
 
 using namespace std;
 
+/**********************************************************
+
+   Return lower case version of a string
+
+**********************************************************/
+inline string lowercase(const std::string &text)
+{
+	string::const_iterator char_iter;
+	string lower;
+
+	for (char_iter = text.begin(); char_iter != text.end(); ++char_iter)
+		lower += tolower(*char_iter);
+
+	return lower;
+}
+
 int main(int argc, char *argv[])
 {
    if (argc < 4)
    {
-      cout << "Usage: pkgweb <packages_file> <dest_dir> <url_base>" << endl;
+      cout << "Usage: pkgweb [<packages_file>...] <dest_dir> <url_base>" << endl;
       return 0;
    }
 
-   const char *packages_file = argv[1];
-   const char *dest_dir = argv[2];
-   const char *url_base = argv[3];
+   char **packages_file = &argv[1];
+   int num_files = argc - 3;
+   const char *dest_dir = argv[argc-2];
+   const char *url_base = argv[argc-1];
 
-   ifstream control_file(packages_file);
-   if (!control_file.is_open())
-   {
-	   cerr << "Unable to open packages index " << packages_file << endl;
+   map<string, pkg::control *> packages;
+
+   // Combine a list of packages from the package index files
+   for (int pkg_idx = 0; pkg_idx < num_files; pkg_idx++)
+   {         
+      ifstream control_file(packages_file[pkg_idx]);
+      if (!control_file.is_open())
+      {
+	   cerr << "Unable to open packages index " << packages_file[pkg_idx] << endl;
 	   return 1;
+      }
+
+      while (control_file.good())
+      {
+         pkg::control *control = new pkg::control();
+
+         char ch;
+         control_file >> ch;
+         control_file.putback(ch);
+
+         control_file >> *control;
+         if (control_file.good())
+	 {
+            pkg::control::const_iterator i = control->find("Architecture");
+	    string arch;
+
+	    if (i != control->end()) arch = (*i).second;
+            if (arch.empty()) arch="arm";
+
+            string map_key = control->pkgname() + "_" + arch;
+            map_key = lowercase(map_key);
+            packages[map_key] = control;
+         }
+      }
+
+      control_file.close();
    }
 
    list<SectionInfo> sections;
@@ -42,70 +91,69 @@ int main(int argc, char *argv[])
    char last_letter = 0;
    int packageCount = 0;
 
-   while (control_file.good())
+   // Trawl through packages creating details web pages and building indices
+   for (map<string, pkg::control *>::iterator pkg_iter = packages.begin();
+        pkg_iter != packages.end(); ++pkg_iter)
    {
-	   pkg::control control;
+      packageCount++;
+      pkg::control *control = pkg_iter->second;
+      string pkgname, section, arch;
+   
+      pkgname = control->pkgname();
+      pkg::control::const_iterator i = control->find("Section");
+      if (i != control->end()) section = (*i).second;
+      if (section.empty()) section = "Missing";
+      i = control->find("Architecture");
+      if (i != control->end()) arch = (*i).second;
+      if (arch.empty()) arch = "arm";
 
-	   char ch;
-	   control_file >> ch;
-	   control_file.putback(ch);
+      cout << "Package " << pkgname << ", architecture " << arch 
+           << " in section " << section << endl;
 
-	   control_file >> control;
-	   if (control_file.good())
-	   {
-		   packageCount++;
-		   pkg::control::const_iterator i = control.find("Section");
-		   std::string section;
+      char first_char = toupper(*pkgname.begin());
 
-		   if (i == control.end()) section = "Missing";
-		   else section = (*i).second;
+      if (last_letter != first_char)
+      {
+         last_letter = first_char;
+	 letters += last_letter;
+      }
 
-		   cout <<"Package " << control.pkgname() << " in section " << section << endl;
+      list<SectionInfo>::iterator sec_iter = sections.begin();
+      while (sec_iter != sections.end() && (*sec_iter).get_name() < section) ++sec_iter;
 
-		   if (last_letter != *control.pkgname().begin())
-		   {
-			   last_letter = *control.pkgname().begin();
-			   letters += last_letter;
-		   }
+      string page = dest_dir;
+      page += '/';
+      page += section + "Details.html";
 
-		   list<SectionInfo>::iterator sec_iter = sections.begin();
-		   while (sec_iter != sections.end() && (*sec_iter).get_name() < section) ++sec_iter;
+      ofstream details;
+      if (sec_iter == sections.end() || (*sec_iter).get_name() != section)
+      {
+         sec_iter = sections.insert(sec_iter, SectionInfo(section));
 
-		   string page = dest_dir;
-		   page += '/';
-		   page += section + "Details.html";
+	 details.open(page.c_str(), ios::out);
+	 OneReplaceWriter headerWriter("section", section);
+	 headerWriter.write(detailHeader, details);
+      } else
+	 details.open(page.c_str(), ios::out | ios::app);
 
-		   ofstream details;
-		   if (sec_iter == sections.end() || (*sec_iter).get_name() != section)
-		   {
-			   sec_iter = sections.insert(sec_iter, SectionInfo(section));
+      string link_name = section + "Details.html#" + link_text(*control);
 
-			   details.open(page.c_str(), ios::out);
-			   OneReplaceWriter headerWriter("section", section);
-			   headerWriter.write(detailHeader, details);
-		   } else
-			   details.open(page.c_str(), ios::out | ios::app);
+      // Update lists for indices
+      SummaryInfo summary(*control, link_name);
+      (*sec_iter).add_package(summary);
+      alphabetical.push_back(summary);
 
-		   // Update lists for indices
-		   SummaryInfo summary(control, section + "Details.html#" + control.pkgname());
-		   (*sec_iter).add_package(summary);
-		   alphabetical.push_back(summary);
+      if (details.fail())
+      {
+         cerr << "Failed to open/create details page " << page << endl;
+	 return -2;
+      }
 
-		   if (details.fail())
-		   {
-			   cerr << "Failed to open/create details page " << page << endl;
-			   return -2;
-		   }
+      DetailsWriter dw(*control, url_base);
+      dw.write(detailItem, details);
 
-		   DetailsWriter dw(control, url_base);
-		   dw.write(detailItem, details);
-
-		   details.close();
-	   }
-
+      details.close();
    }
-
-   control_file.close();
 
    // Write category index and end of details pages
    string cat_name(dest_dir);

@@ -91,3 +91,19 @@ protected:
       std::string _count;
 	std::string _date;
 };
+
+/**
+ * Calculate text for link name
+ */
+inline std::string link_text(pkg::control &control)
+{
+   std::string link(control.pkgname());
+   pkg::control::const_iterator i = control.find("Architecture");
+   std::string arch;
+
+   if (i != control.end()) arch = (*i).second;
+   if (arch != "arm" && !arch.empty()) link += "_" + arch;
+   return link;
+}
+
+

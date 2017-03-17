@@ -19,6 +19,8 @@ fi
 mkdir -p $newsite
 mkdir -p $newsite/pkg
 mkdir -p $newsite/arm
+mkdir -p $newsite/vfp
+mkdir -p $newsite/rpi
 mkdir -p $newsite/src
 
 PDIR=$abdir/autobuilder_packages
@@ -30,30 +32,48 @@ fi
 # Check the C++ programs have been created
 make -C toolsrc
 
+# Architectures supported
+archs='arm vfp rpi'
+webindices=''
+
 # Create package index
-$abdir/pkgindex $PDIR $newsite/pkg/autobuilt -u ../arm/ -x -src.zip -x webinfo
+for arch in $archs ; do
+  $abdir/pkgindex $PDIR/$arch $newsite/pkg/autobuilt-$arch-only -u ../$arch/ -x -src.zip -x webinfo
+  webindices="$webindices $newsite/pkg/autobuilt-$arch-only"
+done
 
 # Copy across static website pages
 cp $abdir/toolsrc/pkgweb/staticpages/*.html $newsite
 
 # Generate dynamic website pages
-$abdir/pkgweb $newsite/pkg/autobuilt $newsite ..
+$abdir/pkgweb $webindices $newsite ..
 
-# Get a list of applications ready for packaging
-apps=`grep "^URL:" $newsite/pkg/autobuilt | cut -b 13-`
+for arch in $archs ; do
+   echo "Copying Packages for architecture $arch"
 
-for app in $apps ; do
-   echo "Copying $app"
-   dir=`dirname $app`
-   mkdir -p $newsite/arm/$dir   
-   cp $PDIR/$app $newsite/arm/$app
-   appsrc=`echo "$app" | sed 's/.zip/-src.zip/'`
-   if [ -e $PDIR/$appsrc ] ; then
-     echo "Copying source $appsrc"
-     mkdir -p $newsite/src/$dir
-     cp $PDIR/$appsrc $newsite/src/$appsrc
-   fi
+   # Get a list of applications ready for packaging
+   apps=`grep "^URL:" $newsite/pkg/autobuilt-$arch-only | cut -b 13-`
+
+   for app in $apps ; do
+      echo "Copying $app"
+      dir=`dirname $app`
+      mkdir -p $newsite/$arch/$dir   
+      cp $PDIR/$arch/$app $newsite/$arch/$app
+      appsrc=`echo "$app" | sed 's/.zip/-src.zip/'`
+      if [ -e $PDIR/src/$appsrc ] ; then
+        echo "Copying source $appsrc"
+        mkdir -p $newsite/src/$dir
+        cp $PDIR/src/$appsrc $newsite/src/$appsrc
+      fi
+   done
 done
+
+# Move arm architecture back to old name
+mv -f $newsite/pkg/autobuilt-arm-only $newsite/pkg/autobuilt
+
+# Merge indices for other architectures
+$abdir/pkgmergeindices $newsite/pkg/autobuilt-vfp $newsite/pkg/autobuilt-vfp-only $newsite/pkg/autobuilt
+$abdir/pkgmergeindices $newsite/pkg/autobuilt-rpi $newsite/pkg/autobuilt-rpi-only $newsite/pkg/autobuilt-vfp
 
 # Create directory with differences only
 if [ ! -d $oldsite ] ; then

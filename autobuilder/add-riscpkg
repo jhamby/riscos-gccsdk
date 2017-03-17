@@ -31,6 +31,7 @@ suggests=""
 recommends=""
 package="$AB_SUBPACKAGE"
 section="$AB_CATEGORY"
+architecture="$AB_ARCHITECTURE"
 pkgname=""
 components="$AB_COMPONENTS"
 
@@ -149,6 +150,9 @@ for param in "$@" ; do
      -components)
          components="$param"
          ;;
+     -arch)
+         architecture="$param"
+         ;;
      *)
        echo "add-riscpkg: Invalid parameter $last_param"
        exit 1
@@ -207,6 +211,9 @@ echo "Package: $pkgname" > $D/RiscPkg/Control
 echo "Version: $pkgversion-$pkgroversion" >> $D/RiscPkg/Control
 echo "Section: $section" >> $D/RiscPkg/Control
 echo "Priority: Optional" >> $D/RiscPkg/Control
+if [ ! -z "$architecture" ] ; then
+  echo "Architecture: $architecture" >> $D/RiscPkg/Control
+fi
 
 if [ -z "$has_licence" ] ; then
   if [ -z "$AB_LICENCE" ] ; then
@@ -267,7 +274,16 @@ echo "" >> $D/RiscPkg/Copyright
 echo "http://www.riscos.info/packages/src/$AB_CATEGORY" >> $D/RiscPkg/Copyright
 echo "" >> $D/RiscPkg/Copyright
 
-if [ ! -d debian ] ; then
+# Also check for debian details in parent location in case
+# the build has been done in a subdirectory
+DEBLOC="."
+if [ ! -d ./debian ] ; then
+   if [ -d ../debian ] ; then
+      DEBLOC=".."
+   fi
+fi
+
+if [ ! -d $DEBLOC/debian ] ; then
    # This is the same as fetch-program
    AB_CVS_ROOT=$(grep AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
    if [ ! -z "$AB_CVS_ROOT" ] ; then
@@ -302,7 +318,7 @@ fi
 fi
 
 # Use Debian descpription and copyright
-if [ -d debian ] ; then
+if [ -d $DEBLOC/debian ] ; then
   if [ -z "$has_description" ] ; then
     if [ -n "$AB_DEBNAME" ] ; then
       package=$AB_DEBNAME
@@ -310,13 +326,13 @@ if [ -d debian ] ; then
 
     echo "add-riskpkg: Using Debian description"
     # Look for exact description
-    desc=`grep -A100 "Package: $package$" debian/control | sed -n '/^Description:/,/^$/p' | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
+    desc=`grep -A100 "Package: $package$" $DEBLOC/debian/control | sed -n '/^Description:/,/^$/p' | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
     if [ -z "$desc" ] ; then
       dev_desc=`echo "$package" | grep ".*-dev$" || true`
       if [ -z "$dev_desc" ] ; then	
-        desc=`sed -n '/^Description:/,/^$/p' debian/control | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
+        desc=`sed -n '/^Description:/,/^$/p' $DEBLOC/debian/control | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
       else
-        desc=`grep -A100 "Package: .*-dev$" debian/control | sed -n '/^Description:/,/^$/p' | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
+        desc=`grep -A100 "Package: .*-dev$" $DEBLOC/debian/control | sed -n '/^Description:/,/^$/p' | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
       fi 
     fi
     echo "$desc" >> $D/RiscPkg/Control
@@ -325,8 +341,8 @@ if [ -d debian ] ; then
   if [ "$has_copyright" == "no" ] ; then
     echo "This was built from Debian testing sources" >> $D/RiscPkg/Copyright
     echo "" >> $D/RiscPkg/Copyright
-    if [ -e debian/copyright ] ; then
-      cat debian/copyright >> $D/RiscPkg/Copyright 
+    if [ -e $DEBLOC//debian/copyright ] ; then
+      cat $DEBLOC//debian/copyright >> $D/RiscPkg/Copyright 
     fi
     echo "" >> $D/RiscPkg/Copyright
     echo "On RISC OS the common licenses can be found in" >> $D/RiscPkg/Copyright

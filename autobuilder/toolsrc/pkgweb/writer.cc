@@ -138,6 +138,24 @@ std::string DetailsWriter::resolve(const std::string &token)
 			_errors++;
 		}
 
+	} else if (check == "link")
+	{
+            text = link_text(_control);
+	} else if (check == "name_suffix")
+	{
+  	   pkg::control::iterator i = _control.find("Architecture");
+	   if (i != _control.end())
+           {
+               text=(*i).second;
+               if (text == "arm")
+               {
+                  text.clear();
+               }
+               if (!text.empty())
+               {
+                  text = " (" + text + ")";
+               }
+            }
 	} else
 	{
 		pkg::control::iterator i = _control.find(token);
@@ -164,7 +182,12 @@ std::string SummaryWriter::resolve(const std::string &token)
 	else if (check == "summary") text = _info.get_summary();
 	else if (check == "version") text = _info.get_version();
 	else if (check == "location") text = _info.get_location();
-	else
+        else if (check == "name_suffix")
+	{
+		text = _info.get_architecture();
+		if (text == "arm") text.clear();
+		if (!text.empty()) text = " (" + text + ")";
+	} else
 	{
 		_errors++;
 		text = "INVALID SUMMARY ATTRIBUTE " + token;

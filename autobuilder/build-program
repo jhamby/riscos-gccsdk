@@ -16,6 +16,7 @@ AB_INSTALL=no
 AB_CATEGORY=
 AB_COMPONENTS=
 AB_COPYSOURCE=yes
+AB_ARCHITECTURE=
 AB_DISTCLEAN=
 AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
@@ -717,6 +718,7 @@ export AB_ROVERSION_SUFFIX
 export AB_CATEGORY
 export AB_DEBNAME
 export AB_COMPONENTS
+export AB_ARCHITECTURE
 
 if [ "$AB_MANPAGE" != "" ] ; then
   ln -sf . man3
@@ -766,15 +768,22 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
     if [ -d "$package" ] ; then
       unset section
+      unset architecture
       if [ -e "$package/RiscPkg/Control,fff" ] ; then
         section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
+        architecture=`grep "Architecture: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
       fi
       if [ -e "$package/RiscPkg/Control" ] ; then
         section=`grep "Section: " $package/RiscPkg/Control | cut -d ' ' -f 2`
+        architecture=`grep "Architecture: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
       fi
       if [ -z "$section" ] ; then
         section="$AB_CATEGORY"
       fi
+      if [ -z "$architecture" ] ; then
+        architecture="arm"
+      fi
+
       ab_subpackage_versions
 
       AB_PZIP=${AB_DIR}/${package}_${pkgversion}${AB_TARGET}-${pkgroversion}.zip
@@ -791,11 +800,11 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
       fi
       cd $package
       addzip -r $AB_PZIP *
-      #echo "Making directory !!$AB_OUTPUTPACK/$section !!"
-      mkdir -p $AB_OUTPUTPACK/$section
-      mv $AB_PZIP $AB_OUTPUTPACK/$section
-      ls -l $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
-      echo $AB_OUTPUTPACK/$section/$(basename $AB_PZIP) >> $AB_HOME/last-zips
+      #echo "Making directory !!$AB_OUTPUTPACK/$architecture/$section !!"
+      mkdir -p $AB_OUTPUTPACK/$architecture/$section
+      mv $AB_PZIP $AB_OUTPUTPACK/$architecture/$section
+      ls -l $AB_OUTPUTPACK//$architecture/$section/$(basename $AB_PZIP)
+      echo $AB_OUTPUTPACK/$architecture/$section/$(basename $AB_PZIP) >> $AB_HOME/last-zips
       cd ..
     else
       echo "Autobuilder: package directory missing $package" 1>&2
@@ -815,8 +824,9 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
       cd $AB_SRCDIR
       $GCCSDK_INSTALL_ENV/bin/zip -r $AB_SRCZIP * -x "*/CVS/*" -x "*/\.svn/*"
-      mv $AB_SRCZIP $AB_OUTPUTPACK/$AB_CATEGORY
-      echo $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_SRCZIP) >> $AB_HOME/last-zips
+      mkdir -p $AB_OUTPUTPACK/src/$AB_CATEGORY
+      mv $AB_SRCZIP $AB_OUTPUTPACK/src/$AB_CATEGORY
+      echo $AB_OUTPUTPACK/src/$AB_CATEGORY/$(basename $AB_SRCZIP) >> $AB_HOME/last-zips
       cd $D
     else
       echo "Autobuilder: Warning! Source directory for source package missing '$AB_SRCDIR'"

@@ -28,7 +28,7 @@ const char *startLetter =
 // %location% - url to page with more details
 const char *letterItem =
   "<tr>\n"
-  "<td><a href = \"%location%\">%name%</a></td>\n"
+  "<td><a href = \"%location%\">%name%%name_suffix%</a></td>\n"
   "<td>%version%</td><td>%summary%</td>\n"
   "</tr>\n";
 
