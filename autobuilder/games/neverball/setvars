@@ -3,12 +3,16 @@
 
 AB_GIT=https://github.com/Neverball/neverball
 
+AB_ARCHITECTURE=rpi
+
 # There's no configure
 AB_PRECONF=:
 
 export ENABLE_NLS=0
 export ENABLE_FS=stdio
 export ENABLE_OPENGLES=1
+
+AB_PVERSION=`grep -m 1 "New in" $S/doc/changes.txt | cut -f 3 -d' '`
 
 ab_package() {
   ab_create_app NeverBall Apps/Games NeverBall
@@ -28,5 +32,5 @@ ab_package() {
   cp -R $S/data/* $A/data
   cp -R $S/doc/* $A/docs
 
-  $AB_HOME/add-riscpkg -name Neverball -unixlib -copyrightfile $S/LICENSE.md
+  $AB_HOME/add-riscpkg -name Neverball -unixlib -depends Khronos -copyrightfile $S/LICENSE.md
 }
