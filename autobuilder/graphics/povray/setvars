@@ -1,21 +1,92 @@
+# Build both normal and VFP versions by default. Set either of these to no
+# to disable that build.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
 
 AB_URL=http://www.povray.org/redirect/www.povray.org/ftp/pub/povray/Old-Versions/Official-3.62/Unix/povray-3.6.1.tar.bz2
 
-AB_ROVERSION=2
+AB_ROVERSION=3
+
+# We'll be calling configure ourselves because so we can create normal and vfp builds
+AB_PRECONF=:
+
 AB_CONFLAGS="COMPILED_BY=GCCSDKAutobuilder --datadir=\"/\<POVRay\\\\$\\\$Dir\>\""
 
-ab_package() {
-  ab_create_command_app POVRay Apps/Graphics
-  ab_add_commands $S/unix/*$AB_EXEEXT
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  mkdir -p build
+  ( cd build; eval $AB_CONFIG $AB_CONFLAGS )
+fi
 
-  ab_docs $S/povray.1
+if [ "$BUILD_VFP" == "yes" ]; then
+  mkdir -p build-vfp
+  ( cd build-vfp; \
+    export CFLAGS="-mfloat-abi=softfp -mfpu=vfp -mcpu=arm1176jzf-s"; \
+    export CXXFLAGS="-mfloat-abi=softfp -mfpu=vfp -mcpu=arm1176jzf-s"; \
+    eval $AB_CONFIG $AB_CONFLAGS )
+fi
 
-  cp -av AUTHORS ChangeLog COPYING NEWS README $A
-  cp -av povray.conf povray.ini $A
-  cp -av doc ini scenes $A
-  mkdir -p $A/povray-3.6
-  cp -av include $A/povray-3.6
-
-  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+ab_make() {
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+    ( cd build; $AB_MAKE )
+  fi
+  if [ "$BUILD_VFP" == "yes" ]; then
+    ( cd build-vfp; $AB_MAKE )
+  fi
 }
+
+
+ab_package() {
+
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+ 
+    ab_create_command_app POVRay Apps/Graphics
+    ab_add_commands $S/build/unix/*$AB_EXEEXT
+
+    ab_docs $S/povray.1
+
+    cp -av AUTHORS ChangeLog COPYING NEWS README $A
+    cp -av povray.conf build/povray.ini $A
+    cp -av doc ini scenes $A
+    mkdir -p $A/povray-3.6
+    cp -av include $A/povray-3.6
+
+    $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+  fi
+
+  if [ "$BUILD_VFP" == "yes" ]; then
+    # Give package name of povrayvfp so it does not clash with the normal build
+    ab_create_command_app POVRay Apps/Graphics povrayvfp
+    ab_add_commands $S/build-vfp/unix/*$AB_EXEEXT
+
+    ab_docs $S/povray.1
+
+    cp -av AUTHORS ChangeLog COPYING NEWS README $A
+    cp -av povray.conf build-vfp/povray.ini $A
+    cp -av doc ini scenes $A
+    mkdir -p $A/povray-3.6
+    cp -av include $A/povray-3.6
+
+    # Use -name to put the package name in the Control file back to Povray
+    $AB_HOME/add-riscpkg -arch vfp -name Povray -unixlib -copyrightfile COPYING
+  fi
+}
+
+# Routine to prepare source code for souze zip
+ab_package_source() {
+
+  AB_SRCDIR=$S
+  cd $S
+
+  rm -rf build
+  rm -rf build-vfp
+
+  # Add autobuilder files
+  mkdir -p $S/riscos
+  /bin/cp -r $H/* $S/riscos || true
+  rm -f $S/riscos/last-failure
+  rm -f $S/riscos/last-success
+
+}
+
+
 

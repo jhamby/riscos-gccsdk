@@ -21,7 +21,7 @@
  
  ${SRCDIR}/tiffvers.h: ${VERSION} ${SRCDIR}/mkversion.c
 -	${CC} -o mkversion ${CFLAGS} ${SRCDIR}/mkversion.c
-+	/usr/bin/cc -o mkversion ${CFLAGS} ${SRCDIR}/mkversion.c
++	/usr/bin/cc -o mkversion -O3 -I. ${SRCDIR}/mkversion.c
  	rm -f ${SRCDIR}/tiffvers.h
  	./mkversion -v ${VERSION} -r ${RELEASE_DATE} ${SRCDIR}/tiffvers.h
  
@@ -30,7 +30,7 @@
  #
  tif_fax3sm.c: ${SRCDIR}/mkg3states.c ${SRCDIR}/tif_fax3.h
 -	${CC} -o mkg3states ${CFLAGS} ${SRCDIR}/mkg3states.c
-+	/usr/bin/cc -o mkg3states ${CFLAGS} ${SRCDIR}/mkg3states.c
++	/usr/bin/cc -o mkg3states -O3 -I. ${SRCDIR}/mkg3states.c
  	rm -f tif_fax3sm.c; ./mkg3states -c const tif_fax3sm.c
  
  tif_aux.o: ${SRCDIR}/tif_aux.c
