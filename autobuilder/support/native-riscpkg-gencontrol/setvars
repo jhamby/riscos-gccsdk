@@ -1,4 +1,5 @@
-AB_SVN=http://source.riscpkg.org/svn/RiscPkg-GenControl/trunk/
+AB_URL=www.riscos.info/packages/src/Development/RiscPkg-GenControl_0.1.0-ab-1-1-src.zip
+#AB_SVN=http://source.riscpkg.org/svn/RiscPkg-GenControl/trunk/
 AB_INSTALL=yes
 AB_PVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2 | cut -d'-' -f1`
 

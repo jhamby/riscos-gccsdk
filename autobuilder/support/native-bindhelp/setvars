@@ -1,0 +1,12 @@
+# Build native version of bindhelp from OSLib sources
+AB_SVN=https://svn.code.sf.net/p/ro-oslib/code/trunk/!OSLib
+AB_PRECONF=:
+
+cd Tools/BindHelp
+
+ab_make()
+{
+   make install CC=/usr/bin/gcc CFLAGS=" -g -DUNIX -DEXECUTE_ON_UNIX -D__swi" \
+       LD=/usr/bin/gcc INSTALL=cp bindir=$GCCSDK_INSTALL_ENV/bin
+}
+
