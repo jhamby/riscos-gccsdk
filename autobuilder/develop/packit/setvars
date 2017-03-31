@@ -1,0 +1,14 @@
+AB_GIT=https://github.com/alanbu/packit.git
+AB_PVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2 | cut -d'-' -f1`
+AB_ROVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2 | cut -d'-' -f2`
+AB_CATEGORY=Development
+AB_DISTCLEAN="$AB_MAKE clean"
+
+ab_package()
+{
+  $AB_MAKE -f RiscPkg/Rules pkg
+  # The package has already been created by ab_make, so just move
+  # it to the correct location
+  mv -f Temp $D/packit
+}
+
