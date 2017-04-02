@@ -1,6 +1,6 @@
 
 AB_SVN=https://svn.code.sf.net/p/uhexen2/code/trunk
-AB_PVERSION=1.5.7-svn-$(date +%Y%m%d)
+AB_PVERSION=1.5.8-svn-$(date +%Y%m%d)
 
 cd engine/hexen2
 
