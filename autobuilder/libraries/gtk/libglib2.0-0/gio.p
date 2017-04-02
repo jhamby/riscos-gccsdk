@@ -1,9 +1,9 @@
---- gio/gunixmounts.c.orig	2014-02-12 20:08:36.000000000 +0000
-+++ gio/gunixmounts.c	2014-05-08 17:08:34.092137593 +0100
-@@ -722,6 +722,20 @@
- 
+--- gio/gunixmounts.c.orig	2017-04-01 20:02:42.456064630 +0100
++++ gio/gunixmounts.c	2017-04-01 20:09:09.876069650 +0100
+@@ -828,6 +828,20 @@
    return return_list;
  }
+ 
 +#elif defined(__riscos__)
 +
 +static char *
@@ -18,14 +18,13 @@
 +  return NULL;
 +}
 +
+ /* Common code {{{2 */
  #else
  #error No _g_get_unix_mounts() implementation for system
- #endif
-@@ -1118,6 +1132,15 @@
- {
+@@ -1348,6 +1362,14 @@
    return _g_get_unix_mounts ();
  }
-+
+ 
 +#elif defined(__riscos__)
 +
 +static GList *
@@ -34,6 +33,6 @@
 +  return NULL;
 +}
 +
+ /* Common code {{{2 */
  #else
  #error No g_get_mount_table() implementation for system
- #endif

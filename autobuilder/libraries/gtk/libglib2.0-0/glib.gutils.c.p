@@ -1,6 +1,6 @@
---- glib/gutils.c.orig	2014-05-12 19:08:01.146040349 +0100
-+++ glib/gutils.c	2014-05-12 19:08:01.222040350 +0100
-@@ -1948,7 +1948,11 @@
+--- glib/gutils.c.orig	2017-04-01 20:02:42.372064629 +0100
++++ glib/gutils.c	2017-04-01 20:02:42.472064630 +0100
+@@ -1967,7 +1967,11 @@
        gchar *data_dirs = (gchar *) g_getenv ("XDG_DATA_DIRS");
  
        if (!data_dirs || !data_dirs[0])
