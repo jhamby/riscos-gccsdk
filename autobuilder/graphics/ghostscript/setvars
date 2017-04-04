@@ -1,5 +1,6 @@
 AB_URL=http://downloads.ghostscript.com/public/old-gs-releases/ghostscript-8.71.tar.xz
 
+AB_ROVERSION=2
 # Copy src code sprite and gdi device:
 cp $H/gdevspr.c contrib
 cp $H/gdevgdi.c contrib
@@ -23,10 +24,6 @@ ab_package () {
 
   mkdir -p $A/8_71
   cp -r $S/doc $A/8_71
-#  cp -r $S/Resource $A/8_71
-#  cp -r $S/lib $A/8_71
-#  rm $A/8_71/lib/*.bat
-#  rm $A/8_71/lib/*.pl
 
   $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/COPYING
 }
