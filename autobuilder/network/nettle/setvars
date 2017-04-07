@@ -4,7 +4,7 @@ AB_CVS_ROOT=:pserver:anonymous@nettle.cvs.sourceforge.net:/cvsroot/nettle
 AB_CVS_MODULE=nettle
 
 AB_CATEGORY=Network
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 # RISC OS make wrapper.  This can be set to just "make" if setting the
 # path causes problems - e.g., the native compiler is required too
