@@ -24,7 +24,7 @@ fi
 
 if [ "$BUILD_VFP" == "yes" ]; then
   mkdir $S/build-vfp
-  ( cd $S/build-vfp; ENABLE_VFP=yes $AB_CONFIG && $AB_MAKE && $AB_MAKE install )
+  ( cd $S/build-vfp; ENABLE_VFP=yes $AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp && $AB_MAKE && $AB_MAKE install )
 fi
 
 ab_make() {
