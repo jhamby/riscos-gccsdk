@@ -1,5 +1,5 @@
 
-AB_ROVERISON=1
+AB_ROVERSION=2
 
 AB_CONFLAGS=\''--without-ssl --with-gnutls --with-ca-bundle=/<CaCertificates$Dir>/ca-certificates.crt'\'
 
@@ -11,7 +11,7 @@ ab_package() {
 
   ab_docs -h $S/RELEASE-NOTES $S/README $S/CHANGES $S/COPYING
 
-  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -depends CACertificates
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -depends CaCertificates
 }
 
 export LIBS='-lcrypto -lssh2 -ldl -lnettle -lgmp -ltasn1 -lhogweed'
