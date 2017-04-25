@@ -12,7 +12,5 @@ ab_package() {
 
   rman -f HTML $S/gzip.1 > $A/\!Help,faf
 
-  cp $S/gzip$AB_EXEEXT $S/COPYING $A
-
   $AB_HOME/add-riscpkg -unixlib
 }
