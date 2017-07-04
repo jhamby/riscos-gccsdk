@@ -1,5 +1,5 @@
---- src/u4.cpp.orig	2008-07-23 11:26:14.770534000 +0100
-+++ src/u4.cpp	2008-07-23 11:29:24.860534000 +0100
+--- src/u4.cpp.orig	2017-07-04 12:52:01.945033000 +0100
++++ src/u4.cpp	2017-07-04 12:50:00.869033000 +0100
 @@ -33,6 +33,12 @@
  #include "macosx/osxinit.h"
  #endif
@@ -13,3 +13,13 @@
  bool verbose = false;
  bool quit = false;
  
+@@ -149,5 +155,9 @@
+     soundDelete();
+     screenDelete();
+ 
++    // SDL_Quit in atexit causes an error on RISC OS when the timer has
++    // been started, so close the timer here to prevent the crash.
++    SDL_QuitSubSystem(SDL_INIT_TIMER);
++
+     return 0;
+ }
