@@ -1,5 +1,11 @@
 AB_LICENSE="Free"
 
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libgettext-dev libintl"
+else
+AB_PACKAGES="libgettext-dev"
+fi
+
 cd gettext-runtime
 
 AB_INSTALL=yes
@@ -17,11 +23,6 @@ ab_package()
 
   ab_create_app LibGetText Apps/Library libgettext-dev
 
-  # Run time libraries
-  if [ "$RO_SHAREDLIBS" == "yes" ]; then
-  slibdir=$D/libgettext/Resources/\!SharedLibs/lib
-  mkdir -p $slibdir
-  fi
 
   HERE=`pwd`
   cd $A
@@ -30,11 +31,6 @@ ab_package()
 
   mv include/h h
   rm -rf include
-
-  # Copy shared libs to shared libs package
-  if [ "$RO_SHAREDLIBS" == "yes" ]; then
-  mv lib/*.so.* $slibdir
-  fi
 
   # Move static libs to correct place in static package
   mv lib/*.a .
@@ -48,34 +44,18 @@ ab_package()
   cd ../man
   find . -maxdepth 1 -type f -execdir mv {} {},faf \;
 
+
   cd $HERE
 
-  $AB_HOME/add-riscpkg -name LibGetText-Dev -unixlib \
+  $AB_HOME/add-riscpkg -name LibGetText-Dev -package libgettext-dev -unixlib \
        -copyrightfile $S/COPYING
 
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
-  rm -rf $A
+    ab_create_sharedlib_skeleton libintl
+    ab_add_sharedlib $S/intl/.libs libintl.so.8
 
-  cd $slibdir
-
-  # Create soft links
-  SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
-  for SLIB in $SLIBS ; do
-     ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
-     LNAME=`echo $SLIB | cut -d '.' -f 1-3`
-     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-     LNAME=`echo $SLIB | cut -d '.' -f 1-4`
-     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-  done
-
-  cd $HERE
-
-  $AB_HOME/add-riscpkg -package libgettext -unixlib \
-       -copyrightfile $S/COPYING -depends SharedLibs
-
-  # Need to add description to library package
-  mkdir -p $D/libgettext/RiscPkg
-  echo "Description: Runtime shared libraries for gettext" >> $D/libgettext/RiscPkg/Control,fff
+    $AB_HOME/add-riscpkg -package libintl -unixlib -name LibIntl \
+       -copyrightfile $S/COPYING -depends SharedLibs-C2
   fi
-
 }
+
