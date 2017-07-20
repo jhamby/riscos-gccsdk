@@ -1,0 +1,649 @@
+Autobuilder: Building package: googletest
+Autobuilder: Detected 1 CPUs: set AB_CPUS to use more or fewer (eg in case build breaks)
+Autobuilder: Fetching source for googletest
+Autobuilder: Using existing Sources.gz (testing/main)
+Autobuilder: Using existing Sources.gz (testing/contrib)
+Autobuilder: Using existing Sources.gz (stable/main)
+Autobuilder: Using existing Sources.gz (stable/contrib)
+Autobuilder: Searching for googletest in ../Sources-testing-main.gz...
+Autobuilder: found Directory: googletest in ../Sources-testing-main.gz
+--2017-07-18 12:59:33--  http://ftp.uk.debian.org/debian/pool/main/g/googletest/googletest_1.8.0.orig.tar.gz
+Resolving ftp.uk.debian.org (ftp.uk.debian.org)... 78.129.164.123, 2001:1b40:5600:ff80:f8ee::1
+Connecting to ftp.uk.debian.org (ftp.uk.debian.org)|78.129.164.123|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 1281617 (1.2M) [application/octet-stream]
+Saving to: ‘googletest_1.8.0.orig.tar.gz’
+
+     0K .......... .......... .......... .......... ..........  3%  617K 2s
+    50K .......... .......... .......... .......... ..........  7%  775K 2s
+   100K .......... .......... .......... .......... .......... 11%  776K 2s
+   150K .......... .......... .......... .......... .......... 15%  775K 1s
+   200K .......... .......... .......... .......... .......... 19%  774K 1s
+   250K .......... .......... .......... .......... .......... 23%  764K 1s
+   300K .......... .......... .......... .......... .......... 27%  773K 1s
+   350K .......... .......... .......... .......... .......... 31%  759K 1s
+   400K .......... .......... .......... .......... .......... 35%  760K 1s
+   450K .......... .......... .......... .......... .......... 39%  788K 1s
+   500K .......... .......... .......... .......... .......... 43%  773K 1s
+   550K .......... .......... .......... .......... .......... 47%  776K 1s
+   600K .......... .......... .......... .......... .......... 51%  773K 1s
+   650K .......... .......... .......... .......... .......... 55%  774K 1s
+   700K .......... .......... .......... .......... .......... 59%  778K 1s
+   750K .......... .......... .......... .......... .......... 63%  772K 1s
+   800K .......... .......... .......... .......... .......... 67%  756K 1s
+   850K .......... .......... .......... .......... .......... 71%  772K 0s
+   900K .......... .......... .......... .......... .......... 75%  774K 0s
+   950K .......... .......... .......... .......... .......... 79%  772K 0s
+  1000K .......... .......... .......... .......... .......... 83%  777K 0s
+  1050K .......... .......... .......... .......... .......... 87%  768K 0s
+  1100K .......... .......... .......... .......... .......... 91%  775K 0s
+  1150K .......... .......... .......... .......... .......... 95%  781K 0s
+  1200K .......... .......... .......... .......... .......... 99%  772K 0s
+  1250K .                                                     100%  850K=1.6s
+
+2017-07-18 12:59:35 (765 KB/s) - ‘googletest_1.8.0.orig.tar.gz’ saved [1281617/1281617]
+
+--2017-07-18 12:59:35--  http://ftp.uk.debian.org/debian/pool/main/g/googletest/googletest_1.8.0-6.debian.tar.xz
+Resolving ftp.uk.debian.org (ftp.uk.debian.org)... 78.129.164.123, 2001:1b40:5600:ff80:f8ee::1
+Connecting to ftp.uk.debian.org (ftp.uk.debian.org)|78.129.164.123|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 8492 (8.3K) [application/octet-stream]
+Saving to: ‘googletest_1.8.0-6.debian.tar.xz’
+
+     0K ........                                              100%  947K=0.009s
+
+2017-07-18 12:59:35 (947 KB/s) - ‘googletest_1.8.0-6.debian.tar.xz’ saved [8492/8492]
+
+Autobuilder: source directory is /home/alanb/gccsdk/build/googletest/googletest-release-1.8.0
+Autobuilder: Debian patch: py_test-fix.patch
+  ...trying level 0
+  ...trying level 1
+patching file googletest/cmake/internal_utils.cmake
+  ...success !
+Autobuilder: Debian patch: makefile-example.patch
+  ...trying level 0
+  ...trying level 1
+patching file googletest/make/Makefile
+patching file googlemock/make/Makefile
+  ...success !
+Autobuilder: Debian patch: gtest-cc-use-cmath.patch
+  ...trying level 0
+  ...trying level 1
+patching file googletest/src/gtest.cc
+  ...success !
+Autobuilder: Debian patch: stop-testinfo-run-calling-through-null.patch
+  ...trying level 0
+  ...trying level 1
+patching file googletest/src/gtest.cc
+  ...success !
+Autobuilder: RISC OS patch: /home/alanb/gccsdk/autobuilder/develop/googletest/gtest-port-arch.h.p
+patching file googletest/include/gtest/internal/gtest-port-arch.h
+Autobuilder: RISC OS patch: /home/alanb/gccsdk/autobuilder/develop/googletest/gtest-port.cc.p
+patching file googletest/src/gtest-port.cc
+Hunk #1 succeeded at 578 (offset 424 lines).
+Hunk #2 succeeded at 592 (offset 424 lines).
+Autobuilder: RISC OS patch: /home/alanb/gccsdk/autobuilder/develop/googletest/gtest-printers.cc.p
+patching file googletest/src/gtest-printers.cc
+Autobuilder: RISC OS patch: /home/alanb/gccsdk/autobuilder/develop/googletest/gtest-port.h.p
+patching file googletest/include/gtest/internal/gtest-port.h
+Autobuilder: Calling setvars
+Autobuilder: Running make command: /home/alanb/gccsdk/env/ro-make
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest-death-test.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest-death-test.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest-message.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest-message.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest-param-test.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest-param-test.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest-param-test.h.pump' -> '/home/alanb/gccsdk/env/include/gtest/gtest-param-test.h.pump'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest-printers.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest-printers.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest-spi.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest-spi.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest-test-part.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest-test-part.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest-typed-test.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest-typed-test.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest_pred_impl.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest_pred_impl.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/gtest_prod.h' -> '/home/alanb/gccsdk/env/include/gtest/gtest_prod.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-death-test-internal.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-death-test-internal.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-filepath.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-filepath.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-internal.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-internal.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-linked_ptr.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-linked_ptr.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-param-util-generated.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-param-util-generated.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-param-util-generated.h.pump' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-param-util-generated.h.pump'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-param-util.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-param-util.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-string.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-string.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-tuple.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-tuple.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-tuple.h.pump' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-tuple.h.pump'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-type-util.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-type-util.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-type-util.h.pump' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-type-util.h.pump'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-port-arch.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-port-arch.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/gtest-port.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/gtest-port.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/custom/gtest-port.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/custom/gtest-port.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/custom/gtest-printers.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/custom/gtest-printers.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/include/gtest/internal/custom/gtest.h' -> '/home/alanb/gccsdk/env/include/gtest/internal/custom/gtest.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-port.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-port.cc'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-all.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-all.cc'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-death-test.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-death-test.cc'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-filepath.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-filepath.cc'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-internal-inl.h' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-internal-inl.h'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-port.cc.orig' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-port.cc.orig'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-test-part.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-test-part.cc'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-typed-test.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-typed-test.cc'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest.cc'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest_main.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest_main.cc'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/src/gtest-printers.cc' -> '/home/alanb/gccsdk/env/src/gtest/src/gtest-printers.cc'
+-- The C compiler identification is GNU 4.7.4
+-- The CXX compiler identification is GNU 4.7.4
+-- Check for working C compiler: /home/alanb/gccsdk/cross/bin/arm-unknown-riscos-gcc
+-- Check for working C compiler: /home/alanb/gccsdk/cross/bin/arm-unknown-riscos-gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /home/alanb/gccsdk/cross/bin/arm-unknown-riscos-g++
+-- Check for working CXX compiler: /home/alanb/gccsdk/cross/bin/arm-unknown-riscos-g++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found PythonInterp: /usr/bin/python (found version "2.7.12") 
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - found
+-- Found Threads: TRUE  
+-- Configuring done
+-- Generating done
+CMake Warning:
+  Manually-specified variables were not used by the project:
+
+    BINARY_SUFFIX
+
+
+-- Build files have been written to: /home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/build
+Scanning dependencies of target gmock
+[  9%] Building CXX object googlemock/CMakeFiles/gmock.dir/__/googletest/src/gtest-all.cc.o
+[ 18%] Building CXX object googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o
+[ 27%] Linking CXX static library libgmock.a
+[ 27%] Built target gmock
+Scanning dependencies of target gmock_main
+[ 36%] Building CXX object googlemock/CMakeFiles/gmock_main.dir/__/googletest/src/gtest-all.cc.o
+[ 45%] Building CXX object googlemock/CMakeFiles/gmock_main.dir/src/gmock-all.cc.o
+[ 54%] Building CXX object googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o
+[ 63%] Linking CXX static library libgmock_main.a
+[ 63%] Built target gmock_main
+Scanning dependencies of target gtest
+[ 72%] Building CXX object googlemock/gtest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
+[ 81%] Linking CXX static library libgtest.a
+[ 81%] Built target gtest
+Scanning dependencies of target gtest_main
+[ 90%] Building CXX object googlemock/gtest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
+[100%] Linking CXX static library libgtest_main.a
+[100%] Built target gtest_main
+'/home/alanb/gccsdk/autobuilder/develop/googletest/!GTest/!Help,fff' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest/!Help,fff'
+'/home/alanb/gccsdk/autobuilder/develop/googletest/!GTest/!Sprites,ff9' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest/!Sprites,ff9'
+'gtest-death-test.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest-death-test'
+'gtest.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest'
+'gtest-message.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest-message'
+'gtest-param-test.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest-param-test'
+'gtest_pred_impl.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest_pred_impl'
+'gtest-printers.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest-printers'
+'gtest_prod.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest_prod'
+'gtest-spi.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest-spi'
+'gtest-test-part.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest-test-part'
+'gtest-typed-test.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/h/gtest-typed-test'
+'gtest-death-test-internal.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-death-test-internal'
+'gtest-filepath.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-filepath'
+'gtest-internal.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-internal'
+'gtest-linked_ptr.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-linked_ptr'
+'gtest-param-util-generated.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-param-util-generated'
+'gtest-param-util.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-param-util'
+'gtest-port-arch.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-port-arch'
+'gtest-port.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-port'
+'gtest-string.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-string'
+'gtest-tuple.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-tuple'
+'gtest-type-util.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//gtest/internal/h/gtest-type-util'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/CHANGES' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//docs/CHANGES'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/CONTRIBUTORS' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//docs/CONTRIBUTORS'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/LICENSE' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//docs/LICENSE'
+'/home/alanb/gccsdk/build/googletest/googletest-release-1.8.0/googletest/README.md' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//docs/README.md'
+'prime_tables.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/h/prime_tables'
+'sample1.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/h/sample1'
+'sample2.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/h/sample2'
+'sample3-inl.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/h/sample3-inl'
+'sample4.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/h/sample4'
+'sample10_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample10_unittest'
+'sample1.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample1'
+'sample1_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample1_unittest'
+'sample2.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample2'
+'sample2_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample2_unittest'
+'sample3_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample3_unittest'
+'sample4.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample4'
+'sample4_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample4_unittest'
+'sample5_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample5_unittest'
+'sample6_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample6_unittest'
+'sample7_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample7_unittest'
+'sample8_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample8_unittest'
+'sample9_unittest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//examples/samples/cc/sample9_unittest'
+'gtest-internal-inl.h' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/h/gtest-internal-inl'
+'gtest-all.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest-all'
+'gtest.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest'
+'gtest-death-test.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest-death-test'
+'gtest-filepath.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest-filepath'
+'gtest_main.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest_main'
+'gtest-port.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest-port'
+'gtest-printers.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest-printers'
+'gtest-test-part.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest-test-part'
+'gtest-typed-test.cc' -> '/home/alanb/gccsdk/build/googletest/package/gtest/Apps/Library/!GTest//src/cc/gtest-typed-test'
+add-riscpkg: Adding files for the RISC OS Packaging Project
+'/home/alanb/gccsdk/autobuilder/develop/googletest/RiscPkg/Control' -> '/home/alanb/gccsdk/build/googletest/package/gtest/RiscPkg/Control'
+add-riscpkg: Setting filetypes...
+add-riskpkg: Finished
+Autobuilder: Packaging files
+Autobuilder: Packaging as gtest
+-rw-rw-r-- 1 alanb alanb 647321 Jul 18 12:59 /home/alanb/gccsdk/autobuilder/autobuilder_packages//arm/Library/gtest_1.8.0-1.zip
+Autobuilder: Packaging source
+  adding: appveyor.yml (deflated 61%)
+  adding: CMakeLists.txt (deflated 43%)
+  adding: debian/ (stored 0%)
+  adding: debian/libgtest-dev.preinst (deflated 12%)
+  adding: debian/libgtest-dev.postrm (deflated 12%)
+  adding: debian/changelog (deflated 62%)
+  adding: debian/libgtest-dev.links (deflated 37%)
+  adding: debian/googletest.manpages (stored 0%)
+  adding: debian/patches/ (stored 0%)
+  adding: debian/patches/series (deflated 27%)
+  adding: debian/patches/makefile-example.patch (deflated 63%)
+  adding: debian/patches/stop-testinfo-run-calling-through-null.patch (deflated 49%)
+  adding: debian/patches/gtest-cc-use-cmath.patch (deflated 48%)
+  adding: debian/patches/py_test-fix.patch (deflated 44%)
+  adding: debian/googletest.docs (stored 0%)
+  adding: debian/control (deflated 68%)
+  adding: debian/googletest.install (deflated 54%)
+  adding: debian/google-mock.preinst (deflated 11%)
+  adding: debian/README.Debian (deflated 57%)
+  adding: debian/google-mock.links (deflated 28%)
+  adding: debian/NEWS.Debian (deflated 46%)
+  adding: debian/compat (stored 0%)
+  adding: debian/gmock_gen.1 (deflated 47%)
+  adding: debian/libgtest-dev.postinst (deflated 12%)
+  adding: debian/copyright (deflated 52%)
+  adding: debian/rules (deflated 52%)
+  adding: debian/google-mock.postrm (deflated 11%)
+  adding: debian/google-mock.postinst (deflated 11%)
+  adding: debian/source/ (stored 0%)
+  adding: debian/source/format (stored 0%)
+  adding: googlemock/ (stored 0%)
+  adding: googlemock/src/ (stored 0%)
+  adding: googlemock/src/gmock.cc (deflated 62%)
+  adding: googlemock/src/gmock-matchers.cc (deflated 68%)
+  adding: googlemock/src/gmock-cardinalities.cc (deflated 63%)
+  adding: googlemock/src/gmock-internal-utils.cc (deflated 57%)
+  adding: googlemock/src/gmock-spec-builders.cc (deflated 73%)
+  adding: googlemock/src/gmock-all.cc (deflated 51%)
+  adding: googlemock/src/gmock_main.cc (deflated 48%)
+  adding: googlemock/include/ (stored 0%)
+  adding: googlemock/include/gmock/ (stored 0%)
+  adding: googlemock/include/gmock/gmock-generated-nice-strict.h.pump (deflated 60%)
+  adding: googlemock/include/gmock/gmock-generated-actions.h (deflated 88%)
+  adding: googlemock/include/gmock/gmock-generated-nice-strict.h (deflated 83%)
+  adding: googlemock/include/gmock/gmock-matchers.h (deflated 79%)
+  adding: googlemock/include/gmock/gmock-generated-function-mockers.h (deflated 89%)
+  adding: googlemock/include/gmock/gmock-generated-matchers.h.pump (deflated 68%)
+  adding: googlemock/include/gmock/gmock-cardinalities.h (deflated 64%)
+  adding: googlemock/include/gmock/gmock-generated-matchers.h (deflated 88%)
+  adding: googlemock/include/gmock/gmock-more-actions.h (deflated 65%)
+  adding: googlemock/include/gmock/gmock-actions.h (deflated 75%)
+  adding: googlemock/include/gmock/gmock-more-matchers.h (deflated 49%)
+  adding: googlemock/include/gmock/gmock.h (deflated 55%)
+  adding: googlemock/include/gmock/gmock-generated-function-mockers.h.pump (deflated 63%)
+  adding: googlemock/include/gmock/gmock-spec-builders.h (deflated 76%)
+  adding: googlemock/include/gmock/gmock-generated-actions.h.pump (deflated 70%)
+  adding: googlemock/include/gmock/internal/ (stored 0%)
+  adding: googlemock/include/gmock/internal/gmock-generated-internal-utils.h (deflated 80%)
+  adding: googlemock/include/gmock/internal/gmock-internal-utils.h (deflated 69%)
+  adding: googlemock/include/gmock/internal/gmock-port.h (deflated 57%)
+  adding: googlemock/include/gmock/internal/gmock-generated-internal-utils.h.pump (deflated 61%)
+  adding: googlemock/include/gmock/internal/custom/ (stored 0%)
+  adding: googlemock/include/gmock/internal/custom/gmock-generated-actions.h (deflated 49%)
+  adding: googlemock/include/gmock/internal/custom/gmock-matchers.h (deflated 53%)
+  adding: googlemock/include/gmock/internal/custom/gmock-port.h (deflated 54%)
+  adding: googlemock/include/gmock/internal/custom/gmock-generated-actions.h.pump (deflated 45%)
+  adding: googlemock/test/ (stored 0%)
+  adding: googlemock/test/gmock-actions_test.cc (deflated 80%)
+  adding: googlemock/test/gmock_output_test_.cc (deflated 73%)
+  adding: googlemock/test/gmock-matchers_test.cc (deflated 82%)
+  adding: googlemock/test/gmock_ex_test.cc (deflated 53%)
+  adding: googlemock/test/gmock-more-actions_test.cc (deflated 80%)
+  adding: googlemock/test/gmock_link_test.cc (deflated 48%)
+  adding: googlemock/test/gmock-port_test.cc (deflated 47%)
+  adding: googlemock/test/gmock-generated-actions_test.cc (deflated 79%)
+  adding: googlemock/test/gmock_test_utils.py (deflated 55%)
+  adding: googlemock/test/gmock_output_test.py (deflated 61%)
+  adding: googlemock/test/gmock-generated-internal-utils_test.cc (deflated 73%)
+  adding: googlemock/test/gmock-internal-utils_test.cc (deflated 77%)
+  adding: googlemock/test/gmock_test.cc (deflated 69%)
+  adding: googlemock/test/gmock-generated-matchers_test.cc (deflated 77%)
+  adding: googlemock/test/gmock_link2_test.cc (deflated 48%)
+  adding: googlemock/test/gmock_output_test_golden.txt (deflated 88%)
+  adding: googlemock/test/gmock-generated-function-mockers_test.cc (deflated 77%)
+  adding: googlemock/test/gmock_link_test.h (deflated 77%)
+  adding: googlemock/test/gmock_leak_test_.cc (deflated 58%)
+  adding: googlemock/test/gmock_stress_test.cc (deflated 64%)
+  adding: googlemock/test/gmock_leak_test.py (deflated 66%)
+  adding: googlemock/test/gmock-nice-strict_test.cc (deflated 77%)
+  adding: googlemock/test/gmock-spec-builders_test.cc (deflated 81%)
+  adding: googlemock/test/gmock-cardinalities_test.cc (deflated 79%)
+  adding: googlemock/test/gmock_all_test.cc (deflated 55%)
+  adding: googlemock/CONTRIBUTORS (deflated 50%)
+  adding: googlemock/README.md (deflated 61%)
+  adding: googlemock/scripts/ (stored 0%)
+  adding: googlemock/scripts/upload_gmock.py (deflated 51%)
+  adding: googlemock/scripts/gmock-config.in (deflated 68%)
+  adding: googlemock/scripts/fuse_gmock_files.py (deflated 67%)
+  adding: googlemock/scripts/generator/ (stored 0%)
+  adding: googlemock/scripts/generator/cpp/ (stored 0%)
+  adding: googlemock/scripts/generator/cpp/gmock_class_test.py (deflated 79%)
+  adding: googlemock/scripts/generator/cpp/gmock_class.py (deflated 63%)
+  adding: googlemock/scripts/generator/cpp/tokenize.py (deflated 66%)
+  adding: googlemock/scripts/generator/cpp/keywords.py (deflated 48%)
+  adding: googlemock/scripts/generator/cpp/utils.py (deflated 44%)
+  adding: googlemock/scripts/generator/cpp/ast.py (deflated 79%)
+  adding: googlemock/scripts/generator/cpp/__init__.py (stored 0%)
+  adding: googlemock/scripts/generator/README (deflated 50%)
+  adding: googlemock/scripts/generator/README.cppclean (deflated 55%)
+  adding: googlemock/scripts/generator/gmock_gen.py (deflated 43%)
+  adding: googlemock/scripts/generator/LICENSE (deflated 65%)
+  adding: googlemock/scripts/gmock_doctor.py (deflated 73%)
+  adding: googlemock/scripts/upload.py (deflated 71%)
+  adding: googlemock/docs/ (stored 0%)
+  adding: googlemock/docs/v1_6/ (stored 0%)
+  adding: googlemock/docs/v1_6/ForDummies.md (deflated 63%)
+  adding: googlemock/docs/v1_6/CookBook.md (deflated 69%)
+  adding: googlemock/docs/v1_6/FrequentlyAskedQuestions.md (deflated 65%)
+  adding: googlemock/docs/v1_6/CheatSheet.md (deflated 69%)
+  adding: googlemock/docs/v1_6/Documentation.md (deflated 47%)
+  adding: googlemock/docs/v1_7/ (stored 0%)
+  adding: googlemock/docs/v1_7/ForDummies.md (deflated 63%)
+  adding: googlemock/docs/v1_7/CookBook.md (deflated 69%)
+  adding: googlemock/docs/v1_7/FrequentlyAskedQuestions.md (deflated 65%)
+  adding: googlemock/docs/v1_7/CheatSheet.md (deflated 70%)
+  adding: googlemock/docs/v1_7/Documentation.md (deflated 47%)
+  adding: googlemock/docs/ForDummies.md (deflated 63%)
+  adding: googlemock/docs/KnownIssues.md (deflated 48%)
+  adding: googlemock/docs/CookBook.md (deflated 69%)
+  adding: googlemock/docs/FrequentlyAskedQuestions.md (deflated 65%)
+  adding: googlemock/docs/DevGuide.md (deflated 57%)
+  adding: googlemock/docs/CheatSheet.md (deflated 69%)
+  adding: googlemock/docs/DesignDoc.md (deflated 62%)
+  adding: googlemock/docs/Documentation.md (deflated 47%)
+  adding: googlemock/docs/v1_5/ (stored 0%)
+  adding: googlemock/docs/v1_5/ForDummies.md (deflated 63%)
+  adding: googlemock/docs/v1_5/CookBook.md (deflated 69%)
+  adding: googlemock/docs/v1_5/FrequentlyAskedQuestions.md (deflated 65%)
+  adding: googlemock/docs/v1_5/CheatSheet.md (deflated 68%)
+  adding: googlemock/docs/v1_5/Documentation.md (deflated 47%)
+  adding: googlemock/configure.ac (deflated 63%)
+  adding: googlemock/Makefile.am (deflated 71%)
+  adding: googlemock/build-aux/ (stored 0%)
+  adding: googlemock/build-aux/.keep (stored 0%)
+  adding: googlemock/CHANGES (deflated 59%)
+  adding: googlemock/CMakeLists.txt (deflated 68%)
+  adding: googlemock/msvc/ (stored 0%)
+  adding: googlemock/msvc/2010/ (stored 0%)
+  adding: googlemock/msvc/2010/gmock_test.vcxproj (deflated 77%)
+  adding: googlemock/msvc/2010/gmock_main.vcxproj (deflated 77%)
+  adding: googlemock/msvc/2010/gmock.sln (deflated 73%)
+  adding: googlemock/msvc/2010/gmock.vcxproj (deflated 78%)
+  adding: googlemock/msvc/2010/gmock_config.props (deflated 53%)
+  adding: googlemock/msvc/2005/ (stored 0%)
+  adding: googlemock/msvc/2005/gmock_config.vsprops (deflated 32%)
+  adding: googlemock/msvc/2005/gmock_main.vcproj (deflated 74%)
+  adding: googlemock/msvc/2005/gmock.vcproj (deflated 74%)
+  adding: googlemock/msvc/2005/gmock.sln (deflated 74%)
+  adding: googlemock/msvc/2005/gmock_test.vcproj (deflated 73%)
+  adding: googlemock/msvc/2015/ (stored 0%)
+  adding: googlemock/msvc/2015/gmock_test.vcxproj (deflated 76%)
+  adding: googlemock/msvc/2015/gmock_main.vcxproj (deflated 77%)
+  adding: googlemock/msvc/2015/gmock.sln (deflated 74%)
+  adding: googlemock/msvc/2015/gmock.vcxproj (deflated 77%)
+  adding: googlemock/msvc/2015/gmock_config.props (deflated 52%)
+  adding: googlemock/make/ (stored 0%)
+  adding: googlemock/make/Makefile (deflated 63%)
+  adding: googlemock/LICENSE (deflated 48%)
+  adding: googletest/ (stored 0%)
+  adding: googletest/src/ (stored 0%)
+  adding: googletest/src/gtest-test-part.cc (deflated 57%)
+  adding: googletest/src/gtest-death-test.cc (deflated 71%)
+  adding: googletest/src/gtest-port.cc (deflated 70%)
+  adding: googletest/src/gtest_main.cc (deflated 47%)
+  adding: googletest/src/gtest.cc (deflated 74%)
+  adding: googletest/src/gtest-port.cc.orig (deflated 70%)
+  adding: googletest/src/gtest-all.cc (deflated 52%)
+  adding: googletest/src/gtest-printers.cc (deflated 66%)
+  adding: googletest/src/gtest-internal-inl.h (deflated 71%)
+  adding: googletest/src/gtest-typed-test.cc (deflated 57%)
+  adding: googletest/src/gtest-filepath.cc (deflated 68%)
+  adding: googletest/cmake/ (stored 0%)
+  adding: googletest/cmake/internal_utils.cmake (deflated 67%)
+  adding: googletest/include/ (stored 0%)
+  adding: googletest/include/gtest/ (stored 0%)
+  adding: googletest/include/gtest/gtest-spi.h (deflated 71%)
+  adding: googletest/include/gtest/gtest-test-part.h (deflated 64%)
+  adding: googletest/include/gtest/gtest-param-test.h (deflated 87%)
+  adding: googletest/include/gtest/gtest-printers.h (deflated 74%)
+  adding: googletest/include/gtest/gtest-death-test.h (deflated 62%)
+  adding: googletest/include/gtest/gtest-message.h (deflated 62%)
+  adding: googletest/include/gtest/gtest.h (deflated 75%)
+  adding: googletest/include/gtest/gtest_pred_impl.h (deflated 83%)
+  adding: googletest/include/gtest/gtest_prod.h (deflated 51%)
+  adding: googletest/include/gtest/gtest-param-test.h.pump (deflated 68%)
+  adding: googletest/include/gtest/gtest-typed-test.h (deflated 69%)
+  adding: googletest/include/gtest/internal/ (stored 0%)
+  adding: googletest/include/gtest/internal/gtest-type-util.h (deflated 95%)
+  adding: googletest/include/gtest/internal/gtest-type-util.h.pump (deflated 66%)
+  adding: googletest/include/gtest/internal/gtest-port-arch.h (deflated 60%)
+  adding: googletest/include/gtest/internal/gtest-tuple.h.pump (deflated 65%)
+  adding: googletest/include/gtest/internal/gtest-string.h (deflated 64%)
+  adding: googletest/include/gtest/internal/gtest-param-util.h (deflated 73%)
+  adding: googletest/include/gtest/internal/gtest-param-util-generated.h (deflated 95%)
+  adding: googletest/include/gtest/internal/gtest-tuple.h (deflated 83%)
+  adding: googletest/include/gtest/internal/gtest-death-test-internal.h (deflated 65%)
+  adding: googletest/include/gtest/internal/gtest-internal.h (deflated 70%)
+  adding: googletest/include/gtest/internal/gtest-filepath.h (deflated 64%)
+  adding: googletest/include/gtest/internal/gtest-port.h (deflated 71%)
+  adding: googletest/include/gtest/internal/gtest-param-util-generated.h.pump (deflated 65%)
+  adding: googletest/include/gtest/internal/custom/ (stored 0%)
+  adding: googletest/include/gtest/internal/custom/gtest-printers.h (deflated 52%)
+  adding: googletest/include/gtest/internal/custom/gtest-port.h (deflated 57%)
+  adding: googletest/include/gtest/internal/custom/gtest.h (deflated 51%)
+  adding: googletest/include/gtest/internal/gtest-linked_ptr.h (deflated 62%)
+  adding: googletest/test/ (stored 0%)
+  adding: googletest/test/gtest-param-test2_test.cc (deflated 56%)
+  adding: googletest/test/gtest-param-test_test.h (deflated 53%)
+  adding: googletest/test/gtest_throw_on_failure_test_.cc (deflated 51%)
+  adding: googletest/test/production.h (deflated 50%)
+  adding: googletest/test/gtest_color_test_.cc (deflated 51%)
+  adding: googletest/test/gtest_list_tests_unittest_.cc (deflated 63%)
+  adding: googletest/test/gtest_no_test_unittest.cc (deflated 49%)
+  adding: googletest/test/gtest_repeat_test.cc (deflated 67%)
+  adding: googletest/test/gtest_env_var_test.py (deflated 56%)
+  adding: googletest/test/gtest_stress_test.cc (deflated 66%)
+  adding: googletest/test/gtest_xml_output_unittest.py (deflated 73%)
+  adding: googletest/test/gtest_test_utils.py (deflated 61%)
+  adding: googletest/test/gtest_main_unittest.cc (deflated 48%)
+  adding: googletest/test/gtest_throw_on_failure_test.py (deflated 64%)
+  adding: googletest/test/gtest_unittest.cc (deflated 82%)
+  adding: googletest/test/gtest_sole_header_test.cc (deflated 53%)
+  adding: googletest/test/gtest-tuple_test.cc (deflated 68%)
+  adding: googletest/test/gtest-typed-test_test.cc (deflated 71%)
+  adding: googletest/test/gtest-filepath_test.cc (deflated 79%)
+  adding: googletest/test/gtest-options_test.cc (deflated 72%)
+  adding: googletest/test/gtest_prod_test.cc (deflated 52%)
+  adding: googletest/test/gtest_break_on_failure_unittest.py (deflated 68%)
+  adding: googletest/test/gtest_shuffle_test_.cc (deflated 55%)
+  adding: googletest/test/gtest_help_test.py (deflated 63%)
+  adding: googletest/test/gtest_shuffle_test.py (deflated 74%)
+  adding: googletest/test/gtest-unittest-api_test.cc (deflated 76%)
+  adding: googletest/test/gtest_premature_exit_test.cc (deflated 59%)
+  adding: googletest/test/production.cc (deflated 48%)
+  adding: googletest/test/gtest-message_test.cc (deflated 65%)
+  adding: googletest/test/gtest_uninitialized_test_.cc (deflated 47%)
+  adding: googletest/test/gtest-test-part_test.cc (deflated 72%)
+  adding: googletest/test/gtest_list_tests_unittest.py (deflated 66%)
+  adding: googletest/test/gtest_uninitialized_test.py (deflated 50%)
+  adding: googletest/test/gtest-typed-test2_test.cc (deflated 49%)
+  adding: googletest/test/gtest_filter_unittest_.cc (deflated 58%)
+  adding: googletest/test/gtest_help_test_.cc (deflated 47%)
+  adding: googletest/test/gtest_xml_outfile2_test_.cc (deflated 50%)
+  adding: googletest/test/gtest_catch_exceptions_test_.cc (deflated 76%)
+  adding: googletest/test/gtest_pred_impl_unittest.cc (deflated 93%)
+  adding: googletest/test/gtest_throw_on_failure_ex_test.cc (deflated 53%)
+  adding: googletest/test/gtest_all_test.cc (deflated 54%)
+  adding: googletest/test/gtest_catch_exceptions_test.py (deflated 76%)
+  adding: googletest/test/gtest-typed-test_test.h (deflated 53%)
+  adding: googletest/test/gtest_environment_test.cc (deflated 66%)
+  adding: googletest/test/gtest-port_test.cc (deflated 77%)
+  adding: googletest/test/gtest_env_var_test_.cc (deflated 58%)
+  adding: googletest/test/gtest-death-test_test.cc (deflated 76%)
+  adding: googletest/test/gtest-death-test_ex_test.cc (deflated 57%)
+  adding: googletest/test/gtest_output_test_golden_lin.txt (deflated 89%)
+  adding: googletest/test/gtest_output_test.py (deflated 67%)
+  adding: googletest/test/gtest_xml_test_utils.py (deflated 65%)
+  adding: googletest/test/gtest-linked_ptr_test.cc (deflated 61%)
+  adding: googletest/test/gtest_break_on_failure_unittest_.cc (deflated 50%)
+  adding: googletest/test/gtest-printers_test.cc (deflated 79%)
+  adding: googletest/test/gtest_xml_outfile1_test_.cc (deflated 50%)
+  adding: googletest/test/gtest_xml_output_unittest_.cc (deflated 64%)
+  adding: googletest/test/gtest-param-test_test.cc (deflated 77%)
+  adding: googletest/test/gtest_output_test_.cc (deflated 77%)
+  adding: googletest/test/gtest_xml_outfiles_test.py (deflated 62%)
+  adding: googletest/test/gtest-listener_test.cc (deflated 74%)
+  adding: googletest/test/gtest_filter_unittest.py (deflated 74%)
+  adding: googletest/test/gtest_color_test.py (deflated 66%)
+  adding: googletest/CONTRIBUTORS (deflated 49%)
+  adding: googletest/README.md (deflated 59%)
+  adding: googletest/scripts/ (stored 0%)
+  adding: googletest/scripts/test/ (stored 0%)
+  adding: googletest/scripts/test/Makefile (deflated 65%)
+  adding: googletest/scripts/common.py (deflated 52%)
+  adding: googletest/scripts/release_docs.py (deflated 57%)
+  adding: googletest/scripts/upload_gtest.py (deflated 51%)
+  adding: googletest/scripts/pump.py (deflated 72%)
+  adding: googletest/scripts/gtest-config.in (deflated 68%)
+  adding: googletest/scripts/gen_gtest_pred_impl.py (deflated 73%)
+  adding: googletest/scripts/upload.py (deflated 71%)
+  adding: googletest/scripts/fuse_gtest_files.py (deflated 65%)
+  adding: googletest/samples/ (stored 0%)
+  adding: googletest/samples/sample2.cc (deflated 50%)
+  adding: googletest/samples/sample7_unittest.cc (deflated 58%)
+  adding: googletest/samples/sample8_unittest.cc (deflated 61%)
+  adding: googletest/samples/sample3-inl.h (deflated 61%)
+  adding: googletest/samples/sample1.cc (deflated 49%)
+  adding: googletest/samples/sample2.h (deflated 56%)
+  adding: googletest/samples/sample4.cc (deflated 48%)
+  adding: googletest/samples/sample4.h (deflated 49%)
+  adding: googletest/samples/sample9_unittest.cc (deflated 59%)
+  adding: googletest/samples/sample4_unittest.cc (deflated 49%)
+  adding: googletest/samples/sample2_unittest.cc (deflated 54%)
+  adding: googletest/samples/sample3_unittest.cc (deflated 56%)
+  adding: googletest/samples/sample1_unittest.cc (deflated 58%)
+  adding: googletest/samples/sample10_unittest.cc (deflated 56%)
+  adding: googletest/samples/prime_tables.h (deflated 57%)
+  adding: googletest/samples/sample1.h (deflated 48%)
+  adding: googletest/samples/sample6_unittest.cc (deflated 66%)
+  adding: googletest/samples/sample5_unittest.cc (deflated 60%)
+  adding: googletest/codegear/ (stored 0%)
+  adding: googletest/codegear/gtest_unittest.cbproj (deflated 76%)
+  adding: googletest/codegear/gtest.cbproj (deflated 78%)
+  adding: googletest/codegear/gtest_main.cbproj (deflated 75%)
+  adding: googletest/codegear/gtest_link.cc (deflated 49%)
+  adding: googletest/codegear/gtest_all.cc (deflated 47%)
+  adding: googletest/codegear/gtest.groupproj (deflated 76%)
+  adding: googletest/.gitignore (stored 0%)
+  adding: googletest/docs/ (stored 0%)
+  adding: googletest/docs/FAQ.md (deflated 64%)
+  adding: googletest/docs/V1_6_XcodeGuide.md (deflated 62%)
+  adding: googletest/docs/V1_7_Samples.md (deflated 62%)
+  adding: googletest/docs/Samples.md (deflated 62%)
+  adding: googletest/docs/V1_6_Documentation.md (deflated 50%)
+  adding: googletest/docs/V1_7_XcodeGuide.md (deflated 62%)
+  adding: googletest/docs/V1_7_AdvancedGuide.md (deflated 68%)
+  adding: googletest/docs/Primer.md (deflated 63%)
+  adding: googletest/docs/V1_5_XcodeGuide.md (deflated 62%)
+  adding: googletest/docs/V1_7_Documentation.md (deflated 50%)
+  adding: googletest/docs/V1_6_FAQ.md (deflated 63%)
+  adding: googletest/docs/V1_6_AdvancedGuide.md (deflated 68%)
+  adding: googletest/docs/V1_7_FAQ.md (deflated 64%)
+  adding: googletest/docs/PumpManual.md (deflated 60%)
+  adding: googletest/docs/DevGuide.md (deflated 56%)
+  adding: googletest/docs/AdvancedGuide.md (deflated 68%)
+  adding: googletest/docs/V1_5_Documentation.md (deflated 48%)
+  adding: googletest/docs/V1_6_Primer.md (deflated 64%)
+  adding: googletest/docs/V1_6_Samples.md (deflated 62%)
+  adding: googletest/docs/V1_5_AdvancedGuide.md (deflated 68%)
+  adding: googletest/docs/V1_5_FAQ.md (deflated 63%)
+  adding: googletest/docs/Documentation.md (deflated 49%)
+  adding: googletest/docs/V1_5_PumpManual.md (deflated 60%)
+  adding: googletest/docs/XcodeGuide.md (deflated 62%)
+  adding: googletest/docs/V1_6_PumpManual.md (deflated 60%)
+  adding: googletest/docs/V1_7_PumpManual.md (deflated 60%)
+  adding: googletest/docs/V1_5_Primer.md (deflated 64%)
+  adding: googletest/docs/V1_7_Primer.md (deflated 64%)
+  adding: googletest/xcode/ (stored 0%)
+  adding: googletest/xcode/Resources/ (stored 0%)
+  adding: googletest/xcode/Resources/Info.plist (deflated 58%)
+  adding: googletest/xcode/Config/ (stored 0%)
+  adding: googletest/xcode/Config/StaticLibraryTarget.xcconfig (deflated 37%)
+  adding: googletest/xcode/Config/ReleaseProject.xcconfig (deflated 40%)
+  adding: googletest/xcode/Config/TestTarget.xcconfig (deflated 24%)
+  adding: googletest/xcode/Config/DebugProject.xcconfig (deflated 41%)
+  adding: googletest/xcode/Config/General.xcconfig (deflated 35%)
+  adding: googletest/xcode/Config/FrameworkTarget.xcconfig (deflated 36%)
+  adding: googletest/xcode/Scripts/ (stored 0%)
+  adding: googletest/xcode/Scripts/versiongenerate.py (deflated 54%)
+  adding: googletest/xcode/Scripts/runtests.sh (deflated 52%)
+  adding: googletest/xcode/Samples/ (stored 0%)
+  adding: googletest/xcode/Samples/FrameworkSample/ (stored 0%)
+  adding: googletest/xcode/Samples/FrameworkSample/WidgetFramework.xcodeproj/ (stored 0%)
+  adding: googletest/xcode/Samples/FrameworkSample/WidgetFramework.xcodeproj/project.pbxproj (deflated 84%)
+  adding: googletest/xcode/Samples/FrameworkSample/widget.cc (deflated 49%)
+  adding: googletest/xcode/Samples/FrameworkSample/Info.plist (deflated 56%)
+  adding: googletest/xcode/Samples/FrameworkSample/widget.h (deflated 49%)
+  adding: googletest/xcode/Samples/FrameworkSample/widget_test.cc (deflated 51%)
+  adding: googletest/xcode/Samples/FrameworkSample/runtests.sh (deflated 49%)
+  adding: googletest/xcode/gtest.xcodeproj/ (stored 0%)
+  adding: googletest/xcode/gtest.xcodeproj/project.pbxproj (deflated 88%)
+  adding: googletest/configure.ac (deflated 51%)
+  adding: googletest/Makefile.am (deflated 74%)
+  adding: googletest/m4/ (stored 0%)
+  adding: googletest/m4/gtest.m4 (deflated 66%)
+  adding: googletest/m4/acx_pthread.m4 (deflated 66%)
+  adding: googletest/build-aux/ (stored 0%)
+  adding: googletest/build-aux/.keep (stored 0%)
+  adding: googletest/CHANGES (deflated 60%)
+  adding: googletest/CMakeLists.txt (deflated 73%)
+  adding: googletest/msvc/ (stored 0%)
+  adding: googletest/msvc/gtest_main.vcproj (deflated 71%)
+  adding: googletest/msvc/gtest_prod_test-md.vcproj (deflated 75%)
+  adding: googletest/msvc/gtest_main-md.vcproj (deflated 71%)
+  adding: googletest/msvc/gtest.vcproj (deflated 72%)
+  adding: googletest/msvc/gtest-md.sln (deflated 79%)
+  adding: googletest/msvc/gtest-md.vcproj (deflated 72%)
+  adding: googletest/msvc/gtest_unittest-md.vcproj (deflated 72%)
+  adding: googletest/msvc/gtest_unittest.vcproj (deflated 72%)
+  adding: googletest/msvc/gtest_prod_test.vcproj (deflated 75%)
+  adding: googletest/msvc/gtest.sln (deflated 79%)
+  adding: googletest/make/ (stored 0%)
+  adding: googletest/make/Makefile (deflated 59%)
+  adding: googletest/LICENSE (deflated 48%)
+  adding: README.md (deflated 54%)
+  adding: riscos/ (stored 0%)
+  adding: riscos/gtest-port-arch.h.p (deflated 43%)
+  adding: riscos/setvars (deflated 58%)
+  adding: riscos/gtest-port.cc.p (deflated 59%)
+  adding: riscos/Makefile.riscos (deflated 57%)
+  adding: riscos/gtest-printers.cc.p (deflated 38%)
+  adding: riscos/!GTest/ (stored 0%)
+  adding: riscos/!GTest/!Sprites,ff9 (deflated 74%)
+  adding: riscos/!GTest/!Help,fff (deflated 50%)
+  adding: riscos/RiscPkg/ (stored 0%)
+  adding: riscos/RiscPkg/Control (deflated 38%)
+  adding: riscos/gtest-port.h.p (deflated 45%)
+  adding: travis.sh (deflated 47%)
+Autobuilder: Package stage completed

@@ -1,5 +1,5 @@
---- src/gtest-port.cc.orig	2013-09-18 16:48:30.000000000 +0100
-+++ src/gtest-port.cc	2015-09-21 12:39:42.887083678 +0100
+--- googletest/src/gtest-port.cc.orig	2013-09-18 16:48:30.000000000 +0100
++++ googletest/src/gtest-port.cc	2015-09-21 12:39:42.887083678 +0100
 @@ -154,7 +154,12 @@
    if (!re.is_valid_) return false;
  
