@@ -1,14 +1,14 @@
---- make/Makefile.old	2015-10-25 09:28:31.767406000 +0000
-+++ make/Makefile	2015-10-25 16:08:18.381984853 +0000
+--- googletest/make/Makefile.orig	2017-07-20 12:37:38.119008000 +0100
++++ googletest/make/Makefile	2017-07-20 12:47:02.531008000 +0100
 @@ -14,7 +14,7 @@
  
  # Points to the root of Google Test, relative to where this file is.
  # Remember to tweak this if you move this file.
--GTEST_DIR = /usr/src/gtest
+-GTEST_DIR = $(dir $(lastword $(MAKEFILE_LIST)))..
 +GTEST_DIR = $(GCCSDK_INSTALL_ENV)/src/gtest
  
  # Where to find user code.
- USER_DIR = ../samples
+ USER_DIR = $(dir $(lastword $(MAKEFILE_LIST)))/../samples
 @@ -22,10 +22,10 @@
  # Flags passed to the preprocessor.
  # Set Google Test's header directory as a system directory, such that
@@ -38,4 +38,4 @@
  
  sample1_unittest : sample1.o sample1_unittest.o gtest_main.a
 -	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
-+	$(CXX) $(CPPFLAGS) $(CXXFLAGS)  $^ -o $@
++	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@

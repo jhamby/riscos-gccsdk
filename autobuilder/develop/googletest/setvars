@@ -62,6 +62,7 @@ ab_package() {
 
   add_swapped $S/googletest/include/gtest $A/gtest h
   add_swapped $S/googletest/include/gtest/internal $A/gtest/internal h
+  add_swapped $S/googletest/include/gtest/internal/custom $A/gtest/internal/custom h
   mkdir -p $A/docs
   cp -av $S/googletest/CHANGES $S/googletest/CONTRIBUTORS $S/googletest/LICENSE $S/googletest/README.md $A/docs
 
