@@ -1,5 +1,6 @@
 
 AB_HG=http://home.marutan.net/2hg/rpcemu.qt5
+AB_PATCHOPT="-p1"
 
 ab_make() {
  cd src/qt5
