@@ -1,0 +1,5 @@
+| !Boot file for RPCEmu
+
+Set RPCEmu$Dir$Dir <Obey$Dir>
+IfThere <RPCEmu$Dir>.!Sprites then Iconsprites <RPCEmu$Dir>.!Sprites
+

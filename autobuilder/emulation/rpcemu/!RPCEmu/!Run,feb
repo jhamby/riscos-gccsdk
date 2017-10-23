@@ -1,0 +1,7 @@
+Wimpslot
+|Set Qt$NoRedBlueSwap 1
+
+X removeda rpcemu-interpreter
+dir <Obey$Dir>
+Set RPCEmu$Dir <Obey$Dir>
+Run <RPCEmu$Dir>.rpcemu-interpreter ><RPCEmu$Dir$Dir>.debug 2>&1
