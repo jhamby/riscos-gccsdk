@@ -1,4 +1,4 @@
-Wimpslot
+Wimpslot -min 20000k -max 20000k
 |Set Qt$NoRedBlueSwap 1
 
 X removeda rpcemu-interpreter
