@@ -7,6 +7,38 @@ AB_INSTALL=yes
 
 AB_MAKE="cd $PWD/\!DLSources; $AB_MAKE -f Makefile.unix"
 
+move_riscos_source() {
+  local header_dir
+  local f
+  local here
+
+  header_dir=$1
+
+  here=`pwd`
+  cd $header_dir
+
+  for f in *
+  do
+    if [ -d "$f" ] ; then
+      move_riscos_source $header_dir/$f
+    else
+      case "$f" in
+         *.h)
+            mkdir -p h
+            mv -f $f h/$(basename "$f" .h)
+            ;;
+         *.c)
+            mkdir -p c
+            mv -f $f c/$(basename "$f" .c)
+            ;;
+      esac
+    fi
+  done
+
+  cd $here
+}
+
+
 ab_package() {
 
   ab_create_app DeskLib Apps/Library desklib
@@ -15,5 +47,15 @@ ab_package() {
   rsync -av --exclude='*/.svn*' ../\!DeskLib $A/..
   rsync -av --exclude='*/.svn*' ../Examples $A/../\!DeskLib
 
+  move_riscos_source $A/../\!DLUser
+  move_riscos_source $A
+
+  # Change library name to GCC friendly name
+  mv -f $A/DeskLib.a $A/libDesk.a
+
+  # Remove shared library - it should be packaged in Sharedlibs
+  rm -f $A/libDesk.so
+  
   $AB_HOME/add-riscpkg -name DeskLib -unixlib
 }
+
