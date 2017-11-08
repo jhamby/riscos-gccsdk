@@ -10,7 +10,7 @@ ab_package()
    cp build/*.ttf $A/truetype/ttf-dejavu
    mkdir -p $A/doc/ttf-dejavu-core
    cp *.txt $A/doc/ttf-dejavu-core
-   cp AUTHORS BUGS LICENSE NEWS README $A/doc/ttf-dejavu-core
+   cp AUTHORS BUGS LICENSE NEWS README.md $A/doc/ttf-dejavu-core
 
    $AB_HOME/add-riscpkg -depends UnixFont
 }
