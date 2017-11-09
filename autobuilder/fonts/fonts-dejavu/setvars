@@ -20,7 +20,7 @@ ab_package()
    
    mkdir -p $A/doc/dejavu-core
    cp *.txt $A/doc/dejavu-core
-   cp AUTHORS BUGS LICENSE NEWS README $A/doc/dejavu-core
+   cp AUTHORS BUGS LICENSE NEWS README.md $A/doc/dejavu-core
 
    AB_COMPONENTS=""
    $AB_HOME/add-riscpkg -name TTF-DejaVu-Core -package fonts-dejavu-core -depends UnixFont
@@ -40,7 +40,7 @@ ab_package()
    
    mkdir -p $A/doc/dejavu-extra
    cp *.txt $A/doc/dejavu-extra
-   cp AUTHORS BUGS LICENSE NEWS README $A/doc/dejavu-extra
+   cp AUTHORS BUGS LICENSE NEWS README.md $A/doc/dejavu-extra
 
    AB_COMPONENTS=""
    $AB_HOME/add-riscpkg -name TTF-DejaVu-Extra -package fonts-dejavu-extra -depends UnixFont
