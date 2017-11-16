@@ -1,6 +1,6 @@
 Index: configure.ac
 ===================================================================
---- configure.ac	(revision 197339)
+--- configure.ac	(revision 254830)
 +++ configure.ac	(working copy)
 @@ -152,6 +152,7 @@
  # Note that libiberty is not a target library.
@@ -34,6 +34,15 @@ Index: configure.ac
  
    if test "$enable_ppl_version_check" != no; then
      saved_CFLAGS="$CFLAGS"
+@@ -1577,7 +1586,7 @@
+     CFLAGS="$CFLAGS $pplinc $gmpinc"
+     AC_MSG_CHECKING([for version 0.11 (revision 0 or later) of PPL])
+     AC_TRY_COMPILE([#include "ppl_c.h"],[
+-    #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 11
++    #if PPL_VERSION_MAJOR == 0 && PPL_VERSION_MINOR < 11
+     choke me
+     #endif
+     ], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no]); ppllibs= ; pplinc= ; with_ppl=no ])
 @@ -2895,6 +2904,10 @@
     ;;
    esac

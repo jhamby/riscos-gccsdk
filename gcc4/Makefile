@@ -45,7 +45,7 @@ GMP_VERSION=5.0.1
 MPFR_VERSION=3.0.1
 MPC_VERSION=0.8.2
 GCC_USE_PPL_CLOOG=yes
-PPL_VERSION=0.11.2
+PPL_VERSION=1.2
 CLOOG_VERSION=0.15.11
 GCC_USE_LTO=yes
 
@@ -182,8 +182,8 @@ CROSS_MPFR_CONFIG_ARGS := --disable-shared --with-gmp=$(PREFIX_CROSSGCC_LIBS) --
 RONATIVE_MPFR_CONFIG_ARGS := --disable-shared --with-gmp=$(PREFIX_RONATIVEGCC_LIBS) --host=$(TARGET) --prefix=$(PREFIX_RONATIVEGCC_LIBS)
 
 # Configure arguments PPL:
-CROSS_PPL_CONFIG_ARGS := --disable-shared --disable-watchdog --with-gnu-ld --with-gmp-prefix=$(PREFIX_CROSSGCC_LIBS) --prefix=$(PREFIX_CROSSGCC_LIBS)
-RONATIVE_PPL_CONFIG_ARGS := --disable-shared --disable-watchdog --with-gnu-ld --with-gmp-prefix=$(PREFIX_RONATIVEGCC_LIBS) --host=$(TARGET) --prefix=$(PREFIX_RONATIVEGCC_LIBS)
+CROSS_PPL_CONFIG_ARGS := --disable-shared --disable-watchdog --with-gnu-ld --with-gmp=$(PREFIX_CROSSGCC_LIBS) --prefix=$(PREFIX_CROSSGCC_LIBS)
+RONATIVE_PPL_CONFIG_ARGS := --disable-shared --disable-watchdog --with-gnu-ld --with-gmp=$(PREFIX_RONATIVEGCC_LIBS) --host=$(TARGET) --prefix=$(PREFIX_RONATIVEGCC_LIBS)
 
 # Configure arguments CLooG:
 CROSS_CLOOG_CONFIG_ARGS := --disable-shared --with-gmp=$(PREFIX_CROSSGCC_LIBS) --with-bits=gmp --with-ppl=$(PREFIX_CROSSGCC_LIBS) --with-host-libstdcxx='-lstdc++' --prefix=$(PREFIX_CROSSGCC_LIBS)
