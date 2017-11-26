@@ -64,8 +64,9 @@ ab_package() {
   add_headers $GCCSDK_INSTALL_ENV/vfp/include/SDL2 $A/SDL2
   if [ -d "$S/build/.libs/" ]; then
     cp -f $S/build/.libs/*.a $A
+  else
+    cp -f $S/build/*.a $A
   fi
-  cp -f $S/build/*.a $A
 
   $AB_HOME/add-riscpkg -name LibSDL2-Dev -unixlib \
 			-depends Khronos
