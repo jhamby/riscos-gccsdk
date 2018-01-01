@@ -4,4 +4,4 @@ Wimpslot -min 20000k -max 20000k
 X removeda rpcemu-interpreter
 dir <Obey$Dir>
 Set RPCEmu$Dir <Obey$Dir>
-Run <RPCEmu$Dir>.rpcemu-interpreter ><RPCEmu$Dir$Dir>.debug 2>&1
+Run <RPCEmu$Dir>.rpcemu-interpreter ><RPCEmu$Dir>.debug 2>&1
