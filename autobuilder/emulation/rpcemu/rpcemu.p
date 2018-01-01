@@ -1,6 +1,6 @@
-diff -r 5ea56ec82b4c src/qt5/about_dialog.cpp
---- a/src/qt5/about_dialog.cpp	Fri Oct 20 19:47:18 2017 +0100
-+++ b/src/qt5/about_dialog.cpp	Mon Oct 23 21:19:04 2017 +0100
+diff -r f563d0ae0170 src/qt5/about_dialog.cpp
+--- a/src/qt5/about_dialog.cpp	Sun Dec 31 20:22:10 2017 +0000
++++ b/src/qt5/about_dialog.cpp	Mon Jan 01 13:14:17 2018 +0000
 @@ -68,7 +68,7 @@
  	// Remove resize on Dialog
  	this->setFixedSize(this->sizeHint());
@@ -10,15 +10,15 @@ diff -r 5ea56ec82b4c src/qt5/about_dialog.cpp
  }
  
  AboutDialog::~AboutDialog()
-diff -r 5ea56ec82b4c src/qt5/configure_dialog.cpp
---- a/src/qt5/configure_dialog.cpp	Fri Oct 20 19:47:18 2017 +0100
-+++ b/src/qt5/configure_dialog.cpp	Mon Oct 23 21:19:04 2017 +0100
+diff -r f563d0ae0170 src/qt5/configure_dialog.cpp
+--- a/src/qt5/configure_dialog.cpp	Sun Dec 31 20:22:10 2017 +0000
++++ b/src/qt5/configure_dialog.cpp	Mon Jan 01 13:14:17 2018 +0000
 @@ -129,13 +129,13 @@
  	grid->addWidget(buttons_box, 3, 0, 1, 2);       // span 2 columns
  
  	// Connect actions to widgets
 -	connect(refresh_slider, &QSlider::valueChanged, this, &ConfigureDialog::slider_moved);
-+	connect(refresh_slider, SIGNAL(valueChanged()), this, SLOT(slider_moved(int)));
++	connect(refresh_slider, SIGNAL(valueChanged(int)), this, SLOT(slider_moved(int)));
  
 -	connect(buttons_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
 -	connect(buttons_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -32,10 +32,18 @@ diff -r 5ea56ec82b4c src/qt5/configure_dialog.cpp
  
  	// Set the values in the configure dialog box
  	applyConfig();
-diff -r 5ea56ec82b4c src/qt5/main_window.cpp
---- a/src/qt5/main_window.cpp	Fri Oct 20 19:47:18 2017 +0100
-+++ b/src/qt5/main_window.cpp	Mon Oct 23 21:19:04 2017 +0100
-@@ -347,11 +347,11 @@
+diff -r f563d0ae0170 src/qt5/main_window.cpp
+--- a/src/qt5/main_window.cpp	Sun Dec 31 20:22:10 2017 +0000
++++ b/src/qt5/main_window.cpp	Mon Jan 01 13:14:17 2018 +0000
+@@ -27,6 +27,7 @@
+ #include <QMenuBar>
+ #include <QMessageBox>
+ #include <QPainter>
++#include <QShortcut>
+ 
+ #if defined(Q_OS_WIN32)
+ #include "Windows.h"
+@@ -346,11 +347,11 @@
  
  	// MIPS counting
  	window_title.reserve(128);
@@ -49,15 +57,18 @@ diff -r 5ea56ec82b4c src/qt5/main_window.cpp
  }
  
  MainWindow::~MainWindow()
-@@ -813,45 +813,45 @@
+@@ -811,48 +812,49 @@
+ MainWindow::create_actions()
  {
  	// Actions on File menu
- 	reset_action = new QAction(tr("&Reset"), this);
+-	reset_action = new QAction(tr("Reset"), this);
 -	connect(reset_action, &QAction::triggered, this, &MainWindow::menu_reset);
++	reset_action = new QAction(tr("&Reset"), this);
 +	connect(reset_action, SIGNAL(triggered()), this, SLOT(menu_reset()));
  
- 	exit_action = new QAction(tr("E&xit"), this);
- 	exit_action->setShortcuts(QKeySequence::Quit);
+-	exit_action = new QAction(tr("Exit"), this);
++	exit_action = new QAction(tr("E&xit"), this);
++	exit_action->setShortcuts(QKeySequence::Quit);
  	exit_action->setStatusTip(tr("Exit the application"));
 -	connect(exit_action, &QAction::triggered, this, &QMainWindow::close);
 +	connect(exit_action, SIGNAL(triggered()), this, SLOT(close()));
@@ -71,61 +82,79 @@ diff -r 5ea56ec82b4c src/qt5/main_window.cpp
 +	connect(loaddisc1_action, SIGNAL(triggered()), this, SLOT(menu_loaddisc1()));
  
  	// Actions on Settings menu
- 	configure_action = new QAction(tr("&Configure..."), this);
+-	configure_action = new QAction(tr("Configure..."), this);
 -	connect(configure_action, &QAction::triggered, this, &MainWindow::menu_configure);
++	configure_action = new QAction(tr("&Configure..."), this);
 +	connect(configure_action, SIGNAL(triggered()), this, SLOT(menu_configure()));
  #ifdef RPCEMU_NETWORKING
- 	networking_action = new QAction(tr("&Networking..."), this);
+-	networking_action = new QAction(tr("Networking..."), this);
++	networking_action = new QAction(tr("&Networking..."), this);
  	connect(networking_action, &QAction::triggered, this, &MainWindow::menu_networking);
  #endif /* RPCEMU_NETWORKING */
- 	fullscreen_action = new QAction(tr("&Fullscreen mode"), this);
+-	fullscreen_action = new QAction(tr("Fullscreen mode"), this);
++	fullscreen_action = new QAction(tr("&Fullscreen mode"), this);
  	fullscreen_action->setCheckable(true);
 -	connect(fullscreen_action, &QAction::triggered, this, &MainWindow::menu_fullscreen);
+-	cpu_idle_action = new QAction(tr("Reduce CPU usage"), this);
 +	connect(fullscreen_action, SIGNAL(triggered()), this, SLOT(menu_fullscreen()));
- 	cpu_idle_action = new QAction(tr("&Reduce CPU usage"), this);
++	cpu_idle_action = new QAction(tr("&Reduce CPU usage"), this);
  	cpu_idle_action->setCheckable(true);
 -	connect(cpu_idle_action, &QAction::triggered, this, &MainWindow::menu_cpu_idle);
 +	connect(cpu_idle_action, SIGNAL(triggered()), this, SLOT(menu_cpu_idle()));
  
  	// Actions on the Settings->CD ROM Menu
- 	cdrom_disabled_action = new QAction(tr("&Disabled"), this);
+-	cdrom_disabled_action = new QAction(tr("Disabled"), this);
++	cdrom_disabled_action = new QAction(tr("&Disabled"), this);
  	cdrom_disabled_action->setCheckable(true);
 -	connect(cdrom_disabled_action, &QAction::triggered, this, &MainWindow::menu_cdrom_disabled);
 +	connect(cdrom_disabled_action, SIGNAL(triggered()), this, SLOT(menu_cdrom_disabled()));
  
- 	cdrom_empty_action = new QAction(tr("&Empty"), this);
+-	cdrom_empty_action = new QAction(tr("Empty"), this);
++	cdrom_empty_action = new QAction(tr("&Empty"), this);
  	cdrom_empty_action->setCheckable(true);
 -	connect(cdrom_empty_action, &QAction::triggered, this, &MainWindow::menu_cdrom_empty);
 +	connect(cdrom_empty_action, SIGNAL(triggered()), this, SLOT(menu_cdrom_empty()));
  
- 	cdrom_iso_action = new QAction(tr("&Iso Image..."), this);
+-	cdrom_iso_action = new QAction(tr("Iso Image..."), this);
++	cdrom_iso_action = new QAction(tr("&Iso Image..."), this);
  	cdrom_iso_action->setCheckable(true);
 -	connect(cdrom_iso_action, &QAction::triggered, this, &MainWindow::menu_cdrom_iso);
 +	connect(cdrom_iso_action, SIGNAL(triggered()), this, SLOT(menu_cdrom_iso()));
  
  #if defined(Q_OS_LINUX)
- 	cdrom_ioctl_action = new QAction(tr("&Host CD/DVD Drive"), this);
-@@ -882,28 +882,29 @@
+-	cdrom_ioctl_action = new QAction(tr("Host CD/DVD Drive"), this);
++	cdrom_ioctl_action = new QAction(tr("&Host CD/DVD Drive"), this);
+ 	cdrom_ioctl_action->setCheckable(true);
+ 	connect(cdrom_ioctl_action, &QAction::triggered, this, &MainWindow::menu_cdrom_ioctl);
+ #endif /* linux */
+@@ -878,48 +880,49 @@
+ #endif
+ 
  	// Actions on the Settings->Mouse menu
- 	mouse_hack_action = new QAction(tr("&Follow host mouse"), this);
+-	mouse_hack_action = new QAction(tr("Follow host mouse"), this);
++	mouse_hack_action = new QAction(tr("&Follow host mouse"), this);
  	mouse_hack_action->setCheckable(true);
 -	connect(mouse_hack_action, &QAction::triggered, this, &MainWindow::menu_mouse_hack);
 +	connect(mouse_hack_action, SIGNAL(triggered()), this, SLOT(menu_mouse_hack()));
  
- 	mouse_twobutton_action = new QAction(tr("&Two-button Mouse Mode"), this);
+-	mouse_twobutton_action = new QAction(tr("Two-button Mouse Mode"), this);
++	mouse_twobutton_action = new QAction(tr("&Two-button Mouse Mode"), this);
  	mouse_twobutton_action->setCheckable(true);
 -	connect(mouse_twobutton_action, &QAction::triggered, this, &MainWindow::menu_mouse_twobutton);
 +	connect(mouse_twobutton_action, SIGNAL(triggered()), this, SLOT(menu_mouse_twobutton()));
  
  	// Actions on About menu
- 	online_manual_action = new QAction(tr("Online &Manual..."), this);
+-	online_manual_action = new QAction(tr("Online Manual..."), this);
 -	connect(online_manual_action, &QAction::triggered, this, &MainWindow::menu_online_manual);
-+	connect(online_manual_action, SIGNAL(triggered()), this, SLOT(menu_online_manual()));
- 	visit_website_action = new QAction(tr("Visit &Website..."), this);
+-	visit_website_action = new QAction(tr("Visit Website..."), this);
 -	connect(visit_website_action, &QAction::triggered, this, &MainWindow::menu_visit_website);
++	online_manual_action = new QAction(tr("Online &Manual..."), this);
++	connect(online_manual_action, SIGNAL(triggered()), this, SLOT(menu_online_manual()));
++	visit_website_action = new QAction(tr("Visit &Website..."), this);
 +	connect(visit_website_action, SIGNAL(triggered()), this, SLOT(menu_visit_website()));
  
- 	about_action = new QAction(tr("&About RPCEmu..."), this);
+-	about_action = new QAction(tr("About RPCEmu..."), this);
++	about_action = new QAction(tr("&About RPCEmu..."), this);
  	about_action->setStatusTip(tr("Show the application's About box"));
 -	connect(about_action, &QAction::triggered, this, &MainWindow::menu_about);
 +	connect(about_action, SIGNAL(triggered()), this, SLOT(menu_about()));
@@ -144,9 +173,98 @@ diff -r 5ea56ec82b4c src/qt5/main_window.cpp
  }
  
  void
-diff -r 5ea56ec82b4c src/qt5/main_window.h
---- a/src/qt5/main_window.h	Fri Oct 20 19:47:18 2017 +0100
-+++ b/src/qt5/main_window.h	Mon Oct 23 21:19:04 2017 +0100
+ MainWindow::create_menus()
+ {
+ 	// File menu
+-	file_menu = menuBar()->addMenu(tr("File"));
++	file_menu = menuBar()->addMenu(tr("&File"));
+ 	file_menu->addAction(reset_action);
+ 	file_menu->addSeparator();
+ 	file_menu->addAction(exit_action);
+ 
+ 	// Disc menu
+-	disc_menu = menuBar()->addMenu(tr("Disc"));
++	disc_menu = menuBar()->addMenu(tr("&Disc"));
+ 	disc_menu->addAction(loaddisc0_action);
+ 	disc_menu->addAction(loaddisc1_action);
+ 
+ 	// Settings menu (and submenus)
+-	settings_menu = menuBar()->addMenu(tr("Settings"));
++	settings_menu = menuBar()->addMenu(tr("&Settings"));
+ 	settings_menu->addAction(configure_action);
+ #ifdef RPCEMU_NETWORKING
+ 	settings_menu->addAction(networking_action);
+@@ -928,9 +931,9 @@
+ 	settings_menu->addAction(fullscreen_action);
+ 	settings_menu->addAction(cpu_idle_action);
+ 	settings_menu->addSeparator();
+-	cdrom_menu = settings_menu->addMenu(tr("CD-ROM"));
++	cdrom_menu = settings_menu->addMenu(tr("&CD-ROM"));
+ 	settings_menu->addSeparator();
+-	mouse_menu = settings_menu->addMenu(tr("Mouse"));
++	mouse_menu = settings_menu->addMenu(tr("&Mouse"));
+ 
+ 	// CD-ROM submenu
+ 	cdrom_menu->addAction(cdrom_disabled_action);
+@@ -953,7 +956,7 @@
+ 	menuBar()->addSeparator();
+ 
+ 	// Help menu
+-	help_menu = menuBar()->addMenu(tr("Help"));
++	help_menu = menuBar()->addMenu(tr("&Help"));
+ 	help_menu->addAction(online_manual_action);
+ 	help_menu->addAction(visit_website_action);
+ 	help_menu->addSeparator();
+@@ -1133,46 +1136,3 @@
+ #endif
+ 	}
+ }
+-
+-#if defined(Q_OS_WIN32)
+-/**
+- * windows pre event handler used by us to modify some default behaviour
+- *
+- * Disable the use of the virtual menu key (alt) that otherwise goes off
+- * every time someone presses alt in the emulated OS
+- *
+- * @param eventType unused
+- * @param message window event MSG struct
+- * @param result unused
+- * @return bool of whether we've handled the event (true) or windows/qt should deal with it (false) 
+- */
+-bool
+-MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *result)
+-{
+-	Q_UNUSED(result);
+-	Q_UNUSED(eventType);
+-
+-	MSG *msg = static_cast<MSG*>(message);
+-
+-	// Handle 'alt' key presses that would select the menu
+-	// Fake 'alt' key press and release and then tell windows/qt to
+-	// not handle it
+-	if((msg->message == WM_SYSKEYDOWN || msg->message == WM_SYSKEYUP)
+-	    && (msg->wParam == VK_MENU))
+-	{
+-		// Use the code from the qt key press and release handlers
+-		// 0x38 is the windows native keycode for alt
+-		if(msg->message == WM_SYSKEYDOWN) {
+-			held_keys.insert(held_keys.end(), 0x38);
+-			emit this->emulator.key_press_signal(0x38);
+-		} else {
+-			held_keys.remove(0x38);
+-			emit this->emulator.key_release_signal(0x38);
+-		}
+-		return true;
+-	}
+-
+-	// Anything else should be handled by the regular qt and windows handlers
+-	return false;
+-}
+-#endif // Q_OS_WIN32
+diff -r f563d0ae0170 src/qt5/main_window.h
+--- a/src/qt5/main_window.h	Sun Dec 31 20:22:10 2017 +0000
++++ b/src/qt5/main_window.h	Mon Jan 01 13:14:17 2018 +0000
 @@ -86,6 +86,7 @@
  	virtual ~MainWindow();
  
@@ -155,9 +273,9 @@ diff -r 5ea56ec82b4c src/qt5/main_window.h
  	void error(QString error);
  	void fatal(QString error);
  
-diff -r 5ea56ec82b4c src/qt5/network_dialog.cpp
---- a/src/qt5/network_dialog.cpp	Fri Oct 20 19:47:18 2017 +0100
-+++ b/src/qt5/network_dialog.cpp	Mon Oct 23 21:19:04 2017 +0100
+diff -r f563d0ae0170 src/qt5/network_dialog.cpp
+--- a/src/qt5/network_dialog.cpp	Sun Dec 31 20:22:10 2017 +0000
++++ b/src/qt5/network_dialog.cpp	Mon Jan 01 13:14:17 2018 +0000
 @@ -73,15 +73,15 @@
  	vbox->addWidget(buttons_box);
  
@@ -181,10 +299,10 @@ diff -r 5ea56ec82b4c src/qt5/network_dialog.cpp
  
  	// Set the values of the window to the config values
  	applyConfig();
-diff -r 5ea56ec82b4c src/qt5/rpc-qt5.cpp
---- a/src/qt5/rpc-qt5.cpp	Fri Oct 20 19:47:18 2017 +0100
-+++ b/src/qt5/rpc-qt5.cpp	Mon Oct 23 21:19:04 2017 +0100
-@@ -376,10 +376,10 @@
+diff -r f563d0ae0170 src/qt5/rpc-qt5.cpp
+--- a/src/qt5/rpc-qt5.cpp	Sun Dec 31 20:22:10 2017 +0000
++++ b/src/qt5/rpc-qt5.cpp	Mon Jan 01 13:14:17 2018 +0000
+@@ -408,10 +408,10 @@
  
  	emulator = new Emulator;
  	emulator->moveToThread(emu_thread);
@@ -199,7 +317,7 @@ diff -r 5ea56ec82b4c src/qt5/rpc-qt5.cpp
  
  	// Create Main Window
  	MainWindow main_window(*emulator);
-@@ -410,35 +410,35 @@
+@@ -442,35 +442,35 @@
  Emulator::Emulator()
  {
  	// Signals from the main GUI window to provide emulated machine input
@@ -254,9 +372,20 @@ diff -r 5ea56ec82b4c src/qt5/rpc-qt5.cpp
  }
  
  /**
-diff -r 5ea56ec82b4c src/rpc-linux.c
---- a/src/rpc-linux.c	Fri Oct 20 19:47:18 2017 +0100
-+++ b/src/rpc-linux.c	Mon Oct 23 21:19:04 2017 +0100
+diff -r f563d0ae0170 src/romload.c
+--- a/src/romload.c	Sun Dec 31 20:22:10 2017 +0000
++++ b/src/romload.c	Mon Jan 01 13:14:17 2018 +0000
+@@ -61,6 +61,7 @@
+ 	{ 0xe504,  { 0xe3a00402, 0xe2801004, 0xeb0001ad, 0x03a06002 }, 0xe510,  0x03a06008, "8MB VRAM RISC OS 4.37" },
+ 	{ 0xe248,  { 0xe3a00402, 0xe2801004, 0xeb0001ae, 0x03a06002 }, 0xe254,  0x03a06008, "8MB VRAM RISC OS 4.39" },
+ 	{ 0x8a764, { 0xe1a00001, 0xe2801004, 0xeb00000d, 0x03a06002 }, 0x8a770, 0x03a06008, "8MB VRAM RISC OS 6.02" },
++	{ 0x1a460, { 0xe328f202, 0xe8bd803f, 0x00000000, 0x20000000 }, 0x1a46c, 0x01c00000, "28MB WimpSlot Aemulor" },
+ };
+ 
+ /**
+diff -r f563d0ae0170 src/rpc-linux.c
+--- a/src/rpc-linux.c	Sun Dec 31 20:22:10 2017 +0000
++++ b/src/rpc-linux.c	Mon Jan 01 13:14:17 2018 +0000
 @@ -24,7 +24,9 @@
  #include <string.h>
  

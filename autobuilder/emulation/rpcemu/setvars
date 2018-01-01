@@ -18,15 +18,10 @@ ab_package() {
   mkdir -p $A/hostfs
   mkdir -p $A/poduleroms
   
-  cp -av $S/rpc.cfg $A
-  cp -av roms $A
+  cp -av roms readme.txt COPYING $A
     
   cp -av $S/riscos-progs/HostFS/hostfs,ffa $A/poduleroms
   cp -av $S/riscos-progs/HostFS/hostfsfiler,ffa $A/poduleroms
   
-  $AB_HOME/add-riscpkg -unixlib -unixhome -copyrightfile COPYING
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }
-
-  
-  
-
