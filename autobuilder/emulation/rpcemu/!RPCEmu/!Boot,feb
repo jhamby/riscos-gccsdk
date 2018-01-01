@@ -1,5 +1,5 @@
 | !Boot file for RPCEmu
 
-Set RPCEmu$Dir$Dir <Obey$Dir>
+Set RPCEmu$Dir <Obey$Dir>
 Iconsprites <RPCEmu$Dir>.!Sprites
 
