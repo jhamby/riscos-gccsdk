@@ -1,0 +1,7 @@
+|Boot file for dash
+Set Dash$Dir <Obey$Dir>
+Set Alias$dash Wimpslot -min 384K|MRun <Dash$Dir>.dash %%*0
+| Note semicolon path separator used.
+Set PATH /ADFS::4.$/home/bin;/ADFS::4/$/home/bin/CoreUtils
+Set ENV /ADFS::4.$/home/dash_init
+

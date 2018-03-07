@@ -1,0 +1,3 @@
+`stty erase ^H`
+#`stty werase ^?`
+

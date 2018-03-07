@@ -1,0 +1,16 @@
+AB_URL=http://ftp.uk.debian.org/debian/pool/main/d/dash/dash_0.5.8.orig.tar.gz
+#AB_URL=ftp://192.168.20.1/C/dash_0.5.8.orig.tar.gz
+AB_ROVERSION=2
+cp $H/cat.c $S/src/bltin
+cp $H/signames.c $S/src
+#JOBS is set to 0 with makefile.in.p
+#DEBUG=2 Trace always on, DEBUG=1 Trace option can be user set
+AB_CONFLAGS='CFLAGS=-DDEBUG=1'
+ab_package () {
+ab_create_app Dash Apps/Utilities
+cp $S/src/dash$AB_EXEEXT $A
+man -t $S/src/dash.1 | ps2pdfwr - $A/Doc/dash,adf
+  $AB_HOME/add-riscpkg -name Dash -unixlib
+ }
+AB_COPYSOURCE=no
+
