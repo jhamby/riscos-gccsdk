@@ -1,42 +1,66 @@
-Dash has been compiled with JOBS=0 so bg, fg and job control generally will not do anything.
-Also, no extra lineeditting is compiled in, but running the `stty erase ^H` command as suggested in the dash_init file will at least
-give you delete character on the backspace key.
-Optionally stty werase ^? could reassign the delete key to word erase rather than have it display the control characters.
-stty is part of the CoreUtils package.
-ENV has to be set to the full path of the dash_init file so it will found and run by dash (interactive start mode).
-In command mode the arguments following dash -c must be quoted, otherwise only the first arg is read. (same as linux)
-Note bash scripts may need tweaking for dash (look up bashisms) and pipes will probably need redirecting to /tmp/file instead.
-eg. command1 > /tmp/dtemp && command2 /tmp/dtemp && rm /tmp/dtemp
-Paths are separated with semicolons to allow full RISC OS filesystem double colons. 
-Without this full drive/path description, when the CSD (PWD) is changed to another FS/drive, the intended PATH is lost.
-See (and edit) the PATH and ENV examples in the !Dash.!Boot file.
-Variables could be used in PATHS, but the result should still be of the form /ADFS::4.$/my/path/somewhere - in other words there is
-no conversion from RISC OS.
-The dash builtin, type <cmd> is useful to observe the actual path used for the given cmd name, or if it has found the builtin cmd 
+Useage of dash in RISC OS
 
-Quoting from the documentation:
-    Path Search
+dash has been compiled with JOBS=0 so bg, fg and job control tokens are disabled.
+Also, no extra line editing is compiled in, but by running the `stty erase ^H` command, backspace will delete.
+Using the suggested dash_init file with ENV set will run this each time for this interactive use.
+ENV has to be set to the full path of the dash_init file. (see !Dash.!Boot)
+stty werase ^? could reassign the delete key to word erase rather than displaying control characters.
+The backticks are used so the stty cmd will be executed in a subshell. There are other subshell methods.
+stty cmd is part of the CoreUtils package.
 
-    When locating a command, the shell first looks to see if it has a shell function by that name. Then, if PATH does not contain
-an entry for %builtin, it looks for a builtin command by that name. Finally, it searches each entry in PATH in turn for the command.
+In command mode the arguments following dash -c must be quoted, otherwise only the first argument is read.
+*dash -c 'somecmd this that'
 
-    The value of the PATH variable should be a series of entries separated by colons. Each entry consists of a directory name, or a
-directory name followed by a flag beginning with a percent sign. The current directory should be indicated by an empty directory name.
-If no percent sign is present, then the entry causes the shell to search for the command in the specified directory. If the flag is
-%builtin then the list of shell builtin commands is searched. If the flag is %func then the directory is searched for a file which is
-read as input to the shell. This file should define a function whose name is the name of the command being searched for.
+Bash scripts may need editing for dash (search bashisms) and pipes will need redirecting to /tmp/file instead.
+$ command1 > /tmp/dtemp && command2 /tmp/dtemp && rm /tmp/dtemp
+The unixlib /tmp  = RISC OS WimpScrap$Dir
+Note: A pipe will work if it follows an inbuilt cmd. Try out the builtin cat for an example. 
 
-    Command names containing a slash are simply executed without performing any of the above searches.
-Unquote
+If Gnu make/Makefile calls dash to run a script and if SHELL=/bin/sh or no SHELL is specified, then a fd error
+is reported after an external binary such as rm or mv has closed the file. (unixlib /bin/sh = RISCOS CLI)
+One way to stop this FD error is to wrap the (file closing) cmd in brackets causing it to run in a subshell.
+(rm somefile) || exit 1
+Basic versions of builtins for mv and rm have been added and should help reduce this occurrence and overheads
+while using makefiles and scripts but builtins will also run in a subshell if needed.
+Another cure is if SHELL=dash is specified in the Makefile, but then any external cmds in the makefile 
+will need to be in PATH as opposed to the (make default) RISC OS CLI accessing system variables.
+Many utilities at riscos.info (dash also), are packaged with an alias in their !Boot file, and the
+RISC OS CLI will find the binary as long as their app directories have been seen (filer booted).
+The default Gnu make/Makefile uses the RISC OS CLI by way of unixlib being asked for /bin/sh, so can find
+those system alias's.
 
- A cmd in a given PATH item takes precedence over a builtin with the same name by appending %builtin to the particular PATH item.
+in either SHELL, some form of subshell may be required to avoid the 'window manager is in use' error
+dash ./script.sh 
+or if SHELL=dash or using interactive dash 
+. ./script.sh 
 
-Note: A cat cmd builtin from bsd has been added, The autobuilder patches could serve as a guideline, if you want to add more builtins.
-The start up wimpslot is currently 384K but running an external cmd and this doubles because of fork/exec.
+Paths for PATH are separated with semicolons instead of colons to allow RISC OS filesystem double colons. 
+Without this full drive/path description, if the CSD (PWD) changes FS, PATH would then search the new FS.
+See (and edit) the PATH and ENV examples to suit your locations in the !Dash.!Boot file.
+Variables could be used in PATH, but the result should still be of the form /ADFS::4.$/my/path/somewhere;
+In other words there is no conversion from RISC OS naming of PATH by the dash PATH search routine.
+The dash builtin type is useful to observe the actual path used for the given cmd, or if it is a builtin.
+$ type <cmd>
+
+Command names containing a slash are simply executed without performing any searches of PATH or builtins.
+A <cmd>%builtin PATH item added as in the form
+/ADFS::4.$/home/bin/CoreUtils;cat%builtin
+will cause the cat cmd from CoreUtils to be used /instead/ of the builtin cat cmd.
+
+cat, mv and rm cmd builtins have been added, The autobuilder dash patches/extra builtin files should help
+as a guide to add or change builtins.
+Adding many builtins would increase the startup wimpslot but perhaps reduce/eliminate the fork/exec wimpslot
+doubling when running external cmds.
+One issue with not running in a subshell, is that variables used can be reused by dash and following cmds.
+The optind variable from getopts() by nature doesn't initialise to zero, so this must be done after use.
+
+The current mv builtin is only capable of renaming objects within the same FS.
+For moving across different FS's the usual mv cmd would call on external cp and rm cmds.
+The current rm builtin has no recurse option, so directories must be emptied before they will delete.
+The wildcard could help if a variable list of the directory files is not at hand.
+$ rm some/subdir/* && rm some/subdir
+
+The start up wimpslot is currently 384K but running an external cmd and this will double because of fork/exec.
 Still, this is a lot smaller than Bash that starts with over a MB and also doubles when running external cmds.
 
-The smallest memory footprint might be achieved by having cmds small and large, as builtins, but in a shared library so they don't
-have to be all loaded at startup in the way a static build does.
-
----
-
+End

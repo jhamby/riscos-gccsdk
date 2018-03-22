@@ -1,6 +1,6 @@
 --- src/exec.c.orig	2018-02-23 09:59:30.099939830 +1300
-+++ src/exec.c	2018-03-02 16:31:24.481557969 +1300
-@@ -151,15 +151,15 @@
++++ src/exec.c	2018-03-20 23:56:03.184051203 +1300
+@@ -151,14 +151,15 @@
  STATIC void
  tryexec(char *cmd, char **argv, char **envp)
  {
@@ -14,12 +14,11 @@
  		execve(cmd, argv, envp);
  	} while (errno == EINTR);
  #else
--	execve(cmd, argv, envp);
-+	execve(cmd, ++argv, envp);
++argv++;
+ 	execve(cmd, argv, envp);
  #endif
  	if (cmd != path_bshell && errno == ENOEXEC) {
- 		*argv-- = cmd;
-@@ -193,7 +193,7 @@
+@@ -193,7 +194,7 @@
  	if (*path == NULL)
  		return NULL;
  	start = *path;
@@ -28,7 +27,7 @@
  	len = p - start + strlen(name) + 2;	/* "2" is for '/' and '\0' */
  	while (stackblocksize() < len)
  		growstackblock();
-@@ -207,9 +207,9 @@
+@@ -207,9 +208,9 @@
  	pathopt = NULL;
  	if (*p == '%') {
  		pathopt = ++p;

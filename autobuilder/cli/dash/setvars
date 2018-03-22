@@ -1,7 +1,6 @@
 AB_URL=http://ftp.uk.debian.org/debian/pool/main/d/dash/dash_0.5.8.orig.tar.gz
-#AB_URL=ftp://192.168.20.1/C/dash_0.5.8.orig.tar.gz
 AB_ROVERSION=2
-cp $H/cat.c $S/src/bltin
+cp $H/cat.c $H/mv.c $H/rm.c $S/src/bltin
 cp $H/signames.c $S/src
 #JOBS is set to 0 with makefile.in.p
 #DEBUG=2 Trace always on, DEBUG=1 Trace option can be user set
