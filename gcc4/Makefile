@@ -706,7 +706,7 @@ $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.bz2:
 # Download mpc source:
 $(SRCORIGDIR)/mpc-$(MPC_VERSION).tar.gz:
 	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && wget -c http://www.multiprecision.org/mpc/download/mpc-$(MPC_VERSION).tar.gz
+	cd $(SRCORIGDIR) && wget -c http://www.multiprecision.org/downloads/mpc-$(MPC_VERSION).tar.gz
 	touch $@
 
 # Download mpfr source:
