@@ -1,15 +1,20 @@
-AB_URL=https://tls.mbed.org/download/mbedtls-1.3.10-gpl.tgz
+#AB_URL=https://tls.mbed.org/download/mbedtls-2.8.0-apache.tgz
+AB_GIT=https://github.com/ARMmbed/mbedtls.git
 AB_CATEGORY=Library
 AB_PACKAGE=mbedtls
+
+ab_make() {
+	$AB_MAKE CFLAGS="-Dunix=1"
+}
 
 ab_package() {
 	export DD=$D/mbedtls/Apps/Library/!mbedTLS
 	mkdir -p $DD
-        mkdir -p $DD/include/polarssl
-        cp -r $S/include/polarssl $DD/include
+        mkdir -p $DD/include/mbedtls
+        cp -r $S/include/mbedtls $DD/include
         
         mkdir -p $DD/lib
-        cp $S/library/libpolarssl.* $S/library/libmbedtls.* $DD/lib
+        cp $S/library/libmbedtls.* $DD/lib
         
         mkdir -p $DD/bin
         for prog in $S/programs/*/* ; do              
@@ -23,3 +28,15 @@ ab_package() {
         done
 
 }
+
+# use master branch, not development
+git checkout master
+# extract version number from source code
+MB_TREE=.
+MB_VERSION=$(awk 'match($0, /\yMBEDTLS_VERSION_STRING\y/){print $3}' $MB_TREE/include/mbedtls/version.h)
+AB_PVERSION_mbedtls=$(echo $MB_VERSION | tr -d '\"')
+echo "Setting AB_PVERSION_mbedtls to $AB_PVERSION_mbedtls"
+# on master branch, shouldn't need to track daily commits as version should be bumped
+#AB_ROVERSION_mbedtls=$(date +%Y%m%d)
+#echo "Setting AB_ROVERSION_mbedtls to $AB_ROVERSION_mbedtls"
+
