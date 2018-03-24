@@ -1,0 +1,10 @@
+Description: dash is a smaller faster shell than bash, used by Ubuntu for booting.
+ Some bash features are not supported, so scripts may need editing in places.
+ .
+ *Can be used interactively from standard input
+ *Ash scripting language for use with functions, builtin commands, external
+ CoreUtils commands and unix utilities like grep, mawk and sed.
+ *Potential for running Gnu makefiles with bash/ash scripts in native RISC OS
+ *Has standard builtins, including exec, printf, echo, test, cd.
+ *Currently, added non-standard builtins are cat, rm and mv
+

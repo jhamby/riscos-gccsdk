@@ -52,7 +52,7 @@ as a guide to add or change builtins.
 Adding many builtins would increase the startup wimpslot but perhaps reduce/eliminate the fork/exec wimpslot
 doubling when running external cmds.
 One issue with not running in a subshell, is that variables used can be reused by dash and following cmds.
-The optind variable from getopts() by nature doesn't initialise to zero, so this must be done after use.
+The optind variable from getopt() by nature doesn't initialise to zero, so this must be done after use.
 
 The current mv builtin is only capable of renaming objects within the same FS.
 For moving across different FS's the usual mv cmd would call on external cp and rm cmds.
@@ -60,7 +60,9 @@ The current rm builtin has no recurse option, so directories must be emptied bef
 The wildcard could help if a variable list of the directory files is not at hand.
 $ rm some/subdir/* && rm some/subdir
 
-The start up wimpslot is currently 384K but running an external cmd and this will double because of fork/exec.
-Still, this is a lot smaller than Bash that starts with over a MB and also doubles when running external cmds.
+rm is always is in force mode (normally -f) to avoid the peculiarity of it not deleting at all without -f.
 
+The start up wimpslot is currently 384K but running an external cmd and this will double because of fork/exec.
+Still, this is a lot smaller than Bash that starts with over a MB and also doubles when running external cmds
+or subshells.
 End
