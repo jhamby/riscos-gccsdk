@@ -1,3 +1,4 @@
+AB_URL=http://ftp.debian.org/debian/pool/main/w/wget/wget_1.19.4.orig.tar.gz
 AB_CONFLAGS="--disable-ipv6 --enable-threads=pth --with-ssl=openssl"
 export gl_cv_func_gettimeofday_clobber=no
 
@@ -11,5 +12,4 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }
 
-export LIBS='-ldl'
-autoconf
+
