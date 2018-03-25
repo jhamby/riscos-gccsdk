@@ -14,7 +14,7 @@ ab_package() {
         cp -r $S/include/mbedtls $DD/include
         
         mkdir -p $DD/lib
-        cp $S/library/libmbedtls.* $DD/lib
+        cp $S/library/libmbed* $DD/lib
         
         mkdir -p $DD/bin
         for prog in $S/programs/*/* ; do              
