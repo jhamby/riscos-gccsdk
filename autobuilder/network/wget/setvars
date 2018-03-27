@@ -1,6 +1,8 @@
+
 AB_URL=http://ftp.debian.org/debian/pool/main/w/wget/wget_1.19.4.orig.tar.gz
 AB_CONFLAGS="--disable-ipv6 --enable-threads=pth --with-ssl=openssl"
 export gl_cv_func_gettimeofday_clobber=no
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_command_app Wget Apps/Network
@@ -8,8 +10,9 @@ ab_package() {
 
   ab_docs -h $S/doc/wget.info $S/README $S/AUTHORS $S/COPYING $S/MAILING-LIST
   ab_docs $S/NEWS $S/ChangeLog
-
+man -t $S/doc/wget.1 | ps2pdfwr - $A/docs/wget,adf
   $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }
+AB_COPYSOURCE=no
 
 
