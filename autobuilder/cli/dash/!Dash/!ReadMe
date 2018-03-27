@@ -1,4 +1,4 @@
-Useage of dash in RISC OS
+Useage of dash in RISC OS   - Please read the WARNING text before using.
 
 dash has been compiled with JOBS=0 so bg, fg and job control tokens are disabled.
 Also, no extra line editing is compiled in, but by running the `stty erase ^H` command, backspace will delete.
@@ -14,7 +14,9 @@ In command mode the arguments following dash -c must be quoted, otherwise only t
 Bash scripts may need editing for dash (search bashisms) and pipes will need redirecting to /tmp/file instead.
 $ command1 > /tmp/dtemp && command2 /tmp/dtemp && rm /tmp/dtemp
 The unixlib /tmp  = RISC OS WimpScrap$Dir
-Note: A pipe will work if it follows an inbuilt cmd. Try out the builtin cat for an example. 
+Note: A pipe will work if it follows an inbuilt cmd. Try out the builtin cat for an example.
+Command substitution also only works with inbuilt cmds. A tmp file can be used, then cat for the substitution.
+$ HOST_FS=$(uname > /tmp/t1 && cat /tmp/t1)  
 
 If Gnu make/Makefile calls dash to run a script and if SHELL=/bin/sh or no SHELL is specified, then a fd error
 is reported after an external binary such as rm or mv has closed the file. (unixlib /bin/sh = RISCOS CLI)
@@ -39,13 +41,15 @@ Without this full drive/path description, if the CSD (PWD) changes FS, PATH woul
 See (and edit) the PATH and ENV examples to suit your locations in the !Dash.!Boot file.
 Variables could be used in PATH, but the result should still be of the form /ADFS::4.$/my/path/somewhere;
 In other words there is no conversion from RISC OS naming of PATH by the dash PATH search routine.
-The dash builtin type is useful to observe the actual path used for the given cmd, or if it is a builtin.
+The dash builtin 'type' is useful to observe the actual path used for any given cmd, or if it is a builtin.
 $ type <cmd>
 
 Command names containing a slash are simply executed without performing any searches of PATH or builtins.
 A <cmd>%builtin PATH item added as in the form
 /ADFS::4.$/home/bin/CoreUtils;cat%builtin
 will cause the cat cmd from CoreUtils to be used /instead/ of the builtin cat cmd.
+
+Similar to the way PATH is specified, CD_PATH allows the cd cmd to jump to any of the listed directories.
 
 cat, mv and rm cmd builtins have been added, The autobuilder dash patches/extra builtin files should help
 as a guide to add or change builtins.
@@ -65,4 +69,5 @@ rm is always is in force mode (normally -f) to avoid the peculiarity of it not d
 The start up wimpslot is currently 384K but running an external cmd and this will double because of fork/exec.
 Still, this is a lot smaller than Bash that starts with over a MB and also doubles when running external cmds
 or subshells.
+
 End
