@@ -660,7 +660,7 @@ create_focus_event (GdkRiscosDisplay *rdisplay,
   GdkRISCOSDeviceManager *device_manager;
 
   event = gdk_event_new (GDK_FOCUS_CHANGE);
-  event->focus_change.window = window;
+  event->focus_change.window = g_object_ref (window);
   event->focus_change.in = in;
 
   device_manager = GDK_RISCOS_DEVICE_MANAGER (rdisplay->parent_instance.device_manager);
