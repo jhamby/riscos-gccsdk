@@ -493,6 +493,7 @@ src-automake-for-binutils-copied: $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS
 	cd $(SRCORIGDIR) && tar xf $<
 	-mkdir -p $(SRCDIR)/automake-for-binutils
 	cp -T -p -r $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION) $(SRCDIR)/automake-for-binutils
+	cd $(SRCDIR)/automake-for-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 	touch $(BUILDSTEPSDIR)/$@
 
 ifneq ($(AUTOCONF_AUTOMAKE_LIBTOOL_FOR_BINUTILS_VERSIONS),$(AUTOCONF_AUTOMAKE_LIBTOOL_FOR_GCC_VERSIONS))
@@ -502,6 +503,7 @@ src-automake-for-gcc-copied: $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).
 	cd $(SRCORIGDIR) && tar xf $<
 	-mkdir -p $(SRCDIR)/automake-for-gcc
 	cp -T -p -r $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION) $(SRCDIR)/automake-for-gcc
+	cd $(SRCDIR)/automake-for-gcc && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 	touch $(BUILDSTEPSDIR)/$@
 endif
 
