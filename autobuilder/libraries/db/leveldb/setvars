@@ -37,18 +37,20 @@ ab_package() {
   ab_create_app leveldb Library libleveldb-dev
 
   install_headers $GCCSDK_INSTALL_ENV/include/leveldb $A
-  cp $S/*.a $A
+  cp $S/out-static/*.a $A
 
   $AB_HOME/add-riscpkg -package "libleveldb-dev" -unixlib -name LibLevelDB-Dev
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+
     ab_create_sharedlib_skeleton libleveldb
 
     AB_COMPONENTS=""
 
-    ab_add_sharedlib $S libleveldb.so.1
+    ab_add_sharedlib $S/out-shared libleveldb.so.1
 
     $AB_HOME/add-riscpkg -package libleveldb -name LibLevelDB -depends SharedLibs \
 		-section Library
   fi
+echo ab_package done
 }
