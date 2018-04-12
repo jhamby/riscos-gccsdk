@@ -1,7 +1,7 @@
 AB_INSTALL=yes
 AB_PVERSION=`echo "$AB_PVERSION" | sed -e "s/error-//"`
 
-cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabihf.h \
+cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h \
    src/syscfg/lock-obj-pub.riscos.h
 
 ab_package() {
