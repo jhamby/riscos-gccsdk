@@ -1,7 +1,33 @@
-Although dash can run cleanly with the correct commands and scripts, and if things go wrong usually will
-stop with an error message, it is easily possible to cause wimp crashes and potentially FS corruption.
-Where possible, use RAM or a less important drive at least until problems are thoroughly sorted.
-In particular, getting the working directory away from (the default) main boot drive would be wise.
+WARNING
 
-Trying to run a bash script before it's syntax is changed for dash/ash is a likely problem.
-Ubuntu spent some time changing scripts to suit dash when they adopted it for booting.
+Although dash can run cleanly with the correct commands and scripts, and if things go wrong
+will usually stop with an error message, it is easily possible to cause wimp crashes with
+the potential for FS corruption.
+Running a bash script before checking is a likely problem.
+Where possible, use RAM or a less important drive at least until problems are thoroughly sorted.
+Using WimpScrap$Dir in RAM would be safer also.
+In particular, it would be wise to set the RISC OS CSD away from the default.
+The default CSD is the root directory of your boot drive.
+
+###### Achtung: Potenzielle Beschädigung des Dateisystems ######
+
+Das CSD (”currently selected directory• = aktuelles Arbeitsverzeichnis) ist standardmäßig
+das Wurzelverzeichnis der initialisierenden Festplatte/SD-Karte.
+Um Schäden an dieser kritischen Stelle zu vermeiden ist es ratsam, das CSD auf ein anderes
+Verzeichnis zu setzen, idealerweise auf die RAM-Disk.
+
+###### Attention : corruption potentielle du système de fichiers ######
+
+Le répertoire de travail (CSD) est la racine du volume de stockage. Il est recommandé de fixer
+le répertoire de travail à un autre emplacement (commande Set directory),
+ou mieux encore d‘utiliser RAMFS.
+
+###### Waarschuwing: Mogelijke corruptie van het bestandssysteem. ######
+
+De standaard CSD/werkmap is de hoofdmap van de opstartschijf/SD-kaart.
+Het verdient aanbeveling om de CSD/werkmap ergens anders te plaatsen.
+Nog beter: gebruik de RAMFS.
+
+
+
+
