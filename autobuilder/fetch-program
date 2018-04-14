@@ -95,7 +95,8 @@ else
   else
     # Slower method.  Fetch packages file ourself and parse it.
     debarchive=http://ftp.uk.debian.org/debian
-    distros="testing stable"
+    #distros="testing stable"
+    distros="stable oldstable"
     #debarchive=http://mirrors.kernel.org/debian
     #debarchive=http://gb.archive.ubuntu.com/ubuntu/
     #distros="precise"
