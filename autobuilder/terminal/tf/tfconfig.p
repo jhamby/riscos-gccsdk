@@ -1,5 +1,5 @@
---- unix/tfconfig.old	2003-02-04 12:34:44.000000000 +0000
-+++ unix/tfconfig	2003-02-04 12:58:42.000000000 +0000
+--- unix/tfconfig-old	2018-04-14 18:05:37.000000000 +0100
++++ unix/tfconfig	2018-04-14 18:06:04.000000000 +0100
 @@ -35,7 +35,7 @@
  
  ### Initialize variables, just in case they're already defined.
@@ -18,7 +18,15 @@
  
  if [ -z "$USER" ]; then USER=$LOGNAME; fi
  export USER
-@@ -632,13 +632,13 @@
+@@ -225,6 +225,7 @@
+ echo 'To change these locations type "n" now and edit the unix/Config file.'
+ while [ -z "$ans" ]; do
+     echo 'Continue? (y/n)'
++    break
+     read ans;
+     case "$ans" in
+     y|Y)  break ;;
+@@ -632,13 +633,13 @@
      return !(toupper('a') == 'A' && toupper('A') == 'A' && toupper('@') == '@');
  }
  EOF
