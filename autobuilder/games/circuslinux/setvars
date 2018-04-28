@@ -1,4 +1,4 @@
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 # AB_MAKE="$AB_MAKE circuslinux"
 
@@ -18,7 +18,7 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -unixsound -name CircusLinux
 }
 
-export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -lmikmod -logg"
+export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -lmikmod -logg"
 
 # Stop automake re-running as one used in circuslinux is not
 # compatible with latest from debian
