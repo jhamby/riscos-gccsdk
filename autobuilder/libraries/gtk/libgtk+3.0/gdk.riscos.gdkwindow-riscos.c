@@ -127,10 +127,10 @@ gdk_window_impl_riscos_finalize (GObject *object)
 
   wrapper = impl->wrapper;
 
+  riscos_display = GDK_RISCOS_DISPLAY (gdk_window_get_display (wrapper));
+
   if (riscos_display->pointer_grab.window == wrapper)
     riscos_display->pointer_grab.window = NULL;
-
-  riscos_display = GDK_RISCOS_DISPLAY (gdk_window_get_display (wrapper));
 #if 0
   if (riscos_display->mouse_in_toplevel == GDK_WINDOW (wrapper))
     {
