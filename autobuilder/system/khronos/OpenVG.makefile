@@ -16,6 +16,8 @@ INCLUDES += \
 	-I$(USERLAND_DIR)/interface/khronos/include \
 	-I$(USERLAND_DIR)
 
+SONAME = libOpenVG.so
+
 include $(DEPTH)/rules.mk
  
 

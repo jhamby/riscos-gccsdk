@@ -8,6 +8,11 @@ ASM_SHOBJS = $(patsubst %.s,%.os,$(ASMSRCS))
 OBJS = $(MODULE_OBJECT) $(C_OBJS) $(ASM_OBJS) $(CPP_OBJS)
 SHOBJS = $(MODULE_OBJECT) $(C_SHOBJS) $(ASM_SHOBJS) $(CPP_OBJS)
 
+ifneq ($(SONAME),)
+SONAME_OPT=-Wl,-soname=$(SONAME)
+else
+SONAME_OPT=
+endif
 
 all::
 	$(MAKE) build
@@ -62,7 +67,7 @@ $(TARGET): $(TARGET).so $(TARGET).a $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJ
 
 $(TARGET).so: $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
 	@echo Generating shared library $(TARGET).so
-	$(LINK) -o $(TARGET).so $(SHOBJS) $(LIBS) $(SYSTEM_LIBS) -shared -Wl,--no-undefined -mfpu=vfp
+	$(LINK) -o $(TARGET).so $(SHOBJS) $(LIBS) $(SYSTEM_LIBS) $(SONAME_OPT) -shared -Wl,--no-undefined -mfpu=vfp
 
 $(TARGET).a: $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
 	@echo Generating archive library $(TARGET).a

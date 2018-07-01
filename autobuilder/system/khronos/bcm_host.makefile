@@ -16,6 +16,8 @@ INCLUDES += \
 	-I$(USERLAND_DIR)/interface/khronos/include \
 	-I$(USERLAND_DIR)
 
+SONAME = libbcm_host.so
+
 include $(DEPTH)/rules.mk
  
 install:
