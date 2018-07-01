@@ -1,6 +1,6 @@
---- configure.orig	2012-05-02 05:17:08.000000000 +0100
-+++ configure	2012-06-08 13:24:31.612028800 +0100
-@@ -385,14 +385,16 @@
+--- configure.orig	2013-03-24 05:30:09.000000000 +0000
++++ configure	2018-07-01 12:26:23.228773998 +0100
+@@ -427,14 +427,16 @@
  #include <sys/types.h>
  off64_t dummy = 0;
  EOF
@@ -25,12 +25,12 @@
    echo "Checking for off64_t... No." | tee -a configure.log
    echo >> configure.log
    cat > $test.c <<EOF
-@@ -409,7 +411,7 @@
+@@ -451,7 +453,7 @@
      SFLAGS="${SFLAGS} -DNO_FSEEKO"
      echo "Checking for fseeko... No." | tee -a configure.log
    fi
 -fi
 +#fi
-
+ 
  echo >> configure.log
-
+ 
