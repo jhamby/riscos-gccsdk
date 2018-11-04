@@ -1,4 +1,5 @@
-
+# Using a direct download for now as we need at least version 7.62.0 for other development
+AB_URL=http://http.debian.net/debian/pool/main/c/curl/curl_7.62.0.orig.tar.gz
 AB_INSTALL=yes
 
 AB_CONFLAGS="--disable-gopher --disable-ldap --disable-dict --disable-telnet --disable-manual"
@@ -6,13 +7,13 @@ AB_CONFLAGS="--disable-gopher --disable-ldap --disable-dict --disable-telnet --d
 # The rman conversion in ro-install can't cope with the ".so" link
 # so copy the linked document over it.
 cp -f docs/libcurl/curl_multi_socket.3 docs/libcurl/curl_multi_socket_all.3
-
+cp -f docs/libcurl/curl_strequal.3 docs/libcurl/curl_strnequal.3
+#export V=1
 ab_package() {
   ab_create_app LibCurl3 Apps/Library libcurl3-dev
 
   HERE=`pwd`
   cd $A
-
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
   
   # Need to retype the converted manual files
@@ -41,5 +42,22 @@ echo "clean:" > docs/Makefile
 echo "distclean:" >> docs/Makefile
 
   $AB_HOME/add-riscpkg -unixlib -name LibCurl3-Dev -copyrightfile COPYING
-}
 
+# Add description as we are downloading a later version than in debian
+# this can be removed once debian catches up.
+  mkdir -p $D/libcurl3-dev/RiscPkg
+  echo "Description: development files and documentation for libcurl (OpenSSL flavour)" >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " libcurl is an easy-to-use client-side URL transfer library, supporting DICT," >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " FILE, FTP, FTPS, GOPHER, HTTP, HTTPS, IMAP, IMAPS, LDAP, LDAPS, POP3, POP3S," >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " RTMP, RTSP, SCP, SFTP, SMTP, SMTPS, TELNET and TFTP." >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " libcurl is free, thread-safe, IPv6 compatible, feature rich, well supported," >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " fast, thoroughly documented and is already used by many known, big and" >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " successful companies and numerous applications." >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " This package provides the development files (ie. includes, static library," >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " manual pages) that allow one to build software which uses libcurl." >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libcurl3-dev/RiscPkg/Control,fff
+  echo " SSL support is provided by OpenSSL." >> $D/libcurl3-dev/RiscPkg/Control,fff
+
+}
