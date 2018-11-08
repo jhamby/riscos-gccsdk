@@ -197,7 +197,7 @@ ab_package() {
 
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package qt5base -name Qt5Base \
-	-depends SharedLibs -depends LibPNG12-0 -depends ZLib1g \
+	-depends SharedLibs -depends LibPNG16-16 -depends ZLib1g \
 	-depends LibJPEG8 -depends LibSQLite3 -depends LibPcre3 \
 	-depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
 	-depends LibICU52 -depends LibSSL \

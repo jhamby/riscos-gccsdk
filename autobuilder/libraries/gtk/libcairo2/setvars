@@ -53,7 +53,7 @@ ab_package() {
 
     $AB_HOME/add-riscpkg -package "libcairo2" -name LibCairo2 \
 	-depends SharedLibs -depends LibFontConfig1 -depends LibFreeType6 \
-	-depends LibPixman-1-0 -depends LibPNG12-0 -suggests UnixFont
+	-depends LibPixman-1-0 -depends LibPNG16-16 -suggests UnixFont
 
     # Don't overwrite the original !SharedLibs.!Boot.
   fi

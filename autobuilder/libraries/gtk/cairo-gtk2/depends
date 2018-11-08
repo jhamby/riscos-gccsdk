@@ -2,6 +2,6 @@ libfreetype6
 libfontconfig1
 zlib1g
 libxrender1
-libpng12-0
+libpng16-16
 libpixman-1-0
 libexpat1

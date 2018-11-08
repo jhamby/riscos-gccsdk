@@ -20,7 +20,7 @@ ab_package() {
     AB_COMPONENTS=""
     $AB_HOME/add-riscpkg -name LibSDL2-ttf -section Library -package libsdl2-ttf \
          -depends LibSDL2 -depends SharedLibs-C2 -depends LibFreeType6 \
-         -depends LibPNG12-0 -depends ZLib1g
+         -depends LibPNG16-16 -depends ZLib1g
   fi
 
   ab_create_app LibSDL2-ttf-Dev Apps/Library libsdl2-ttf-dev

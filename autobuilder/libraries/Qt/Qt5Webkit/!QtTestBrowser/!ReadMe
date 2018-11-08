@@ -16,7 +16,7 @@ Library/package dependencies:
 Qt5Base
 LevelDB
 libz
-libpng12
+libpng16
 icu (libicui18n, libicuuc, libicudata)
 libfontconfig
 libfreetype

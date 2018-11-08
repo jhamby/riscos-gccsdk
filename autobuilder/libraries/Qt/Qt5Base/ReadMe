@@ -8,7 +8,7 @@ on it will only run on a 32 bit OS (eg, RISC OS 5).
 Library dependencies:
 
 libz
-libpng12
+libpng16
 icu (libicui18n, libicuuc, libicudata)
 libfontconfig
 libfreetype
