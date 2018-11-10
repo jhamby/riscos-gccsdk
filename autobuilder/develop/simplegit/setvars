@@ -1,0 +1,15 @@
+AB_GIT=https://github.com/sba1/simplegit
+
+ab_make() {
+  make libgit2
+  make
+}
+
+ab_package() {
+  ab_create_command_app SimpleGit Apps/Development
+  ab_add_commands $S/bin/sgit
+
+  cp $S/ReadMe.md $A
+
+  $AB_HOME/add-riscpkg -unixlib
+}
