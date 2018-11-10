@@ -1,0 +1,51 @@
+AB_ROVERSION=3
+AB_INSTALL=yes
+
+export ECHO=echo
+
+ab_make() {
+  if [ "$AB_ELFBUILD" != "yes" ] ; then
+    # GCCSDK 3.4.6 support
+    cp scripts/makefile.gcc Makefile
+  fi
+  $AB_MAKE
+}
+
+ab_package() {
+  ab_create_app LibPNG Apps/Library libpng16-dev
+
+  cat $S/libpng-manual.txt >> $A/\!Help,fff
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/libpng16 libpng16
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  rm -rf bin
+
+  cd $HERE
+
+  # Downloaded version can include a character that is invalid
+  # for a riscpkg version number so replace it
+  AB_PVERSION=`echo "$AB_PVERSION" | sed "s/~/-/"`
+
+  $AB_HOME/add-riscpkg -unixlib -name LibPNG16-Dev -depends "ZLib1g-Dev"
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libpng16-16
+     ab_add_sharedlib $S/.libs libpng16.so.16
+
+     $AB_HOME/add-riscpkg -package libpng16-16 -name LibPNG16-16 -depends "ZLib1g"
+  fi
+}
