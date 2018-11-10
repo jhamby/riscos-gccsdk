@@ -1,0 +1,18 @@
+AB_INSTALL=yes
+
+echo "WARNING: This is broken due to missing mmap()"
+echo "WARNING: See https://www.riscos.info/pipermail/gcc/2018-November/006791.html"
+
+ab_make() {
+  cmake -DCMAKE_TOOLCHAIN_FILE=$H/toolchain-riscos.cmake \
+        -DRISCOS=1 \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DTHREADSAFE=OFF \
+        -DBUILD_CLAR=OFF \
+        -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV \
+        .
+  $AB_MAKE
+  mkdir -p $D/lib
+  cp -av $S/libgit2.a $D/lib
+  cp -av $S/include $D
+}
