@@ -1,0 +1,40 @@
+--- CMake/CMakeLists.txt
++++ CMake/CMakeLists.txt
+@@ -55,15 +55,25 @@ set(CMAKE_BUILD_TYPE Debug)
+ #set(CMAKE_BUILD_TYPE Release)
+ 
+ include_directories(${INCLUDE_DIRECTORIES})
+-include_directories(${LIBGIT2_DIRECTORY}/include)
+-set(LIBS ${LIBS} git2.a pthread.a ${LIB_SHA1})
+-link_directories(${LIBGIT2_BUILD_DIRECTORY})
++IF (RISCOS)
++	find_library(LIBGIT2_LIBRARY git2)
++	find_library(HTTPPARSER_LIBRARY libhttp_parser.a)
++	find_library(ZLIB_LIBRARY libz.a)
++	set(LIBS ${LIBS} ${LIBGIT2_LIBRARY} ${HTTPPARSER_LIBRARY} ${ZLIB_LIBRARY} pthread.a ${LIB_SHA1})
++ELSE()
++	include_directories(${LIBGIT2_DIRECTORY}/include)
++	set(LIBS ${LIBS} git2.a pthread.a ${LIB_SHA1})
++	link_directories(${LIBGIT2_BUILD_DIRECTORY})
++ENDIF()
+ 
+ IF (AMIGA)
+ 	include_directories(${ROOT_DIRECTORY}/libgit2/deps/regex)
+ 	link_directories(${ROOT_DIRECTORY}/interim-openssl/openssl/repo/)
+ 	set(LIBS ${LIBS} ssl.a crypto.a)
+ 	set(LIBS ${LIBS} unix.a auto.a)
++ELSEIF(RISCOS)
++	include_directories(${OPENSSL_INCLUDE_DIR})
++	set(LIBS ${LIBS} ${OPENSSL_LIBRARIES})
+ ELSE()
+ 	set(LIBS ${LIBS} ssl crypto)
+ ENDIF()
+@@ -86,7 +96,7 @@ set_target_properties(sgit-bin PROPERTIES LINK_FLAGS -Wl,--cref,-M,-Map=sgit.map
+ add_dependencies(sgit-bin build_libgit2)
+ target_link_libraries(sgit-bin sgit-lib ${LIBS})
+ 
+-IF (NOT AMIGA)
++IF (NOT AMIGA AND NOT RISCOS)
+ 	enable_testing()
+ 
+ 	add_executable(sgit-test ${UNIT_TESTS_DIRECTORY}/sgit-test.c)

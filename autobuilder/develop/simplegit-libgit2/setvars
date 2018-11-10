@@ -1,0 +1,17 @@
+AB_GIT=https://github.com/sba1/simplegit
+
+echo "WARNING: This is currently broken due to missing mmap()"
+echo "WARNING: See https://www.riscos.info/pipermail/gcc/2018-November/006791.html"
+
+#ab_make() {
+#  make
+#}
+
+ab_package() {
+  ab_create_command_app SimpleGit Apps/Development
+  ab_add_commands $S/bin/sgit
+
+  cp $S/ReadMe.md $A
+
+  $AB_HOME/add-riscpkg -unixlib
+}
