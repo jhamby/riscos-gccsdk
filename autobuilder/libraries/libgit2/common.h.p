@@ -11,3 +11,12 @@
  #ifdef __amigaos4__
  #include <netinet/in.h>
  #endif
+@@ -84,6 +84,8 @@
+  */
+ #ifdef GIT_WIN32
+ #define GIT_PATH_LIST_SEPARATOR ';'
++#elif defined(GIT_RISCOS)
++#define GIT_PATH_LIST_SEPARATOR ','
+ #else
+ #define GIT_PATH_LIST_SEPARATOR ':'
+ #endif
