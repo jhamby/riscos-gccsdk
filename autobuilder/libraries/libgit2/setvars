@@ -2,9 +2,6 @@ AB_URL=https://github.com/libgit2/libgit2/archive/v0.27.7.tar.gz
 
 AB_INSTALL=yes
 
-echo "WARNING: This is broken due to missing mmap()"
-echo "WARNING: See https://www.riscos.info/pipermail/gcc/2018-November/006791.html"
-
 ab_make() {
   cmake -DCMAKE_TOOLCHAIN_FILE=$H/toolchain-riscos.cmake \
         -DRISCOS=1 \

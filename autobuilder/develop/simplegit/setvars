@@ -1,5 +1,7 @@
 AB_GIT=https://github.com/sba1/simplegit
 
+AB_PVERSION=`git rev-list HEAD --count`
+
 ab_make() {
   make libgit2
   make

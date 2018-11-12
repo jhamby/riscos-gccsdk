@@ -1,7 +1,6 @@
 AB_GIT=https://github.com/sba1/simplegit
 
-echo "WARNING: This is currently broken due to missing mmap()"
-echo "WARNING: See https://www.riscos.info/pipermail/gcc/2018-November/006791.html"
+AB_PVERSION=`git rev-list HEAD --count`
 
 #ab_make() {
 #  make
