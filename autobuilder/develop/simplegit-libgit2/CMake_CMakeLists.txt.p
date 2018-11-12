@@ -1,6 +1,6 @@
 --- CMake/CMakeLists.txt
 +++ CMake/CMakeLists.txt
-@@ -55,15 +55,25 @@ set(CMAKE_BUILD_TYPE Debug)
+@@ -55,15 +55,27 @@ set(CMAKE_BUILD_TYPE Debug)
  #set(CMAKE_BUILD_TYPE Release)
  
  include_directories(${INCLUDE_DIRECTORIES})
@@ -8,10 +8,12 @@
 -set(LIBS ${LIBS} git2.a pthread.a ${LIB_SHA1})
 -link_directories(${LIBGIT2_BUILD_DIRECTORY})
 +IF (RISCOS)
++SET(CMAKE_FIND_LIBRARY_SUFFIXES .a)
++	find_library(SSH2_LIBRARY ssh2)
 +	find_library(LIBGIT2_LIBRARY git2)
-+	find_library(HTTPPARSER_LIBRARY libhttp_parser.a)
-+	find_library(ZLIB_LIBRARY libz.a)
-+	set(LIBS ${LIBS} ${LIBGIT2_LIBRARY} ${HTTPPARSER_LIBRARY} ${ZLIB_LIBRARY} pthread.a ${LIB_SHA1})
++	find_library(HTTPPARSER_LIBRARY http_parser)
++	find_library(ZLIB_LIBRARY z)
++	set(LIBS ${LIBS} ${LIBGIT2_LIBRARY} ${HTTPPARSER_LIBRARY} ${ZLIB_LIBRARY} ${SSH2_LIBRARY} pthread.a ${LIB_SHA1})
 +ELSE()
 +	include_directories(${LIBGIT2_DIRECTORY}/include)
 +	set(LIBS ${LIBS} git2.a pthread.a ${LIB_SHA1})
