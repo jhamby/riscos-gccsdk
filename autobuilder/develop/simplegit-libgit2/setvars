@@ -2,6 +2,8 @@ AB_GIT=https://github.com/sba1/simplegit
 
 AB_PVERSION=`git rev-list HEAD --count`
 
+AB_ROVERSION=2
+
 #ab_make() {
 #  make
 #}
@@ -12,5 +14,5 @@ ab_package() {
 
   cp $S/ReadMe.md $A
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -depends CryptRandom
 }
