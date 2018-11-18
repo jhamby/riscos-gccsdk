@@ -1,0 +1,116 @@
+
+This is a port of SimpleGit, a simple implementation of a git client.
+
+https://github.com/sba1/simplegit
+
+See the ReadMe/md file in the app folder for more information on the project.
+
+Usage notes
+===========
+
+TaskWindow usage
+----------------
+
+Some commands, like `sgit clone`, make use of VDU codes to update a progress indicator. So you'll probably want to avoid simple TaskWindow clients like !Edit. !StrongED works fine for this, and probably !Zap does too.
+
+
+Filename and filetype mapping
+-----------------------------
+
+Currently sgit is reliant on UnixLib's default filename & filetype translation logic.
+
+* When providing a filename to sgit, it's probably best to provide the Unix version of the filename.
+
+* Your mimemap file will be used to map Unix filename extensions to RISC OS filetypes where possible. Files which have no extension will be typed as text.
+
+* Filename extensions commonly associated with C and C compilers (.c, .h, .cc, etc.) will be remapped so that the extension becomes a folder name, e.g. the unix filename foo/bar.c becomes the RISC OS filename foo.c.bar. UnixLib allows this behaviour to be customised on a per-program basis by setting an appropriate value to the UnixEnv$<program>$sfix system variable, e.g.:
+
+  set UnixEnv$sgit$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:i:ii:rpo:c:m:h:hh:s:S:xrb:xrs:l:o:y:tcc:cmhg:adb:ads:ali"
+
+  This is the full list of suffixes that GCC uses (which is significantly more than UnixLib's default)
+
+  set UnixEnv$sgit$sfix ""
+  
+  Will disable all suffix translation (useful if the repository already has the sources structured in a RISC OS-friendly manner)
+
+Future releases of SimpleGit on RISC OS are likely to improve on this (e.g. per-repository configuration of filetype & filename mapping, and the ability to store filetypes using ",xxx" suffixes)
+
+
+Getting help
+------------
+
+The current version of sgit isn't very good or consistent with providing help at the command line.
+
+* `sgit` by itself will output the full command list
+* Some commands accept `--help` as a hint they should output usage info
+* Some commands are only able to provide help if the current directory is within a git repository
+
+
+Initial configuration
+---------------------
+
+If you're going to be creating commits you'll want to configure the name & email address which are used in commit messages. This can either be done on a per-repo basis (`sgit config`) or on a global basis (`sgit config --global`):
+
+  sgit config --global user.name "Joe Bloggs"
+  sgit config --global user.email joe@bloggs.com
+
+The non-global configuration is stored in your local copy of the git repository, so you'll only be able to set the configuration for that after you've created/cloned the repository.
+
+
+Creating a repository
+---------------------
+
+Creating a repository with sgit is a bit more long-winded than with standard git:
+
+1. sgit init
+   This creates the empty repository in the current directory
+2. sgit add -A
+   This prepares the initial commit ('-A' adding all files located within the repository folder)
+3. sgit commit -m <message>
+   This creates the initial commit, and the 'master' branch
+
+
+Cloning repositories
+--------------------
+
+  sgit clone <url> <folder>
+
+Creates <folder> and clones the repository at <url> into it. http://, https://, and git:// should all be supported protocols for cloning repositories.
+
+Note that when you see a URL such as git@github.com:sba1/simplegit.git, it needs to be rewritten as git://git@github.com/sba1/simplegit.git for use with sgit (sgit requires the git:// scheme to be explicitly specified, and the colon replacing with a slash to make the remainder a valid URL host + path)
+
+If you're interacting with a password-protected repository, sgit should ask you for your username & password at the appropriate times. But beware that (in StrongED, at least) using the backspace key to delete characters doesn't work (it just prints ^H). You'll need to use the delete key instead. It may also be possible to provide your username & password as part of the remote URL, but I haven't tested this.
+
+ssh:// protocol support is enabled, but currently appears to be broken.
+
+
+Creating commits
+----------------
+
+sgit doesn't support the `git commit -a` shorthand, so staging & committing must be done as two separate steps, e.g.:
+
+  sgit add -A | <files>
+  sgit commit -m <message>
+
+-m is the only way of providing commit messages, so you'd better be a fan of short messages.
+
+
+Branching
+---------
+
+The `git checkout -b` shorthand isn't supported, so creating and checking out a branch is a two-stage process:
+
+  sgit branch <new-branch-name>
+  sgit checkout <new-branch-name>
+
+I don't believe there's an option to delete branches.
+
+
+Pulling & pushing
+-----------------
+
+`sgit pull` and `sgit push` require you to specify both the remote name (usually 'origin') and the local branch, e.g.:
+
+  sgit pull origin master
+  sgit push origin master
+

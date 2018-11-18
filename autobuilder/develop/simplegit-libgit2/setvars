@@ -2,7 +2,7 @@ AB_GIT=https://github.com/sba1/simplegit
 
 AB_PVERSION=`git rev-list HEAD --count`
 
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 #ab_make() {
 #  make
