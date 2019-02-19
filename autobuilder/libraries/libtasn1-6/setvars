@@ -29,4 +29,14 @@ ab_package() {
   cd $HERE
 
   $AB_HOME/add-riscpkg -name LibTASN1-Dev -unixlib -copyrightfile $S/COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libtasn
+
+    AB_COMPONENTS=""
+    ab_add_sharedlib $S/lib/.libs libtasn1.so.6
+
+    $AB_HOME/add-riscpkg -package "libtasn" -name LibTASN \
+	-depends SharedLibs-C2
+  fi
 }
