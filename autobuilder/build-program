@@ -207,6 +207,33 @@ ab_add_commands() {
   done
 }
 
+ab_add_headers() {
+  local src_header_dir
+  local dst_header_dir
+  local f
+  local HERE
+
+  src_header_dir=$1
+  dst_header_dir=$2
+
+  HERE=`pwd`
+  cd $src_header_dir
+
+  mkdir -p $dst_header_dir/h
+  for f in *
+  do
+    if [ -d "$f" ] ; then
+      ab_add_headers $src_header_dir/$f $dst_header_dir/$f
+    else
+      filename=$(basename "$f")
+      filename="${filename%.*}"
+      cp -v -T $f $dst_header_dir/h/$filename
+    fi
+  done
+
+  cd $HERE
+}
+
 ab_create_sharedlib_skeleton() {
   local package
 

@@ -46,29 +46,6 @@ ab_make() {
   popd > /dev/null
 }
 
-add_headers()
-{
-  local src_header_dir
-  local dst_header_dir
-
-  src_header_dir=$1
-  dst_header_dir=$2
-
-  HERE=`pwd`
-  cd $src_header_dir
-
-  mkdir -p $dst_header_dir/h
-  for f in *.h
-  do
-    filename=$(basename "$f")
-    filename="${filename%.*}"
-    echo cp -T $f $dst_header_dir/h/$filename
-    cp -T $f $dst_header_dir/h/$filename
-  done
-
-  cd $HERE
-}
-
 # "make distclean" appears to be broken; it wipes files that subsequent
 # makefiles still require, so create our own version. This will be called
 # by ab_package_source.
@@ -84,8 +61,8 @@ ab_package() {
 
   mkdir -p $A/include/layout $A/include/unicode $A/lib $A/docs
 
-  add_headers $GCCSDK_INSTALL_ENV/include/layout $A/include/layout
-  add_headers $GCCSDK_INSTALL_ENV/include/unicode $A/include/unicode
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/layout $A/include/layout
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/unicode $A/include/unicode
 
   cp $GCCSDK_INSTALL_ENV/lib/libicudata.a $A/lib
   cp $GCCSDK_INSTALL_ENV/lib/libicui18n.a $A/lib
