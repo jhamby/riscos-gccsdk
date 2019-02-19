@@ -8,3 +8,32 @@ automake --add-missing
 autoconf
 automake
 
+ab_package()
+{
+  ab_create_app LibGIF4-Dev Apps/Library libgif4-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv lib/*.a .
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibGIFF4-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libgif4
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/lib/.libs libgif.so.4
+
+    $AB_HOME/add-riscpkg -package "libgif4" -name "LibGIFF4" \
+	-depends SharedLibs-C2
+  fi
+}
