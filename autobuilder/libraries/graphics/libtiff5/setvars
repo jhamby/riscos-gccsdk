@@ -24,5 +24,17 @@ ab_package() {
   cd $HERE
 
   $AB_HOME/add-riscpkg -unixlib -name LibTIFF5-Dev -depends ZLib1g-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libtiff5
+
+    ab_add_sharedlib $S/libtiff/.libs libtiffxx.so.5
+    ab_add_sharedlib $S/libtiff/.libs libtiff.so.5
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package libtiff5 -name LibTiff5 \
+	-depends SharedLibs -section Library
+  fi
+
 }
 
