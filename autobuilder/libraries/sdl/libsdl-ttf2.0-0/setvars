@@ -29,5 +29,13 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -name LibSDLTTF2.0-Dev \
     -depends "LibFreeType6-Dev" \
     -depends "LibSDL1.2-Dev"
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libsdlttf2
+     ab_add_sharedlib $S/.libs libSDL_ttf-2.0.so.0
+     
+     $AB_HOME/add-riscpkg -package libsdlttf2 -name LibSDLTTF2 -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
 }
 

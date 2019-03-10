@@ -32,4 +32,13 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -name LibSDLImage1.2-Dev \
     -depends "LibJPEG8-Dev" -depends "LibPNG16-Dev" \
     -depends "LibTIFF5-Dev" -depends "LibSDL1.2-Dev"
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libsdlimage1.2
+     ab_add_sharedlib $S/.libs libSDL_image-1.2.so.0
+     
+     $AB_HOME/add-riscpkg -package libsdlimage1.2 -name LibSDLImage1.2 -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
+
 }

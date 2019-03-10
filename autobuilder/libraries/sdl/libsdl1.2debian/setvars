@@ -35,4 +35,13 @@ ab_package() {
   cd $HERE
 
   $AB_HOME/add-riscpkg -unixlib -name LibSDL1.2-Dev
+
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libsdl1.2
+     ab_add_sharedlib $S/build/.libs libSDL-1.2.so.0
+     
+     $AB_HOME/add-riscpkg -package libsdl1.2 -name LibSDL1.2 -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
 }
