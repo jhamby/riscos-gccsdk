@@ -1,5 +1,5 @@
 
-AB_URL=http://ftp.debian.org/debian/pool/main/w/wget/wget_1.19.4.orig.tar.gz
+AB_URL=https://ftpmirror.gnu.org/wget/wget-1.19.5.tar.gz
 AB_CONFLAGS="--disable-ipv6 --enable-threads=pth --with-ssl=openssl"
 export gl_cv_func_gettimeofday_clobber=no
 AB_ROVERSION=2
