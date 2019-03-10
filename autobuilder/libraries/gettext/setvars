@@ -1,11 +1,5 @@
 AB_LICENSE="Free"
 
-if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-AB_PACKAGES="libgettext-dev libintl"
-else
-AB_PACKAGES="libgettext-dev"
-fi
-
 cd gettext-runtime
 
 AB_INSTALL=yes
@@ -22,7 +16,6 @@ ab_package()
   rm -f man/man3
 
   ab_create_app LibGetText Apps/Library libgettext-dev
-
 
   HERE=`pwd`
   cd $A
@@ -44,18 +37,19 @@ ab_package()
   cd ../man
   find . -maxdepth 1 -type f -execdir mv {} {},faf \;
 
-
   cd $HERE
 
-  $AB_HOME/add-riscpkg -name LibGetText-Dev -package libgettext-dev -unixlib \
+  $AB_HOME/add-riscpkg -name LibGetText-Dev -unixlib \
        -copyrightfile $S/COPYING
 
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    ab_create_sharedlib_skeleton libintl
+    ab_create_sharedlib_skeleton libgettext
+
     ab_add_sharedlib $S/intl/.libs libintl.so.8
 
-    $AB_HOME/add-riscpkg -package libintl -unixlib -name LibIntl \
-       -copyrightfile $S/COPYING -depends SharedLibs-C2
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package libgettext -name LibGetText \
+	-depends SharedLibs -section Library
   fi
-}
 
+}
