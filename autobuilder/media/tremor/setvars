@@ -37,4 +37,13 @@ ab_package() {
   cp $S/ivorbisfile_example.c $A/doc
 
   $AB_HOME/add-riscpkg -name Tremor-Dev -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton Tremor
+     ab_add_sharedlib $S/.libs libvorbisidec.so
+     
+     $AB_HOME/add-riscpkg -package tremor -name Tremor -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
+
 }

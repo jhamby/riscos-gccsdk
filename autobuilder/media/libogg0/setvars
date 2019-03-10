@@ -27,4 +27,12 @@ ab_package() {
   cp -r $S/doc $A
 
   $AB_HOME/add-riscpkg -name LibOGG-Dev -unixlib -unixsound -copyrightfile $S/COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libogg
+     ab_add_sharedlib $S/src/.libs libogg.so.0
+     
+     $AB_HOME/add-riscpkg -package libogg -name LibOgg -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
 }
