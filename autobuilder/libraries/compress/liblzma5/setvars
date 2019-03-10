@@ -4,3 +4,15 @@ AB_INSTALL=yes
 AB_CONFLAGS='--enable-encoders=lzma1,lzma2,delta,arm --enable-decoders=lzma1,lzma2,delta,arm --enable-liblzma2-compat'
 
 ./autogen.sh
+
+ab_package() {
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton liblzma5
+     ab_add_sharedlib $S/src/liblzma/.libs liblzma.so.5
+     
+     $AB_HOME/add-riscpkg -package liblzma5 -name LibLzma5 -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
+
+}
