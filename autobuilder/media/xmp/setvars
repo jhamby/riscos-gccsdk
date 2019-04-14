@@ -1,0 +1,12 @@
+AB_INSTALL=no
+
+ab_package () {
+  ab_create_command_app XMP Apps/Audio
+  ab_add_commands $S/src/xmp$AB_EXEEXT
+  
+  cp -av $S/README $A/!Help,fff
+  cp -av $S/COPYING $S/CREDITS $S/Changelog $A
+  cp -av $S/girl_from_mars.xm $A/girl_from_mars,1af
+    
+  $AB_HOME/add-riscpkg -unixlib -unixsound
+}
