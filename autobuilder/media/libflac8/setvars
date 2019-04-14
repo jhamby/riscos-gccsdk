@@ -32,4 +32,14 @@ ab_package () {
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -name LibFlac-Dev -copyrightfile $S/COPYING.Xiph
 
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libflac
+     ab_add_sharedlib $S/src/libFLAC/.libs libFLAC.so.8
+     ab_add_sharedlib $S/src/libFLAC++/.libs libFLAC++.so.6
+     
+     $AB_HOME/add-riscpkg -package libflac -name LibFlac -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
+
+
 }
