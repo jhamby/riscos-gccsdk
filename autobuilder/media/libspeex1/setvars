@@ -1,0 +1,33 @@
+AB_INSTALL=yes
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libspeex-dev libspeex1 libspeexdsp1"
+else
+AB_PACKAGES="libspeex-dev"
+fi
+
+ab_package() {
+  ab_create_app LibSpeex Apps/Library libspeex-dev
+  ab_docs -h $S/README $S/AUTHORS $S/COPYING $S/ChangeLog $S/NEWS $S/TODO
+  ab_add_headers $S/include/speex $A/speex
+
+  if [ -d "$S/libspeex/.libs/" ]; then
+    cp -f $S/libspeex/.libs/*.a $A
+  else
+    cp -f $S/libspeex/*.a $A
+  fi
+
+  $AB_HOME/add-riscpkg -package libspeex-dev -name LibSpeex-Dev -section Library -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libspeex1
+     ab_add_sharedlib $S/libspeex/.libs libspeex.so.1
+
+     $AB_HOME/add-riscpkg -package libspeex1 -name LibSpeex1 -section Library -depends SharedLibs
+
+     ab_create_sharedlib_skeleton libspeexdsp1
+     ab_add_sharedlib $S/libspeex/.libs libspeexdsp.so.1
+
+     $AB_HOME/add-riscpkg -package libspeexdsp1 -name LibSpeexDSP1 -section Library -depends SharedLibs
+  fi
+}
