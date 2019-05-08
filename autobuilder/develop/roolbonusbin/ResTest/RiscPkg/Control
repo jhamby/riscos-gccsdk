@@ -1,4 +1,4 @@
-Licence: Non-free
+Licence: Free
 Description: Toolbox resource file tester
  ResTest is an application to load resource files and
  allow you to interact with the objects within as you
@@ -8,4 +8,4 @@ Description: Toolbox resource file tester
  properly before they are properly integrated into an
  application.
 Components: Apps.Development.!ResTest (Movable)
-Depends: ROLicence (>= 1.1)
+Depends: ApacheLicense2

@@ -1,4 +1,4 @@
-Licence: Non-free
+Licence: Free
 Description: various very low level diagnosis tools
  The debug tools module provides a whole pile of very useful debugging facilities
  both SWIs and *commands.
@@ -17,7 +17,7 @@ Description: various very low level diagnosis tools
  most need them.
  Known issues
  The IRQInfo command is not compatable with the RISC OS 5 HAL at present
- so will not work on an IYONIX. Some of the other features probably won’t
+ so will not work on an IYONIX. Some of the other features probably will not
  work correctly on RISC OS 4 or 6.
 Components: Apps.Development.Modules.DebugTools (Movable)
-Depends: ROLicence (>= 1.1)
+Depends: ApacheLicense2

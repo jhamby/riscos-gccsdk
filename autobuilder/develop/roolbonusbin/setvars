@@ -3,12 +3,13 @@
 AB_URL=https://www.riscosopen.org/zipfiles/platform/common/BonusBinDev.zip
 AB_CATEGORY=Development
 AB_COPYSOURCE=no
+AB_ROVERSION=2
 
 # Binary so no configure or build
 AB_CONFIG=
 AB_MAKE=
 
-AB_PACKAGES="ResCreate ResEd ResTest SrcEdit FontEd MakeModes WinEdit ROLicence DebugButton DebugTools"
+AB_PACKAGES="ResCreate ResEd ResTest SrcEdit FontEd MakeModes WinEdit ApacheLicense2 DebugButton DebugTools"
 
 package_dev_app()
 {
@@ -46,7 +47,7 @@ ab_package()
    set_module_version AB_PVERSION_DebugButton $S/Modules/Developer/DebugButtn,ffa
    set_module_version AB_PVERSION_DebugTools $S/Modules/Developer/DebugTools,ffa
    
-   AB_PVERSION_ROLicence=1.1
+   AB_PVERSION_ApacheLicense2=1.0
 
    package_dev_app $S/Apps/DDE/!ResCreate ResCreate $AB_PVERSION_ResCreate
    package_dev_app $S/Apps/DDE/!ResEd ResEd $AB_PVERSION_ResEd
@@ -56,12 +57,10 @@ ab_package()
    package_dev_app $S/Utilities/Developer/!MakeModes MakeModes $AB_PVERSION_MakeModes
    package_dev_app $S/Utilities/Developer/!WinEdit WinEdit $AB_PVERSION_WinEdit
    
-   # Copy licence to ROLicence package
-   # Note: packaging doesn't currently allow components with a "/" so
-   # components hasn't been set for the ROLicence package
-   mkdir -p $D/ROLicence/Manuals
-   cp $S/../Licence_v1_1.pdf,adf $D/ROLicence/Manuals
-   $AB_HOME/add-riscpkg -package ROLicence -pversion $AB_PVERSION_ROLicence \
+   # Copy licence to ApacheLicense2 package
+   mkdir -p $D/ApacheLicense2/Manuals
+   cp $S/../LICENSE $D/ApacheLicense2/Manuals/ApacheLicense2
+   $AB_HOME/add-riscpkg -package ApacheLicense2 -pversion $AB_PVERSION_ApacheLicense2 \
       -section Documentation
    
    # Modules

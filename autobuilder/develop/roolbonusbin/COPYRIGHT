@@ -8,10 +8,9 @@ the GCCSDK list.
 Any problems with the applications/modules/files installed
 by the package should be reported to RISC OS Open.
 
-
-This component is released under the Castle Technology Base
-licence (included in package ROLicence as Licence_v1_1.pdf),
+This component is released under the Apache License 2.0
+(included in package ApacheLicense2 as ApacheLicense2),
 or see:
 
-http://www.castle-technology.co.uk/riscosbaselicence.htm
+http://www.apache.org/licenses/LICENSE-2.0
 

@@ -1,4 +1,4 @@
-Licence: Non-free
+Licence: Free
 Description: RISC OS Font editor
 Components: Apps.Development.!FontEd (Movable)
-Depends: ROLicence (>= 1.1)
+Depends: ApacheLicense2
