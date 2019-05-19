@@ -1,8 +1,14 @@
 AB_INSTALL=yes
 AB_ROVERSION=2
 
-# Use internal mikmod modules, disable smpeg as we don't build it
-AB_CONFLAGS="--disable-music-mod-shared --disable-music-libmikmod --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
+# Disable smpeg, FLAC and FluidSynth as we don't build them.
+AB_CONFLAGS="--disable-music-mod-shared --disable-music-midi-fluidsynth --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libsdl-mixer1.2-dev libsdl-mixer1.2"
+else
+AB_PACKAGES="libsdl-mixer1.2-dev"
+fi
 
 ab_package() {
   ab_create_app SDLMixer Apps/Library libsdl-mixer1.2-dev
@@ -31,6 +37,15 @@ ab_package() {
 
   $AB_HOME/add-riscpkg -package libsdl-mixer1.2-dev -unixlib -name LibSDLMixer1.2-Dev -copyrightfile $S/COPYING \
     -depends "Tremor-Dev" -depends "LibSDL1.2-Dev" -depends "LibMikMod-Dev"
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libsdl-mixer1.2
+     ab_add_sharedlib $S/.libs libSDL_mixer-1.2.so.0
+
+     $AB_HOME/add-riscpkg -package libsdl-mixer1.2 -name LibSDLMixer1.2 -depends SharedLibs \
+		 -name LibSDL1.2 -depends Tremor -depends LibMikmod -section Library \
+		 -copyrightfile $H/Copyright
+  fi
 }
 
 export LIBS='-logg'

@@ -1,7 +1,13 @@
-AB_CONFLAGS="--enable-tif --enable-xmf --disable-png-shared --disable-tiff-shared --disable-jpg-shared"
+AB_CONFLAGS="--disable-png-shared --disable-tif-shared --disable-jpg-shared"
 AB_ROVERSION=2
 
 AB_INSTALL=yes
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libsdl-image1.2-dev libsdl-image1.2"
+else
+AB_PACKAGES="libsdl-image1.2-dev"
+fi
 
 ab_package() {
   ab_create_app SDLImage Apps/Library libsdl-image1.2-dev
@@ -29,15 +35,17 @@ ab_package() {
   cp $S/showimage.c $A/doc
   cp $S/showimage$AB_EXEEXT $A
 
-  $AB_HOME/add-riscpkg -unixlib -name LibSDLImage1.2-Dev \
+  $AB_HOME/add-riscpkg -unixlib -package libsdl-image1.2-dev -name LibSDLImage1.2-Dev \
     -depends "LibJPEG8-Dev" -depends "LibPNG16-Dev" \
     -depends "LibTIFF5-Dev" -depends "LibSDL1.2-Dev"
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-     ab_create_sharedlib_skeleton libsdlimage1.2
+     ab_create_sharedlib_skeleton libsdl-image1.2
      ab_add_sharedlib $S/.libs libSDL_image-1.2.so.0
      
-     $AB_HOME/add-riscpkg -package libsdlimage1.2 -name LibSDLImage1.2 -depends SharedLibs \
+     $AB_HOME/add-riscpkg -package libsdl-image1.2 -name LibSDLImage1.2 -depends SharedLibs \
+		-depends "LibJPEG8" -depends "LibPNG16-16" \
+		-depends "LibTiff5" -depends "LibSDL1.2" \
 		-section Library -copyrightfile $H/Copyright
   fi
 

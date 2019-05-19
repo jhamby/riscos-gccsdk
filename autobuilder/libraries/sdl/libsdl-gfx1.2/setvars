@@ -2,6 +2,12 @@ AB_INSTALL=yes
 AB_ROVERSION=2
 AB_CONFLAGS=--disable-mmx
 
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libsdl-gfx1.2-dev libsdl-gfx1.2"
+else
+AB_PACKAGES="libsdl-gfx1.2-dev"
+fi
+
 ab_package() {
   ab_create_app SDLGFX Apps/Library libsdl-gfx1.2-dev
 
@@ -25,6 +31,14 @@ ab_package() {
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -unixlib -name LibSDLGFX1.2-Dev \
+  $AB_HOME/add-riscpkg -unixlib -package libsdl-gfx1.2-dev -name LibSDLGFX1.2-Dev \
     -depends "LibSDL1.2-Dev"
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libsdl-gfx1.2
+     ab_add_sharedlib $S/.libs libSDL_gfx.so.15
+
+     $AB_HOME/add-riscpkg -package libsdl-gfx1.2 -name LibSDLGFX1.2 -depends SharedLibs \
+		 -depends "LibSDL1.2" -section Library -copyrightfile $H/Copyright
+  fi
 }

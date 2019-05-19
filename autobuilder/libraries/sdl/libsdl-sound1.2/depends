@@ -1,1 +1,6 @@
 libsdl1.2debian
+libflac8
+libmikmod3
+libogg0
+libvorbis0a
+libspeex1

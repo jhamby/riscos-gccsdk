@@ -1,47 +1,80 @@
-AB_ROVERSION=3
+AB_HG=https://hg.libsdl.org/SDL/
+AB_HG_BRANCH=SDL-1.2
+AB_PVERSION=1.2.15
+AB_ROVERSION=4
 
 AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
 AB_SHORTDESC="Allows programs portable low level access to a video, audio, mouse, and keyboard"
 
-AB_INSTALL=yes
+# AB_INSTALL=yes
+AB_DISTCLEAN="rm -rf build build-vfp"
 
-# Package script uses installed library
-# zip built due to AB_INSTALL=yes
+# Build normal and VFP versions by default.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libsdl1.2-dev libsdl1.2"
+else
+AB_PACKAGES="libsdl1.2-dev"
+fi
+
+./autogen.sh
+
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  mkdir -p $S/build
+  ( cd $S/build; ENABLE_VFP=no $AB_CONFIG)
+fi
+
+if [ "$BUILD_VFP" == "yes" ]; then
+  mkdir -p $S/build-vfp
+  ( cd $S/build-vfp; CFLAGS="-mfpu=vfp -O3" $AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp )
+fi
+
+ab_make() {
+  $AB_MAKE -C build $@
+  $AB_MAKE -C build install
+  $AB_MAKE -C build-vfp $@
+  $AB_MAKE -C build-vfp install
+}
 
 ab_package() {
   ab_create_app SDL Apps/Library libsdl1.2-dev
 
-  HERE=`pwd`
-  cd $A
-  unzip $AB_OUTPUTLIB/$RO_PKG.zip
-
   # Need to retype the converted manual files
-  MANFILES=$(find man -type f)
-  for FILE in $MANFILES ; do
-     mv $FILE $FILE,faf
-  done
+  #MANFILES=$(find man -type f)
+  #for FILE in $MANFILES ; do
+  #   mv $FILE $FILE,faf
+  #done
 
-  # Move headers libs and docs up one directory
-  mv include/SDL SDL
-  rm -rf include
-  mv lib/*.a .
-  rm -rf lib
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/SDL $A/SDL
 
-  cd doc
-  docdir=`echo *`
-  mv $docdir/* .
-  rm -rf $docdir
+  if [ "$BUILD_NORMAL" == "yes" ] ; then
+    if [ -d "$S/build/build/.libs/" ]; then
+      cp -f $S/build/build/.libs/*.a $A
+    else
+      cp -f $S/build/build/*.a $A
+    fi
+  fi
+  if [ "$BUILD_VFP" == "yes" ] ; then
+    mkdir -p $A/vfp
+    if [ -d "$S/build-vfp/build/.libs/" ]; then
+      cp -f $S/build-vfp/build/.libs/*.a $A/vfp
+    else
+      cp -f $S/build-vfp/build/*.a $A/vfp
+    fi
+  fi
 
-  cd $HERE
+  mkdir $A/doc
+  for i in $AB_INSTALLDOCS; do cp $S/$i $A/doc/$i,fff; done
 
-  $AB_HOME/add-riscpkg -unixlib -name LibSDL1.2-Dev
-
+  $AB_HOME/add-riscpkg -unixlib -unixsound -package libsdl1.2-dev -name LibSDL1.2-Dev
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
      ab_create_sharedlib_skeleton libsdl1.2
      ab_add_sharedlib $S/build/.libs libSDL-1.2.so.0
-     
+
      $AB_HOME/add-riscpkg -package libsdl1.2 -name LibSDL1.2 -depends SharedLibs \
-		-section Library -copyrightfile $H/Copyright
+		 -unixsound -section Library -copyrightfile $H/Copyright
   fi
 }
