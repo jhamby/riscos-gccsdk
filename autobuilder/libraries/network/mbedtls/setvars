@@ -1,5 +1,7 @@
 #AB_URL=https://tls.mbed.org/download/mbedtls-2.8.0-apache.tgz
 AB_GIT=https://github.com/ARMmbed/mbedtls.git
+# use master branch, not development
+AB_GIT_TAGORBRANCH=master
 AB_CATEGORY=Library
 AB_PACKAGE=mbedtls
 
@@ -29,8 +31,6 @@ ab_package() {
 
 }
 
-# use master branch, not development
-git checkout master
 # extract version number from source code
 MB_TREE=.
 MB_VERSION=$(awk 'match($0, /\yMBEDTLS_VERSION_STRING\y/){print $3}' $MB_TREE/include/mbedtls/version.h)

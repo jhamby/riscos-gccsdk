@@ -23,8 +23,10 @@ else
   fi
 fi
 AB_GIT=$(grep ^AB_GIT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_GIT_TAGORBRANCH=$(grep ^AB_GIT_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_URL=$(grep ^AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_HG=$(grep ^AB_HG $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_HG_BRANCH=$(grep ^AB_HG_BRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_NOREMOTE=$(grep ^AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 
 if [ "$AB_CVS_ROOT" != "" ] ; then
@@ -43,7 +45,20 @@ elif [ "$AB_SVN" != "" ] ; then
   svn co -q $AB_SVN
 
 elif [ "$AB_GIT" != "" ] ; then
-  git clone $AB_GIT
+   AB_GITTMP=(${AB_GIT//[\'\"]/})
+   AB_GITTMP[1]=`basename ${AB_GITTMP[0]%.git}`
+   if [ -e "${AB_GITTMP[1]}/.git" ] ; then
+    cd ${AB_GITTMP[1]}
+    echo "doing git checkout -- ."
+    git checkout -- .
+    cd ..
+   else
+    if [ ! -z "$AB_GIT_TAGORBRANCH" ] ; then
+      AB_GIT_TAGORBRANCH="-b $AB_GIT_TAGORBRANCH"
+    fi
+    echo "doing git clone $AB_GIT $AB_GIT_TAGORBRANCH"
+    git clone $AB_GIT $AB_GIT_TAGORBRANCH
+   fi
 
 elif [ "$AB_HG" != "" ] ; then
    AB_HGTMP=(${AB_HG//[\'\"]/})
@@ -55,8 +70,11 @@ elif [ "$AB_HG" != "" ] ; then
     hg update -C
     cd ..
    else
-    echo "doing hg clone $AB_HG"
-  hg clone $AB_HG
+    if [ ! -z "$AB_HG_BRANCH" ] ; then
+      AB_HG_BRANCH="-r $AB_HG_BRANCH"
+    fi
+    echo "doing hg clone $AB_HG $AB_HG_BRANCH"
+    hg clone $AB_HG $AB_HG_BRANCH
    fi
 
 elif [ "$AB_URL" != "" ] ; then
@@ -87,7 +105,7 @@ elif [ "$AB_URL" != "" ] ; then
   fi
 
 elif [ "$AB_NOREMOTE" == "yes" ] ; then
-  mkdir $AB_PACKAGE
+  mkdir -p $AB_PACKAGE
 
 else
   if [ "$AB_USEAPT" == "yes" ] && [ -x /usr/bin/apt-get ] ; then
