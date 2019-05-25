@@ -17,11 +17,17 @@ Some commands, like `sgit clone`, make use of VDU codes to update a progress ind
 Filename and filetype mapping
 -----------------------------
 
-Currently sgit is reliant on UnixLib's default filename & filetype translation logic.
+Currently sgit is reliant on UnixLib's filename & filetype translation logic.
 
 * When providing a filename to sgit, it's probably best to provide the Unix version of the filename.
 
-* Your mimemap file will be used to map Unix filename extensions to RISC OS filetypes where possible. Files which have no extension will be typed as text.
+* Filetype handling:
+
+  * Your mimemap file will be used to map Unix filename extensions to RISC OS filetypes where possible (and vice-versa).
+  * When mapping RISC OS files to git, if a suitable mimemap entry isn't found, a ",xxx" suffix will be added to the Unix form of the name (and when converting back to RISC OS form, that suffix will be used to determine the RISC OS filetype).
+  * Unix files which have no mimemap entry and no ,xxx suffix will be typed as Text.
+  * Image files are treated as files, not directories.
+  * Storage of load+exec addresses for untyped files isn't supported.
 
 * Filename extensions commonly associated with C and C compilers (.c, .h, .cc, etc.) will be remapped so that the extension becomes a folder name, e.g. the unix filename foo/bar.c becomes the RISC OS filename foo.c.bar. UnixLib allows this behaviour to be customised on a per-program basis by setting an appropriate value to the UnixEnv$<program>$sfix system variable, e.g.:
 
@@ -31,9 +37,9 @@ Currently sgit is reliant on UnixLib's default filename & filetype translation l
 
   set UnixEnv$sgit$sfix ""
   
-  Will disable all suffix translation (useful if the repository already has the sources structured in a RISC OS-friendly manner)
+  Will disable all suffix translation (useful if the repository already has the files structured in a RISC OS-friendly manner, such as the ROOL git repository)
 
-Future releases of SimpleGit on RISC OS are likely to improve on this (e.g. per-repository configuration of filetype & filename mapping, and the ability to store filetypes using ",xxx" suffixes)
+Future releases of SimpleGit on RISC OS are likely to improve on this (e.g. per-repository configuration of filetype & filename mapping)
 
 
 Getting help
@@ -114,3 +120,15 @@ Pulling & pushing
   sgit pull origin master
   sgit push origin master
 
+
+Changelog
+---------
+
+Differences between 639-3 and 639-4:
+
+* Image files are now handled as files, not directories
+* Enabled ,xxx suffix support
+* Fixed 'sgit submodule' command not working at all
+* Fixed 'sgit status' when HEAD is detached
+* Fixed 'sgit checkout' to allow you to checkout tags & commits
+* 'sgit checkout' now indicates to the user when it's checking out a path (as opposed to a branch/ref/tag)
