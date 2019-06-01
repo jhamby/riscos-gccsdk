@@ -1,7 +1,7 @@
 AB_HG=https://hg.libsdl.org/SDL/
 AB_HG_BRANCH=SDL-1.2
 AB_PVERSION=1.2.15
-AB_ROVERSION=4
+AB_ROVERSION=5
 
 AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
 AB_SHORTDESC="Allows programs portable low level access to a video, audio, mouse, and keyboard"
