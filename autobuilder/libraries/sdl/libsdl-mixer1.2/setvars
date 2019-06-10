@@ -4,11 +4,46 @@ AB_ROVERSION=2
 # Disable smpeg, FLAC and FluidSynth as we don't build them.
 AB_CONFLAGS="--disable-music-mod-shared --disable-music-midi-fluidsynth --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
 
+AB_DISTCLEAN="rm -rf build build-vfp"
+
+# Build normal and VFP versions by default.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
+
 if [ "$RO_SHAREDLIBS" == "yes" ] ; then
 AB_PACKAGES="libsdl-mixer1.2-dev libsdl-mixer1.2"
 else
 AB_PACKAGES="libsdl-mixer1.2-dev"
 fi
+
+./autogen.sh
+
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  mkdir -p $S/build
+  ( cd $S/build; ENABLE_VFP=no $AB_CONFIG )
+fi
+
+if [ "$BUILD_VFP" == "yes" ]; then
+  mkdir -p $S/build-vfp
+  ( cd $S/build-vfp; ENABLE_VFP=yes $AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp --with-sdl-exec-prefix=$GCCSDK_INSTALL_ENV/vfp )
+  # Patch libtool to specify -mfpu=vfp when linking, so that the correct GCC multilib configuration is used
+  # (We can't do the official hack of specifying CC when running configure, because $AB_CONFIG overwrites it)
+  sed -i "s/    new_inherited_linker_flags=\$/    new_inherited_linker_flags=\"-mfpu=vfp\"/" $S/build-vfp/libtool 
+fi
+
+ab_make() {
+  # The makefiles in the build & build-vfp folders keep getting clobbered, manually regenerate them before each build
+  cd build
+   ./config.status Makefile default
+  cd ..
+  $AB_MAKE -C build $@
+  $AB_MAKE -C build install
+  cd build-vfp
+   ./config.status Makefile default
+  cd ..
+  $AB_MAKE -C build-vfp $@
+  $AB_MAKE -C build-vfp install
+}
 
 ab_package() {
   ab_create_app SDLMixer Apps/Library libsdl-mixer1.2-dev
@@ -20,7 +55,21 @@ ab_package() {
   mv include/SDL SDL
   rm -rf include
 
-  mv lib/*.a .
+  if [ "$BUILD_NORMAL" == "yes" ] ; then
+    if [ -d "$S/build/build/.libs/" ]; then
+      cp -f $S/build/build/.libs/*.a $A
+    else
+      cp -f $S/build/build/*.a $A
+    fi
+  fi
+  if [ "$BUILD_VFP" == "yes" ] ; then
+    mkdir -p $A/vfp
+    if [ -d "$S/build-vfp/build/.libs/" ]; then
+      cp -f $S/build-vfp/build/.libs/*.a $A/vfp
+    else
+      cp -f $S/build-vfp/build/*.a $A/vfp
+    fi
+  fi
   rm -rf lib
 
   cd doc
@@ -39,12 +88,22 @@ ab_package() {
     -depends "Tremor-Dev" -depends "LibSDL1.2-Dev" -depends "LibMikMod-Dev"
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-     ab_create_sharedlib_skeleton libsdl-mixer1.2
-     ab_add_sharedlib $S/.libs libSDL_mixer-1.2.so.0
+    if [ "$BUILD_NORMAL" == "yes" ] ; then
+      ab_create_sharedlib_skeleton libsdl-mixer1.2
+      ab_add_sharedlib $S/build/.libs libSDL_mixer-1.2.so.0
 
-     $AB_HOME/add-riscpkg -package libsdl-mixer1.2 -name LibSDLMixer1.2 -depends SharedLibs \
-		 -name LibSDL1.2 -depends Tremor -depends LibMikmod -section Library \
+      $AB_HOME/add-riscpkg -package libsdl-mixer1.2 -name LibSDLMixer1.2 -depends SharedLibs-C2 \
+		 -depends LibSDL1.2 -depends Tremor -depends LibMikmod -section Library \
 		 -copyrightfile $H/Copyright
+    fi
+    if [ "$BUILD_VFP" == "yes" ] ; then
+      ab_create_sharedlib_skeleton libsdl-mixer1.2-vfp
+      ab_add_sharedlib $S/build-vfp/build/.libs libSDL_mixer-1.2.so.0
+
+      $AB_HOME/add-riscpkg -package libsdl-mixer1.2-vfp -name LibSDLMixer1.2-VFP -depends SharedLibs-C2 \
+		 -depends LibSDL1.2 -depends Tremor -depends LibMikmod -section Library \
+		 -copyrightfile $H/Copyright -arch vfp
+    fi
   fi
 }
 
