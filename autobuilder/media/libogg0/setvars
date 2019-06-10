@@ -1,38 +1,73 @@
-AB_INSTALL=yes
-AB_ROVERSION=2
+AB_INSTALL=no
+AB_ROVERSION=3
+
+AB_DISTCLEAN="rm -rf build build-vfp"
+
+AB_PRECONF=:
+
+autoconf
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libogg-dev libogg"
+else
+AB_PACKAGES="libogg-dev"
+fi
+
+# Build normal and VFP versions by default.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
+
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  mkdir $S/build
+  ( cd $S/build; ENABLE_VFP=no $AB_CONFIG && $AB_MAKE && $AB_MAKE install )
+fi
+
+if [ "$BUILD_VFP" == "yes" ]; then
+  mkdir $S/build-vfp
+  ( cd $S/build-vfp; ENABLE_VFP=yes $AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp && $AB_MAKE && $AB_MAKE install )
+fi
+
+ab_make() {
+  :
+}
 
 ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    if [ "$BUILD_NORMAL" == "yes" ] ; then
+	ab_create_sharedlib_skeleton libogg
+
+	ab_add_sharedlib $S/build/src/.libs libogg.so.0
+
+	AB_COMPONENTS=""
+	$AB_HOME/add-riscpkg -name LibOgg -section Library -package libogg \
+	    -depends SharedLibs-C2 -copyrightfile $S/COPYING
+    fi
+    if [ "$BUILD_VFP" == "yes" ] ; then
+	ab_create_sharedlib_skeleton libogg-vfp
+
+	ab_add_sharedlib $S/build-vfp/src/.libs libogg.so.0
+
+	AB_COMPONENTS=""
+	$AB_HOME/add-riscpkg -name LibOgg-VFP -section Library -package libogg-vfp \
+	    -depends SharedLibs-C2 -copyrightfile $S/COPYING -arch vfp
+    fi
+  fi
+
   ab_create_app LibOGG Apps/Library libogg-dev
 
-  HERE=`pwd`
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/ogg $A/ogg
 
-  cd $A
-
-  unzip $AB_OUTPUTLIB/$RO_PKG.zip
-
-  mv include/ogg ogg
-  rm -rf include
-
-  mv lib/*.a .
-  rm -rf lib
-
-  cd doc
-  docdir=`echo *`
-  mv $docdir/* .
-  rm -rf $docdir
-
-  cd $HERE
+  if [ "$BUILD_NORMAL" == "yes" ] ; then
+    mv $S/build/src/.libs/*.a $A
+  fi
+  if [ "$BUILD_VFP" == "yes" ] ; then
+    mkdir -p $A/vfp
+    mv $S/build-vfp/src/.libs/*.a $A/vfp
+  fi
 
   # Copy HTML documentation
-  cp -r $S/doc $A
+  rsync -rv --exclude=Makefile.* $S/doc $A
+  cp $S/AUTHORS $S/CHANGES $S/COPYING $S/README $A/doc/
 
   $AB_HOME/add-riscpkg -name LibOGG-Dev -unixlib -unixsound -copyrightfile $S/COPYING
-
-  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-     ab_create_sharedlib_skeleton libogg
-     ab_add_sharedlib $S/src/.libs libogg.so.0
-     
-     $AB_HOME/add-riscpkg -package libogg -name LibOgg -depends SharedLibs \
-		-section Library -copyrightfile $H/Copyright
-  fi
 }
