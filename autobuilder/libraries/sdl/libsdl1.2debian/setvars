@@ -29,6 +29,9 @@ fi
 if [ "$BUILD_VFP" == "yes" ]; then
   mkdir -p $S/build-vfp
   ( cd $S/build-vfp; CFLAGS="-mfpu=vfp -O3" $AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp )
+  # Patch libtool to specify -mfpu=vfp when linking, so that the correct GCC multilib configuration is used
+  # (We can't do the official hack of specifying CC when running configure, because $AB_CONFIG overwrites it)
+  sed -i "s/    new_inherited_linker_flags=\$/    new_inherited_linker_flags=\"-mfpu=vfp\"/" $S/build-vfp/libtool 
 fi
 
 ab_make() {
@@ -71,10 +74,19 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -unixsound -package libsdl1.2-dev -name LibSDL1.2-Dev
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-     ab_create_sharedlib_skeleton libsdl1.2
-     ab_add_sharedlib $S/build/.libs libSDL-1.2.so.0
+    if [ "$BUILD_NORMAL" == "yes" ] ; then
+      ab_create_sharedlib_skeleton libsdl1.2
+      ab_add_sharedlib $S/build/build/.libs libSDL-1.2.so.0
 
-     $AB_HOME/add-riscpkg -package libsdl1.2 -name LibSDL1.2 -depends SharedLibs \
+      $AB_HOME/add-riscpkg -package libsdl1.2 -name LibSDL1.2 -depends SharedLibs-C2 \
 		 -unixsound -section Library -copyrightfile $H/Copyright
+    fi
+    if [ "$BUILD_VFP" == "yes" ] ; then
+      ab_create_sharedlib_skeleton libsdl1.2-vfp
+      ab_add_sharedlib $S/build-vfp/build/.libs libSDL-1.2.so.0
+
+      $AB_HOME/add-riscpkg -package libsdl-vfp -name LibSDL-VFP -depends SharedLibs-C2 \
+		 -unixsound -section Library -copyrightfile $H/Copyright -arch vfp
+    fi
   fi
 }
