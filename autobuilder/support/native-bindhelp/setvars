@@ -6,7 +6,7 @@ cd Tools/BindHelp
 
 ab_make()
 {
-   make install CC=/usr/bin/gcc CFLAGS=" -g -DUNIX -DEXECUTE_ON_UNIX -D__swi" \
-       LD=/usr/bin/gcc INSTALL=cp bindir=$GCCSDK_INSTALL_ENV/bin
+   make install CC=/usr/bin/gcc CFLAGS=" -g -m32 -DUNIX -DEXECUTE_ON_UNIX -D__swi" \
+       LD=/usr/bin/gcc LDFLAGS=" -m32" INSTALL=cp bindir=$GCCSDK_INSTALL_ENV/bin
 }
 
