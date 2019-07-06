@@ -1,6 +1,8 @@
 AB_INSTALL=yes
 AB_ROVERSION=3
 
+AB_CONFLAGS="--with-pic=no"
+
 ab_package () {
 
 #TODO: Create package with flac program
