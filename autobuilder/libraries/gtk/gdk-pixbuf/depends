@@ -1,5 +1,6 @@
 libjpeg8
-libtiff4
+libtiff5
+libpng16-16
 libglib2.0-0
 libpcre3
 gettext
