@@ -1,5 +1,5 @@
-# Using a direct download for now as we need at least version 7.62.0 for other development
-AB_URL=http://http.debian.net/debian/pool/main/c/curl/curl_7.62.0.orig.tar.gz
+# Using a direct download for now as we need at least version 7.64.0 for other development
+AB_URL=http://ftp.debian.org/debian/pool/main/c/curl/curl_7.64.0.orig.tar.gz
 AB_INSTALL=yes
 
 AB_CONFLAGS="--disable-gopher --disable-ldap --disable-dict --disable-telnet --disable-manual"
