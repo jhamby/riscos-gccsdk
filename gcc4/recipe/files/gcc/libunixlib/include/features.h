@@ -235,13 +235,13 @@
 #endif
 
 #if (_POSIX_C_SOURCE - 0) >= 200112L
-# define __USE_XOPEN2K		1
-# undef __USE_ISOC99
-# define __USE_ISOC99		1
+# undef  _XOPEN_SOURCE
+# define _XOPEN_SOURCE	600
 #endif
 
 #if (_POSIX_C_SOURCE - 0) >= 200809L
-# define __USE_XOPEN2K8		1
+# undef  _XOPEN_SOURCE
+# define _XOPEN_SOURCE	700
 # undef  _ATFILE_SOURCE
 # define _ATFILE_SOURCE	1
 #endif
