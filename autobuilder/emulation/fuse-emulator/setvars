@@ -4,6 +4,8 @@ AB_CONFLAGS='--with-sdl --without-gtk --without-glib'
 AB_MANPAGE=man/fuse.1
 AB_DISTCLEAN="$AB_MAKE clean"
 
+autoreconf -fi
+
 ab_package() {
 
   ab_create_app Fuse Apps/Emulation
