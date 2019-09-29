@@ -32,6 +32,17 @@ __BEGIN_DECLS
 #  define LC_TIME 5
 /* Entire locale.  */
 #  define LC_ALL 6
+
+#define LC_COLLATE_MASK (1L << 1)
+#define LC_CTYPE_MASK (1L << 2)
+#define LC_MESSAGES_MASK (1L << 3)
+#define LC_MONETARY_MASK (1L << 4)
+#define LC_NUMERIC_MASK (1L << 5)
+#define LC_TIME_MASK (1L << 6)
+#define LC_ALL_MASK (LC_COLLATE_MASK | LC_CTYPE_MASK | LC_MESSAGES_MASK | LC_MONETARY_MASK | LC_NUMERIC_MASK | LC_TIME_MASK)
+
+typedef struct _locale *locale_t;
+
 #else
 /* String collation (functions 'strcoll' and 'strxfrm').  */
 #  define LC_COLLATE 1
@@ -108,6 +119,16 @@ extern char *setlocale (int __category, const char *__locale) __THROW;
 
 /* Set the lconv structure with the current locale settings.  */
 extern struct lconv *localeconv (void) __THROW;
+
+#ifndef __TARGET_SCL__
+extern locale_t uselocale(locale_t newloc);
+
+extern void freelocale(locale_t locobj);
+
+extern locale_t newlocale(int category_mask, const char *locale,
+                          locale_t base);
+# define LC_GLOBAL_LOCALE        ((locale_t) -1L)
+#endif
 
 __END_NAMESPACE_STD
 

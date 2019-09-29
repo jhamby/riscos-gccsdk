@@ -12,6 +12,7 @@
 .set	ERR_TOO_LOW_CPU_ARCH, 5
 .set	ERR_NO_VFP, 6
 .set	ERR_BAD_VFP, 7
+.set	ERR_NO_STACK, 8
 
 @ Constants for field offsets within a stack chunk
 @ The stack is allocated in chunks, each chunk is a multiple of 4KB, and
@@ -38,6 +39,7 @@
 
 .set	MAX_DA_NAME_SIZE, 32
 
+	.syntax unified
 	.text
 
 
@@ -50,29 +52,37 @@
 	@ RMEnsure the minimum version of the SharedUnixLibrary we need.
 	@ Now check System modules first as UnixLib package is deprecated.
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
+#ifdef __ARM_EABI__
+.set	SUL_MIN_VERSION, 115
+#define SUL_VERSION_STRING "1.15"
+#else
 .set	SUL_MIN_VERSION, 113
 #define SUL_VERSION_STRING "1.13"
+#endif
 #else
 .set	SUL_MIN_VERSION, 107
 #define SUL_VERSION_STRING "1.07"
 #endif
 rmensure1:
-	.ascii	"RMEnsure SharedUnixLibrary " SUL_VERSION_STRING " "
-	.asciz	"RMLoad System:Modules.SharedULib"
+	.ascii	"RMEnsure SharedUnixLibrary "
+	.ascii	SUL_VERSION_STRING
+	.asciz	" RMLoad System:Modules.SharedULib"
 rmensure2:
-	.ascii	"RMEnsure SharedUnixLibrary " SUL_VERSION_STRING " "
-	.asciz	"RMLoad UnixLib:Modules.SharedULib"
+	.ascii	"RMEnsure SharedUnixLibrary "
+	.ascii	SUL_VERSION_STRING
+	.asciz	" RMLoad UnixLib:Modules.SharedULib"
 	@ The exact error message is not important as it will get ignored.
 rmensure3:
-	.ascii	"RMEnsure SharedUnixLibrary " SUL_VERSION_STRING " "
-	.asciz	"Error XYZ"
+	.ascii	"RMEnsure SharedUnixLibrary "
+	.ascii	SUL_VERSION_STRING
+	.asciz	" Error XYZ"
 	.align
 
 	.global	__main
 	NAME	__main
 
 __main:
-	@ (g)crt0.o passes several values in memory addressed as an offset
+	@ (g)crt1.o passes several values in memory addressed as an offset
 	@ from a1. Offsets 0, 4 and 24 are used by both the static and DSO library,
 	@ the others are used by the DSO only.
 	@
@@ -89,9 +99,7 @@ __main:
 
 	MOV	v1, a1
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
 	@ Read environment parameters
 	@ On exit:
@@ -203,27 +211,42 @@ __main:
 	STR	a2, [a1, #CHUNK_MAGIC]
 	STR	v1, [a1, #CHUNK_SIZE]
 #else
-	@ Flat stack in application space: reserve 4 KByte for signal handler
-	@ and what's below is for application stack.
-	@ FIXME: this is far from ideal.  We probably want to move this to a
-	@ DA.
-	STR	sp, [ip, #GBL_SIGNALHANDLER_SP]
+	MOV	a1, #ARMEABISUPPORT_STACKOP_ALLOC
+	MOV	a2, #1			@ 4KB (1 page) signal handler stack
+	MOV	a3, #0			@ No stack guard for the signal handler stack
+	LDR	a4, ___program_name
+ PICEQ "LDR	a4, [v4, a4]"
+	TEQ	a4, #0
+	LDRNE	a4, [a4, #0]
+	SWI	XARMEABISupport_StackOp
+	TEQ	a3, #0
+	MOVEQ	a1, #ERR_NO_STACK
+	BEQ	__exit_with_error_num	@ Failed to allocate stack, exit.
 
-	SUB	sp, sp, #4096
+	STR	a3, [ip, #GBL_SIGNALHANDLER_SP]
+
+	MOV	a1, #ARMEABISUPPORT_STACKOP_ALLOC
+	MOV	a2, #256		@ Allow for 1MB (256 pages) of stack
+	MOV	a3, #1			@ 1 Stack guard page
+	LDR	a4, ___program_name
+ PICEQ "LDR	a4, [v4, a4]"
+	TEQ	a4, #0
+	LDRNE	a4, [a4, #0]
+	SWI	XARMEABISupport_StackOp
+	MOVS	sp, a3
+	MOVEQ	a1, #ERR_NO_STACK
+	BEQ	__exit_with_error_num	@ Failed to allocate stack, exit.
 
 	@ Check we have at least 4 KByte of application stack space.
-	SUB	a3, sp, #4096
+	MOV	a3, #0
 	STR	a3, [fp, #MEM_STACK]	@ __ul_memory.stack = bottom of stack
-	CMP	a3, a2
-	MOVCC	a1, #ERR_NO_MEMORY
-	BCC	__exit_with_error_num	@ No room for stack, exit.
 #endif
 
 	MOV	v1, ip		@ Temporary variable
 
 	@ Check for the existence of CallASWI.  Terminate the process
 	@ with an appropriate error message, if it doesn't exist.
-	ADR	a1, error_no_callaswi
+	ADRL	a1, error_no_callaswi
 	MOV	a2, a1
 	MOV	ip, #OS_GenerateError
 	ORR	ip, ip, #X_Bit
@@ -457,7 +480,11 @@ no_dynamic_area:
 	@ We don't know whether we're targeting D16 or D32 hardware, so request a context
 	@ of maximum size
 	TST	a2, #0xe	@ EQ -> 16 registers, NE -> 32 (or more?)
+#ifdef __ARM_EABI__
+	MOV	a1, #0x80000001	@ User mode, non application space, activate now
+#else
 	MOV	a1, #0x80000003	@ User mode, application space, activate now
+#endif
 	MOVEQ	a2, #16
 	MOVNE	a2, #32
 	SWI	XVFPSupport_CheckContext
@@ -479,6 +506,29 @@ no_dynamic_area:
 #endif
 #endif
 
+	@ We need to create this now so that we have its address to give to
+	@ the callback handler, but we can initialise it later.
+	MOV	a1, #6
+	MOV	a4, #PTHREAD_CALLEVERY_STRUCT_SIZE
+	SWI	XOS_Module
+	MOVVS	a1, #ERR_NO_MEMORY
+	BVS	__exit_with_error_num
+
+	STR	a3, [ip, #GBL_PTH_CALLEVERY_RMA]
+	MOV	v1, a3
+@	MOV	v2, ip
+
+	@ memset may use VFP/NEON, so we can't use it until the VFP context
+	@ has been created further down.
+	MOV	a1, #0
+	MOV	a2, #PTHREAD_CALLEVERY_STRUCT_SIZE / 4
+0:
+	STR	a1, [a3], #4
+	SUBS	a2, a2, #1
+	BNE	0b
+
+	STR	v4, [v1, #PTHREAD_CALLEVERY_RMA_GOT_PTR]
+
 	@ Now we'll initialise the C library, then call the user program.
 
 	MOV	a1, #SUL_MIN_VERSION
@@ -489,11 +539,29 @@ no_dynamic_area:
 	STR	a2, [ip, #GBL_UPCALL_HANDLER_ADDR]
 	STR	a3, [ip, #GBL_UPCALL_HANDLER_R12]
 
+	STR	a2, [v1, #PTHREAD_CALLEVERY_RMA_UPCALL_ADDR]
+	STR	a3, [v1, #PTHREAD_CALLEVERY_RMA_UPCALL_R12]
+
+#if defined (__ARM_EABI__) || defined (PIC)
+	LDR	a2, [a1, #SULPROC_STATUS]
+#ifdef __ARM_EABI__
+	ORR	a2, a2, #SULPROC_STATUS_FLAG_IS_ARMEABI
+#endif
+#ifdef PIC
+	ORR	a2, a2, #SULPROC_STATUS_FLAG_IS_DYNAMIC
+#endif
+	STR	a2, [a1, #SULPROC_STATUS]
+#endif
+
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
 	@ Create and activate the VFP context we allocated space for earlier
 	@ This is done after SUL initialisation just so we don't have to worry
 	@ about cleaning it up if SUL fails
+#ifdef __ARM_EABI__
+	MOV	a1, #0x80000001	@ User mode, non application space, activate now
+#else
 	MOV	a1, #0x80000003
+#endif
 	LDR	a2, [ip, #GBL_VFP_REGCOUNT]
 	MOV	a3, sp
 	MOV	a4, #0
@@ -515,14 +583,15 @@ no_dynamic_area:
 	@ NOTE:	 No calls to brk, sbrk, or malloc should occur before
 	@ calling this function.
 	BL	__unixinit
-
 	LDR	v2, .L0+32		@=crt1_data
  PICEQ "LDR	v2, [v4, v2]"
 	LDR	v2, [v2, #0]
 
+#ifndef __ARM_EABI__
 	LDR	a1, [v2, #CRT1_FLAGS]
 	TST	a1, #1
 	BLNE	__gmon_start__
+#endif
 
 	@ Normally, the dynamic linker would take care of shared library
 	@ initialisation, but UnixLib has to be initialised first so that
@@ -552,6 +621,20 @@ no_dynamic_area:
 	MOV	lr, pc
 	MOV	pc, a1
 
+	@ Call the program's .init_array functions.
+	@ FIXME: what about FINI_ARRAY?
+	LDR	v1, [v2, #CRT1_INIT_ARRAY_START]
+	LDR	v3, [v2, #CRT1_INIT_ARRAY_END]
+	TEQ	v1, v3
+	BEQ	no_init_array
+0:
+	LDR	a1, [v1], #4
+	MOV	lr, pc
+	MOV	pc, a1
+	CMP	v1, v3
+	BLO	0b
+
+no_init_array:
 	@ --- Executable Finalisation ---
 	@ Make sure the _fini function of the executable is called at program
 	@ exit.
@@ -589,6 +672,7 @@ no_dynamic_area:
 	WORD	__u			@ offset 24
 	WORD	environ			@ offset 28
 	WORD	crt1_data		@ offset 32
+
 no_main_routine:
 	.asciz	"There is no main function"
 	.align
@@ -618,30 +702,32 @@ ___stack_size:
 	@ a1 contains an index to the error block to report.
 	NAME	__exit_with_error_num
 __exit_with_error_num:
- PICEQ "SWI	XSOM_DeregisterClient"
+	ldr	a2, .L7				@ error_table
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
- PICEQ "LDR	a2, .L7"		@ error_table
  PICEQ "LDR	a2, [v4, a2]"
 
- PICNE "ADR	a2, error_table"
 	CMP	a1, #(error_table_end - error_table) >> 2
 	MOVCS	a1, #ERR_UNRECOVERABLE
 	LDR	a1, [a2, a1, LSL #2]
+	@ FIXME this comment no longer correct?: Once we deregister the client, the mapped data segment will cease to
+	@ exist, so we need to read the error table first. The errors themselves
+	@ are in the text section, so we're OK there.
+ PICEQ "SWI	XSOM_DeregisterClient"
+#ifdef __ARM_EABI__
+	SWI	XARMEABISupport_Cleanup
+#endif
 	SWI	OS_GenerateError
 .L7:
-	WORD	error_table
+	WORD error_table
 	DECLARE_FUNCTION __exit_with_error_num
 
-#if PIC
 	.data
-#endif
 
 	@ Make sure there are no absolute addresses in shared library by
 	@ placing error_table in read/write segment and addressing via GOT.
+	.globl	error_table
 error_table:
 	.word	error_no_memory
 	.word	error_no_callaswi
@@ -651,26 +737,29 @@ error_table:
 	.word	error_too_low_cpu_arch
 	.word	error_no_vfp
 	.word	error_bad_vfp
+	.word	error_no_stack
 error_table_end:
 	DECLARE_OBJECT error_table
 
-#if PIC
 	.text
-#endif
 
 error_no_callaswi:
 	.word	SharedUnixLibrary_Error_NoCallASWI
 	.asciz	"Module CallASWI is not present"
 	.align
+	DECLARE_OBJECT error_no_callaswi
 error_no_memory:
 	.word	SharedUnixLibrary_Error_NotEnoughMem
 	.asciz	"Insufficient memory for application"
 	.align
+	DECLARE_OBJECT error_no_memory
 error_no_sharedunixlib:
 	.word	SharedUnixLibrary_Error_NotRecentEnough
-	.ascii	"This application requires at least version " SUL_VERSION_STRING " "
-	.asciz	"of the SharedUnixLibrary module"
+	.ascii	"This application requires at least version "
+	.ascii	SUL_VERSION_STRING
+	.asciz	" of the SharedUnixLibrary module"
 	.align
+	DECLARE_OBJECT error_no_sharedunixlib
 error_no_fpe:
 #if !defined(__SOFTFP__) && !defined(__VFP_FP__)
 	.word	SharedUnixLibrary_Error_NoFPE
@@ -678,16 +767,20 @@ error_no_fpe:
 	.asciz	"or later of the FPEmulator module"
 	.align
 #endif
+	DECLARE_OBJECT error_no_fpe
 error_unrecoverable_loop:
 	.word	SharedUnixLibrary_Error_FatalError
 	.asciz	"Unrecoverable fatal error detected"
 	.align
+	DECLARE_OBJECT error_unrecoverable_loop
 error_too_low_cpu_arch:
 	.word	SharedUnixLibrary_Error_TooLowCPUArch
 	.ascii	"Build settings used to create this program require at least "
-	.ascii	"an ARM Architecture " __ARM_ARCH_STR__ " CPU "
-	.asciz	"at runtime."
+	.ascii	"an ARM Architecture "
+	.ascii	__ARM_ARCH_STR__
+	.asciz	" CPU at runtime."
 	.align
+	DECLARE_OBJECT error_too_low_cpu_arch
 error_no_vfp:
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
 	.word	SharedUnixLibrary_Error_NoVFP
@@ -695,6 +788,7 @@ error_no_vfp:
 	.asciz	"or later of the VFPSupport module"
 	.align
 #endif
+	DECLARE_OBJECT error_no_vfp
 error_bad_vfp:
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
 	.word	SharedUnixLibrary_Error_BadVFP
@@ -706,6 +800,14 @@ error_bad_vfp:
 	.asciz	"feature check failure. This program is not compatible with this CPU."
 	.align
 #endif
+	DECLARE_OBJECT error_bad_vfp
+error_no_stack:
+	.word	SharedUnixLibrary_Error_NoStack
+	.asciz	"Unable to allocate stack."
+	.align
+	DECLARE_OBJECT error_no_stack
+
+	.text
 
 	.global	__dynamic_area_exit
 	NAME	__dynamic_area_exit
@@ -713,17 +815,15 @@ __dynamic_area_exit:
  PICNE "STMFD	sp!, {lr}"
  PICEQ "STMFD	sp!, {v4, lr}"
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
 	LDR	a1, .L1			@=__dynamic_area_refcount
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a2, [a1]
 	SUBS	a2, a2, #1		@ Decrement __dynamic_area_refcount,
 	STR	a2, [a1]		@ and only remove the areas when the
- PICNE "LDMNEFD	sp!, {pc}"		@ count reaches zero
- PICEQ "LDMNEFD	sp!, {v4, pc}"
+ PICNE "LDMFDNE	sp!, {pc}"		@ count reaches zero
+ PICEQ "LDMFDNE	sp!, {v4, pc}"
 
 	BL	__munmap_all
 
@@ -746,9 +846,7 @@ __dynamic_area_exit:
 __env_riscos:
 	STMFD	sp!, {v1, v2, lr}
 
- PICEQ "LDR	ip, =__GOTT_BASE__"
- PICEQ "LDR	ip, [ip, #0]"
- PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
+	PIC_LOAD ip
 
 	SWI	XOS_IntOff
 	MOV	v1, #0
@@ -774,9 +872,7 @@ t04:
 __env_read:
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
 
- PICEQ "LDR	ip, =__GOTT_BASE__"
- PICEQ "LDR	ip, [ip, #0]"
- PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
+	PIC_LOAD ip
 
 	MOV	v1, #0
 	LDR	v2, .L8			@=__calling_environment
@@ -800,55 +896,49 @@ t05:
 	.global	__env_unixlib
 	NAME	__env_unixlib
 __env_unixlib:
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
 
- PICEQ "LDR	ip, =__GOTT_BASE__"
- PICEQ "LDR	ip, [ip, #0]"
- PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
+	PIC_LOAD ip
 
 	SWI	XOS_IntOff
 
 	MOV	v1, #0
  PICNE "ADR	v2, handlers"
 
- PICEQ "LDR	v2, .L3+12"		@ handlers
+ PICEQ "LDR	v2, .L3+8"		@ handlers
  PICEQ "LDR	v2, [ip, v2]"
+	LDR	v3, .L3+4	@=__ul_global
+ PICEQ "LDR	v3, [ip, v3]"
 t06:
 	MOV	a1, v1
 	LDR	a2, [v2], #4
 
-	@ For the shared library, pass the GOT pointer to the handlers
-	@ that are used by UnixLib.
- PICEQ "CMP	a2, #0"
- PICEQ "MOVEQ	a3, #0"
- PICEQ "MOVNE	a3, ip"
- PICNE "MOV	a3, #0"
+	@ Pass a ptr to the RMA block in r12/r0 where possible
+	CMP	a2, #0
+	LDRNE	a3, [v3, #GBL_PTH_CALLEVERY_RMA]
+	MOVEQ	a3, #0
 
 	MOV	a4, #0
 	TEQ	v1, #6		@ Error handler ?
 	LDREQ	a4, .L3		@=__ul_errbuf
  PICEQ "LDREQ	a4, [ip, a4]"
 	TEQ	v1, #7		@ CallBack handler ?
-	LDREQ	a4, .L3+4	@=__cbreg
- PICEQ "LDREQ	a4, [ip, a4]"
+	LDREQ	a4, [v3, #GBL_PTH_CALLEVERY_RMA] @ callback regs are the first thing in the block
 	SWI	XOS_ChangeEnvironment
 	ADD	v1, v1, #1
 	CMP	v1, #16
 	BCC	t06
 
-	LDR	a4, .L3+8	@=__ul_global
- PICEQ "LDR	a4, [ip, a4]"
 	MOV	a1, #16
-	LDR	a2, [a4, #GBL_UPCALL_HANDLER_ADDR]
-	LDR	a3, [a4, #GBL_UPCALL_HANDLER_R12]
+	LDR	a2, [v3, #GBL_UPCALL_HANDLER_ADDR]
+	LDR	a3, [v3, #GBL_UPCALL_HANDLER_R12]
 	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
 
 	SWI	XOS_IntOn
-	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}
+	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, pc}
 .L3:
 	WORD	__ul_errbuf
-	WORD	__cbreg
 	WORD	__ul_global
  PICEQ "WORD	handlers"
 	DECLARE_FUNCTION __env_unixlib
@@ -864,7 +954,13 @@ handlers:
 	.word	0		@ Memory limit
 	.word	__h_sigill	@ Undefined instruction
 	.word	__h_sigsegv0	@ Prefetch abort
+#ifdef __ARM_EABI__
+	@ FIXME: If we install an exception handler here, it interferes with
+	@ the one in ARMEABISupport. Need to use ARMEABISupport to install a Unixlib one.
+	.word	0		@ Data abort
+#else
 	.word	__h_sigsegv1	@ Data abort
+#endif
 	.word	__h_sigbus	@ Address exception
 	.word	0		@ Other exception
 	.word	__h_error	@ Error
@@ -929,9 +1025,7 @@ __rt_stkovf_split_big:
 	@ Thread-safe, other than the __stackalloc/free calls
 	@ v1 = extra size needed.
 stack_overflow_common:
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
 	@ The signal handler stack chunk can't be extended.
 	LDR	a1, .L4			@=__ul_global
@@ -1063,9 +1157,7 @@ __check_stack:
  PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, fp, ip, lr, pc}"
 	SUB	fp, ip, #4
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
 	LDR	a1, .L5				@=__ul_global
  PICEQ "LDR	a1, [v4, a1]"
@@ -1258,6 +1350,20 @@ no_chunk_to_free:
 	ADD	sl, sl, #512+CHUNK_OVERHEAD
 	MOV	pc, lr
 	DECLARE_FUNCTION __free_stack_chunk
+#elif defined(__ARM_EABI__)
+
+	@ FIXME: We can get rid of these all together?
+	.global	__rt_stkovf_split_small
+	NAME	__rt_stkovf_split_small
+__rt_stkovf_split_small:
+	MOV	pc, lr
+	DECLARE_FUNCTION __rt_stkovf_split_small
+
+	.global	__rt_stkovf_split_big
+	NAME	__rt_stkovf_split_big
+__rt_stkovf_split_big:
+	MOV	pc, lr
+	DECLARE_FUNCTION __rt_stkovf_split_big
 #endif
 
 	@ Globally used panic button.
@@ -1269,31 +1375,37 @@ __unixlib_fatal:
 	@ We don't want to assume anything about the stack as the stack
 	@ corruption detection routines will call this routine in case
 	@ something is wrong.
- PICEQ "LDR	ip, =__GOTT_BASE__"
- PICEQ "LDR	ip, [ip, #0]"
- PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
+	PIC_LOAD ip
 
 	LDR	a4, .L6			@=__ul_global
  PICEQ "LDR	a4, [ip, a4]"
 	LDR	sp, [a4, #GBL_SIGNALHANDLER_SP]
 	MOV	fp, #0
+#if __UNIXLIB_CHUNKED_STACK
 	LDR	sl, [a4, #GBL_SIGNALHANDLER_SL]
+#endif
 
+#ifdef __ARM_EABI__
+	STMDB	sp!, {v1, fp, lr}
+
+#ifdef __clang__
+	ADD	fp, sp, #8	@ TODO: check this offset is correct
+#else
+	ADD	fp, sp, #12	@ TODO: check this offset is correct
+#endif
+#else
 	MOV	ip, sp
- PICNE "STMDB	sp!, {v1, fp, ip, lr, pc}"
- PICEQ "STMDB	sp!, {v1, v4, fp, ip, lr, pc}"
-
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	STMDB	sp!, {v1, fp, ip, lr, pc}
 
 	SUB	fp, ip, #4
+#endif
 
 	@ We've been here before ? If so, we're looping in our fatal
 	@ error handling.  As last resort to avoid an infinite loop
 	@ we go for a straight OS_Exit scenario.  Anything better we
 	@ can do ?
 	ADD	a3, a4, #GBL_PANIC_MODE
+#ifndef __ARM_EABI__
 	LDR	a2, [a4, #GBL_CPU_FLAGS]
 	TST	a2, #__CPUCAP_HAVE_SWP
 	BEQ	0f
@@ -1301,6 +1413,7 @@ __unixlib_fatal:
 	MOV	a2, #1
 	SWP	a2, a2, [a3]
 	B	1f
+#endif
 0:
 	LDREX	a2, [a3]
 	MOV	ip, #1
@@ -1335,8 +1448,11 @@ __unixlib_fatal_got_msg:
 	MOV	a1, #1
 	BL	_exit
 	@ Should never return
- PICNE "LDMDB	fp, {v1, fp, sp, pc}"
- PICEQ "LDMDB	fp, {v1, v4, fp, sp, pc}"
+#ifdef __ARM_EABI__
+	LDMIA	sp!, {v1, fp, pc}
+#else
+	LDMDB	fp, {v1, fp, sp, pc}
+#endif
 .L6:
 	WORD	__ul_global
 	DECLARE_FUNCTION __unixlib_fatal

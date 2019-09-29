@@ -16,6 +16,7 @@
 
 #include <pthread.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 
 /* These built-in functions perform the operation suggested by the name,
  * and return the value that had previously been in *ptr. That is,
@@ -43,19 +44,19 @@ __atomic_fetch_##name##_##size (type *ptr, type val, int memmodel) \
 }
 
 
-ATOMIC_FETCH_OP(add,(*ptr) += val,1,uint8_t)
-ATOMIC_FETCH_OP(sub,(*ptr) -= val,1,uint8_t)
-ATOMIC_FETCH_OP(or,(*ptr) |= val,1,uint8_t)
-ATOMIC_FETCH_OP(xor,(*ptr) ^= val,1,uint8_t)
-ATOMIC_FETCH_OP(and,(*ptr) &= val,1,uint8_t)
-ATOMIC_FETCH_OP(nand,(*ptr) = ~((*ptr) & val),1,uint8_t)
+ATOMIC_FETCH_OP(add,(*ptr) += val,1,char)
+ATOMIC_FETCH_OP(sub,(*ptr) -= val,1,char)
+ATOMIC_FETCH_OP(or,(*ptr) |= val,1,char)
+ATOMIC_FETCH_OP(xor,(*ptr) ^= val,1,char)
+ATOMIC_FETCH_OP(and,(*ptr) &= val,1,char)
+ATOMIC_FETCH_OP(nand,(*ptr) = ~((*ptr) & val),1,char)
 
-ATOMIC_FETCH_OP(add,(*ptr) += val,2,uint16_t)
-ATOMIC_FETCH_OP(sub,(*ptr) -= val,2,uint16_t)
-ATOMIC_FETCH_OP(or,(*ptr) |= val,2,uint16_t)
-ATOMIC_FETCH_OP(xor,(*ptr) ^= val,2,uint16_t)
-ATOMIC_FETCH_OP(and,(*ptr) &= val,2,uint16_t)
-ATOMIC_FETCH_OP(nand,(*ptr) = ~((*ptr) & val),2,uint16_t)
+ATOMIC_FETCH_OP(add,(*ptr) += val,2,short)
+ATOMIC_FETCH_OP(sub,(*ptr) -= val,2,short)
+ATOMIC_FETCH_OP(or,(*ptr) |= val,2,short)
+ATOMIC_FETCH_OP(xor,(*ptr) ^= val,2,short)
+ATOMIC_FETCH_OP(and,(*ptr) &= val,2,short)
+ATOMIC_FETCH_OP(nand,(*ptr) = ~((*ptr) & val),2,short)
 
 ATOMIC_FETCH_OP(add,(*ptr) += val,4,uint32_t)
 ATOMIC_FETCH_OP(sub,(*ptr) -= val,4,uint32_t)
@@ -91,7 +92,7 @@ __atomic_exchange_##size (type *ptr, type val, int memmodel) \
 }
 
 ATOMIC_EXCHANGE(1,uint8_t)
-ATOMIC_EXCHANGE(2,uint16_t)
+ATOMIC_EXCHANGE(2,short)
 ATOMIC_EXCHANGE(4,uint32_t)
 
 /* This built-in function implements an atomic compare and exchange operation.
@@ -140,8 +141,10 @@ __atomic_compare_exchange_##size (type *ptr, \
 }
 
 ATOMIC_COMPARE_AND_EXCHANGE(1,uint8_t)
-ATOMIC_COMPARE_AND_EXCHANGE(2,uint16_t)
+ATOMIC_COMPARE_AND_EXCHANGE(2,short)
 ATOMIC_COMPARE_AND_EXCHANGE(4,uint32_t)
+
+#ifndef __ARM_EABI__
 
 /* These built-in functions perform the operation suggested by the name,
  * and return the value that had previously been in *ptr. That is,
@@ -154,7 +157,7 @@ ATOMIC_COMPARE_AND_EXCHANGE(4,uint32_t)
  */
 #define SYNC_FETCH_AND_OP(name, op, size, type) \
 type \
-__sync_fetch_and_##name##_##size (type *ptr, type val) \
+__builtin_sync_fetch_and_##name##_##size (volatile type *ptr, type val, ...) \
 { \
   type temp; \
   \
@@ -166,25 +169,30 @@ __sync_fetch_and_##name##_##size (type *ptr, type val) \
   __pthread_enable_ints (); \
   \
   return temp; \
-}
+} \
+__asm__(".hidden\t__builtin_sync_fetch_and_"__STRING(name)"_"__STRING(size)"\n"); \
+__asm__(".global\t__sync_fetch_and_"__STRING(name)"_"__STRING(size)"\n"); \
+__asm__("__sync_fetch_and_"__STRING(name)"_"__STRING(size)"=__builtin_sync_fetch_and_"__STRING(name)"_"__STRING(size));
 
-SYNC_FETCH_AND_OP(add,+,1,uint8_t)
-SYNC_FETCH_AND_OP(sub,-,1,uint8_t)
-SYNC_FETCH_AND_OP(or,|,1,uint8_t)
-SYNC_FETCH_AND_OP(xor,^,1,uint8_t)
-SYNC_FETCH_AND_OP(and,&,1,uint8_t)
+SYNC_FETCH_AND_OP(add,+,1,char)
+SYNC_FETCH_AND_OP(sub,-,1,char)
+SYNC_FETCH_AND_OP(or,|,1,char)
+SYNC_FETCH_AND_OP(xor,^,1,char)
+SYNC_FETCH_AND_OP(and,&,1,char)
 
-SYNC_FETCH_AND_OP(add,+,2,uint16_t)
-SYNC_FETCH_AND_OP(sub,-,2,uint16_t)
-SYNC_FETCH_AND_OP(or,|,2,uint16_t)
-SYNC_FETCH_AND_OP(xor,^,2,uint16_t)
-SYNC_FETCH_AND_OP(and,&,2,uint16_t)
+SYNC_FETCH_AND_OP(add,+,2,short)
+SYNC_FETCH_AND_OP(sub,-,2,short)
+SYNC_FETCH_AND_OP(or,|,2,short)
+SYNC_FETCH_AND_OP(xor,^,2,short)
+SYNC_FETCH_AND_OP(and,&,2,short)
 
-SYNC_FETCH_AND_OP(add,+,4,uint32_t)
-SYNC_FETCH_AND_OP(sub,-,4,uint32_t)
-SYNC_FETCH_AND_OP(or,|,4,uint32_t)
-SYNC_FETCH_AND_OP(xor,^,4,uint32_t)
-SYNC_FETCH_AND_OP(and,&,4,uint32_t)
+SYNC_FETCH_AND_OP(add,+,4,int)
+SYNC_FETCH_AND_OP(sub,-,4,int)
+SYNC_FETCH_AND_OP(or,|,4,int)
+SYNC_FETCH_AND_OP(xor,^,4,int)
+SYNC_FETCH_AND_OP(and,&,4,int)
+
+#endif
 
 /* These built-in functions perform the operation suggested by the name,
  * and return the new value. That is,
@@ -193,7 +201,7 @@ SYNC_FETCH_AND_OP(and,&,4,uint32_t)
  */
 #define SYNC_OP_AND_FETCH(name, op, size, type) \
 type \
-__sync_##name##_and_fetch_##size (type *ptr, type val) \
+__builtin_sync_##name##_and_fetch_##size (volatile type *ptr, type val, ...) \
 { \
   __pthread_disable_ints (); \
   \
@@ -202,25 +210,28 @@ __sync_##name##_and_fetch_##size (type *ptr, type val) \
   __pthread_enable_ints (); \
   \
   return *ptr; \
-}
+} \
+__asm__(".hidden\t__builtin_sync_"__STRING(name)"_and_fetch_"__STRING(size)"\n"); \
+__asm__(".global\t__sync_"__STRING(name)"_and_fetch_"__STRING(size)"\n"); \
+__asm__("__sync_"__STRING(name)"_and_fetch_"__STRING(size)"=__builtin_sync_"__STRING(name)"_and_fetch_"__STRING(size));
 
-SYNC_OP_AND_FETCH(add,+,1,uint8_t)
-SYNC_OP_AND_FETCH(sub,-,1,uint8_t)
-SYNC_OP_AND_FETCH(or,|,1,uint8_t)
-SYNC_OP_AND_FETCH(xor,^,1,uint8_t)
-SYNC_OP_AND_FETCH(and,&,1,uint8_t)
+SYNC_OP_AND_FETCH(add,+,1,char)
+SYNC_OP_AND_FETCH(sub,-,1,char)
+SYNC_OP_AND_FETCH(or,|,1,char)
+SYNC_OP_AND_FETCH(xor,^,1,char)
+SYNC_OP_AND_FETCH(and,&,1,char)
 
-SYNC_OP_AND_FETCH(add,+,2,uint16_t)
-SYNC_OP_AND_FETCH(sub,-,2,uint16_t)
-SYNC_OP_AND_FETCH(or,|,2,uint16_t)
-SYNC_OP_AND_FETCH(xor,^,2,uint16_t)
-SYNC_OP_AND_FETCH(and,&,2,uint16_t)
+SYNC_OP_AND_FETCH(add,+,2,short)
+SYNC_OP_AND_FETCH(sub,-,2,short)
+SYNC_OP_AND_FETCH(or,|,2,short)
+SYNC_OP_AND_FETCH(xor,^,2,short)
+SYNC_OP_AND_FETCH(and,&,2,short)
 
-SYNC_OP_AND_FETCH(add,+,4,uint32_t)
-SYNC_OP_AND_FETCH(sub,-,4,uint32_t)
-SYNC_OP_AND_FETCH(or,|,4,uint32_t)
-SYNC_OP_AND_FETCH(xor,^,4,uint32_t)
-SYNC_OP_AND_FETCH(and,&,4,uint32_t)
+SYNC_OP_AND_FETCH(add,+,4,int)
+SYNC_OP_AND_FETCH(sub,-,4,int)
+SYNC_OP_AND_FETCH(or,|,4,int)
+SYNC_OP_AND_FETCH(xor,^,4,int)
+SYNC_OP_AND_FETCH(and,&,4,int)
 
 /* These built-in functions perform an atomic compare and swap. That is,
  * if the current value of *ptr is oldval, then write newval into *ptr.
@@ -229,8 +240,8 @@ SYNC_OP_AND_FETCH(and,&,4,uint32_t)
  * before the operation. 
  */
 #define SYNC_BOOL_COMPARE_SWAP(size, type) \
-char \
-__sync_bool_compare_and_swap_##size (type *ptr, type oldval, type newval) \
+_Bool \
+__builtin_sync_bool_compare_and_swap_##size (volatile type *ptr, type oldval, type newval, ...) \
 { \
   uint32_t result = 0; \
   \
@@ -245,15 +256,18 @@ __sync_bool_compare_and_swap_##size (type *ptr, type oldval, type newval) \
   __pthread_enable_ints (); \
   \
   return result; \
-}
+} \
+__asm__(".hidden\t__builtin_sync_bool_compare_and_swap_"__STRING(size)"\n"); \
+__asm__(".global\t__sync_bool_compare_and_swap_"__STRING(size)"\n"); \
+__asm__("__sync_bool_compare_and_swap_"__STRING(size)"=__builtin_sync_bool_compare_and_swap_"__STRING(size));
 
-SYNC_BOOL_COMPARE_SWAP(1,uint8_t)
-SYNC_BOOL_COMPARE_SWAP(2,uint16_t)
-SYNC_BOOL_COMPARE_SWAP(4,uint32_t)
+SYNC_BOOL_COMPARE_SWAP(1,char)
+SYNC_BOOL_COMPARE_SWAP(2,short)
+SYNC_BOOL_COMPARE_SWAP(4,int)
 
 #define SYNC_VAL_COMPARE_SWAP(size, type) \
 type \
-__sync_val_compare_and_swap_##size (type *ptr, type oldval, type newval) \
+__builtin_sync_val_compare_and_swap_##size (volatile type *ptr, type oldval, type newval, ...) \
 { \
   type result; \
   \
@@ -266,11 +280,13 @@ __sync_val_compare_and_swap_##size (type *ptr, type oldval, type newval) \
   __pthread_enable_ints (); \
   \
   return result; \
-}
-
-SYNC_VAL_COMPARE_SWAP(1,uint8_t)
-SYNC_VAL_COMPARE_SWAP(2,uint16_t)
-SYNC_VAL_COMPARE_SWAP(4,uint32_t)
+} \
+__asm__(".hidden\t__builtin_sync_val_compare_and_swap_"__STRING(size)"\n"); \
+__asm__(".global\t__sync_val_compare_and_swap_"__STRING(size)"\n"); \
+__asm__("__sync_val_compare_and_swap_"__STRING(size)"=__builtin_sync_val_compare_and_swap_"__STRING(size));
+SYNC_VAL_COMPARE_SWAP(1,char)
+SYNC_VAL_COMPARE_SWAP(2,short)
+SYNC_VAL_COMPARE_SWAP(4,int)
 
 /* This built-in function implements an atomic load operation.
  * It returns the contents of *ptr.
@@ -290,8 +306,8 @@ __atomic_load_##size (type *ptr, int memmodel) \
   return result; \
 }
 
-ATOMIC_LOAD_N(1,uint8_t)
-ATOMIC_LOAD_N(2,uint16_t)
+ATOMIC_LOAD_N(1,char)
+ATOMIC_LOAD_N(2,short)
 ATOMIC_LOAD_N(4,uint32_t)
 ATOMIC_LOAD_N(8,uint64_t)
 
@@ -309,8 +325,8 @@ __atomic_store_##size (type *ptr, type val, int memmodel) \
   __pthread_enable_ints(); \
 }
 
-ATOMIC_STORE_N(1,uint8_t)
-ATOMIC_STORE_N(2,uint16_t)
+ATOMIC_STORE_N(1,char)
+ATOMIC_STORE_N(2,short)
 ATOMIC_STORE_N(4,uint32_t)
 ATOMIC_STORE_N(8,uint64_t)
 
@@ -325,7 +341,7 @@ ATOMIC_STORE_N(8,uint64_t)
  */
 #define ATOMIC_OP_FETCH(name, op, type) \
 type \
-__atomic_##name##_fetch(type *ptr, type val, int memmodel) \
+__builtin_atomic_##name##_fetch(type *ptr, type val, int memmodel) \
 { \
   __pthread_disable_ints(); \
   \
@@ -334,7 +350,10 @@ __atomic_##name##_fetch(type *ptr, type val, int memmodel) \
   __pthread_enable_ints(); \
   \
   return *ptr; \
-}
+} \
+__asm__(".hidden\t__builtin_atomic_"__STRING(name)"_fetch\n"); \
+__asm__(".global\t__atomic_"__STRING(name)"_fetch\n"); \
+__asm__("__atomic_"__STRING(name)"_fetch=__builtin_atomic_"__STRING(name)"_fetch");
 
 ATOMIC_OP_FETCH(add,(*ptr) += val,unsigned)
 ATOMIC_OP_FETCH(sub,(*ptr) -= val,unsigned)
@@ -342,3 +361,43 @@ ATOMIC_OP_FETCH(and,(*ptr) &= val,unsigned)
 ATOMIC_OP_FETCH(xor,(*ptr) ^= val,unsigned)
 ATOMIC_OP_FETCH(or,(*ptr) |= val,unsigned)
 ATOMIC_OP_FETCH(nand,(*ptr) = ~((*ptr) & val),unsigned)
+
+static int __cmpxchg(int oldval, int newval, volatile int *ptr)
+{
+  int result, scratch;
+
+  __asm volatile ("1:	ldrex	%[scratch], [%[ptr]]\n"
+		  "	subs	%[scratch], %[scratch], %[oldval]\n"
+		  "	strexeq	%[scratch], %[newval], [%[ptr]]\n"
+		  "	teqeq	%[scratch], #1\n"
+		  "	beq	1b\n"
+		  "	rsbs	%[result], %[scratch], #0\n"
+		  : [result] "=r" (result), [scratch] "+r" (scratch), [newval] "+r" (newval)
+		  : [oldval] "r" (oldval),
+		    [ptr] "r" (ptr)
+		  : "cc", "memory");
+  return result;
+}
+
+int __builtin_sync_lock_test_and_set_4 (volatile int *ptr, int val)
+{
+  int failure, oldval;
+
+  do {
+    oldval = *ptr;
+    failure = __cmpxchg (oldval, val, ptr);
+  } while (failure != 0);
+
+  return oldval;
+}
+__asm__(".hidden\t__builtin_sync_lock_test_and_set_4\n"); \
+__asm__(".global\t__sync_lock_test_and_set_4\n"); \
+__asm__("__sync_lock_test_and_set_4=__builtin_sync_lock_test_and_set_4");
+
+void
+__builtin_sync_synchronize (void)
+{
+}
+__asm__(".hidden\t__builtin_sync_synchronize\n"); \
+__asm__(".global\t__sync_synchronize\n"); \
+__asm__("__sync_synchronize=__builtin_sync_synchronize");

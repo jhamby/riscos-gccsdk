@@ -1,5 +1,5 @@
 # Automake style makefile for UnixLib
-# Copyright (c) 2005-2013 UnixLib developers
+# Copyright (c) 2005-2019 UnixLib developers
 # Written by Nick Burrett <nick@sqrt.co.uk>
 
 # Directory where headers will be installed.
@@ -31,8 +31,15 @@ AM_CPPFLAGS = -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
 # the normal 'double' onces.
 # __UNIXLIB_NO_NONNULL is there because otherwise __nonnull() marked function
 # arguments can not be tested for NULL in UnixLib itself.
+if ARM_EABI
 AM_CFLAGS = -D__GNU_LIBRARY__ -DNO_LONG_DOUBLE -D_GNU_SOURCE=1 \
 	-D__UNIXLIB_NO_NONNULL -std=c99 $(LIBM_FLAGS)
+UNIXLIB_CHUNKED_STACK=0
+else
+AM_CFLAGS = -D__GNU_LIBRARY__ -DNO_LONG_DOUBLE -D_GNU_SOURCE=1 \
+	-D__UNIXLIB_NO_NONNULL -std=c99 $(LIBM_FLAGS)
+endif
+
 if UNIXLIB_CHUNKED_STACK
 AM_CFLAGS += -D__UNIXLIB_CHUNKED_STACK=1
 else
@@ -41,7 +48,12 @@ endif
 
 # Assembler files rely heavily on the C preprocessor to keep structures
 # referred to by both languages in sync.
+if ARM_EABI
 AM_CCASFLAGS = -xassembler-with-cpp -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
+else
+AM_CCASFLAGS = -xassembler-with-cpp -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
+endif
+
 if UNIXLIB_CHUNKED_STACK
 AM_CCASFLAGS += -D__UNIXLIB_CHUNKED_STACK=1
 else
@@ -583,8 +595,7 @@ if UNIXLIB_BUILDING_SCL
 misc_src =
 else
 misc_src = \
-	misc/dirname.c \
-	misc/abi.c
+	misc/dirname.c
 endif
 misc_src += \
 	misc/linklist.c
@@ -988,15 +999,22 @@ string_src = \
 	string/strstr.c \
 	string/strtok.c \
 	string/swab.c \
+	string/_strcpy.s
+if ARM_EABI
+string_src += \
+	string/_memcpymove-v7l.s \
+	string/_memset-v7l.s \
+	string/_strlen-v7l.s
+else
+string_src += \
 	string/_memcpy.s \
 	string/_memset.s \
-	string/_strcpy.s \
 	string/_strlen.s
+endif
 endif
 string_src += \
 	string/memccpy.c \
 	string/memchr.c \
-	string/mempcpy.c \
 	string/stpcpy.c \
 	string/stpncpy.c \
 	string/strdup.c \
@@ -1009,6 +1027,10 @@ string_src += \
 	string/strtok_r.c \
 	string/_ffs.s \
 	string/_ffsll.s
+if !ARM_EABI
+string_src += \
+	string/mempcpy.c
+endif
 
 if UNIXLIB_BUILDING_SCL
 sys_src =
@@ -1251,7 +1273,8 @@ wchar_src = \
 	wchar/wmemcpy.c \
 	wchar/wmemmove.c \
 	wchar/wmempcpy.c \
-	wchar/wmemset.c
+	wchar/wmemset.c \
+	wchar/wmissing.c
 endif
 wchar_src += \
 	wchar/mblen.c \

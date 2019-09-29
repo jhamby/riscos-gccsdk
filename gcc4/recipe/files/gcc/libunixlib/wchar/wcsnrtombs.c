@@ -52,7 +52,7 @@ static mbstate_t internal;
    implementation of stdio because we have to deal with unterminated
    buffers.  At most NWC wide character will be converted.  */
 size_t
-__wcsnrtombs (dst, src, nwc, len, ps)
+wcsnrtombs (dst, src, nwc, len, ps)
      char *dst;
      const wchar_t **src;
      size_t nwc;

@@ -62,6 +62,10 @@ struct __process
   unsigned int forked : 1;
   /* This process was the result of exec().  */
   unsigned int execed : 1;
+  /* This process is dynamically linked.  */
+  unsigned int is_dynamic : 1;
+  /* This process is armeabi.  */
+  unsigned int is_armeabi : 1;
 };
 
 /* This structure must be kept in perfect synchronisation with
@@ -117,6 +121,7 @@ struct __sul_process
   unsigned int environ_size;
   void (*sul_exec) (__pid_t pid, char *cli, void *stacklimit, void *stack) __attribute__ ((__noreturn__));
   void *(*sul_wimpslot) (__pid_t pid, void *newslot);
+  int is_armeabi;  /* 1 if the process is ARMEABI, otherwise 0.  */
 };
 
 extern struct proc *__u;	/* current process */
@@ -167,9 +172,9 @@ struct ul_global
   void *upcall_handler_r12;
 
   void *pthread_return_address;
-  volatile int pthread_worksemaphore; /* Zero if the context switcher is
+  volatile int pthread_worksemaphore_POISONED; /* Zero if the context switcher is
     allowed to switch threads.  */
-  volatile int pthread_callback_semaphore; /* Prevent a callback being set
+  volatile int pthread_callback_semaphore_POISONED; /* Prevent a callback being set
     whilst servicing another callback.  */
   int pthread_system_running; /* Global initialisation flag.  UnixLib
     internally uses this to test whether or not to use mutexes for locking
@@ -193,9 +198,9 @@ struct ul_global
     stdio stream using __flslbbuf when reading from a stdio stream attached
     to a tty.  */
   struct __pthread_callevery_block *pthread_callevery_rma; /* Pointer to a
-    small block of RMA that contains several values that remain constant for
-    the life of the program. This block is passed to the call_every handler in
-    r12.  */
+    block of RMA that contains several values which require quick and
+    easy access from the machine code routines.
+    This block is passed to the call_every handler in r12, for example.  */
 
   unsigned int cpu_flags; /* Flags indicating the capabilities of the CPU.  */
 

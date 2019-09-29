@@ -1,6 +1,6 @@
 /* Pthread initialisation.
    Written by Martin Piper and Alex Waugh.
-   Copyright (c) 2002-2008, 2010, 2015 UnixLib Developers.  */
+   Copyright (c) 2002-2008, 2010, 2015, 2019 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <pthread.h>
@@ -8,6 +8,7 @@
 #include <swis.h>
 #include <string.h>
 
+#include <internal/swiparams.h>
 #include <internal/os.h>
 #include <internal/unix.h>
 
@@ -15,25 +16,25 @@ static struct __pthread_thread mainthread;
 
 static const char filter_name[] = "UnixLib pthread";
 
-#ifdef PIC
-static unsigned int __get_GOT_ptr (void)
+static void
+__get_main_stack (struct __pthread_thread *thread)
 {
-unsigned int GOT;
-
-  __asm__ volatile ("	LDR	%0, =__GOTT_BASE__\n"
-		    "	LDR	%0, [%0, #0]\n"
-		    "	LDR	%0, [%0, #__GOTT_INDEX__]\n"
-		    : "=r" (GOT));
-  return GOT;
-}
-#endif
-
-static struct __stack_chunk *
-__get_main_stack_base (void)
-{
+#if __UNIXLIB_CHUNKED_STACK
   register unsigned int sl __asm__ ("r10");
 
-  return (struct __stack_chunk *)(sl - 536);
+  thread->stack = (stack_t)(sl - 536);
+  thread->stack_size = PTHREAD_STACK_MIN;
+#else
+  void *fp = __builtin_frame_address (0);
+  stack_t stack;
+  unsigned stack_base;
+  unsigned guard_size;
+
+  _swix(ARMEABISupport_StackOp, _INR(0,1)|_OUT(1), ARMEABISUPPORT_STACKOP_GET_STACK, fp, &thread->stack);
+
+  _swix(ARMEABISupport_StackOp, _INR(0,1)|_OUT(1), ARMEABISUPPORT_STACKOP_GET_BOUNDS, thread->stack, &stack_base);
+  _swix(ARMEABISupport_StackOp, _INR(0,1)|_OUTR(1,2), ARMEABISUPPORT_STACKOP_GET_SIZE, thread->stack, &thread->stack_size, &guard_size);
+#endif
 }
 
 /* Called once, at program initialisation.  */
@@ -65,36 +66,9 @@ __pthread_prog_init (void)
 #endif
 
   mainthread.magic = PTHREAD_MAGIC;
-  mainthread.stack = __get_main_stack_base ();  
+  __get_main_stack (&mainthread);
 
-  /* Allocate a small block of RMA to hold some data that remains
-   * constant over the life of the program. A pointer to this block
-   * will be passed to pthread_call_every in r12. Despite the
-   * WimpPoll filters, accessing application space is still crash
-   * prone, especially in the shared library. Passing this data
-   * in the RMA allows the application to be validated without having
-   * to access its address space therefor making it more robust.
-   */
-  {
-    int regs[10];
-  
-    regs[0] = 6;
-    regs[3] = sizeof (struct __pthread_callevery_block) + sizeof (filter_name);
-    if (__os_swi (OS_Module, regs) != NULL)
-      __unixlib_fatal ("pthreads initialisation error: out of memory");
-
-    gbl->pthread_callevery_rma = (struct __pthread_callevery_block *)regs[2];
-    
-#ifdef PIC
-    gbl->pthread_callevery_rma->got = __get_GOT_ptr ();
-#else
-    gbl->pthread_callevery_rma->got = 0;
-#endif
-
-    gbl->pthread_callevery_rma->sul_upcall_addr = gbl->upcall_handler_addr;
-    gbl->pthread_callevery_rma->sul_upcall_r12 = gbl->upcall_handler_r12;
-    strcpy (gbl->pthread_callevery_rma->filter_name, filter_name);
-  }
+  strcpy (gbl->pthread_callevery_rma->filter_name, filter_name);
 
   __pthread_thread_list = __pthread_running_thread;
   gbl->pthread_num_running_threads = 1;

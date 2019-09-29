@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ int _kernel_osfile (int op, char *name, _kernel_osfile_block *inout)
@@ -15,7 +16,7 @@ _kernel_osfile:
 	LDMIA	a3, {a3, a4, v1, v2}
 	SWI	XOS_File
 	STMIA	ip, {a3, a4, v1, v2}
-	LDMVCFD	sp!, {v1-v3, pc}
+	LDMFDVC	sp!, {v1-v3, pc}
 
 	MOV	a2, #EOPSYS
 	BL	__ul_seterr

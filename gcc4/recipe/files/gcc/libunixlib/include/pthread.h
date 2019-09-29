@@ -14,6 +14,7 @@
 #include <stddef.h>
 
 #define __need_clock_t
+#define __need_clockid_t
 #include <time.h>
 
 #include <sched.h>
@@ -33,6 +34,7 @@ struct __pthread_lock_attr
 {
   int pshared; /* can the mutex be shared between processes */
   int type; /* mutex type */
+  clockid_t clock_id; /* CLOCK_REALTIME or CLOCK_MONOTONIC */
 };
 
 /* Mutex/rwlock type */
@@ -62,6 +64,8 @@ struct __pthread_lock
 /* Condition var object */
 struct __pthread_cond
 {
+  /* Absolute (CLOCK_REALTIME) or relative (CLOCK_MONOTONIC) clock?  */
+  clockid_t clock_id;
   /* Linked list of threads that are blocked on this condition var.  */
   struct __pthread_thread *waiting;
 };
@@ -358,7 +362,7 @@ extern int pthread_rwlockattr_getpshared (const pthread_rwlockattr_t *
 /* Condition variables */
 
 /* Static default initialiser for a pthread_cond_t */
-#define PTHREAD_COND_INITIALIZER {NULL}
+#define PTHREAD_COND_INITIALIZER {CLOCK_REALTIME,NULL}
 
 /* Initialise a condition variable with the given attributes */
 extern int pthread_cond_init (pthread_cond_t *__restrict cond,
@@ -395,7 +399,12 @@ extern int pthread_condattr_setpshared (pthread_condattr_t *attr, int pshared);
 extern int pthread_condattr_getpshared (const pthread_condattr_t *
 					__restrict attr,
 					int *__restrict pshared);
-
+/* Get clock id attribute */
+extern int pthread_condattr_getclock (const pthread_condattr_t *__restrict attr,
+				      clockid_t *__restrict clock_id);
+/* Set clock id attribute */
+extern int pthread_condattr_setclock (pthread_condattr_t *attr,
+				      clockid_t clock_id);
 /* Keys */
 
 /* Maximum number of times a key destructor will be called */
@@ -422,8 +431,13 @@ extern void *pthread_getspecific (pthread_key_t key);
 /* Max munber of threads that may be active at once */
 #define PTHREAD_THREADS_MAX 256
 
+#if __UNIXLIB_CHUNKED_STACK
 /* Size to allocate for a thread's initial stack chunk */
 #define PTHREAD_STACK_MIN 4096
+#else
+/* Minimum size of a thread stack  */
+#define PTHREAD_STACK_MIN (16 * 1024)
+#endif
 
 /* Static default initialiser for a pthread_once_t */
 #define PTHREAD_ONCE_INIT 0
@@ -477,6 +491,26 @@ extern int pthread_getattr_np (pthread_t thread_id,
 			       pthread_attr_t *attr);
 
 #endif /* __USE_GNU */
+
+/*
+ * These are RISC OS specific functions to aid in porting. They are *not* portable.
+ */
+
+/* Suspend execution of the given thread.
+ * The current thread can not be suspended which also means if there is only one thread,
+ * then that cannot be suspended.
+ * Returns 0 for success, or EINVAL if it failed to suspend the given thread.
+ */
+int
+pthread_suspend_thread(pthread_t thread);
+
+/* Resume execution of the given thread.  */
+int
+pthread_resume_thread(pthread_t thread);
+
+/* Return the registers for the given thread.  */
+int
+pthread_get_thread_registers(pthread_t thread, struct mcontext *buffer);
 
 #endif /* __PTHREAD_H */
 

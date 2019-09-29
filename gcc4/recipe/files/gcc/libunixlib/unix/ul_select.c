@@ -63,7 +63,15 @@ __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
         {
           /* Cast to 'unsigned int' in order to have more efficient code.  */
           int bits;
-          if ((bits = ((unsigned int)nfds % WORD_BITS)) == 0)
+	  /*
+	   * FIXME: Is this logic flawed? In Webkit, some of the sockets seem to go
+	   *	    unchecked. Are we testing all relevant bits in all words?
+	   *	    For ARMEABI (GCC 8), check all bits - seems to work better, but we'll
+	   *	    leave the original code for GCC 4.
+	   */
+#ifndef __ARM_EABI__
+	  if ((bits = ((unsigned int)nfds % WORD_BITS)) == 0)
+#endif
             bits = WORD_BITS;
 
           while (bits-- > 0)

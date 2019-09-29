@@ -4,6 +4,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	.global	ffsll
@@ -37,7 +38,7 @@ ffsll_high:
 	ORRNE	a3, a3, a3, LSL #6	@ a3 = X * 0x0451
 	RSBNE	a3, a3, a3, LSL #16	@ a3 = X * 0x0450FBAF
 
-	LDRNEB	a1, [pc, a3, LSR #26]	@ a1 = result taken from top 6 bits
+	LDRBNE	a1, [pc, a3, LSR #26]	@ a1 = result taken from top 6 bits
 
 	MOV	pc, lr
 	.byte	 0,  1,  2, 13,  3,  7,  0, 14
@@ -57,7 +58,7 @@ ffsll_high:
 	ORRNE	a3, a3, a3, LSL #6	@ a3 = X * 0x0451
 	RSBNE	a3, a3, a3, LSL #16	@ a3 = X * 0x0450FBAF
 
-	LDRNEB	a1, [pc, a3, LSR #26]	@ a1 = result taken from top 6 bits
+	LDRBNE	a1, [pc, a3, LSR #26]	@ a1 = result taken from top 6 bits
 
 	MOV	pc, lr
 	.byte	32, 33, 34, 45, 35, 39, 32, 46

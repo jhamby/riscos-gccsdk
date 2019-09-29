@@ -341,7 +341,10 @@ enum
     _SC_2_FORT_DEV,
     _SC_2_FORT_RUN,
     _SC_2_SW_DEV,
-    _SC_2_LOCALEDEF
+    _SC_2_LOCALEDEF,
+
+    _SC_PAGE_SIZE = _SC_PAGESIZE,
+    _SC_PHYS_PAGES
   };
 
 /* Get the value of the system variable NAME.  */

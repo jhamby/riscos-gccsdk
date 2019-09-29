@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 @ _kernel_swi for UnixLib
@@ -37,7 +38,7 @@ _kernel_swi:
 	LDR	ip, [sp, #0]
 	STMIA	ip, {a1-v6}
 	MOVVC	a1, #0
-	LDMVCFD	sp!, {a3, v1-v6, pc}
+	LDMFDVC	sp!, {a3, v1-v6, pc}
 	MOV	v1, a1
 	MOV	a2, #EOPSYS
 	BL	__ul_seterr

@@ -15,7 +15,11 @@ pthread_attr_init (pthread_attr_t *attr)
   attr->detachstate = PTHREAD_CREATE_JOINABLE;
   attr->guardsize = 0;
   attr->stackaddr = NULL;
+#if __UNIXLIB_CHUNKED_STACK
   attr->stacksize = PTHREAD_STACK_MIN;
+#else
+  attr->stacksize = PTHREAD_DEFAULT_MAX_STACK_SIZE;
+#endif
 
   return 0;
 }

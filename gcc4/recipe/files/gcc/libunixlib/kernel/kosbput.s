@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ int _kernel_osbput (int ch, int handle)
@@ -12,7 +13,7 @@ _kernel_osbput:
 	STMFD	sp!, {lr}
 	SWI	XOS_BPut
 	MOVVC	a1, #0
-	LDMVCFD	sp!, {pc}
+	LDMFDVC	sp!, {pc}
 
 	MOV	a2, #EOPSYS
 	BL	__ul_seterr

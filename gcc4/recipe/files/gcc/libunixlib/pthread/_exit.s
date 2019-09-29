@@ -11,9 +11,7 @@
 
 	NAME	__pthread_exit
 __pthread_exit:
- PICEQ "LDR	a2, =__GOTT_BASE__"
- PICEQ "LDR	a2, [a2, #0]"
- PICEQ "LDR	a2, [a2, #__GOTT_INDEX__]"	@ a2 = GOT ptr
+	PIC_LOAD a2
 
 	LDR	a1, funcs
  PICEQ "LDR	a1, [a2, a1]"

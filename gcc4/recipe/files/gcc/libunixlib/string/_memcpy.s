@@ -2,6 +2,7 @@
 @ Copyright (c) 2005-2008 UnixLib Devlopers
 @ Written by Adrian Lees
 
+	.syntax unified
 	.text
 
 #include "internal/asm_dec.s"
@@ -97,17 +98,17 @@ ucp4:	SUBS	a3,a3,#4
 	LDRHS	ip,[a2,#-4]!
 ucp4lp:
 	STRHS	ip,[a4,#-4]!
-	SUBHSS	a3,a3,#4
+	SUBSHS	a3,a3,#4
 	LDRHS	ip,[a2,#-4]!
 	BHS	ucp4lp
 	ADD	a3,a3,#4
 
 ucp1:	SUBS	a3,a3,#1
-	LDRHSB	ip,[a2,#-1]!
+	LDRBHS	ip,[a2,#-1]!
 ucp1lp:
-	STRHSB	ip,[a4,#-1]!
-	SUBHSS	a3,a3,#1
-	LDRHSB	ip,[a2,#-1]!
+	STRBHS	ip,[a4,#-1]!
+	SUBSHS	a3,a3,#1
+	LDRBHS	ip,[a2,#-1]!
 	BHS	ucp1lp
 
 	LDR	v2,[sp],#4
@@ -206,15 +207,15 @@ ucp1sh1:
 	@  and a further 0-3 bytes to copy
 
 	CMP	a3,#1
-	LDRHSB	v1,[a2,#-1]!
-	LDRLOB	v1,[a4]
-	LDRHIB	v2,[a2,#-1]!
+	LDRBHS	v1,[a2,#-1]!
+	LDRBLO	v1,[a4]
+	LDRBHI	v2,[a2,#-1]!
 	CMP	a3,#2
-	LDRHIB	v3,[a2,#-1]!
+	LDRBHI	v3,[a2,#-1]!
 	ORR	lr,lr,v1
 	STR	lr,[a4],#-4
-	STRHSB	v2,[a4,#3]
-	STRHIB	v3,[a4,#2]
+	STRBHS	v2,[a4,#3]
+	STRBHI	v3,[a4,#2]
 
 	LDR	v3,[sp],#4
 	LDR	v2,[sp],#4
@@ -283,16 +284,16 @@ ucp1sh2:
 	@  and a further 0-3 bytes to copy
 
 	CMP	a3,#1
-	LDRHSB	v1,[a2,#-1]!
-	LDRLOB	v1,[a4,#1]
-	LDRHIB	v2,[a2,#-1]!
-	LDRLSB	v2,[a4]
+	LDRBHS	v1,[a2,#-1]!
+	LDRBLO	v1,[a4,#1]
+	LDRBHI	v2,[a2,#-1]!
+	LDRBLS	v2,[a4]
 	CMP	a3,#2
-	LDRHIB	v3,[a2,#-1]!
+	LDRBHI	v3,[a2,#-1]!
 	ORR	lr,lr,v1,LSL #8
 	ORR	lr,lr,v2
 	STR	lr,[a4],#-4
-	STRHIB	v3,[a4,#3]
+	STRBHI	v3,[a4,#3]
 
 	LDR	v3,[sp],#4
 	LDR	v2,[sp],#4
@@ -360,13 +361,13 @@ ucp1sh3:
 	@  and a further 0-3 bytes to copy
 
 	CMP	a3,#1
-	LDRHSB	v1,[a2,#-1]!
-	LDRLOB	v1,[a4,#2]
-	LDRHIB	v2,[a2,#-1]!
-	LDRLSB	v2,[a4,#1]
+	LDRBHS	v1,[a2,#-1]!
+	LDRBLO	v1,[a4,#2]
+	LDRBHI	v2,[a2,#-1]!
+	LDRBLS	v2,[a4,#1]
 	CMP	a3,#2
-	LDRHIB	v3,[a2,#-1]!
-	LDRLSB	v3,[a4]
+	LDRBHI	v3,[a2,#-1]!
+	LDRBLS	v3,[a4]
 	ORR	lr,lr,v1,LSL #16
 	ORR	lr,lr,v2,LSL #8
 	ORR	lr,lr,v3
@@ -432,18 +433,18 @@ dcp4:
 	LDRHS	ip,[a2],#4
 dcp4lp:
 	STRHS	ip,[a4],#4
-	SUBHSS	a3,a3,#4
+	SUBSHS	a3,a3,#4
 	LDRHS	ip,[a2],#4
 	BHS	dcp4lp
 	ADD	a3,a3,#4
 
 dcp1:
 	SUBS	a3,a3,#1
-	LDRHSB	ip,[a2],#1
+	LDRBHS	ip,[a2],#1
 dcp1lp:
-	STRHSB	ip,[a4],#1
-	SUBHSS	a3,a3,#1
-	LDRHSB	ip,[a2],#1
+	STRBHS	ip,[a4],#1
+	SUBSHS	a3,a3,#1
+	LDRBHS	ip,[a2],#1
 	BHS	dcp1lp
 
 	LDR	v2,[sp],#4
@@ -540,13 +541,13 @@ dcp1sh1:
 	@  and a further 0-3 bytes to copy
 
 	CMP	a3,#1
-	LDRHSB	v1,[a2],#1
-	LDRLOB	v1,[a4,#1]
-	LDRHIB	v2,[a2],#1
-	LDRLSB	v2,[a4,#2]
+	LDRBHS	v1,[a2],#1
+	LDRBLO	v1,[a4,#1]
+	LDRBHI	v2,[a2],#1
+	LDRBLS	v2,[a4,#2]
 	CMP	a3,#2
-	LDRHIB	v3,[a2],#1
-	LDRLSB	v3,[a4,#3]
+	LDRBHI	v3,[a2],#1
+	LDRBLS	v3,[a4,#3]
 	ORR	lr,lr,v1,LSL #8
 	ORR	lr,lr,v2,LSL #16
 	ORR	lr,lr,v3,LSL #24
@@ -619,16 +620,16 @@ dcp1sh2:
 	@  and a further 0-3 bytes to copy
 
 	CMP	a3,#1
-	LDRLOB	v1,[a4,#2]
-	LDRHSB	v1,[a2],#1
-	LDRLSB	v2,[a4,#3]
-	LDRHIB	v2,[a2],#1
+	LDRBLO	v1,[a4,#2]
+	LDRBHS	v1,[a2],#1
+	LDRBLS	v2,[a4,#3]
+	LDRBHI	v2,[a2],#1
 	CMP	a3,#2
-	LDRHIB	v3,[a2],#1
+	LDRBHI	v3,[a2],#1
 	ORR	lr,lr,v1,LSL #16
 	ORR	lr,lr,v2,LSL #24
 	STR	lr,[a4],#4
-	STRHIB	v3,[a4],#1
+	STRBHI	v3,[a4],#1
 
 	LDR	v3,[sp],#4
 	LDR	v2,[sp],#4
@@ -697,15 +698,15 @@ dcp1sh3:
 	@  and a further 0-3 bytes to copy
 
 	CMP	a3,#1
-	LDRHSB	v1,[a2],#1
-	LDRLOB	v1,[a4,#3]	@read 4th from dest buffer
-	LDRHIB	v2,[a2],#1
+	LDRBHS	v1,[a2],#1
+	LDRBLO	v1,[a4,#3]	@read 4th from dest buffer
+	LDRBHI	v2,[a2],#1
 	CMP	a3,#2
-	LDRHIB	v3,[a2],#1
+	LDRBHI	v3,[a2],#1
 	ORR	lr,lr,v1,LSL #24
 	STR	lr,[a4],#4
-	STRHSB	v2,[a4]
-	STRHIB	v3,[a4,#1]
+	STRBHS	v2,[a4]
+	STRBHI	v3,[a4,#1]
 
 	LDR	v3,[sp],#4
 	LDR	v2,[sp],#4

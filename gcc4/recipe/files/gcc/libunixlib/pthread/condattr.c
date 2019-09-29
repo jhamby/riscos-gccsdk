@@ -13,6 +13,7 @@ pthread_condattr_init (pthread_condattr_t *attr)
     return EINVAL;
 
   attr->pshared = PTHREAD_PROCESS_PRIVATE;
+  attr->clock_id = CLOCK_REALTIME;
 
   return 0;
 }
@@ -50,6 +51,30 @@ pthread_condattr_setpshared (pthread_condattr_t *attr, int pshared)
     return EINVAL;
 
   attr->pshared = pshared;
+
+  return 0;
+}
+
+int pthread_condattr_getclock(const pthread_condattr_t *restrict attr,
+			      clockid_t *restrict clock_id)
+{
+  if (attr == NULL || clock_id == NULL)
+    return EINVAL;
+
+  *clock_id = attr->clock_id;
+
+  return 0;
+}
+
+int pthread_condattr_setclock(pthread_condattr_t *attr, clockid_t clock_id)
+{
+  if (attr == NULL)
+    return EINVAL;
+
+  if (clock_id != CLOCK_REALTIME && clock_id != CLOCK_MONOTONIC)
+    return EINVAL;
+
+  attr->clock_id = clock_id;
 
   return 0;
 }

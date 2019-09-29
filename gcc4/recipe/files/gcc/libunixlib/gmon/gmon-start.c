@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifndef __ARM_EABI__
+
 /* Beginning and end of our code segment. We cannot declare them
    as the external functions since we want the addresses of those
    labels. Taking the address of a function may have different
@@ -65,3 +67,5 @@ __gmon_start__ (void)
      collected data.  */
   atexit (&_mcleanup);
 }
+
+#endif

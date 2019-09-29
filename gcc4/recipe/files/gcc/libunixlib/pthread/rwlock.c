@@ -12,6 +12,7 @@ pthread_rwlock_init (pthread_rwlock_t *rwlock, const pthread_rwlockattr_t *attr)
   if (rwlock == NULL)
     return EINVAL;
 
+  /* FIXME:  What if rwlock hasn't been initialised yet? It will have undefined content.  */
   if (rwlock->type == LOCK_READ || rwlock->type == LOCK_WRITE)
     return EBUSY;
 

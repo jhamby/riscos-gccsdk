@@ -11,9 +11,7 @@
 	.global	__get_riscosify_control
 	NAME	__get_riscosify_control
 __get_riscosify_control:
- PICEQ "LDR	a2, =__GOTT_BASE__"
- PICEQ "LDR	a2, [a2, #0]"
- PICEQ "LDR	a2, [a2, #__GOTT_INDEX__]"	@ a2 = GOT ptr
+	PIC_LOAD a2
 
 	LDR	a1, .L0+4		@=__riscosify_control
  PICEQ "LDR	a1, [a2, a1]"
@@ -31,9 +29,7 @@ __get_riscosify_control:
 	.global	__set_riscosify_control
 	NAME	__set_riscosify_control
 __set_riscosify_control:
- PICEQ "LDR	a3, =__GOTT_BASE__"
- PICEQ "LDR	a3, [a3, #0]"
- PICEQ "LDR	a3, [a3, #__GOTT_INDEX__]"	@ a3 = GOT ptr
+	PIC_LOAD a3
 
 	LDR	a2, .L0+4		@=__riscosify_control
  PICEQ "LDR	a2, [a3, a2]"

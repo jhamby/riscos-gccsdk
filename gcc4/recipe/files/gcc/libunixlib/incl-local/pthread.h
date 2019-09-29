@@ -1,6 +1,6 @@
 /* Internal UnixLib pthread.h
  * Written by Alex Waugh.
- * Copyright (c) 2002-2015 UnixLib Developers.
+ * Copyright (c) 2002-2019 UnixLib Developers.
  */
 
 #ifdef __TARGET_SCL__
@@ -15,6 +15,14 @@
 #define __INTERNAL_PTHREAD_H
 
 #include <kernel.h>
+
+#define PTHREAD_DEFAULT_MAX_STACK_SIZE (1 * 1024 * 1024)
+
+#if __UNIXLIB_CHUNKED_STACK
+typedef struct __stack_chunk *stack_t;
+#else
+typedef void *stack_t;
+#endif
 
 /* Hold all details about the thread. A pthread_t points to one of these structures */
 struct __pthread_thread
@@ -45,7 +53,8 @@ struct __pthread_thread
   void *arg; /* Argument to pass to the start_routine */
 
   /* Initial stack chunk allocated to thread */
-  struct __stack_chunk *stack;
+  stack_t stack;
+  size_t stack_size;
 
   /* Thread that wishes to join with this thread */
   struct __pthread_thread *joined;
@@ -89,6 +98,9 @@ struct __pthread_thread
 
   /* Is the thread detached of can it still be joined to.  */
   unsigned int detachstate : 1;
+
+  /* Is the thread suspended.  */
+  unsigned int suspended : 1;
 
   __sigset_t blocked; /* Signal mask for this thread. */
   __sigset_t pending; /* Pending signals for this thread */
@@ -146,10 +158,28 @@ struct __pthread_saved_context
    the same block.  */
 struct __pthread_callevery_block
 {
-  unsigned int got;
+ /* User registers are preserved in here for the callback execution.
+  * User registers = R0-R15 and CPSR in 32-bit mode
+  *		   = R0-R15 only in 26-bit mode (the 17th word equals
+  *		 	    the pc value)  */
+  int callback_regs[17];
+  /* bit 0 Escape condition flag
+   * bit 1 Internet event flag */
+  unsigned callback_flag;
+  /* Signal number to use for __unixlib_raise_signal().  */
+  int callback_a1;
   void *sul_upcall_addr;
   void *sul_upcall_r12;
-  char filter_name[];
+  void *got_ptr;		/* Unixlib Global Offset Table ptr.  */
+  /* Have we registered the CallEvery ticker ?
+     Value 0 : no, CallEvery ticker is not enabled
+	   1 : yes CallEvery ticker is enabled  */
+  unsigned ticker_started;
+  volatile int pthread_worksemaphore; /* Zero if the context switcher is
+    allowed to switch threads.  */
+  volatile int pthread_callback_semaphore; /* Prevent a callback being set
+    whilst servicing another callback.  */
+  char filter_name[20];
 };
 
 extern pthread_t __pthread_thread_list; /* Linked list of all threads */
@@ -181,7 +211,7 @@ extern void __pthread_atfork_callprepare (void);
 extern void __pthread_atfork_callparentchild (const int parent);
 
 /* Allocate and initialise a stack chunk for a new thread */
-extern struct __stack_chunk *__pthread_new_stack (void);
+extern stack_t __pthread_new_stack (pthread_t node);
 
 /* Main scheduling code */
 extern void __pthread_context_switch (void);

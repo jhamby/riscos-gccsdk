@@ -19,7 +19,7 @@
 @ registers, thus restoring that thread to where is was before it was switched
 @ out, and returning from the callback at the same time.
 @
-@ If a routine does not want to be switched out, the it can call
+@ If a routine does not want to be switched out, then it can call
 @ __pthread_disable_ints or __pthread_protect_unsafe which will alter
 @ __pthread_work_semaphore. The callevery interrupt will still occur, but it
 @ will take note of the state of the semaphore, and not set a callback
@@ -29,12 +29,8 @@
 
 #include "internal/asm_dec.s"
 
-	@ Offsets into the RMA memory block.
-.set	PTHREAD_CALLEVERY_RMA_GOT, 0
-.set	PTHREAD_CALLEVERY_RMA_UPCALL_ADDR, 4
-.set	PTHREAD_CALLEVERY_RMA_UPCALL_R12, 8
-.set	PTHREAD_CALLEVERY_RMA_FILTER_NAME, 12
 
+	.syntax unified
 	.text
 
 @
@@ -43,12 +39,10 @@
 	.global	__pthread_start_ticker
 	NAME	__pthread_start_ticker
 __pthread_start_ticker:
- PICNE "STMFD	sp!, {v1-v2, lr}"
- PICEQ "STMFD	sp!, {v1-v2, v4, lr}"
+ PICNE "STMFD	sp!, {v1-v2, v5, lr}"
+ PICEQ "STMFD	sp!, {v1-v2, v4, v5, lr}"
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
 	LDR	v5, .L0			@=__ul_global
  PICEQ "LDR	v5, [v4, v5]"
@@ -56,14 +50,14 @@ __pthread_start_ticker:
 	@ Don't start until the thread system has been setup
 	LDR	a1, [v5, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
- PICEQ "LDMEQFD	sp!, {v1-v2, v4, pc}"
- PICNE "LDMEQFD	sp!, {v1-v2, pc}"
+ PICEQ "LDMFDEQ	sp!, {v1-v2, v4, v5, pc}"
+ PICNE "LDMFDEQ	sp!, {v1-v2, v5, pc}"
 
 	@ Don't start if there's only one thread running
 	LDR	a1, [v5, #GBL_PTH_NUM_RUNNING_THREADS]
 	CMP	a1, #1
- PICEQ "LDMLEFD	sp!, {v1-v2, v4, pc}"
- PICNE "LDMLEFD	sp!, {v1-v2, pc}"
+ PICEQ "LDMFDLE	sp!, {v1-v2, v4, v5, pc}"
+ PICNE "LDMFDLE	sp!, {v1-v2, v5, pc}"
 
 	LDR	a3, [v5, #GBL_PTH_CALLEVERY_RMA]
 
@@ -92,7 +86,7 @@ __pthread_start_ticker:
 	@ a4 = current taskhandle
 start_ticker_install_filters:
 	@ Install the filter routines (a4 = WIMP taskhandle) :
-	LDR	v2, .L0+8		@=filter_installed
+	LDR	v2, .L0+4		@=filter_installed
  PICEQ "LDR	v2, [v4, v2]"
 	LDR	a1, [v2]
 	STR	v2, [v2]
@@ -119,27 +113,22 @@ start_ticker_test_running:
 	@ the case when called directly.
 	MOV	r12, a3
 	BL	start_call_every
- PICEQ "LDMFD	sp!, {v1-v2, v4, pc}"
- PICNE "LDMFD	sp!, {v1-v2, pc}"
+ PICEQ "LDMFD	sp!, {v1-v2, v4, v5, pc}"
+ PICNE "LDMFD	sp!, {v1-v2, v5, pc}"
 .L0:
 	WORD	__ul_global
-	WORD	ticker_started
 	WORD	filter_installed
 	DECLARE_FUNCTION __pthread_start_ticker
 
 	@ Start the RISC OS CallEvery ticker
 	@ This may be called as a Wimp post filter, so preserve all registers,
 	@ all processor flags and don't return any errors.
-	@ R12 is our private word and contains the address of an RMA data block
-	@ which contains the GOT pointer at offset 0.
+	@ R12 is our private word and contains the address of an RMA data block.
 	NAME	start_call_every
 start_call_every:
 	STMFD	sp!, {a1-v1, lr}
 	MRS	v1, CPSR
- PICEQ "LDR	a3, [r12, #PTHREAD_CALLEVERY_RMA_GOT]"
-	LDR	a4, .L0+4	@=ticker_started
- PICEQ "LDR	a4, [a3, a4]"
-	LDR	a1, [a4]
+	LDR	a1, [r12, #PTHREAD_CALLEVERY_RMA_TICKER_STARTED]
 	TEQ	a1, #0
 	BNE	start_call_every_end
 
@@ -149,7 +138,7 @@ start_call_every:
 	SWI	XOS_CallEvery
 
 	MOVVC	a1, #1
-	STRVC	a1, [a4]
+	STRVC	a1, [r12, #PTHREAD_CALLEVERY_RMA_TICKER_STARTED]
 start_call_every_end:
 	MSR	CPSR_f, v1
 	LDMFD	sp!, {a1-v1, pc}
@@ -158,19 +147,14 @@ start_call_every_end:
 	@ Stop the RISC OS CallEvery ticker
 	@ This may be called as a Wimp pre filter, so preserve all registers,
 	@ all processor flags and don't return any errors.
-	@ R12 is our private word and contains the address of an RMA data block
-	@ which contains the GOT pointer at offset 0.
+	@ R12 is our private word and contains the address of an RMA data block.
 	NAME	stop_call_every
 stop_call_every:
 	STMFD	sp!, {a1-a3, lr}
 	MRS	a3, CPSR
- PICEQ "LDR	a1, [r12, #PTHREAD_CALLEVERY_RMA_GOT]"
-	@ Don't stop it if it isn't enabled yet
-	LDR	lr, .L0+4	@=ticker_started
- PICEQ "LDR	lr, [a1, lr]"
-	LDR	a2, [lr]
+	LDR	a2, [r12, #PTHREAD_CALLEVERY_RMA_TICKER_STARTED]
 	SUBS	a2, a2, #1
-	STREQ	a2, [lr]
+	STREQ	a2, [r12, #PTHREAD_CALLEVERY_RMA_TICKER_STARTED]
 	ADREQ	a1, pthread_call_every
 	MOVEQ	a2, r12
 	SWIEQ	XOS_RemoveTickerEvent
@@ -187,17 +171,15 @@ __pthread_stop_ticker:
  PICNE "STMFD	sp!, {v1-v3, lr}"
  PICEQ "STMFD	sp!, {v1-v3, v4, lr}"
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
 	@ Don't bother if thread system is not running
 	LDR	a2, .L1+0		@=__ul_global
  PICEQ "LDR	a2, [v4, a2]"
 	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
- PICEQ "LDMEQFD	sp!, {v1-v3, v4, pc}"
- PICNE "LDMEQFD	sp!, {v1-v3, pc}"
+ PICEQ "LDMFDEQ	sp!, {v1-v3, v4, pc}"
+ PICNE "LDMFDEQ	sp!, {v1-v3, pc}"
 
 	LDR	a3, [a2, #GBL_PTH_CALLEVERY_RMA]
 
@@ -265,7 +247,7 @@ pthread_call_every:
 	MOV	a3, #0
 	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
-	LDMVSFD	sp!, {a1-a4, pc}
+	LDMFDVS	sp!, {a1-a4, pc}
 
 	@ We need to check the SUL upcall handler and key before we attempt
 	@ to access any data within application space.
@@ -276,23 +258,19 @@ pthread_call_every:
 	@ If it is not our SUL key, don't set callback
 	LDREQ	a1, [ip, #PTHREAD_CALLEVERY_RMA_UPCALL_R12]
 	TEQEQ	a1, a3
-	LDMNEFD sp!, {a1-a4, pc}
-
- PICEQ "LDR	ip, [ip, #PTHREAD_CALLEVERY_RMA_GOT]"
+	LDMFDNE sp!, {a1-a4, pc}
 
 	@ Okay, we can access application space now to make further checks.
 
-	LDR	a4, .L1		@=__ul_global
- PICEQ "LDR	a4, [ip, a4]"
-
 	@ If we are in the middle of a context-switch callback,
 	@ don't set the callback.
-	LDREQ	a1, [a4, #GBL_PTH_CALLBACK_SEMAPHORE]
+	LDREQ	a1, [ip, #PTHREAD_CALLEVERY_RMA_CALLBACK_SEMAPHORE]
 	TEQEQ	a1, #0
 	@ If we are in a critical section, don't set the callback
-	LDREQ	a1, [a4, #GBL_PTH_WORKSEMAPHORE]
+	LDREQ	a1, [ip, #PTHREAD_CALLEVERY_RMA_WORKSEMAPHORE]
 	TEQEQ	a1, #0
 	SWIEQ	XOS_SetCallBack
+0:
 	LDMFD	sp!, {a1-a4, pc}
 	DECLARE_FUNCTION pthread_call_every
 
@@ -304,20 +282,20 @@ pthread_call_every:
 
 	NAME	__pthread_callback
 __pthread_callback:
- PICEQ "LDR	v1, =__GOTT_BASE__"
- PICEQ "LDR	v1, [v1, #0]"
- PICEQ "LDR	v1, [v1, #__GOTT_INDEX__]"	@ v1 = GOT ptr
-
+	PIC_LOAD v1
+ 
 	LDR	a3, .L2			@=__ul_global
  PICEQ "LDR	a3, [v1, a3]"
  
 	@ If we are in a critical region, do not switch threads and
 	@ exit quicky.
-	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
+	LDR	ip, [a3, #GBL_PTH_CALLEVERY_RMA]
+	LDR	a1, [ip, #PTHREAD_CALLEVERY_RMA_WORKSEMAPHORE]
+
 	TEQ	a1, #0
 	@ If we are already in the middle of a context switch callback,
 	@ then quickly exit.
-	LDREQ	a1, [a3, #GBL_PTH_CALLBACK_SEMAPHORE]
+	LDREQ	a1, [ip, #PTHREAD_CALLEVERY_RMA_CALLBACK_SEMAPHORE]
 	TEQEQ	a1, #0
 	BNE	skip_contextswitch
 
@@ -328,7 +306,7 @@ __pthread_callback:
 	@ context interrupt does not interfere with us during this critical
 	@ time.
 	MOV	a1, #1
-	STR	a1, [a3, #GBL_PTH_CALLBACK_SEMAPHORE]
+	STR	a1, [ip, #PTHREAD_CALLEVERY_RMA_CALLBACK_SEMAPHORE]
 
 	@ Setup a stack for the context switcher
 	BL	__setup_signalhandler_stack
@@ -340,9 +318,8 @@ __pthread_callback:
 	LDR	a1, [a1, #__PTHREAD_CONTEXT_OFFSET]	@ __pthread_running_thread->saved_context
 
 	@ Copy integer regs
-	LDR	a2, .L2+8	@=__cbreg
+	MOV	a2, ip		@ callback regs are stored at the start of the fast access RMA block
  PICEQ "MOV	ip, v1"		@ Save PIC register
- PICEQ "LDR	a2, [v1, a2]"
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
@@ -364,14 +341,22 @@ __pthread_callback:
 	@ thread scheduler to use
 	LDR	a3, .L2			@=__ul_global
  PICEQ "LDR	a3, [v1, a3]"
+#    ifdef __ARM_EABI__
+	MOV	a1, #0x40000001	@ User mode, dynamic area, lazy activate
+#    else
 	MOV	a1, #0x40000003	@ User mode, application space, lazy activate
+#    endif
 	LDR	a2, [a3, #GBL_VFP_REGCOUNT]
 	SWI	VFPSupport_CheckContext
 	MOV	v2, sp		@ Remember old SP
 	SUB	a3, sp, a1
 	BIC	a3, a3, #7	@ AAPCS wants 8 byte alignment
 	MOV	sp, a3
+#    ifdef __ARM_EABI__
+	MOV	a1, #0x40000001	@ User mode, dynamic area, lazy activate
+#    else
 	MOV	a1, #0x40000003
+#    endif
 	MOV	a4, #0
 	SWI	VFPSupport_CreateContext
 #  else
@@ -421,7 +406,8 @@ __pthread_callback:
 	STR	a1, [a2, #GBL_PTH_CALLBACK_MISSED]
 
 	@ Signify that we are no longer in the middle of a context switch.
-	STR	a1, [a2, #GBL_PTH_CALLBACK_SEMAPHORE]
+	LDR	ip, [a2, #GBL_PTH_CALLEVERY_RMA]
+	STR	a1, [ip, #PTHREAD_CALLEVERY_RMA_CALLBACK_SEMAPHORE]
 
 	@ Indicate that we are no longer in a signal handler, since we
 	@ will be returning direct to USR mode and the application itself.
@@ -440,8 +426,8 @@ __pthread_callback:
 	MSR	SPSR_cxsf, a1		@ Put it into SPSR_SVC/IRQ (NOP on ARM2/3, shouldn't have any effect in 26bit mode)
 	LDMIA	r14, {r0-r14}^		@ Load USR mode regs
 	MOV	a1, a1
-
 	LDR	r14, [r14, #15*4]	@ Load the old PC value
+
 	MOVS	pc, lr			@ Return (Valid for 26 and 32bit modes)
 
 
@@ -450,16 +436,15 @@ __pthread_callback:
 	@ or because the program indicates that we are in a critical
 	@ section.
 
-	@ On entry, a3 == __ul_global
+	@ On entry, a3 = __ul_global
+	@	    ip = ptr to fast access RMA block
 skip_contextswitch:
 	@ Indicate that this context switch did not occur
 	MOV	a1, #1
 	STR	a1, [a3, #GBL_PTH_CALLBACK_MISSED]
 
-	@ Exiting from the CallBack handler requires us to reload all
-	@ registers from the register save area.
-	LDR	r14, .L2+8		@=__cbreg
- PICEQ "LDR	r14, [v1, r14]"
+	@ Exiting from the CallBack handler requires us to reload all registers from the
+	@ register save area which is at the beginning of the fast access RMA block
 	LDR	a1, [r14, #16*4]	@ Get user PSR
 	MSR	SPSR_cxsf, a1		@ Put it into SPSR_SVC/IRQ (NOP on ARM2/3, shouldn't have any effect in 26bit mode)
 	LDMIA	r14, {r0-r14}^		@ Load USR mode regs
@@ -470,7 +455,6 @@ skip_contextswitch:
 .L2:
 	WORD	__ul_global
 	WORD	__pthread_running_thread
-	WORD	__cbreg
 	DECLARE_FUNCTION __pthread_callback
 
 @ entry:
@@ -482,28 +466,31 @@ __pthread_init_save_area:
 #  ifdef __VFP_FP__
 	@ Allocate a VFP context from the heap
 	@ Make sure we specify the 'application space' flag if we're not using a DA
-	STMFD	sp!, {a1, v1, lr}
- PICEQ "LDR	ip, =__GOTT_BASE__"
- PICEQ "LDR	ip, [ip, #0]"
- PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ v4 = GOT ptr
-	LDR	a2, .L0			@=__ul_global
- PICEQ "LDR	a2, [ip, a2]"
+	STMFD	sp!, {a1, v1, v2, lr}
 
-	LDR	a1, [a2, #GBL_DYNAMIC_NUM]
+	PIC_LOAD ip
+
+	LDR	v2, .L3			@=__ul_global
+ PICEQ "LDR	v2, [ip, v2]"
+
+	LDR	a1, [v2, #GBL_DYNAMIC_NUM]
 	CMP	a1, #-1
 	MOVEQ	a1, #0x3	@ User mode, application space
 	MOVNE	a1, #0x1	@ User mode, dynamic area
-	LDR	a2, [a2, #GBL_VFP_REGCOUNT]
+	LDR	a2, [v2, #GBL_VFP_REGCOUNT]
 	MOV	v1, a1
 	SWI	VFPSupport_CheckContext
-	STMFD	sp!, {a2}
-	BL	malloc		@ TODO check for null
-	LDMFD	sp!, {a2}
+
+	MOV	a2, a1
+	LDR	a1, [v2, #GBL_MALLOC_STATE]
+	BL	malloc_unlocked		@ TODO check for null
+
 	MOV	a3, a1
 	MOV	a1, v1
+	LDR	a2, [v2, #GBL_VFP_REGCOUNT]
 	MOV	a4, #0
 	SWI	VFPSupport_CreateContext
-	LDMFD	sp!, {a2, v1, lr}
+	LDMFD	sp!, {a2, v1, v2, lr}
 	STR	a1, [a2, #17*4]
 #  else
 	ADD	a2, a1, #17*4
@@ -514,17 +501,12 @@ __pthread_init_save_area:
 #  endif
 #endif
 	MOV	pc, lr
+.L3:
+	WORD	__ul_global
 	DECLARE_FUNCTION __pthread_init_save_area
 
 
 	.data
-
-	@ Have we registered the CallEvery ticker ?
-	@ Value 0 : no, CallEvery ticket is not enabled
-	@       1 : yes CallEvery ticker is enabled
-ticker_started:
-	.word	0
-	DECLARE_OBJECT ticker_started
 
 	@ Have we installed Filter ?
 filter_installed:

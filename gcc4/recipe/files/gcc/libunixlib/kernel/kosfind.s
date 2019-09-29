@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ int _kernel_osfind (int op, const char *name)
@@ -11,7 +12,7 @@
 _kernel_osfind:
 	STMFD	sp!, {lr}
 	SWI	XOS_Find
-	LDMVCFD	sp!, {pc}
+	LDMFDVC	sp!, {pc}
 
 	MOV	a2, #EOPSYS
 	BL	__ul_seterr

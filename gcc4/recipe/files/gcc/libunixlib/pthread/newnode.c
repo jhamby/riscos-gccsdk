@@ -1,15 +1,17 @@
 /* Internal thread node creation.
    Written by Martin Piper and Alex Waugh.
-   Copyright (c) 2002-2015 UnixLib Developers.  */
+   Copyright (c) 2002-2019 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <errno.h>
 #include <malloc.h>
 #include <pthread.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <internal/os.h>
 #include <internal/unix.h>
+#include <internal/swiparams.h>
 
 /* #define DEBUG_PTHREAD */
 #ifdef DEBUG_PTHREAD
@@ -73,6 +75,7 @@ __pthread_new_node (pthread_t node)
   node->canceltype = PTHREAD_CANCEL_DEFERRED;
   node->cancelpending = 0;
   node->detachstate = PTHREAD_CREATE_JOINABLE;
+  node->suspended = 0;
   node->joined = NULL;
   node->ret = NULL;
   node->mutex = NULL;
@@ -100,11 +103,11 @@ __pthread_new_node (pthread_t node)
 }
 
 /* Allocate and initialise a new stack chunk */
-struct __stack_chunk *
-__pthread_new_stack (void)
+stack_t
+__pthread_new_stack (pthread_t thread)
 {
 #if __UNIXLIB_CHUNKED_STACK
-  struct __stack_chunk *stack = __stackalloc (PTHREAD_STACK_MIN);
+  stack_t stack = __stackalloc (PTHREAD_STACK_MIN);
   if (stack == NULL)
     {
 #ifdef DEBUG_PTHREAD
@@ -119,9 +122,34 @@ __pthread_new_stack (void)
   stack->size = PTHREAD_STACK_MIN;
   stack->dealloc = NULL;
   stack->returnaddr = NULL;
-
-  return stack;
 #else
-  return NULL; /* FIXME: code missing.  */
+  _kernel_oserror *err;
+  stack_t stack;
+  unsigned stack_base;
+  char stack_name[32];
+
+  stack_name[0] = '\0';
+
+  if (&__program_name)
+    {
+      strncpy (stack_name, __program_name, 15);
+      stack_name[15] = '\0';
+    }
+
+  sprintf(stack_name + strlen (stack_name), ":pthr:%X", thread);
+  err = _swix(ARMEABISupport_StackOp, _INR(0,3)|_OUTR(0,1),
+				      ARMEABISUPPORT_STACKOP_ALLOC,
+				      thread->stack_size >> 12, /* Convert to pages (assume 0x1000 bytes to a page)  */
+				      1,			/* 1 guard page */
+				      stack_name,
+				      &stack, &stack_base);
+  if (err)
+    {
+#ifdef DEBUG_PTHREAD
+      debug_printf ("-- __pthread_new_stack: Unable to allocate thread stack: %s\n", err->errmess);
 #endif
+      return NULL;
+    }
+#endif
+  return stack;
 }

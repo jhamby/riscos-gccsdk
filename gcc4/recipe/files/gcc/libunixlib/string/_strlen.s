@@ -9,6 +9,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	.global	strlen
@@ -27,25 +28,25 @@ strlen:
 strlen_lp:
 	SUBS	a3,ip,a4	@3 instruction test for zero byte in word
 	EORCS	a3,a3,ip
-	BICCSS	a3,a4,a3
+	BICSCS	a3,a4,a3
 	LDREQ	a3,[a2,#4]!	@safe to read next word now
 	BNE	strlen_end
 
 	SUBS	ip,a3,a4	@3 instruction test for zero byte in word
 	EORCS	ip,ip,a3
-	BICCSS	ip,a4,ip
+	BICSCS	ip,a4,ip
 	LDREQ	ip,[a2,#4]!	@safe to read next word now
 	BNE	strlen_end_a3
 
 	SUBS	a3,ip,a4	@3 instruction test for zero byte in word
 	EORCS	a3,a3,ip
-	BICCSS	a3,a4,a3
+	BICSCS	a3,a4,a3
 	LDREQ	a3,[a2,#4]!	@safe to read next word now
 	BNE	strlen_end
 
 	SUBS	ip,a3,a4	@3 instruction test for zero byte in word
 	EORCS	ip,ip,a3
-	BICCSS	ip,a4,ip
+	BICSCS	ip,a4,ip
 	LDREQ	ip,[a2,#4]!	@safe to read next word now
 	BEQ	strlen_lp
 

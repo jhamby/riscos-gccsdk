@@ -193,7 +193,6 @@ extern int wcsncasecmp_l (__const wchar_t *__s1, __const wchar_t *__s2,
 #endif
 #endif
 
-#if 0
 __BEGIN_NAMESPACE_STD
 /* Compare S1 and S2, both interpreted as appropriate to the
    LC_COLLATE category of the current locale.  */
@@ -204,7 +203,6 @@ extern int wcscoll (__const wchar_t *__s1, __const wchar_t *__s2) __THROW;
 extern size_t wcsxfrm (wchar_t *__restrict __s1,
 		       __const wchar_t *__restrict __s2, size_t __n) __THROW;
 __END_NAMESPACE_STD
-#endif
 
 #ifdef __USE_XOPEN2K8
 #if 0
@@ -466,16 +464,13 @@ extern int wcswidth (__const wchar_t *__s, size_t __n) __THROW;
 #endif /* __TARGET_SCL__ */
 
 
-#if 0
 __BEGIN_NAMESPACE_STD
 /* Convert initial portion of the wide string NPTR to `double'
    representation.  */
 extern double wcstod (__const wchar_t *__restrict __nptr,
 		      wchar_t **__restrict __endptr) __THROW;
 __END_NAMESPACE_STD
-#endif
 
-#if 0
 #ifdef __USE_ISOC99
 __BEGIN_NAMESPACE_C99
 /* Likewise for `float' and `long double' sizes of floating-point numbers.  */
@@ -485,10 +480,8 @@ extern long double wcstold (__const wchar_t *__restrict __nptr,
 			    wchar_t **__restrict __endptr) __THROW;
 __END_NAMESPACE_C99
 #endif /* C99 */
-#endif
 
 
-#if 0
 __BEGIN_NAMESPACE_STD
 /* Convert initial portion of wide string NPTR to `long int'
    representation.  */
@@ -501,9 +494,7 @@ extern unsigned long int wcstoul (__const wchar_t *__restrict __nptr,
 				  wchar_t **__restrict __endptr, int __base)
      __THROW;
 __END_NAMESPACE_STD
-#endif
 
-#if 0
 #if defined __USE_ISOC99 || (defined __GNUC__ && defined __USE_GNU)
 __BEGIN_NAMESPACE_C99
 /* Convert initial portion of wide string NPTR to `long long int'
@@ -521,7 +512,6 @@ extern unsigned long long int wcstoull (__const wchar_t *__restrict __nptr,
 					int __base) __THROW;
 __END_NAMESPACE_C99
 #endif /* ISO C99 or GCC and GNU.  */
-#endif
 
 #if 0
 #if defined __GNUC__ && defined __USE_GNU
@@ -610,7 +600,6 @@ extern wchar_t *wcpncpy (wchar_t *__dest, __const wchar_t *__src, size_t __n)
 
 /* Wide character I/O functions.  */
 
-#if 0
 #ifdef	__USE_XOPEN2K8
 /* Like OPEN_MEMSTREAM, but the stream is wide oriented and produces
    a wide character string.  */
@@ -893,7 +882,6 @@ extern size_t wcsftime (wchar_t *__restrict __s, size_t __maxsize,
 			__const wchar_t *__restrict __format,
 			__const struct tm *__restrict __tp) __THROW;
 __END_NAMESPACE_C99
-#endif
 
 # if 0
 # ifdef __USE_GNU

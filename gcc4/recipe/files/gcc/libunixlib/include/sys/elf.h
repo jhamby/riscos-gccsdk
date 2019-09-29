@@ -121,6 +121,10 @@ typedef quad_t		Elf64_Sxword;
 #define DT_DEBUG	21
 #define DT_TEXTREL	22
 #define DT_JMPREL	23
+#define DT_INIT_ARRAY	25
+#define DT_FINI_ARRAY	26
+#define DT_INIT_ARRAYSZ	27
+#define DT_FINI_ARRAYSZ	28
 #ifdef CONFIG_GRKERNSEC
 #define DT_FLAGS	30
 #define DF_TEXTREL	0x00000004
@@ -185,10 +189,10 @@ typedef quad_t		Elf64_Sxword;
 #define AT_EUID   12	/* effective uid */
 #define AT_GID    13	/* real gid */
 #define AT_EGID   14	/* effective gid */
+#define AT_HWCAP  16    /* arch dependent hints at CPU capabilities */
 #define AT_DATA   100	/* RISC OS start of free mem */
 #define AT_DEBUGGER 101 /* RISC OS debugger entry point address, NULL if no debugger */
 //#define AT_PLATFORM 15  /* string identifying CPU for optimizations */
-//#define AT_HWCAP  16    /* arch dependent hints at CPU capabilities */
 //#define AT_CLKTCK 17	/* frequency at which times() increments */
 
 typedef struct dynamic{

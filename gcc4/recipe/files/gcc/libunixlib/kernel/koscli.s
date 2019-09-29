@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ int _kernel_oscli (const char *cli)
@@ -12,7 +13,7 @@ _kernel_oscli:
 	STMFD	sp!, {lr}
 	SWI	XOS_CLI
 	MOVVC	a1, #1
-	LDMVCFD	sp!, {pc}
+	LDMFDVC	sp!, {pc}
 
 	MOV	a2, #EOPSYS
 	BL	__ul_seterr

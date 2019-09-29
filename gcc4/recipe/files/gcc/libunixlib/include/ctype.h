@@ -47,6 +47,9 @@ extern int isspace (int __c) __THROW;
 /* c is a hex digit.  */
 extern int isxdigit (int __c) __THROW;
 
+/* c is tab or space.  */
+extern int isblank (int __c) __THROW;
+
 #ifndef __TARGET_SCL__
 /* Characteristics. */
 extern const unsigned char * const __ctype;
@@ -76,6 +79,7 @@ extern const short * const __ctype_upper;
 #  define ispunct(c) (__ctype[(int) (c)] & ___ctype_punc)
 #  define isspace(c) (__ctype[(int) (c)] & ___ctype_white)
 #  define isxdigit(c) (__ctype[(int) (c)] & ___ctype_xdigit)
+#  define isblank(c) (__ctype[(int) (c)] & ___ctype_white)
 #else
 /* Characteristics. */
 #  ifdef __TARGET_MODULE__

@@ -4,6 +4,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
         .align	5 @ For cache alignment of the code
@@ -69,20 +70,20 @@ mset16_lp:
 
 	SUBS	a3,a3,#4
 	STRHS	a2,[a4],#4
-	SUBHSS	a3,a3,#4
+	SUBSHS	a3,a3,#4
 	STRHS	a2,[a4],#4
-	SUBHSS	a3,a3,#4
+	SUBSHS	a3,a3,#4
 	STRHS	a2,[a4],#4
 	ADDLO	a3,a3,#4
 
 	@at most 3 bytes left
 
 	SUBS	a3,a3,#1
-	STRHSB	a2,[a4],#1
-	SUBHSS	a3,a3,#1
-	STRHSB	a2,[a4],#1
-	SUBHSS	a3,a3,#1
-	STRHSB	a2,[a4],#1
+	STRBHS	a2,[a4],#1
+	SUBSHS	a3,a3,#1
+	STRBHS	a2,[a4],#1
+	SUBSHS	a3,a3,#1
+	STRBHS	a2,[a4],#1
 	MOV	pc,lr
 
 mset_unaligned:
@@ -92,13 +93,13 @@ mset_unaligned:
 
 	SUBS	ip,ip,#1
 	SUBHS	a3,a3,#1
-	STRHSB	a2,[a4],#1
-	SUBHSS	ip,ip,#1
+	STRBHS	a2,[a4],#1
+	SUBSHS	ip,ip,#1
 	SUBHS	a3,a3,#1
-	STRHSB	a2,[a4],#1
-	SUBHSS	ip,ip,#1
+	STRBHS	a2,[a4],#1
+	SUBSHS	ip,ip,#1
 	SUBHS	a3,a3,#1
-	STRHSB	a2,[a4],#1
+	STRBHS	a2,[a4],#1
 
 	TEQ	a3,#0		@finished already?
 	MOVEQ	pc,lr

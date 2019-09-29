@@ -1,3 +1,138 @@
+Sun Sep 29 20:41:24 BST  2019  Lee Noar  <lee.noar@sky.com>
+
+	Main highlights:
+	Add support for GCC 8 (ARMEABI).
+	Improve pthread performance/reliability
+
+	* configure.ac: Check if the compiler sets __ARM_EABI__ and
+	set a variable accordingly so that we can check in the makefile.
+	* Makefile.am: For ARM_EABI, add NEON optimised versions of memcpy,
+	memmove, memset and strlen written by RISC OS Open.
+	Add wmissing.c.
+	For ARM_EABI, compile without a chunked stack.
+	* common/_exist.s: Load PIC register via macro.
+	* common/_riscosify.s: Likewise.
+	* common/_taskhandle.s: Likewise.
+	* pthread/_exit.s: Likewise.
+	* sys/_cpucaps.s: Likewise.
+	* crt/crt0.s: Add support for .init_array/.fini_array.
+	* crt/gcrt0.s: Likewise.
+	* gen-auto.pl: Don't generate misc/abi.c. For GCC 8,
+	binutils will set this on the command line. This will be
+	the case for GCC 4 in the future.
+	* gmon/gmon-start.c: Not currently supported in ARM_EABI/GCC 8.
+	* incl-local/internal/asm_dec.s: Add symbols for ARMEABISupport module.
+	Add symbols for init_array/fini_array support.
+	Add symbols for a pthread fast access structure.
+	* incl-local/internal/elf-macros.s(macro __set_errno): Alter to take PIC
+	register as argument instead assuming a specific register.
+	(macro CHGMODE): For ARM_EABI, assume always 32 bit.
+	New macro, PIC_LOAD, to load the PIC register in asm code. This
+	is a slightly optimised version that makes an assumption about
+	the location of the runtime workspace (at 0x8038).
+	* incl-local/internal/os.h: Add inline SWI functions for
+	SWI SOM_DeregisterClient and SWI ARMEABISupport_Cleanup.
+	* incl-local/internal/swiparams.h: Add symbols for ARMEABISupport_StackOp
+	reason codes.
+	* incl-local/internal/unix.h(struct __process): Add flags indicating
+	whether process in dynamically linked and whether it is ARMEABI.
+	(struct ul_global): pthread_worksemaphore, pthread_callback_semaphore):
+	Move to the fast access RMA block. Rather than delete them from here,
+	poison them so that we know they are not used.
+	* incl-local/pthread.h: Definition of stack_t type is dependent
+	on whether chunked stacks are in use.
+	(struct __pthread_thread): Add flag to support thread suspension.
+	(struct __pthread_callevery_block): Extend fast access RMA block to
+	callback registers and semaphore variables (poisoned above in
+	struct ul_global).
+	include/ctype.h: Add definition for isblank().
+	* include/locale.h: Additional locale symbols/declarations.
+	* include/pthread.h(struct __pthread_lock_attr): Add clock_id member.
+	(struct __pthread_cond): Likewise.
+	(PTHREAD_COND_INITIALIZER): Add clock type to default initialiser.
+	(pthread_condattr_getclock,pthread_condattr_setclock): Add declarations.
+	(PTHREAD_STACK_MIN): Add alternative value for non chunked stack.
+	Add RISC OS specific function declarations to suspend/resume a thread and
+	retrieve its registers.
+	* include/swis.h: Add ARMEABISupport SWIs.
+	* include/sys/elf.h: Add init_array/fini_array symbols.
+	* include/ucontext.h: Add structs mcontext_t and ucontext_t and other
+	symbols.
+	* include/unistd.h: Add symbols _SC_PAGE_SIZE and _SC_PHYS_PAGES.
+	* locale/newlocale.c: Add functions uselocale, freelocale and newlocale.
+	* module/sul.s: Increase module version to 1.15.
+	(sul_exit): Call clean up SWIs for SOManager and ARMEABISupport as appropriate.
+	This should lead to more reliable program exits (after errors) than if it was
+	left to Unixlib to call these SWIs.
+	* pthread/_context.s(__pthread_start_ticker): Preserve register v5 for ARMEABI.
+	Use PIC_LOAD macro throughout.
+	(start_call_every,stop_call_every): Access ticker_started variable via fast access
+	RMA block; removes need to use GOT.
+	(pthread_call_every): Use fast access RMA block, removing the need to use the GOT.
+	(__pthread_callback): Update to use fast access RMA block where necessary.
+	(__pthread_init_save_area): Use malloc_unlocked rather than malloc.
+	(ticker_started): Remove from data segment; no longer required.
+	* pthread/_ints.s(__pthread_disable_ints,__pthread_protect_unsafe): For ARMEABI,
+	assume SWP instruction is never available. Use fast access RMA block.
+	(__pthread_enable_ints,__pthread_unprotect_unsafe): Use fast access RMA block.
+	* pthread/_yield.s(pthread_yield): For ARMEABI, use appropriate prologue/epilogue.
+	Use PIC_LOAD macro. Use fast access RMA block.
+	* pthread/attr.c(pthread_attr_init): For a non chunked stack, set the maximum stack size.
+	* pthread/cond.c(pthread_cond_init): Record the clock ID.
+	(pthread_cond_timedwait): It seems that the timeout isn't always absolute;
+	it can be relative depending on the clock type associated with the condition.
+	* pthread/condattr.c(pthread_condattr_getclock,pthread_condattr_setclock):
+	New functions.
+	* pthread/context.c(__pthread_cleanup_idle): For a non-chunked stack (e.g, ARMEABI),
+	use ARMEABISupport to free the pthread stack.
+	(__pthread_context_switch): Ignore suspended threads.
+	* pthread/create.c(__pthread_create): For a non-chunked stack (e.g, ARMEABI),
+	take stack size from the attr argument if given or use default maximum size.
+	Also use ARMEABISupport module for stack management.
+	* pthread/newnode.c(__pthread_new_stack): For a non-chunked stack (e.g, ARMEABI),
+	use ARMEABISupport module for stack management.
+	(__pthread_new_node): Initialise "suspended" struct member.
+	* libunixlib/pthread/np.c(pthread_getattr_np): For a non-chunked stack (e.g, ARMEABI),
+	use ARMEABISupport module to query the thread's stack.
+	(pthread_suspend_thread, pthread_resume_thread, pthread_get_thread_registers): Add
+	functions.
+	* pthread/pthinit.c: For a non-chunked stack (e.g, ARMEABI), use ARMEABISupport
+	module for stack management.
+	* pthread/testcancel.c(pthread_testcancel): pthread semaphore is in fast access
+	RMA block now.
+	* signal/_demangle.s: For ARMEABI, preserve v5.
+	* signal/_signal.s: Use fast access RMA block throughout.
+	Use PIC_LOAD macro throughout.
+	For ARMEABI, simplify by assuming 32 bit code execution throughout.
+	(__h_error): For ARMEABI, set up appropriate stack frame.
+	(__h_cback_common): Likewise.
+	(__cbreg, __cbflg, __cba1): Moved to fast access RMA block.
+	* signal/post.c(__write_backtrace_thread): For ARMEABI and PIC, print
+	the library name and offset for each entry in the stack backtrace.
+	(__write_backtrace): Write appropriate fake stack frame depending on compiler
+	used.
+	* string/_memcpymove-v7l.s: New file. NEON enhanced version written by RISC OS Open
+	(GCC 8 (ARMEABI) only).
+	* string/_memset-v7l.s: Likewise.
+	* string/_strlen-v7l.s: Likewise.
+	* string/arm-mem.h: Header used by the above NEON source, written by RISC OS Open.
+	* sys/_jmp.s: Use PIC_LOAD macro. Use fast access RMA block.
+	* sys/_syslib.s: Use PIC_LOAD macro throughout.
+	For ARMEABI, use ARMEABISupport module to allocate main stack and signal stack.
+	Record in SULPROC_STATUS if we are dynamically linked and if we are ARMEABI.
+	Add support for .init_array.
+	* sys/_vfork.s: Use PIC_LOAD macro.
+	* unix/ul_select.c(__convert_fd_set): In webkit, I noticed some sockets were
+	not being polled for data. It seems to have something to do with this function
+	not checking all fd bits. For ARMEABI, check all bits. For GCC 4, leave code
+	untouched as I'm not sure.
+	* unix/unix.c: Profiling not supported for ARMEABI.
+	(_exit): Move clean up code to SUL.
+	* vscript: Remove __cbreg.
+	* wchar/wcsnrtombs.c(__wcsnrtombs): Rename to wcsnrtombs.
+	* wchar/wmissing.c: A number of wide character functions that we don't have
+	implentations of and may never need, but configure scripts look for.
+
 Sun Aug  7 11:18:10 BST  2016  Lee Noar  <leenoar@sky.com>
 
 	* common/__stat.c(__stat): Set the character flag for /dev/dsp

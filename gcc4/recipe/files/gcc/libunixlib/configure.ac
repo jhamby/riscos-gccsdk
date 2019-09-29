@@ -166,6 +166,14 @@ else
   multilib_arg=
 fi
 
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#ifndef __ARM_EABI__
+# error macro not defined
+#endif
+]])], [arm_eabi=yes], [arm_eabi=no])
+AM_CONDITIONAL([ARM_EABI], [test x$arm_eabi = xyes])
+AC_SUBST(ARM_EABI)
+
 #AC_CONFIG_FILES
 
 # The test process-redirect needs its own Makefile and test Obey script.

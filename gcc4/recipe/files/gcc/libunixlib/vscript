@@ -12,7 +12,6 @@ VERSION {
      __atexit_function_count;
      __build_ctype_tables;
      __calling_environment;
-     __cbreg;
      __chkenv;
      __close;
      __custom*;

@@ -16,15 +16,14 @@
 	@ #define __set_errno(val) (errno = (val), -1)
 	@ Entry condition
 	@   val = new error code
-	@   v4 must be valid as the PIC register when compiling
-	@   for the shared library
+	@   Rpic = register to use as the PIC register
 	@ Exit condition
 	@   val = -1
 	@   Rerrno destroyed
-	.macro	__set_errno	val, Rerrno
+	.macro	__set_errno	val, Rerrno, Rpic
 #if __UNIXLIB_ERRNO_THREADED
 	ldr	\Rerrno, 0f	@=__pthread_running_thread
- PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
+ PICEQ "ldr	\Rerrno, [\Rpic, \Rerrno]"
 	ldr	\Rerrno, [\Rerrno]
 	str	\val, [\Rerrno, #__PTHREAD_ERRNO_OFFSET]
 	B	1f
@@ -32,7 +31,7 @@
 	WORD	__pthread_running_thread
 #else
 	ldr	\Rerrno, 0f	@=errno
- PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
+ PICEQ "ldr	\Rerrno, [\Rpic, \Rerrno]"
 	str	\val, [\Rerrno]
 	B	1f
 0:
@@ -69,6 +68,15 @@
 	@ Works in 26bit or 32bit modes, on all architectures
 	@ Use e.g. CHGMODE a1, SVC_Mode+IFlag
 	.macro	CHGMODE	scratch, mode
+#ifdef __ARM_EABI__
+	@ Assume 32bit only
+	mrs	\scratch, CPSR
+	bic	\scratch, \scratch, #0xcf	@ Preserve 32bit mode bit
+	.if	\mode <> 0
+	orr	\scratch, \scratch, #((\mode) & 0xf) + ((\mode) >> 20)
+	.endif
+	msr	CPSR_c, \scratch
+#else
 	teq	a1, a1	@ Set Z
 	teq	pc, pc	@ EQ if 32-bit mode
 	teqnep	pc, #\mode
@@ -79,6 +87,7 @@
 	.endif
 	msreq	CPSR_c, \scratch
 	mov	a1, a1	@ Avoid StrongARM MSR bug
+#endif
 	.endm
 
 	@ Macro for declaring the type and size of a function defined in ARM code.
@@ -117,6 +126,16 @@
 	.macro PICNE instr
 #ifndef PIC
 	\instr
+#endif
+	.endm
+
+	.macro	PIC_LOAD reg
+#ifdef PIC
+	@ Slightly optimised version that uses 0x8038 directly rather than
+	@ have the dynamic linker write __GOTT_BASE__.
+	MOV	\reg, #0x8000
+	LDR	\reg, [\reg, #0x38]
+	LDR	\reg, [\reg, #__GOTT_INDEX__]
 #endif
 	.endm
 #endif

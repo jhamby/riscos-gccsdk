@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ int _kernel_osgbpb (int op, unsigned handle,
@@ -17,7 +18,7 @@ _kernel_osgbpb:
 	BVS	_kernel_osgbpb_err
 	STMIA	v4, {a3, a4, v1, v2, v3}
 	MVNCS	a1, #0
-	LDMCSFD	sp!, {v1, v2, v3, v4, pc}
+	LDMFDCS	sp!, {v1, v2, v3, v4, pc}
 
 _kernel_osgbpb_err:
 	MOV	a2, #EOPSYS

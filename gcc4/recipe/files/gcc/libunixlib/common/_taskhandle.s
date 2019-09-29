@@ -14,9 +14,7 @@
 	.global	__get_taskhandle
 	NAME	__get_taskhandle
 __get_taskhandle:
- PICEQ "LDR	a3, =__GOTT_BASE__"
- PICEQ "LDR	a3, [a3, #0]"
- PICEQ "LDR	a3, [a3, #__GOTT_INDEX__]"	@ a3 = GOT ptr
+	PIC_LOAD a3
 
 	LDR	ip, .L0			@ ip = __ul_global
  PICEQ "LDR	ip, [a3, ip]"

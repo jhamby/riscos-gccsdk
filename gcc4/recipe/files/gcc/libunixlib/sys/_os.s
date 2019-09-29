@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	.global	__os_console
@@ -214,11 +215,11 @@ __os_swi:
 	STMFD	sp!, {a2, v1, v2, v3, v4, v5, v6, lr}
 	ORR	ip, a1, #0x20000		@ X bit
 	TEQ	a2, #0
-	LDMNEIA a2, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6}
+	LDMIANE a2, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6}
 	SWI	XOS_CallASWIR12
 	LDMFD	sp!, {lr}		@ Retrieve passed in a2
 	TEQ	lr, #0
-	STMNEIA lr, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6}
+	STMIANE lr, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6}
 	MOVVC	a1, #0
 	LDMFD	sp!, {v1, v2, v3, v4, v5, v6, pc}
 	DECLARE_FUNCTION __os_swi

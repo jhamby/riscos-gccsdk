@@ -4,6 +4,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ Rough architecture determination in order to verify if the minimal
@@ -12,6 +13,7 @@
 	@ unsigned int __get_cpu_arch (void);
 	@ Returns 0 for unknown CPU architecture.
 	.global	__get_cpu_arch
+	.hidden	__get_cpu_arch
 	NAME	__get_cpu_arch
 __get_cpu_arch:
 	@ Read ARM ARM (B2.3) and ARM application note 99 if you want to
@@ -38,22 +40,22 @@ __get_cpu_arch:
 	TEQ	a2, #1<<16		@ ARM architecture 4
 	TEQNE	a2, #2<<16		@ ARM architecture 4T
 	MOVEQ	a1, #4
-	LDMEQFD	R13!, {PC}
+	LDMFDEQ	R13!, {PC}
 
 	TEQ	a2, #3<<16		@ ARM architecture 5
 	TEQNE	a2, #4<<16		@ ARM architecture 5T
 	TEQNE	a2, #5<<16		@ ARM architecture 5TE
 	TEQNE	a2, #6<<16		@ ARM architecture 5TEJ
 	MOVEQ	a1, #5
-	LDMEQFD	R13!, {PC}
+	LDMFDEQ	R13!, {PC}
 
 	TEQ	a2, #7<<16		@ ARM architecture 6
 	MOVEQ	a1, #6
-	LDMEQFD R13!, {PC}
+	LDMFDEQ R13!, {PC}
 
 	TEQ	a2, #15<<16		@ ARM architecture 7 (in fact, use feature registers)
 	MOVNE	a1, #0			@ Currently unknown !
-	LDMNEFD	R13!, {PC}
+	LDMFDNE	R13!, {PC}
 
 	@ Some ARMv6 CPUs (e.g. ARM1176JZF-S) use the feature registers.
 	@ Use the cache type register to work out if we're on ARMv6
@@ -79,7 +81,7 @@ cpu_is_pre_arm7:
 	LDR	a2, =0x41560300
 	TEQ	a1, a2
 	MOVEQ	a1, #2			@ ARM3, architecture 2
-	LDMEQFD	R13!, {PC}
+	LDMFDEQ	R13!, {PC}
 	LDR	a2, =0x41560600		@ ARM600, architecture 3
 	TEQ	a1, a2
 	LDRNE	a2, =0x41560610		@ ARM610, architecture 3

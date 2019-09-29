@@ -372,9 +372,11 @@ _exit (int return_code)
   struct __sul_process *sulproc = gbl->sulproc;
   int status;
 
+#ifndef __ARM_EABI__
   /* Disable profiling. If profiling was not enabled, then this function
      will have nothing to do.  */
   gmon_machine_cleanup ();
+#endif
 
   /* Interval timers must be stopped.  */
   __stop_itimers ();
@@ -435,26 +437,10 @@ _exit (int return_code)
   __dynamic_area_exit ();
   __env_riscos ();
 
-#ifdef PIC
-  /* There are 3 possibilities to watch out for here:
-
-     a) The process is a child which resulted from a fork(), but
-        not an exec(). The child is the same client as the parent
-        and should not be deregistered.
-     b) The process is a child which resulted from an exec()
-	(regardless of fork()). The child is a new client which
-	is distinct from its parent and should be deregistered.
-     c) The process is not a child at all and should be deregistered.  */
-  if (sulproc->status.execed || !sulproc->status.forked)
-    {
-      int regs[10];
-      (void) __os_swi (SOM_DeregisterClient, regs);
-    }
-#endif
-
 #ifdef DEBUG
   debug_printf ("-- __exit(): Calling sul_exit with return code=%d\n", status);
 #endif
+
   sulproc->sul_exit (sulproc->pid, status);
 }
 
@@ -1099,3 +1085,10 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 fatal:
   __unixlib_fatal ("Failed to process command line");
 }
+
+#ifndef __ARM_EABI__
+/* Temporary until I implement --riscos-abi command line option for GCC 4.  */
+static const char riscos_abi_version[]
+  __attribute__((used, section(".riscos.abi.version"), aligned(4))) =
+"abi-2.0";
+#endif

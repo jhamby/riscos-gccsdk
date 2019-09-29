@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 @ vfork is similar to fork.
@@ -34,7 +35,7 @@ fork_common:
 	BL	__fork_pre
 	TEQ	a1, #0
 	ADDNE	sp, sp, #3*4
-	LDMNEFD	sp!, {pc}
+	LDMFDNE	sp!, {pc}
 
 	LDMFD	sp!, {a1-a3, lr}
 	@ a1 = child pid
@@ -45,9 +46,7 @@ fork_common:
 	@ FIXME: Don't need to save v5 anymore
  PICEQ "STMFD	sp!, {v4-v5}"
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
 	MOV	ip, a2
 	@ Save lr as we can't use the stack as it may be corrupted

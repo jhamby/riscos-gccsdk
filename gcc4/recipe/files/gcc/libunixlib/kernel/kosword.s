@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ int _kernel_osword (int __operation, int *__data)
@@ -12,7 +13,7 @@ _kernel_osword:
 	STMFD	sp!, {lr}
 	SWI	XOS_Word
 	MOVVC	a1, #0
-	LDMVCFD	sp!, {pc}
+	LDMFDVC	sp!, {pc}
 
 	MOV	a2, #EOPSYS
 	BL	__ul_seterr

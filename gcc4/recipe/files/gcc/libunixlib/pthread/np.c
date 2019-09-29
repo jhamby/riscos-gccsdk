@@ -1,14 +1,17 @@
 /* NP thread functions (np = non-portable GNU extensions)
    Written by Lee Noar.
-   Copyright (c) 2015 UnixLib Developers.  */
+   Copyright (c) 2015-2019 UnixLib Developers.  */
 
 /* The functions contained within this file were written using the information
    given at <http://linux.die.net>.  */
 
+#include <ucontext.h>
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
 #include <kernel.h>
+#include <swis.h>
+#include <internal/swiparams.h>
 
 /* <http://linux.die.net/man/3/pthread_getattr_np>
  * 
@@ -20,6 +23,7 @@ int
 pthread_getattr_np(pthread_t thread,
 		   pthread_attr_t *attr)
 {
+#if __UNIXLIB_CHUNKED_STACK
   _kernel_stack_chunk *stack;
 
   if (!thread || !attr)
@@ -33,6 +37,23 @@ pthread_getattr_np(pthread_t thread,
   attr->stackaddr = (char *)stack + 536;
   attr->stacksize = stack->sc_size - 536;
   attr->guardsize = 0;
+#else
+  if (!thread || !attr)
+    return EINVAL;
+
+  if (!thread->stack)
+    return ESRCH;
+
+  _swix(ARMEABISupport_StackOp, _INR(0,1)|_OUT(1),
+				ARMEABISUPPORT_STACKOP_GET_BOUNDS,
+				thread->stack,
+				&attr->stackaddr);
+  _swix(ARMEABISupport_StackOp, _INR(0,1)|_OUTR(1,2),
+				ARMEABISUPPORT_STACKOP_GET_SIZE,
+				thread->stack,
+				&attr->stacksize,
+				&attr->guardsize);
+#endif
 
   return 0;
 }
@@ -76,6 +97,45 @@ pthread_getname_np (pthread_t thread,
     return ERANGE;
 
   strcpy (name, thread->name);
+
+  return 0;
+}
+
+/* The current thread can not be suspended which also means that if there
+ * is only one thread, then that cannot be suspended.
+ * These functions are RISC OS specific and not portable. They were added
+ * to aid in porting libraries that require this functionality.
+ */
+int
+pthread_suspend_thread(pthread_t thread)
+{
+  if (!thread || thread == __pthread_running_thread)
+    return EINVAL;
+
+  thread->suspended = 1;
+
+  return 0;
+}
+
+int
+pthread_resume_thread(pthread_t thread)
+{
+  if (!thread)
+    return EINVAL;
+
+  thread->suspended = 0;
+
+  return 0;
+}
+
+int
+pthread_get_thread_registers(pthread_t thread, mcontext_t *buffer)
+{
+  if (!thread || !buffer)
+    return EINVAL;
+
+  memcpy (buffer->gregs, thread->saved_context->r, sizeof(gregset_t));
+  /* FIXME: Do we need to copy the FP/VFP regs as well?  */
 
   return 0;
 }

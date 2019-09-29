@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ int _kernel_osbget (int handle)
@@ -13,7 +14,7 @@ _kernel_osbget:
 	MOV	a2, a1
 	SWI	XOS_BGet
 	MOVCS	a1, #-1		@ We have EOF. Return -1
-	LDMCSFD	sp!, {pc}
+	LDMFDCS	sp!, {pc}
 
 	MOV	a2, #EOPSYS
 	BL	__ul_seterr

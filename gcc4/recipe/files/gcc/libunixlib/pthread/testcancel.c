@@ -16,7 +16,7 @@ pthread_testcancel (void)
   struct ul_global *gbl = &__ul_global;
 
   if (__pthread_running_thread->cancelpending
-      && gbl->pthread_worksemaphore == 0)
+      && gbl->pthread_callevery_rma->pthread_worksemaphore == 0)
     {
       if (__pthread_running_thread->cancelstate == PTHREAD_CANCEL_ENABLE
           && __pthread_running_thread->state == STATE_RUNNING)

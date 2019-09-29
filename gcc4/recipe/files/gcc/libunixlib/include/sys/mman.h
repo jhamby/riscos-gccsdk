@@ -101,6 +101,9 @@ extern int madvise (void * __addr, size_t __len, int __advice) __THROW;
 extern void * mremap (void * __addr, size_t __old_len,
 			 size_t __new_len, int __may_move) __THROW;
 
+extern int shm_open(const char *, int, mode_t);
+extern int shm_unlink(const char *);
+
 __END_DECLS
 
 #endif	/* sys/mman.h */

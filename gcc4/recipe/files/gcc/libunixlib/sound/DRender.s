@@ -25,6 +25,7 @@
 
 #define DigiRendChunk	0x6F700	/* X flag set */
 
+	.syntax unified
 	.text
 
 	@ const _kernel_oserror * DRender_SetDefaults (int *channels, int *format,
@@ -55,7 +56,7 @@ DRender_SetDefaults:
 	str	r4, [r10]
 	str	r5, [r12]
 9:	ldmfd	sp!, {r4-r10}
-	movvcs	r0, #0			/* Ensures a PSR26 flag is set */
+	movsvc	r0, #0			/* Ensures a PSR26 flag is set */
 	teq	pc, pc
 	moveq	pc, lr
 	movs	pc, lr
@@ -69,7 +70,7 @@ DRender_LoadModule:
 	adreq	r1, 9f
 	mov	r0, #1			/* RMLoad */
 	swi	XOS_Module		/* will clobber r14 (lr) in SVC mode */
-	movvcs	r0, #0			/* Ensures a PSR26 flag is set */
+	movsvc	r0, #0			/* Ensures a PSR26 flag is set */
 	teq	pc, pc
 	moveq	pc, lr
 	movs	pc, lr

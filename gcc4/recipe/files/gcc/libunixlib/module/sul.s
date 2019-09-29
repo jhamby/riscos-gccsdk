@@ -139,11 +139,11 @@ module_start:
 help:
 	.ascii	"SharedUnixLibrary"
 	.byte	9
-	.ascii	"1.14 (05 Sep 2015) "
+	.ascii	"1.15 (10 Feb 2019) "
 #if DEBUG_PROC_MATCHING
 	.ascii	"(debug) "
 #endif
-	.asciz	"(C) UnixLib Developers, 2001-2015"
+	.asciz	"(C) UnixLib Developers, 2001-2019"
 	.align
 
 title:
@@ -1386,6 +1386,27 @@ sul_exit:
 	MOV	a1, #0
 	MOV	a2, #0
 	SWI	XVFPSupport_ChangeContext
+
+	@ There are 3 possibilities to watch out for here:
+	@ a) The process is a child which resulted from a fork(), but
+	@    not an exec(). The child is the same client as the parent
+	@    and should not be deregistered.
+	@ b) The process is a child which resulted from an exec()
+	@    (regardless of fork()). The child is a new client which
+	@    is distinct from its parent and should be deregistered.
+	@ c) The process is not a child at all and should be deregistered.  */
+	@
+	@ This boils down to:
+	@ if (sulproc->status.execed || !sulproc->status.forked)
+	LDR	a1, [v2, #PROC_STATUS]
+	AND	a1, a1, #0x600000
+	CMP	a1, #0x200000
+	BEQ	0f
+	TST	a1, #SULPROC_STATUS_FLAG_IS_DYNAMIC
+	SWIEQ	XSOM_DeregisterClient
+	TST	a1, #SULPROC_STATUS_FLAG_IS_ARMEABI
+	SWIEQ	XARMEABISupport_Cleanup
+0:
 
 	@ Restore old exit and error handlers if necessary
 	MOV	a1, #11

@@ -17,12 +17,11 @@
 int
 pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *attr)
 {
-  attr = attr;
-
-  if (cond == NULL)
+  if (attr == NULL || cond == NULL)
     return EINVAL;
 
   cond->waiting = NULL;
+  cond->clock_id = attr->clock_id;
 
   return 0;
 }
@@ -77,10 +76,16 @@ pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
       clock_t diff;
 
       __pthread_running_thread->state = STATE_COND_TIMED_WAIT;
-
-      /* A bit crude, but... */
-      diff = (100 * (abstime->tv_sec - time (NULL)))
-             + (abstime->tv_nsec / 10000000);
+      if (cond->clock_id == CLOCK_MONOTONIC)
+        {
+          diff = (abstime->tv_sec * 100) + (abstime->tv_nsec / 10000000);
+        }
+      else
+        {
+          /* A bit crude, but... */
+          diff = (100 * (abstime->tv_sec - time (NULL)))
+               + (abstime->tv_nsec / 10000000);
+	}
       __pthread_running_thread->condtimeout = clock () + diff;
     }
 

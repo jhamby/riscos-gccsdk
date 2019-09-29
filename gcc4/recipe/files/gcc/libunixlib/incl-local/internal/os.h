@@ -1,5 +1,5 @@
 /* Direct interface calls to RISC OS.
-   Copyright (c) 2000-2014 UnixLib Developers.  */
+   Copyright (c) 2000-2019 UnixLib Developers.  */
 
 #ifndef __INTERNAL_OS_H
 #define __INTERNAL_OS_H
@@ -651,6 +651,25 @@ SWI_Territory_ConvertTimeToOrdinals (int __territory,
 		    : "r14", "cc", "memory");
   return err;
 }
+
+/* Technically not part of the OS, but...  */
+#ifdef PIC
+static __inline__ void som_deregister_client (void)
+{
+  __asm__ volatile ("SWI\t%[SWI_SOM_DeregisterClient]\n"
+		    : /* No output */
+		    : [SWI_SOM_DeregisterClient] "i" (SOM_DeregisterClient | (1<<17)));
+}
+#endif
+
+#ifdef __ARM_EABI__
+static __inline__ void armeabisupport_cleanup (void)
+{
+  __asm__ volatile ("SWI\t%[SWI_ARMEABISupport_Cleanup]\n"
+		    : /* No output */
+		    : [SWI_ARMEABISupport_Cleanup] "i" (ARMEABISupport_Cleanup | (1<<17)));
+}
+#endif
 
 /* Flag RISC OS error to UNIX and take a copy of the RISC OS error block.
    If 'err' is NULL, no action is taken.

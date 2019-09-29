@@ -103,6 +103,7 @@
 .set	SharedUnixLibrary_Error_StillActive, SharedUnixLibrary_ErrorChunk + 0x02
 .set	SharedUnixLibrary_Error_TooOld, SharedUnixLibrary_ErrorChunk + 0x03
 @ ...
+.set	SharedUnixLibrary_Error_NoStack, SharedUnixLibrary_ErrorChunk + 0x37
 .set	SharedUnixLibrary_Error_BadVFP, SharedUnixLibrary_ErrorChunk + 0x38
 .set	SharedUnixLibrary_Error_NoVFP, SharedUnixLibrary_ErrorChunk + 0x39
 .set	SharedUnixLibrary_Error_TooLowCPUArch, SharedUnixLibrary_ErrorChunk + 0x3A
@@ -212,6 +213,33 @@
 .set	SharedUnixLibrary_Initialise, 0x55c84
 .set	XSharedUnixLibrary_Initialise, 0x55c84 + X_Bit
 
+#ifdef __ARM_EABI__
+.set	XARMEABISupport_MemoryOp, 0x59D00 + X_Bit
+.set	XARMEABISupport_AbortOp, 0x59D01 + X_Bit
+.set	XARMEABISupport_StackOp, 0x59D02 + X_Bit
+
+.set	ARMEABISUPPORT_STACKOP_ALLOC,		0
+.set	ARMEABISUPPORT_STACKOP_FREE,		1
+.set	ARMEABISUPPORT_STACKOP_GET_STACK,	2
+.set	ARMEABISUPPORT_STACKOP_GET_BOUNDS,	3
+.set	ARMEABISUPPORT_STACKOP_GET_SIZE,	4
+
+.set	MEMORYOP_NEW_ALLOCATOR,		0
+.set	MEMORYOP_DESTROY_ALLOCATOR, 	1
+.set	MEMORYOP_ALLOC,			2
+.set	MEMORYOP_CLAIM_PAGES,		3
+.set	MEMORYOP_RELEASE_PAGES,		4
+.set	MEMORYOP_MAP_PAGES,		5
+.set	MEMORYOP_UNMAP_PAGES,		6
+.set	MEMORYOP_FREE,			7
+.set	MEMORYOP_INFO,			8
+
+.set	ABORTOP_REGISTER,		0
+.set	ABORTOP_DEREGISTER,		1
+.set	ABORTOP_INSTALL,		2
+.set	ABORTOP_REMOVE,			3
+#endif
+.set	XARMEABISupport_Cleanup, 0x59D03 + X_Bit	@ Outside the above #if for building SUL
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
 .set	VFPSupport_CheckContext, 0x58ec0
 .set	XVFPSupport_CheckContext, 0x58ec0 + X_Bit
@@ -227,12 +255,18 @@
 .set	XVFPSupport_ChangeContext, 0x58ec3 + X_Bit	@ Outside the above #if for building SUL
 
 .set	XSOM_DeregisterClient, 0x058584 + X_Bit
+.set	XSOM_MapObject, 0x058590 + X_Bit
+
+.set	SULPROC_STATUS_FLAG_IS_DYNAMIC, (1 << 23)
+.set	SULPROC_STATUS_FLAG_IS_ARMEABI, (1 << 24)
 
 #ifndef __TARGET_SCL__
 	@ Entries into the struct proc structure.  Must be kept in sync with
 	@ incl-local/internal/unix.h.
 .set	PROC_ARGC, 0			@ = __u->argc
 .set	PROC_ARGV, 4			@ = __u->argv
+
+.set	SULPROC_STATUS, 96
 
 	@ Entries into the __ul_global structure.  Must be kept in sync with
 	@ incl-local/internal/unix.h and sys/_syslib.s.
@@ -255,8 +289,8 @@
 .set	GBL_UPCALL_HANDLER_R12, 56	@ = __ul_global.upcall_handler_r12
 
 .set	GBL_PTH_RETURN_ADDRESS, 60	@ = __ul_global.pthread_return_address
-.set	GBL_PTH_WORKSEMAPHORE, 64	@ = __ul_global.pthread_worksemaphore
-.set	GBL_PTH_CALLBACK_SEMAPHORE, 68	@ = __ul_global.pthread_callback_semaphore
+.set	GBL_PTH_WORKSEMAPHORE_POISON, 64	@ = __ul_global.pthread_worksemaphore
+.set	GBL_PTH_CALLBACK_SEMAPHORE_POISON, 68	@ = __ul_global.pthread_callback_semaphore
 .set	GBL_PTH_SYSTEM_RUNNING, 72	@ = __ul_global.pthread_system_running
 .set	GBL_PTH_CALLBACK_MISSED, 76	@ = __ul_global.pthread_callback_missed
 .set	GBL_PTH_NUM_RUNNING_THREADS, 80	@ = __ul_global.pthread_num_running_threads
@@ -325,6 +359,36 @@
 				@ before main() called - can be NULL.
 .set	CRT1_LIB_FINI, 32	@ Ptr to function to finalise shared libraries
 				@ at program exit - can be NULL.
+.set	CRT1_INIT_ARRAY_START,	36 @ Ptr to the start of the .init_array section
+.set	CRT1_INIT_ARRAY_END, 	40 @ Ptr to the end of the .init_array section
+.set	CRT1_FINI_ARRAY_START,	44 @ Ptr to the start of the .fini_array section
+.set	CRT1_FINI_ARRAY_END, 	48 @ Ptr to the end of the .fini_array section
+
+	@ Entries in the RMA data block.
+						.struct 0
+	@ User registers are preserved in here for the callback execution.
+	@ User registers = R0-R15 and CPSR in 32-bit mode
+	@		 = R0-R15 only in 26-bit mode (the 17th word equals
+	@		   the pc value)
+PTHREAD_CALLEVERY_CALLBACK_REGS:		.skip 17 * 4
+	@ bit 0 Escape condition flag
+	@ bit 1 Internet event flag
+PTHREAD_CALLEVERY_CALLBACK_FLAG:		.skip 4
+	@ Signal number to use for __unixlib_raise_signal().
+PTHREAD_CALLEVERY_CALLBACK_A1:			.skip 4
+PTHREAD_CALLEVERY_RMA_UPCALL_ADDR:		.skip 4
+PTHREAD_CALLEVERY_RMA_UPCALL_R12:		.skip 4
+PTHREAD_CALLEVERY_RMA_GOT_PTR:			.skip 4
+	@ Have we registered the CallEvery ticker ?
+	@ Value 0 : no, CallEvery ticker is not enabled
+	@       1 : yes CallEvery ticker is enabled
+PTHREAD_CALLEVERY_RMA_TICKER_STARTED:		.skip 4
+PTHREAD_CALLEVERY_RMA_WORKSEMAPHORE:		.skip 4
+PTHREAD_CALLEVERY_RMA_CALLBACK_SEMAPHORE:	.skip 4
+PTHREAD_CALLEVERY_RMA_FILTER_NAME:		.skip 20
+PTHREAD_CALLEVERY_STRUCT_SIZE:
+
+	.text
 #endif
 
 #define __CPUCAP_HAVE_SWP    0x1

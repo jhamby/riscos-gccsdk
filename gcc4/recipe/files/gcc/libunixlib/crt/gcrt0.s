@@ -38,5 +38,9 @@ crt1_data:
 					@	library static object ctors - can be NULL.
 	.word	0			@ #32 - Pointer to function that can be used to call all shared
 					@	library static object dtors - can be NULL.
+	.word	__init_array_start	@ #36
+	.word	__init_array_end	@ #40
+	.word	__fini_array_start	@ #44
+	.word	__fini_array_end	@ #48
 
 # end of gcrt0.S

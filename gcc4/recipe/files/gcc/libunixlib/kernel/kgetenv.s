@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ _kernel_getenv (const char *name, char *buffer, unsigned size)
@@ -15,8 +16,8 @@ _kernel_getenv:
 	MOV	v1, #3
 	SWI	XOS_ReadVarVal
 	MOVVC	a1, #0	@ Null terminate the string
-	STRVCB	a1, [a2, a3]
-	LDMVCFD	sp!, {v1, pc}
+	STRBVC	a1, [a2, a3]
+	LDMFDVC	sp!, {v1, pc}
 
 	MOV	v1, a1
 	MOV	a2, #EOPSYS

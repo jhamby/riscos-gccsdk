@@ -231,6 +231,17 @@ write_termination (int signo)
   fprintf (stderr, "\nTermination signal received: %s\n", sys_siglist[signo]);
 }
 
+/* Clang and GCC do not have compatible frame pointers.  */
+#ifdef __clang__
+#define FP_OFFSET (0)
+#define LR_OFFSET (1)
+#elif defined (__ARM_EABI__)
+#define FP_OFFSET (-1)
+#define LR_OFFSET (0)
+#else
+#define LR_OFFSET (-1)
+#define FP_OFFSET (-3)
+#endif
 
 static void
 __write_backtrace_thread (const unsigned int *fp)
@@ -264,13 +275,29 @@ __write_backtrace_thread (const unsigned int *fp)
 	}
 
       /* Validate FP address.  */
-      if (!__valid_address (fp - 3, fp + 1))
+      if (!__valid_address (fp + FP_OFFSET, fp + FP_OFFSET + 1))
 	{
 	  fprintf (stderr, "Stack frame has gone out of bounds "
-			   "with address %x\n", (unsigned int)(fp - 3));
+			   "with address %x\n", (unsigned int)(fp + FP_OFFSET));
 	  break;
 	}
 
+#ifdef __ARM_EABI__
+      const unsigned int * const lr = (unsigned int *)fp[LR_OFFSET];
+      fprintf (stderr, "  (%8x) lr: %8x",
+	       (unsigned int)fp, (unsigned int)lr);
+#if PIC
+      /* FIXME: extend this with source location when available.  */
+      const char *lib = NULL;
+      unsigned offset;
+      _swix(SOM_Location,
+	    _IN(0) | _OUTR(0,1), lr, &lib, &offset);
+      if (lib)
+	fprintf(stderr, " : %8X : %s\n", offset, lib);
+      else
+#endif
+	fputc('\n', stderr);
+#else
       /* Retrieve PC counter.
 	 PC counter has been saved using STMxx ..., { ..., PC } so it can be
 	 8 or 12 bytes away from the STMxx instruction depending on the ARM
@@ -296,10 +323,10 @@ __write_backtrace_thread (const unsigned int *fp)
       int cplusplus_name;
       const char *name = extract_name (pc, &cplusplus_name);
       fprintf (stderr, (cplusplus_name) ? " %s\n" : " %s()\n", name);
-
+#endif
       oldfp = fp;
-      fp = (const unsigned int *)fp[-3];
-
+      fp = (const unsigned int *)fp[FP_OFFSET];
+#ifndef __ARM_EABI__
       if (__ul_callbackfp != NULL && fp == __ul_callbackfp)
 	{
 	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
@@ -373,6 +400,7 @@ __write_backtrace_thread (const unsigned int *fp)
 
 	  fputs ("\n\n", stderr);
 	}
+#endif
     }
 
   fputc ('\n', stderr);
@@ -382,7 +410,11 @@ __write_backtrace_thread (const unsigned int *fp)
 void
 __write_backtrace (int signo)
 {
+#ifdef __ARM_EABI__
+  register const unsigned int *fp = __builtin_frame_address(0);
+#else
   register const unsigned int *fp __asm ("fp");
+#endif
 
   PTHREAD_UNSAFE
 
@@ -423,6 +455,21 @@ __write_backtrace (int signo)
         continue;
 
       fprintf (stderr, "\nThread %p (%s)\n", th, th->name);
+#ifdef __clang__
+      const unsigned int fakestackframe[] =
+        {
+          (unsigned int)th->saved_context->r[11],
+          (unsigned int)th->saved_context->r[14]
+        };
+      __write_backtrace_thread (&fakestackframe[0]);
+#elif defined (__ARM_EABI__)
+      const unsigned int fakestackframe[] =
+        {
+          (unsigned int)th->saved_context->r[11],
+          (unsigned int)th->saved_context->r[14]
+        };
+      __write_backtrace_thread (&fakestackframe[1]);
+#else
       const unsigned int fakestackframe[] =
         {
           (unsigned int)th->saved_context->r[11],
@@ -431,6 +478,7 @@ __write_backtrace (int signo)
           (unsigned int)th->saved_context->r[15]
         };
       __write_backtrace_thread (&fakestackframe[3]);
+#endif
     }
 }
 
@@ -667,9 +715,7 @@ death:
 	  {
 	    /* For those signals that support it, copy the registers from the save
 	       block.  */
-	    extern void **__cbreg;
-
-	    memcpy (&ss->ucontext.arm_r0, &__cbreg, 4 * 17); /* r0-r15 + cpsr */
+	    memcpy (&ss->ucontext.arm_r0, __ul_global.pthread_callevery_rma->callback_regs, 4 * 17); /* r0-r15 + cpsr */
 	    ss->ucontext.fault_address = ss->ucontext.arm_pc;
 	  }
 

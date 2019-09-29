@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ int _kernel_osrdch (void)
@@ -12,7 +13,7 @@ _kernel_osrdch:
 	STMFD	sp!, {lr}
 	SWI	XOS_ReadC
 	BVS	error
-	LDMCCFD	sp!, {pc}
+	LDMFDCC	sp!, {pc}
 	@ Escape has been seen.
 	TEQ	a1, #27
 	MOVEQ	a1, #-27

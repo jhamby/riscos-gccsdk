@@ -3,6 +3,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	@ _kernel_oserror *_kernel_setenv (const char *name,
@@ -15,7 +16,7 @@ _kernel_setenv:
 	CMP	a2, #0
 	@ Get length of 'value' if not NULL
 loop:
-	LDRNEB	ip, [a3,#1]!
+	LDRBNE	ip, [a3,#1]!
 	CMPNE	ip, #0
 	BNE	loop
 	SUB	a3, a3, a2		@ length, or -1 if value = NULL
@@ -23,7 +24,7 @@ loop:
 	MOV	v1, #0
 	SWI	XOS_SetVarVal
 	MOVVC	a1, #0
-	LDMVCFD	sp!, {v1, pc}
+	LDMFDVC	sp!, {v1, pc}
 
 	MOV	v1, a1
 	MOV	a2, #EOPSYS

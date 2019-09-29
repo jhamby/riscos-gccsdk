@@ -13,6 +13,7 @@
 
 #include "internal/asm_dec.s"
 
+	.syntax unified
 	.text
 
 	.global	strcpy
@@ -32,28 +33,28 @@ strcpy:	@strongly biased in favour of word-aligned source and destination
 strcpy_lp:
 	SUBS	a3,ip,a4	@3 instruction test for zero byte in word
 	EORCS	a3,a3,ip
-	BICCSS	a3,a4,a3
+	BICSCS	a3,a4,a3
 	LDREQ	a3,[a2],#4	@safe to read next word now
 	STREQ	ip,[a1],#4
 	BNE	strcpy_fin
 
 	SUBS	ip,a3,a4	@3 instruction test for zero byte in word
 	EORCS	ip,ip,a3
-	BICCSS	ip,a4,ip
+	BICSCS	ip,a4,ip
 	LDREQ	ip,[a2],#4	@safe to read next word now
 	STREQ	a3,[a1],#4
 	BNE	strcpy_a3
 
 	SUBS	a3,ip,a4	@3 instruction test for zero byte in word
 	EORCS	a3,a3,ip
-	BICCSS	a3,a4,a3
+	BICSCS	a3,a4,a3
 	LDREQ	a3,[a2],#4	@safe to read next word now
 	STREQ	ip,[a1],#4
 	BNE	strcpy_fin
 
 	SUBS	ip,a3,a4	@3 instruction test for zero byte in word
 	EORCS	ip,ip,a3
-	BICCSS	ip,a4,ip
+	BICSCS	ip,a4,ip
 	LDREQ	ip,[a2],#4	@safe to read next word now
 	STREQ	a3,[a1],#4
 	BEQ	strcpy_lp
@@ -68,13 +69,13 @@ strcpy_fin:
 				@ (this may be the terminator)
 	TST	ip,#0xFF
 	MOVNE	ip,ip,LSR #8
-	STRNEB	ip,[a1],#1
+	STRBNE	ip,[a1],#1
 	TSTNE	ip,#0xFF
 	MOVNE	ip,ip,LSR #8
-	STRNEB	ip,[a1],#1
+	STRBNE	ip,[a1],#1
 	TSTNE	ip,#0xFF
 	MOVNE	ip,ip,LSR #8
-	STRNEB	ip,[a1],#1
+	STRBNE	ip,[a1],#1
 
 	@finished (we copied the terminator byte before checking its value)
 
@@ -83,7 +84,7 @@ strcpy_fin:
 
 strcpy_misaligned:
 	TST	a2,#3
-	LDRNEB	ip,[a2],#1
+	LDRBNE	ip,[a2],#1
 	BEQ	strcpy_chkdest
 
 	@copy individual bytes until source ptr is word-aligned or finished
@@ -93,7 +94,7 @@ strcpy_align_lp:
 	TST	a2,#3		@is source word-aligned yet
 	TEQNE	ip,#0		@  or is this the end?
 	STRB	ip,[a1],#1
-	LDRNEB	ip,[a2],#1
+	LDRBNE	ip,[a2],#1
 	BNE	strcpy_align_lp
 
 	TEQ	ip,#0		@end of string reached?
@@ -117,7 +118,7 @@ strcpy1:
 strcpy1_lp:
 	SUBS	lr,a3,a4
 	EORCS	lr,lr,a3
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy1_fin
 	ORR	lr,ip,a3,LSL #8
 	LDR	ip,[a2],#4
@@ -126,7 +127,7 @@ strcpy1_lp:
 
 	SUBS	lr,ip,a4
 	EORCS	lr,lr,ip
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy1_ip
 	ORR	lr,a3,ip,LSL #8
 	LDR	a3,[a2],#4
@@ -135,7 +136,7 @@ strcpy1_lp:
 
 	SUBS	lr,a3,a4
 	EORCS	lr,lr,a3
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy1_fin
 	ORR	lr,ip,a3,LSL #8
 	LDR	ip,[a2],#4
@@ -144,7 +145,7 @@ strcpy1_lp:
 
 	SUBS	lr,ip,a4
 	EORCS	lr,lr,ip
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy1_ip
 	ORR	lr,a3,ip,LSL #8
 	LDR	a3,[a2],#4
@@ -165,13 +166,13 @@ strcpy1_fin:
 	STRB	a3,[a1],#1
 	TST	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 	TSTNE	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 	TSTNE	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 
 	@finished
 
@@ -189,7 +190,7 @@ strcpy2:
 strcpy2_lp:
 	SUBS	lr,a3,a4
 	EORCS	lr,lr,a3
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy2_fin
 	ORR	lr,ip,a3,LSL #16
 	LDR	ip,[a2],#4
@@ -198,7 +199,7 @@ strcpy2_lp:
 
 	SUBS	lr,ip,a4
 	EORCS	lr,lr,ip
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy2_ip
 	ORR	lr,a3,ip,LSL #16
 	LDR	a3,[a2],#4
@@ -207,7 +208,7 @@ strcpy2_lp:
 
 	SUBS	lr,a3,a4
 	EORCS	lr,lr,a3
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy2_fin
 	ORR	lr,ip,a3,LSL #16
 	LDR	ip,[a2],#4
@@ -216,7 +217,7 @@ strcpy2_lp:
 
 	SUBS	lr,ip,a4
 	EORCS	lr,lr,ip
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy2_ip
 	ORR	lr,a3,ip,LSL #16
 	LDR	a3,[a2],#4
@@ -238,13 +239,13 @@ strcpy2_fin:	@a3 contains the last loaded word which contains a 0 byte
 	STRB	a3,[a1],#1
 	TST	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 	TSTNE	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 	TSTNE	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 
 	@finished
 
@@ -261,7 +262,7 @@ strcpy3:
 strcpy3_lp:
 	SUBS	lr,a3,a4
 	EORCS	lr,lr,a3
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy3_fin
 	ORR	lr,ip,a3,LSL #24
 	LDR	ip,[a2],#4
@@ -270,7 +271,7 @@ strcpy3_lp:
 
 	SUBS	lr,ip,a4
 	EORCS	lr,lr,ip
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy3_ip
 	ORR	lr,a3,ip,LSL #24
 	LDR	a3,[a2],#4
@@ -279,7 +280,7 @@ strcpy3_lp:
 
 	SUBS	lr,a3,a4
 	EORCS	lr,lr,a3
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy3_fin
 	ORR	lr,ip,a3,LSL #24
 	LDR	ip,[a2],#4
@@ -288,7 +289,7 @@ strcpy3_lp:
 
 	SUBS	lr,ip,a4
 	EORCS	lr,lr,ip
-	BICCSS	lr,a4,lr
+	BICSCS	lr,a4,lr
 	BNE	strcpy3_ip
 	ORR	lr,a3,ip,LSL #24
 	LDR	a3,[a2],#4
@@ -309,13 +310,13 @@ strcpy3_fin:
 	STR	lr,[a1],#4
 	TST	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 	TSTNE	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 	TSTNE	a3,#0xFF
 	MOVNE	a3,a3,LSR #8
-	STRNEB	a3,[a1],#1
+	STRBNE	a3,[a1],#1
 
 	@finished
 

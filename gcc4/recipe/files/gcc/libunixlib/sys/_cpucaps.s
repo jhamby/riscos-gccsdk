@@ -10,6 +10,7 @@
 @ Determine what the CPU capabilities are, and record them.
 @ Called early on during program initialisation in _syslib.s.
 	.global __probe_cpu_caps
+	.hidden __probe_cpu_caps
 	NAME	__probe_cpu_caps
 __probe_cpu_caps:
 	MOV	r0, #0
@@ -27,9 +28,8 @@ __probe_cpu_caps:
 	TST	r0, #1<<13			@ LDREX/STREX{B/H/D} available
 	ORRNE	r2, r2, #__CPUCAP_HAVE_REXBHD
 
- PICEQ "LDR	r0, =__GOTT_BASE__"
- PICEQ "LDR	r0, [r0, #0]"
- PICEQ "LDR	r0, [r0, #__GOTT_INDEX__]"	@ r0 = GOT ptr
+	PIC_LOAD r0
+
 	LDR	r1, .L0				@ =__ul_global
  PICEQ "LDR	r1, [r0, r1]"
 	STR	r2, [r1, #GBL_CPU_FLAGS]
@@ -42,9 +42,8 @@ __probe_cpu_caps:
 	.global	__cpucap_have_swp
 	NAME	__cpucap_have_swp
 __cpucap_have_swp:
- PICEQ "LDR	r0, =__GOTT_BASE__"
- PICEQ "LDR	r0, [r0, #0]"
- PICEQ "LDR	r0, [r0, #__GOTT_INDEX__]"	@ r0 = GOT ptr
+	PIC_LOAD r0
+
 	LDR	r1, .L0				@ =__ul_global
  PICEQ "LDR	r1, [r0, r1]"
 	LDR	r0, [r1, #GBL_CPU_FLAGS]
@@ -59,9 +58,8 @@ __cpucap_have_swp:
 	.global	__cpucap_have_rex
 	NAME	__cpucap_have_rex
 __cpucap_have_rex:
- PICEQ "LDR	r0, =__GOTT_BASE__"
- PICEQ "LDR	r0, [r0, #0]"
- PICEQ "LDR	r0, [r0, #__GOTT_INDEX__]"	@ r0 = GOT ptr
+	PIC_LOAD r0
+
 	LDR	r1, .L0				@ =__ul_global
  PICEQ "LDR	r1, [r0, r1]"
 	LDR	r0, [r1, #GBL_CPU_FLAGS]
@@ -77,9 +75,8 @@ __cpucap_have_rex:
 	.global	__cpucap_have_rexbhd
 	NAME	__cpucap_have_rexbhd
 __cpucap_have_rexbhd:
- PICEQ "LDR	r0, =__GOTT_BASE__"
- PICEQ "LDR	r0, [r0, #0]"
- PICEQ "LDR	r0, [r0, #__GOTT_INDEX__]"	@ r0 = GOT ptr
+	PIC_LOAD r0
+
 	LDR	r1, .L0				@ =__ul_global
  PICEQ "LDR	r1, [r0, r1]"
 	LDR	r0, [r1, #GBL_CPU_FLAGS]

@@ -1021,6 +1021,12 @@ __END_DECLS
 #define Iconv_Close                    0x057542
 
 #define SOM_DeregisterClient           0x058584
+#define SOM_Location                   0x05858F
+
+#define ARMEABISupport_MemoryOp        0x059D00
+#define ARMEABISupport_AbortOp         0x059D01
+#define ARMEABISupport_StackOp         0x059D02
+#define ARMEABISupport_Cleanup         0x059D03
 
 #define VFPSupport_CheckContext        0x058ec0
 #define VFPSupport_CreateContext       0x058ec1

@@ -1,6 +1,6 @@
 /* Thread creation.
    Written by Martin Piper and Alex Waugh.
-   Copyright (c) 2002-2010 UnixLib Developers.  */
+   Copyright (c) 2002-2019 UnixLib Developers.  */
 
 /*#define PTHREAD_DEBUG*/
 
@@ -11,6 +11,7 @@
 
 #include <internal/os.h>
 #include <internal/unix.h>
+#include <internal/swiparams.h>
 
 #ifdef PTHREAD_DEBUG
 #define DEBUG
@@ -66,7 +67,13 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
       return EAGAIN;
     }
 
-  thread->stack = __pthread_new_stack ();
+#if __UNIXLIB_CHUNKED_STACK
+  thread->stack_size = PTHREAD_STACK_MIN;
+#else
+  thread->stack_size = attr ? attr->stacksize : PTHREAD_DEFAULT_MAX_STACK_SIZE;
+#endif
+
+  thread->stack = __pthread_new_stack (thread);
 
   if (thread->saved_context == NULL || thread->stack == NULL)
     {
@@ -74,7 +81,8 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
       if (thread->stack != NULL)
         __free_stack_chain (thread->stack);
 #else
-      /* FIXME: code missing.  */
+      if (thread->stack != 0)
+	_swix(ARMEABISupport_StackOp, _INR(0,1), ARMEABISUPPORT_STACKOP_FREE, thread->stack);
 #endif
 
       if (thread->saved_context != NULL)
@@ -98,13 +106,21 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 
   /* Set stack-pointer register.  */
   thread->saved_context->r[13] = (int)((char *)thread->stack
-				       + PTHREAD_STACK_MIN);
+				       + thread->stack_size);
 
 #if __UNIXLIB_CHUNKED_STACK
   /* Set stack-limit register.  */
   thread->saved_context->r[10] = (int)((char *)thread->stack
 				       + 512
 				       + sizeof (struct __stack_chunk));
+  /* Set stack-pointer register.  */
+  thread->saved_context->r[13] = (int)((char *)thread->stack
+				       + thread->stack_size);
+#else
+  _swix(ARMEABISupport_StackOp, _INR(0,1)|_OUT(2),
+				ARMEABISUPPORT_STACKOP_GET_BOUNDS,
+				thread->stack,
+				&thread->saved_context->r[13]);
 #endif
 
   /* Set the frame pointer to zero.  During stack backtraces, a frame

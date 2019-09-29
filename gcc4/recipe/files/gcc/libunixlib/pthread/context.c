@@ -11,6 +11,7 @@
 
 #include <internal/os.h>
 #include <internal/unix.h>
+#include <internal/swiparams.h>
 
 /* #define PTHREAD_DEBUG
 #define PTHREAD_DEBUG_CONTEXT
@@ -56,7 +57,7 @@ __pthread_cleanup_idle (pthread_t node)
 #if __UNIXLIB_CHUNKED_STACK
       __free_stack_chain (node->stack);
 #else
-      /* FIXME: code missing.  */
+      _swix(ARMEABISupport_StackOp, _INR(0,1), ARMEABISUPPORT_STACKOP_FREE, node->stack);
 #endif
       node->stack = NULL;
     }
@@ -128,6 +129,9 @@ __pthread_context_switch (void)
           __pthread_cleanup_idle (next);
           next = __pthread_running_thread->next;
         }
+
+      if (__pthread_running_thread->suspended)
+	continue;
 
       if (__pthread_running_thread->state == STATE_COND_TIMED_WAIT)
         {

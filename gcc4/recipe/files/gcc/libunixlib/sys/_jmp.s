@@ -43,17 +43,17 @@
 	.global	setjmp
 	NAME	setjmp
 setjmp:
- PICEQ "LDR	ip, =__GOTT_BASE__"
- PICEQ "LDR	ip, [ip, #0]"
- PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
+	PIC_LOAD ip
 
 	LDR	a4, .L0 + 0		@ a4 = __pthread_running_thread
  PICEQ "LDR	a4, [ip, a4]"
 	LDR	a4, [a4]
 
+#if __UNIXLIB_CHUNKED_STACK
 	@ Write __pthread_running_thread->alloca
 	LDR	a4, [a4, #__PTHREAD_ALLOCA_OFFSET]
 	STR	a4, [a1], #4
+#endif
 
 	LDR	a3, .L0 + 4
  PICEQ "LDR	a3, [ip, a3]"		@ a3 = __ul_global
@@ -63,7 +63,8 @@ setjmp:
 	STR	a4, [a1], #4
 
 	@ Write __ul_global.pthread_worksemaphore
-	LDR	a4, [a3, #GBL_PTH_WORKSEMAPHORE]
+	LDR	a3, [a3, #GBL_PTH_CALLEVERY_RMA]
+	LDR	a4, [a3, #PTHREAD_CALLEVERY_RMA_WORKSEMAPHORE]
 	STR	a4, [a1], #4
 
 #ifndef __SOFTFP__
@@ -85,9 +86,7 @@ setjmp:
 	.global	longjmp
 	NAME	longjmp
 longjmp:
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+	PIC_LOAD v4
 
 	@ We should be able to safely use v1-v6, since if a recursive
 	@ call to longjmp does occur, then the v1-v6 are going to be
@@ -96,6 +95,7 @@ longjmp:
 	MOV	v1, a1
 	MOV	v2, a2
 
+#if __UNIXLIB_CHUNKED_STACK
 	@ Restore the stack status at setjmp() time, and free any chunks
 #ifndef __SOFTFP__
 #ifdef __VFP_FP__
@@ -118,6 +118,7 @@ longjmp:
 	LDR	a1, [v1], #4	@ a1 = new __pthread_running_thread->alloca
 	TEQ	a1, a2
 	BLNE	__gcc_alloca_longjmp_free
+#endif
 
 	LDR	a1, .L0 + 4	@ a1 = __ul_global
  PICEQ "LDR	a1, [v4, a1]"
@@ -128,7 +129,8 @@ longjmp:
 
 	@ Restore __ul_global.pthread_worksemaphore
 	LDR	lr, [v1], #4
-	STR	lr, [a1, #GBL_PTH_WORKSEMAPHORE]
+	LDR	a1, [a1, #GBL_PTH_CALLEVERY_RMA]
+	STR	lr, [a1, #PTHREAD_CALLEVERY_RMA_WORKSEMAPHORE]
 
 #ifndef __SOFTFP__
 	@ Restore floating point registers
