@@ -1,4 +1,4 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS='--without-libaudiofile'
+AB_CONFLAGS='--without-libaudiofile --with-fake-glib'
 
