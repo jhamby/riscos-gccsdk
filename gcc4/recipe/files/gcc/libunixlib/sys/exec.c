@@ -445,7 +445,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
   /* Force a malloc trim to reduce memory usage.  */
   malloc_trim_unlocked (gbl->malloc_state, 0);
+#if __UNIXLIB_CHUNKED_STACK
   __stackalloc_trim ();
+#endif
 
   /* If the DAs are being used, then delete the dynamic area. */
   __dynamic_area_exit ();
