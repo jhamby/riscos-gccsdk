@@ -1,5 +1,7 @@
 AB_URL=www.ijg.org/files/jpegsrc.v8d.tar.gz
 AB_INSTALL=yes
+# Need to add the 1 to the version so it's greater than the last shipped version
+AB_PVERSION=8d1
 AB_ROVERSION=5
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
@@ -8,6 +10,7 @@ ab_package() {
   # Package programs
   ab_create_command_app JPEGProgs Apps/Graphics libjpeg-progs
   ab_add_commands $S/*$AB_EXEEXT
+  ab_add_commands $S/.libs/*$AB_EXEEXT
 
   cp $S/usage.txt $A/\!Help
   cp $S/usage.txt $S/wizard.txt $A/
@@ -15,7 +18,7 @@ ab_package() {
 
   mv $D/*,faf $A/
 
-  $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib -section Graphics -copyrightfile $H/Copyright
+  $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib -section Graphics -copyrightfile $H/Copyright -depends LibJPEG8
 
   # Package libraries
   AB_COMPONENTS=""
