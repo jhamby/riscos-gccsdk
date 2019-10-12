@@ -1,0 +1,154 @@
+SWI "ARMEABISupport_AbortOp"
+ r0 = reason code:
+	0 - register abort handler
+	 Entry:
+	  r1 = ptr to abort handler routine
+	  r2 = data to be passed in r12 to routine
+	 Exit:
+	  r0 = error pointer if failure (V set) or 0 (V clear)
+	1 - deregister abort handler
+	 Entry:
+	  r1 = ptr to abort handler routine
+	  r2 = data to be passed in r12 to routine
+	 Exit:
+	  r0 = error pointer if failure (V set) or 0 (V clear)
+	2 - install system abort handler
+	 Entry:
+	  None
+	 Exit:
+	  r0 = error pointer if failure (V set) or 0 (V clear)
+	3 - remove system abort handler
+	 Entry:
+	  None
+	 Exit:
+	  r0 = error pointer if failure (V set) or 0 (V clear)
+
+Abort Handler routine
+  Entry:
+    r1  = memory address that caused the fault
+    r11 = pointer to block of registers at time of fault (r0-r15, cpu flags)
+    r12 = pointer to user data
+  Exit:
+    r0  = ABORT_HANDLER_CLAIM (1) if able to handle, otherwise ABORT_HANDLER_PASS_ON (0)
+    r12 can be corrupted
+    All other registers preserved
+
+SWI "ARMEABISupport_MemoryOp"
+ r0 = reason code:
+	0 - new allocator
+	  Entry:
+	   r1 = ptr to name
+	   r2 = max size
+	   r3 = flags
+		bit 0-3 = Type: 1 - page allocator
+				2 - heap allocator
+				3 - single use
+		bit 4   = Set: allocator is global, clear: allocator is specific to current task
+	  Exit:
+	   r0 = handle of new allocator (V flag clear) or error pointer (V flag set)
+	1 - destroy allocator
+	  Entry:
+	   r1 = handle of allocator
+	  Exit:
+	   r0 = 0 for success, or error pointer
+	2 - allocate memory
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = number of pages required
+	   r3 = flags
+		bits 0-15  = Memory page access flags if bits 16,17 = 2 (claim and map)
+		bits 16,17 = 0 - Leave all pages unclaimed and unmapped
+			     1 - claim all pages
+			     2 - claim and map all pages
+	  Exit:
+	   r0 = address of allocated memory block if successful (V flag clear) or error pointer (V flag set)
+	3 - claim pages
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of first page
+	   r3 = number of pages
+	  Exit:
+	   r0 = 0 for success or error pointer
+	4 - release pages
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of first page
+	   r3 = number of pages
+	  Exit:
+	   r0 = 0 for success or error pointer
+	5 - map pages
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of first page
+	   r3 = number of pages
+	   r4 = memory access flags
+	  Exit:
+	   r0 = 0 for success or error pointer
+	6 - unmap pages
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of first page
+	   r3 = number of pages
+	  Exit:
+	   r0 = 0 for success or error pointer
+	7 - free memory - unmap and release memory pages, then deallocate memory.
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of block to free
+	  Exit:
+	   r0 = 0 for success or error pointer
+	8 - info
+	  Entry:
+	   r1 = handle of allocator
+	  Exit:
+	   r0 = dynamic area number (V clear) or error pointer (V set)
+	   r1 = base address or 0 if error
+	   r2 = end address or 0 if error
+	9 - return page number for given address
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address
+	  Exit:
+	   r0 = page number (V clear) or error pointer (V set)
+	10 - allocator from address
+	  Entry:
+	    r1 = address
+	  Exit:
+	    r0 = handle of allocator, 0 if not found (no error)
+	10 - allocator from dynamic area
+	  Entry:
+	    r1 = dynamic area number
+	  Exit:
+	    r0 = handle of allocator, 0 if not found (no error)
+
+SWI "ARMEABISupport_StackOp"
+ r0 = reason
+   0 - Alloc
+     Entry:
+	R1 = Size of stack to allocate in pages
+	R2 = Number of guard pages
+	R3 = Ptr to name of stack (max 32 chars inc. term., can be NULL)
+     Exit:
+	R0 = handle of stack (V clear), or error ptr (V Set)
+	R1 = Base of stack (above any guard pages)
+	R2 = Top of stack (where register SP starts initially).
+   1 - Free
+     Entry:
+       R1 = handle of stack to free
+   2 - Get Stack
+     Entry:
+       R1 = address within stack
+     Exit:
+       R1 = handle of stack
+   3 - Get Bounds
+     Entry:
+       R1 = stack handle
+     Exit:
+       R1 = Base of stack (above any guard pages).
+       R2 = Top of stack (where register SP starts initially).
+   4 - Get Sizes
+     Entry:
+       R1 = stack handle
+     Exit:
+	R1 = Size of given stack (excluding any guard pages), in bytes, or 0 if not found.
+	R2 = Size of stack guard in bytes (may be 0).

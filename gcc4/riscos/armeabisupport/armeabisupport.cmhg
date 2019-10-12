@@ -1,0 +1,32 @@
+; This file is part of ARMEABISupport.
+;
+; Copyright (C) 2019 GCCSDK Developers
+;
+; Written by Lee Noar
+
+title-string: ARMEABISupport
+
+help-string: ARMEABISupport PACKAGE_VERSION (c) GCCSDK Developers
+
+initialisation-code: module_initialise
+
+finalisation-code: module_finalisation
+
+command-keyword-table: module_command
+  ARMEABISupport_Info(min-args: 0, max-args: 0,
+	     invalid-syntax: "Syntax: *ARMEABISupport_Info",
+	     help-text: "*ARMEABISupport_Info prints information about known applications.\n")
+
+swi-chunk-base-number: 0x59D00
+
+swi-handler-code: module_swihandler
+
+swi-decoding-table: ARMEABISupport, MemoryOp, AbortOp, StackOp, Cleanup
+
+error-chunk-base-number: 0x81DC20
+
+error-identifiers: armeabisupport_bad_reason("Unknown ARMEABISupport SWI reason code"),
+		   armeabisupport_bad_param("Bad parameter passed to ARMEABISupport SWI"),
+		   armeabisupport_no_memory("ARMEABISupport was unable to allocate memory"),
+		   armeabisupport_bad_process("Process not known to ARMEABISupport"),
+		   armeabisupport_in_use("There are still clients using ARMEABISupport")

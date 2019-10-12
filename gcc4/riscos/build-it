@@ -235,6 +235,18 @@ if [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # These only make sense in the native RISC OS build:
 
+  # ARMEABISupport module:
+  if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_BUILDDIR/armeabisupport/bin/ARMEABISupport,ffa ] ; then
+    echo +++ Building ARMEABISupport
+    test -f $GCCSDK_RISCOS/armeabisupport/configure || ( cd $GCCSDK_RISCOS/armeabisupport && autoreconf --install )
+    create_empty_dir $GCCSDK_BUILDDIR/armeabisupport
+    cd $GCCSDK_BUILDDIR/armeabisupport
+    $GCCSDK_RISCOS/armeabisupport/configure --prefix=$GCCSDK_BUILDDIR/armeabisupport $GCCSDK_RISCOS_CONFIGURE_ARGS
+    make $GCCSDK_MAKE_ARGS install
+  else
+    echo +++ NOT building ARMEABISupport,ffa as it already exists
+  fi
+
   # Shared library support:
   if ! $GCCSDK_BUILD_ISSTATIC ; then
     # SOManager module:
@@ -267,10 +279,17 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
 
   # !System modules:
   create_empty_dir $GCCSDK_RISCOS_SYSTEMPREFIX
-  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/500/Modules
 
   # *** Copy !System skeleton:
   svn export -q --force $GCCSDK_RISCOS/dist/\!System $GCCSDK_RISCOS_SYSTEMPREFIX/\!System
+
+  # *** ARMEABISupport module:
+  #   1. Copy ARMEABISupport module from to !System:
+  test ! -f $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/500/Modules/ARMEABISupport,ffa && cp $GCCSDK_BUILDDIR/armeabisupport/bin/ARMEABISupport,ffa $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/500/Modules/ARMEABISupport,ffa
+  #   2. Copy ARMEABISupport documentation
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/ARMEABISupport
+  cp $GCCSDK_RISCOS/armeabisupport/ARMEABISupportDocs $GCCSDK_RISCOS_SYSTEMPREFIX/docs/ARMEABISupport
 
   # *** SharedUnixLibrary module:
   #   1. Copy SharedUnixLibrary module from !GCC/bin to !System:
