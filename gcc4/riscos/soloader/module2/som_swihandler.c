@@ -1,6 +1,6 @@
 /* som_swihandler.c
  *
- * Copyright 2006, 2007 GCCSDK Developers
+ * Copyright 2006-2017 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -12,6 +12,8 @@
 #include "som_utilswis.h"
 #include "som_symlinks.h"
 #include "som_array.h"
+#include "som_elf.h"
+#include "som_map.h"
 
 _kernel_oserror *
 module_swihandler (int number, _kernel_swi_regs * r, void *pw)
@@ -140,6 +142,127 @@ module_swihandler (int number, _kernel_swi_regs * r, void *pw)
       som_reloc (r);
       break;
 
+    case SOM_ELFFile - SOM_00:
+      {
+	/* r0 = reason
+	 *   0 - Open file
+	 *     Entry:
+	 *      R1 = filename
+	 *     Exit:
+	 *      R0 = handle or pointer to error block
+	 *   1 - Load file
+	 *     Entry:
+	 *       R1 = handle
+	 *     Exit:
+	 *       R0 = NULL or pointer to error block
+	 *   2 - Close file
+	 *     Entry:
+	 *       R1 = handle
+	 *   3 - Alloc segments
+	 *     Entry:
+	 *       R1 = handle
+	 *   4 - Return ABI string
+	 *     Entry:
+	 *       R1 = handle
+	 *     Exit:
+	 *       R0 = Pointer to ABI string or pointer to error block
+	 *   5 - Return TRUE if ABI is armeabihf
+	 *     Entry:
+	 *       R1 = handle
+	 *     Exit:
+	 *       R0 = 1 if armeabihf, 0 if abi-2.0 or pointer to error block
+	 *   6 - Return public info from the open ELF file
+	 *     Entry:
+	 *       R1 = handle
+	 *       R2 = pointer to som_object_info struct
+	 *     Exit:
+	 *       block in R2 filled with public info (name only valid while file open)
+	 *       R0 = 0, or pointer to error block
+	 */
+	switch (r->r[0])
+	{
+	  case reason_code_SOM_ELFFILE_OPEN:
+	    {
+	      elf_file *file;
+	      if ((err = som_alloc (sizeof (elf_file), (void **) &file)) != NULL)
+		{
+		  err = somerr_no_memory;
+		  break;
+		}
+
+	      elffile_init(file);
+	      if ((err = elffile_open ((const char *)r->r[1], file)) == NULL)
+		r->r[0] = (int)file;
+	    }
+	    break;
+	  case reason_code_SOM_ELFFILE_LOAD:
+	    {
+	      elf_file *file = (elf_file *)r->r[1];
+
+	      if (!file)
+		return somerr_bad_param;
+
+	      err = elffile_load (file, /*init_bss=*/true);
+	    }
+	    break;
+	  case reason_code_SOM_ELFFILE_CLOSE:
+	    {
+	      elf_file *file = (elf_file *)r->r[1];
+	      if (file)
+		{
+		  elffile_close (file);
+		  som_free (file);
+		}
+	    }
+	    break;
+	  case reason_code_SOM_ELFFILE_ALLOC:
+	    {
+	      elf_file *file = (elf_file *)r->r[1];
+
+	      err = elffile_alloc_segments (file);
+	    }
+	    break;
+	  case reason_code_SOM_ELFFILE_GET_ABI:
+	    {
+	      elf_file *file = (elf_file *)r->r[1];
+	      const char *abi;
+
+	      err = elffile_get_abi (file, &abi);
+	      if (!err)
+		r->r[0] = (int)abi;
+	    }
+	    break;
+	  case reason_code_SOM_ELFFILE_IS_ARM_AAPCS:
+	    {
+	      elf_file *file = (elf_file *)r->r[1];
+	      bool is_armeabihf;
+
+	      err = elffile_is_armeabihf (file, &is_armeabihf);
+	      if (!err)
+		r->r[0] = is_armeabihf;
+	    }
+	    break;
+	  case reason_code_SOM_ELFFILE_GET_PUBLIC_INFO:
+	    {
+	      elf_file *file = (elf_file *)r->r[1];
+	      som_objinfo *info = (som_objinfo *)r->r[2];
+
+	      err = elffile_get_public_info (file, info);
+	    }
+	    break;
+	}
+      }
+      break;
+    case SOM_Location - SOM_00:
+      /*
+       * Entry:
+       *  r0 = address
+       * Exit:
+       *  r0 = pointer to library name or NULL
+       *  r1 = offset in to library or 0
+       */
+      som_location((som_PTR)r->r[0], (const char **)&r->r[0], (unsigned *)&r->r[1]);
+      break;
     default:
       err = error_BAD_SWI;
       break;

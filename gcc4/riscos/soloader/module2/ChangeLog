@@ -1,3 +1,57 @@
+Sat Oct 12 18:27:59 BST 2019  Lee Noar  <lee.noar@sky.com>
+
+	* configure.ac: Bump version number to 3.00.
+	* somanager.cmhg: *SOMAddress can now take a register instead of an address.
+	Add ELFFile and Location to SWI table.
+	Add errors abi_mismatch and abi_fail.
+	* som_utilswis.{h/c}(som_location): New function; given an address, return
+	the library that contains it and the offset within it. Can be used by Unixlib
+	in backtraces.
+	* som_utils.{h/c}(copy_arg_string): New function.
+	* som_types.h(type som_PTR): make unsigned.
+	* som_swihandler.c: Handle SWI SOM_ELFFile and SWI SOM_Location.
+	* som_runcom.c: Terminology change; loader->linker.
+	Some structure member name changes.
+	(struct runcom_state): Add flag to record whether the program
+	is ARMEABI.
+	(runcom_init_state): Set flag based on system variable indicating
+	whether text segments should be writable (normally they should not be).
+	(register_dynamic_linker): elffile_open() now responsible for gathering
+	information about an ELF image.
+	Check for ARMEABI.
+	som_register_sharedobject() now responsible for copying the data segment.
+	(load_dynamic_linker): Check for abi mismatch between client and linker.
+	Use elffile_alloc_segments() for memory allocation.
+	(setup_aux_array): Add AT_HWCAP as new entry and use it to record
+	whether client is ARMEABI (passed to the dynamic linker, so that it
+	knows too).
+	(command_run): Check abi version of client for ARMEABI and record result.
+	Install the ARMEABISupport module abort handler for stack management.
+	* som_register.c: Some struture member name changes.
+	(som_register_sharedobject): If the client is ARMEABI, write protect the library's
+	text and data segments (in this case, the data segment is for initialisation of
+	new clients only and should never be written to).
+	* som_os_swis.h: Add symbols and inline SWI calls for ARMEABISupport and other
+	SWIs.
+	* som_map.{h/c}: Files not currently used.
+	* som_main.c: Some struture member name changes.
+	* som_history.c: Likewise.
+	* som_array.c: Likewise.
+	* som_init.c(module_initialise): Shared library dynamic area now created on
+	first allocation.
+	* som_handlers.s: Abort handler code for mapped libraries. Not currently used.
+	* som_final.c(module_finalisation): Free each library individually so that the
+	memory pages are unmapped and released.
+	Some struture member name changes.
+	* som_elf.{h/c}: Extend elffile so that it stores more information about an
+	ELF image and can be used by the dynamic linker via a SWI.
+	* som_command.c: Some struture member name changes.
+	(command_address): Remove requirement that address start with 0x inline with
+	*memory. Allow a register to be specified instead of an address, this can be
+	pc or lr.
+	* som_alloc.{c/h}: Use ARMEABISupport for memory allocation.
+	* som.h: Some type changes and structure member name changes.
+	
 Sun Jul  6 16:32:01 BST 2014  Lee Noar  <leenoar@sky.com>
 
 	* som.h: Increase maximum size of library dynamic area from

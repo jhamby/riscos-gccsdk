@@ -80,4 +80,16 @@ extern som_handle som_handle_from_name (const char *name);
  */
 extern void som_reloc (_kernel_swi_regs *regs);
 
+/* SWI "SOM_Location"
+ *
+ * Given an address, return the name of the library that conatins it and the offset
+ * within that library from its load address.
+ * Entry:
+ *  r0 = address
+ * Exit:
+ *  r0 = pointer to library name or NULL
+ *  r1 = offset into library or 0
+ */
+extern void som_location(som_PTR addr, const char **name, unsigned *offset);
+
 #endif

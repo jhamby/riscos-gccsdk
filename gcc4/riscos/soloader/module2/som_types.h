@@ -13,7 +13,7 @@ typedef unsigned int bool;
 
 typedef unsigned int som_client_ID;
 typedef unsigned int som_handle;
-typedef char *som_PTR;
+typedef unsigned char *som_PTR;
 
 /* Forward declarations */
 struct _som_client_object;

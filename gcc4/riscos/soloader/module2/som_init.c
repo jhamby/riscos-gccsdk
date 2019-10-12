@@ -37,7 +37,7 @@ module_initialise (const char *tail, int podule_base, void *pw)
   /* Initialise all our global variables united in the 'global' som_globals
      structure.  */
   memset (&global, 0, sizeof (som_globals));
-  global.data_da.number = global.library_da.number = -1;
+  global.data_da.number = -1;
   // linklist_init_list (&global.client_list);
   // linklist_init_list (&global.object_list);
   // linklist_init_list (&global.client_history);
@@ -59,20 +59,6 @@ module_initialise (const char *tail, int podule_base, void *pw)
   if ((err = heap_init (global.data_da.base_addr, SOM_INIT_DA_SIZE)) != NULL)
     goto error;
 
-#ifdef LIBRARIES_IN_DA
-  if (global.flags.host_32bit)
-    {
-      if ((err = dynamic_area_create ("Shared Libraries", SOM_INIT_LIBDA_SIZE,
-				      SOM_MAX_LIBDA_SIZE,
-				      &global.library_da)) != NULL)
-	goto error;
-
-      if ((err = heap_init (global.library_da.base_addr,
-			    SOM_INIT_LIBDA_SIZE)) != NULL)
-	goto error;
-    }
-#endif
-
   if ((err = somarray_init (&global.object_array,
 			    sizeof (som_object *), 1)) != NULL)
     goto error;
@@ -85,11 +71,6 @@ module_initialise (const char *tail, int podule_base, void *pw)
 error:
   if (global.data_da.number != -1)
     dynamic_area_remove (global.data_da.number);
-
-#ifdef LIBRARIES_IN_DA
-  if (global.library_da.number != -1)
-    dynamic_area_remove (global.library_da.number);
-#endif
 
   return err;
 }

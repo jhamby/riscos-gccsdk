@@ -55,8 +55,8 @@ som_history_add_client(som_client *client)
   strcpy (name_ptr, client->object.name);
   name_ptr += strlen (name_ptr) + 1;
 
-  client_hist->client.data_start = client->object.rw_addr;
-  client_hist->client.data_end = client->object.rw_addr + client->object.rw_size;
+  client_hist->client.data_start = client->object.data_rw_segment;
+  client_hist->client.data_end = client->object.data_rw_segment + client->object.data_size;
   client_hist->client.GOT = client->object.got_addr;
 
   /* Record the client's objects.  */
@@ -74,8 +74,8 @@ som_history_add_client(som_client *client)
       strcpy (name_ptr, client_library->library->object.name);
       name_ptr += strlen (name_ptr) + 1;
 
-      obj_hist->data_start = client_library->rw_addr;
-      obj_hist->data_end = client_library->rw_addr + client_library->library->object.rw_size;
+      obj_hist->data_start = client_library->data_segment;
+      obj_hist->data_end = client_library->data_segment + client_library->library->object.data_size;
       obj_hist->GOT = client_library->got_addr;
     }
 

@@ -2,6 +2,8 @@
 
 #include "som_utils.h"
 #include "som_types.h"
+#include "som_alloc.h"
+#include <stddef.h>
 
 static inline int
 lcase(char a,
@@ -57,4 +59,32 @@ wildcmp(const char *s1,
   } while (c2 != '\0' && (c1 == c2 || c2 == '#'));
 
   return false;
+}
+
+/* Make a C copy of an argument string that may be terminated by any control character.
+ * SOM_Alloc is used for memory, the caller is responsible for freeing it.  */
+char *copy_arg_string(const char *arg_string)
+{
+  int len;
+  const char *p;
+
+  for (p = arg_string; *p >= 32; p++)
+    /* Empty loop */;
+
+  len = p - arg_string;
+  if (len == 0)
+    return NULL;
+
+  char *cstring;
+  if (som_alloc (len + 1, (void **) &cstring) != NULL)
+    return NULL;
+
+  char *dst = cstring;
+
+  p = arg_string;
+  while (*p >= 32)
+    *dst++ = *p++;
+  *dst = '\0';
+
+  return cstring;
 }

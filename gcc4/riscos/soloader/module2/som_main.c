@@ -1,12 +1,18 @@
 /* som_main.c
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007-2019 GCCSDK Developers
  * Written by Lee Noar
  */
 
 #include "som.h"
 #include "link_list.h"
 #include "som_alloc.h"
+
+#if USE_MAPPED_LIBRARIES
+#include "som_map.h"
+#endif
+
+static const unsigned int ELF_ID = 0x464c457f;
 
 som_globals global;
 
@@ -30,7 +36,6 @@ _kernel_oserror *
 som_callback_handler (_kernel_swi_regs *r, void *pw)
 {
   global.flags.callback_pending = false;
-
   unsigned int current_time = os_read_monotonic_time ();
   som_library_object *global_library =
 		linklist_first_som_library_object (&global.object_list);
@@ -53,9 +58,8 @@ som_callback_handler (_kernel_swi_regs *r, void *pw)
       /* Mark this object slot as being reusable.  */
       global.object_array.object_base[global_library->object.index] = NULL;
 
-      som_free (global_library->object.base_addr);
-      som_free (global_library);
-
+      som_free (global_library->object.text_segment);
+      som_free ((som_PTR)global_library);
     next_object:
       global_library = next;
     }
@@ -108,3 +112,69 @@ som_stop_call_every (void *pw)
 
   return err;
 }
+
+#if USE_MAPPED_LIBRARIES
+_kernel_oserror *
+som_install_pre_filter (void *pw)
+{
+  if (global.flags.pre_filter_installed)
+    return NULL;
+
+  _kernel_oserror *err;
+
+  if ((err = filter_register_pre_filter ("SOM Pre Filter",
+					  som_pre_wimp_filter,
+					  pw, 0)) == NULL)
+    global.flags.pre_filter_installed = true;
+
+  return err;
+}
+ 
+_kernel_oserror *
+som_remove_pre_filter (void *pw)
+{
+  if (!global.flags.pre_filter_installed)
+    return NULL;
+
+  _kernel_oserror *err;
+
+  if ((err = filter_deregister_pre_filter ("SOM Pre Filter",
+					   som_pre_wimp_filter,
+					   pw, 0)) == NULL)
+    global.flags.pre_filter_installed = false;
+
+  return err;
+}
+
+_kernel_oserror *
+som_install_post_filter (void *pw)
+{
+  if (global.flags.post_filter_installed)
+    return NULL;
+
+  _kernel_oserror *err;
+
+  if ((err = filter_register_post_filter ("SOM Post Filter",
+					  som_post_wimp_filter,
+					  pw, 0, 0)) == NULL)
+    global.flags.post_filter_installed = true;
+
+  return err;
+}
+
+_kernel_oserror *
+som_remove_post_filter (void *pw)
+{
+  if (!global.flags.post_filter_installed)
+    return NULL;
+
+  _kernel_oserror *err;
+
+  if ((err = filter_deregister_post_filter ("SOM Post Filter",
+					    som_post_wimp_filter,
+					    pw, 0, 0)) == NULL)
+    global.flags.post_filter_installed = false;
+
+  return err;
+}
+#endif

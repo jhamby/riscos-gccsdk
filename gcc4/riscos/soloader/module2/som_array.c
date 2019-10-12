@@ -14,12 +14,13 @@
 _kernel_oserror *
 somarray_init (som_array *array, int elem_size, int elem_count)
 {
-  _kernel_oserror *err;
 
   if (elem_count == 0)
     array->base = NULL;
   else
     {
+      _kernel_oserror *err;
+
       if ((err = som_alloc (elem_size * elem_count,
 			    (void **) (void *) &array->base)) != NULL)
 	return err;
@@ -72,7 +73,7 @@ somarray_add_object (som_array *array,
   array->object_base[index] = object;
 
   /* Store the object index in the library runtime workspace.  */
-  rt_workspace_set_for_object (object->base_addr, rt_workspace_OBJECT_INDEX, index);
+  rt_workspace_set_for_object (object->text_segment, rt_workspace_OBJECT_INDEX, index);
 
   return NULL;
 }
@@ -83,18 +84,19 @@ rt_elem_set_client (const som_client *client)
   som_rt_elem *rt_elem = &client->runtime_array.rt_base[0];
 
   rt_elem->private_GOT_ptr = client->object.got_addr;
-  rt_elem->public_RW_ptr = client->object.rw_addr;
-  rt_elem->private_RW_ptr = client->object.rw_addr;
-  rt_elem->RW_size = client->object.rw_size;
+  /* These next 2 should always be the same anyway.  */
+  rt_elem->public_RW_ptr = client->object.data_rw_segment;
+  rt_elem->private_RW_ptr = client->object.data_ro_segment;
+  rt_elem->RW_size = client->object.data_size;
 }
 
 static void
 rt_elem_set (som_rt_elem *rt_elem, const som_client_object *c_obj)
 {
   rt_elem->private_GOT_ptr = c_obj->got_addr;
-  rt_elem->public_RW_ptr = c_obj->library->object.rw_addr;
-  rt_elem->private_RW_ptr = c_obj->rw_addr;
-  rt_elem->RW_size = c_obj->library->object.rw_size;
+  rt_elem->public_RW_ptr = c_obj->library->object.data_rw_segment;
+  rt_elem->private_RW_ptr = c_obj->data_segment;
+  rt_elem->RW_size = c_obj->library->object.data_size;
 }
 
 static void

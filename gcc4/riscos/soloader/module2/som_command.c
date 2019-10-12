@@ -7,12 +7,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/elf.h>
 #include "somanager.h"
 #include "som.h"
 #include "som_runcom.h"
 #include "som_history.h"
 #include "som_command.h"
+#include "som_utils.h"
 
 const char *column_title_string[] =
 {
@@ -50,15 +52,20 @@ command_status_libraries (void)
   for (som_library_object *global_library = linklist_first_som_library_object (&global.object_list);
        global_library != NULL;
        global_library = linklist_next_som_library_object (global_library))
-    printf ("%-4d 0x%.8X  0x%.8X  0x%.8X  0x%.8X  %s\n",
-	    global_library->object.index,
-	    (unsigned int)global_library->object.base_addr,
-	    (unsigned int)global_library->object.rw_addr,
-	    (unsigned int)global_library->object.rw_addr,
-	    (unsigned int)(global_library->object.rw_addr +
-			   global_library->object.rw_size -
-			   global_library->object.bss_size),
-	    global_library->object.name);
+    {
+/*      unsigned text_size = global_library->object.flags.is_armeabihf ?
+				page_align_size(global_library->object.text_size) :
+				global_library->object.text_size;*/
+
+      printf ("%-4d 0x%.8X  0x%.8X  0x%.8X  0x%.8X  %s\n",
+	      global_library->object.index,
+	      (unsigned int)global_library->object.text_segment,
+	      (unsigned int)global_library->object.text_segment + global_library->object.text_size,
+	      (unsigned int)global_library->object.data_rw_segment,
+	      (unsigned int)(global_library->object.data_rw_segment +
+			     global_library->object.data_size),
+	      global_library->object.name);
+    }
 
   printf ("\n%-4s %-11s %-11s %s\n",
 	  column_title_string[column_title_IDX],
@@ -117,8 +124,8 @@ command_status_clients (void)
     {
       printf ("%s\n", client->object.name);
       printf ("     0x%.8X  0x%.8X  0x%.8X  0x%.8X\n",
-	      (unsigned int)client->object.rw_addr,
-	      (unsigned int)(client->object.rw_addr + client->object.rw_size),
+	      (unsigned int)client->object.data_rw_segment,
+	      (unsigned int)(client->object.data_rw_segment + client->object.data_size),
 	      (unsigned int)client->object.got_addr,
 	      (unsigned int)client->object.dynamic_addr);
 
@@ -128,11 +135,11 @@ command_status_clients (void)
       while (client_library)
 	{
 	  printf("  => 0x%.8X  0x%.8X  0x%.8X  0x%.8X  %s\n",
-		 (unsigned int)client_library->rw_addr,
-		 (unsigned int)(client_library->rw_addr + client_library->library->object.rw_size),
+		 (unsigned int)client_library->data_segment,
+		 (unsigned int)(client_library->data_segment + client_library->library->object.data_size),
 		 (unsigned int)client_library->got_addr,
-		 (unsigned int)(client_library->rw_addr +
-			       (client_library->library->object.dynamic_addr - client_library->rw_addr)),
+		 (unsigned int)(client_library->data_segment +
+			       (client_library->library->object.dynamic_addr - client_library->data_segment)),
 		 client_library->library->object.name);
 
 	  client_library = linklist_next_som_client_object (client_library);
@@ -142,26 +149,76 @@ command_status_clients (void)
   putchar('\n');
 }
 
-static void
+static _kernel_oserror *
 command_address (const char *arg_string, int argc)
 {
-  som_PTR addr = (som_PTR) strtoul (arg_string, 0, 0);
+  som_PTR addr = NULL;
+  int reg = -1;
+  const char *c_args = copy_arg_string (arg_string);
+
+  if (c_args == NULL)
+    return somerr_no_memory;
+
+  int arg_len = strlen (c_args);
+
+  if (arg_len >= 2)
+    {
+      if (tolower(*c_args) == 'p' && tolower(*(c_args + 1)) == 'c')
+	reg = 15;
+      else if (tolower(*c_args) == 'l' && tolower(*(c_args + 1)) == 'r')
+	reg = 14;
+    }
+
+  if (reg == -1 && tolower(*c_args) == 'r')
+    reg = strtoul (c_args + 1, 0, 10);
+
+  if (reg != -1)
+    {
+      unsigned int *exception_register;
+
+      if (reg > 15)
+	{
+	  printf ("Bad register number given: r%d\n", reg);
+	  goto exit;
+	}
+
+      /* Read the address of the exception register block.  */
+      _swix(OS_ChangeEnvironment,
+	    _INR(0,1) | _OUT(1),
+	    13 /* Exception Registers */,
+	    0, /* Zero to read */
+	    &exception_register);
+
+      if (exception_register == NULL)
+	{
+	  printf ("Unable to read address of exception register block\n");
+	  goto exit;
+	}
+
+      addr = (som_PTR) exception_register[reg];
+    }
+  else
+    addr = (som_PTR) strtoul (c_args, 0, 16);
 
   som_library_object *global_library;
   for (global_library = linklist_first_som_library_object (&global.object_list);
        global_library != NULL;
        global_library = linklist_next_som_library_object (global_library))
     {
-      if (addr >= global_library->object.base_addr &&
+      if (addr >= global_library->object.text_segment &&
 	  addr < global_library->object.end_addr)
         break;
     }
 
   if (global_library != NULL)
-    printf ("Address given is at offset 0x%lX of library %s\n",
-	    addr - global_library->object.base_addr, global_library->object.name);
+    printf ("Address %p is at offset 0x%lX of library %s\n",
+	    addr, addr - global_library->object.text_segment, global_library->object.name);
   else
-    printf ("Address given is not known to the Shared Object Manager\n");
+    printf ("Address %p is not known to the Shared Object Manager\n", addr);
+
+exit:
+  som_free (c_args);
+  return NULL;
 }
 
 static void
@@ -263,7 +320,7 @@ module_command (const char *arg_string, int argc, int number, void *pw)
       break;
 
     case CMD_SOMAddress:
-      command_address (arg_string, argc);
+      err = command_address (arg_string, argc);
       break;
 
     case CMD_SOMExpire:

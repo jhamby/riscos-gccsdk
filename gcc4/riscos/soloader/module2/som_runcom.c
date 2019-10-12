@@ -1,6 +1,6 @@
 /* som_runcom.c
  *
- * Copyright 2007-2012 GCCSDK Developers
+ * Copyright 2007-2019 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -15,13 +15,17 @@
 #include "som_startapp.h"
 #include "som_utils.h"
 
+#if USE_MAPPED_LIBRARIES
+#include "som_map.h"
+#endif
+
 /* In order to minimise the amount of SVC stack used at any one time, most
    of the static functions are marked as not being inlined, otherwise GCC is
    quite keen on inlining.  */
 #define noinline __attribute__((noinline))
 
 /* Allow 16KB of stack space for program initialisation. This is mostly for
-   the benefit of the Dynamic Loader.  */
+   the benefit of the Dynamic linker.  */
 #define SOM_RUN_STACK_SIZE	(16 * 1024)	/* 16KB */
 
 static const char loader_path[] = "SharedLibs:lib.";
@@ -43,7 +47,7 @@ typedef struct runcom_state
   /* Hold information about dynamic loader file.  */
   elf_file elf_loader;
 
-  /* Shared Object Manager handle of Dynamic Loader.  */
+  /* Shared Object Manager handle of Dynamic linker.  */
   som_handle elf_loader_handle;
 
   /* Details of environment as returned by OS_GetEnv.  */
@@ -55,6 +59,8 @@ typedef struct runcom_state
   /* Flag indicating whether the client was registered so that if an error
      occurs, we know whether to deregister it.  */
   bool client_is_registered;
+
+  bool client_is_armeabihf;
 
   /* Pointer to where free unused application memory starts. This is
      increased as memory is allocated and is also used to ensure that
@@ -79,10 +85,12 @@ runcom_init_state (runcom_state *state)
   elffile_init (&state->elf_loader);
 
   state->ddeutils_is_present = ddeutils_is_present ();
+
+  global.flags.writable_text = (getenv("SOM$WritableText") != NULL);
 }
 
 static noinline _kernel_oserror *
-register_dynamic_loader (runcom_state *state)
+register_dynamic_linker (runcom_state *state)
 {
   som_objinfo objinfo;
   _kernel_oserror *err = NULL;
@@ -95,79 +103,39 @@ register_dynamic_loader (runcom_state *state)
     }
   else
     {
-      objinfo.base_addr = state->elf_loader.base_addr;
-
-      /* Go through the program headers extracting the info we need. */
-      /* The dynamic segment always seems to follow the data segment,
-	 however, we won't rely on it. Use two independent loops to find
-	 the required segments in the right order.  */
-      Elf32_Phdr *phdr;
-      int phnum;
-      for (phdr = state->elf_loader.prog_headers, phnum = state->elf_loader.elf_header.e_phnum;
-	   phnum != 0 && (phdr->p_type != PT_LOAD || (phdr->p_flags & PF_W) == 0);
-	   ++phdr, --phnum)
-	/* */;
-
-      if (phnum == 0)
-	return somerr_no_seg_loader;
-
-      objinfo.public_rw_ptr = state->elf_loader.base_addr + phdr->p_vaddr;
-      objinfo.rw_size = phdr->p_memsz;
-      objinfo.bss_offset = phdr->p_filesz;
-      objinfo.bss_size = phdr->p_memsz - phdr->p_filesz;
-
-      for (phdr = state->elf_loader.prog_headers, phnum = state->elf_loader.elf_header.e_phnum;
-	   phnum != 0 && phdr->p_type != PT_DYNAMIC;
-	   ++phdr, --phnum)
-	/* */;
-
-      if (phnum == 0)
-	return somerr_no_seg_loader;
-
-      objinfo.dyn_offset = phdr->p_vaddr + state->elf_loader.base_addr
-			   - objinfo.public_rw_ptr;
-      objinfo.dyn_size = phdr->p_memsz;
-
-      /* Find the GOT of the loader.  */
-      const Elf32_Dyn *dyn;
-      for (dyn = (const Elf32_Dyn *) (state->elf_loader.base_addr + phdr->p_vaddr);
-	   dyn->d_tag != DT_NULL && dyn->d_tag != DT_PLTGOT;
-	   dyn++)
-	/* Empty loop. */;
-
-      if (dyn->d_tag == DT_NULL)
-	return somerr_no_got_loader;
-
-      objinfo.got_offset = dyn->d_un.d_ptr + state->elf_loader.base_addr
-				 - objinfo.public_rw_ptr;
+      objinfo.text_segment = state->elf_loader.text_segment;
+      objinfo.text_size = state->elf_loader.text_size;
+      objinfo.library_data_segment = state->elf_loader.data_segment;
+      objinfo.library_init_segment = state->elf_loader.data_init_segment;
+      objinfo.data_size = state->elf_loader.data_size;
+      objinfo.bss_offset = state->elf_loader.bss_offset;
+      objinfo.bss_size = state->elf_loader.bss_size;
+      objinfo.dyn_offset = state->elf_loader.dynamic_offset;
+      objinfo.dyn_size = state->elf_loader.dynamic_size;
+      objinfo.got_offset = state->elf_loader.got_offset;
 
       /* INTERP_NAME is a pointer to the actual string within the ELF file,
          so it's safe to use it without worrying about it disappearing.  */
       objinfo.name = state->elf_prog.interp_name;
 
-      state->elf_loader_handle = (som_handle) objinfo.base_addr;
+      objinfo.flags.is_armeabihf = (state->elf_loader.abi_version &&
+				    strcmp (state->elf_loader.abi_version, "armeabihf") == 0);
+
+      state->elf_loader_handle = (som_handle) objinfo.text_segment;
     }
 
-  /* Store the client's copy of the dynamic loader's data segment at the
+
+  /* Store the client's copy of the dynamic linker's data segment at the
      previously marked free memory location.  */
-  objinfo.private_rw_ptr = state->free_memory;
+  objinfo.client_data_segment = state->free_memory;
 
   /* Advance the free memory pointer.  */
-  state->free_memory = word_align (state->free_memory + objinfo.rw_size);
+  state->free_memory = word_align (state->free_memory + objinfo.data_size);
 
   objinfo.flags.type = object_flag_type_LOADER;
 
-  if ((err = som_register_sharedobject (state->elf_loader_handle,
-					&objinfo)) != NULL)
-    goto error;
-
-  /* Copy the R/W segment from the public copy to the private copy.  */
-  memcpy (objinfo.private_rw_ptr, objinfo.public_rw_ptr, objinfo.rw_size - objinfo.bss_size);
-
-  /* Zero the bss area.  */
-  memset (objinfo.private_rw_ptr + objinfo.bss_offset, 0, objinfo.bss_size);
-
-  return NULL;
+  err = som_register_sharedobject (state->elf_loader_handle,
+					&objinfo);
 
 error:
   return err;
@@ -177,37 +145,29 @@ static noinline _kernel_oserror *
 register_client (runcom_state *state)
 {
   som_objinfo objinfo;
-
-  /* The dynamic segment always seems to follow the data segment,
-     however, we won't rely on it. Use two independent loops to find
-     the required segments in the right order. */
   Elf32_Phdr *phdr;
-  int phnum;
-  for (phdr = state->elf_prog.prog_headers, phnum = state->elf_prog.elf_header.e_phnum;
-       phnum != 0 && (phdr->p_type != PT_LOAD || (phdr->p_flags & PF_W) == 0);
-       ++phdr, --phnum)
-    /* */;
 
-  if (phnum == 0)
+  phdr = state->elf_prog.data_segment_phdr;
+
+  if (!phdr)
     return somerr_no_seg_client;
 
-  objinfo.base_addr = 0;
-  objinfo.public_rw_ptr = (som_PTR) phdr->p_vaddr;
-  objinfo.private_rw_ptr = (som_PTR) phdr->p_vaddr;
-  objinfo.rw_size = phdr->p_memsz;
-  objinfo.bss_offset = phdr->p_filesz;
-  objinfo.bss_size = phdr->p_memsz - phdr->p_filesz;
+  objinfo.text_segment = state->elf_prog.text_segment;
+  objinfo.text_size = state->elf_prog.text_size;
+  objinfo.client_data_segment = /* and ... */
+    objinfo.library_data_segment = /* and ... */
+    objinfo.library_init_segment = (som_PTR)phdr->p_vaddr;
+  objinfo.data_size = state->elf_prog.data_size;
+  objinfo.bss_offset = state->elf_prog.bss_offset;
+  objinfo.bss_size = state->elf_prog.bss_size;
 
-  for (phdr = state->elf_prog.prog_headers, phnum = state->elf_prog.elf_header.e_phnum;
-       phnum != 0 && phdr->p_type != PT_DYNAMIC;
-       ++phdr, --phnum)
-    /* */;
+  phdr = state->elf_prog.dynamic_segment_phdr;
 
-  if (phnum == 0)
+  if (!phdr)
     return somerr_no_seg_client;
 
-  objinfo.dyn_offset = (som_PTR) phdr->p_vaddr - objinfo.public_rw_ptr;
-  objinfo.dyn_size = phdr->p_memsz;
+  objinfo.dyn_offset = state->elf_prog.dynamic_offset;
+  objinfo.dyn_size = state->elf_prog.dynamic_size;
       
   /* Find the GOT of the client.  */
   const Elf32_Dyn *dyn;
@@ -219,9 +179,11 @@ register_client (runcom_state *state)
   if (dyn->d_tag == DT_NULL)
     return somerr_no_got_client;
 
-  objinfo.got_offset = (som_PTR) dyn->d_un.d_ptr - objinfo.public_rw_ptr;
+  objinfo.got_offset = (som_PTR) dyn->d_un.d_ptr - objinfo.library_data_segment;
       
   objinfo.name = state->elf_prog_name;
+
+  objinfo.flags.is_armeabihf = state->client_is_armeabihf;
 
   _kernel_oserror *err;
 
@@ -232,7 +194,7 @@ register_client (runcom_state *state)
 }
 
 static noinline _kernel_oserror *
-load_dynamic_loader (runcom_state *state)
+load_dynamic_linker (runcom_state *state)
 {
   _kernel_oserror *err;
   char *filename = NULL;
@@ -250,29 +212,40 @@ load_dynamic_loader (runcom_state *state)
   som_free (filename);
   filename = NULL;
 
-  /* Allocate enough memory to store all of the PT_LOAD segments.  */
-  if ((err = som_alloc_lib (state->elf_loader.memory_size,
-			    (void **) (void *) &state->elf_loader.base_addr)) != NULL
-      || (err = elffile_load (&state->elf_loader, state->elf_loader.base_addr,
-			      false)) != NULL)
-    goto error;
+  if (state->client_is_armeabihf != state->elf_loader.is_armeabihf)
+    {
+      err = somerr_abi_mismatch;
+      goto error;
+    }
 
-  return NULL;
+  if (state->elf_loader.dynamic_segment_phdr == NULL)
+    {
+      err = somerr_no_seg_loader;
+      goto error;
+    }
+
+  if (state->elf_loader.got_offset == 0)
+    {
+      err = somerr_no_got_loader;
+      goto error;
+    }
+
+  err = elffile_alloc_segments (&state->elf_loader);
+
+  if (!err)
+    err = elffile_load (&state->elf_loader,
+			/*init_bss=*/false);
+  if (!err)
+    return NULL;
 
 error:
-  /* FIXME: I don't think the next test can ever happen with current
-     implementation.  */
-  if (err == NULL
-      && (err = _kernel_last_oserror ()) == NULL)
-    err = somerr_file_error;	/* Default to file error.  */
-
   if (filename)
     som_free (filename);
 
-  if (state->elf_loader.base_addr)
+  if (state->elf_loader.text_segment)
     {
-      som_free (state->elf_loader.base_addr);
-      state->elf_loader.base_addr = NULL;
+      som_free (state->elf_loader.text_segment);
+      state->elf_loader.text_segment = NULL;
     }
 
   elffile_close (&state->elf_loader);
@@ -318,7 +291,7 @@ setup_argv_array (runcom_state *state)
 static noinline _kernel_oserror *
 setup_aux_array (runcom_state *state)
 {
-#define NUM_AUX_ARRAY_ENTRIES 6
+#define NUM_AUX_ARRAY_ENTRIES 8
   unsigned int *array = (unsigned int *) state->env.ram_limit;
 
   /* Make sure there's enough space for the auxillary array.  */
@@ -342,7 +315,7 @@ setup_aux_array (runcom_state *state)
   *--array = AT_ENTRY;
 
   /* Store base address of dynamic loader.  */
-  *--array = (unsigned int) state->elf_loader.base_addr;
+  *--array = (unsigned int) state->elf_loader.text_segment;
   *--array = AT_BASE;
 
   /* Store the number of program headers in the ELF program.  */
@@ -356,6 +329,9 @@ setup_aux_array (runcom_state *state)
   /* Store the flags from the ELF program's header.  */
   *--array = state->elf_prog.elf_header.e_flags;
   *--array = AT_FLAGS;
+
+  *--array = state->elf_prog.is_armeabihf;
+  *--array = AT_HWCAP;
 
   /* Keep track of the data we're storing on the stack.  */
   state->env.ram_limit = (unsigned int) array;
@@ -503,13 +479,37 @@ setup_env_array (runcom_state *state)
   return NULL;
 }
 
+#if USE_MAPPED_LIBRARIES
+/* Make sure that the previous client doesn't still have libraries mapped in.
+   This can happen if the task was started from Wimp_StartTask.  */
+static void clear_mappings (void)
+{
+  filter_block *filter = &global.filter_data;
+  if (filter->list)
+    {
+      som_client_object *client_library = filter->list;
+      while (client_library)
+      {
+	som_unmap_object (client_library);
+	client_library = linklist_next_som_client_object (client_library);
+      }
+
+      filter->list = NULL;
+    }
+}
+#endif
+
 _kernel_oserror *
 command_run (const char *arg_string, int argc)
 {
   _kernel_oserror *err;
-  runcom_state *state;
+  runcom_state *state = NULL;
   bool dl_already_loaded = false;
   bool ponr_reached = false; /* Point of no return reached.  */
+
+#if USE_MAPPED_LIBRARIES
+  clear_mappings();
+#endif
 
   if ((err = som_alloc (sizeof (runcom_state),
                         (void **) (void *) &state)) != NULL)
@@ -544,6 +544,10 @@ command_run (const char *arg_string, int argc)
   if ((err = elffile_open (state->elf_prog_name, &state->elf_prog)) != NULL)
     goto error;
 
+  state->elf_prog.text_segment = (som_PTR)0x8000;
+  state->elf_prog.data_segment = state->elf_prog.data_init_segment =
+		state->elf_prog.text_segment + state->elf_prog.text_size;
+
   if (state->elf_prog.elf_header.e_type != ET_EXEC)
     {
       err = somerr_no_exec;
@@ -557,7 +561,7 @@ command_run (const char *arg_string, int argc)
     goto error;
 
   /* Work out where free memory starts.  */
-  state->free_memory = word_align (state->elf_prog.base_addr + state->elf_prog.memory_size);
+  state->free_memory = word_align (state->elf_prog.text_segment + state->elf_prog.memory_size);
 
   /* Check that loading the executable won't overwrite the stack.  */
   if (state->free_memory >= (som_PTR) (state->env.ram_limit - SOM_RUN_STACK_SIZE))
@@ -588,56 +592,66 @@ command_run (const char *arg_string, int argc)
     goto error;
   ponr_reached = true;
 
-  if ((err = elffile_load (&state->elf_prog, NULL, true)) != NULL)
+  if ((err = elffile_load (&state->elf_prog, /*init_bss=*/true)) != NULL)
     goto error;
 
+  if (strcmp (state->elf_prog.abi_version, "armeabihf") == 0)
+    state->client_is_armeabihf = true;
+
   som_PTR entry_point;
-  if (state->elf_prog.dynamic_seg == NULL)
+  if (state->elf_prog.dynamic_segment_phdr == NULL)
     {
       /* No dynamic segment, so assume statically linked.  */
       entry_point = elffile_entry_point (&state->elf_prog);
     }
   else
     {
-      /* Check if the required loader is already loaded by the system.  */
+      /* Check if the required linker is already loaded by the system.  */
       state->elf_loader_handle = som_handle_from_name (state->elf_prog.interp_name);
 
-      /* A zero handle means the loader isn't known to the system yet.  */
+      /* A zero handle means the linker isn't known to the system yet.  */
       if (state->elf_loader_handle == 0)
 	{
-	  /* The loader isn't in the system yet, so we have to load it
+	  /* The linker isn't in the system yet, so we have to load it
 	     first.  */
 	  dl_already_loaded = false;
-	  err = load_dynamic_loader (state);
+	  err = load_dynamic_linker (state);
 	}
       else
 	{
 	  som_objinfo objinfo;
 
-	  /* The loader is already present in the system, we need to fill
+	  /* The linker is already present in the system, we need to fill
 	     in the elf_file structure manually.  */
 	  dl_already_loaded = true;
 	  if ((err = som_query_object (state->elf_loader_handle, &objinfo,
 				       flag_QUERY_GLOBAL_LIST)) == NULL)
-	    err = elffile_from_memory (&state->elf_loader, objinfo.base_addr);
+	    err = elffile_from_memory (&state->elf_loader,
+				       objinfo.text_segment,
+				       objinfo.library_data_segment,
+				       objinfo.library_init_segment);
 	}
 
       if (err)
 	goto error;
 
-      /* Register the client here now that we know the Dynamic Loader is
+      /* Register the client here now that we know the Dynamic Linker is
          present.  */
       if ((err = register_client (state)) != NULL)
 	goto error;
 
-      if ((err = register_dynamic_loader (state)) != NULL)
+      if ((err = register_dynamic_linker (state)) != NULL)
 	goto error;
 
-      if ((err = som_generate_runtime_array ()) != NULL)
-	goto error;
+#if USE_MAPPED_LIBRARIES
+      som_client *client = FIND_CLIENT();
+      if (!client_is_armeabihf(client))
+#endif
+        if ((err = som_generate_runtime_array ()) != NULL)
+	  goto error;
 
       /* The order that these are called in is important to ensure the
-         arrays are constructed in the order the Dynamic Loader expects to
+         arrays are constructed in the order the Dynamic Linker expects to
          find them.  */
       if ((err = setup_aux_array (state)) != NULL
 	  || (err = setup_env_array (state)) != NULL
@@ -653,7 +667,24 @@ command_run (const char *arg_string, int argc)
       entry_point = elffile_entry_point (&state->elf_loader);
 
       elffile_close (&state->elf_loader);
+#if USE_MAPPED_LIBRARIES
+      if (client_is_armeabihf(client))
+	{
+	  som_PTR base, end;
+	  if ((err = armeabi_memory_info(global.memory_page_allocator,
+					 &client->abort_handler_data.da_number, &base, &end)) != NULL)
+	    goto error;
+	  global.filter_data.da_number = client->abort_handler_data.da_number;
+	  if ((err = armeabi_abort_register(som_abort_handler, &client->abort_handler_data)) != NULL)
+	    goto error;
+	}
+#endif
     }
+
+  /* Handlers installed with SWI OS_ChangeEnvironment are specific to the
+     current task, and are swapped automatically by the WIMP when it switches tasks.
+     Ref: https://www.riscosopen.org/wiki/documentation/show/OS_ChangeEnvironment  */
+  armeabi_install_abort_handler();
 
   unsigned int ram_limit = state->env.ram_limit;
 
@@ -676,8 +707,8 @@ error:
      used to store the DL needs to be freed or else it will be lost.
      Note that the module finalisation routine will not free it as the
      DL is not linked into the list.  */
-  if (!dl_already_loaded && state->elf_loader.base_addr != NULL)
-    som_free (state->elf_loader.base_addr);
+  if (!dl_already_loaded && state->elf_loader.text_segment != NULL)
+    som_free (state->elf_loader.text_segment);
 
   if (state->client_is_registered)
     som_deregister_client ();

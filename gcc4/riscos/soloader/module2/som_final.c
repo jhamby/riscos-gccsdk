@@ -1,10 +1,11 @@
 /* som_final.c
  *
- * Copyright 2006, 2007 GCCSDK Developers
+ * Copyright 2006-2019 GCCSDK Developers
  * Written by Lee Noar
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <kernel.h>
 #include <swis.h>
 #include "somanager.h"
@@ -15,23 +16,32 @@
 _kernel_oserror *
 module_finalisation (int fatal, int podule_base, void *pw)
 {
-  _kernel_oserror *err;
-
   if (!global.flags.no_client_check && global.client_list.count > 0)
     return somerr_in_use;
 
-  if ((err = som_stop_call_every (pw)) != NULL)
-    return err;
+  som_stop_call_every (pw);
 
   somarray_fini (&global.object_array);
 
-#ifdef LIBRARIES_IN_DA
-  /* Don't bother individually freeing library memory on 32bit OS
-     as deleting the DA will free them all in one go anyway.  */
   if (global.flags.host_32bit)
-    dynamic_area_remove (global.library_da.number);
+    {
+      som_library_object *global_library =
+		linklist_first_som_library_object (&global.object_list);
+
+      while (global_library)
+	{
+	  som_library_object *next = linklist_next_som_library_object (global_library);
+
+	  som_free (global_library->object.text_segment);
+	  som_free ((som_PTR)global_library);
+
+	  global_library = next;
+	}
+
+      if (global.memory_page_allocator)
+	armeabi_memory_destroy_allocator(global.memory_page_allocator);
+    }
   else
-#endif
     {
       som_library_object *global_library =
 		linklist_first_som_library_object (&global.object_list);
@@ -39,8 +49,8 @@ module_finalisation (int fatal, int podule_base, void *pw)
       while (global_library)
 	{
 	  if (global_library->object.flags.type != object_flag_type_CLIENT
-	      && global_library->object.base_addr)
-	    som_free (global_library->object.base_addr);
+	      && global_library->object.text_segment)
+	    som_free (global_library->object.text_segment);
 
 	  global_library = linklist_next_som_library_object (global_library);
 	}

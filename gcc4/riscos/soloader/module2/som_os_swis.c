@@ -30,7 +30,7 @@ dynamic_area_create (const char *name, int init_size, int max_size,
     {
       ret->number = regs.r[1];
       ret->base_addr = (void *) regs.r[3];
-      ret->max_size = regs.r[5];
+      ret->end_addr = (void *)(regs.r[3] + init_size);
     }
 
   return NULL;

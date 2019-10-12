@@ -1,6 +1,6 @@
 /* som_register.c
  *
- * Copyright 2007-2013 GCCSDK Developers
+ * Copyright 2007-2019 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -12,6 +12,7 @@
 #include "som_workspace.h"
 #include "som_array.h"
 #include "som_history.h"
+#include "som_map.h"
 
 /* The current version of the .riscos.pic section that we are aware of.  */
 #define SRELPIC_VERSION 1
@@ -36,14 +37,16 @@ typedef struct srelpic_section
 static _kernel_oserror *
 init_object (som_object *object, const som_objinfo *objinfo)
 {
-  object->base_addr = objinfo->base_addr;
-  object->rw_addr = objinfo->public_rw_ptr;
-  object->rw_size = objinfo->rw_size;
-  object->end_addr = object->rw_addr + object->rw_size - objinfo->bss_size;
-  object->got_addr = object->rw_addr + objinfo->got_offset;
-  object->bss_addr = object->rw_addr + objinfo->bss_offset;
+  object->text_segment = objinfo->text_segment;
+  object->text_size = objinfo->text_size;
+  object->data_rw_segment = objinfo->library_data_segment;
+  object->data_ro_segment = objinfo->library_init_segment;
+  object->data_size = objinfo->data_size;
+  object->end_addr = object->data_rw_segment + object->data_size;
+  object->got_addr = object->data_rw_segment + objinfo->got_offset;
+  object->bss_addr = object->data_rw_segment + objinfo->bss_offset;
   object->bss_size = objinfo->bss_size;
-  object->dynamic_addr = object->rw_addr + objinfo->dyn_offset;
+  object->dynamic_addr = object->data_rw_segment + objinfo->dyn_offset;
   object->dynamic_size = objinfo->dyn_size;
   object->flags = objinfo->flags;
   object->index = 0;
@@ -62,7 +65,7 @@ som_add_global_library (link_list *list,
   som_library_object *global_library;
 
   for (global_library = linklist_first_som_library_object (list);
-       global_library != NULL && insert->object.base_addr >= global_library->object.base_addr;
+       global_library != NULL && insert->object.text_segment >= global_library->object.text_segment;
        global_library = linklist_next_som_library_object (global_library))
     /* */;
 
@@ -82,7 +85,7 @@ som_add_client_library (link_list *list,
 
   for (client_library = linklist_first_som_client_object (list);
        client_library != NULL
-	 && insert->library->object.base_addr >= client_library->library->object.base_addr;
+	 && insert->library->object.text_segment >= client_library->library->object.text_segment;
        client_library = linklist_next_som_client_object (client_library))
     /* */;
 
@@ -127,38 +130,33 @@ som_register_client (som_handle handle,
   rt_workspace_set (rt_workspace_CLIENT_STRUCT_PTR, (unsigned int) client);
 
   client->unique_ID = ID;
-  client->object.handle = handle;
-  client->object.flags.type = object_flag_type_CLIENT;
 
   init_object (&client->object, objinfo);
 
-  linklist_add_to_end (&global.client_list, &client->link);
+  client->object.handle = handle;
+  client->object.flags.type = object_flag_type_CLIENT;
+  if (objinfo->flags.is_armeabihf)
+    client->flags.is_armeabihf = true;
 
   /* Store the object index in the runtime workspace.  */
   rt_workspace_set (rt_workspace_OBJECT_INDEX, 0);
 
-  if ((err = somarray_init (&client->runtime_array, sizeof (som_rt_elem), 0)) != NULL
-   || (err = somarray_init (&client->gott_base, sizeof (void *), 0)) != NULL)
-    goto cleanup;
-
+  /* Allocation of 0 elements can't fail, so don't check for errors.  */
+  somarray_init (&client->runtime_array, sizeof (som_rt_elem), 0);
+  somarray_init (&client->gott_base, sizeof (void *), 0);
+      
   /* A GOT with a 5 word header was built with GCC 4.1.*. A 3 word header
      won't have a zero at index 3.  */
   if (*((unsigned int *) client->object.got_addr + 3) == 0)
     {
       /* This is already zero:
-      *((unsigned int *) client->got_addr + SOM_OBJECT_INDEX_OFFSET) = 0;  */
-      *((unsigned int *) client->object.got_addr + SOM_RUNTIME_ARRAY_OFFSET) = RT_WORKSPACE_RUNTIME_ARRAY;
+       *((unsigned int *) client->object.got_addr + SOM_OBJECT_INDEX_OFFSET) = 0;  */
+       *((unsigned int *) client->object.got_addr + SOM_RUNTIME_ARRAY_OFFSET) = RT_WORKSPACE_RUNTIME_ARRAY;
     }
 
+  linklist_add_to_end (&global.client_list, &client->link);
+
   return NULL;
-
-cleanup:
-  /* We know client != NULL here.  */
-  somarray_fini (&client->runtime_array);
-  somarray_fini (&client->gott_base);
-  som_free (client);
-
-  return err;
 }
 
 static _kernel_oserror *
@@ -173,7 +171,7 @@ process_relpic (som_object *object)
   if (dyn->d_tag == DT_NULL)
     return somerr_srelpic_unknown;
 
-  srelpic_section *srelpic = (srelpic_section *)(dyn->d_un.d_ptr + object->base_addr);
+  srelpic_section *srelpic = (srelpic_section *)(dyn->d_un.d_ptr + object->text_segment);
 
   if (srelpic->version > SRELPIC_VERSION)
     return somerr_srelpic_unknown; /* We don't know how to deal with this.  */
@@ -182,7 +180,7 @@ process_relpic (som_object *object)
        i < srelpic->rel_count;
        i++)
     {
-      unsigned int *location = (unsigned int *)(object->base_addr +
+      unsigned int *location = (unsigned int *)(object->text_segment +
 				    srelpic->array[i].offset);
       if (srelpic->array[i].index)
         {
@@ -199,7 +197,7 @@ process_relpic (som_object *object)
 	*location = RT_WORKSPACE_GOTT_BASE;
     }
 
-  os_synchronise_code_area (object->base_addr, object->rw_addr - 4);
+  os_synchronise_code_area (object->text_segment, object->text_segment + object->text_size);
 
   return NULL;
 }
@@ -223,8 +221,7 @@ som_register_sharedobject (som_handle handle,
        global_library = linklist_next_som_library_object (global_library))
     /* */;
 
-  _kernel_oserror *err;
-  som_client_object *client_library = NULL;
+  _kernel_oserror *err = NULL;
 
   if (global_library == NULL)
     {
@@ -238,27 +235,39 @@ som_register_sharedobject (som_handle handle,
       global_library->expire_time = 0;
       global_library->usage_count = 0;
 
-      /* If it's new to the global list, then add to the object array...  */
+      /* If it's new to the global list, then add to the object array  */
       if ((err = somarray_add_object (&global.object_array,
 				      &global_library->object)) != NULL)
-        {
+	{
 	  som_free (&global_library);
 	  return err;
 	}
 
-      /* ... and to the list.  */
-      som_add_global_library (&global.object_list, global_library);
-
       /* Process the section that contains __GOTT_INDEX__ and __GOTT_BASE__ relocations.  */
-      if (process_relpic (&global_library->object) != NULL)
-      {
-	/* Store the object index in the library public GOT.  */
-	((unsigned int *) global_library->object.got_addr)[SOM_OBJECT_INDEX_OFFSET] = global_library->object.index;
+      if ((err = process_relpic (&global_library->object)) != NULL)
+	return err;
 
-	/* Store the location of the client runtime array in the public GOT.  */
-	((unsigned int *) global_library->object.got_addr)[SOM_RUNTIME_ARRAY_OFFSET] = RT_WORKSPACE_RUNTIME_ARRAY;
-      }
+      /* Store the object index in the library public GOT.  */
+      ((unsigned int *) global_library->object.got_addr)[SOM_OBJECT_INDEX_OFFSET] = global_library->object.index;
+
+      /* Store the location of the client runtime array in the public GOT.  */
+      ((unsigned int *) global_library->object.got_addr)[SOM_RUNTIME_ARRAY_OFFSET] = RT_WORKSPACE_RUNTIME_ARRAY;
+
+      if (client_is_armeabihf (client))
+	{
+	  /* Write protect the text segment and the library's copy of the data segment.  */
+	  err = armeabi_memory_map_pages (global.memory_page_allocator,
+					  global_library->object.text_segment,
+					  bytes_to_pages (global_library->object.text_size +
+							  global_library->object.data_size),
+					  PMP_MEM_ACCESS_RE_RE);
+	}
+
+      /* Add to the global list.  */
+      som_add_global_library (&global.object_list, global_library);
     }
+
+  som_client_object *client_library = NULL;
 
   /* Record the object in the client's list.
      If an error occurs here, then don't clean up the library. It may already be
@@ -267,11 +276,24 @@ som_register_sharedobject (som_handle handle,
 			(void **) (void *) &client_library)) != NULL)
     return err;
 
+  memset (client_library, 0, sizeof (som_client_object));
+
   global_library->usage_count++;
 
-  client_library->rw_addr = objinfo->private_rw_ptr;
-  client_library->got_addr = client_library->rw_addr + objinfo->got_offset;
+  client_library->data_segment = objinfo->client_data_segment;
+
+  client_library->got_addr = client_library->data_segment + objinfo->got_offset;
   client_library->library = global_library;
+
+  /* Copy the R/W segment from the public copy to the private copy.  */
+  memcpy (client_library->data_segment,
+	  global_library->object.data_ro_segment,
+	  global_library->object.data_size - global_library->object.bss_size);
+
+  /* Zero the bss area.  */
+  memset (client_library->data_segment + objinfo->bss_offset,
+	  0,
+	  global_library->object.bss_size);
 
   som_add_client_library (&client->object_list, client_library);
 
@@ -293,6 +315,9 @@ som_register_object (_kernel_swi_regs *regs)
   unsigned int handle = (unsigned int) regs->r[1];
   som_objinfo *objinfo = (som_objinfo *) regs->r[2];
   _kernel_oserror *err = NULL;
+
+  if (objinfo == NULL)
+    return somerr_bad_param;
 
   switch (regs->r[0])
     {
@@ -338,9 +363,16 @@ deregister_shared_object (som_client *client,
       /* Remove object from client list.  */
       linklist_remove (&client->object_list, &client_library->link);
 
-      /* We do not free the client R/W segment here as we didn't allocate it in
-       * the first place. The dynamic linker is responsible for that.  */
+#if USE_MAPPED_LIBRARIES
+      /* We only free the client R/W segment if we allocated it in the first
+       * place. The dynamic linker is otherwise responsible.  */
+      if (client->flags.is_armeabihf)
+	{
+	  som_unmap_object (client_library);
 
+	  som_free (client_library->data_segment);
+	}
+#endif
       /* Free memory used to store object in client list.  */
       som_free (client_library);
 
@@ -375,7 +407,7 @@ deregister_shared_object (som_client *client,
 	  /* Mark this slot in the array as re-usable.  */
 	  global.object_array.object_base[global_library->object.index] = NULL;
 
-	  som_free (global_library->object.base_addr);
+	  som_free (global_library->object.text_segment);
 	  som_free (global_library);
 	}
     }
@@ -392,8 +424,6 @@ som_deregister_client (void)
     return somerr_unknown_client;
 
   rt_workspace_set (rt_workspace_CLIENT_STRUCT_PTR, 0);
-
-  /* From now on, FIND_CLIENT() will fail.  */
 
   som_history_add_client (client);
 

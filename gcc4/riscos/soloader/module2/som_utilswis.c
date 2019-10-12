@@ -1,6 +1,6 @@
 /* som_utilswis.c
  *
- * Copyright 2007, 2008 GCCSDK Developers
+ * Copyright 2007-2019 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -43,7 +43,7 @@ som_query_object (som_handle handle,
 	global_library = client_library->library;
 
       if (objinfo)
-	objinfo->private_rw_ptr = client_library->rw_addr;
+	objinfo->client_data_segment = client_library->data_segment;
     }
   else
     {
@@ -53,7 +53,7 @@ som_query_object (som_handle handle,
 	/* */;
 
       if (objinfo)
-	objinfo->private_rw_ptr = NULL;
+	objinfo->client_data_segment = NULL;
     }
 
   if (!global_library)
@@ -62,13 +62,15 @@ som_query_object (som_handle handle,
   if (!objinfo)
     return NULL;
 
-  objinfo->base_addr = global_library->object.base_addr;
-  objinfo->public_rw_ptr = global_library->object.rw_addr;
-  objinfo->rw_size = global_library->object.rw_size;
-  objinfo->got_offset = global_library->object.got_addr - global_library->object.rw_addr;
-  objinfo->bss_offset = global_library->object.bss_addr - global_library->object.rw_addr;
+  objinfo->text_segment = global_library->object.text_segment;
+  objinfo->text_size = global_library->object.text_size;
+  objinfo->library_data_segment = global_library->object.data_rw_segment;
+  objinfo->library_init_segment = global_library->object.data_ro_segment;
+  objinfo->data_size = global_library->object.data_size;
+  objinfo->got_offset = global_library->object.got_addr - global_library->object.data_rw_segment;
+  objinfo->bss_offset = global_library->object.bss_addr - global_library->object.data_rw_segment;
   objinfo->bss_size = global_library->object.bss_size;
-  objinfo->dyn_offset = global_library->object.dynamic_addr - global_library->object.rw_addr;
+  objinfo->dyn_offset = global_library->object.dynamic_addr - global_library->object.data_rw_segment;
   objinfo->dyn_size = global_library->object.dynamic_size;
   objinfo->name = global_library->object.name;
   objinfo->flags = global_library->object.flags;
@@ -274,13 +276,37 @@ som_reloc (_kernel_swi_regs *regs)
 
       for (client_library = linklist_first_som_client_object (&client->object_list);
 	   client_library != NULL
-	     && (addr < client_library->library->object.rw_addr
-	     || addr >= client_library->library->object.rw_addr + client_library->library->object.rw_size);
+	     && (addr < client_library->library->object.data_rw_segment
+	     || addr >= client_library->library->object.data_rw_segment + client_library->library->object.data_size);
 	   client_library = linklist_next_som_client_object (client_library))
         /* */;
 
       if (client_library != NULL)
-	regs->r[0] = (int) (client_library->rw_addr
-			 + (addr - client_library->library->object.rw_addr));
+	regs->r[0] = (int) (client_library->data_segment
+			 + (addr - client_library->library->object.data_rw_segment));
+    }
+}
+
+/* SWI "SOM_Location"
+ *
+ * Given an address, return the name of the library that conatins it and the offset
+ * within that library from its load address.
+ */
+void som_location(som_PTR addr, const char **name, unsigned *offset)
+{
+  *name = NULL;
+  *offset = 0;
+
+  som_library_object *global_library = linklist_first_som_library_object (&global.object_list);
+  if (global_library == NULL || addr < global_library->object.text_segment)
+    return;
+
+  while (global_library != NULL && addr >= global_library->object.end_addr)
+    global_library = linklist_next_som_library_object (global_library);
+
+  if (global_library)
+    {
+      *name = global_library->object.name;
+      *offset = addr - global_library->object.text_segment;
     }
 }
