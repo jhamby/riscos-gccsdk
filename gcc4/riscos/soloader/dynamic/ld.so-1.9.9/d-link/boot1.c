@@ -127,7 +127,7 @@ static unsigned char * _dl_malloc_addr;
 
 char * _dl_library_path = 0; /* Where we look for libraries */
 char *_dl_preload = 0; /* Things to be loaded before the libs. */
-char *_dl_progname = "ld-riscos.so.1";
+char *_dl_progname = "ld-riscos.so";
 static char * _dl_not_lazy = 0;
 static char * _dl_warn = 0; /* Used by ldd */
 static char * _dl_trace_loaded_objects = 0;
@@ -135,8 +135,11 @@ static int (*_dl_elf_main)(int, char **, char**);
 static void _dl_call_ctors(void);
 
 static void * (*_dl_malloc_function)(int size) = NULL;
+
+#ifndef __ARM_EABI__
 void (*_dl_stkovf_split_small_function)(void) ATTRIBUTE_HIDDEN = NULL;
 void (*_dl_stkovf_split_big_function)(void) ATTRIBUTE_HIDDEN = NULL;
+#endif
 
 struct r_debug * _dl_debug_addr = NULL;
 
@@ -191,8 +194,7 @@ void _dl_debug_state()
   return;
 }
 
-void _dl_boot(int args);
-
+ATTRIBUTE_HIDDEN
 void _dl_boot(int args)
 {
   unsigned int argc;
@@ -216,17 +218,19 @@ void _dl_boot(int args)
   int indx;
   int _dl_secure;
 
-  struct som_rt_elem *objinfo;
+  struct som_rt_elem *objinfo = NULL;
 
   /* First obtain the information on the stack that tells us more about
      what binary is loaded, where it is loaded, etc, etc */
-
   GET_ARGV(aux_dat, args);
-  argc = *(aux_dat - 1);
+
+  argc = *aux_dat++;
   argv = (char **) aux_dat;
+
   aux_dat += argc;  /* Skip over the argv pointers */
   aux_dat++;  /* Skip over NULL at end of argv */
   envp = (char **) aux_dat;
+
   while(*aux_dat) aux_dat++;  /* Skip over the envp pointers */
   aux_dat++;  /* Skip over NULL at end of envp */
 
@@ -238,8 +242,7 @@ void _dl_boot(int args)
       if( *aux_dat <= AT_EGID )
         dl_data[*aux_dat] = *ad1;
       else if (*aux_dat == AT_DATA)
-        malloc_buffer = (unsigned char *)*ad1; /* The static loader tells us where free memory starts */
-
+        malloc_buffer = (unsigned char *)*ad1; /* The static linker tells us where free memory starts */
       aux_dat += 2;
     }
 
@@ -247,6 +250,7 @@ void _dl_boot(int args)
 
   load_addr = dl_data[AT_BASE];
   GET_GOT(got);
+
   dpnt = (Elf32_Dyn *) (*got + load_addr);
 
   /* We do not know brk yet, so we cannot use real malloc. */
@@ -272,7 +276,7 @@ void _dl_boot(int args)
     {
 #ifdef __riscos
       /* A tag of 0x6ffffffa causes major problems here */
-      if (dpnt->d_tag >= 24) { dpnt++; continue; }
+      if (dpnt->d_tag >= 29) { dpnt++; continue; }
 #endif
       tpnt->dynamic_info[dpnt->d_tag] = dpnt->d_un.d_val;
       if(dpnt->d_tag == DT_TEXTREL ||
@@ -370,12 +374,15 @@ void _dl_boot(int args)
 	/*
 	 * Use this machine-specific macro to perform the actual relocation.
 	 */
-//	PERFORM_BOOTSTRAP_RELOC(rpnt, reloc_addr, symbol_addr, load_addr);
+//	  PERFORM_BOOTSTRAP_RELOC(rpnt, reloc_addr, symbol_addr, load_addr);
 
 	switch (ELF32_R_TYPE(rpnt->r_info))
 	{
         case R_ARM_GLOB_DAT:
 	case R_ARM_JUMP_SLOT:
+#if USE_MAPPED_LIBRARIES
+	  *reloc_addr = symbol_addr;
+#else
           {
           unsigned int *client_reloc_addr,symbol_offset;
 
@@ -393,14 +400,18 @@ void _dl_boot(int args)
 
 	    *client_reloc_addr = symbol_addr;
           }
+#endif
           break;
 	case R_ARM_RELATIVE:
+#if USE_MAPPED_LIBRARIES
+	  *reloc_addr += load_addr;
+#else
 	  {
 	  unsigned int *client_reloc_addr;
 
 	    client_reloc_addr = (unsigned int *)(((unsigned int)reloc_addr -
 		(unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr);
-	    if (*reloc_addr < (objinfo->public_rw_ptr - load_addr))
+	    if (*reloc_addr < ((unsigned int)objinfo->public_rw_ptr - load_addr))
 	    {
 	      /*
 	       * If the relocated address is in the R/O segment, then keep it there - don't
@@ -421,8 +432,9 @@ void _dl_boot(int args)
 		     (unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr;
 	        *client_reloc_addr = client_reloc;
 	     }
-	     break;
 	  }
+#endif
+	  break;
 	}
       }
     }
@@ -454,8 +466,6 @@ void _dl_boot(int args)
   tpnt->libname = 0;
   tpnt->libtype = program_interpreter;
 
-  tpnt->endaddr = objinfo->public_rw_ptr;
-
   /* The dynamic linker doesn't have any exception tables.  */
   tpnt->exidx = 0;
   tpnt->exidx_size = 0;
@@ -475,6 +485,8 @@ void _dl_boot(int args)
   	tpnt->dynamic_addr = ppnt->p_vaddr + load_addr;
   	tpnt->dynamic_size = ppnt->p_filesz;
       }
+      else if (ppnt->p_type == PT_LOAD && (ppnt->p_flags & (PF_W | PF_R)) == (PF_W | PF_R))
+	tpnt->endaddr = (char *)load_addr + ppnt->p_memsz;
     }
   }
 
@@ -912,20 +924,23 @@ void _dl_boot(int args)
 
 static void _dl_call_ctors(void)
 {
-struct elf_resolve *tpnt;
-int (*_dl_atexit)(void *);
-int (*_dl_elf_init)(void);
-void (*rt_stkovf_split)(void);
-void *(*unixlib_malloc)(int);
+  struct elf_resolve *tpnt;
+  int (*_dl_atexit)(void *);
+  int (*_dl_elf_init)(void);
+  void *(*unixlib_malloc)(int);
+
+#ifndef __ARM_EABI__
+   void (*rt_stkovf_split)(void);
 
   /* Now that we know that UnixLib has been initialised, we can switch to using
-   * its routines for stack extension and memory allocation.
+   * its routines for stack extension (if appropriate) and memory allocation.
    */
   rt_stkovf_split = (void (*)(void)) _dl_find_hash("__rt_stkovf_split_small", NULL, NULL, NULL, 0);
   _dl_stkovf_split_small_function = rt_stkovf_split;
 
   rt_stkovf_split = (void (*)(void)) _dl_find_hash("__rt_stkovf_split_big", NULL, NULL, NULL, 0);
   _dl_stkovf_split_big_function = rt_stkovf_split;
+#endif
 
   unixlib_malloc = (void *(*)(int)) _dl_find_hash("malloc", NULL, NULL, NULL, 0);
   _dl_malloc_function = unixlib_malloc;
@@ -934,6 +949,8 @@ void *(*unixlib_malloc)(int);
 
   for(tpnt = _dl_loaded_modules; tpnt; tpnt = tpnt->next)
     {
+      typedef int (*init_func_ptr)(void);
+
       /* Apparently crt1 for the application is responsible for handling this.
        * We only need to run the init/fini for shared libraries
        */
@@ -943,13 +960,52 @@ void *(*unixlib_malloc)(int);
       tpnt->init_flag |= INIT_FUNCS_CALLED;
 
       if(tpnt->dynamic_info[DT_INIT]) {
-	_dl_elf_init = (int (*)(void)) (tpnt->loadaddr +
+	_dl_elf_init = (init_func_ptr) (tpnt->loadaddr +
 				    tpnt->dynamic_info[DT_INIT]);
 	(*_dl_elf_init)();
       }
+      if (tpnt->dynamic_info[DT_INIT_ARRAY]) {
+	unsigned *init_array = (unsigned *) (tpnt->loadaddr +
+						tpnt->dynamic_info[DT_INIT_ARRAY]);
+	int sz = tpnt->dynamic_info[DT_INIT_ARRAYSZ] >> 2;
+	while (sz--)
+	{
+	  /* Some of the entries in the array can be 0 or -1, and should be ignored.  */
+	  unsigned offset = *init_array;
+	  if (offset != 0 && offset != 0xffffffff)
+	  {
+	    _dl_elf_init = (init_func_ptr)(tpnt->loadaddr + offset);
+	    (*_dl_elf_init)();
+	  }
+	  init_array++;
+	}
+      }
+      /* If an object contains both DT_FINI and DT_FINI_ARRAY entries, the functions referenced
+       * by the DT_FINI_ARRAY entry are processed before the one referenced by the DT_FINI entry
+       * for that object.
+       * We register DT_FINI before DT_FINI_ARRAY because they will be processed in the
+       * reverse order.
+       */
       if(_dl_atexit && tpnt->dynamic_info[DT_FINI])
       {
         (*_dl_atexit)(tpnt->loadaddr + tpnt->dynamic_info[DT_FINI]);
+      }
+      if (tpnt->dynamic_info[DT_FINI_ARRAY]) {
+	unsigned *fini_array = (unsigned *) (tpnt->loadaddr +
+						tpnt->dynamic_info[DT_FINI_ARRAY]);
+	int sz = tpnt->dynamic_info[DT_FINI_ARRAYSZ] >> 2;
+	while (sz--)
+	{
+	  /* I'm not sure if entries in the fini array can be 0 or -1 like the init_array,
+	   * so check just in case.
+	   */
+	  unsigned offset = *fini_array;
+	  if (offset != 0 && offset != 0xffffffff)
+	  {
+	    (*_dl_atexit)(tpnt->loadaddr + offset);
+	  }
+	  fini_array++;
+	}
       }
 #undef DL_DEBUG
 #ifdef DL_DEBUG
@@ -1018,15 +1074,18 @@ int _dl_fixup(struct elf_resolve * tpnt)
 
 static const os_error error_nomem = { 0, "Insufficient memory for application" };
 
-void * _dl_malloc(int size)
+ATTRIBUTE_HIDDEN void * _dl_malloc(int size)
 {
   void * retval;
-  register unsigned char *stack_limit asm("r10");
 
   if(_dl_malloc_function)
-  	return (*_dl_malloc_function)(size);
+    return (*_dl_malloc_function)(size);
 
-  if (_dl_malloc_addr + size >= stack_limit)
+  unsigned char *sp;
+  __asm__ volatile ("	MOV	%0, r13\n;" : "=r" (sp));
+
+  /* Allow for 4k of stack.  */
+  if (_dl_malloc_addr + size >= (sp - 4096))
     _dl_generate_error(&error_nomem);
 
   retval = _dl_malloc_addr;
@@ -1072,7 +1131,8 @@ void _dl_unsetenv(char *symbol, char **envp)
   return;
 }
 
-char * _dl_strdup(const char * string){
+ATTRIBUTE_HIDDEN char * _dl_strdup(const char * string)
+{
   char * retval;
   int len;
 
@@ -1092,3 +1152,9 @@ int _dl_interpreter_exit(int exitcode){
   return 0;
 }
 
+#ifndef __ARM_EABI__
+/* Temporary until I implement --riscos-abi command line option for GCC 4.  */
+static const char riscos_abi_version[]
+  __attribute__((used, section(".riscos.abi.version"), aligned(4))) =
+"abi-2.0";
+#endif

@@ -14,12 +14,10 @@
  * the address of the first argument, on other platforms we need to
  * do something a little more subtle here.
  */
-#define GET_ARGV(ARGVP, ARGS)	\
-	__asm__("\t" \
-		"add	%0, r12, #4\n\t" \
-		: "=r" (ARGVP) \
-		: \
-		: "ip")
+
+/* RISC OS: We get passed a pointer to the stack itself from _dl_start.  */
+#define GET_ARGV(ARGVP, ARGS) ARGVP = ((unsigned int*)ARGS)
+
 /*
  * Get the address of the Global offset table.  This must be absolute, not
  * relative.
@@ -27,6 +25,13 @@
  * can't simply use a MOV instruction. Instead use the standard sequence of
  * instructions to retrieve the GOT pointer.
  */
+#ifdef __ARM_EABI__
+#define GET_GOT(X) \
+	__asm__("	mov	%0, #0x8000;\n"	\
+		"	ldr %0, [%0, #0x38];\n"	\
+		"	ldr %0, [%0, #__GOTT_INDEX__];\n"	\
+		: "=r" (X))
+#else
 #define GET_GOT(X) \
 	__asm__("\tldr %0, 0f;\n"	\
 		"\tldr %0, [%0, #0];\n"	\
@@ -36,6 +41,7 @@
 		"\t.word __GOTT_BASE__;\n"	\
 		"1:\n"	\
 		: "=r" (X))
+#endif
 
 /*
  * Initialization sequence for a GOT.
@@ -111,33 +117,39 @@
 
 extern unsigned int _dl_riscos_resolver(int dummy, int i);
 
-#define do_rem(res,top,bottom)	\
-       __asm__ volatile ("\t"	\
-		"movs	r12,%2\n\t"	\
-		"beq	2f\n\t"	\
-		"cmp	r12,%1,lsr#1\n"	\
-		"0:\n\t"	\
-		"movls	r12,r12,lsl#1\n\t"	\
-		"cmp	r12,%1,lsr#1\n\t"	\
-		"bls	0b\n"	\
-		"1:\n\t"	\
-		"cmp	%1,r12\n\t"	\
-		"subcs	%1,%1,r12\n\t"	\
-		"mov	r12,r12,lsr#1\n\t"	\
-		"cmp	r12,%2\n\t"	\
-		"bhs	1b\n\t"	\
-		"mov	%0,%1\n"	\
-		"b	3f\n"	\
-		"2:\n\t"	\
-		"swi	0x1\n\t" /* SWI "OS_Write0" */	\
-		".asciz	\"Divide by zero\"\n\t"	\
-		".align\n\t"	\
-		"swi	0x10a\n\t"	\
-		"swi	0x10d\n\t"	\
-		"swi	0x11\n\t" /* SWI "OS_Exit" */	\
-		"3:\n\t"	\
-		: "=r" (res)	\
-		: "r" (top), "r" (bottom)	\
-		: "ip", "cc"); /* uses r12 as temporary register and alters flags */
+static inline
+unsigned do_rem(unsigned top, int bottom)
+{
+  unsigned result, scratch;
+  unsigned temp;
+
+  __asm__ volatile ("	mov	%[temp], %[top];\n"
+		    "	movs	%[scratch], %[bottom];\n"
+		    "	beq	2f;\n"
+		    "	cmp	%[scratch], %[temp], lsr#1;\n"
+		    "0:\n"
+		    "	movls	%[scratch], %[scratch], lsl#1;\n"
+		    "	cmp	%[scratch], %[temp], lsr#1;\n"
+		    "	bls	0b;\n"
+		    "1:\n"
+		    "	cmp	%[temp], %[scratch];\n"
+		    "	subcs	%[temp], %[temp], %[scratch];\n"
+		    "	mov	%[scratch], %[scratch], lsr#1;\n"
+		    "	cmp	%[scratch], %[bottom];\n"
+		    "	bhs	1b;\n"
+		    "	mov	%[result], %[temp];\n"
+		    "	b	3f;\n"
+		    "2:\n"
+		    "	swi	0x74C81;\n" /* SWI "Report_TextS" */
+		    "	.asciz	\"Divide by zero\"\n"
+		    "	.align\n\t"
+		    "	swi	0x11;\n" /* SWI "OS_Exit" */
+		    "3:\n"
+		    : [result] "=r" (result), [scratch] "=&r" (scratch), [temp] "=&r" (temp)
+		    : [bottom] "r" (bottom),
+		      [top] "r" (top)
+		    : "cc");
+  return result;
+}
 
 #define ATTRIBUTE_HIDDEN __attribute__ ((visibility ("hidden")))

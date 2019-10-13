@@ -21,6 +21,7 @@
 
 	.text
 
+#ifndef __ARM_EABI__
 .globl RESOLVE
 	.type	RESOLVE,%function
 RESOLVE:
@@ -57,5 +58,40 @@ RESOLVE:
 
 	@ Jump to the newly found address
 	mov	pc, r8
-.LFE2:
-	.size RESOLVE,.LFE2-RESOLVE
+
+	.size RESOLVE,.-RESOLVE
+#else
+	.globl	RESOLVE
+	.type	RESOLVE,%function
+RESOLVE:
+	@ we get called with
+	@ 	stack[0] contains the return address from this call
+	@	ip contains &GOT[n+3] (pointer to function)
+	@	lr points to &GOT[2]
+
+	@ save almost everything; lr is already on the stack
+	stmdb	sp!,{r0-r3,sl,fp}
+
+	@ prepare to call fixup()
+	@ change &GOT[n+3] into 8*n        NOTE: reloc are 8 bytes each
+	sub	r1, ip, lr
+	sub	r1, r1, #4
+	add	r1, r1, r1
+
+	@ get pointer to linker struct
+	ldr	r0, [lr, #-4]
+
+	@ call fixup routine
+	bl	_dl_riscos_resolver
+
+	@ save the return
+	mov	ip, r0
+
+	@ restore the stack
+	ldmia	sp!,{r0-r3,sl,fp,lr}
+
+	@ jump to the newly found address
+	mov	pc, ip
+
+	.size RESOLVE, .-RESOLVE
+#endif

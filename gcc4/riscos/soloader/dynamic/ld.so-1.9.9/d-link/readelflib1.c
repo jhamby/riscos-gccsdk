@@ -331,7 +331,7 @@ _dl_load_elf_shared_library(char * libname, int flag)
   Elf32_Dyn * dpnt;
   struct elf_resolve * tpnt;
   Elf32_Phdr * ppnt;
-  unsigned int dynamic_info[24];
+  unsigned int dynamic_info[29];
   int * lpnt;
   unsigned int libaddr;
   char *abi_version = NULL;
@@ -339,7 +339,10 @@ _dl_load_elf_shared_library(char * libname, int flag)
 
   unsigned int handle;
   struct object_info objinfo;
-  int infile = -1;
+  unsigned registered = 0;
+  os_error *err = NULL;
+
+  _dl_memset(&objinfo, 0, sizeof(objinfo));
 
   extern char *_dl_riscosify_dl(const char *name, int create_dir);
   libname = _dl_riscosify_dl(libname, 0);
@@ -348,153 +351,78 @@ _dl_load_elf_shared_library(char * libname, int flag)
   if (!libname)
     return NULL;
 
-  /* If this file is already loaded for the current client , skip this step */
+  /* If this file is already loaded by the dynamic linker for the current client, skip this step */
   tpnt = _dl_check_hashed_files(libname);
-
   if(tpnt) 
   {
     _dl_som_free(libname);
     return tpnt;
   }
 
+  /* Library has not been seen by the dynamic linker for this client, how about the
+   * Shared Object Manager?  */
   handle = _dl_check_system_files(libname);
-
   if (handle != 0)
   {
     /*
-     * If the library is already loaded by the system, then retrieve its details
+     * If the library is already loaded by the Shared Object Manager then retrieve its details
      */
-    _dl_query_object_global(handle,&objinfo);
-
-     dynamic_addr = (unsigned int)(objinfo.public_rw_ptr + objinfo.dyn_offset);
-     dynamic_size = objinfo.dyn_size;
-     epnt = (Elf32_Ehdr *)objinfo.base_addr;
-     libaddr = (unsigned int)objinfo.base_addr;
+    _dl_query_object_global(handle, &objinfo);
   }
   else
   {
-  char header[4096];
-  unsigned int memsize = 0;
+    /* Shared Object Manager hasn't seen this library yet either.  */
+    elffile_handle infile;
 
-    libaddr = 0;
-    infile = _dl_open(libname, O_RDONLY);
-    if(infile < 0)
+    err = _dl_som_elffile_open (libname, &infile);
+    if (err)
     {
-#if 0
-      /*
-       * NO!  When we open shared libraries we may search several paths.
-       * it is inappropriate to generate an error here.
-       */
-      _dl_fdprintf(2, "%s: can't open '%s'\n", _dl_progname, libname);
-#endif
       _dl_internal_error_number = DL_ERROR_NOFILE;
       goto null_exit;
     }
 
-    _dl_read(infile, header, sizeof(header));
-    epnt = (Elf32_Ehdr *) header;
-    if (epnt->e_ident[0] != 0x7f ||
-        epnt->e_ident[1] != 'E' ||
-        epnt->e_ident[2] != 'L' ||
-        epnt->e_ident[3] != 'F')
+    /* TODO: Check ABI of library against ABI of executable.  */
+
+    if (!err)
+      err = _dl_som_elffile_alloc (infile);
+
+    if (!err)
+      err = _dl_som_elffile_load (infile);
+
+    if (!err)
+      err = _dl_som_get_public_info (infile, &objinfo);
+
+    _dl_som_elffile_close(infile);
+
+    if (err)
     {
-      _dl_fdprintf(2, "%s: '%s' is not an ELF file\n", _dl_progname, libname);
-      _dl_internal_error_number = DL_ERROR_NOTELF;
+      _dl_fdprintf(2, "%s: %s: OS Error: %s\n", _dl_progname, libname, err->errmess);
       goto null_exit;
     }
 
-    if((epnt->e_type != ET_DYN) ||
-       (epnt->e_machine != MAGIC1
-#ifdef MAGIC2
-        && epnt->e_machine != MAGIC2
-#endif
-        ))
-    {
-      _dl_internal_error_number = (epnt->e_type != ET_DYN ? DL_ERROR_NOTDYN : DL_ERROR_NOTMAGIC);
-      _dl_fdprintf(2, "%s: '%s' is not an ELF executable for " ELF_TARGET "\n",
-		 _dl_progname, libname);
-      goto null_exit;
-    }
+    handle = (unsigned)objinfo.text_segment;
+  }
 
-    ppnt = (Elf32_Phdr *) &header[epnt->e_phoff];
+  dynamic_addr = (unsigned int)(objinfo.library_data_segment + objinfo.dyn_offset);
+  dynamic_size = objinfo.dyn_size;
+  epnt = (Elf32_Ehdr *)objinfo.text_segment;
+  libaddr = (unsigned int)objinfo.text_segment;
 
-    /*
-     * Work out how much memory is required by adding up the sizes of
-     * the loadable segments
+  /*
+   * If the client has already seen and registered the library, then don't do it
+   * again
+   */
+  registered = (_dl_query_object_client(handle, NULL) == 0);
+  if (!registered)
+  { 
+    /* Allocate the memory for the client's own copy of the r/w segment. Note that
+     * the relocation code uses the data in the public copy to correctly relocate
+     * the same data in the private copy.
+     * 
+     * Add 4 to the size in case adjustment for alignment is required.
      */
-    for (i = 0;i < epnt->e_phnum; i++)
-    {
-
-      if (ppnt->p_type == PT_DYNAMIC)
-      {
-        if (dynamic_addr)
-	  _dl_fdprintf(2, "%s: '%s' has more than one dynamic section\n",
-		       _dl_progname, libname);
-        dynamic_addr = ppnt->p_vaddr;
-        dynamic_size = ppnt->p_filesz;
-      }
-      else if (ppnt->p_type == PT_LOAD)
-      {
-        /* We use the file size because the bss section will not be used in the library's copy */
-        if (ppnt->p_vaddr + ppnt->p_filesz > memsize)
-          memsize = ppnt->p_vaddr + ppnt->p_filesz;
-      }
-
-      ppnt++;
-    }
-    /* Get the memory to store the library */
-    libaddr = _dl_alloc_lib(memsize);
-    if (!libaddr)
-    {
-      _dl_fdprintf(2,"Unable to allocate memory for shared library\n");
+    if ((objinfo.client_data_segment = _dl_malloc(objinfo.data_size + 4)) == NULL)
       goto null_exit;
-    }
-
-    objinfo.base_addr = (char *)libaddr;
-
-    /* We assume that all loadable segments are consequtive in memory */
-    ppnt = (Elf32_Phdr *) &header[epnt->e_phoff];
-
-    for(i=0;i < epnt->e_phnum; i++)
-    {
-      if(ppnt->p_type == PT_LOAD)
-      {
-        if(ppnt->p_flags & PF_W)
-        { /* A read/write loadable segment contains data */
- 	  objinfo.public_rw_ptr = (char *)(libaddr + ppnt->p_vaddr);
-	  objinfo.rw_size = ppnt->p_memsz;
-	  objinfo.bss_offset = ppnt->p_filesz;
-	  objinfo.bss_size = ppnt->p_memsz - ppnt->p_filesz;
-
-	  /* This is the public version which contains default values */
-	  if (_dl_set_file_pos(infile, ppnt->p_offset) ||
-	      _dl_read(infile, objinfo.public_rw_ptr, ppnt->p_filesz))
-	  {
-	    _dl_fdprintf(2,"Failed to read library data segment\n\r");
-	    goto null_exit;
-	  }
-        }
-        else
-        { /* A read only loadable segment contains code */
-          if (_dl_set_file_pos(infile, ppnt->p_offset) ||
-              _dl_read(infile, (char *)(libaddr + ppnt->p_vaddr), ppnt->p_filesz))
-          {
-            _dl_fdprintf(2,"Failed to read library code segment\n\r");
-	    goto null_exit;
-          }
-        }
-      }
-      ppnt++;
-    }
-
-    _dl_close(infile);
-    infile = -1;
-
-    dynamic_addr += (unsigned int) libaddr;
-
-    handle = libaddr;
-    objinfo.dyn_offset = (unsigned int)dynamic_addr - (unsigned int)objinfo.public_rw_ptr;
-    objinfo.dyn_size = dynamic_size;
   }
 
  /*
@@ -520,7 +448,7 @@ _dl_load_elf_shared_library(char * libname, int flag)
     {
       if (dpnt->d_tag == DT_RISCOS_ABI_VERSION)
 	abi_version = (char *)(dpnt->d_un.d_ptr + libaddr);
-      if( dpnt->d_tag > DT_JMPREL ) {dpnt++; continue; }
+      if( dpnt->d_tag > DT_FINI_ARRAYSZ ) {dpnt++; continue; }
       dynamic_info[dpnt->d_tag] = dpnt->d_un.d_val;
       if(dpnt->d_tag == DT_TEXTREL ||
          SVR4_BUGCOMPAT) dynamic_info[DT_TEXTREL] = 1;
@@ -538,7 +466,7 @@ _dl_load_elf_shared_library(char * libname, int flag)
     Elf32_Ehdr *elf_image_hdr = (Elf32_Ehdr *)libaddr;
 
       /* Scan for exception tables.  */
-      tpnt->endaddr = objinfo.public_rw_ptr;
+      tpnt->endaddr = objinfo.elfimage_data_segment;
       for(ppnt = (Elf32_Phdr *)(libaddr + elf_image_hdr->e_phoff),
 	  i = 0;
 	  i < elf_image_hdr->e_phnum && ppnt->p_type != PT_ARM_EXIDX;
@@ -565,40 +493,33 @@ _dl_load_elf_shared_library(char * libname, int flag)
      * If the client has already seen and registered the library, then don't do it
      * again
      */
-    if (_dl_query_object_client(handle, NULL) < 0)
+    if (!registered)
     {
-    char *got;
-
-      got = (char *)(dynamic_info[DT_PLTGOT] + libaddr);
-
-      objinfo.got_offset = (got - objinfo.public_rw_ptr);
-
-      /* Allocate the memory for the client's own copy of the r/w segment. Note that
-       * the relocation code uses the data in the public copy to correctly relocate
-       * the same data in the private copy.
+      /* We have to be careful how we align the start of the block. It must match the
+       * alignment as it is stored in the ELF file so that any 64bit variables that may
+       * be accessed via a double word load/store instruction will have correct alignment.
+       * This does not mean that it should always start on a double word bounadary. If in the file,
+       * it starts on a non double word boundary, then we need to ensure that that is
+       * also the case when allocating the client's block here to preserve the alignment of
+       * any contained 64bit variables.
        */
-      if ((objinfo.private_rw_ptr = _dl_malloc(objinfo.rw_size)) == NULL)
-	goto null_exit;
+      int align = objinfo.flags.data_seg_8byte_aligned ? 8 : 4;
 
       /* Save this so that dlclose() can free client R/W data segments when unloading
        * a library. A library loaded during initialisation has its R/W segment stored
        * outside the heap and so should never be freed.  */
-      tpnt->rw_addr = objinfo.private_rw_ptr;
+      tpnt->rw_addr = objinfo.client_data_segment;
+      if ((align == 8 && ((unsigned)tpnt->rw_addr & 7) != 0) || (align == 4 && ((unsigned)tpnt->rw_addr & 7) == 0))
+	objinfo.client_data_segment += 4;
 
-      /* Register the library with the support module. During registration an object index
-       * is written into the GOT. This index needs to be copied into the private version
-       * along with the rest of the GOT contents. It's therefore important that registration
-       * occurs before the copying takes place.
-       */
+      /* Register the library with the support module.  */
       objinfo.name = libname;
-      _dl_register_lib(handle,&objinfo);
-
-      /*  Copy the r/w segment. */
-      _dl_memcpy(objinfo.private_rw_ptr, objinfo.public_rw_ptr, objinfo.rw_size - objinfo.bss_size);
-
-      /* zero the bss area */
-      for (i = 0; i < objinfo.bss_size; i++)
-        objinfo.private_rw_ptr[objinfo.bss_offset + i] = 0;
+      err = _dl_register_lib(handle, &objinfo);
+      if (err)
+      {
+	_dl_fdprintf(2, "%s: %s: OS Error: %s\n", _dl_progname, libname, err->errmess);
+	goto null_exit;
+      }
     }
 
   /*
@@ -615,12 +536,12 @@ _dl_load_elf_shared_library(char * libname, int flag)
 
   if (lpnt)
   {
-    lpnt = (int *) (objinfo.private_rw_ptr + objinfo.got_offset);
-     /* ABI v0.00 & v1.00 have 5 word GOTs with a zero at offset 3.
-        ABI v2.00 has a 3 word GOT, offset 3 will not be zero.  */
+    lpnt = (int *) (objinfo.client_data_segment + objinfo.got_offset);
+    /* ABI v0.00 & v1.00 have 5 word GOTs with a zero at offset 3.
+       ABI v2.00 & armeabihf has a 3 word GOT, offset 3 will not be zero.  */
     if (lpnt[3] == 0 &&
-        (tpnt->abi_version == NULL ||
-        _dl_strncmp (tpnt->abi_version, "abi-1.0", 7) == 0))
+	(tpnt->abi_version == NULL ||
+	 _dl_strncmp (tpnt->abi_version, "abi-1.0", 7) == 0))
     {
       INIT_41_GOT (lpnt, tpnt)
     }
@@ -633,9 +554,6 @@ _dl_load_elf_shared_library(char * libname, int flag)
   return tpnt;
 
 null_exit:
-  if (infile >= 0)
-    _dl_close(infile);
-
   _dl_som_free(libname);
 
   return NULL;

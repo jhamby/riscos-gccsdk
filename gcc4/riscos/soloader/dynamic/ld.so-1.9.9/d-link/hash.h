@@ -31,7 +31,7 @@ struct elf_resolve{
    */
   unsigned int nchain;
   unsigned int * chains;
-  unsigned int dynamic_info[24];
+  unsigned int dynamic_info[29];
 
   unsigned int dynamic_size;
   unsigned int n_phent;

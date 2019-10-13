@@ -17,6 +17,7 @@
 #define XSOM_HANDLE_FROM_NAME	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xA)
 #define XSOM_RESOLVE_SYMLINKS	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xB)
 #define XSOM_GENERATE_RUNTIME_ARRAY	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xC)
+#define XSOM_ELFFILE		(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xE)
 
 #define SOM_REGISTER_LOADER		0
 #define SOM_REGISTER_CLIENT		1
@@ -29,6 +30,16 @@
 #define SOM_ITERATE_REASON_NEXT		1
 #define SOM_ITERATE_REASON_PREV		2
 #define SOM_ITERATE_REASON_LAST		3
+
+#define SOM_ELFFILE_OPEN		0
+#define SOM_ELFFILE_LOAD		1
+#define SOM_ELFFILE_CLOSE		2
+#define SOM_ELFFILE_ALLOC		3
+#define SOM_ELFFILE_GET_ABI		4
+#define SOM_ELFFILE_IS_ARMEABIHF	5
+#define SOM_ELFFILE_GET_PUBLIC_INFO	6
+
+typedef struct elffile *elffile_handle;
 
 struct som_rt_elem
 {
@@ -66,19 +77,23 @@ extern int _dl_stat (char * filename, struct stat *st);
    dynamic linking at all, so we cannot return any error codes.
    We just punt if there is an error. */
 
-/* This macro is for printing debug text before the GOT pointer is
+/* These macros are for printing debug text before the GOT pointer is
    available */
 #define PRINT_TEXT(x)	\
-  asm volatile ("\t"	\
-		"swi 0x1;\n\t" /* SWI "OS_WriteS" */ \
-		".asciz \""x"\";\n\t"	\
-		".align\n\t")
+  asm volatile ("	swi 0x1;\n" /* SWI "OS_WriteS" */ \
+		"	.asciz \""x"\";\n"	\
+		"	.align\n")
+
+#define REPORT_TEXT(x)	\
+  asm volatile ("	swi 0x74C81;\n" /* SWI "Report_TextS" */ \
+		"	.asciz \""x"\";\n"	\
+		"	.align\n")
 
 static inline void
 print_text (const char *s)
 {
-  asm volatile ("	mov r0, %[s];\n"
-		"	swi %[OS_Write0];\n"
+  asm volatile ("	mov	r0, %[s];\n"
+		"	swi	%[OS_Write0];\n"
 		: /* no outputs */
 		: [s] "r" (s),
 		  [OS_Write0] "i" (0x2)
@@ -88,13 +103,15 @@ print_text (const char *s)
 static inline void
 print_hex (unsigned int v)
 {
-  asm volatile ("	mov r0, %[v];\n"
-		"	sub r1, sp, #20;\n"
-		"	mov r2, #20;\n"
-		"	swi %[OS_ConvertHex4];\n"
-		"	mov r2, #0;\n"
-		"	strb r2, [r1, #0];\n"
-		"	swi %[OS_Write0];\n"
+  asm volatile ("	mov	r0, %[v];\n"
+		"	sub	sp, sp, #20;\n"
+		"	mov	r1, sp;\n"
+		"	mov	r2, #20;\n"
+		"	swi	%[OS_ConvertHex4];\n"
+		"	mov	r2, #0;\n"
+		"	strb	r2, [r1, #0];\n"
+		"	swi	%[OS_Write0];\n"
+		"	add	sp, sp, #20;\n"
 		: /* no outputs */
 		: [v] "r" (v),
 		  [OS_ConvertHex4] "i" (0xD4),
@@ -105,25 +122,75 @@ print_hex (unsigned int v)
 static inline void
 print_nl (void)
 {
-  asm volatile ("	swi 0x10a;\n"
-		"	swi 0x10d;\n");
+  asm volatile ("	swi	0x10a;\n"
+		"	swi	0x10d;\n");
 }
 
 static inline void
 print_dec (unsigned int v)
 {
-  asm volatile ("	mov r0, %[v];\n"
-  		"	sub r1, sp, #20;\n"
-		"	mov r2, #20;\n"
-		"	swi %[OS_ConvertInteger4];\n"
-		"	mov r2, #0;\n"
-		"	strb r2, [r1, #0];\n"
-		"	swi %[OS_Write0];\n"
+  asm volatile ("	mov	r0, %[v];\n"
+  		"	sub	sp, sp, #20;\n"
+		"	mov	r1, sp;\n"
+		"	mov	r2, #20;\n"
+		"	swi	%[OS_ConvertInteger4];\n"
+		"	mov	r2, #0;\n"
+		"	strb	r2, [r1, #0];\n"
+		"	swi	%[OS_Write0];\n"
+		"	add	sp, sp, #20;\n"
 		: /* no outputs */
 		: [v] "r" (v),
 		  [OS_ConvertInteger4] "i" (0xDC),
 		  [OS_Write0] "i" (0x2)
 		: "a1", "a2", "a3", "cc");
+}
+
+static inline void
+report_hex (unsigned int v)
+{
+  asm volatile ("	mov	r0, %[v];\n"
+		"	sub	sp, sp, #20;\n"
+		"	mov	r1, sp;\n"
+		"	mov	r2, #20;\n"
+		"	swi	%[OS_ConvertHex4];\n"
+		"	mov	r2, #0;\n"
+		"	strb	r2, [r1, #0];\n"
+		"	swi	%[report_text0];\n"
+		"	add	sp, sp, #20;\n"
+		: /* no outputs */
+		: [v] "r" (v),
+		  [OS_ConvertHex4] "i" (0xD4),
+		  [report_text0] "i" (0x54C80)
+		: "a1", "a2", "a3", "cc");
+}
+
+static inline void
+report_dec (unsigned int v)
+{
+  asm volatile ("	mov	r0, %[v];\n"
+  		"	sub	sp, sp, #20;\n"
+		"	mov	r1, sp;\n"
+		"	mov	r2, #20;\n"
+		"	swi	%[OS_ConvertInteger4];\n"
+		"	mov	r2, #0;\n"
+		"	strb	r2, [r1, #0];\n"
+		"	swi	%[report_text0];\n"
+		"	add	sp, sp, #20;\n"
+		: /* no outputs */
+		: [v] "r" (v),
+		  [OS_ConvertInteger4] "i" (0xDC),
+		  [report_text0] "i" (0x54C80)
+		: "a1", "a2", "a3", "cc");
+}
+
+static inline void report_text(const char *s)
+{
+  asm volatile (
+		  "	MOV	r0, %[s];\n"
+		  "	SWI	%[report_text0];\n"
+		  : /* no outputs */
+		  : [s] "r" (s), [report_text0] "i" (0x54C80)
+		  : "a1", "cc");
 }
 
 #if 0
@@ -389,33 +456,48 @@ _dl_alloc (unsigned int __size)
 
 struct object_info
 {
-  char *base_addr;	/* Base address of the library */
-  char *public_rw_ptr;	/* The library's copy of the r/w segment */
-  char *private_rw_ptr;	/* The client's copy of the r/w segment */
-  int rw_size;		/* Size of the r/w segment */
-  int got_offset;	/* Offset in bytes of the GOT in to the r/w segment */
-  int bss_offset;	/* Offset in bytes of the bss area in to the r/w segment */
-  int bss_size;		/* Size in bytes of the bss area */
-  int dyn_offset;	/* Offset in bytes of dynamic segment in to R/W segment */
-  int dyn_size;		/* Size in bytes of dynamic segment */
+  char *text_segment;		/* Base address of the library */
+  unsigned text_size;
+  char *elfimage_data_segment;	/* Pointer to the data segment in the library's ELF image */
+  char *library_data_segment;	/* Pointer to the initailisation copy of the data segment  */
+  char *client_data_segment;	/* The client's copy of the r/w data segment */
+  unsigned data_size;		/* Size of the r/w data segment */
+  unsigned got_offset;		/* Offset in bytes of the GOT in to the r/w segment */
+  unsigned bss_offset;		/* Offset in bytes of the bss area in to the r/w segment */
+  unsigned bss_size;		/* Size in bytes of the bss area */
+  unsigned dyn_offset;		/* Offset in bytes of dynamic segment in to R/W segment */
+  unsigned dyn_size;		/* Size in bytes of dynamic segment */
   char *name;
-  unsigned int flags;
+  struct {
+    unsigned int type:4;
+    unsigned int is_armeabihf:1;
+    /* True if the data segment should be forced to start at 8 byte alignment,
+       false if it should be forced to start at 4 byte alignment (and not 8).  */
+    unsigned int data_seg_8byte_aligned:1;
+  } flags;
 };
 
+
 /* Register a library for the current app.  */
-static inline void
-_dl_register_lib (unsigned int handle, const struct object_info *buffer)
+static inline os_error *
+_dl_register_lib (unsigned int __handle,
+		  struct object_info *__buffer)
 {
-  asm volatile ("	mov	r0, %[reason_code_REGISTER_LIBRARY];\n"
-		"	mov	r1, %[handle];\n"
-		"	mov	r2, %[buffer];\n"
-		"	swi	%[XSOM_RegisterObject];\n"
-		: /* no outputs */
-		: [handle] "r" (handle),
-		  [buffer] "r" (buffer),
-		  [XSOM_RegisterObject] "i" (XSOM_REGISTER_OBJECT),
-		  [reason_code_REGISTER_LIBRARY] "I" (SOM_REGISTER_LIBRARY)
-		: "a1", "a2", "a3", "cc");
+  os_error *err;
+  register unsigned reason __asm ("r0") = SOM_REGISTER_LIBRARY;
+  register unsigned handle __asm ("r1") = __handle;
+  register const struct object_info *buffer __asm ("r2") = __buffer;
+
+  asm volatile ("	swi	%[XSOM_RegisterObject];\n"
+		"	movvs	%[err], r0;\n"
+		"	movvc	%[err], #0;\n"
+		: [err] "=r" (err)
+		: "r" (reason),
+		  "r" (handle),
+		  "r" (buffer),
+		  [XSOM_RegisterObject] "i" (XSOM_REGISTER_OBJECT)
+		: "cc");
+  return err;
 }
 
 static inline void
@@ -604,6 +686,97 @@ _dl_munmap (char * addr, int size)
 		: "a1", "cc");
 
   return ret;
+}
+
+static inline os_error *
+_dl_som_elffile_open (const char *__filename, elffile_handle *handle_ret)
+{
+  register const char *filename asm("r1") = __filename;
+  os_error *err;
+
+  asm volatile ("	mov	r0, %[som_elffile_open];\n"
+		"	swi	%[XSOM_ELFFile];\n"
+		"	movvs	%[err], r0;\n"
+		"	movvc	%[handle_ret], r0;\n"
+		"	movvc	%[err], #0;\n"
+		: [err] "=r" (err), [handle_ret] "=r" (*handle_ret)
+		: "r" (filename),
+		  [XSOM_ELFFile] "i" (XSOM_ELFFILE),
+		  [som_elffile_open] "I" (SOM_ELFFILE_OPEN)
+		: "r0", "cc");
+  return err;
+}
+
+static inline os_error *
+_dl_som_elffile_load (elffile_handle __handle)
+{
+  register elffile_handle handle asm("r1") = __handle;
+  os_error *err;
+
+  asm volatile ("	mov	r0, %[som_elffile_load];\n"
+		"	swi	%[XSOM_ELFFile];\n"
+		"	movvs	%[err], r0;\n"
+		"	movvc	%[err], #0;\n"
+		: [err] "=r" (err)
+		: "r" (handle),
+		  [XSOM_ELFFile] "i" (XSOM_ELFFILE),
+		  [som_elffile_load] "I" (SOM_ELFFILE_LOAD)
+		: "r0", "cc");
+  return err;
+}
+
+static inline os_error *
+_dl_som_elffile_close (elffile_handle __handle)
+{
+  register elffile_handle handle asm("r1") = __handle;
+  os_error *err;
+
+  asm volatile ("	mov	r0, %[som_elffile_close];\n"
+		"	swi	%[XSOM_ELFFile];\n"
+		: [err] "=r" (err)
+		: "r" (handle),
+		  [XSOM_ELFFile] "i" (XSOM_ELFFILE),
+		  [som_elffile_close] "I" (SOM_ELFFILE_CLOSE)
+		: "r0", "cc");
+  return err;
+}
+
+static inline os_error *
+_dl_som_elffile_alloc (elffile_handle __handle)
+{
+  register elffile_handle handle asm("r1") = __handle;
+  os_error *err;
+
+  asm volatile ("	mov	r0, %[som_elffile_alloc];\n"
+		"	swi	%[XSOM_ELFFile];\n"
+		"	movvs	%[err], r0;\n"
+		"	movvc	%[err], #0;\n"
+		: [err] "=r" (err)
+		: "r" (handle),
+		  [XSOM_ELFFile] "i" (XSOM_ELFFILE),
+		  [som_elffile_alloc] "I" (SOM_ELFFILE_ALLOC)
+		: "r0", "cc");
+  return err;
+}
+
+static inline os_error *
+_dl_som_get_public_info (elffile_handle __handle, struct object_info *__buffer)
+{
+  register elffile_handle handle asm("r1") = __handle;
+  register struct object_info *buffer asm("r2") = __buffer;
+  os_error *err;
+
+  asm volatile ("	mov	r0, %[som_elffile_get_public_info];\n"
+		"	swi	%[XSOM_ELFFile];\n"
+		"	movvs	%[err], r0;\n"
+		"	movvc	%[err], #0;\n"
+		: [err] "=r" (err)
+		: "r" (handle),
+		  "r" (buffer),
+		  [XSOM_ELFFile] "i" (XSOM_ELFFILE),
+		  [som_elffile_get_public_info] "I" (SOM_ELFFILE_GET_PUBLIC_INFO)
+		: "r0", "cc");
+  return err;
 }
 
 /*

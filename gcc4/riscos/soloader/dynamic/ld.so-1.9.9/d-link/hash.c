@@ -165,7 +165,7 @@ struct elf_resolve * _dl_add_elf_hash_table(char * libname,
   }
 
   tpnt->loadaddr = loadaddr;
-  for(i=0; i<24; i++) tpnt->dynamic_info[i] = dynamic_info[i];
+  for(i=0; i<29; i++) tpnt->dynamic_info[i] = dynamic_info[i];
   return tpnt;
 }
 
@@ -215,7 +215,6 @@ char * _dl_find_hash(char * name, struct dyn_elf * rpnt1,
    */
   for(pass = 0; (1==1); pass++)
     {
-
       /*
        * If we are just starting to search for RTLD_GLOBAL, setup
        * the pointer for the start of the search.
@@ -262,8 +261,7 @@ char * _dl_find_hash(char * name, struct dyn_elf * rpnt1,
 	/*
 	 * Avoid calling .urem here.
 	 */
-
-	do_rem(hn, elf_hash_number, tpnt->nbucket);
+	hn = do_rem(elf_hash_number, tpnt->nbucket);
 
 	symtab = (Elf32_Sym *) (tpnt->dynamic_info[DT_SYMTAB] +
 				       tpnt->loadaddr);

@@ -42,6 +42,8 @@ typedef void (*callbackptr)(int ver, int nlibs, char **libs,
 #define LD_USE_SYMLINKS 1
 #endif
 
+#define USE_MAPPED_LIBRARIES 0
+
 typedef struct {
 	char magic   [LDSO_CACHE_MAGIC_LEN];
 	char version [LDSO_CACHE_VER_LEN];

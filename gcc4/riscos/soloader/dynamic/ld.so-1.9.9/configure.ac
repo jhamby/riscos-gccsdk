@@ -15,4 +15,12 @@ AC_CHECK_TOOL(OBJCOPY, objcopy)
 AC_CHECK_TOOL(LN, ln)
 AC_CHECK_TOOL(AR, ar)
 
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#ifndef __ARM_EABI__
+# error macro not defined
+#endif
+]])], [arm_eabi=yes], [arm_eabi=no])
+AM_CONDITIONAL([ARM_EABI], [test x$arm_eabi = xyes])
+AC_SUBST(ARM_EABI)
+
 AC_OUTPUT(Makefile d-link/Makefile d-link/libdl/Makefile)
