@@ -132,7 +132,11 @@ $RO_CPATH/configure --help > $tmpoutconfigure
 
 # Set target type
 if grep -q -- --target= $RO_CPATH/configure; then
-  ro_target="--target=arm-unknown-riscos"
+  if [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+    ro_target="--target=arm-riscos-gnueabihf"
+  else
+    ro_target="--target=arm-unknown-riscos"
+  fi
 else
   ro_target=
 fi
@@ -149,7 +153,11 @@ fi
 
 
 if grep -q -- --host= $RO_CPATH/configure; then
-  ro_host="--host=arm-unknown-riscos"
+  if [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+    ro_host="--host=arm-riscos-gnueabihf"
+  else
+    ro_host="--host=arm-unknown-riscos"
+  fi
 else
   ro_host=
 fi
@@ -308,11 +316,19 @@ rm $tmpoutconfigure
 
 
 # Set tool chain variables picked up by configure
+if [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+export CC="${ro_distcc}GCCSDK_ENV/arm-riscos-gnueabihf-gcc"
+export CPP="GCCSDK_ENV/arm-riscos-gnueabihf-cpp"
+export RAWCPP=$CPP
+export CXX="${ro_distcc}GCCSDK_ENV/arm-riscos-gnueabihf-g++"
+export LD="GCCSDK_BIN/arm-riscos-gnueabihf-ld"
+else
 export CC="${ro_distcc}GCCSDK_ENV/arm-unknown-riscos-gcc"
 export CPP="GCCSDK_ENV/arm-unknown-riscos-cpp"
 export RAWCPP=$CPP
 export CXX="${ro_distcc}GCCSDK_ENV/arm-unknown-riscos-g++"
 export LD="GCCSDK_BIN/arm-unknown-riscos-ld"
+fi
 
 # Only set optimization if CFLAGS not already set
 if [ -z "$CFLAGS" ] ; then
@@ -330,7 +346,11 @@ fi
 export CC_FOR_BUILD=/usr/bin/cc
 
 export config_BUILD_CC=/usr/bin/cc
+if [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+export config_TARGET_CC="${ro_distcc}GCCSDK_ENV/arm-riscos-gnueabihf-gcc"
+else
 export config_TARGET_CC="${ro_distcc}GCCSDK_ENV/arm-unknown-riscos-gcc"
+fi
 
 #export AR=GCCSDK_BIN/arm-unknown-riscos-ar
 export AR=GCCSDK_ENV/ro-ar
