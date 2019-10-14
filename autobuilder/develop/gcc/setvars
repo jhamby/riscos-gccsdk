@@ -1,0 +1,209 @@
+AB_URL=https://ftp.gnu.org/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz
+
+AB_CATEGORY="Development"
+
+AB_ROVERSION=1
+AB_MAKE=
+AB_PRECONF=":"
+AB_CONFIG=
+
+export GCCSDK_RISCOS_ABI_VERSION=armeabihf
+
+mkdir -p $S/libstdc++-v3/src/riscos $S/libstdc++-v3/config/os/riscos
+
+ln -T -s -f $H/gcc.config.arm.riscos-elf.h $S/gcc/config/arm/riscos-elf.h
+ln -T -s -f $H/gcc.config.arm.riscos-gnueabihf.h $S/gcc/config/arm/riscos-gnueabihf.h
+ln -T -s -f $H/gcc.config.arm.riscos-gcc.c $S/gcc/config/arm/riscos-gcc.c
+ln -T -s -f $H/gcc.config.arm.riscos.c $S/gcc/config/arm/riscos.c
+ln -T -s -f $H/gcc.config.arm.riscos.md $S/gcc/config/arm/riscos.md
+ln -T -s -f $H/gcc.config.arm.riscos.opt $S/gcc/config/arm/riscos.opt
+ln -T -s -f $H/gcc.config.arm.t-arm-riscos-elf $S/gcc/config/arm/t-arm-riscos-elf
+ln -T -s -f $H/gcc.config.arm.t-riscos-gnueabihf $S/gcc/config/arm/t-riscos-gnueabihf
+ln -T -s -f $H/gcc.config.arm.xm-riscos.h $S/gcc/config/arm/xm-riscos.h
+ln -T -s -f $H/libgcc.config.arm.t-arm-riscos-elf $S/libgcc/config/arm/t-arm-riscos-elf
+ln -T -s -f $H/libgcc.config.arm.t-riscos-gnueabihf $S/libgcc/config/arm/t-riscos-gnueabihf
+ln -T -s -f $H/libstdc++-v3.src.riscos.Makefile.am $S/libstdc++-v3/src/riscos/Makefile.am
+ln -T -s -f $H/libstdc++-v3.config.os.riscos.ctype_base.h $S/libstdc++-v3/config/os/riscos/ctype_base.h
+ln -T -s -f $H/libstdc++-v3.config.os.riscos.ctype_configure_char.cc $S/libstdc++-v3/config/os/riscos/ctype_configure_char.cc
+ln -T -s -f $H/libstdc++-v3.config.os.riscos.ctype_inline.h $S/libstdc++-v3/config/os/riscos/ctype_inline.h
+ln -T -s -f $H/libstdc++-v3.config.os.riscos.error_constants.h $S/libstdc++-v3/config/os/riscos/error_constants.h
+ln -T -s -f $H/libstdc++-v3.config.os.riscos.os_defines.h $S/libstdc++-v3/config/os/riscos/os_defines.h
+
+mkdir -p cross-build
+#mkdir -p cross-install native-build native-install
+
+HOST_4_7_4_GCC=$(realpath $GCCSDK_INSTALL_CROSSBIN/../../gcc4)
+HOST_4_7_4_RECIPE=$HOST_4_7_4_GCC/recipe
+HOST_4_7_4_SCRIPTS=$HOST_4_7_4_GCC/recipe/scripts
+AUTOTOOLS_BUILD=$HOST_4_7_4_GCC/builddir/installed-buildtools-for-gcc/bin
+HOST_4_7_4_GCC_SRCDIR=$HOST_4_7_4_GCC/srcdir/gcc
+HOST_4_7_4_GCC_BUILDDIR=$HOST_4_7_4_GCC/builddir
+#NEWGCC_INSTALL_CROSS=$GCCSDK_INSTALL_ENV
+
+# Copy/link UnixLib source
+pushd $HOST_4_7_4_RECIPE/files/gcc/libunixlib > /dev/null
+for dir in `find . -type d | grep -v "\.svn" ` ; do mkdir -p $S/libunixlib/$dir ; done
+for file in `find . -type f -o -type l | grep -v "\.svn" ` ; do ln -f -s $HOST_4_7_4_RECIPE/files/gcc/libunixlib/$file $S/libunixlib/$file ; done
+popd > /dev/null
+
+# These are just to fool the configure scripts.
+mkdir -p $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib
+cp $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libc.a $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libpthread.a $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib
+
+# Copy/link dynamic linker source
+mkdir -p $S/ld-riscos
+pushd $HOST_4_7_4_GCC/riscos/soloader/dynamic/ld.so-1.9.9/ > /dev/null
+for dir in `find . -type d | grep -v "\.svn" ` ; do mkdir -p $S/ld-riscos/$dir ; done
+for file in `find . -type f -o -type l | grep -v "\.svn" ` ; do ln -f -s $HOST_4_7_4_GCC/riscos/soloader/dynamic/ld.so-1.9.9/$file $S/ld-riscos/$file ; done
+popd > /dev/null
+
+pushd $S/ld-riscos >/dev/null
+autoreconf --install
+popd  >/dev/null
+
+# Make sure the new GCC build can find the new binutil tools
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/as $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-as
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/ld $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-ld
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/nm $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-nm
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/ar $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-ar
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/ranlib $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-ranlib
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/strip $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-strip
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/objdump $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-objdump
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/objcopy $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-objcopy
+ln -T -s -f $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/bin/readelf $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-readelf
+
+#mkdir -p native-build/gcc
+#ln -s -f $HOST_4_7_4_GCC_SRCDIR/libunixlib native-build/gcc/libunixlib
+
+( autogen Makefile.def )
+( PATH="$AUTOTOOLS_BUILD:$PATH" $AUTOTOOLS_BUILD/autoconf )
+( PATH="$AUTOTOOLS_BUILD:$PATH" $HOST_4_7_4_SCRIPTS/gcc/reconf-libunixlib )
+( PATH="$AUTOTOOLS_BUILD:$PATH" $HOST_4_7_4_SCRIPTS/gcc/reconf-libstdc++ )
+
+./contrib/download_prerequisites
+
+pushd cross-build >/dev/null
+
+export ac_cv_func_shl_load=no
+export ac_cv_lib_dld_shl_load=no
+export ac_cv_func_dlopen=yes
+export glibcxx_cv_c99_math_tr1=yes
+
+export PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
+
+# This uses the system compiler to build the cross compiler. I believe GCC 4.8 is the minimum
+# requirement to build GCC 8.2. If a newer system compiler is required, this can be built seperately
+# and set in the CC/CXX variables below. My system compiler is 4.8, so I decided to build GCC 8.2
+# natively and install to $HOME/ProgDev/toolchains and use that.
+#CC=$HOME/ProgDev/toolchains/bin/gcc CXX=$HOME/ProgDev/toolchains/bin/g++ \
+CC=/usr/bin/gcc CXX=/usr/bin/g++ \
+../configure --prefix=$GCCSDK_INSTALL_ENV --target=arm-riscos-gnueabihf \
+	     --enable-shared=libunixlib,libgcc,libstdc++ \
+	     --enable-languages=c,c++ \
+	     --enable-threads=posix \
+	     --enable-sjlj-exceptions=no \
+	     --enable-__cxa_atexit \
+	     --enable-c99 \
+	     --enable-cmath \
+	     --disable-libstdcxx-pch \
+	     --disable-libquadmath \
+	     --disable-nls \
+	     --disable-tls \
+	     --disable-libssp \
+	     --disable-libgomp \
+	     --disable-libitm \
+	     --disable-wchar_t \
+	     --with-pkgversion='GCCSDK GCC 8.2.0' \
+	     --with-bugurl=http://gccsdk.riscos.info/ \
+	     --with-abi=aapcs-linux \
+	     --with-float=hard \
+	     --with-fpu=vfpv3 \
+	     --with-arch=armv7-a
+#	     --enable-initfini-array \
+#	     --with-gmp=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-cross-gcc \
+#	     --with-mpfr=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-cross-gcc \
+#	     --with-mpc=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-cross-gcc \
+
+make -j6 && make install
+
+mkdir -p $S/cross-build/ld-riscos
+pushd $S/cross-build/ld-riscos >/dev/null
+CC=$GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-gcc ../../ld-riscos/configure --prefix=$GCCSDK_INSTALL_ENV --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf
+make -j6 && make install
+popd >/dev/null
+
+popd >/dev/null
+
+sed -e "s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:g" -e "s:GCCSDK_BIN:$GCCSDK_INSTALL_CROSSBIN:g" \
+       <$H/arm-riscos-gnueabihf-gcc >$GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc
+chmod 755 $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc
+ln -sf $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-g++
+ln -sf $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-cpp
+ln -sf $GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-gcc $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-gcc
+ln -sf $GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-cpp $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-cpp
+ln -sf $GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-g++ $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-g++
+
+#pushd . >/dev/null
+#cd native-build
+#
+## --with-stage1-ldflags="" is used to remove the --static-libstdc++ flag.
+#CC=arm-riscos-gnueabihf-gcc CXX=arm-riscos-gnueabihf-g++ \
+#../configure --prefix=$(realpath ../native-install) --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf \
+#	     --enable-shared=libunixlib,libgcc,libstdc++ \
+#	     --enable-languages=c,c++ \
+#	     --enable-threads=posix \
+#	     --enable-sjlj-exceptions=no \
+#	     --enable-__cxa_atexit \
+#	     --enable-c99 \
+#	     --enable-cmath \
+#	     --disable-libstdcxx-pch \
+#	     --disable-libquadmath \
+#	     --disable-nls \
+#	     --disable-tls \
+#	     --disable-libssp \
+#	     --disable-libgomp \
+#	     --disable-libitm \
+#	     --with-native-system-header-dir=$S/libunixlib/include \
+#	     --with-gmp=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-ronative-gcc \
+#	     --with-mpfr=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-ronative-gcc \
+#	     --with-mpc=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-ronative-gcc \
+#	     --with-pkgversion='GCCSDK GCC 8.2.0' \
+#	     --with-bugurl=http://gccsdk.riscos.info/
+##	     --enable-initfini-array \
+#
+#popd >/dev/null
+
+#ab_make() {
+#  :
+#  ( pushd . >/dev/null; cd native-build; make -j6 && make install; popd >/dev/null )
+#}
+
+ab_package() {
+  ab_create_sharedlib_skeleton SharedLibs-$GCCSDK_RISCOS_ABI_VERSION
+
+  ab_add_sharedlib $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib libunixlib.so.5
+  ab_add_sharedlib $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib libstdc++.so.6
+  ab_add_sharedlib $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib libm.so.1
+  # libgcc_s doesn't follow the rules
+  cp -fT $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib/libgcc_s.so.1 $A/lib/$GCCSDK_RISCOS_ABI_VERSION/libgcc_s.so.1,E1F
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s libgcc_s.so.1 $A/lib/$GCCSDK_RISCOS_ABI_VERSION/libgcc_s.so,1C8
+
+  cp -fT $GCCSDK_INSTALL_ENV/lib/ld-riscos-eabihf.so $A/lib/ld-riscos-eabihf.so,E1F
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s ld-riscos-eabihf/so $A/lib/ld-riscos.so.2,1C8
+  ab_add_sharedlib $GCCSDK_INSTALL_ENV/lib libdl.so.2
+  
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package SharedLibs-$GCCSDK_RISCOS_ABI_VERSION -name SharedLibs-$GCCSDK_RISCOS_ABI_VERSION \
+	-section Development
+	
+#  ab_create_command_app GCC8 Apps/Utilities gcc8
+#  cp -r $S/native-install/bin $A
+#  cp -r $S/native-install/lib $A
+#  cp -r $S/native-install/libexec $A
+#  cp -r $S/native-install/share $A
+
+#  ab_add_headers $S/native-install/include $A/include
+#  ab_add_headers $S/native-install/arm-unknown-riscos $A/arm-unknown-riscos
+
+#  $AB_HOME/add-riscpkg -package gcc8 -depends SharedLibs8
+}
