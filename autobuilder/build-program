@@ -55,8 +55,19 @@ H=$AB_HOME/$AB_PACKAGEDIR
 rm -f $AB_HOME/last-zips
 
 # Make $CC, $CXX available, i.e. our RISC OS cross-compiler.
-eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
-eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
+#eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
+#eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
+if [ "$RO_USE_CLANG" == yes ] ; then
+  export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang -mno-apcs-stack-check"
+  export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang++ -mno-apcs-stack-check"
+elif [ "$RO_USE_ARMEABIHF" == yes ] ; then
+  export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-gcc"
+  export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-g++"
+else
+  export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-gcc"
+  export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-g++"
+fi
+
 # Make $HOST_CC and $HOST_CXX available, i.e. our native compiler.
 export HOST_CC=$(which cc)
 [ -z "$HOST_CC" ] && HOST_CC=$(which gcc)
@@ -265,7 +276,11 @@ ab_create_sharedlib_skeleton() {
   local abi_dir
   
   abi_dir=abi-2.0
-  
+
+  if [ "x$RO_USE_CLANG" == "xyes" ] || [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+    abi_dir=armeabihf
+  fi
+
   # The following lines could be reinstated if abi-1.0 support is required
   # gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
   # if [[ "$gcc_version" == *4.1.2* ]]; then
