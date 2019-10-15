@@ -1,3 +1,7 @@
+Tue Oct 15 14:42:01 BST  2019  Lee Noar  <lee.noar@sky.com>
+
+	* string/_memset-v7l.s: Remove rogue #include.
+
 Sun Sep 29 20:45:45 BST  2019  Lee Noar  <lee.noar@sky.com>
 
 	* sys/exec.c(execve): For a non-chunked stack, don't call __stackalloc_trim.
@@ -135,7 +139,7 @@ Sun Sep 29 20:41:24 BST  2019  Lee Noar  <lee.noar@sky.com>
 	* vscript: Remove __cbreg.
 	* wchar/wcsnrtombs.c(__wcsnrtombs): Rename to wcsnrtombs.
 	* wchar/wmissing.c: A number of wide character functions that we don't have
-	implentations of and may never need, but configure scripts look for.
+	implementations of and may never need, but configure scripts look for.
 
 Sun Aug  7 11:18:10 BST  2016  Lee Noar  <leenoar@sky.com>
 
