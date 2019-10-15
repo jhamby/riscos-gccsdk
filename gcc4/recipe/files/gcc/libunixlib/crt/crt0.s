@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2010 UnixLib Developers
+# Copyright (C) 2007-2019 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -38,9 +38,11 @@ crt1_data:
 					@	library static object ctors - can be NULL.
 	.word	0			@ #32 - Pointer to function that can be used to call all shared
 					@	library static object dtors - can be NULL.
+#ifdef __ARM_EABI__
 	.word	__init_array_start	@ #36
 	.word	__init_array_end	@ #40
 	.word	__fini_array_start	@ #44
 	.word	__fini_array_end	@ #48
+#endif
 
 # end of crt0.S

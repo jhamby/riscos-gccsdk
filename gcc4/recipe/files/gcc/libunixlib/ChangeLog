@@ -1,3 +1,9 @@
+Tue Oct 15 17:13:48 BST  2019  Lee Noar  <lee.noar@sky.com>
+
+	* crt/{g}crt0.s: Only support .init_array/.fini_array in ARMEABI build.
+	* sys/_syslib.s: Only process .init_array for ARMEABI, abi-2.0
+	programs will not have entries in crt0.s for this.
+
 Tue Oct 15 14:51:16 BST  2019  Lee Noar  <lee.noar@sky.com>
 
 	* incl-local/internal/asm_dec.s(SULPROC_STATUS_FLAG_IS_FORKED,

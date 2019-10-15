@@ -1,5 +1,5 @@
 @ Provide program entry and initialise the UnixLib world
-@ Copyright (c) 2002-2016 UnixLib Developers
+@ Copyright (c) 2002-2019 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -621,6 +621,7 @@ no_dynamic_area:
 	MOV	lr, pc
 	MOV	pc, a1
 
+#ifdef __ARM_EABI__
 	@ Call the program's .init_array functions.
 	@ FIXME: what about FINI_ARRAY?
 	LDR	v1, [v2, #CRT1_INIT_ARRAY_START]
@@ -635,6 +636,7 @@ no_dynamic_area:
 	BLO	0b
 
 no_init_array:
+#endif
 	@ --- Executable Finalisation ---
 	@ Make sure the _fini function of the executable is called at program
 	@ exit.
