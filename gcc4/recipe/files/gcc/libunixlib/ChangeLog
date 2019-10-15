@@ -1,3 +1,12 @@
+Tue Oct 15 14:51:16 BST  2019  Lee Noar  <lee.noar@sky.com>
+
+	* incl-local/internal/asm_dec.s(SULPROC_STATUS_FLAG_IS_FORKED,
+	SULPROC_STATUS_FLAG_IS_EXECED): Define.
+	* module/sul.s(sul_exit): Rewrite logic of when to call
+	XSOM_DeregisterClient and XARMEABISupport_Cleanup. TST instruction
+	can be difficult to understand!
+	* pthread/context.c: Silence compiler warning.
+
 Tue Oct 15 14:42:01 BST  2019  Lee Noar  <lee.noar@sky.com>
 
 	* string/_memset-v7l.s: Remove rogue #include.

@@ -1387,6 +1387,12 @@ sul_exit:
 	MOV	a2, #0
 	SWI	XVFPSupport_ChangeContext
 
+	LDR	a1, [v2, #PROC_STATUS]
+
+	@ If it's not dynamic, then nothing to deregister
+	TST	a1, #SULPROC_STATUS_FLAG_IS_DYNAMIC
+	BEQ	0f
+
 	@ There are 3 possibilities to watch out for here:
 	@ a) The process is a child which resulted from a fork(), but
 	@    not an exec(). The child is the same client as the parent
@@ -1398,15 +1404,16 @@ sul_exit:
 	@
 	@ This boils down to:
 	@ if (sulproc->status.execed || !sulproc->status.forked)
-	LDR	a1, [v2, #PROC_STATUS]
-	AND	a1, a1, #0x600000
-	CMP	a1, #0x200000
-	BEQ	0f
-	TST	a1, #SULPROC_STATUS_FLAG_IS_DYNAMIC
-	SWIEQ	XSOM_DeregisterClient
-	TST	a1, #SULPROC_STATUS_FLAG_IS_ARMEABI
-	SWIEQ	XARMEABISupport_Cleanup
+
+	TST	a1, #SULPROC_STATUS_FLAG_IS_EXECED
+	BNE	1f @ exec flag is set, child is new client - deregister
+	TST	a1, #SULPROC_STATUS_FLAG_IS_FORKED
+	BNE	0f @ fork flag is set, child is same client as parent, do not deregister
+1:
+	SWI	XSOM_DeregisterClient
 0:
+	TST	a1, #SULPROC_STATUS_FLAG_IS_ARMEABI
+	SWINE	XARMEABISupport_Cleanup
 
 	@ Restore old exit and error handlers if necessary
 	MOV	a1, #11

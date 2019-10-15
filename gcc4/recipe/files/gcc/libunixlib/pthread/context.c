@@ -46,7 +46,7 @@ __pthread_cleanup_idle (pthread_t node)
       _swix(VFPSupport_DestroyContext, _INR(0, 1), context & ~1, 0);
       /* Free the memory if it wasn't stack allocated */
       if (!(context & 1))
-        free_unlocked (gbl->malloc_state, context);
+        free_unlocked (gbl->malloc_state, (void *)context);
 #endif
       free_unlocked (gbl->malloc_state, node->saved_context);
       node->saved_context = NULL;
