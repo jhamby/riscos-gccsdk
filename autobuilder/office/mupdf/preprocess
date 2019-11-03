@@ -1,0 +1,2 @@
+mkdir -p build/release/scripts/ ; /usr/bin/gcc -Wl,--gc-sections -Wl,-s -o build/release/scripts/hexdump.exe scripts/hexdump.c  -lm
+cp $H/output-spr.c source/fitz/output-spr.c

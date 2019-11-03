@@ -1,0 +1,5 @@
+AB_URL=https://mupdf.com/downloads/archive/mupdf-1.16.1-source.tar.xz
+
+ab_make() {
+  $AB_MAKE HAVE_X11=no HAVE_GLUT=no USE_SYSTEM_LIBS=no prefix=$GCCSDK_INSTALL_ENV install
+}
