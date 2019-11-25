@@ -353,7 +353,7 @@ __h_error:
 
 #ifdef __ARM_EABI__
 	STMFD	sp!, {v1, v3}
-	MOV	fp, sp
+	ADD	fp, sp, #4
 #else
 	ADR	v4, __h_error + 4*3	@ Point at handler name for backtrace
 	STMFD	sp!, {v1, v2, v3, v4}	@ Setup an APCS-32 stack frame so we

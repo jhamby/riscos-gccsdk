@@ -1,3 +1,8 @@
+Mon Nov 25 21:27:10 GMT  2019  Lee Noar  <lee.noar@sky.com>
+
+	* signal/_signal.s(__h_error): Fix backtrace originating from error
+	handler for ARMEABI.
+
 Tue Oct 15 17:13:48 BST  2019  Lee Noar  <lee.noar@sky.com>
 
 	* crt/{g}crt0.s: Only support .init_array/.fini_array in ARMEABI build.
