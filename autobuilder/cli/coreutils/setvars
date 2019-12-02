@@ -1,5 +1,7 @@
 AB_ROVERSION=2
 
+autoreconf -fi
+
 ab_package() {
   ab_create_command_app CoreUtils Apps/Utilities
   

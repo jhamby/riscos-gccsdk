@@ -1,6 +1,6 @@
---- src/mkdir.c.orig	2015-07-13 13:13:07.969297000 +0100
-+++ src/mkdir.c	2015-07-14 13:52:11.452605051 +0100
-@@ -202,6 +202,12 @@
+--- src/mkdir.c.orig	2016-11-28 16:17:17.000000000 +0000
++++ src/mkdir.c	2019-12-01 17:44:03.370282355 +0000
+@@ -192,6 +192,12 @@
    int optc;
    char const *scontext = NULL;
    struct mkdir_options options;
@@ -13,7 +13,7 @@
  
    options.make_ancestor_function = NULL;
    options.mode = S_IRWXUGO;
-@@ -223,6 +229,9 @@
+@@ -213,6 +219,9 @@
          {
          case 'p':
            options.make_ancestor_function = make_ancestor;
@@ -23,7 +23,7 @@
            break;
          case 'm':
            specified_mode = optarg;
-@@ -301,6 +310,15 @@
+@@ -291,6 +300,15 @@
          options.mode = S_IRWXUGO;
      }
  
@@ -34,8 +34,8 @@
 +                             process_dir, &options);
 +       int dont_care = chdir(current_dir);                                    
 +       exit (exit_val);
-+    } else
-+#endif                              
-   exit (savewd_process_files (argc - optind, argv + optind,
-                               process_dir, &options));
++    }
++#endif 
+   return savewd_process_files (argc - optind, argv + optind,
+                                process_dir, &options);
  }
