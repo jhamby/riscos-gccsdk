@@ -961,6 +961,7 @@ cairo_riscos_read_glyph (font_char_reader_t *fcr, cairo_riscos_glyph_t **glyph_r
 
     if ((fcr->flags & (1 << 4)) == 0 && (fcr->flags & (1 << 5)) == 0)
 	get_bounding_box (fcr, &bounds);
+    /* FIXME: bounds may be uninitialised here. */
 
     segment_array_count = _cairo_riscos_segment_array_size (fcr);
 

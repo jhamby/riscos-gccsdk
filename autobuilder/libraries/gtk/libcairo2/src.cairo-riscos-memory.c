@@ -9,15 +9,104 @@
  * The free blocks are stored in order of ascending address.
  * The caller can free just part of a block of memory as long as it's
  * fully contained within a previously allocated block.
+ *
+ * When compiled for ARMEABI, we use ARMEABISupport for memory allocation.
  */
+
+#include "cairo-riscos.h"
+#include <string.h>
+
+#define MAX_DA_SIZE (200 * 1024 * 1024)
+
+static const char *get_da_name (void)
+{
+    static char name [24];
+
+#ifdef CAIRO_RISCOS_DEBUG_MEMORY
+    sprintf (name, "Cairo %d\n", os_read_monotonic_time());
+#else
+    strcpy (name, "Cairo");
+#endif
+	
+    return name;
+}
+
+#ifdef __ARM_EABI__
+
+#include "armeabi-support.h"
+#include <kernel.h>
+
+#define PAGE_SIZE 0x1000
+#define PAGE_SHIFT 12
+
+static armeabi_allocator_t allocator;
+
+void *
+cairo_riscos_memory_alloc (size_t size)
+{
+    if (size == 0)
+    {
+#ifdef CAIRO_RISCOS_DEBUG_MEMORY
+	fprintf (stderr, "%s: Attempt to alloc 0 bytes.\n", __func__);
+#endif
+	return NULL;
+    }
+
+    if (!allocator)
+    {
+	_kernel_oserror *err;
+	err = armeabi_memory_new_allocator(get_da_name(),
+					   MAX_DA_SIZE,
+					   ARMEABISUPPORT_ALLOCATOR_TYPE_PAGE_MAPPED,
+					   &allocator);
+      if (err)
+	  return NULL;
+    }
+
+    unsigned num_pages = ((size + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1)) >> PAGE_SHIFT;
+    eabi_PTR result;
+
+    armeabi_memory_alloc(allocator, num_pages, ARMEABISUPPORT_ALLOCATOR_ALLOC_FLAG_MAP, &result); 
+
+    return result;
+}
+
+int
+cairo_riscos_memory_free (void *addr, size_t len)
+{
+    if (addr == NULL)
+    {
+#ifdef CAIRO_RISCOS_DEBUG_MEMORY
+	fprintf (stderr, "%s: Attempt to free NULL address.\n", __func__);
+#endif
+	return -1;
+    }
+
+    if (len == 0)
+    {
+#ifdef CAIRO_RISCOS_DEBUG_MEMORY
+	fprintf (stderr,"%s: Attempt to free zero sized memory block.\n", __func__);
+#endif
+	return -1;
+    }
+
+    if (armeabi_memory_free(allocator, addr) != NULL)
+    {
+#ifdef CAIRO_RISCOS_DEBUG_MEMORY
+	fprintf (stderr,"%s: %s\n", __func__, err->errmess);
+#endif
+	return -1;
+    }
+
+    return 0;
+}
+
+#else
 
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <stdio.h>
-#include <string.h>
 #include <unistd.h>
-
-#include "cairo-riscos.h"
 
 #include "oslib/os.h"
 
@@ -27,7 +116,6 @@
 #define SANITY_CHECK 1
 #endif
 
-#define MAX_DA_SIZE (200 * 1024 * 1024)
 #define INIT_DA_SIZE (4 * 1024)
 
 typedef struct dynamic_area
@@ -181,19 +269,6 @@ memory_node_remove (memory_node_list *list, memory_node *link)
 
     link->next = link->prev = NULL;
     list->count--;
-}
-
-static const char *get_da_name (void)
-{
-    static char name [24];
-
-#ifdef CAIRO_RISCOS_DEBUG_MEMORY
-    sprintf (name, "Cairo %d\n", os_read_monotonic_time());
-#else
-    strcpy (name, "Cairo");
-#endif
-	
-    return name;
 }
 
 static int
@@ -577,4 +652,5 @@ int main (void)
     return 0;
 }
 
+#endif
 #endif

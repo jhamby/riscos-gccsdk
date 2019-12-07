@@ -1,4 +1,4 @@
-Cairo V1.12.16
+Cairo V1.16.0
 --------------
 
 This version of Cairo does not include an XLib surface. It has deliberately been
@@ -27,6 +27,21 @@ To save the surface as a sprite file, use a call like:
 It can also be saved as a PNG file:
 
     cairo_surface_write_to_png (surface, "ram:$.png-file");
+
+Normally, Cairo creates an image with the format ABGR, however, this is not
+correct for all platforms. From V1.16.0, a new function has been added:
+
+void cairo_riscos_swap_red_blue(cairo_bool_t swap);
+
+This allows the caller to control whether the red and blue components should
+be swapped when creating an image to be used as a sprite surface. For example:
+
+  cairo_riscos_swap_red_blue(TRUE);
+
+will create an image with format ARGB, which is correct for platforms such
+as the Titanium and the ARMBook.
+Note that this does not change the format of the sprite itself, but instead
+tells the pixman library to write its pixels in a different way.
 
 --
 

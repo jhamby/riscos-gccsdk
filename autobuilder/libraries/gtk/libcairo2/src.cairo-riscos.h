@@ -72,6 +72,9 @@ cairo_riscos_sprite_surface_set_size (cairo_surface_t *abstract_surface,
 				      int width,
 				      int height);
 
+void
+cairo_riscos_swap_red_blue(cairo_bool_t swap);
+
 const _kernel_oserror *
 cairo_riscos_last_oserror (cairo_bool_t reset);
 

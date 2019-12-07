@@ -1,9 +1,9 @@
---- src/cairo-misc.c.orig	2012-03-29 11:05:32.000000000 +0100
-+++ src/cairo-misc.c	2013-05-08 20:29:38.000000000 +0100
-@@ -156,6 +156,10 @@
- 	return "invalid operation during mesh pattern construction";
-     case CAIRO_STATUS_DEVICE_FINISHED:
- 	return "the target device has been finished";
+--- src/cairo-misc.c.orig	2019-11-04 11:00:55.136950757 +0000
++++ src/cairo-misc.c	2019-11-04 11:55:07.407939689 +0000
+@@ -173,6 +173,10 @@
+ 	return "error occurred in the Windows Graphics Device Interface";
+     case CAIRO_STATUS_TAG_ERROR:
+ 	return "invalid tag name, attributes, or nesting";
 +#ifdef __riscos__
 +    case CAIRO_STATUS_RISCOS_ERROR:
 +	return "a RISC OS SWI returned an error";

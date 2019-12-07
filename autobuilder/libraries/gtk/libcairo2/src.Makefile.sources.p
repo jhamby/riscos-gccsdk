@@ -1,6 +1,6 @@
---- src/Makefile.sources.orig	2013-08-26 16:07:21.000000000 +0100
-+++ src/Makefile.sources	2014-05-11 13:28:38.914366185 +0100
-@@ -466,3 +466,10 @@
+--- src/Makefile.sources.orig	2016-12-08 01:26:33.000000000 +0000
++++ src/Makefile.sources	2017-04-03 15:35:41.602349757 +0100
+@@ -470,3 +470,10 @@
  		     cairo-cogl-gradient.c \
  		     cairo-cogl-context.c \
  		     cairo-cogl-utils.c

@@ -1,9 +1,9 @@
---- src/cairo-error-private.h.orig	2012-04-19 13:17:58.000000000 +0100
-+++ src/cairo-error-private.h	2013-05-08 20:24:03.000000000 +0100
-@@ -90,6 +90,9 @@
-     CAIRO_INT_STATUS_DEVICE_ERROR,
-     CAIRO_INT_STATUS_INVALID_MESH_CONSTRUCTION,
-     CAIRO_INT_STATUS_DEVICE_FINISHED,
+--- src/cairo-error-private.h.orig	2019-11-04 11:00:55.132950869 +0000
++++ src/cairo-error-private.h	2019-11-04 11:50:10.177635282 +0000
+@@ -98,6 +98,9 @@
+     CAIRO_INT_STATUS_FREETYPE_ERROR,
+     CAIRO_INT_STATUS_WIN32_GDI_ERROR,
+     CAIRO_INT_STATUS_TAG_ERROR,
 +#ifdef __riscos__
 +    CAIRO_INT_STATUS_RISCOS_ERROR,
 +#endif

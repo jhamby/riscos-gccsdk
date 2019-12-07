@@ -1,5 +1,5 @@
---- src/cairo-image-surface.c.orig	2013-08-26 16:07:21.000000000 +0100
-+++ src/cairo-image-surface.c	2014-05-17 17:48:04.379109485 +0100
+--- src/cairo-image-surface.c.orig	2016-12-08 01:26:33.000000000 +0000
++++ src/cairo-image-surface.c	2017-04-03 15:35:41.646349758 +0100
 @@ -97,6 +97,9 @@
      case PIXMAN_x2r10g10b10:
  	return CAIRO_FORMAT_RGB30;
@@ -10,9 +10,9 @@
  	return CAIRO_FORMAT_RGB24;
      case PIXMAN_a8:
  	return CAIRO_FORMAT_A8;
-@@ -107,7 +110,11 @@
- #if PIXMAN_VERSION >= PIXMAN_VERSION_ENCODE(0,22,0)
-     case PIXMAN_r8g8b8a8: case PIXMAN_r8g8b8x8:
+@@ -110,7 +113,11 @@
+ #if PIXMAN_VERSION >= PIXMAN_VERSION_ENCODE(0,27,2)
+     case PIXMAN_a8r8g8b8_sRGB:
  #endif
 +#ifdef __riscos__
 +    case PIXMAN_a8b8g8r8:/* case PIXMAN_x8b8g8r8:*/ case PIXMAN_r8g8b8:

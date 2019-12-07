@@ -41,6 +41,7 @@
 
 static const cairo_surface_backend_t _cairo_riscos_sprite_surface_backend;
 static const os_error *_cairo_last_oserror = NULL;
+static cairo_bool_t swap_red_blue = FALSE;
 
 /**
  * SECTION:cairo-riscos
@@ -150,7 +151,7 @@ cairo_riscos_switch_output_from_surface (cairo_surface_t *abstract_surface)
 static os_mode
 _cairo_riscos_sprite_type (cairo_format_t format)
 {
-    /* Using new style sprite mode word.  */
+    /* Using new style sprite OS 3.5 mode word.  */
     unsigned int type = 1;
     
     switch (format)
@@ -304,9 +305,10 @@ _cairo_riscos_sprite_surface_create_for_pixman_image (pixman_image_t		*pixman_im
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
     _cairo_surface_init (&surface->image.base,
-			 &_cairo_riscos_sprite_surface_backend,
-			 NULL, /* device */
-			 _cairo_content_from_pixman_format (pixman_format));
+                         &_cairo_riscos_sprite_surface_backend,
+                         /*device=*/NULL,
+                         _cairo_content_from_pixman_format (pixman_format),
+                         /*is_vector=*/FALSE);
 
     _cairo_image_surface_init (&surface->image, pixman_image, pixman_format);
 
@@ -343,7 +345,7 @@ _cairo_riscos_sprite_surface_create_with_pixman_format (unsigned char		*data,
 
 /**
   * Taken from cairo-image-surface.c and adapted for RISC OS.
-  * For 24/32 bits - swapped the red and blue components.
+  * For 24/32 bits - swapped the red and blue components if necessary.
   * For 16 bits - swapped the red and blue components and
   * return 5:5:5 instead of 5:6:5.
   * For 30 bits - not supported by RISC OS treat as 24 bit.
@@ -361,8 +363,7 @@ _riscos_cairo_format_to_pixman_format_code (cairo_format_t format)
 	break;
     case CAIRO_FORMAT_RGB24:
     case CAIRO_FORMAT_RGB30:
-//	ret = PIXMAN_x8r8g8b8;
-	ret = PIXMAN_x8b8g8r8;
+	ret = (swap_red_blue) ? PIXMAN_x8r8g8b8 : PIXMAN_x8b8g8r8;
 	break;
     case CAIRO_FORMAT_RGB16_565:
 	ret = PIXMAN_x1b5g5r5;
@@ -534,14 +535,21 @@ cairo_riscos_sprite_surface_set_size (cairo_surface_t *abstract_surface,
 						 cairo_format_stride_for_width (format, width));
 
 	_cairo_surface_init (&surface->image.base,
-			     &_cairo_riscos_sprite_surface_backend,
-			     NULL, /* device */
-			     _cairo_content_from_pixman_format (pixman_format));
+                         &_cairo_riscos_sprite_surface_backend,
+                         /*device=*/NULL,
+                         _cairo_content_from_pixman_format (pixman_format),
+                         /*is_vector=*/FALSE);
 	_cairo_image_surface_init (&surface->image, pixman_image, pixman_format);
 	CAIRO_REFERENCE_COUNT_INIT (&abstract_surface->ref_count, ref_count);
     }
 
     _cairo_surface_set_error (abstract_surface, status);
+}
+
+void
+cairo_riscos_swap_red_blue(cairo_bool_t swap)
+{
+    swap_red_blue = swap;
 }
 
 const _kernel_oserror *
