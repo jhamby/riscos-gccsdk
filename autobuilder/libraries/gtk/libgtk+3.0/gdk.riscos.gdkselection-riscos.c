@@ -15,16 +15,47 @@
 
 #include "config.h"
 
+#include "gdkdisplay-riscos.h"
 #include "gdkselection.h"
 #include "gdkproperty.h"
 #include "gdkprivate.h"
+#include <oslib/wimp.h>
 
 #include <string.h>
+
+typedef struct _OwnerInfo OwnerInfo;
+
+struct _OwnerInfo
+{
+  GdkAtom    selection;
+  GdkWindow *owner;
+  gulong     serial;
+};
+
+static GSList *owner_list;
 
 GdkWindow *
 _gdk_riscos_display_get_selection_owner (GdkDisplay *display,
 					  GdkAtom     selection)
 {
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+  GSList *tmp_list;
+  OwnerInfo *info;
+
+  if (gdk_display_is_closed (display))
+    return NULL;
+
+  tmp_list = owner_list;
+  while (tmp_list)
+    {
+      info = tmp_list->data;
+      if (info->selection == selection)
+	return info->owner;
+      tmp_list = tmp_list->next;
+    }
+
+  riscos_display->selection_window = NULL;
+
   return NULL;
 }
 
@@ -35,6 +66,39 @@ _gdk_riscos_display_set_selection_owner (GdkDisplay *display,
 					  guint32     time,
 					  gboolean    send_event)
 {
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+  GSList *tmp_list;
+  OwnerInfo *info;
+
+  if (gdk_display_is_closed (display))
+    return FALSE;
+
+  tmp_list = owner_list;
+  while (tmp_list)
+    {
+      info = tmp_list->data;
+      if (info->selection == selection)
+        {
+          owner_list = g_slist_remove (owner_list, info);
+          g_free (info);
+          break;
+        }
+      tmp_list = tmp_list->next;
+    }
+
+  if (owner)
+    {
+      info = g_new (OwnerInfo, 1);
+      info->owner = owner;
+      info->serial = _gdk_display_get_next_serial (display);
+
+      info->selection = selection;
+
+      owner_list = g_slist_prepend (owner_list, info);
+    }
+
+  riscos_display->selection_window = owner;
+
   return TRUE;
 }
 

@@ -29,6 +29,11 @@
 #ifndef __GDK_PRIVATE_RISCOS_H__
 #define __GDK_PRIVATE_RISCOS_H__
 
+#include "oslib/wimp.h"
+#include "oslib/toolbox.h"
+
+#undef _
+
 #include <gdk/gdkprivate.h>
 #include <gdk/gdkinternals.h>
 #include "gdkwindow-riscos.h"
@@ -38,11 +43,20 @@
 #include "gdkriscosvisual.h"
 #include "gdkriscoswindow.h"
 
-#include "oslib/wimp.h"
+enum _swap_redblue_t {
+  swap_redblue_UNSET,
+  swap_redblue_YES,
+  swap_redblue_NO
+};
+typedef enum _swap_redblue_t swap_redblue_t;
 
 extern GdkDisplay *_gdk_display;
 extern GdkScreen *_gdk_screen;
 extern GdkWindow *_gdk_root;
+extern toolbox_block *_tb_block;
+extern messagetrans_control_block *_tb_messages;
+extern char const *_resource_dir_name;
+extern swap_redblue_t swap_redblue;
 
 void _gdk_riscos_resync_windows (void);
 void _gdk_riscos_windowing_init (void);

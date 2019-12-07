@@ -43,6 +43,7 @@ libgdk_riscos_la_SOURCES =	\
 	gdkdevice-riscos.c	\
 	gdkdevicemanager-riscos.c \
 	gdkevents-riscos.c	\
-	gdkglobals-riscos.c
+	gdkglobals-riscos.c	\
+	gdkclipboard-riscos.c
 
 -include $(top_srcdir)/git.mk

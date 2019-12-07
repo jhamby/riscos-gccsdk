@@ -22,8 +22,10 @@
 #ifndef __GDK_RISCOS_DISPLAY__
 #define __GDK_RISCOS_DISPLAY__
 
+#include <stdbool.h>
 #include "gdkdisplayprivate.h"
 #include "oslib/wimp.h"
+#include "oslib/toolbox.h"
 
 G_BEGIN_DECLS
 
@@ -31,6 +33,8 @@ typedef struct _GdkRiscosDisplay GdkRiscosDisplay;
 typedef struct _GdkRiscosDisplayClass GdkRiscosDisplayClass;
 
 typedef struct _GdkRiscosGrab GdkRiscosGrab;
+typedef struct _GdkRiscosSelection GdkRiscosSelection;
+typedef struct _GdkRiscosSelectionXferProgress GdkRiscosSelectionXferProgress;
 
 #define GDK_TYPE_RISCOS_DISPLAY              (gdk_riscos_display_get_type())
 #define GDK_RISCOS_DISPLAY(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_RISCOS_DISPLAY, GdkRiscosDisplay))
@@ -42,6 +46,18 @@ typedef struct _GdkRiscosGrab GdkRiscosGrab;
 struct _GdkRiscosGrab
 {
   GdkWindow *window;
+};
+
+struct _GdkRiscosSelection {
+  void *buffer;
+  size_t size;
+  size_t max_size;
+};
+
+struct _GdkRiscosSelectionXferProgress
+{
+  size_t bytes_remaining;
+  size_t bytes_sent;
 };
 
 struct _GdkRiscosDisplay
@@ -57,6 +73,7 @@ struct _GdkRiscosDisplay
   GList *toplevels;
 
   GList *raw_event_handlers;
+  GList *message_handlers;
 
   guint32 next_serial;
   guint32 last_seen_time;
@@ -64,9 +81,7 @@ struct _GdkRiscosDisplay
   GdkKeymap *keymap;
 
   wimp_t task_handle;
-  wimp_i iconbar_icon_handle;
   const char *task_name;
-  GdkWindow *iconbar;
 
   wimp_pointer last_click;
 
@@ -77,8 +92,16 @@ struct _GdkRiscosDisplay
   GSList* key_down_list;
 
   GdkWindow *focus_window;
+  GdkWindow *selection_window;
+  GdkRiscosSelection selection;
+  GdkRiscosSelectionXferProgress *selection_xfer_progress;
 
   wimp_block poll_block;
+
+  /* Toolbox tasks */
+  toolbox_block *tb_block;
+  messagetrans_control_block *tb_messages;
+  char const *resource_dir_name;
 };
 
 struct _GdkRiscosDisplayClass

@@ -17,8 +17,14 @@
 #include "config.h"
 #include "gdktypes.h"
 #include "gdkprivate.h"
-#include "gdkriscos.h"
+#include "gdkprivate-riscos.h"
+#include "oslib/wimp.h"
+#include "oslib/toolbox.h"
 
 GdkDisplay *_gdk_display = NULL;
 GdkScreen *_gdk_screen = NULL;
 GdkWindow *_gdk_root = NULL;
+toolbox_block *_tb_block = NULL;
+messagetrans_control_block *_tb_messages = NULL;
+char const *_resource_dir_name = NULL;
+swap_redblue_t swap_redblue;

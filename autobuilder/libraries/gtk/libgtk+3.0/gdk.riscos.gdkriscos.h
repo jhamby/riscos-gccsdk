@@ -20,6 +20,7 @@
 
 #include <gdk/gdk.h>
 #include "oslib/wimp.h"
+#include "oslib/toolbox.h"
 #undef _
 #undef NONE
 #undef UNKNOWN
@@ -32,18 +33,46 @@
 
 G_BEGIN_DECLS
 
-typedef gboolean (*raw_event_handler)(wimp_event_no, wimp_block *);
+typedef gboolean (*gdk_riscos_raw_event_handler)(wimp_event_no, wimp_block *, void *);
+typedef gboolean (*gdk_riscos_message_handler)(wimp_event_no, wimp_block *, void *);
 
 void
 gdk_riscos_add_raw_event_handler (wimp_event_no type,
 				  wimp_w window_handle,
-				  raw_event_handler handler_func);
+				  gdk_riscos_raw_event_handler handler_func,
+				  void *handler_data);
+void
+gdk_riscos_remove_raw_event_handler (wimp_event_no type,
+				     wimp_w window_handle,
+				     gdk_riscos_raw_event_handler handler_func,
+				     void *handler_data);
+void
+gdk_riscos_add_message_handler (unsigned message_no,
+				gdk_riscos_message_handler handler_func,
+				void *data);
+void
+gdk_riscos_remove_message_handler (unsigned message_no,
+				   gdk_riscos_message_handler handler_func,
+				   void *data);
 
 wimp_w
 gdk_riscos_window_get_handle (GdkWindow *gdk_window);
 
 guint
 gdk_riscos_display_get_user_time (GdkDisplay *display);
+
+wimp_event_no
+gdk_riscos_event_poll (wimp_block *poll_block);
+
+void
+gdk_riscos_enable_toolbox (const char *resource_dir_name,
+			   toolbox_block *tb_block,
+			   messagetrans_control_block *tb_messages);
+
+gboolean
+gdk_riscos_clipboard_is_text_available(GdkDisplay *display);
+gchar *
+gdk_riscos_clipboard_request_text(GdkDisplay *display);
 
 G_END_DECLS
 

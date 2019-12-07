@@ -1,7 +1,16 @@
-This is an alpha version of GTK 3.8.6 and is a work in progress.
+This is GTK 3.8.6.
 
 Notes
 -----
+* The current screen mode is used to determine the ordering of the red
+and blue pixel components. GDK then ensures via Cairo that the sprite
+surfaces created use the same ordering. This behaviour can be overridden
+using the --swap-redblue=[yes,1,no,0] command line option.
+
+* The toolbox can be used by calling gdk_riscos_enable_toolbox before opening
+the display. The windows created by GDK are still WIMP only though, and are not
+toolbox objects.
+
 * Use SELECT shift drag to resize windows.
 
 * GTK+3 is customisable by creating the file:

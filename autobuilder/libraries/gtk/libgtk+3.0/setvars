@@ -21,6 +21,10 @@ export gio_can_sniff=no
 
 #chmod +x mkinstalldirs
 
+if [ "x$RO_USE_CLANG" == "xyes" ]; then
+  AB_PRECONF="LIBS=\"-lc++abi\""
+fi
+
 AB_CONFLAGS="--disable-xkb --disable-glibtest --disable-cups --disable-papi --enable-gtk2-dependency --enable-riscos-backend"
 
 mkdir -p $S/gdk/riscos
@@ -31,6 +35,7 @@ ln -T -s -f $H/gdk.riscos.gdkscreen-riscos.h $S/gdk/riscos/gdkscreen-riscos.h
 ln -T -s -f $H/gdk.riscos.gdkscreen-riscos.c $S/gdk/riscos/gdkscreen-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkvisual-riscos.c $S/gdk/riscos/gdkvisual-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkevents-riscos.c $S/gdk/riscos/gdkevents-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkclipboard-riscos.c $S/gdk/riscos/gdkclipboard-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkglobals-riscos.c $S/gdk/riscos/gdkglobals-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkkeys-riscos.c $S/gdk/riscos/gdkkeys-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkdnd-riscos.c $S/gdk/riscos/gdkdnd-riscos.c
@@ -51,7 +56,7 @@ ln -T -s -f $H/gdk.riscos.gdkriscosvisual.h $S/gdk/riscos/gdkriscosvisual.h
 ln -T -s -f $H/gdk.riscos.gdkriscoswindow.h $S/gdk/riscos/gdkriscoswindow.h
 ln -T -s -f $H/gdk.riscos.Makefile.am $S/gdk/riscos/Makefile.am
 
-autoreconf --force
+autoreconf --force --install
 
 # $1 = app name
 # $2 = binary location (not including .libs)
@@ -107,7 +112,7 @@ ab_package() {
 
     $AB_HOME/add-riscpkg -package "libgtk+3" -name LibGtk+3 \
 	-depends SharedLibs-C2 -depends LibCairo2 -depends LibGlib2.0 \
-	-depends LibPango1 -depends LibAtk1
+	-depends LibPango1 -depends LibAtk1 -depends GdkPixbuf2
   fi
 
   #libgtk+3-tests

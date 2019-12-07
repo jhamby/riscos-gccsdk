@@ -36,13 +36,20 @@
 #include "cairo-riscos.h"
 
 #include "oslib/os.h"
+#include "oslib/toolbox.h"
 
 #include <string.h>
+
+#define DATA_FORMAT BGR ((os_mode_flags) 0x0u)
+#define DATA_FORMAT_RGB ((os_mode_flags) 0x4u)
 
 static void   gdk_riscos_display_dispose            (GObject            *object);
 static void   gdk_riscos_display_finalize           (GObject            *object);
 
+static gboolean gdk_riscos_realloc_selection        (GdkRiscosSelection *selection, size_t);
+
 G_DEFINE_TYPE (GdkRiscosDisplay, gdk_riscos_display, GDK_TYPE_DISPLAY)
+
 
 static void
 gdk_riscos_display_init (GdkRiscosDisplay *display)
@@ -50,20 +57,45 @@ gdk_riscos_display_init (GdkRiscosDisplay *display)
   _gdk_riscos_display_manager_add_display (gdk_display_manager_get (),
 					   GDK_DISPLAY_OBJECT (display));
   display->id_ht = g_hash_table_new (NULL, NULL);
+  display->toplevels = NULL;
 
+  display->last_mouse_move.x = -1;
+  display->last_mouse_move.y = -1;
   display->pointer_grab.window = NULL;
   display->keyboard_grab.window = NULL;
 
   display->system_drag = FALSE;
-  display->last_mouse_move.x = -1;
-  display->last_mouse_move.y = -1;
   display->last_click.w = 0;
 
   display->key_down_list = NULL;
 
   display->raw_event_handlers = NULL;
+  display->message_handlers = NULL;
 
   display->focus_window = NULL;
+  display->selection_window = NULL;
+  display->selection.buffer = NULL;
+  display->selection.max_size = 0;
+  display->selection.size = 0;
+  display->selection_xfer_progress = NULL;
+
+  display->tb_block = NULL;
+  display->tb_messages = NULL;
+  display->resource_dir_name = NULL;
+
+  if (swap_redblue)
+    cairo_riscos_swap_red_blue(swap_redblue == swap_redblue_YES);
+  else
+    {
+      int mode_flags = 0;
+      xos_read_mode_variable(os_CURRENT_MODE,
+			     os_MODEVAR_MODE_FLAGS,
+			     &mode_flags,
+			     NULL);
+      int data_format = (mode_flags & os_MODE_FLAG_DATA_FORMAT) >> os_MODE_FLAG_DATA_FORMAT_SHIFT;
+      if (data_format == DATA_FORMAT_RGB)
+	cairo_riscos_swap_red_blue(TRUE);
+    }
 }
 
 static void
@@ -78,6 +110,61 @@ gdk_event_init (GdkDisplay *display)
   _gdk_riscos_events_init (display);
 }
 
+gboolean gdk_riscos_realloc_selection (GdkRiscosSelection *selection, size_t size)
+{
+  if (!selection->buffer)
+    {
+      selection->buffer = malloc(size);
+      selection->max_size = size;
+      selection->size = 0;
+    }
+  else
+    {
+      if (size > selection->max_size)
+	{
+	  void *new_buffer = realloc(selection->buffer, size);
+	  if (!new_buffer)
+	    return false;
+	  selection->buffer = new_buffer;
+	  selection->max_size = size;
+	}
+
+      selection->size = size;
+    }
+
+  return true;
+}
+
+void gdk_riscos_free_selection (GdkRiscosDisplay *riscos_display)
+{
+  if (riscos_display->selection.buffer)
+    {
+      free(riscos_display->selection.buffer);
+      riscos_display->selection.buffer = NULL;
+      riscos_display->selection.max_size = 0;
+      riscos_display->selection.size = 0;
+    }
+}
+
+void gdk_riscos_copy_selection (GdkDisplay *display, const void *data, size_t size)
+{
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+
+  if (!size)
+    {
+      gdk_riscos_free_selection (riscos_display);
+      return;
+    }
+
+  if (size > riscos_display->selection.max_size)
+    if (!gdk_riscos_realloc_selection(&riscos_display->selection, size))
+      return;
+
+  riscos_display->selection.size = size;
+  memcpy(riscos_display->selection.buffer, data, size);
+}
+
+#if 0
 static os_error *
 gdk_riscos_create_iconbar_icon (GdkRiscosDisplay *display)
 {
@@ -91,9 +178,6 @@ gdk_riscos_create_iconbar_icon (GdkRiscosDisplay *display)
   bar.icon.flags = wimp_ICON_SPRITE |
 		   wimp_ICON_HCENTRED |
 		   wimp_ICON_VCENTRED |
-		   wimp_ICON_SPRITE |
-		   wimp_ICON_HCENTRED |
-		   wimp_ICON_VCENTRED |
 		   (wimp_BUTTON_CLICK << wimp_ICON_BUTTON_TYPE_SHIFT);
   if (*display->task_name != '!') {
     *bar.icon.data.sprite = '!';
@@ -103,30 +187,47 @@ gdk_riscos_create_iconbar_icon (GdkRiscosDisplay *display)
   
   return xwimp_create_icon (&bar, &display->iconbar_icon_handle);
 }
+#endif
 
 static void
 gdk_riscos_wimp_init (GdkRiscosDisplay *display)
 {
   wimp_MESSAGE_LIST(2) message_list = { { 0 } };
+  toolbox_ACTION_LIST(2) action_list = { { 0 } };
 
   os_error *err;
 
   display->task_name = g_get_prgname ();
   if (display->task_name == NULL)
     g_error ("Could not determine name of task to initialise") ;
-    
-  err = xwimp_initialise (wimp_VERSION_RO38,
-			  display->task_name,
-			  (wimp_message_list *)&message_list,
-			  NULL,
-			  &display->task_handle);
+
+  if (display->resource_dir_name) {
+    err = xtoolbox_initialise (0,
+			       wimp_VERSION_RO38,
+			       (wimp_message_list *)&message_list,
+			       (toolbox_action_list *)&action_list,
+			       display->resource_dir_name,
+			       display->tb_messages,
+			       display->tb_block,
+			       NULL,
+			       &display->task_handle,
+			       NULL);
+  } else {
+    err = xwimp_initialise (wimp_VERSION_RO38,
+			    display->task_name,
+			    (wimp_message_list *)&message_list,
+			    NULL,
+			    &display->task_handle);
+  }
   if (err != NULL)
     g_error ("Failed to initialise task; %s", err->errmess);
 
+#if 0
+  /* An iconbar icon may not always be required. Leave to the task to decide.  */
   err = gdk_riscos_create_iconbar_icon (display);
   if (err != NULL)
     g_error ("Failed to create iconbar icon");
-
+#endif
 /*  display->iconbar = gdk_riscos_window_foreign_new_for_display (&display->parent_instance,
 								wimp_ICON_BAR);*/
 }
@@ -148,6 +249,10 @@ _gdk_riscos_display_open (const gchar *display_name)
 
   _gdk_display = g_object_new (GDK_TYPE_RISCOS_DISPLAY, NULL);
   riscos_display = GDK_RISCOS_DISPLAY (_gdk_display);
+
+  riscos_display->tb_block = _tb_block;
+  riscos_display->tb_messages = _tb_messages;
+  riscos_display->resource_dir_name = _resource_dir_name;
 
   gdk_riscos_wimp_init (riscos_display);
 //  riscos_display->output = NULL;
@@ -448,6 +553,17 @@ void
 _gdk_riscos_display_set_last_seen_time (GdkRiscosDisplay *display)
 {
   display->last_seen_time = os_read_monotonic_time() * 10;
+}
+
+void gdk_riscos_enable_toolbox (const char *resource_dir_name,
+				toolbox_block *tb_block,
+				messagetrans_control_block *tb_messages)
+{
+  /* Unfortunately, at this point the display doesn't exist yet, so we'll
+   * have to stash these in globals until later.  */
+  _tb_block = tb_block;
+  _tb_messages = tb_messages;
+  _resource_dir_name = resource_dir_name;
 }
 
 static void

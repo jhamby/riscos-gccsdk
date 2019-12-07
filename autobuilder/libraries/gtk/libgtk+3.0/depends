@@ -3,7 +3,7 @@ libatk1.0-0
 libpango1.0-0
 libglib2.0-0
 libcairo2
-libffi5
+libffi6
 libpcre3
 fontconfig
 libfreetype6

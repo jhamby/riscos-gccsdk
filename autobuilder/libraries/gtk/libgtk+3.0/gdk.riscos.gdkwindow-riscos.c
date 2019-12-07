@@ -57,11 +57,25 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#include <stdio.h>
 
 #define WINDOW_TITLE_MAX_LEN 100
 
 //#define DEBUG_WINDOW_SIZE_CHANGED
 //#define DEBUG_WINDOW_UPDATE
+
+#ifdef DEBUG_WINDOW_SIZE_CHANGED
+static inline void 
+report_text(const char *s)
+{
+  __asm volatile (
+		  "	MOV	r0, %0;\n"
+		  "	SWI	%[report_text0];\n"
+		  : /* no outputs */
+		  : "r" (s), [report_text0] "i" (0x54C80)
+		  : "a1", "r14", "cc");
+}
+#endif
 
 /* Forward declarations */
 static void     gdk_window_riscos_set_background     (GdkWindow      *window,
@@ -208,9 +222,12 @@ gdk_riscos_create_window (GdkWindow 	*gdk_window,
   window_blk.flags = wimp_WINDOW_NEW_FORMAT |
 		     wimp_WINDOW_MOVEABLE;
 
-  if (gdk_window->window_type == GDK_WINDOW_TOPLEVEL)
+  /* GDK_WINDOW_TEMPs are top level windows also and should be treated as such.  */
+  if (gdk_window->window_type == GDK_WINDOW_TOPLEVEL ||
+      gdk_window->window_type == GDK_WINDOW_TEMP)
     {
-//      if (attributes_mask & GDK_WA_TITLE)
+      if ((attributes_mask & GDK_WA_TITLE) &&
+	  gdk_window->window_type == GDK_WINDOW_TOPLEVEL)
 	{
 	  impl->title = g_malloc (WINDOW_TITLE_MAX_LEN);
 	  impl->title_validation = NULL;
@@ -407,9 +424,6 @@ gdk_riscos_window_foreign_new_for_display (GdkDisplay      *display,
   window->viewable = TRUE;
   window->depth = 24;
   g_object_ref (window);
-  
-printf("[%s:%s:%d] - wimp_handle (%p)\n",
-       __FILE__,__func__,__LINE__,wimp_handle);
 
   return window;
 }
@@ -475,7 +489,7 @@ gdk_riscos_window_update (GdkWindow *gdk_window)
 #endif
 
   if (err)
-    g_warning ("RISC OS: Failed to render Cairo surface; %s", err->errmess);
+    g_warning ("RISC OS: Failed to update Cairo surface; %s", err->errmess);
 }
 
 void
@@ -863,7 +877,7 @@ gdk_window_riscos_move_resize (GdkWindow *window,
 
       if (size_changed)
 	{
-	  /* We don't change the window extent as it's fixed at the screen size.  */
+	  /* Top level window extents are fixed at the screen size, so don't change those.  */
 #ifdef DEBUG_WINDOW_SIZE_CHANGED
 	  {
 	    char buffer[100];
@@ -2050,9 +2064,6 @@ gdk_riscos_window_simulate_button (GdkWindow      *window,
 static void
 gdk_riscos_window_sync_rendering (GdkWindow *window)
 {
-  char buffer[100];
-  sprintf (buffer, "\\R%s",__func__);
-  report_text0(buffer);
 }
 
 void
@@ -2101,7 +2112,7 @@ gdk_window_impl_riscos_class_init (GdkWindowImplRiscosClass *klass)
   impl_class->input_shape_combine_region = gdk_window_riscos_input_shape_combine_region;
   impl_class->set_static_gravities = gdk_window_riscos_set_static_gravities;
   impl_class->queue_antiexpose = _gdk_riscos_window_queue_antiexpose;
-//  impl_class->translate = _gdk_riscos_window_translate;
+  impl_class->translate = _gdk_riscos_window_translate;
   impl_class->destroy = _gdk_riscos_window_destroy;
   impl_class->destroy_foreign = gdk_riscos_window_destroy_foreign;
   impl_class->resize_cairo_surface = gdk_window_riscos_resize_cairo_surface;
