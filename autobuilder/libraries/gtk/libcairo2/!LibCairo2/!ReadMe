@@ -38,8 +38,9 @@ be swapped when creating an image to be used as a sprite surface. For example:
 
   cairo_riscos_swap_red_blue(TRUE);
 
-will create an image with format ARGB, which is correct for platforms such
-as the Titanium and the ARMBook.
+will cause future calls to cairo_riscos_sprite_surface_create to create an
+image with format ARGB, which is correct for platforms such as the Titanium
+and the ARMBook.
 Note that this does not change the format of the sprite itself, but instead
 tells the pixman library to write its pixels in a different way.
 
