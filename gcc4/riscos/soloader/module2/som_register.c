@@ -239,7 +239,7 @@ som_register_sharedobject (som_handle handle,
       if ((err = somarray_add_object (&global.object_array,
 				      &global_library->object)) != NULL)
 	{
-	  som_free (&global_library);
+	  som_free (global_library);
 	  return err;
 	}
 

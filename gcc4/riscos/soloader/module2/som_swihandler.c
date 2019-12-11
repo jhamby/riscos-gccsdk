@@ -1,6 +1,6 @@
 /* som_swihandler.c
  *
- * Copyright 2006-2017 GCCSDK Developers
+ * Copyright 2006-2019 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -193,6 +193,11 @@ module_swihandler (int number, _kernel_swi_regs * r, void *pw)
 	      elffile_init(file);
 	      if ((err = elffile_open ((const char *)r->r[1], file)) == NULL)
 		r->r[0] = (int)file;
+	      else
+		{
+		  elffile_close(file);
+		  som_free(file);
+		}
 	    }
 	    break;
 	  case reason_code_SOM_ELFFILE_LOAD:

@@ -1,5 +1,5 @@
 AC_PREREQ([2.64])
-AC_INIT([SOManager],[3.00],[http://gccsdk.riscos.info/])
+AC_INIT([SOManager],[3.01],[http://gccsdk.riscos.info/])
 
 AC_PROG_CC
 AM_PROG_AS

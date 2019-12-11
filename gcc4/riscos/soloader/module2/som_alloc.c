@@ -39,6 +39,8 @@ DEBUG_PRINT_IT;\
 #define DEBUG_OUTPUT(format, args...)
 #endif
 
+#define USE_BLOCK_MARKER 0
+
 static _kernel_oserror *
 DA_alloc (dynamic_area_block *da, int size, som_PTR *block_ret)
 {
@@ -96,11 +98,23 @@ som_alloc (int size, void **block_ret)
 
   *block_ret = NULL;
 
+#if USE_BLOCK_MARKER
+  size += 4;
+#endif
+
   if ((err = DA_alloc (&global.data_da, size, (som_PTR *)block_ret)) != NULL)
     return err;
 
   if (*block_ret == NULL)
     return somerr_no_memory;
+
+#if USE_BLOCK_MARKER
+  {
+    unsigned *ptr = *block_ret;
+    *ptr = 0x12345678;
+    *block_ret = ptr + 1;
+  }
+#endif
 
   return NULL;
 }
@@ -171,10 +185,17 @@ som_free (void *block)
     err = armeabi_memory_free(allocator, block);
   else if ((som_PTR)block >= global.data_da.base_addr &&
 	   (som_PTR)block <  global.data_da.end_addr)
-    err = heap_release (global.data_da.base_addr,
-			block);
-  else
-    err = RMA_free (block);
+    {
+#if USE_BLOCK_MARKER
+      unsigned *ptr = (unsigned *)block - 1;
+      *ptr = 0;
+      block = ptr;
+#endif
+      err = heap_release (global.data_da.base_addr,
+			  block);
+    }
+    else
+      err = RMA_free (block);
 
   if (err)
     {
@@ -267,10 +288,22 @@ som_extend (void **block, int by)
    || (som_PTR)b >= global.data_da.end_addr)
     return NULL;
 
+#if USE_BLOCK_MARKER
+  unsigned *ptr = (unsigned *)b - 1;
+  *ptr = 0;
+  b = ptr;
+#endif
+
   /* Attempt to extend the heap block.  */
   err = DA_extend (&global.data_da,
 		   by,
 		   (som_PTR *)&b);
+
+#if USE_BLOCK_MARKER
+  ptr = b;
+  *ptr = 0x12345678;
+  b = ptr + 1;
+#endif
 
   *block = b;
 

@@ -44,7 +44,7 @@ som_history_add_client(som_client *client)
   /* Allocate enough memory to store all names.  */
   if (som_alloc (name_size, (void **) (void *) &client_hist->all_names) != NULL)
     {
-      som_free (&client_hist);
+      som_free (client_hist);
       return;
     }
 

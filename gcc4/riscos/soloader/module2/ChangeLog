@@ -1,3 +1,16 @@
+Wed Dec 11 11:31:23 GMT 2019  Lee Noar  <lee.noar@sky.com>
+
+	* som_swihandler.c(SWI "ELFFile",reason_code_SOM_ELFFILE_OPEN): Fix
+	memory leak; if an error occurs when trying to open a file, e.g.
+	file not found, free the now unused memory block.
+	* som_register.c(som_register_sharedobject): Fix freeing of wrong pointer
+	if somarray_add_object() fails.
+	* som_history.c(som_history_add_client): Fix freeing of wrong pointer if
+	som_alloc() fails.
+	* som_alloc.c: Optional debugging aid (disabled by default) to mark the
+	beginning of an allocated heap block.
+	* configure.ac: Bump version number because of memory leak fix.
+
 Sat Oct 12 18:27:59 BST 2019  Lee Noar  <lee.noar@sky.com>
 
 	* configure.ac: Bump version number to 3.00.
