@@ -206,6 +206,19 @@ public:
 	 *  is one, otherwise the empty string
 	 */
 	std::string url() const;
+
+	/** Get environment
+	 * @return a comma separated list of the environmental features
+	 * required for this package.
+	 */
+	std::string environment() const;
+
+	/** Get OS dependencies
+	 * @return a comma separated list of the modules that need to be
+	 * present in the OS for this package
+	 */
+	std::string osdepends() const;
+
 protected:
 	/** Get priority.
 	 * This function may be overridden to modify the sort order.

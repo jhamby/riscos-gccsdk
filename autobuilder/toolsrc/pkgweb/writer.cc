@@ -1,5 +1,6 @@
 
 #include "writer.h"
+#include "envhelper.h"
 
 #include <iostream>
 #include <strstream>
@@ -156,6 +157,12 @@ std::string DetailsWriter::resolve(const std::string &token)
                   text = " (" + text + ")";
                }
             }
+	} else if (check == "environment_string")
+	{
+		text = get_environment_string(_control);
+	} else if (check == "environment_description")
+	{
+		text = get_environment_text(_control);
 	} else
 	{
 		pkg::control::iterator i = _control.find(token);
@@ -182,10 +189,9 @@ std::string SummaryWriter::resolve(const std::string &token)
 	else if (check == "summary") text = _info.get_summary();
 	else if (check == "version") text = _info.get_version();
 	else if (check == "location") text = _info.get_location();
-        else if (check == "name_suffix")
+    else if (check == "name_suffix")
 	{
-		text = _info.get_architecture();
-		if (text == "arm") text.clear();
+		text = _info.get_environment();
 		if (!text.empty()) text = " (" + text + ")";
 	} else
 	{
@@ -215,12 +221,15 @@ std::string OneReplaceWriter::resolve(const std::string &token)
 	}
 }
 
-StatsWriter::StatsWriter(int packages)
+StatsWriter::StatsWriter(int packages, int variants)
 {
   // Count of packages field
   std::ostrstream ss;
   ss << packages << std::ends;
   _count = ss.str();
+  std::ostrstream vs;
+  vs << variants << std::ends;
+  _variants = vs.str();
 
   // Date field
   struct tm *nowtm;
@@ -236,6 +245,9 @@ std::string StatsWriter::resolve(const std::string &token)
 	if (check == "count")
 	{
 		return _count;
+	} else if (check == "variants")
+	{
+		return _variants;
 	} else if (check == "date")
 	{
 		return _date;

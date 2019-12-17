@@ -84,11 +84,12 @@ protected:
 class StatsWriter : public Writer
 {
 public:
-	StatsWriter(int packages);
+	StatsWriter(int packages, int variants);
 	virtual std::string resolve(const std::string &token);
 
 protected:
-      std::string _count;
+    std::string _count;
+	std::string _variants;
 	std::string _date;
 };
 
@@ -98,12 +99,15 @@ protected:
 inline std::string link_text(pkg::control &control)
 {
    std::string link(control.pkgname());
-   pkg::control::const_iterator i = control.find("Architecture");
-   std::string arch;
+   std::string env(control.environment()+control.osdepends());
+   std::string::iterator i = env.begin();
+   // Remove commas and spaces from environment
+   while (i!=env.end())
+   {
+	   if (*i==',' || isspace(*i)) i = env.erase(i);
+	   else ++i;
+   }
 
-   if (i != control.end()) arch = (*i).second;
-   if (arch != "arm" && !arch.empty()) link += "_" + arch;
+   link+=env;
    return link;
 }
-
-

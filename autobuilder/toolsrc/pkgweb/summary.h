@@ -16,14 +16,14 @@ public:
 	std::string get_version() const {return _version;}
 	std::string get_summary() const {return _summary;}
 	std::string get_location() const {return _location;}
-	std::string get_architecture() const {return _architecture;}
+	std::string get_environment() const {return _environment;}
 
 protected:
 	std::string _name;
 	std::string _version;
 	std::string _summary;
 	std::string _location;
-	std::string _architecture;
+	std::string _environment;
 };
 
 class SectionInfo

@@ -1,5 +1,6 @@
 
 #include "summary.h"
+#include "envhelper.h"
 
 SummaryInfo::SummaryInfo(pkg::control &control, const std::string &location)
 {
@@ -7,11 +8,7 @@ SummaryInfo::SummaryInfo(pkg::control &control, const std::string &location)
 	_version = control.version();
 	_summary = control.short_description();
 	_location = location;
-	pkg::control::iterator i = control.find("Architecture");
-	if (i != control.end())
-	{
-           _architecture = (*i).second;
-	}
+    _environment = get_environment_string(control);
 }
 
 SummaryInfo &SummaryInfo::operator=(const SummaryInfo &other)
@@ -20,7 +17,7 @@ SummaryInfo &SummaryInfo::operator=(const SummaryInfo &other)
 	_version = other._version;
 	_summary = other._summary;
 	_location = other._location;
-	_architecture = other._architecture;
+	_environment = other._environment;
 
 	return *this;
 }

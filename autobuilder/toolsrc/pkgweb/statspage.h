@@ -7,7 +7,7 @@ const char *statsPage =
   "</head>\n"
   "<body>\n"
   "<p>\n"
-  "Pages last built on %date% (UTC), %count% items included."
+  "Pages last built on %date% (UTC), %count% (%variants%) packages included."
   "</p>"
   "\n"
   "</body>\n"

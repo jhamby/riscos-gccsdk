@@ -116,6 +116,22 @@ string control::url() const
 	return (f==end())?string():(*f).second;
 }
 
+string control::environment() const
+{
+	static const key_type key("Environment");
+	const_iterator f=find(key);
+	return (f==end())?string():(*f).second;
+
+}
+
+string control::osdepends() const
+{
+	static const key_type key("OSDepends");
+	const_iterator f=find(key);
+	return (f==end())?string():(*f).second;
+}
+
+
 int control::priority(const string& value) const
 {
 	return 0;

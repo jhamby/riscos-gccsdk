@@ -17,16 +17,20 @@ const char *detailItem =
    "<tr bgcolor=\"#ddffdd\">\n"
    "<td><a name=\"%link%\"><b><font size=5>%Package%%name_suffix%</font></b></a></td>\n"
    "<td><b>Version:</b> %Version%</td>\n"
-   "<td align=\"right\">&nbsp;</td>\n"
+   "<td align=\"right\">%environment_string%&nbsp;</td>\n"
    "</tr>\n"
    "</table>\n"
    "<h3>Description:</h3>\n"
   "%Description%\n"
   "<ul>\n"
-  "<li>Architecture: %Architecture:arm%</li>\n"
+  "<li>Homepage: <a href=\"%Homepage%\">%Homepage%</a></li>\n"
   "<li>Section: %Section%</li>\n"
   "<li>Priority: %Priority%</li>\n"
   "<li>Licence: %Licence%</li>\n"
+/* Just going to use an environment description for now
+  "<li>Environment: %Environment%</li>\n"
+  "<li>OSDepends: %OSDepends%</li>\n"
+  */
   "<li>Package size: %Size%</li>\n"
   "<li>Components: %Components:None%\n"
   "</ul>\n"
@@ -37,6 +41,7 @@ const char *detailItem =
   "<tr><td>Suggested</td><td>%Suggests:Nothing%</td></tr>\n"
   "<tr><td>Conflicts with</td><td>%Conflicts:Nothing%</td></tr>\n"
   "</table>\n"
+  "<p>%environment_description%</p>\n"
   "<p><a href=\"%download%\">Get package zip file</a></p>";
 
 

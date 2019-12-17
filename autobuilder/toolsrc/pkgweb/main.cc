@@ -7,6 +7,7 @@
 
 #include "summary.h"
 #include "writer.h"
+#include "envhelper.h"
 
 #include "libpkg/control.h"
 
@@ -47,7 +48,9 @@ int main(int argc, char *argv[])
    const char *dest_dir = argv[argc-2];
    const char *url_base = argv[argc-1];
 
-   map<string, pkg::control *> packages;
+   typedef map<string, pkg::control *> EnvToControlMap;
+   typedef map<string, EnvToControlMap> PackageMap;
+   PackageMap packages;
 
    // Combine a list of packages from the package index files
    for (int pkg_idx = 0; pkg_idx < num_files; pkg_idx++)
@@ -70,15 +73,16 @@ int main(int argc, char *argv[])
          control_file >> *control;
          if (control_file.good())
 	 {
-            pkg::control::const_iterator i = control->find("Architecture");
-	    string arch;
+            string env = get_environment_string(*control);
 
-	    if (i != control->end()) arch = (*i).second;
-            if (arch.empty()) arch="arm";
-
-            string map_key = control->pkgname() + "_" + arch;
-            map_key = lowercase(map_key);
-            packages[map_key] = control;
+            string package_key = control->pkgname();
+            package_key = lowercase(package_key);
+	         PackageMap::iterator found = packages.find(package_key);
+            if (found == packages.end())
+            {
+               found = packages.emplace(package_key, EnvToControlMap()).first;
+            }
+            found->second.emplace(env, control);
          }
       }
 
@@ -90,69 +94,75 @@ int main(int argc, char *argv[])
    string letters;
    char last_letter = 0;
    int packageCount = 0;
+   int variantCount = 0;
 
    // Trawl through packages creating details web pages and building indices
-   for (map<string, pkg::control *>::iterator pkg_iter = packages.begin();
+   for (PackageMap::iterator pkg_iter = packages.begin();
         pkg_iter != packages.end(); ++pkg_iter)
    {
       packageCount++;
-      pkg::control *control = pkg_iter->second;
-      string pkgname, section, arch;
+      EnvToControlMap &envs = pkg_iter->second;
+
+      for(EnvToControlMap::iterator env_iter = envs.begin();
+           env_iter != envs.end(); ++env_iter)
+      {
+         pkg::control *control = env_iter->second;
+         string pkgname, section, env(env_iter->first);
+         variantCount++;
    
-      pkgname = control->pkgname();
-      pkg::control::const_iterator i = control->find("Section");
-      if (i != control->end()) section = (*i).second;
-      if (section.empty()) section = "Missing";
-      i = control->find("Architecture");
-      if (i != control->end()) arch = (*i).second;
-      if (arch.empty()) arch = "arm";
+         pkgname = control->pkgname();
+         pkg::control::const_iterator i = control->find("Section");
+         if (i != control->end()) section = (*i).second;
+         if (section.empty()) section = "Missing";
+         if (env.empty()) env = "Unset";
+      
+         cout << "Package " << pkgname << ", environment " << env 
+              << " in section " << section << endl;
 
-      cout << "Package " << pkgname << ", architecture " << arch 
-           << " in section " << section << endl;
+         char first_char = toupper(*pkgname.begin());
+   
+         if (last_letter != first_char)
+         {
+             last_letter = first_char;
+           	 letters += last_letter;
+         }
 
-      char first_char = toupper(*pkgname.begin());
+          list<SectionInfo>::iterator sec_iter = sections.begin();
+          while (sec_iter != sections.end() && (*sec_iter).get_name() < section) ++sec_iter;
 
-      if (last_letter != first_char)
-      {
-         last_letter = first_char;
-	 letters += last_letter;
-      }
+          string page = dest_dir;
+          page += '/';
+          page += section + "Details.html";
 
-      list<SectionInfo>::iterator sec_iter = sections.begin();
-      while (sec_iter != sections.end() && (*sec_iter).get_name() < section) ++sec_iter;
+          ofstream details;
+          if (sec_iter == sections.end() || (*sec_iter).get_name() != section)
+          {
+             sec_iter = sections.insert(sec_iter, SectionInfo(section));
 
-      string page = dest_dir;
-      page += '/';
-      page += section + "Details.html";
+	         details.open(page.c_str(), ios::out);
+	         OneReplaceWriter headerWriter("section", section);
+	         headerWriter.write(detailHeader, details);
+          } else
+	         details.open(page.c_str(), ios::out | ios::app);
 
-      ofstream details;
-      if (sec_iter == sections.end() || (*sec_iter).get_name() != section)
-      {
-         sec_iter = sections.insert(sec_iter, SectionInfo(section));
+          string link_name = section + "Details.html#" + link_text(*control);
 
-	 details.open(page.c_str(), ios::out);
-	 OneReplaceWriter headerWriter("section", section);
-	 headerWriter.write(detailHeader, details);
-      } else
-	 details.open(page.c_str(), ios::out | ios::app);
+          // Update lists for indices
+          SummaryInfo summary(*control, link_name);
+          (*sec_iter).add_package(summary);
+          alphabetical.push_back(summary);
 
-      string link_name = section + "Details.html#" + link_text(*control);
+          if (details.fail())
+          {
+             cerr << "Failed to open/create details page " << page << endl;
+        	 return -2;
+          }
 
-      // Update lists for indices
-      SummaryInfo summary(*control, link_name);
-      (*sec_iter).add_package(summary);
-      alphabetical.push_back(summary);
+          DetailsWriter dw(*control, url_base);
+          dw.write(detailItem, details);
 
-      if (details.fail())
-      {
-         cerr << "Failed to open/create details page " << page << endl;
-	 return -2;
-      }
-
-      DetailsWriter dw(*control, url_base);
-      dw.write(detailItem, details);
-
-      details.close();
+          details.close();
+       }
    }
 
    // Write category index and end of details pages
@@ -252,9 +262,10 @@ int main(int argc, char *argv[])
   
    ofstream stats_file(stats_name.c_str());
 
-   StatsWriter statsWriter(packageCount);
+   StatsWriter statsWriter(packageCount, variantCount);
    statsWriter.write(statsPage, stats_file);
    stats_file.close();
 
    return 0;
 }
+

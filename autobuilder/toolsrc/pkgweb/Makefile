@@ -6,7 +6,7 @@ LDFLAGS = -L../libpkg -lpkg -lz -lstdc++
 
 TARGET=../../pkgweb
 
-OBJ = main.o summary.o writer.o
+OBJ = main.o summary.o writer.o envhelper.o
 
 .PHONY: all
 
@@ -21,5 +21,6 @@ clean:
 	rm -f $(TARGET).exe
 
 main.o: main.cc summary.h detailspage.h catpage.h alphapage.h
-summary.o: summary.cc summary.h
-writer.o: writer.cc writer.h
+summary.o: summary.cc summary.h envhelper.h
+writer.o: writer.cc writer.h envhelper.h
+envhelper.o: envhelper.cc envhelper.h
