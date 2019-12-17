@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <list>
+#include <set>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <libgen.h>
@@ -55,6 +56,7 @@ public:
 protected:
 	bool include_file(const string &name);
 	void extract_control(const string &filename, bool rename_pkgs);
+        std::string get_env_suffix(const std::string &env_text);
 
 	class IndexEntry
 	{
@@ -68,6 +70,7 @@ protected:
 	};
 
 	map<string, IndexEntry> packages;
+        set<string> packages_with_env;
 	bool check_file;
 	vector<string> include_contains;
 	vector<string> exclude_contains;
@@ -86,7 +89,7 @@ int main(int argc, char *argv[])
 		cout << "Usage: pkgindex <dir_to_index> <index_file>";
 		cout << " [-u <base_url>] [-i <include_contains>]";
 		cout << " [-x <exclude_contains>]";
-		cout << " [-r (rename according to version)]";
+		cout << " [-r (rename according to version and target environment)]";
 		cout << endl;
 		return -1;
 	}
@@ -219,15 +222,18 @@ void PackageIndexer::extract_control(const string &filename, bool rename_pkgs)
 
 		string pkgname(control.pkgname());
 
-		// Key for map is case insensitive
-		string key(lowercase(pkgname));
+                // Need to take into account environment and modules now
+                string env_suffix = get_env_suffix(control.environment());
+                string os_depends = get_env_suffix(control.osdepends());
+                if (!os_depends.empty()) env_suffix += "-" + os_depends;
+                if (!env_suffix.empty()) env_suffix += "_" + env_suffix;
 
 		if (rename_pkgs)
 		{
 			char *rename_name = strdup(filename.c_str());
 			if (!rename_name)
 				throw("Out of memory");	
-			string newname = dirname(rename_name) + string("/") + control.pkgname() + string("_") + control.version() + string(".zip");
+			string newname = dirname(rename_name) + string("/") + control.pkgname() + string("_") + control.version() + env_suffix + string(".zip");
 			if (newname != filename)
 			{
 				cout << "Renaming package " << filename << " to " << newname << endl;
@@ -239,15 +245,18 @@ void PackageIndexer::extract_control(const string &filename, bool rename_pkgs)
 				//cout << r << endl << e << endl;
 			}
 			free(rename_name);
-
 		}
 		else
 		{
+		        // Key for map is case insensitive
+ 		        string base_key(lowercase(pkgname));
+	                string key = base_key + env_suffix;
 			map<string, IndexEntry>::iterator found = packages.find(key);
 			if (found == packages.end())
 			{
 				// new entry
 				packages.insert(pair<string, IndexEntry>(key, IndexEntry(filename,control)));
+				if (!env_suffix.empty()) packages_with_env.insert(base_key);				
 			} else
 			{
 				pkg::version stored_version((*found).second.control.version());
@@ -302,6 +311,48 @@ bool PackageIndexer::include_file(const string &name)
 	return use_file;
 }
 
+/**************************************************************************
+
+   Build a suffix from an environment field for use in renaming a file
+   or using as part of the unique package keys
+
+   Params:
+      env_text - text of the field to process
+
+   Returns:
+      sorted list of "-" seperated entries or "" if field is empty
+     
+**************************************************************************/
+std::string PackageIndexer::get_env_suffix(const std::string &env_text)
+{
+    std::string result;
+    if (!env_text.empty())
+    {
+       // put into a set to remove duplicates and sort
+       std::set<std::string> envs;
+       std::string env;
+       for(const char &c : env_text)
+       {
+           if (c == ',')
+           {
+              if (!env.empty()) envs.insert(env);
+              env.clear();
+           } else if (!isspace(c))
+           {
+              env += tolower(c);
+           }
+       }
+       if (!env.empty()) envs.insert(env);
+       for(const std::string &val : envs)
+       {
+          if (!result.empty()) result += '-';
+          result+=env;
+       }
+     }
+
+     return result;
+}
+
 /*******************************************************************
 
 	Write the index file.
@@ -319,14 +370,25 @@ void PackageIndexer::write_index(const string &filename, int path_ignore, const 
 	ofstream index_stream(filename.c_str());
 
 	cout << "Writing index " << endl;
+       
+	map<string, IndexEntry>::iterator i;
 
 	// May decide we want to sort them
-	map<string, IndexEntry>::iterator i;
 	list<IndexEntry> sorted_packages;
 
 	for (i = packages.begin(); i != packages.end(); ++i)
 	{
+	     // Exclude packages that haven't got the environment set if there
+             // is an alternative with the environment set
+	     bool include = !i->second.control.environment().empty() || !i->second.control.osdepends().empty();
+             if (!include)
+             {
+	        if (packages_with_env.count(i->first) == 0) include = true;
+             }
+             if (include)
+             {
 		sorted_packages.push_back((*i).second);
+             }
 	}
 	sorted_packages.sort();
 
@@ -341,6 +403,14 @@ void PackageIndexer::write_index(const string &filename, int path_ignore, const 
 
 		cout << "package " << entry.control.pkgname();
 		cout << ", version " << entry.control.version();
+                if (!entry.control.environment().empty())
+                {
+                   cout << ", environment " << entry.control.environment();
+                }
+                if (!entry.control.osdepends().empty())
+                {
+                   cout << ", osdepends " << entry.control.osdepends() << std::endl;
+                }
 		cout << ", url " << url << endl;
 
 		pkg::md5 md;
