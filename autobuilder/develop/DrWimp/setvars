@@ -113,6 +113,9 @@ AB_MAKE=
 
 AB_LICENCE=Non-free
 
+# Basic code, so should run on all versions of RISC OS
+AB_ENVIRONMENT=any
+
 # Make function
 #
 # Define this if you want special actions for make
@@ -139,6 +142,8 @@ ab_package () {
 #
 #    $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
 
+    drwimp_homepage="http://www.rayfavre.me.uk/drwimp.html"
+
     # fix up link to this version's package info
     # allows to have pkg called DrWimp-5.00
     rm -f $H/DrWimp-$DRWIMP_VER_MAIN
@@ -158,7 +163,8 @@ ab_package () {
 #    $AB_HOME/add-riscpkg -name $DRWIMP_PKG_TUT -depends $DRWIMP_PKG_COMMON         # Last step to complete packaging
     $AB_HOME/add-riscpkg -package $DRWIMP_PKG_TUT -section Library \
 	-depends $DRWIMP_PKG_COMMON -depends $DRWIMP_PKG_CORE \
-	-suggests $DRWIMP_PKG_META
+	-suggests $DRWIMP_PKG_META \
+        -homepage "$drwimp_homepage"
 
 
 # documents
@@ -170,7 +176,8 @@ ab_package () {
     rm  $D/$DRWIMP_DOC_DIR/Apps/Library/\!DrWimpLib/Documents/Conditions,faf
     $AB_HOME/add-riscpkg -package $DRWIMP_PKG_DOC -section Library \
 	-depends $DRWIMP_PKG_COMMON -recommends $DRWIMP_PKG_SKEL \
-	-suggests $DRWIMP_PKG_META
+	-suggests $DRWIMP_PKG_META \
+        -homepage "$drwimp_homepage"
 
 # utils - download
     wget $DRWIMP_SRC_UTILS_URL
@@ -182,27 +189,33 @@ ab_package () {
 #DRWIMP_VER_FAB
     mkdir -p $D/$DRWIMP_FAB_DIR/RiscPkg
     cp $H/Copyright $D/$DRWIMP_FAB_DIR/RiscPkg/
-    mkdir -p $D/$DRWIMP_FAB_DIR/Apps/Programming/
-    cp -a $DRWIMP_SRC_UTILS/\!Fabricate $D/$DRWIMP_FAB_DIR/Apps/Programming/
+    mkdir -p $D/$DRWIMP_FAB_DIR/Apps/Development/
+    cp -a $DRWIMP_SRC_UTILS/\!Fabricate $D/$DRWIMP_FAB_DIR/Apps/Development/
     $AB_HOME/add-riscpkg -package $DRWIMP_PKG_FAB -pversion $AB_PVERSION_DrWimp_Fabricate \
-      -section Programming -recommends $DRWIMP_PKG_CORE -suggests $DRWIMP_PKG_META
+      -section Development -recommends $DRWIMP_PKG_CORE -suggests $DRWIMP_PKG_META \
+      -components "Apps.Development.!Fabricate (Movable)" \
+      -homepage "$drwimp_homepage"
 
 # codetemps
 #DRWIMP_VER_CODETEMPS
     mkdir -p $D/$DRWIMP_CODETEMPS_DIR/RiscPkg
     cp $H/Copyright $D/$DRWIMP_CODETEMPS_DIR/RiscPkg/
-    mkdir -p $D/$DRWIMP_CODETEMPS_DIR/Apps/Programming/
-    cp -a $DRWIMP_SRC_UTILS/\!CodeTemps $D/$DRWIMP_CODETEMPS_DIR/Apps/Programming/
-    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_CODETEMPS -section Programming
+    mkdir -p $D/$DRWIMP_CODETEMPS_DIR/Apps/Development/
+    cp -a $DRWIMP_SRC_UTILS/\!CodeTemps $D/$DRWIMP_CODETEMPS_DIR/Apps/Development/
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_CODETEMPS -section Development \
+        -components "Apps.Development.!CodeTemps (Movable)" \
+        -homepage "$drwimp_homepage"
 
 # linker
     mkdir -p $D/$DRWIMP_LINKER_DIR/RiscPkg
     cp $H/Copyright $D/$DRWIMP_LINKER_DIR/RiscPkg/
-    mkdir -p $D/$DRWIMP_LINKER_DIR/Apps/Programming/
-    cp -a $DRWIMP_SRC_UTILS/\!Linker $D/$DRWIMP_LINKER_DIR/Apps/Programming/
+    mkdir -p $D/$DRWIMP_LINKER_DIR/Apps/Development/
+    cp -a $DRWIMP_SRC_UTILS/\!Linker $D/$DRWIMP_LINKER_DIR/Apps/Development/
     $AB_HOME/add-riscpkg -package Linker -pversion $AB_PVERSION_Linker \
-	-roversion $AB_ROVERSION -section Programming \
-	-appname Linker
+	-roversion $AB_ROVERSION -section Development \
+	-appname Linker \
+        -components "Apps.Development.!Linker (Movable)" \
+        -homepage "$drwimp_homepage"
 
 # elixirs - download
     wget $DRWIMP_SRC_ELIX_URL
@@ -217,7 +230,8 @@ ab_package () {
     cp -a $DRWIMP_SRC_ELIX/Elixirs $D/$DRWIMP_ELIX_DIR/Apps/Library/\!DrWimpLib/
     $AB_HOME/add-riscpkg -package $DRWIMP_PKG_ELIX -section Library \
 	-depends $DRWIMP_PKG_COMMON -depends $DRWIMP_PKG_CORE \
-	-recommends $DRWIMP_PKG_SKEL -suggests $DRWIMP_PKG_META
+	-recommends $DRWIMP_PKG_SKEL -suggests $DRWIMP_PKG_META \
+        -homepage "$drwimp_homepage"
 
 # example - download
     wget $DRWIMP_SRC_EX_URL
@@ -232,7 +246,8 @@ ab_package () {
     cp -a $DRWIMP_SRC_EX/Examples $D/$DRWIMP_EX_DIR/Apps/Library/\!DrWimpLib/
     $AB_HOME/add-riscpkg -package $DRWIMP_PKG_EX -section Library \
 	-depends $DRWIMP_PKG_COMMON -depends $DRWIMP_PKG_CORE \
-	-recommends $DRWIMP_PKG_META
+	-recommends $DRWIMP_PKG_META \
+        -homepage "$drwimp_homepage"
 
 # core - download
     wget $DRWIMP_SRC_CORE_URL
@@ -254,7 +269,9 @@ ab_package () {
     cp -a $H/README.RiscPkg $D/$DRWIMP_COMMON_DIR/Apps/Library/\!DrWimpLib/Documents/
 	# !Run file needs to know what version we're installing
     sed -i s/DRWIMP_VERSION/$DRWIMP_VER_MAIN/ $D/$DRWIMP_COMMON_DIR/Apps/Library/\!DrWimpLib/\!Run,feb
-    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_COMMON -section Library -suggests $DRWIMP_PKG_META
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_COMMON -section Library -suggests $DRWIMP_PKG_META \
+        -components "Apps.Library.!DrWimpLib (Movable)" \
+        -homepage "$drwimp_homepage"
 
 # core
     mkdir -p $D/$DRWIMP_CORE_DIR/RiscPkg
@@ -269,6 +286,8 @@ ab_package () {
     cp -a $DRWIMP_SRC_CORE/\!MyApp/DrWimp,ffb $D/$DRWIMP_CORE_DIR/Apps/Library/\!DrWimpLib/DrWimp,ffb
     $AB_HOME/add-riscpkg -package $DRWIMP_PKG_CORE -section Library \
 	-depends $DRWIMP_PKG_COMMON -suggests $DRWIMP_PKG_META \
+        -homepage "$drwimp_homepage"
+
 
 # skeleton
     mkdir -p $D/$DRWIMP_SKEL_DIR/RiscPkg
@@ -277,7 +296,8 @@ ab_package () {
     cp -a $DRWIMP_SRC_CORE/\!MyApp $D/$DRWIMP_SKEL_DIR/Apps/Library/\!DrWimpLib/
     $AB_HOME/add-riscpkg -package $DRWIMP_PKG_SKEL -section Library \
 	-depends $DRWIMP_PKG_COMMON -depends $DRWIMP_PKG_CORE \
-	-recommends $DRWIMP_PKG_META
+	-recommends $DRWIMP_PKG_META \
+        -homepage "$drwimp_homepage"
 
 # metapackage - install this to get everything
     mkdir -p $D/$DRWIMP_META_DIR/RiscPkg
@@ -292,7 +312,8 @@ ab_package () {
     	-depends $DRWIMP_PKG_CODETEMPS \
     	-depends $DRWIMP_PKG_FAB \
     	-depends $DRWIMP_PKG_LINKER \
-    	-depends $DRWIMP_PKG_CORE -section Library
+    	-depends $DRWIMP_PKG_CORE -section Library \
+        -homepage "$drwimp_homepage"
 
 
 }
