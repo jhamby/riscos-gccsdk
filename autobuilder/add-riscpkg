@@ -31,9 +31,11 @@ suggests=""
 recommends=""
 package="$AB_SUBPACKAGE"
 section="$AB_CATEGORY"
-architecture="$AB_ARCHITECTURE"
+environment="$AB_ENVIRONMENT"
+osdepends=""
 pkgname=""
 components="$AB_COMPONENTS"
+homepage="$AB_HOMEPAGE"
 
 # look up a version for the specific subpackage based on a
 # variable with the package name- eg AB_PVERSION_zip
@@ -150,8 +152,14 @@ for param in "$@" ; do
      -components)
          components="$param"
          ;;
-     -arch)
-         architecture="$param"
+     -env)
+         environment="$param"
+         ;;
+     -osdepends)
+         osdepends="$osdepends, $param"
+         ;;
+     -homepage)
+         homepage="$param"
          ;;
      *)
        echo "add-riscpkg: Invalid parameter $last_param"
@@ -197,6 +205,8 @@ has_depends=""
 has_suggests=""
 has_recommends=""
 has_components=""
+has_environment=""
+has_osdepends=""
 
 if [ -e "$H/RiscPkg/Control" ] ; then
   has_description=`grep "^Description:" $H/RiscPkg/Control` || true
@@ -205,14 +215,16 @@ if [ -e "$H/RiscPkg/Control" ] ; then
   has_suggests=`grep "^Suggests:" $H/RiscPkg/Control` || true
   has_recommends=`grep "^Recommends:" $H/RiscPkg/Control` || true
   has_components=`grep "^Components:" $H/RiscPkg/Control` || true
+  has_environment=`grep "^Environment:" $H/RiscPkg/Control` || true
+  has_osdepends=`grep "^OSDepends:" $H/RiscPkg/Control` || true
 fi
 
 echo "Package: $pkgname" > $D/RiscPkg/Control
 echo "Version: $pkgversion-$pkgroversion" >> $D/RiscPkg/Control
 echo "Section: $section" >> $D/RiscPkg/Control
 echo "Priority: Optional" >> $D/RiscPkg/Control
-if [ ! -z "$architecture" ] ; then
-  echo "Architecture: $architecture" >> $D/RiscPkg/Control
+if [ -z "$has_environment" ] && [ ! -z "$environment" ] ; then
+  echo "Environment: $environment" >> $D/RiscPkg/Control
 fi
 
 if [ -z "$has_licence" ] ; then
@@ -229,10 +241,23 @@ else
   echo "Maintainer: $AB_MAINTAINER" >> $D/RiscPkg/Control
 fi
 
+# Once PackMan 0.9.2 is released this should be modified to 0.6.0 to
+# allow for multiple versions of the same package
 echo "Standards-Version: 0.4.0" >> $D/RiscPkg/Control
 
 if [ -z "$has_components" ] && [ ! -z "$components" ] ; then
   echo "Components: $components" >> $D/RiscPkg/Control
+fi
+
+if [ ! -z "$homepage" ] ;then
+  echo "Homepage: $homepage" >> $D/RiscPkg/Control
+fi
+
+if [ -z "$has_osdepends" ] && [ ! -z "$osdepends" ] ; then
+  osdepends=`echo "$osdepends" | cut -b 2-`
+  if [ ! -z "$osdepends" ] ; then
+    echo "OSDepends: $osdepends" >> $D/RiscPkg/Control
+  fi
 fi
 
 if [ -z "$has_depends" ] && [ ! -z "$depends" ] ; then
@@ -259,65 +284,84 @@ if [ -e "$H/RiscPkg/Copyright" ] ; then
    has_copyright="yes"
    cat $H/RiscPkg/Copyright > $D/RiscPkg/Copyright
 else
-# Standard header for copyright
-echo "$package" > $D/RiscPkg/Copyright
-echo "" >> $D/RiscPkg/Copyright
-echo "Upstream sources were downloaded and built by" >> $D/RiscPkg/Copyright
-echo "the GCCSDK Autobuilder." >> $D/RiscPkg/Copyright
-echo "" >> $D/RiscPkg/Copyright
-echo "For information on the autobuilder see the URL:" >> $D/RiscPkg/Copyright
-echo "" >> $D/RiscPkg/Copyright
-echo "http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder" >> $D/RiscPkg/Copyright
-echo "" >> $D/RiscPkg/Copyright
-echo "The source used for this build can be found at" >> $D/RiscPkg/Copyright
-echo "" >> $D/RiscPkg/Copyright
-echo "http://www.riscos.info/packages/src/$AB_CATEGORY" >> $D/RiscPkg/Copyright
-echo "" >> $D/RiscPkg/Copyright
-
-# Also check for debian details in parent location in case
-# the build has been done in a subdirectory
-DEBLOC="."
-if [ ! -d ./debian ] ; then
-   if [ -d ../debian ] ; then
-      DEBLOC=".."
-   fi
-fi
-
-if [ ! -d $DEBLOC/debian ] ; then
-   # This is the same as fetch-program
-   AB_CVS_ROOT=$(grep AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
-   if [ ! -z "$AB_CVS_ROOT" ] ; then
-     AB_CVS_MODULE=$(grep AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
-     AB_CVS_TAGORBRANCH=$(grep AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
-     if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
-       AB_CVS_TAGORBRANCH="tag/branch $AB_CVS_TAGORBRANCH"
-     fi
-     echo "Upstream source fetched by CVS with" >> $D/RiscPkg/Copyright
-     echo "" >> $D/RiscPkg/Copyright
-     echo "CVS root $AB_CVS_ROOT" >> $D/RiscPkg/Copyright
-     echo "Module   $AB_CVS_MODULE" >> $D/RiscPkg/Copyright
-     if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
-       echo "Tag/branch $AB_CVS_TAGORBRANCH" >> $D/RiscPkg/Copyright
-     fi
-  fi
-  AB_SVN=$(grep AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
-  if [ ! -z "$AB_SVN" ] ; then
-     echo "Upstream source fetched using SVN from" >> $D/RiscPkg/Copyright
-     echo "" >> $D/RiscPkg/Copyright
-     echo "$AB_SVN" >> $D/RiscPkg/Copyright
-  fi
-  AB_URL=$(grep AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
-  if [ ! -z "$AB_URL" ] ; then
-     echo "Upstream source fetched from URL" >> $D/RiscPkg/Copyright
-     echo "" >> $D/RiscPkg/Copyright
-     echo "$AB_URL" >> $D/RiscPkg/Copyright
-  fi
+  # Standard header for copyright
+  echo "$package" > $D/RiscPkg/Copyright
   echo "" >> $D/RiscPkg/Copyright
+  echo "Upstream sources were downloaded and built by" >> $D/RiscPkg/Copyright
+  echo "the GCCSDK Autobuilder." >> $D/RiscPkg/Copyright
+  echo "" >> $D/RiscPkg/Copyright
+  echo "For information on the autobuilder see the URL:" >> $D/RiscPkg/Copyright
+  echo "" >> $D/RiscPkg/Copyright
+  echo "http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder" >> $D/RiscPkg/Copyright
+  echo "" >> $D/RiscPkg/Copyright
+  echo "The source used for this build can be found at" >> $D/RiscPkg/Copyright
+  echo "" >> $D/RiscPkg/Copyright
+  echo "http://www.riscos.info/packages/src/$AB_CATEGORY" >> $D/RiscPkg/Copyright
+  echo "" >> $D/RiscPkg/Copyright
+
+  # Also check for debian details in parent location in case
+  # the build has been done in a subdirectory
+  DEBLOC="."
+  if [ ! -d ./debian ] ; then
+     if [ -d ../debian ] ; then
+        DEBLOC=".."
+     fi
+  fi
+
+  if [ ! -d $DEBLOC/debian ] ; then
+    # This is the same as fetch-program
+    AB_CVS_ROOT=$(grep AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+    if [ ! -z "$AB_CVS_ROOT" ] ; then
+      AB_CVS_MODULE=$(grep AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+      AB_CVS_TAGORBRANCH=$(grep AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+      if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
+        AB_CVS_TAGORBRANCH="tag/branch $AB_CVS_TAGORBRANCH"
+      fi
+      echo "Upstream source fetched by CVS with" >> $D/RiscPkg/Copyright
+      echo "" >> $D/RiscPkg/Copyright
+      echo "CVS root $AB_CVS_ROOT" >> $D/RiscPkg/Copyright
+      echo "Module   $AB_CVS_MODULE" >> $D/RiscPkg/Copyright
+      if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
+        echo "Tag/branch $AB_CVS_TAGORBRANCH" >> $D/RiscPkg/Copyright
+      fi
+    fi
+    AB_SVN=$(grep AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+    if [ ! -z "$AB_SVN" ] ; then
+      echo "Upstream source fetched using SVN from" >> $D/RiscPkg/Copyright
+      echo "" >> $D/RiscPkg/Copyright
+      echo "$AB_SVN" >> $D/RiscPkg/Copyright
+    fi
+    AB_URL=$(grep AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+    if [ ! -z "$AB_URL" ] ; then
+      echo "Upstream source fetched from URL" >> $D/RiscPkg/Copyright
+      echo "" >> $D/RiscPkg/Copyright
+      echo "$AB_URL" >> $D/RiscPkg/Copyright
+    fi
+    AB_GIT=$(grep ^AB_GIT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+    if [  -z "$AB_GIT" ] ; then
+      echo "Upstream source fetched by GIT with" >> $D/RiscPkg/Copyright
+      echo "" >> $D/RiscPkg/Copyright
+      echo "$AB_GIT" >> $D/RiscPkg/Copyright
+      AB_GIT_TAGORBRANCH=$(grep ^AB_GIT_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+      if [ ! -z "$AB_GIT_TAGORBRANCH" ] ; then
+        echo "Tag/branch $AB_GIT_TAGORBRANCH" >> $D/RiscPkg/Copyright
+      fi
+    fi
+    AB_HG=$(grep '^AB_HG* =' $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+    if [ ! -z "$AB_HG" ] ; then
+      echo "Upstream source fetched by Mercurial with" >> $D/RiscPkg/Copyright
+      echo "" >> $D/RiscPkg/Copyright
+      echo "$AB_HG" >> $D/RiscPkg/Copyright
+      AB_HG_BRANCH=$(grep ^AB_HG_BRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+      if [ ! -z "$AB_HG_BRANCH" ] ; then
+        echo "Branch $AB_HG_BRANCH" >> $D/RiscPkg/Copyright
+      fi
+    fi
+    echo "" >> $D/RiscPkg/Copyright
+  fi
 fi
 
-fi
-
-# Use Debian descpription and copyright
+# Use Debian descpription, homepage and copyright
 if [ -d $DEBLOC/debian ] ; then
   if [ -z "$has_description" ] ; then
     if [ -n "$AB_DEBNAME" ] ; then
@@ -336,6 +380,13 @@ if [ -d $DEBLOC/debian ] ; then
       fi 
     fi
     echo "$desc" >> $D/RiscPkg/Control
+  fi
+
+  if [ -z "$homepage" ] ; then
+     homepage=`grep "Homepage:" $DEBLOC/debian/control | sed -n 's/^Homepage: *//p'`
+     if [ ! -z "$homepage" ] ;then
+       echo "Homepage: $homepage" >> $D/RiscPkg/Control
+     fi
   fi
 
   if [ "$has_copyright" == "no" ] ; then

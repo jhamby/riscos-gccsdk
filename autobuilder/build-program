@@ -16,7 +16,8 @@ AB_INSTALL=no
 AB_CATEGORY=
 AB_COMPONENTS=
 AB_COPYSOURCE=yes
-AB_ARCHITECTURE=
+AB_ENVIRONMENT=arm
+AB_HOMEPAGE=
 AB_DISTCLEAN=
 AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
@@ -760,7 +761,8 @@ export AB_ROVERSION_SUFFIX
 export AB_CATEGORY
 export AB_DEBNAME
 export AB_COMPONENTS
-export AB_ARCHITECTURE
+export AB_ENVIRONMENT
+export AB_HOMEPAGE
 
 if [ "$AB_MANPAGE" != "" ] ; then
   ln -sf . man3
@@ -810,25 +812,35 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
     if [ -d "$package" ] ; then
       unset section
-      unset architecture
+      unset env_suffix
+      unset osdepends
+
       if [ -e "$package/RiscPkg/Control,fff" ] ; then
         section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
-        architecture=`grep "Architecture: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
+        env_suffix=`grep "Environment: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
+        osdepends=`grep "OSDepends: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
       fi
       if [ -e "$package/RiscPkg/Control" ] ; then
         section=`grep "Section: " $package/RiscPkg/Control | cut -d ' ' -f 2`
-        architecture=`grep "Architecture: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
+        env_suffix=`grep "Environment: " $package/RiscPkg/Control | cut -d ' ' -f 2`
+        osdepends=`grep "OSDepends: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
       fi
       if [ -z "$section" ] ; then
         section="$AB_CATEGORY"
       fi
-      if [ -z "$architecture" ] ; then
-        architecture="arm"
+
+      if [ ! -z "$osdepends" ] ; then
+        env_suffix="$env_suffix,$osdepends"
+      fi
+
+      if [ ! -z "$env_suffix" ] ; then
+        env_suffix="_$env_suffix"
+        env_suffix=`echo $env_suffix | sed 's/ *//g;s/,/-/g'`
       fi
 
       ab_subpackage_versions
 
-      AB_PZIP=${AB_DIR}/${package}_${pkgversion}${AB_TARGET}-${pkgroversion}.zip
+      AB_PZIP=${AB_DIR}/${package}_${pkgversion}${AB_TARGET}-${pkgroversion}${env_suffix}.zip
 
       # Used for source zip name
       if [ -z "$AB_ZIP" ] ; then
@@ -842,11 +854,11 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
       fi
       cd $package
       addzip -r $AB_PZIP *
-      #echo "Making directory !!$AB_OUTPUTPACK/$architecture/$section !!"
-      mkdir -p $AB_OUTPUTPACK/$architecture/$section
-      mv $AB_PZIP $AB_OUTPUTPACK/$architecture/$section
-      ls -l $AB_OUTPUTPACK//$architecture/$section/$(basename $AB_PZIP)
-      echo $AB_OUTPUTPACK/$architecture/$section/$(basename $AB_PZIP) >> $AB_HOME/last-zips
+      #echo "Making directory !!$AB_OUTPUTPACK/$section !!"
+      mkdir -p $AB_OUTPUTPACK/arm/$section
+      mv $AB_PZIP $AB_OUTPUTPACK/arm/$section
+      ls -l $AB_OUTPUTPACK/arm/$section/$(basename $AB_PZIP)
+      echo $AB_OUTPUTPACK/arm/$section/$(basename $AB_PZIP) >> $AB_HOME/last-zips
       cd ..
     else
       echo "Autobuilder: package directory missing $package" 1>&2
