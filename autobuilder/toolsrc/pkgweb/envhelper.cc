@@ -8,7 +8,7 @@
 
 std::map<std::string, std::string> s_envCodeAndText =
 {
-    {"any", "This package is should work with any system."},
+    {"any", "This package should work with any system."},
     {"arm",   "This package requires RISC OS systems that can run 32 bit code."
     " It may need the 32 bit version of the Shared C Library."
     " e.g. RiscPCs and later machines."
