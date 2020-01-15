@@ -14,13 +14,4 @@
  		usescancodes=true;
  
  		/* Note: table has to be tested/updated for various OSs */
-@@ -2422,7 +2428,7 @@
- 		sdlkey_map[0x5E]=SDLK_RALT;
- 		sdlkey_map[0x40]=SDLK_KP5;
- 		sdlkey_map[0x41]=SDLK_KP6;
--#elif !defined (WIN32) /* => Linux & BSDs */
-+#elif !defined (WIN32) /* => Linux & BSDs */
- 		bool evdev_input = false;
--#ifdef C_X11_XKB
-+#if defined (C_X11_XKB) && !defined (__riscos__)
- 		SDL_SysWMinfo info;
+

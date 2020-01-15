@@ -1,6 +1,9 @@
-AB_ROVERSION=2
+AB_ROVERSION=3
 # AB_MANPAGE=docs/dosbox.1
 AB_CONFLAGS="--disable-opengl"
+AB_LICENSE=Free
+AB_PVERSION=`echo ${PWD##*/} | sed -e's/dosbox-//'`
+
 
 ab_package() {
   ab_create_app DosBox Apps/Emulation

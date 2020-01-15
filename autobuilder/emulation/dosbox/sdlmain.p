@@ -1,11 +1,11 @@
---- src/gui/sdlmain.cpp.orig	2010-05-10 18:43:54.000000000 +0100
-+++ src/gui/sdlmain.cpp	2010-05-25 20:20:32.000000000 +0100
-@@ -1743,7 +1743,10 @@
- #if SDL_VERSION_ATLEAST(1, 2, 14)
- 	putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
+--- src/gui/sdlmain.cpp.orig	2019-12-31 13:39:03.862737787 +0000
++++ src/gui/sdlmain.cpp	2020-01-14 19:47:45.896621625 +0000
+@@ -1913,7 +1913,10 @@
  #endif
--	if ( SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_CDROM
-+	if ( SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER
+ 	// Don't init timers, GetTicks seems to work fine and they can use a fair amount of power (Macs again) 
+ 	// Please report problems with audio and other things.
+-	if ( SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO | /*SDL_INIT_TIMER |*/ SDL_INIT_CDROM
++	if ( SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO /*SDL_INIT_TIMER |*/ 
 +#ifndef __riscos__
 +		|SDL_INIT_CDROM
 +#endif
