@@ -226,7 +226,7 @@ void PackageIndexer::extract_control(const string &filename, bool rename_pkgs)
                 string env_suffix = get_env_suffix(control.environment());
                 string os_depends = get_env_suffix(control.osdepends());
                 if (!os_depends.empty()) env_suffix += "-" + os_depends;
-                if (!env_suffix.empty()) env_suffix += "_" + env_suffix;
+                if (!env_suffix.empty()) env_suffix = "_" + env_suffix;
 
 		if (rename_pkgs)
 		{
