@@ -331,8 +331,9 @@ std::string PackageIndexer::get_env_suffix(const std::string &env_text)
        // put into a set to remove duplicates and sort
        std::set<std::string> envs;
        std::string env;
-       for(const char &c : env_text)
+	   for (std::string::const_iterator ci = env_text.begin(); ci != env_text.end(); ++ci)
        {
+		   const char &c = *ci;
            if (c == ',')
            {
               if (!env.empty()) envs.insert(env);
@@ -343,8 +344,9 @@ std::string PackageIndexer::get_env_suffix(const std::string &env_text)
            }
        }
        if (!env.empty()) envs.insert(env);
-       for(const std::string &val : envs)
+       for(std::set<std::string>::const_iterator si = envs.begin(); si != envs.end(); ++si)
        {
+		  const std::string &env = *si;
           if (!result.empty()) result += '-';
           result+=env;
        }
