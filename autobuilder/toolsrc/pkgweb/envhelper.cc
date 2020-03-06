@@ -84,9 +84,11 @@ std::string get_environment_text(const pkg::control ctrl)
         {
             text += "<ul>";
             std::string env_desc;
-            for(const std::string &e : envs)
+            for(std::vector<std::string>::const_iterator ei = envs.begin();
+                ei != envs.end();++ei)
             {
-                auto found = s_envCodeAndText.find(e);
+                const std::string &e = *ei;
+                std::map<std::string,std::string>::const_iterator found = s_envCodeAndText.find(e);
                 text+="<li>";
                 if (found != s_envCodeAndText.end())
                 {
@@ -108,9 +110,11 @@ std::string get_environment_text(const pkg::control ctrl)
                 if (!text.empty()) text += "<br>";
                 text += "The following modules must be installed and loaded at startup<br>";
                 text += "<ul>";
-                for (const std::string &osd : mods)
+                for (std::vector<std::string>::const_iterator osi = mods.begin();
+                    osi != mods.end(); ++osi)
                 {
-                    auto found = s_modsAndText.find(osd);
+                    const std::string &osd = *osi;
+                    std::map<std::string,std::string>::const_iterator found = s_modsAndText.find(osd);
                     text += "<li>";
                     if (found != s_modsAndText.end())
                     {
