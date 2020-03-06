@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
 	         PackageMap::iterator found = packages.find(package_key);
             if (found == packages.end())
             {
-               found = packages.emplace(package_key, EnvToControlMap()).first;
+               found = packages.insert(std::make_pair(package_key, EnvToControlMap())).first;
             }
-            found->second.emplace(env, control);
+            found->second.insert(std::make_pair(env, control));
          }
       }
 
