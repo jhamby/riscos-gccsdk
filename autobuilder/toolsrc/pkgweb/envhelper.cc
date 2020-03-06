@@ -37,8 +37,9 @@ static bool parse_field(std::vector<std::string> &items, const std::string &fiel
     bool skip = true;
     bool skip_char;
 
-    for(char ch : field)
+    for(std::string::const_iterator ci = field.begin(); ci !=field.end(); ++ci)
     {
+        const char &ch = *ci;
         skip_char = (ch == ' ' || ch == ',');
         if (skip)
         {
