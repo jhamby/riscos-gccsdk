@@ -1,0 +1,17 @@
+
+AB_GIT=https://github.com/libretro/RetroArch.git
+
+AB_PVERSION=1.8.1
+
+AB_CONFLAGS='--disable-x11 --disable-builtinminiupnpc --disable-opengl --disable-ssl --enable-sdl --disable-discord'
+
+ab_package() {
+
+  ab_create_app RetroArch Apps/Emulation retroarch
+  
+  cp -T $S/retroarch $A/retroarch$AB_EXEEXT
+
+  cp -av $S/CHANGES.md $S/CONTRIBUTING.md $S/COPYING $S/README.md $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}

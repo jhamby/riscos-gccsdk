@@ -1,0 +1,5 @@
+WimpSlot -min 6200k -max 6200k
+
+Set RetroArch$Dir <Obey$Dir>
+
+Run <RetroArch$Dir>.retroarch ><RetroArch$Dir>.retroarch/log 2>&1

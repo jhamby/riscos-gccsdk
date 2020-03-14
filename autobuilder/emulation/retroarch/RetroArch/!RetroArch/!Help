@@ -1,0 +1,34 @@
+RetroArch - Frontend for emulators, game engines and media players (v1.8.1)
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+For documentation see the official RetroArch website athttps://https://docs.libretro.com//
+
+Getting Started
+---------------
+
+Just double-click the !RetroArch application. After a few seconds a window should open showing the menu system.
+
+
+History
+-------
+RISC OS Version 0.01 (14-Mar-20)
+- this is the initial test version of RetroArch v1.8.1 built for RISC OS.
+
+Issues
+------
+
+Some cores run too slowly to be playable. If the frame rate drop below the core framerate
+the sound badly stutters or slows down.
+
+The command line options have no effect.
+
+There's no RISC OS integration. There is a configuration file automatically generated
+when RetroArch is run for the first time. See !UnixHome.home./config.retroarch.RetroArch/cfg.
+
+I've only tested running a few games on the various cores. Some cores may need alignment exceptions
+turning off.
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net
