@@ -1,5 +1,8 @@
 | Load the SOManager and run an ELF executable
 
+RMEnsure ARMEABISupport 1.00 RMLoad System:Modules.ARMEABISupport
+RMEnsure ARMEABISupport 1.00 Error Need at least v1.00 of ARMEABISupport
+
 RMEnsure SOManager 2.10 RMLoad SharedLibs:SOManager
 RMEnsure SOManager 2.10 Error Need at least v2.10 of Shared Object Manager (SOManager)
 
