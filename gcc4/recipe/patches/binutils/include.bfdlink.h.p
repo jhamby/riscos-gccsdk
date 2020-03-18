@@ -1,12 +1,14 @@
---- include/bfdlink.h.orig	2013-11-04 16:33:39.000000000 +0100
-+++ include/bfdlink.h	2013-12-31 13:16:36.478126417 +0100
-@@ -524,6 +524,9 @@ struct bfd_link_info
-   /* Start and end of RELRO region.  */
-   bfd_vma relro_start, relro_end;
+--- include/bfdlink.h.orig	2020-03-16 18:08:18.149473777 +0000
++++ include/bfdlink.h	2020-03-16 18:04:54.139390026 +0000
+@@ -529,6 +529,11 @@ struct bfd_link_info
  
+   /* The version information.  */
+   struct bfd_elf_version_tree *version_info;
++
 +  /* 1 for -fpic, 2 for fPIC (RISC OS) */
 +  unsigned int flag_pic;
 +
-   /* List of symbols should be dynamic.  */
-   struct bfd_elf_dynamic_list *dynamic_list;
++  const char *riscos_abi;
+ };
  
+ /* This structures holds a set of callback functions.  These are called

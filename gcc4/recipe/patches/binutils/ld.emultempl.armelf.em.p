@@ -1,5 +1,5 @@
---- ld/emultempl/armelf.em.orig	2013-11-04 16:33:39.000000000 +0100
-+++ ld/emultempl/armelf.em	2013-12-31 13:16:36.486126316 +0100
+--- ld/emultempl/armelf.em.orig	2020-03-16 19:56:07.896861081 +0000
++++ ld/emultempl/armelf.em	2020-03-16 19:54:48.405715286 +0000
 @@ -41,6 +41,7 @@ static int no_wchar_size_warning = 0;
  static int pic_veneer = 0;
  static int merge_exidx_entries = -1;
@@ -68,37 +68,40 @@
  }
  
  /* Fake input file for stubs.  */
-@@ -533,6 +578,9 @@ PARSE_AND_LIST_PROLOGUE='
+@@ -533,6 +578,10 @@ PARSE_AND_LIST_PROLOGUE='
  #define OPTION_NO_MERGE_EXIDX_ENTRIES   316
  #define OPTION_FIX_ARM1176		317
  #define OPTION_NO_FIX_ARM1176		318
 +#define OPTION_FPIC_1			319
 +#define OPTION_FPIC_2			320
 +#define OPTION_RISCOS_MODULE		321
++#define OPTION_RISCOS_ABI		322
  '
  
  PARSE_AND_LIST_SHORTOPTS=p
-@@ -557,6 +605,9 @@ PARSE_AND_LIST_LONGOPTS='
+@@ -557,6 +606,10 @@ PARSE_AND_LIST_LONGOPTS='
    { "no-merge-exidx-entries", no_argument, NULL, OPTION_NO_MERGE_EXIDX_ENTRIES },
    { "fix-arm1176", no_argument, NULL, OPTION_FIX_ARM1176 },
    { "no-fix-arm1176", no_argument, NULL, OPTION_NO_FIX_ARM1176 },
 +  { "fpic", no_argument, NULL, OPTION_FPIC_1},
 +  { "fPIC", no_argument, NULL, OPTION_FPIC_2},
 +  { "ro-module-reloc", no_argument, NULL, OPTION_RISCOS_MODULE},
++  { "riscos-abi", required_argument, NULL, OPTION_RISCOS_ABI },
  '
  
  PARSE_AND_LIST_OPTIONS='
-@@ -586,6 +637,9 @@ PARSE_AND_LIST_OPTIONS='
+@@ -586,6 +639,10 @@ PARSE_AND_LIST_OPTIONS='
    fprintf (file, _("  --[no-]fix-cortex-a8        Disable/enable Cortex-A8 Thumb-2 branch erratum fix\n"));
    fprintf (file, _("  --no-merge-exidx-entries    Disable merging exidx entries\n"));
    fprintf (file, _("  --[no-]fix-arm1176          Disable/enable ARM1176 BLX immediate erratum fix\n"));
 +  fprintf (file, _("  -fpic                       Generate original PLT entries\n"));
 +  fprintf (file, _("  -fPIC                       Generate RISC OS PLT entries\n"));
 +  fprintf (file, _("  --ro-module-reloc           Add RISC OS module relocation code & data\n"));
++  fprintf (file, _("  --riscos-abi <ABI>          Use ABI as the contents of the .riscos.abi.version section.\n"));
  '
  
  PARSE_AND_LIST_ARGS_CASES='
-@@ -677,8 +731,23 @@ PARSE_AND_LIST_ARGS_CASES='
+@@ -677,8 +734,27 @@ PARSE_AND_LIST_ARGS_CASES='
     case OPTION_NO_FIX_ARM1176:
        fix_arm1176 = 0;
        break;
@@ -113,6 +116,10 @@
 +
 +    case OPTION_RISCOS_MODULE:
 +      riscos_module = 1;
++      break;
++
++   case OPTION_RISCOS_ABI:
++      link_info.riscos_abi = optarg;
 +      break;
  '
  

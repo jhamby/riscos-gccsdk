@@ -21,7 +21,8 @@ OTHER_READONLY_SECTIONS="
   .ARM.extab ${RELOCATING-0} : { *(.ARM.extab${RELOCATING+* .gnu.linkonce.armextab.*}) }
   ${RELOCATING+ PROVIDE_HIDDEN (__exidx_start = .); }
   .ARM.exidx ${RELOCATING-0} : { *(.ARM.exidx${RELOCATING+* .gnu.linkonce.armexidx.*}) }
-  ${RELOCATING+ PROVIDE_HIDDEN (__exidx_end = .); }"
+  ${RELOCATING+ PROVIDE_HIDDEN (__exidx_end = .); }
+  .riscos.abi.version : { KEEP (*(.riscos.abi.version)) }"
 
 TEXT_START_ADDR=0x00008000
 TARGET2_TYPE=got-rel
