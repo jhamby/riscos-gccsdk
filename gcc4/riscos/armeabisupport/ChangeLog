@@ -1,3 +1,10 @@
+Wed Mar 18 17:02:07 GMT 2020  Lee Noar  <lee.noar@sky.com>
+
+	* armeabi-support.h(armeabi_memory_free): Add a size argument.
+	Not used by the current version, but a future one will.
+	* Makefile.am: Install the header into GCCSDK_INSTALL_ENV/include
+	for general use by other libraries.
+
 Sat Oct 12 18:27:59 BST 2019  Lee Noar  <lee.noar@sky.com>
 
 	* Initial revision:

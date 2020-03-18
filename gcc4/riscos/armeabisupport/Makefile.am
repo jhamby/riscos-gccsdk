@@ -21,3 +21,5 @@ CMUNGEFLAGS = -tgcc -32bit -p -DPACKAGE_VERSION=$(PACKAGE_VERSION)
 # Add ,ffa suffix to RISC OS Module filename during installation:
 install-exec-hook:
 	test -f "$(DESTDIR)$(bindir)/ARMEABISupport$(EXEEXT)" && mv $(DESTDIR)$(bindir)/ARMEABISupport$(EXEEXT) $(DESTDIR)$(bindir)/ARMEABISupport$(EXEEXT)\,ffa
+	mkdir -p $(GCCSDK_INSTALL_ENV)/include
+	cp -T ${srcdir}/armeabi-support.h $(GCCSDK_INSTALL_ENV)/include/armeabi-support.h

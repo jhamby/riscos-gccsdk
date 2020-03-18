@@ -1,6 +1,6 @@
 /* armeabi-support.h
  *
- * Copyright 2019 GCCSDK Developers
+ * Copyright 2019, 2020 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -113,10 +113,12 @@ armeabi_memory_alloc(armeabi_allocator_t __allocator,
 
 static inline _kernel_oserror *
 armeabi_memory_free(armeabi_allocator_t __allocator,
-		    eabi_PTR __block)
+		    eabi_PTR __block,
+		    size_t __size)
 {
   register armeabi_allocator_t allocator asm("r1") = __allocator;
   register eabi_PTR block asm("r2") = __block;
+  register size_t size = asm("r3") = __size;
   _kernel_oserror *err;
 
   asm volatile ("	MOV	r0, %[reason];\n"
@@ -126,6 +128,7 @@ armeabi_memory_free(armeabi_allocator_t __allocator,
 		: [err] "=r" (err)
 		: "r" (allocator),
 		  "r" (block),
+		  "r" (size),
 		  [XARMEABISupport_MemoryOp] "i" (XOS_Bit | ARMEABISupport_MemoryOp),
 		  [reason] "I" (ARMEABISUPPORT_MEMORYOP_FREE)
 		: "r0", "lr", "cc");
