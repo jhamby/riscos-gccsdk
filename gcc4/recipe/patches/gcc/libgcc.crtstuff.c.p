@@ -1,6 +1,6 @@
 Index: libgcc/crtstuff.c
 ===================================================================
---- libgcc/crtstuff.c	(revision 186670)
+--- libgcc/crtstuff.c	(revision 267935)
 +++ libgcc/crtstuff.c	(working copy)
 @@ -209,13 +209,13 @@
  #elif defined(CTORS_SECTION_ASM_OP)
@@ -139,17 +139,3 @@ Index: libgcc/crtstuff.c
  #if defined(USE_EH_FRAME_REGISTRY) \
      || defined(JCR_SECTION_NAME) \
      || defined(USE_TM_CLONE_REGISTRY)
-@@ -740,6 +744,13 @@
- #error "What are you doing with crtstuff.c, then?"
- #endif
- 
-+#ifdef __riscos__
-+static const char riscos_abi_version[]
-+  __attribute__((used, section(".riscos.abi.version"), aligned(4))) =
-+#include "config/arm/riscos-abi.h"
-+  ;
-+#endif
-+
- #else /* ! CRT_BEGIN && ! CRT_END */
- #error "One of CRT_BEGIN or CRT_END must be defined."
- #endif

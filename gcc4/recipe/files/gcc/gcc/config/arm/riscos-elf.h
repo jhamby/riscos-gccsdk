@@ -143,13 +143,19 @@ extern const char * riscos_multilib_dir (int argc, const char **argv);
 #define ENDFILE_SPEC	" %{shared:crtendS.o%s;:crtend.o%s}" \
 			" crtn.o%s"
 
+#define DYNAMIC_LINKER "ld-riscos/so/1"
+#define RISCOS_ABI "abi-2.0"
+
 #undef  LINK_SPEC
 #define LINK_SPEC "%{h*} %{version:-v} \
    %{b} %{Wl,*:%*} \
    %{static:-Bstatic} \
    %{shared:-shared} \
    %{symbolic:-Bsymbolic} \
-   %{rdynamic:-export-dynamic} \
+  %{!static: \
+     %{rdynamic:-export-dynamic} \
+     %{!shared:-dynamic-linker " DYNAMIC_LINKER "} \
+     %{!riscos-abi:-riscos-abi " RISCOS_ABI "}} \
    -X \
    %{mbig-endian:-EB}" \
    SUBTARGET_EXTRA_LINK_SPEC
