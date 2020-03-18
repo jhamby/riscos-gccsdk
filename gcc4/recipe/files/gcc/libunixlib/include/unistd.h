@@ -344,7 +344,8 @@ enum
     _SC_2_LOCALEDEF,
 
     _SC_PAGE_SIZE = _SC_PAGESIZE,
-    _SC_PHYS_PAGES
+    _SC_PHYS_PAGES,
+    _SC_NPROCESSORS_ONLN
   };
 
 /* Get the value of the system variable NAME.  */

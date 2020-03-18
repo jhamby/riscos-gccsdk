@@ -1,3 +1,21 @@
+Mon Mar 16 16:20:20 GMT  2020  Lee Noar  <lee.noar@sky.com>
+
+	* include/fcntl.h(O_CLOEXEC): Alternative version of O_EXECCL.
+	* include/unistd.h(_SC_NPROCESSORS_ONLN): Add symbol.
+	* unix/sysconf.c(sysconf): Handle _SC_NPROCESSORS_ONLN. Simply
+	returns 1 as the number of online processors.
+	* Makefile.am: Add new files eventfd.{c/h}.
+	* incl-local/internal/dev.h: Add EventFD as a new device.
+	* include/sys/eventfd.h: New file.
+	* unix/dev.c: Add EventFD to device array.
+	* unix/eventfd.c: New file to implement eventfd(), etc.
+
+	EventFD can be used as an event wait/notify mechanism instead of using
+	pipes. Unlike pipes, EventFD does not use files in its implementation
+	and should therefor be more efficient.
+	Where eventfd() is available, libglib (GWakeup) will make use of it
+	instead of using pipes.
+
 Mon Nov 25 21:27:10 GMT  2019  Lee Noar  <lee.noar@sky.com>
 
 	* signal/_signal.s(__h_error): Fix backtrace originating from error

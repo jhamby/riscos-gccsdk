@@ -1,5 +1,5 @@
 /* Low-level device handling.
-   Copyright (c) 2002-2013 UnixLib Developers.  */
+   Copyright (c) 2002-2020 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <dirent.h>
@@ -73,6 +73,11 @@ const struct dev __dev[NDEV] = {
   /* DEV_CUSTOM */
   {__customopen, __customclose, __customread, __customwrite,
    __customlseek, __customioctl, __customselect, __nullstat, __nullfstat,
+   __nullstat},
+
+  /* DEV_EVENTFD */
+  {__nullopen, __eventfd_close, __eventfd_read, __eventfd_write,
+   __nulllseek, __nullioctl, __eventfd_select, __nullstat, __nullfstat,
    __nullstat}
 };
 

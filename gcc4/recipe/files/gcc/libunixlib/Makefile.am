@@ -1172,6 +1172,7 @@ unix_src = \
 	unix/dirfd.c \
 	unix/dup.c \
 	unix/dup2.c \
+	unix/eventfd.c \
 	unix/fchmod.c \
 	unix/fcntl.c \
 	unix/features.c \
@@ -1382,6 +1383,7 @@ libc_headers = \
 	sys/dir.h \
 	sys/elf.h \
 	sys/errno.h \
+	sys/eventfd.h \
 	sysexits.h \
 	sys/fcntl.h \
 	sys/file.h \

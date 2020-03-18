@@ -1,5 +1,5 @@
 /* Return system implementation details.
-   Copyright (c) 2001, 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2001, 2005, 2007, 2008, 2020 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -124,6 +124,11 @@ sysconf (int name)
 #ifdef	_POSIX2_SW_DEV
       case _SC_2_SW_DEV:
         return _POSIX2_SW_DEV;
+#endif
+
+#ifdef	_SC_NPROCESSORS_ONLN
+      case _SC_NPROCESSORS_ONLN:
+	return 1;
 #endif
     }
 

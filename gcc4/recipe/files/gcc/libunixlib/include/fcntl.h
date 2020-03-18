@@ -76,6 +76,7 @@ __BEGIN_DECLS
 
 /* close on exec() flag - must be bit 8 */
 #define O_EXECCL	0x0100
+#define O_CLOEXEC	O_EXECCL
 
 #ifndef _POSIX_SOURCE
 /* Strict POSIX doesn't allow this and UnixLib won't do anything special

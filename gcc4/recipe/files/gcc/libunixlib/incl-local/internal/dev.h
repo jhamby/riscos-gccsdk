@@ -1,5 +1,5 @@
 /* UnixLib internal device implementation.
-   Copyright (c) 2002-2010 UnixLib Developers.  */
+   Copyright (c) 2002-2020 UnixLib Developers.  */
 
 #ifdef __TARGET_SCL__
 #  error "SCL has no dev support"
@@ -37,8 +37,9 @@ __BEGIN_DECLS
 #define DEV_RANDOM	6	/* /dev/random         */
 #define DEV_DSP		7	/* /dev/dsp            */
 #define DEV_CUSTOM	8	/* Custom FD behaviour */
+#define DEV_EVENTFD	9	/* EventFD             */
 
-#define NDEV		9
+#define NDEV		10
 
 /* Call a device function, ensuring we don't refer to an invalid device */
 #define dev_funcall(type, func, args) __funcall ((*(__dev[(type) < NDEV ? (type) : DEV_NULL].func)), args)
@@ -133,6 +134,12 @@ extern int __customwrite (struct __unixlib_fd *__fd, const void *__data, int __n
 extern __off_t __customlseek (struct __unixlib_fd *__fd, __off_t __lpos, int __whence);
 extern int __customioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 extern int __customselect (struct __unixlib_fd *__fd, int __fd1, fd_set *__read, fd_set *__write, fd_set *__except);
+
+extern int __eventfd_read (struct __unixlib_fd *file_desc, void *data, int nbyte);
+extern int __eventfd_write (struct __unixlib_fd *file_desc, const void *data, int nbyte);
+extern int __eventfd_select (struct __unixlib_fd *file_desc, int fd, fd_set *read,
+			     fd_set *write, fd_set *except);
+extern int __eventfd_close (struct __unixlib_fd *file_desc);
 
 __END_DECLS
 
