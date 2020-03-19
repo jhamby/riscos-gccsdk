@@ -98,8 +98,8 @@ export PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
 #CC=$HOME/ProgDev/toolchains/bin/gcc CXX=$HOME/ProgDev/toolchains/bin/g++ \
 CC=/usr/bin/gcc CXX=/usr/bin/g++ \
 ../configure --prefix=$GCCSDK_INSTALL_ENV --target=arm-riscos-gnueabihf \
-	     --enable-shared=libunixlib,libgcc,libstdc++ \
-	     --enable-languages=c,c++ \
+	     --enable-shared=libunixlib,libgcc,libstdc++,libgfortran,libbacktrace \
+	     --enable-languages=c,c++,fortran \
 	     --enable-threads=posix \
 	     --enable-sjlj-exceptions=no \
 	     --enable-__cxa_atexit \
@@ -119,10 +119,6 @@ CC=/usr/bin/gcc CXX=/usr/bin/g++ \
 	     --with-float=hard \
 	     --with-fpu=vfpv3 \
 	     --with-arch=armv7-a
-#	     --enable-initfini-array \
-#	     --with-gmp=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-cross-gcc \
-#	     --with-mpfr=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-cross-gcc \
-#	     --with-mpc=$HOST_4_7_4_GCC_BUILDDIR/installed-libs-for-cross-gcc \
 
 make -j6 && make install
 
@@ -184,6 +180,8 @@ ab_package() {
   ab_add_sharedlib $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib libunixlib.so.5
   ab_add_sharedlib $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib libstdc++.so.6
   ab_add_sharedlib $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib libm.so.1
+  ab_add_sharedlib $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib libgfortran.so.5
+
   # libgcc_s doesn't follow the rules
   cp -fT $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf/lib/libgcc_s.so.1 $A/lib/$GCCSDK_RISCOS_ABI_VERSION/libgcc_s.so.1,E1F
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s libgcc_s.so.1 $A/lib/$GCCSDK_RISCOS_ABI_VERSION/libgcc_s.so,1C8
