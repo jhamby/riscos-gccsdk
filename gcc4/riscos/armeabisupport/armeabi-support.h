@@ -113,12 +113,10 @@ armeabi_memory_alloc(armeabi_allocator_t __allocator,
 
 static inline _kernel_oserror *
 armeabi_memory_free(armeabi_allocator_t __allocator,
-		    eabi_PTR __block,
-		    size_t __size)
+		    eabi_PTR __block)
 {
   register armeabi_allocator_t allocator asm("r1") = __allocator;
   register eabi_PTR block asm("r2") = __block;
-  register size_t size = asm("r3") = __size;
   _kernel_oserror *err;
 
   asm volatile ("	MOV	r0, %[reason];\n"
