@@ -126,7 +126,6 @@ armeabi_memory_free(armeabi_allocator_t __allocator,
 		: [err] "=r" (err)
 		: "r" (allocator),
 		  "r" (block),
-		  "r" (size),
 		  [XARMEABISupport_MemoryOp] "i" (XOS_Bit | ARMEABISupport_MemoryOp),
 		  [reason] "I" (ARMEABISUPPORT_MEMORYOP_FREE)
 		: "r0", "lr", "cc");
