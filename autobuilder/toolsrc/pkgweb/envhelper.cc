@@ -9,13 +9,16 @@
 std::map<std::string, std::string> s_envCodeAndText =
 {
     {"any", "This package should work with any system."},
-    {"arm",   "This package requires RISC OS systems that can run 32 bit code."
+    {"arm",   "This is 26/32 bit (addressing) neutral."
     " It may need the 32 bit version of the Shared C Library."
     " e.g. RiscPCs and later machines."
     },
     {"arm26", 
     "This package needs a machine that runs with 26 bit addressing."
     " e.g. RiscPCs and earlier."},
+    {"arm32",   "This package requires RISC OS systems that can run 32 bit code."
+    " e.g. Iyonix and later machines."
+    },
     {"vfp", 
     "This application requires a machine with the Vector floating point unit."
     " e.g. Anything after the Iyonix that runs RISC OS 5."
