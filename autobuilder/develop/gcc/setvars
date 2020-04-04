@@ -6,6 +6,7 @@ AB_ROVERSION=1
 AB_MAKE=
 AB_PRECONF=":"
 AB_CONFIG=
+AB_DISTCLEAN="$AB_MAKE do-distclean || $AB_MAKE do-clean"
 
 export GCCSDK_RISCOS_ABI_VERSION=armeabihf
 
