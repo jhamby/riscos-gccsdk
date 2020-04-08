@@ -45,7 +45,35 @@
 #define LIB_SPEC \
   "%{!nostdlib:-lunixlib }"
   
-#define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos_eabi -p"
+#define DYNAMIC_LINKER "ld-riscos/so/2"
+#define RISCOS_ABI "armeabihf"
+
+#ifdef CROSS_DIRECTORY_STRUCTURE
+#define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos_eabi -p \
+     %{!static: \
+      %{!fpic:-fPIC} %{fpic:-fpic} \
+      %{mmodule:--ro-module-reloc --target2=rel}}"
+#else
+extern const char * riscos_multilib_dir (int argc, const char **argv);
+#undef EXTRA_SPEC_FUNCTIONS
+#define EXTRA_SPEC_FUNCTIONS			\
+      MCPU_MTUNE_NATIVE_FUNCTIONS		\
+      ASM_CPU_SPEC_FUNCTIONS			\
+      CANON_ARCH_SPEC_FUNCTION			\
+      TARGET_MODE_SPEC_FUNCTIONS		\
+      BE8_SPEC_FUNCTION				\
+      { "riscos_multilib_dir", riscos_multilib_dir },
+
+/* When building the native RISC OS compiler, we add an extra library path
+   GCCSOLib:  */
+#define SUBTARGET_EXTRA_LINK_SPEC \
+   "-m armelf_riscos_eabi -p \
+   %{!static: \
+     %{!fpic:-fPIC} %{fpic:-fpic} \
+     %:riscos_multilib_dir() \
+     %{mmodule:--ro-module-reloc --target2=rel}}"
+
+#endif
 
 #undef DRIVER_SELF_SPECS
 #define DRIVER_SELF_SPECS						   \
@@ -65,9 +93,6 @@
 #define ENDFILE_SPEC	" %{shared:crtendS.o%s;:crtend.o%s}" \
 			" crtn.o%s"
 
-#define DYNAMIC_LINKER "ld-riscos/so/2"
-#define RISCOS_ABI "armeabihf"
-
 #undef  LINK_SPEC
 #define LINK_SPEC "%{h*} %{version:-v} \
    %{b} %{Wl,*:%*} \
@@ -77,9 +102,7 @@
    %{!static: \
      %{rdynamic:-export-dynamic} \
      %{!shared:-dynamic-linker " DYNAMIC_LINKER "} \
-     %{!riscos-abi:-riscos-abi " RISCOS_ABI "} \
-     %{!fpic:-fPIC} %{fpic:-fpic} \
-     %{mmodule:--ro-module-reloc --target2=rel}} \
+     %{!riscos-abi:-riscos-abi " RISCOS_ABI "}} \
    -X \
    %{mbig-endian:-EB}" \
    SUBTARGET_EXTRA_LINK_SPEC
@@ -119,3 +142,26 @@
    serve a similar purpose.  */
 #define RISCOS_GOTT_BASE "__GOTT_BASE__"
 #define RISCOS_GOTT_INDEX "__GOTT_INDEX__"
+
+#ifndef CROSS_DIRECTORY_STRUCTURE
+/* This section defines all the specific features for GCC when running
+   natively on RISC OS.  */
+
+extern void riscos_host_initialisation (void);
+extern const char *riscos_convert_filename (void *obstack,
+  const char *name, int do_exe, int do_obj);
+
+#define GCC_DRIVER_HOST_INITIALIZATION \
+  riscos_host_initialisation ()
+#define TARGET_CONVERT_FILENAME(a,b,c,d) \
+  return riscos_convert_filename (a,b,c,d)
+
+/* Character constant used in separating components in paths.  */
+#undef PATH_SEPARATOR
+#define PATH_SEPARATOR ','
+
+/* Directory name separator.  */
+#undef DIR_SEPARATOR
+#define DIR_SEPARATOR '/'
+
+#endif /* ! CROSS_DIRECTORY_STRUCTURE */

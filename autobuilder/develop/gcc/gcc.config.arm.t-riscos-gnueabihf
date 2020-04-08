@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2012 Free Software Foundation, Inc.
 # Contributed by Nick Burrett (nick@sqrt.co.uk>),
-# John Tytgat (John.Tytgat@aaug.net) and Lee Noar (leenoar@sky.com).
+# John Tytgat (John.Tytgat@aaug.net) and Lee Noar (lee.noar@sky.com).
 #
 # This file is part of GCC.
 #
@@ -35,8 +35,8 @@ local_includedir=$(exec_prefix)/include
 NATIVE_SYSTEM_HEADER_DIR = $(srcdir)/../libunixlib/include
 STANDARD_INCLUDE_DIR = $(srcdir)/../libunixlib/include
 
-#riscos.o: $(srcdir)/config/arm/riscos.c $(CONFIG_H)
-#	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/riscos.c
+riscos.o: $(srcdir)/config/arm/riscos.c $(CONFIG_H)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/riscos.c
 
-#riscos-gcc.o: $(srcdir)/config/arm/riscos-gcc.c $(CONFIG_H)
-#	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/riscos-gcc.c
+riscos-gcc.o: $(srcdir)/config/arm/riscos-gcc.c $(CONFIG_H)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/riscos-gcc.c

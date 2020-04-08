@@ -5,7 +5,7 @@
      esac
      ;;
 -  arm*-*-freebsd* | arm*-*-linux* | arm*-*-fuchsia*)
-+  arm*-*-freebsd* | arm*-*-linux* | arm*-*-fuchsia* | arm*-*-riscos*)
++  arm*-*-freebsd* | arm*-*-linux* | arm*-*-fuchsia* | arm*-riscos*)
      case ${target} in
        arm*-*-*)
  	host_extra_gcc_objs="driver-arm.o"
@@ -13,7 +13,7 @@
  
  # Machine-specific settings.
  case ${host} in
-+  arm*-*-riscos | arm*-*-riscos*)	# ARM RISC OS with ELF
++  arm*-*-riscos | arm*-riscos*)	# ARM RISC OS with ELF
 +    host_xm_file="arm/xm-riscos.h"
 +    ;;
    hppa1.0-*-hpux10* | hppa1.1-*-hpux10* | hppa2*-*-hpux10*)

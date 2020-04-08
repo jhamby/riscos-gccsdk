@@ -23,9 +23,9 @@
 +	# static cases.
 +	tmake_file="arm/t-arm arm/t-riscos-gnueabihf t-slibgcc"
 +	xm_file="arm/xm-riscos.h"
-+#	extra_options="${extra_options} arm/riscos.opt"
-+#	extra_objs="${extra_objs} riscos.o"
-+#	extra_gcc_objs="riscos-gcc.o"
++	extra_options="${extra_options} arm/riscos.opt"
++	extra_objs="${extra_objs} riscos.o"
++	extra_gcc_objs="riscos-gcc.o"
 +	;;
 +arm*-*-riscos)
 +	tm_file="dbxelf.h elfos.h arm/elf.h arm/aout.h arm/riscos-elf.h arm/arm.h"

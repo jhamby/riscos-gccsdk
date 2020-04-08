@@ -39,9 +39,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "obstack.h"
 
 static const char shared_libs_path_option[] = "-L/GCCSOLib:";
-static const char riscos_abi_version[] = 
-#include "riscos-abi.h"
-  ;
+static const char riscos_abi_version[] = RISCOS_ABI;
 
 /* Function is used by the GCC_DRIVER_HOST_INITIALIZATION macro
    in gcc.c.  */
@@ -60,10 +58,10 @@ riscos_host_initialisation (void)
 	       "Failed to determine available memory for application.\n");
       exit (EXIT_FAILURE);
     }
-  if (rout.r[0] < 6000 * 1024)
+  if (rout.r[0] < 24000 * 1024)
     {
       fprintf (stderr,
-	       "Application requires a minimum of 6000K to run.\n");
+	       "Application requires a minimum of 24000K to run.\n");
       exit (EXIT_FAILURE);
     }
 }
