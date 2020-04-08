@@ -1,3 +1,23 @@
+Wed Apr  8 18:23:09 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* module/sul.s: Bump version number to 1.16.
+	More changes to the way we clean up on exit from GCC 8.2 programs.
+	When using fork/exec, don't call SWI XARMEABISupport_Cleanup until
+	all children have returned, otherwise we delete all the parent stacks
+	and cause the machine to lock up. Instead, if a process has a
+	parent, just delete the stack of the returning child.
+	* incl-local/internal/asm_dec.s: Make ARMEABISupport symbols names
+	consistent.
+	(SULPROC_STACK): Add.
+	* incl-local/internal/unix.h(__sul_process.stack_handle): Add to
+	record handle of main stack so that SUL can delete it.
+	* sys/_syslib.s: For ARMEABI, create a fake 4 byte stack in application
+	space so that sul_fork can correctly move the process up if necessary.
+	Record the handle of the main stack in the process structure so that if
+	we are a child process, SUL can delete it.
+	* unix/unix.c: Remove riscos_abi_version definition now that we have
+	the --riscos-abi command line option for GCC 4.
+
 Mon Mar 16 16:20:20 GMT  2020  Lee Noar  <lee.noar@sky.com>
 
 	* include/fcntl.h(O_CLOEXEC): Alternative version of O_EXECCL.

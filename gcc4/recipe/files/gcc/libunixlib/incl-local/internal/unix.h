@@ -121,7 +121,7 @@ struct __sul_process
   unsigned int environ_size;
   void (*sul_exec) (__pid_t pid, char *cli, void *stacklimit, void *stack) __attribute__ ((__noreturn__));
   void *(*sul_wimpslot) (__pid_t pid, void *newslot);
-  int is_armeabi;  /* 1 if the process is ARMEABI, otherwise 0.  */
+  void *stack_handle; /* Handle of the main stack used by this process, or 0 if not ARMEABI.  */
 };
 
 extern struct proc *__u;	/* current process */

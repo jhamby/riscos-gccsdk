@@ -62,8 +62,9 @@
 .set	PROC_ENVIRONSIZE, 112
 .set	PROC_EXEC, 116
 .set	PROC_WIMPSLOT, 120
+.set	PROC_STACK, 124
 
-.set	PROC_SULONLY, 124
+.set	PROC_SULONLY, 128
 
 .set	PROC_PARENTSULPROC, PROC_SULONLY + 0	@ Process structure of this process' parent
 .set	PROC_PARENTSULPROCADDR, PROC_SULONLY + 4	@ Address of the parent's __ul_global.sulproc variable
@@ -139,11 +140,11 @@ module_start:
 help:
 	.ascii	"SharedUnixLibrary"
 	.byte	9
-	.ascii	"1.15 (10 Feb 2019) "
+	.ascii	"1.16 (3 Apr 2020) "
 #if DEBUG_PROC_MATCHING
 	.ascii	"(debug) "
 #endif
-	.asciz	"(C) UnixLib Developers, 2001-2019"
+	.asciz	"(C) UnixLib Developers, 2001-2020"
 	.align
 
 title:
@@ -615,7 +616,7 @@ alloc_proc:
 
 	@ As we are using the result of OS_Module for the pid value,
 	@ we shrink it to 30-bits because 'pid_t' is a signed-integer
-	@ and many applications just the for (pid < 0) to determine fork
+	@ and many applications just test for (pid < 0) to determine fork
 	@ failure.
 	MOV	a1, v2, LSR #2
 	STR	a1, [v2, #PROC_PID]
@@ -668,6 +669,8 @@ alloc_proc:
 	STR	a1, [v2, #PROC_EXEC]
 	ADR	a1, sul_wimpslot
 	STR	a1, [v2, #PROC_WIMPSLOT]
+	MOV	a1, #0
+	STR	a1, [v2, #PROC_STACK]
 
 	@ Record the current appspace and himem values, then set himem
 	@ to the appspace limit. This is necessary so any calls to
@@ -1413,7 +1416,12 @@ sul_exit:
 	SWI	XSOM_DeregisterClient
 0:
 	TST	a1, #SULPROC_STATUS_FLAG_IS_ARMEABI
-	SWINE	XARMEABISupport_Cleanup
+	BEQ	2f
+
+	MOV	a1, #ARMEABISUPPORT_STACKOP_FREE
+	LDR	a2, [v2, #PROC_STACK]
+	SWI	XARMEABISupport_StackOp
+2:
 
 	@ Restore old exit and error handlers if necessary
 	MOV	a1, #11
@@ -1452,9 +1460,14 @@ sul_exit:
 	CMP	a2, #1
 	BNE	has_parent
 
+	@ Only clean up when we know there is no parent
+	LDR	a1, [v2, #PROC_STATUS]
+	TST	a1, #SULPROC_STATUS_FLAG_IS_ARMEABI
+	SWINE	XARMEABISupport_Cleanup
+
 	@ Free any environ still left. The program should have
 	@ already freed anything else
-@	MOV	a1, #7			; already set above
+	MOV	a1, #7
 	LDR	a3, [v2, #PROC_ENVIRON]
 	TEQ	a3, #0
 	SWINE	XOS_Module

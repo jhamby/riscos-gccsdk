@@ -1085,10 +1085,3 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 fatal:
   __unixlib_fatal ("Failed to process command line");
 }
-
-#ifndef __ARM_EABI__
-/* Temporary until I implement --riscos-abi command line option for GCC 4.  */
-static const char riscos_abi_version[]
-  __attribute__((used, section(".riscos.abi.version"), aligned(4))) =
-"abi-2.0";
-#endif

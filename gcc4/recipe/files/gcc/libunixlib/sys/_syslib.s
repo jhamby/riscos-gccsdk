@@ -53,8 +53,8 @@
 	@ Now check System modules first as UnixLib package is deprecated.
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
 #ifdef __ARM_EABI__
-.set	SUL_MIN_VERSION, 115
-#define SUL_VERSION_STRING "1.15"
+.set	SUL_MIN_VERSION, 116
+#define SUL_VERSION_STRING "1.16"
 #else
 .set	SUL_MIN_VERSION, 113
 #define SUL_VERSION_STRING "1.13"
@@ -94,8 +94,8 @@ __main:
 	@ a1+20 = main
 	@ a1+24 = Flags
 	@	   bit 0 set = enable profiling
-	@ a1+28 = Ptr to shared libraries initialisation function - may be NULL                                                                                     
-	@ a1+32 = Ptr to shared libraries finalisation function - may be NULL                                                                                       
+	@ a1+28 = Ptr to shared libraries initialisation function - may be NULL
+	@ a1+32 = Ptr to shared libraries finalisation function - may be NULL
 
 	MOV	v1, a1
 
@@ -151,10 +151,10 @@ __main:
 	LDR	a2, [fp, #MEM_RWLOMEM]		@ __ul_memory.rwlomem
 	STR	a2, [fp, #MEM_RWBREAK]		@ __ul_memory.rwbreak = __ul_memory.rwlomem
 	STR	a2, [fp, #MEM_STACK_LIMIT]	@ __ul_memory.stack_limit = __ul_memory.rwlomem
+#if __UNIXLIB_CHUNKED_STACK
 
 	LDR	sp, [fp, #MEM_APPSPACE_HIMEM]
 
-#if __UNIXLIB_CHUNKED_STACK
 	@ The stack is allocated in chunks in the wimpslot, with the first
 	@ 4KB chunk immediately below 'appspace_himem'.  We cannot place it
 	@ in a dynamic area because GCC might generate trampolines.  In USR32
@@ -236,9 +236,8 @@ __main:
 	MOVS	sp, a3
 	MOVEQ	a1, #ERR_NO_STACK
 	BEQ	__exit_with_error_num	@ Failed to allocate stack, exit.
-
-	@ Check we have at least 4 KByte of application stack space.
-	MOV	a3, #0
+	LDR	a3, [fp, #MEM_APPSPACE_HIMEM]
+	SUB	a3, a3, #4
 	STR	a3, [fp, #MEM_STACK]	@ __ul_memory.stack = bottom of stack
 #endif
 
@@ -543,14 +542,22 @@ no_dynamic_area:
 	STR	a3, [v1, #PTHREAD_CALLEVERY_RMA_UPCALL_R12]
 
 #if defined (__ARM_EABI__) || defined (PIC)
-	LDR	a2, [a1, #SULPROC_STATUS]
+	MOV	v1, a1
+	LDR	a4, [v1, #SULPROC_STATUS]
 #ifdef __ARM_EABI__
-	ORR	a2, a2, #SULPROC_STATUS_FLAG_IS_ARMEABI
+	ORR	a4, a4, #SULPROC_STATUS_FLAG_IS_ARMEABI
+
+	MOV	a1, #ARMEABISUPPORT_STACKOP_GET_STACK
+	MOV	a2, sp
+	SWI	XARMEABISupport_StackOp
+	MOVVS	a1, #ERR_NO_STACK		@ This shouldn't happen
+	BVS	__exit_with_error_num
+	STR	a2, [v1, #SULPROC_STACK]
 #endif
 #ifdef PIC
-	ORR	a2, a2, #SULPROC_STATUS_FLAG_IS_DYNAMIC
+	ORR	a4, a4, #SULPROC_STATUS_FLAG_IS_DYNAMIC
 #endif
-	STR	a2, [a1, #SULPROC_STATUS]
+	STR	a4, [v1, #SULPROC_STATUS]
 #endif
 
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)

@@ -213,10 +213,11 @@
 .set	SharedUnixLibrary_Initialise, 0x55c84
 .set	XSharedUnixLibrary_Initialise, 0x55c84 + X_Bit
 
-#ifdef __ARM_EABI__
+@ A few of these are required to build SUL.
 .set	XARMEABISupport_MemoryOp, 0x59D00 + X_Bit
 .set	XARMEABISupport_AbortOp, 0x59D01 + X_Bit
 .set	XARMEABISupport_StackOp, 0x59D02 + X_Bit
+.set	XARMEABISupport_Cleanup, 0x59D03 + X_Bit
 
 .set	ARMEABISUPPORT_STACKOP_ALLOC,		0
 .set	ARMEABISUPPORT_STACKOP_FREE,		1
@@ -224,22 +225,21 @@
 .set	ARMEABISUPPORT_STACKOP_GET_BOUNDS,	3
 .set	ARMEABISUPPORT_STACKOP_GET_SIZE,	4
 
-.set	MEMORYOP_NEW_ALLOCATOR,		0
-.set	MEMORYOP_DESTROY_ALLOCATOR, 	1
-.set	MEMORYOP_ALLOC,			2
-.set	MEMORYOP_CLAIM_PAGES,		3
-.set	MEMORYOP_RELEASE_PAGES,		4
-.set	MEMORYOP_MAP_PAGES,		5
-.set	MEMORYOP_UNMAP_PAGES,		6
-.set	MEMORYOP_FREE,			7
-.set	MEMORYOP_INFO,			8
+.set	ARMEABISUPPORT_MEMORYOP_NEW_ALLOCATOR,		0
+.set	ARMEABISUPPORT_MEMORYOP_DESTROY_ALLOCATOR, 	1
+.set	ARMEABISUPPORT_MEMORYOP_ALLOC,			2
+.set	ARMEABISUPPORT_MEMORYOP_CLAIM_PAGES,		3
+.set	ARMEABISUPPORT_MEMORYOP_RELEASE_PAGES,		4
+.set	ARMEABISUPPORT_MEMORYOP_MAP_PAGES,		5
+.set	ARMEABISUPPORT_MEMORYOP_UNMAP_PAGES,		6
+.set	ARMEABISUPPORT_MEMORYOP_FREE,			7
+.set	ARMEABISUPPORT_MEMORYOP_INFO,			8
 
-.set	ABORTOP_REGISTER,		0
-.set	ABORTOP_DEREGISTER,		1
-.set	ABORTOP_INSTALL,		2
-.set	ABORTOP_REMOVE,			3
-#endif
-.set	XARMEABISupport_Cleanup, 0x59D03 + X_Bit	@ Outside the above #if for building SUL
+.set	ARMEABISUPPORT_ABORTOP_REGISTER,		0
+.set	ARMEABISUPPORT_ABORTOP_DEREGISTER,		1
+.set	ARMEABISUPPORT_ABORTOP_INSTALL,			2
+.set	ARMEABISUPPORT_ABORTOP_REMOVE,			3
+
 #if !defined(__SOFTFP__) && defined(__VFP_FP__)
 .set	VFPSupport_CheckContext, 0x58ec0
 .set	XVFPSupport_CheckContext, 0x58ec0 + X_Bit
@@ -269,6 +269,7 @@
 .set	PROC_ARGV, 4			@ = __u->argv
 
 .set	SULPROC_STATUS, 96
+.set	SULPROC_STACK, 124
 
 	@ Entries into the __ul_global structure.  Must be kept in sync with
 	@ incl-local/internal/unix.h and sys/_syslib.s.
