@@ -6,7 +6,7 @@ AB_ROVERSION=2
 UPSTREAM_ZIP=Sunfish_${AB_PVERSION}
 UPSTREAM_URL=http://www.riscpkg.org/arm/Sunfish/${UPSTREAM_ZIP}
 PATCH_ZIP=sunfish.zip
-PATCH_URL=http://www.cgransden.co.uk/${PATCH_ZIP}
+PATCH_URL=https://www.riscosports.co.uk/${PATCH_ZIP}
 
 #  6. Either somewhere on a filing system:
 AB_NOREMOTE=yes
