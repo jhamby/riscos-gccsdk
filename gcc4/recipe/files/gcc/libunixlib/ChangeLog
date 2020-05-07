@@ -1,3 +1,9 @@
+Thu May  7 20:35:36 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* unix/ul_select.c(select): Fix time calculation so that the tv_usec
+	part of the timeout is not ignored.
+	Submitted by Chris Johns.
+
 Wed Apr  8 18:23:09 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* module/sul.s: Bump version number to 1.16.
