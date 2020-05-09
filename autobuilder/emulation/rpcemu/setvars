@@ -1,10 +1,11 @@
 
-AB_HG=http://home.marutan.net/2hg/rpcemu.qt5
+AB_HG=http://home.marutan.net/hg/rpcemu
 AB_DISTCLEAN="$AB_MAKE -C src/qt5 distclean"
+AB_PVERSION=0.9.2
 
 ab_make() {
  cd src/qt5
-  $GCCSDK_INSTALL_ENV/vfp/bin/qmake rpcemu.pro
+  $GCCSDK_INSTALL_ENV/bin/qmake rpcemu.pro
   $AB_MAKE -j4
   cd ../..
  }
