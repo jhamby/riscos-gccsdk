@@ -594,7 +594,7 @@ __h_event:
 
 	@ Set the internet event flag
 	LDR	a1, [ip, #PTHREAD_CALLEVERY_CALLBACK_FLAG]
-	ORR	ip, ip, #2
+	ORR	a1, a1, #2
 	STR	a1, [ip, #PTHREAD_CALLEVERY_CALLBACK_FLAG]
 
 	MOV	a1, #SIGURG

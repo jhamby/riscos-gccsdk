@@ -1,3 +1,7 @@
+Sun May 30 20:03:19 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* signal/_signal.s(__h_event): Fix use of wrong register.
+
 Thu May  7 20:35:36 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* unix/ul_select.c(select): Fix time calculation so that the tv_usec
