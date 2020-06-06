@@ -1,0 +1,18 @@
+GPL Ghostscript 9.26 (06-Jun-20)
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+See the "9_26.doc" subdirectory for more documentation or the official ghostscript website at http://www.ghostscript.com
+
+Getting Started
+---------------
+This is the latest version built by the GCCSDK Autobuilder. See the oldHelp file
+for information on previous versions and installation instructions.
+This version uses more memory then previous versions so RISC OS 5.2x is recommended. If you don't
+require any of the new features the older version is still available from
+http://www.riscos.info/packages/arm/Graphics/ghostscript_8.71-2.zip.
+
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net

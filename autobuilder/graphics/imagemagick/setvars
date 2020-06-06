@@ -1,16 +1,48 @@
+AB_URL=https://imagemagick.org/download/ImageMagick-6.9.11-12.tar.xz
 
+AB_INSTALL=yes
 AB_MANPAGE=utilities/ImageMagick.1
 
-AB_CONFLAGS="--with-perl=no --disable-largefile"
+#AB_CONFLAGS="--with-perl=no --disable-largefile --with-quantum-depth=8 --with-rsvg=no --with-gslib=no --without-lcms --with-pic=yes --without-x --without-dmalloc"
+AB_CONFLAGS="--with-perl=no --disable-largefile --disable-shared --with-rsvg=yes --with-gslib=yes --without-lcms --with-pic=no --without-x --without-dmalloc"
+
+autoreconf -fi
 
 ab_package() {
-  ab_create_command_app ImageMagick Apps/Graphics
-  ab_add_commands $S/utilities/*$AB_EXEEXT
 
+  ab_create_command_app ImageMagick Apps/Graphics
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_add_commands $S/utilities/.libs/*$AB_EXEEXT
+  else
+    ab_add_commands $S/utilities/*$AB_EXEEXT
+  fi
+
+  cp -av $H/\!ImageMagick/\!Boot,feb $A
   cp -av $S/README.txt $A/
   cp -av $S/AUTHORS.txt $S/LICENSE $S/NEWS.txt $A/
   cp -av config $A/
   mv $D/*,faf $A/\!Help,faf
- 
-  $AB_HOME/add-riscpkg -unixlib -name ImageMagick
+
+# no need to package these as the gui stuff doesn't currently work
+  rm -f $A/animate$AB_EXEEXT
+  rm -f $A/display$AB_EXEEXT
+  rm -f $A/import$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -package imagemagick -name ImageMagick  -depends LibImageMagick -depends SharedLibs
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libimagemagick
+
+    ab_add_sharedlib $S/wand/.libs libMagickWand-6.Q16.so.6
+    ab_add_sharedlib $S/magick/.libs libMagickCore-6.Q16.so.6
+    ab_add_sharedlib $S/Magick++/lib/.libs libMagick++-6.Q16.so.8
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package libimagemagick -name LibImageMagick \
+	-depends SharedLibs -section Library
+  fi
+
 }
+
+export LIBS='-llzma'

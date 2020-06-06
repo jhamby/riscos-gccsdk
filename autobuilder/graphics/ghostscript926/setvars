@@ -1,0 +1,49 @@
+AB_URL=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/ghostpdl-9.26.tar.xz
+# Get Ghostscript fonts:
+if [ ! -e fonts/ghostscript-fonts-std-8.11.tar.gz ] ; then
+  mkdir -p fonts
+  wget -nv -O fonts/ghostscript-fonts-std-8.11.tar.gz http://ftp.de.debian.org/debian/pool/main/g/gsfonts/gsfonts_8.11+urwcyr1.0.7~pre44.orig.tar.gz
+fi
+if [ ! -e fonts/ghostscript-fonts-other-6.0.tar.gz ] ; then
+  mkdir -p fonts
+  wget -nv -O fonts/ghostscript-fonts-other-6.0.tar.gz http://ftp.de.debian.org/debian/pool/non-free/g/gsfonts-other/gsfonts-other_6.0.orig.tar.gz
+fi
+
+# Copy src code sprite and gdi device:
+cp $H/gdevspr.c contrib
+cp $H/gdevgdi.c contrib
+
+# Generate makefiles (including Makefile.in)
+#rm -f configure.ac Makefile.in
+#ln -s base/configure.ac .
+#ln -s base/Makefile.in .
+autoconf
+
+mkdir -p src/library/source
+
+#AB_CONFLAGS='--without-jbig2dec --disable-cups --disable-fontconfig --with-system-libtiff --with-drivers=BMP,CANON,EPSON,FAX,JPEG,PNG,TIFF,PCLXL,PCX,PBM,SPRITE,HP,LEXMARK,BROTHER,OKI,IBM,JAPAN,PS --disable-gtk --disable-dbus --with-arch_h=./obj/arch.h'
+#AB_CONFLAGS=' --disable-cups --with-system-libtiff --with-drivers=BMP,FAX,JPEG,PBM,PCX,PNG,PS,SPRITE,TIFF,MISC,BROTHER,CANON,EPSON,HP,IBM,JAPAN,LEXMARK,OKI,PCLXL --disable-gtk --disable-dbus --with-arch_h=./obj/arch.h'
+AB_CONFLAGS=' --disable-cups --with-system-libtiff --disable-gtk --disable-dbus --with-arch_h=./obj/arch.h'
+
+ab_package () {
+  ab_create_app GhostScr Apps/Graphics
+  ab_makerun $S/bin/gs
+  ab_makerun $S/bin/gpcl6
+  ab_makerun $S/bin/gxps
+
+  cp $S/LICENSE $A
+
+  mkdir -p $A/9_26
+  cp -r $S/doc $A/9_26
+  cp -r $S/Resource $A/9_26
+  cp -r $S/lib $A/9_26
+  rm $A/9_26/lib/*.bat
+  rm $A/9_26/lib/*.cmd
+  mkdir -p $A/fonts
+  ( cd $A/fonts ; tar --strip-components=1 -xzf $S/fonts/ghostscript-fonts-std-8.11.tar.gz )
+  ( cd $A ; tar -xzf $S/fonts/ghostscript-fonts-other-6.0.tar.gz )
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/COPYING
+}
+
+export LIBS='-lz -lbz2'

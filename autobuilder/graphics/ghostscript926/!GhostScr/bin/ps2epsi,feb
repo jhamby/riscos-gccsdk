@@ -1,0 +1,40 @@
+| Wimpslot should be set by the alias calling this file ...
+
+if "%1" = "" then Error "ps2epsi: Please give an output filename"
+
+wimpslot -min 15124K
+
+|set tmpfile <Wimp$Scrap>
+
+set outfile %1
+
+|echo /ps2edict 30 dict def { > <tmpfile> }
+|echo ps2edict begin { >> <tmpfile> }
+|echo /epsititle ("%0 ") def { >> <tmpfile> }
+|echo /epsicreator ("Ghostscript 6.01 ") def { >> <tmpfile> }
+|echo /epsicrdt ("24-10-70 ") def { >> <tmpfile> }
+|echo /epsifor ("RISC OS ") def { >> <tmpfile> }
+|echo end { >> <tmpfile> }
+
+gs -q -dBATCH -dNOPAUSE -dSAFER -dDELAYSAFER -r72 -sDEVICE=bit -sOutputFile=null: ps2epsi.ps < %0
+
+|ifthere <tmpfile> then delete <tmpfile> 
+
+echo save countdictstack { >> %1 }
+echo mark { >> %1 }
+echo newpath { >> %1 }
+echo /showpage {} def { >> %1 }
+echo /setpagedevice {pop} def { >> %1 }
+echo %%EndProlog { >> %1 }
+echo %%Page 1 1 { >> %1 }
+
+Type %0 { >> %1 }
+
+echo %%Trailer { >> %1 }
+echo cleartomark countdictstack exch sub {end} repeat { >> %1 }
+echo restore { >> %1 }
+echo %%EOF { >> %1 }
+
+unset outfile
+
+if "%1" <> "" then ifthere %1 then settype %1 ff5

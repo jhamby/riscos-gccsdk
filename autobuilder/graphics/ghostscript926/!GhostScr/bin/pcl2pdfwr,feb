@@ -1,0 +1,3 @@
+| Wimpslot should be set by the alias calling this file ...
+gpcl6 -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=%1 %0
+|if "%2" <> "" then ifthere %2 then settype %2 ADF

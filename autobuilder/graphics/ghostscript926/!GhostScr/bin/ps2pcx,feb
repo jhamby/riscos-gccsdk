@@ -1,0 +1,4 @@
+| Wimpslot should be set by the alias calling this file ...
+wimpslot -min 15124K
+gs -q -dBATCH -dNOPAUSE -sDEVICE=pcx24b -sOutputFile=%1 %*2 %0
+if "%1" <> "" then ifthere %1 then settype %1 697

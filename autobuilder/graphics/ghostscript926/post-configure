@@ -1,0 +1,10 @@
+# The obj/arch.h is normally the output of 'genarch' program but this should
+# be run on the target (i.e. RISC OS) and not on the host.
+mkdir -p obj/aux obj
+cp $H/genarch_output obj/arch.h
+echo echo Fake genarch > obj/aux/genarch
+chmod 755 obj/aux/genarch
+
+#make CC=/usr/bin/gcc CCLD=/usr/bin/gcc obj/aux/echogs obj/aux/genconf obj/aux/mkromfs
+#rm obj/aux/*.o
+#mv obj/aux/mkromfs obj/aux/host-mkromfs
