@@ -1,5 +1,5 @@
---- source/configure.orig	2014-02-07 14:30:29.000000000 +0000
-+++ source/configure	2014-02-07 15:06:51.789875800 +0000
+--- icu4c/source/configure.orig	2014-02-07 14:30:29.000000000 +0000
++++ icu4c/source/configure	2014-02-07 15:06:51.789875800 +0000
 @@ -4942,6 +4942,7 @@
  *-dec-osf*) icu_cv_host_frag=mh-alpha-osf ;;
  *-*-nto*)	icu_cv_host_frag=mh-qnx ;;
