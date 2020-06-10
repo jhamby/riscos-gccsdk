@@ -362,7 +362,9 @@ ATOMIC_OP_FETCH(xor,(*ptr) ^= val,unsigned)
 ATOMIC_OP_FETCH(or,(*ptr) |= val,unsigned)
 ATOMIC_OP_FETCH(nand,(*ptr) = ~((*ptr) & val),unsigned)
 
-static int __cmpxchg(int oldval, int newval, volatile int *ptr)
+#ifdef __ARM_EABI__
+
+static int __cmpxchg (int oldval, int newval, volatile int *ptr)
 {
   int result, scratch;
 
@@ -378,6 +380,25 @@ static int __cmpxchg(int oldval, int newval, volatile int *ptr)
 		  : "cc", "memory");
   return result;
 }
+
+#else
+
+static int __cmpxchg (int oldval, int newval, volatile void *ptr)
+{
+  int prev;
+
+  __pthread_disable_ints();
+
+  prev = *(int *)ptr;
+  if (prev == oldval)
+    *(int *)ptr = newval;
+
+  __pthread_enable_ints();
+
+  return prev;
+}
+
+#endif
 
 int __builtin_sync_lock_test_and_set_4 (volatile int *ptr, int val)
 {

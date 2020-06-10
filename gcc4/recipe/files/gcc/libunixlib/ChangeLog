@@ -1,4 +1,9 @@
-Sun May 30 20:03:19 BST  2020  Lee Noar  <lee.noar@sky.com>
+Wed Jun 10 13:49:10 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* gcccompat/atomics.c(__cmpxchg): Provide a non-ARMv7 version for
+	GCC 4.
+
+Sun May 31 20:03:19 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* signal/_signal.s(__h_event): Fix use of wrong register.
 
