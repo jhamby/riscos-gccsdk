@@ -1,0 +1,6 @@
+| Run file for LibFFI6
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibFFI6$Dir <Obey$Dir>
+Set LibFFI6$Path <Obey$Dir>.
