@@ -1,6 +1,9 @@
 AB_ROVERSION=3
 AB_INSTALL=yes
 
+cd expat
+./buildconf.sh
+
 ab_package() {
   ab_create_app LibExpat1 Apps/Library libexpat1-dev
 
@@ -9,10 +12,10 @@ ab_package() {
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
   # Need to retype the converted manual files
-  MANFILES=$(find man -type f)
-  for FILE in $MANFILES ; do
-     mv $FILE $FILE,faf
-  done
+#  MANFILES=$(find man -type f)
+#  for FILE in $MANFILES ; do
+#     mv $FILE $FILE,faf
+#  done
 
   # Move headers libs and docs up one directory
   mv include/h h
@@ -31,7 +34,7 @@ ab_package() {
 
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
     ab_create_sharedlib_skeleton libexpat1
-    ab_add_sharedlib $S/.libs libexpat.so.1
+    ab_add_sharedlib $S/lib/.libs libexpat.so.1
 
     $AB_HOME/add-riscpkg -package "libexpat1" -name LibExpat1 \
         -depends SharedLibs-C2
