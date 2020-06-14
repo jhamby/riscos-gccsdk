@@ -6,13 +6,36 @@ AB_CONFLAGS='--enable-encoders=lzma1,lzma2,delta,arm --enable-decoders=lzma1,lzm
 ./autogen.sh
 
 ab_package() {
+  ab_create_app LibLZMA5 Apps/Library liblzma5-dev
 
+  cp README $A\!Help
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip  
+
+  mv include/* .
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  cp -r doc/examples $A/doc
+  cp AUTHORS ChangeLog COPYING NEWS README THANKS TODO $A/doc
+  
+  
+  $AB_HOME/add-riscpkg -package liblzma5-dev -name LibLZMA5-Dev -unixlib -copyrightfile $S/Copyright
+  
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
      ab_create_sharedlib_skeleton liblzma5
-     ab_add_sharedlib $S/src/liblzma/.libs liblzma.so.5
+     ab_add_sharedlib $S/src/liblzma/.libs liblzma.so.5     
      
-     $AB_HOME/add-riscpkg -package liblzma5 -name LibLzma5 -depends SharedLibs \
-		-section Library -copyrightfile $H/Copyright
-  fi
+     $AB_HOME/add-riscpkg -package liblzma5 -name LibLZMA5 -depends SharedLibs-C2 -section Library -copyrightfile $S/Copyright
 
+  fi  
 }

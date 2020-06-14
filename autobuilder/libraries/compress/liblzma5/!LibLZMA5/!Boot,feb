@@ -1,0 +1,6 @@
+| Boot file for LibLZMA5
+|
+If "<LibLZMA5$Dir>" = "" Then Set LibLZMA5$Dir <Obey$Dir>
+If "<LibLZMA5$Path>" = "" Then Set LibLZMA5$Path <Obey$Dir>.
+
+IconSprites <LibLZMA5$Dir>.!Sprites
