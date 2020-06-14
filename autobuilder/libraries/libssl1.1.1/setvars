@@ -6,7 +6,7 @@
 # and shared-build.
 # Set Options AB_ROARCH and AB_PKGTESTS (aof building capability unknown)
 
-AB_URL=http://deb.debian.org/debian/pool/main/o/openssl/openssl_1.1.1a.orig.tar.gz
+AB_URL=http://deb.debian.org/debian/pool/main/o/openssl/openssl_1.1.1g.orig.tar.gz
 
 # v4 for Strongarm and later
 # choose (arm) architecture  [ v3 | v4 | v6zk ]
