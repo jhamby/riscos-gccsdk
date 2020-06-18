@@ -21,6 +21,7 @@ RPKG_VERSION=1
 # Non GCCSDK named packages
 RPKG_SHAREDLIBS_NAME=SharedLibs
 RPKG_UNIXLIB_NAME=SharedUnixLibrary
+RPKG_ARMEABISUPPORT_NAME=ARMEABISupport
 RPKG_DRENDERER_NAME=DRenderer
 
 # Set versions
@@ -167,10 +168,12 @@ echo "Section: Development" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.4.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
+echo "Environment: arm" >> RiscPkg/Control
 echo "Depends: $RPKG_SHAREDLIBSC_NAME (>= $RPKG_SHAREDLIBSC_VERSION), $RPKG_SHAREDLIBSGPP_NAME (>=$RPKG_SHAREDLIBSGPP_VERSION)" >> RiscPkg/Control
 echo "Conflicts: GCC-Common" >> RiscPkg/Control
 echo "Components: Apps.Development.!GCC (Movable LookAt)" >> RiscPkg/Control
 echo "Description: RISC OS port of the GNU Compiler Collection including the C Compiler and core tools" >> RiscPkg/Control
+echo "Homepage: http://www.riscos.info/index.php/GCC" >> RiscPkg/Control
 
 # Create copyright
 echo "GCC4 Core components" > RiscPkg/Copyright
@@ -228,8 +231,10 @@ echo "Section: Development" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.4.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
+echo "Environment: arm" >> RiscPkg/Control
 echo "Depends: $RPKG_GCCCORE_NAME (>=$GCCSDK_FULL_RELEASE_NAME)" >> RiscPkg/Control
 echo "Description: RISC OS port of the GNU C++ Compiler" >> RiscPkg/Control
+echo "Homepage: http://www.riscos.info/index.php/GCC" >> RiscPkg/Control
 
 # Create copyright
 echo "GCC4 C++ Compiler" > RiscPkg/Copyright
@@ -268,8 +273,10 @@ echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
+echo "Environment: arm" >> RiscPkg/Control
 echo "Depends: $RPKG_UNIXLIB_NAME (>= $RPKG_UNIXLIB_VERSION)" >> RiscPkg/Control
 echo "Description: The Shared libraries directory and ELF loader" >> RiscPkg/Control
+echo "Homepage: http://www.riscos.info/index.php/GCC" >> RiscPkg/Control
 
 # Create copyright record
 
@@ -315,8 +322,10 @@ echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.4.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
+echo "Environment: arm" >> RiscPkg/Control
 echo "Description: The C Shared libraries" >> RiscPkg/Control
 echo "Depends: $RPKG_SHAREDLIBS_NAME (>=$RPKG_SHAREDLIBS_VERSION)" >> RiscPkg/Control
+echo "Homepage: http://www.riscos.info/index.php/GCC" >> RiscPkg/Control
 
 # Create copyright record
 
@@ -353,8 +362,10 @@ echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.4.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
+echo "Environment: arm" >> RiscPkg/Control
 echo "Description: The GNU C++ shared libraries" >> RiscPkg/Control
 echo "Depends: $RPKG_SHAREDLIBSC_NAME (>=$RPKG_SHAREDLIBSC_VERSION)" >> RiscPkg/Control
+echo "Homepage: http://www.riscos.info/index.php/GCC" >> RiscPkg/Control
 
 # Create copyright
 echo "GNU C++ shared libraries" > RiscPkg/Copyright
@@ -389,6 +400,8 @@ echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Version: $RPKG_UNIXLIB_VERSION" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
+echo "Environment: arm" >> RiscPkg/Control
+echo "Depends: $RPKG_ARMEABISUPPORT_NAME" >> RiscPkg/Control
 echo "Description: A C runtime support module for UnixLib." >> RiscPkg/Control
 echo " This package provides the SharedULib module, which provides essential" >> RiscPkg/Control
 echo " services to UnixLib that are not possible in a user space application." >> RiscPkg/Control
@@ -404,6 +417,41 @@ cat  $GCCSDK_UNPACKED/$BKIT_GCC_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPkg/Co
 set_file_types
 
 $ZIP -, -9rq ../$RPKG_UNIXLIB_NAME\_$RPKG_UNIXLIB_VERSION.zip *
+
+cd ..
+rm -rf temp
+
+# ARMEABISupport module
+#######################
+
+mkdir temp
+cd temp
+
+eabidir=System/500/Modules
+mkdir -p $eabidir
+
+cp $GCCSDK_UNPACKED/$BKIT_SYSTEM_NAME/\!System/500/Modules/ARMEABISupport,ffa $eabidir
+
+mkdir RiscPkg
+
+echo "Package: $RPKG_ARMEABISUPPORT_NAME" > RiscPkg/Control
+echo "Priority: Required" >> RiscPkg/Control
+echo "Section: Library" >> RiscPkg/Control
+echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
+echo "Standards-Version: 0.1.0" >> RiscPkg/Control
+echo "Version: $RPKG_ARMEABISUPPORT_VERSION" >> RiscPkg/Control
+echo "Licence: Free" >> RiscPkg/Control
+echo "Environment: arm" >> RiscPkg/Control
+echo "Description: Support library for the SharedUnixLibrary" >> RiscPkg/Control
+echo " This module provide a support for the ARM EABI calling convention" >> RiscPkg/Control
+
+echo "ARMEABISupport Module" > RiscPkg/Copyright
+copyright_header
+echo "ARMEABISupport copyright" >> RiscPkg/Copyright
+
+set_file_types
+
+$ZIP -, -9rq ../$RPKG_ARMEABISUPPORT_NAME\_$RPKG_ARMEABISUPPORT_VERSION.zip *
 
 cd ..
 rm -rf temp
@@ -429,6 +477,7 @@ echo "Maintainer: Alan Buckley <alan_baa@hotmail.com>" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Version: $RPKG_DRENDERER_VERSION" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
+echo "Environment: arm" >> RiscPkg/Control
 echo "Description: Audio playback module" >> RiscPkg/Control
 echo " This module provide a polling, call-back or streaming interface between" >> RiscPkg/Control
 echo " applications and the sound system." >> RiscPkg/Control
