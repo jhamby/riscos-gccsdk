@@ -1,0 +1,32 @@
+
+AB_INSTALL=yes
+
+ab_package()
+{
+  ab_create_app LibGIF7-Dev Apps/Library libgif7-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv lib/*.a .
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibGIF7-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libgif7
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/lib/.libs libgif.so.7
+
+    $AB_HOME/add-riscpkg -package "libgif7" -name "LibGIF7" \
+	-depends SharedLibs-C2
+  fi
+}
