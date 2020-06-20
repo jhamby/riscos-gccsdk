@@ -4,3 +4,4 @@ libfreetype6
 libglib2.0-0
 libpcre3
 gettext
+icu
