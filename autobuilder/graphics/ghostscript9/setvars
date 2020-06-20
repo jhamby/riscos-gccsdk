@@ -1,4 +1,4 @@
-AB_URL=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/ghostpdl-9.26.tar.xz
+AB_URL=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs927/ghostpdl-9.27.tar.xz
 # Get Ghostscript fonts:
 if [ ! -e fonts/ghostscript-fonts-std-8.11.tar.gz ] ; then
   mkdir -p fonts
@@ -23,7 +23,7 @@ mkdir -p src/library/source
 
 #AB_CONFLAGS='--without-jbig2dec --disable-cups --disable-fontconfig --with-system-libtiff --with-drivers=BMP,CANON,EPSON,FAX,JPEG,PNG,TIFF,PCLXL,PCX,PBM,SPRITE,HP,LEXMARK,BROTHER,OKI,IBM,JAPAN,PS --disable-gtk --disable-dbus --with-arch_h=./obj/arch.h'
 #AB_CONFLAGS=' --disable-cups --with-system-libtiff --with-drivers=BMP,FAX,JPEG,PBM,PCX,PNG,PS,SPRITE,TIFF,MISC,BROTHER,CANON,EPSON,HP,IBM,JAPAN,LEXMARK,OKI,PCLXL --disable-gtk --disable-dbus --with-arch_h=./obj/arch.h'
-AB_CONFLAGS=' --disable-cups --with-system-libtiff --disable-gtk --disable-dbus --with-arch_h=./obj/arch.h'
+AB_CONFLAGS=' --disable-cups --disable-gtk --disable-dbus --with-arch_h=./obj/arch.h'
 
 ab_package () {
   ab_create_app GhostScr Apps/Graphics
@@ -33,12 +33,12 @@ ab_package () {
 
   cp $S/LICENSE $A
 
-  mkdir -p $A/9_26
-  cp -r $S/doc $A/9_26
-  cp -r $S/Resource $A/9_26
-  cp -r $S/lib $A/9_26
-  rm $A/9_26/lib/*.bat
-  rm $A/9_26/lib/*.cmd
+  mkdir -p $A/9_27
+  cp -r $S/doc $A/9_27
+  cp -r $S/Resource $A/9_27
+  cp -r $S/lib $A/9_27
+  rm $A/9_27/lib/*.bat
+  rm $A/9_27/lib/*.cmd
   mkdir -p $A/fonts
   ( cd $A/fonts ; tar --strip-components=1 -xzf $S/fonts/ghostscript-fonts-std-8.11.tar.gz )
   ( cd $A ; tar -xzf $S/fonts/ghostscript-fonts-other-6.0.tar.gz )
