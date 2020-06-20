@@ -180,7 +180,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
           /* OK, so we can't cope with anything more than roughly 248.55 days!  */
           now = clock ();
-	  end = now + timeout->tv_sec * 100 + timeout->tv_usec / 10000;
+	  end = now + timeout->tv_sec * 100 + (timeout->tv_usec + 9999) / 10000;
         }
     }
 

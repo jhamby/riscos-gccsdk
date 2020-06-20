@@ -1,3 +1,9 @@
+Sat Jun 20 21:08:10 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* unix/ul_select.c(select): Additional fix to time calculation
+	to round up to the next clock update frequency.
+	Submitted by Alan Buckley.
+
 Wed Jun 10 13:49:10 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* gcccompat/atomics.c(__cmpxchg): Provide a non-ARMv7 version for
