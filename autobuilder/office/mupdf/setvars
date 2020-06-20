@@ -1,19 +1,21 @@
 
 AB_URL=https://mupdf.com/downloads/archive/mupdf-1.17.0-source.tar.xz
 
+AB_PVERSION=1.17
+
 ab_make() {
   $AB_MAKE HAVE_X11=no HAVE_GLUT=no USE_SYSTEM_LIBS=no prefix=$GCCSDK_INSTALL_ENV USE_SYSTEM_HARFBUZZ=yes install
 }
 
 ab_package() {
   # Package programs
-  ab_create_command_app MuPDF Apps/Document mupdf
+  ab_create_command_app MuTools Apps/Document mutools
   ab_add_commands $S/build/release/mu*
 
   cp -av $S/CHANGES $S/CONTRIBUTORS $S/COPYING $S/README $A
 
   cp -av $S/docs $A
 
-  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -package mupdf -name MuPDF -section Document
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -package mutools -name MuTools -section Document
 
  }
