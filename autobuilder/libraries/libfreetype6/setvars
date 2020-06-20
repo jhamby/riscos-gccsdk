@@ -21,7 +21,7 @@ export LIBPNG_CFLAGS="-I$GCCSDK_INSTALL_ENV/include"
 export LIBPNG_LDFLAGS="-L$GCCSDK_INSTALL_ENV/lib -lpng"
 
 ab_make() {
-  cp ftconfig.h libtool *.mk builds/unix
+  cp ftconfig.h ftoption.h libtool *.mk builds/unix
 
   eval $AB_MAKE
 }
