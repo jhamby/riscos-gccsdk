@@ -1,3 +1,5 @@
+AB_URL=http://deb.debian.org/debian/pool/main/g/glib2.0/glib2.0_2.50.3.orig.tar.xz
+
 if [ "$RO_SHAREDLIBS" == "yes" ]; then
   AB_PACKAGES="libglib2.0-0 libglib2.0-dev libglib2.0-doc"
 else
