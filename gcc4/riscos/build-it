@@ -279,14 +279,14 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
 
   # !System modules:
   create_empty_dir $GCCSDK_RISCOS_SYSTEMPREFIX
-  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/500/Modules
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/400/Modules
 
   # *** Copy !System skeleton:
   svn export -q --force $GCCSDK_RISCOS/dist/\!System $GCCSDK_RISCOS_SYSTEMPREFIX/\!System
 
   # *** ARMEABISupport module:
   #   1. Copy ARMEABISupport module from to !System:
-  test ! -f $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/500/Modules/ARMEABISupport,ffa && cp $GCCSDK_BUILDDIR/armeabisupport/bin/ARMEABISupport,ffa $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/500/Modules/ARMEABISupport,ffa
+  test ! -f $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/400/Modules/ARMEABISupport,ffa && cp $GCCSDK_BUILDDIR/armeabisupport/bin/ARMEABISupport,ffa $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/400/Modules/ARMEABISupport,ffa
   #   2. Copy ARMEABISupport documentation
   mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/ARMEABISupport
   cp $GCCSDK_RISCOS/armeabisupport/ARMEABISupportDocs $GCCSDK_RISCOS_SYSTEMPREFIX/docs/ARMEABISupport
