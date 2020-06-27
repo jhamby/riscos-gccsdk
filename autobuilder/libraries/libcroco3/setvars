@@ -1,4 +1,14 @@
-AB_CATEGORY=Library
 AB_INSTALL=yes
 
+ab_package() {
 
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libcroco3
+
+    ab_add_sharedlib $S/src/.libs libcroco-0.6.so.3
+
+    $AB_HOME/add-riscpkg -package libcroco3 -name LibCroco3 \
+	-depends SharedLibs -section Library
+  fi
+
+}
