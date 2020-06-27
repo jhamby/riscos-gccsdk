@@ -1,0 +1,25 @@
+
+#AB_GIT=https://chromium.googlesource.com/webm/libwebp
+
+#AB_PVERION=0.7.1
+
+AB_INSTALL=yes
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    AB_CONFLAGS='--disable-static'
+  fi
+
+./autogen.sh
+#autoreconf -fi
+
+ab_package() {
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libwebp6
+     ab_add_sharedlib $S/src/.libs libwebp.so.6
+
+     $AB_HOME/add-riscpkg -package libwebp6 -name LibWebp6 -depends SharedLibs \
+		-section Library
+  fi
+
+}
