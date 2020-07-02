@@ -1,4 +1,4 @@
-Description: dash is a smaller faster shell than bash, used by Ubuntu for booting.
+Description: Debian Ash is a smaller faster shell than bash, used by Ubuntu for booting.
  Some bash features are not supported, so scripts may need editing in places.
  .
  *Can be used interactively from standard input

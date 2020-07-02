@@ -1,10 +1,12 @@
 |Boot file for dash
 Set Dash$Dir <Obey$Dir>
 Set Alias$dash Wimpslot -min 384K|MRun <Dash$Dir>.dash %%*0
+| To run dash with one line of commands from the CLI eg. *sh type ls
+| set alias$sh dash -c '%*0'
 | This file will be run by dash (interactive shell)
-Set ENV /ADFS::4.$/home/dash_init
+| Set ENV /ADFS::4.$/home/dash_init
 | Dash will not find external cmds without PATH -Note semicolon path separator used.
-Set PATH /ADFS::4.$/home/bin;/ADFS::4/$/home/bin/CoreUtils
+| Set PATH /ADFS::4.$/home/bin;/ADFS::4/$/home/bin/CoreUtils
 | To exclude a builtin cmd in this case mv, use 
 | Set PATH /ADFS::4.$/home/bin;/ADFS::4/$/home/bin/CoreUtils;mv%builtin
 
