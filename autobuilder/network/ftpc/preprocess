@@ -1,5 +1,9 @@
 # Autobuilder doesn't like !FTPc as directory name
+cd ..
 rm -rf ftpc
 mkdir ftpc
-mv -f Changes Examples \!FTPc \!Readme ftpc
+mv -f Changes \!FTPc ftpc
+AB_FULLNAME=ftpc
+cd ftpc
+
 
