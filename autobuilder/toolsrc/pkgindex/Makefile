@@ -1,8 +1,8 @@
 
-CPPFLAGS =
+CPPFLAGS = -std=c++11
 CXXFLAGS = -I. -I../libpkg -Wall -W -Wno-unused -Wno-deprecated -O2
-LD=gcc
-LDFLAGS = -lstdc++ -L../libpkg -lpkg -lz
+LD=g++
+LDFLAGS = -lstdc++ -static -L../libpkg -lpkg -lz
 
 TARGET=../../pkgindex
 

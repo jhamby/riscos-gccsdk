@@ -7,7 +7,7 @@
 # This version create by Alan Buckley
 
 TARGET=libpkg.a
-CPPFLAGS= 
+CPPFLAGS= -std=c++11
 CXXFLAGS= -I. -Wall -W -Wno-unused -O2
 
 OBJ = md5.o \
