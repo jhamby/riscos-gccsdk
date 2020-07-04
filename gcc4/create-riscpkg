@@ -427,10 +427,10 @@ rm -rf temp
 mkdir temp
 cd temp
 
-eabidir=System/500/Modules
+eabidir=System/400/Modules
 mkdir -p $eabidir
 
-cp $GCCSDK_UNPACKED/$BKIT_SYSTEM_NAME/\!System/500/Modules/ARMEABISupport,ffa $eabidir
+cp $GCCSDK_UNPACKED/$BKIT_SYSTEM_NAME/\!System/400/Modules/ARMEABISupport,ffa $eabidir
 
 mkdir RiscPkg
 
@@ -448,6 +448,12 @@ echo " This module provide a support for the ARM EABI calling convention" >> Ris
 echo "ARMEABISupport Module" > RiscPkg/Copyright
 copyright_header
 echo "ARMEABISupport copyright" >> RiscPkg/Copyright
+
+# Create a trigger to Ensure the Modules:400 path is added to system
+# on RISC OS 5
+mkdir RiscPkg/Triggers
+echo "Set PkgTrigger\$ReturnCode 0" > RiscPkg/Triggers/PostInstall,feb
+echo "IfThere System:Modules.ARMEABISupport Then Else Filer_Run System:SysPaths" >> RiscPkg/Triggers/PostInstall,feb
 
 set_file_types
 
