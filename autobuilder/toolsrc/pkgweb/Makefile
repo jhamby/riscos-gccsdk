@@ -1,6 +1,6 @@
 
 CPPFLAGS =
-CXXFLAGS = -I. -I../libpkg -Wall -W -Wno-unused -Wno-deprecated -O3
+CXXFLAGS = -I. -I../libpkg -Wall -W -Wno-unused -Wno-deprecated -O3 -std=c++11
 LD=gcc
 LDFLAGS = -L../libpkg -lpkg -lz -lstdc++
 
