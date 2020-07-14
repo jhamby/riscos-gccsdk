@@ -102,7 +102,7 @@ ab_package() {
 
       $AB_HOME/add-riscpkg -package libsdl-mixer1.2-vfp -name LibSDLMixer1.2-VFP -depends SharedLibs-C2 \
 		 -depends LibSDL1.2 -depends Tremor -depends LibMikmod -section Library \
-		 -copyrightfile $H/Copyright -arch vfp
+		 -copyrightfile $H/Copyright -env vfp
     fi
   fi
 }
