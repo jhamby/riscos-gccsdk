@@ -1,7 +1,8 @@
 AB_HG=https://hg.libsdl.org/SDL/
 AB_HG_BRANCH=SDL-1.2
-AB_PVERSION=1.2.15
-AB_ROVERSION=5
+AB_PVERSION=1.2.16
+AB_ROVERSION=1
+AB_LICENCE=Free
 
 AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
 AB_SHORTDESC="Allows programs portable low level access to a video, audio, mouse, and keyboard"
@@ -44,12 +45,6 @@ ab_make() {
 ab_package() {
   ab_create_app SDL Apps/Library libsdl1.2-dev
 
-  # Need to retype the converted manual files
-  #MANFILES=$(find man -type f)
-  #for FILE in $MANFILES ; do
-  #   mv $FILE $FILE,faf
-  #done
-
   ab_add_headers $GCCSDK_INSTALL_ENV/include/SDL $A/SDL
 
   if [ "$BUILD_NORMAL" == "yes" ] ; then
@@ -71,7 +66,19 @@ ab_package() {
   mkdir $A/doc
   for i in $AB_INSTALLDOCS; do cp $S/$i $A/doc/$i,fff; done
 
+  mkdir $A/doc/html
+  cp -rf $S/docs/html $A/doc
+  cp -rf $S/docs/images $A/doc
+  cp -f $S/docs/index.html $A/doc
+
   $AB_HOME/add-riscpkg -unixlib -unixsound -package libsdl1.2-dev -name LibSDL1.2-Dev
+
+  echo "Description: Simple DirectMedia Layer development files" >> $D/libsdl1.2-dev/RiscPkg/Control,fff
+  echo " SDL is a library that allows programs portable low level access to a video" >> $D/libsdl1.2-dev/RiscPkg/Control,fff
+  echo " framebuffer, audio output, mouse, and keyboard." >> $D/libsdl1.2-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libsdl1.2-dev/RiscPkg/Control,fff
+  echo " This package contains the files needed to compile and link programs which" >> $D/libsdl1.2-dev/RiscPkg/Control,fff
+  echo " use SDL." >> $D/libsdl1.2-dev/RiscPkg/Control,fff
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
     if [ "$BUILD_NORMAL" == "yes" ] ; then
@@ -80,13 +87,29 @@ ab_package() {
 
       $AB_HOME/add-riscpkg -package libsdl1.2 -name LibSDL1.2 -depends SharedLibs-C2 \
 		 -unixsound -section Library -copyrightfile $H/Copyright
+
+      echo "Description: Simple DirectMedia Layer shared library files (arm)" >> $D/libsdl1.2/RiscPkg/Control,fff
+      echo " SDL is a library that allows programs portable low level access to a video" >> $D/libsdl1.2/RiscPkg/Control,fff
+      echo " framebuffer, audio output, mouse, and keyboard."  >> $D/libsdl1.2/RiscPkg/Control,fff
+      echo " ." >> $D/libsdl1.2/RiscPkg/Control,fff
+      echo " This package contains the shared library files to run programs that are dynamically" >> $D/libsdl1.2/RiscPkg/Control,fff
+      echo " linked to the arm version of SDL." >> $D/libsdl1.2/RiscPkg/Control,fff
+
     fi
     if [ "$BUILD_VFP" == "yes" ] ; then
       ab_create_sharedlib_skeleton libsdl1.2-vfp
       ab_add_sharedlib $S/build-vfp/build/.libs libSDL-1.2.so.0
 
       $AB_HOME/add-riscpkg -package libsdl-vfp -name LibSDL-VFP -depends SharedLibs-C2 \
-		 -unixsound -section Library -copyrightfile $H/Copyright -arch vfp
+		 -unixsound -section Library -copyrightfile $H/Copyright -env vfp
+      echo "Description: Simple DirectMedia Layer shared library files (vfp)" >> $D/libsdl1.2-vfp/RiscPkg/Control,fff
+      echo " SDL is a library that allows programs portable low level access to a video" >> $D/libsdl1.2-vfp/RiscPkg/Control,fff
+      echo " framebuffer, audio output, mouse, and keyboard." >> $D/libsdl1.2-vfp/RiscPkg/Control,fff
+      echo " ." >> $D/libsdl1.2-vfp/RiscPkg/Control,fff
+      echo " This package contains the shared library files to run programs that are dynamically" >> $D/libsdl1.2-vfp/RiscPkg/Control,fff
+      echo " linked to the VFP version of SDL." >> $D/libsdl1.2/RiscPkg/Control,fff
+
     fi
   fi
 }
+
