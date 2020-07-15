@@ -53,7 +53,7 @@ ab_package() {
 
 	AB_COMPONENTS=""
 	$AB_HOME/add-riscpkg -name LibVorbis-VFP -section Library -package libvorbis-vfp \
-	    -depends LibOGG -depends SharedLibs-C2 -arch vfp
+	    -depends LibOGG -depends SharedLibs-C2 -env vfp
     fi
   fi
 

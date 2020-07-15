@@ -49,7 +49,7 @@ ab_package() {
 
 	AB_COMPONENTS=""
 	$AB_HOME/add-riscpkg -name LibOgg-VFP -section Library -package libogg-vfp \
-	    -depends SharedLibs-C2 -copyrightfile $S/COPYING -arch vfp
+	    -depends SharedLibs-C2 -copyrightfile $S/COPYING -env vfp
     fi
   fi
 
