@@ -1,6 +1,11 @@
 AB_INSTALL=yes
 AB_ROVERSION=2
 
+# Ensure RO_SHAREDLIBS is set before configuring here.
+if [ -z "$RO_SHAREDLIBS" ] && [ "$AB_ELFBUILD" == "yes" ] ; then
+   export RO_SHAREDLIBS=yes
+fi
+
 # Disable smpeg, FLAC and FluidSynth as we don't build them.
 AB_CONFLAGS="--disable-music-mod-shared --disable-music-midi-fluidsynth --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
 
@@ -9,12 +14,6 @@ AB_DISTCLEAN="rm -rf build build-vfp"
 # Build normal and VFP versions by default.
 BUILD_NORMAL=yes
 BUILD_VFP=yes
-
-if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-AB_PACKAGES="libsdl-mixer1.2-dev libsdl-mixer1.2"
-else
-AB_PACKAGES="libsdl-mixer1.2-dev"
-fi
 
 ./autogen.sh
 
@@ -31,7 +30,10 @@ if [ "$BUILD_VFP" == "yes" ]; then
   sed -i "s/    new_inherited_linker_flags=\$/    new_inherited_linker_flags=\"-mfpu=vfp\"/" $S/build-vfp/libtool 
 fi
 
+
 ab_make() {
+  echo "Shared libs $RO_SHAREDLIBS"
+
   # The makefiles in the build & build-vfp folders keep getting clobbered, manually regenerate them before each build
   cd build
    ./config.status Makefile default
@@ -46,6 +48,14 @@ ab_make() {
 }
 
 ab_package() {
+  echo "Shared libs 2 $RO_SHAREDLIBS"
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    AB_PACKAGES="libsdl-mixer1.2-dev libsdl-mixer1.2"
+  else
+    AB_PACKAGES="libsdl-mixer1.2-dev"
+  fi
+
   ab_create_app SDLMixer Apps/Library libsdl-mixer1.2-dev
 
   cd $A
