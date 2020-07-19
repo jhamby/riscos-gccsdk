@@ -682,10 +682,12 @@ if true; then
     fi
   fi
 
-  if [ "$AB_TRY" != yes ] ; then
-    echo "Autobuilder: Calling setvars"
-    . $AB_HOME/$AB_PACKAGEDIR/setvars
-  fi
+  # Need to ensure RO_SHAREDLIBS is set before setvars is run as some
+  # packages rely on it's value when the setvars script is run
+
+  # Parse AB_INSTALL from setvars so we can check if it's a library or not
+  # prior to running setvars.
+  AB_INSTALL=$(grep ^AB_INSTALL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 
   # If no preference is set for shared versus dynamic, then by default build libraries dynamically
   # (which usually also builds a static library) but others statically
@@ -695,6 +697,11 @@ if true; then
     else
       export RO_SHAREDLIBS=no
     fi
+  fi
+
+  if [ "$AB_TRY" != yes ] ; then
+    echo "Autobuilder: Calling setvars"
+    . $AB_HOME/$AB_PACKAGEDIR/setvars
   fi
 
   if [ -n "$AB_ZIPNAME" ] ; then
