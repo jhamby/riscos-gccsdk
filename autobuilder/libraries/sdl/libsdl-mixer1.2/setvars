@@ -1,11 +1,6 @@
 AB_INSTALL=yes
 AB_ROVERSION=2
 
-# Ensure RO_SHAREDLIBS is set before configuring here.
-if [ -z "$RO_SHAREDLIBS" ] && [ "$AB_ELFBUILD" == "yes" ] ; then
-   export RO_SHAREDLIBS=yes
-fi
-
 # Disable smpeg, FLAC and FluidSynth as we don't build them.
 AB_CONFLAGS="--disable-music-mod-shared --disable-music-midi-fluidsynth --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
 
