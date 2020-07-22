@@ -1,6 +1,6 @@
 /* Condition variables
    Written by Alex Waugh.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2020 UnixLib Developers.  */
 
 #include <errno.h>
 #include <time.h>
@@ -17,11 +17,11 @@
 int
 pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *attr)
 {
-  if (attr == NULL || cond == NULL)
+  if (cond == NULL)
     return EINVAL;
 
   cond->waiting = NULL;
-  cond->clock_id = attr->clock_id;
+  cond->clock_id = attr ? attr->clock_id : CLOCK_REALTIME;
 
   return 0;
 }

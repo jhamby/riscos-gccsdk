@@ -1,3 +1,10 @@
+Wed Jul 22 16:23:02 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* pthread/cond.c(pthread_cond_init): Fix bug introduced
+	in r7252. The attr parameter can be NULL, which means
+	use default values. Fixes pthread_cond_init failure in
+	python3.
+
 Sat Jun 20 21:08:10 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* unix/ul_select.c(select): Additional fix to time calculation
