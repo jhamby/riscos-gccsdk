@@ -79,7 +79,7 @@ extern const short * const __ctype_upper;
 #  define ispunct(c) (__ctype[(int) (c)] & ___ctype_punc)
 #  define isspace(c) (__ctype[(int) (c)] & ___ctype_white)
 #  define isxdigit(c) (__ctype[(int) (c)] & ___ctype_xdigit)
-#  define isblank(c) (__ctype[(int) (c)] & ___ctype_white)
+#  define isblank(c) ((c) == ' ' || (c) == '\t')
 #else
 /* Characteristics. */
 #  ifdef __TARGET_MODULE__

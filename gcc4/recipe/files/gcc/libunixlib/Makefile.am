@@ -117,6 +117,7 @@ ctype_src = \
 	ctype/isalnum.c \
 	ctype/isalpha.c \
 	ctype/isascii.c \
+	ctype/isblank.c \
 	ctype/iscntrl.c \
 	ctype/isdigit.c \
 	ctype/isgraph.c \

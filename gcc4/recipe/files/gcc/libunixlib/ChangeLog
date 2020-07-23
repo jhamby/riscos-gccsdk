@@ -1,3 +1,18 @@
+Thu Jul 23 17:47:04 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* ctype/isblank.c: New file. Implement isblank function.
+	* Makefile.am: Add above file to build.
+	* include/ctype.h(isblank): The isblank() macro should return
+	TRUE if the given character is a space or a tab. The other
+	macros use the territory module to determine their values,
+	but this doesn't seem possible for isblank(). Instead, test
+	for the characters directly. It seems unlikely that different
+	territories would interpret space and tab differently to what
+	we would expect.
+	Note that I did consider the fact that the macro argument
+	appears twice and may be an issue for side effects, but
+	isprint() also uses its argument twice.
+
 Thu Jul 23 16:46:03 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* include/pthread.h(struct __pthread_cond): Swap "waiting" and
