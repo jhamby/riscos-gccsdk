@@ -1,3 +1,12 @@
+Thu Jul 23 16:46:03 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* include/pthread.h(struct __pthread_cond): Swap "waiting" and
+	"clock_id" positions in an attempt to retain compatibility with
+	older versions of Unixlib. The GCCSDK release 3 version of Unixlib
+	(and other libraries built against it) expect "waiting" to be at
+	offset 0 of the struct and future releases should ensure that it
+	remains so.
+
 Wed Jul 22 16:23:02 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* pthread/cond.c(pthread_cond_init): Fix bug introduced

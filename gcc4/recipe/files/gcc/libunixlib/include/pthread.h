@@ -64,10 +64,10 @@ struct __pthread_lock
 /* Condition var object */
 struct __pthread_cond
 {
-  /* Absolute (CLOCK_REALTIME) or relative (CLOCK_MONOTONIC) clock?  */
-  clockid_t clock_id;
   /* Linked list of threads that are blocked on this condition var.  */
   struct __pthread_thread *waiting;
+  /* Absolute (CLOCK_REALTIME) or relative (CLOCK_MONOTONIC) clock?  */
+  clockid_t clock_id;
 };
 
 typedef struct __pthread_lock pthread_mutex_t;
