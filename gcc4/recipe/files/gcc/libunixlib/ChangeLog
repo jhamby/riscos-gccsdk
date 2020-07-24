@@ -1,3 +1,8 @@
+Fri Jul 24 16:46:05 BST  2020  Lee Noar  <lee.noar@sky.com>
+
+	* include/pthread.h(PTHREAD_COND_INITIALIZER): Swap order
+	to match struct __pthread_cond.
+
 Thu Jul 23 17:47:04 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* ctype/isblank.c: New file. Implement isblank function.

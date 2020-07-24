@@ -362,7 +362,7 @@ extern int pthread_rwlockattr_getpshared (const pthread_rwlockattr_t *
 /* Condition variables */
 
 /* Static default initialiser for a pthread_cond_t */
-#define PTHREAD_COND_INITIALIZER {CLOCK_REALTIME,NULL}
+#define PTHREAD_COND_INITIALIZER {NULL,CLOCK_REALTIME}
 
 /* Initialise a condition variable with the given attributes */
 extern int pthread_cond_init (pthread_cond_t *__restrict cond,
