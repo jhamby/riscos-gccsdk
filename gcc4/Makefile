@@ -20,8 +20,8 @@ GCC_LANGUAGES="c,c++"
 CROSS_ENABLE_SHARED=yes
 RONATIVE_ENABLE_SHARED=yes
 
-# Release ID for GCCSDK RISC OS release (eg 4.7.4 release 4)
-GCCSDK_GCC_RISCOS_RELEASE=4
+# Release ID for GCCSDK RISC OS release (eg 4.7.4 release 5)
+GCCSDK_GCC_RISCOS_RELEASE=5
 
 # *_SCM variables: when set to "yes", we'll fetch the source from source control
 # system and it will always be the latest version.
