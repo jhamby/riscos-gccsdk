@@ -64,7 +64,7 @@ fi
 for param in "$@" ; do
   case "$param" in
   -unixlib)
-     depends="$depends, SharedUnixLibrary (>= 1.11)"
+     depends="$depends, SharedUnixLibrary (>= 1.16)"
      ;;
   -unixsound)
      depends="$depends, DRenderer"
