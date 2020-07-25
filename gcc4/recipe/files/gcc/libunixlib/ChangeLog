@@ -1,3 +1,8 @@
+Sat Jul 25  11:03:24 BST 2020 Alan Buckley <alan_baa@hotmail.com>
+     
+	* recipe/files/gcc/libunixlib/kernel/kosbget.s: Fix osbget
+	as it was always returning an error
+
 Fri Jul 24 16:46:05 BST  2020  Lee Noar  <lee.noar@sky.com>
 
 	* include/pthread.h(PTHREAD_COND_INITIALIZER): Swap order
