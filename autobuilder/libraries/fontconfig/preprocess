@@ -1,0 +1,3 @@
+wget http://deb.debian.org/debian/pool/main/f/fontconfig/fontconfig_2.11.0-6.7.debian.tar.xz
+tar -xvJf fontconfig_2.11.0-6.7.debian.tar.xz
+
