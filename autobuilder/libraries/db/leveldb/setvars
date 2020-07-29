@@ -1,5 +1,6 @@
 # LevelDB is a fast key-value storage library written at Google that
 # provides an ordered mapping from string keys to string values.
+AB_URL=http://deb.debian.org/debian/pool/main/l/leveldb/leveldb_1.18.orig.tar.gz
 
 AB_INSTALL=env
 
@@ -37,7 +38,7 @@ ab_package() {
   ab_create_app leveldb Library libleveldb-dev
 
   install_headers $GCCSDK_INSTALL_ENV/include/leveldb $A
-  cp $S/out-static/*.a $A
+  cp $S/*.a $A
 
   $AB_HOME/add-riscpkg -package "libleveldb-dev" -unixlib -name LibLevelDB-Dev
 
@@ -47,7 +48,7 @@ ab_package() {
 
     AB_COMPONENTS=""
 
-    ab_add_sharedlib $S/out-shared libleveldb.so.1d
+    ab_add_sharedlib $S/ libleveldb.so.1
 
     $AB_HOME/add-riscpkg -package libleveldb -name LibLevelDB -depends SharedLibs \
 		-section Library

@@ -1,8 +1,8 @@
---- Makefile.orig	2018-04-12 08:01:31.484752290 +0100
-+++ Makefile	2018-04-12 08:06:09.007530754 +0100
-@@ -314,6 +314,15 @@
+--- Makefile.orig	2015-04-09 13:03:58.000000000 +0100
++++ Makefile	2015-04-09 13:04:18.424005344 +0100
+@@ -118,6 +118,15 @@
  	rm -f $@
- 	$(AR) -rs $@ $(SHARED_MEMENVOBJECTS)
+ 	$(AR) -rs $@ $(LIBOBJECTS)
  
 +ifneq ($(PLATFORM_SHARED_EXT),)
 +ifeq ($(PLATFORM),OS_RISCOS)
@@ -13,6 +13,6 @@
 +endif
 +endif
 +
- $(STATIC_OUTDIR)/db_bench:db/db_bench.cc $(STATIC_LIBOBJECTS) $(TESTUTIL)
- 	$(CXX) $(LDFLAGS) $(CXXFLAGS) db/db_bench.cc $(STATIC_LIBOBJECTS) $(TESTUTIL) -o $@ $(LIBS)
+ db_bench: db/db_bench.o $(LIBOBJECTS) $(TESTUTIL)
+ 	$(CXX) $(LDFLAGS) db/db_bench.o $(LIBOBJECTS) $(TESTUTIL) -o $@ $(LIBS)
  
