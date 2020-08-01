@@ -687,7 +687,7 @@ if true; then
 
   # Parse AB_INSTALL from setvars so we can check if it's a library or not
   # prior to running setvars.
-  AB_INSTALL=$(grep ^AB_INSTALL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+  AB_INSTALL=$(grep ^AB_INSTALL[\ =] $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 
   # If no preference is set for shared versus dynamic, then by default build libraries dynamically
   # (which usually also builds a static library) but others statically
