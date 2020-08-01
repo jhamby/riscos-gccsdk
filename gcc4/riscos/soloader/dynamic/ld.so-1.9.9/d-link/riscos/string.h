@@ -11,6 +11,10 @@
 #define NULL ((void *) 0)
 #endif
 
+/* Make sure GCC doesn't replace our memset implementation with a
+ * call to memset.  */
+#pragma GCC optimize ("no-tree-loop-distribute-patterns")
+
 /* Make sure we are using our inline version.  */
 #define strlen(s) _dl_strlen(s)
 
