@@ -1,6 +1,6 @@
---- glib-2.0.pc.in.orig	2017-04-01 20:02:42.484064630 +0100
-+++ glib-2.0.pc.in	2017-04-01 20:15:41.472074725 +0100
-@@ -11,6 +11,6 @@
+--- glib-2.0.pc.in.orig	2019-01-21 13:38:50.000000000 +0000
++++ glib-2.0.pc.in	2020-08-02 17:55:12.121956360 +0100
+@@ -12,6 +12,6 @@
  Description: C Utility Library
  Version: @VERSION@
  Requires.private: @PCRE_REQUIRES@

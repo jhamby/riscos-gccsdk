@@ -1,4 +1,4 @@
-AB_URL=http://deb.debian.org/debian/pool/main/g/glib2.0/glib2.0_2.50.3.orig.tar.xz
+#AB_URL=http://ftp.uk.debian.org/debian/pool/main/g/glib2.0/glib2.0_2.50.3.orig.tar.xz
 
 if [ "$RO_SHAREDLIBS" == "yes" ]; then
   AB_PACKAGES="libglib2.0-0 libglib2.0-dev libglib2.0-doc"
@@ -10,18 +10,9 @@ AB_CATEGORY=Library
 AB_LICENSE=Free
 
 AB_INSTALL=yes
+AB_MESON=yes
 
-export glib_cv_uscore=no 
-export glib_cv_monotonic_clock=yes 
-export ac_cv_func_posix_getgrgid_r=no
-export glib_cv_have_qsort_r=yes
-export ac_cv_gnu_library_2_1=yes
-export glib_cv_g_atomic_lock_free=no
-export glib_flag_works=no
-
-AB_CONFLAGS="--with-pcre=system --with-threads=posix"
-
-mkdir -p $D/bin
+AB_MESON_FLAGS="$AB_MESON_FLAGS -Dxattr=false -Dc_link_args=-lgcc_s -Dcpp_link_args=-lgcc_s"
 
 # Package script uses installed library
 # zip built due to AB_INSTALL=yes
@@ -29,15 +20,19 @@ mkdir -p $D/bin
 ab_package() {
 
   # Shared libraries package
-  if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    abi_dir=abi-2.0
-    gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
-    if [[ "$gcc_version" == *4.1.2* ]]; then
-      abi_dir=abi-1.0
-    fi
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libglib2.0-0
 
-    slibdir=$D/libglib2.0-0/Resources/\!SharedLibs/lib/$abi_dir
-    mkdir -p $slibdir
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/build-meson-cross/gio libgio-2.0.so.0
+    ab_add_sharedlib $S/build-meson-cross/glib libglib-2.0.so.0
+    ab_add_sharedlib $S/build-meson-cross/gmodule libgmodule-2.0.so.0
+    ab_add_sharedlib $S/build-meson-cross/gobject libgobject-2.0.so.0
+    ab_add_sharedlib $S/build-meson-cross/gthread libgthread-2.0.so.0
+
+    $AB_HOME/add-riscpkg -package "libglib2.0-0" -name LibGLib2 \
+      -depends SharedLibs-C2 -copyrightfile $S/COPYING
   fi
 
   # Developer package
@@ -59,12 +54,7 @@ ab_package() {
   rm -rf include
 
   # Need to put glibconfig.h in headers
-  cp $S/glib/glibconfig.h glib-2.0/h/glibconfig
-
-  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-    # Copy shared libs to shared libs package
-    mv lib/*.so.* $slibdir
-  fi
+  cp $S/build-meson-cross/glib/glibconfig.h glib-2.0/h/glibconfig
 
   # Copy static libs to static package
   mv lib/*.a .
@@ -75,36 +65,13 @@ ab_package() {
   mv $tdocdir/* .
   rm -rf $tdocdir
 
-  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-    cd $HERE
-    cd $slibdir
-
-    # Create soft links
-    SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
-    for SLIB in $SLIBS ; do
-      ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
-      LNAME=`echo $SLIB | cut -d '.' -f 1-3`
-      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-      LNAME=`echo $SLIB | cut -d '.' -f 1-4`
-      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-    done
-
-    cd $HERE
-  fi
-
   # Copy HTML docs to docs package
-  mkdir -p $docdir/glib
-  cp $S/docs/reference/glib/html/* $docdir/glib
-  mkdir -p $docdir/gio
-  cp $S/docs/reference/gio/html/* $docdir/gio
-  mkdir -p $docdir/gobject
-  cp $S/docs/reference/gobject/html/* $docdir/gobject
-
-  if [ "$RO_SHAREDLIBS" == "yes" ]; then
-
-    $AB_HOME/add-riscpkg -package "libglib2.0-0" \
-      -depends SharedLibs -copyrightfile $S/COPYING
-  fi
+#  mkdir -p $docdir/glib
+#  cp $S/docs/reference/glib/html/* $docdir/glib
+#  mkdir -p $docdir/gio
+#  cp $S/docs/reference/gio/html/* $docdir/gio
+#  mkdir -p $docdir/gobject
+#  cp $S/docs/reference/gobject/html/* $docdir/gobject
 
   AB_COMPONENTS="Apps.Library.LibGlib2.0-Dev (Movable LookAt)"
   $AB_HOME/add-riscpkg -package "libglib2.0-dev" -name LibGLib2.0-Dev \
@@ -120,15 +87,15 @@ ab_package() {
   echo " as only it includes the header files and static libraries (optionally)" >> $D/libglib2.0-dev/RiscPkg/Control,fff
   echo " needed for compiling." >> $D/libglib2.0-dev/RiscPkg/Control,fff
 
-  AB_COMPONENTS=""
-  $AB_HOME/add-riscpkg -package "libglib2.0-doc -name LibGLib2.0-Doc -depends LibGLib2.0-Dev -copyrightfile $S/COPYING"
+#  AB_COMPONENTS=""
+#  $AB_HOME/add-riscpkg -package "libglib2.0-doc -name LibGLib2.0-Doc -depends LibGLib2.0-Dev -copyrightfile $S/COPYING"
   
-  mkdir -p $D/libglib2.0-doc/RiscPkg
-  echo "Description: Documentation files for the GLib library" >> $D/libglib2.0-doc/RiscPkg/Control,fff
-  echo " GLib is a library containing many useful C routines for things such" >> $D/libglib2.0-doc/RiscPkg/Control,fff
-  echo " as trees, hashes, lists, and strings.  It is a useful general-purpose" >> $D/libglib2.0-doc/RiscPkg/Control,fff
-  echo " C library used by projects such as GTK+, GIMP, and GNOME." >> $D/libglib2.0-doc/RiscPkg/Control,fff
-  echo " ." >> $D/libglib2.0-doc/RiscPkg/Control,fff
-  echo " This package contains the HTML documentation for the GLib library" >> $D/libglib2.0-doc/RiscPkg/Control,fff
+#  mkdir -p $D/libglib2.0-doc/RiscPkg
+#  echo "Description: Documentation files for the GLib library" >> $D/libglib2.0-doc/RiscPkg/Control,fff
+#  echo " GLib is a library containing many useful C routines for things such" >> $D/libglib2.0-doc/RiscPkg/Control,fff
+#  echo " as trees, hashes, lists, and strings.  It is a useful general-purpose" >> $D/libglib2.0-doc/RiscPkg/Control,fff
+#  echo " C library used by projects such as GTK+, GIMP, and GNOME." >> $D/libglib2.0-doc/RiscPkg/Control,fff
+#  echo " ." >> $D/libglib2.0-doc/RiscPkg/Control,fff
+#  echo " This package contains the HTML documentation for the GLib library" >> $D/libglib2.0-doc/RiscPkg/Control,fff
   
 }
