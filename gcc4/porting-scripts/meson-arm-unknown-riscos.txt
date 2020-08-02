@@ -1,0 +1,29 @@
+# Meson cross compiler configuration file for arm-unknown-riscos
+
+[binaries]
+c = 'GCCSDK_ENV/arm-unknown-riscos-gcc'
+cpp = 'GCCSDK_ENV/arm-unknown-riscos-g++'
+strip = 'GCCSDK_ENV/arm-unknown-riscos-strip'
+pkgconfig = 'GCCSDK_ENV/ro-pkg-config'
+
+[properties]
+sizeof_int = 4
+sizeof_wchar_t = 4
+sizeof_void* = 4
+
+alignment_char = 1
+alignment_void* = 4
+alignment_double = 4
+
+sys_root = 'GCCSDK_ENV'
+
+[host_machine]
+system = 'riscos'
+cpu_family = 'arm'
+cpu = 'arm'
+endian = 'little'
+
+[paths]
+prefix = 'GCCSDK_ENV'
+libdir = 'lib'
+bindir = 'bin'
