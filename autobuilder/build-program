@@ -23,6 +23,15 @@ AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 AB_PATCHOPT="-l -p0"
 
+# Meson support
+AB_MESON=no
+AB_PREMESON=
+AB_MESON_CROSS_FILE=$GCCSDK_INSTALL_ENV/meson-arm-unknown-riscos.txt
+AB_MESON_FLAGS="-Dbuildtype=release -Ddefault_library=both"
+AB_MESON_BUILD_DIR=build-meson-cross
+
+AB_CMAKE_TOOLCHAIN_FILE=$GCCSDK_INSTALL_ENV/toolchain-riscos.cmake
+
 # if the AB_CPUS variable is set, use that number of parallel processes in
 # our compile (may go wrong if makefiles are poorly written)
 if [ -z "$AB_CPUS" ] || [ "$AB_CPUS"=="X" ] ; then
@@ -62,8 +71,8 @@ if [ "$RO_USE_CLANG" == yes ] ; then
   export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang -mno-apcs-stack-check"
   export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang++ -mno-apcs-stack-check"
 elif [ "$RO_USE_ARMEABIHF" == yes ] ; then
-  export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-gcc"
-  export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-g++"
+  export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc"
+  export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-g++"
 else
   export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-gcc"
   export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-g++"
@@ -300,11 +309,15 @@ ab_add_sharedlib()
   local ro_lib_name
 
   local readelf
-  local vfp
   local vfp_dir=""
 
   lib_dir=$1
   lib_name=$2
+
+  if ! [ -e "$lib_dir/$lib_name" ]; then
+    echo "ab_add_sharedlib(): Can't find shared library $lib_dir/$lib_name"
+    exit 1
+  fi
 
   ux_lib_name=$(readlink $lib_dir/$lib_name)
   ro_lib_name=$(echo $ux_lib_name | tr /. ./)
@@ -699,6 +712,11 @@ if true; then
     fi
   fi
 
+  if [ "x$RO_USE_ARMEABIHF" == "xyes" ]; then
+    AB_MESON_CROSS_FILE=$GCCSDK_INSTALL_ENV/meson-arm-riscos-gnueabihf.txt
+    AB_CMAKE_TOOLCHAIN_FILE=$GCCSDK_INSTALL_ENV/toolchain-gcc-riscos-gnueabihf.cmake
+  fi
+
   if [ "$AB_TRY" != yes ] ; then
     echo "Autobuilder: Calling setvars"
     . $AB_HOME/$AB_PACKAGEDIR/setvars
@@ -711,7 +729,15 @@ if true; then
 
   export AB_DIR
 
-  if [ -e Imakefile ] ; then
+  if [ "x$AB_MESON" == "xyes" ] ; then
+    echo "Autobuilder: Calling meson command: $AB_PREMESON meson --prefix $GCCSDK_INSTALL_ENV --cross-file $AB_MESON_CROSS_FILE $AB_MESON_FLAGS"
+    # For autotools, we set these to the cross compiler, but meson requires these to be the
+    # native system compiler and uses its own variables for the cross compiler.
+    export CC=cc
+    export CXX=c++
+    mkdir -p $AB_MESON_BUILD_DIR
+    eval $AB_PREMESON meson $AB_MESON_BUILD_DIR --prefix $GCCSDK_INSTALL_ENV --cross-file $AB_MESON_CROSS_FILE $AB_MESON_FLAGS
+  elif [ -e Imakefile ] ; then
     echo "Autobuilder: Calling xmkmf"
     $GCCSDK_INSTALL_ENV/ro-path $GCCSDK_INSTALL_ENV/bin/xmkmf -a
   elif [ -e configure ] || [ ! -z "$RO_CPATH" -a -e $RO_CPATH/configure ] ; then
@@ -728,25 +754,48 @@ if true; then
 
   S=$PWD
 
-  echo "Autobuilder: Running make command: $AB_MAKE"
-  ab_make
+  if [ "x$AB_MESON" == "xyes" ] ; then
+    echo "Autobuilder: Running ninja command:"
+    ninja -C $AB_MESON_BUILD_DIR
+  else
+    echo "Autobuilder: Running make command: $AB_MAKE"
+    ab_make
+  fi
 
   if [ -e install-sh ] && ! [ -h install-sh ] ; then
     mv install-sh install.sh-old
     ln -s $GCCSDK_INSTALL_ENV/ro-install install-sh
   fi
 
-  # Need to install in $GCCSDK_INSTALL_ENV ?
-  if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
-    echo "Autobuilder: Running make install"
-    # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm/ln are picked up there.
-    eval "$AB_MAKE $AB_INSTALLTARGET"
+  if [ "x$AB_MESON" == "xyes" ] ; then
+    if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
+      echo "Autobuilder: Installing to $GCCSDK_INSTALL_ENV"
+      meson install -C $AB_MESON_BUILD_DIR
+    fi
+    if [ "$AB_INSTALL" == "yes" ] ; then
+      echo "Autobuilder: Installing to $AB_DIR/package"
+      DESTDIR=$AB_DIR/package meson install -C $AB_MESON_BUILD_DIR
+      # This install isn't quite what we want, we get the full original prefix
+      # path inside the 'package' directory. Move everything down to the
+      # package directory and delete the empty directory structure.
+      mv -f -t $AB_DIR/package $AB_DIR/package/$GCCSDK_INSTALL_ENV/*
+      rm -fr $AB_DIR/package/home
+    fi
+  else
+    # Need to install in $GCCSDK_INSTALL_ENV ?
+    if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
+      echo "Autobuilder: Running make install"
+      # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm/ln are picked up there.
+      eval "$AB_MAKE $AB_INSTALLTARGET"
+    fi
   fi
 
   # Need to package the installed files ?
   if [ "$AB_INSTALL" == "yes" ] ; then
     export AB_OUTPUTLIB
     export AB_INSTALLDOCS
+    export AB_MESON
+    export AB_MESON_BUILD_DIR
 
     export RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}${AB_ROVERSION_SUFFIX}
     $AB_HOME/ro-libpack

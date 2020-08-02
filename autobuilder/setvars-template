@@ -138,6 +138,31 @@
 # exist are ignored
 #AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
 
+# When set to yes, use meson to configure the package (and ninja to
+# build it). The package must support building by meson (contains
+# a 'meson.build' file). Note that ab_make() will not be called.
+#AB_MESON=no
+
+# This is added before the meson configuration command to allow any
+# environment variables to be set.
+#AB_PREMESON=
+
+# When configuring using meson, this gives the full path to a cross
+# file suitable for the target compiler. You will not normally have to
+# change this as the autobuilder will set it as required.
+#AB_MESON_CROSS_FILE=$GCCSDK_INSTALL_ENV/meson-arm-unknown-riscos.txt
+
+# These are the flags that are passed to meson. By default, a release
+# build is created and both shared and static libraries are built.
+# These flags can be replaced by setting a new value to the variable,
+# or added to.
+#AB_MESON_FLAGS="-Dbuildtype=release -Ddefault_library=both"
+
+# This is the name of the directory where the built files will be placed.
+# You will not normally have to change this.
+#AB_MESON_BUILD_DIR=build-meson-cross
+
+# When 
 # Make function
 #
 # Define this if you want special actions for make
