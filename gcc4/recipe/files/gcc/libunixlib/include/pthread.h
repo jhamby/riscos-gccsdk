@@ -266,7 +266,7 @@ extern int pthread_attr_getstack(const pthread_attr_t *attr,
 /* Mutexes */
 
 /* Static default initialiser for a pthread_mutex_t */
-#define PTHREAD_MUTEX_INITIALIZER {0,LOCK_MUTEX,NULL,NULL,{PTHREAD_PROCESS_PRIVATE,PTHREAD_MUTEX_DEFAULT}}
+#define PTHREAD_MUTEX_INITIALIZER {0,LOCK_MUTEX,NULL,NULL,{PTHREAD_PROCESS_PRIVATE,PTHREAD_MUTEX_DEFAULT,CLOCK_REALTIME}}
 
 /* A recursively attempt to lock a mutex will cause deadlock */
 #define PTHREAD_MUTEX_NORMAL 0
@@ -320,7 +320,7 @@ extern int pthread_mutexattr_gettype (const pthread_mutexattr_t *__restrict
 /* Read/Write locks */
 
 /* Static default initialiser for a pthread_rwlock_t */
-#define PTHREAD_RWLOCK_INITIALIZER {0,LOCK_READ,NULL,NULL,{PTHREAD_PROCESS_PRIVATE,PTHREAD_MUTEX_DEFAULT}}
+#define PTHREAD_RWLOCK_INITIALIZER {0,LOCK_READ,NULL,NULL,{PTHREAD_PROCESS_PRIVATE,PTHREAD_MUTEX_DEFAULT,CLOCK_REALTIME}}
 
 /* Initialise a rwlock object with the specified attributes */
 extern int pthread_rwlock_init (pthread_rwlock_t *__restrict rwlock,
