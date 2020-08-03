@@ -1,100 +1,72 @@
-
 AB_INSTALL=yes
+AB_MESON=yes
 
-AB_CONFLAGS="--with-included-modules=basic-fc,basic-coretext"
+AB_MESON_FLAGS="$AB_MESON_FLAGS -Dgir=false"
 
 ab_package() {
   #libpango1-dev
   ab_create_app LibPango1 Apps/Library libpango1-dev
 
-  HERE=`pwd`
-  cd $A
-
-  unzip $AB_OUTPUTLIB/$RO_PKG.zip
-
-  mv include/pango-1.0/pango pango
-  rm -rf include
-
-  mv lib/*.a .
-  rm -rf lib
-
-  mv doc/$RO_PKG/* doc
-  rm -rf doc/$RO_PKG
-
-  cd $HERE
-
+  devdir=$D/libpango1-dev/Apps/Library/\!LibPango1/
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/pango-1.0 $devdir
+  cp $S/$AB_MESON_BUILD_DIR/pango/*.a $devdir
+  
   $AB_HOME/add-riscpkg -package "libpango1-dev" -name LibPango1-Dev
 
   #libpango1-lib
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    ab_create_app SharedLibs Apps/Library libpango1-lib
+    ab_create_sharedlib_skeleton libpango1
 
-    # Create a skeleton !SharedLibs directory and copy shared library.
-    # Determine which ABI is in use and therefor which directory to install
-    # to. We assume that GCC 4.1.1 is obsolete. For GCC 4.1.2, the ABI
-    # directory is "abi-1.0", for newer versions of GCC, it is "abi-2.0".
-    abi_dir=abi-2.0
-    gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
-    if [[ "$gcc_version" == *4.1.2* ]]; then
-      abi_dir=abi-1.0
-    fi
+    ab_add_sharedlib $S/$AB_MESON_BUILD_DIR/pango libpango-1.0.so.0
+    ab_add_sharedlib $S/$AB_MESON_BUILD_DIR/pango libpangocairo-1.0.so.0
+    ab_add_sharedlib $S/$AB_MESON_BUILD_DIR/pango libpangoft2-1.0.so.0
 
-    mkdir -p $A/lib/$abi_dir
-    ux_lib_name=$(readlink pango/.libs/libpango-1.0.so)
-    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
-    cp -T $S/pango/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpango-1.0.so,1C8
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpango-1.0.so.0,1C8
+#    HERE=`pwd`
+#    cd $GCCSDK_INSTALL_ENV/lib/pango
+#    pango_version=$(find -maxdepth 1 ! -name '.' -type d)
+#    pango_version=${pango_version##.*/}
+#    cd $HERE
 
-    ux_lib_name=$(readlink pango/.libs/libpangocairo-1.0.so)
-    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
-    cp -T $S/pango/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpangocairo-1.0.so,1C8
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpangocairo-1.0.so.0,1C8
+#    mkdir -p $A/lib/$abi_dir/pango/$pango_version/modules
+#    cp -av $GCCSDK_INSTALL_ENV/lib/pango/$pango_version/modules/pango-*-lang.so \
+#	   $A/lib/$abi_dir/pango/$pango_version/modules
 
-    ux_lib_name=$(readlink pango/.libs/libpangoft2-1.0.so)
-    ro_lib_name=$(echo $ux_lib_name | tr /. ./)
-    cp -T $S/pango/.libs/$ux_lib_name $A/lib/$abi_dir/$ux_lib_name,E1F
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpangoft2-1.0.so,1C8
-    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_lib_name $A/lib/$abi_dir/libpangoft2-1.0.so.0,1C8
-
-    HERE=`pwd`
-    cd $GCCSDK_INSTALL_ENV/lib/pango
-    pango_version=$(find -maxdepth 1 ! -name '.' -type d)
-    pango_version=${pango_version##.*/}
-    cd $HERE
-
-    mkdir -p $A/lib/$abi_dir/pango/$pango_version/modules
-    cp -av $GCCSDK_INSTALL_ENV/lib/pango/$pango_version/modules/pango-*-lang.so \
-	   $A/lib/$abi_dir/pango/$pango_version/modules
-
-    $AB_HOME/add-riscpkg -package libpango1-lib \
+    $AB_HOME/add-riscpkg -package libpango1 \
 	-depends SharedLibs -depends LibCairo2-Lib -depends FontConfig-Lib \
-	-depends LibFreeType6-Lib -depends LibGlib2.0-Lib -suggests UnixFont
-
-    # Don't overwrite the original !SharedLibs.!Boot.
-    rm $A/\!Boot,feb
+	-depends LibFreeType6-Lib -depends LibGlib2.0-Lib -depends LibFribidi0 -suggests UnixFont
   fi
 
   #libpango-examples
   ab_create_app LibPangoExamples Apps/Library libpango1-examples
 
   mkdir $A/examples
-  if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    cp $S/examples/.libs/*,e1f $A/examples
-  else
-    cp $S/examples/*,e1f $A/examples
-  fi
+  for f in cairoshape cairosimple cairotwisted
+    do
+      cp $S/$AB_MESON_BUILD_DIR/examples/$f $A/examples/$f,e1f
+    done
 
   mkdir $A/pango-view
-  cp $S/pango-view/*.txt $A/pango-view
-  if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    cp $S/pango-view/.libs/pango-view,e1f $A/pango-view
-  else
-    cp $S/pango-view/pango-view,e1f $A/pango-view
-  fi
+  cp $S/utils/*.txt $A/pango-view
+  for f in pango-list pango-view
+    do
+      cp $S/$AB_MESON_BUILD_DIR/utils/$f $A/pango-view/$f,e1f
+    done
 
   cp -T $H/examples-ReadMe $A/!ReadMe
 
   $AB_HOME/add-riscpkg -package libpango1-examples
+
+  # Doc package
+  docdir=$D/libpango1-doc/Apps/Library/\!LibPango1/doc
+  mkdir -p $docdir
+
+  cp $S/docs/html/* $docdir
+
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package "libpango1-doc -name LibPango1-Doc -depends LibPango1-Dev -copyrightfile $S/COPYING"
+  
+  mkdir -p $D/libpango1-doc/RiscPkg
+  echo "Description: Documentation files for the Pango library" >> $D/libpango1-doc/RiscPkg/Control,fff
+  echo " ." >> $D/libpango1-doc/RiscPkg/Control,fff
+  echo " This package contains the HTML documentation for the Pango library" >> $D/libpango1-doc/RiscPkg/Control,fff
 }
