@@ -1,17 +1,14 @@
 Loaders location
 ----------------
-The default loaders directory is:
+The loaders directory is:
 
 /SharedLibs:lib/abi-2.0/gdk-pixbuf-2.0/2.10.0/loaders
 
-That is, abi-2.0 (as used by versions of GCC from V4.6
-onwards) is assumed.
+for GCC4 and
 
-This default can be overridden by using the command:
+/SharedLibs:lib/armeabi/gdk-pixbuf-2.0/2.10.0/loaders
 
-*set GDK_PIXBUF_MODULEDIR /SharedLibs:lib/abi-1.0/gdk-pixbuf-2.0/2.10.0/loaders
-
-for abi-1.0 (GCC v4.1.2) or to use any other location.
+for newer versions of GCC.
 
 Utilities
 ---------
