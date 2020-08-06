@@ -5,7 +5,7 @@
  gdk_pixbuf_inc = include_directories('.')
  
 +gdk_pixbuf_riscos_abi = get_option('riscos_abi')
-+gdk_pixbuf_libdir = '/SharedLibs:lib/' + gdk_pixbuf_riscos_abi + '/gdk-pixbuf-2.0/' + gdk_pixbuf_binary_version + '/loaders'
++gdk_pixbuf_libdir = '/SharedLibs:lib/' + gdk_pixbuf_riscos_abi
 +
  gdk_pixbuf_cflags = [
    '-DG_LOG_STRUCTURED=1',
