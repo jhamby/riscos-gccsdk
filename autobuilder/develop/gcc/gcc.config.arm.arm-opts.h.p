@@ -1,8 +1,6 @@
-Index: gcc/config/arm/arm-opts.h
-===================================================================
---- gcc/config/arm/arm-opts.h	(revision 220899)
-+++ gcc/config/arm/arm-opts.h	(working copy)
-@@ -55,7 +55,8 @@
+--- gcc/config/arm/arm-opts.h.orig	2020-07-23 07:35:17.340384509 +0100
++++ gcc/config/arm/arm-opts.h	2020-07-24 17:16:30.625916279 +0100
+@@ -47,7 +47,8 @@
    ARM_ABI_ATPCS,
    ARM_ABI_AAPCS,
    ARM_ABI_IWMMXT,

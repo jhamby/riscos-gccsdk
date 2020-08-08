@@ -1,17 +1,17 @@
---- gcc/config.gcc.orig	2018-05-17 16:27:48.433151750 +0100
-+++ gcc/config.gcc	2018-05-20 21:16:46.733999531 +0100
-@@ -747,7 +747,7 @@
+--- gcc/config.gcc.orig	2020-07-23 07:35:17.316384243 +0100
++++ gcc/config.gcc	2020-07-24 21:11:45.319035882 +0100
+@@ -776,7 +776,7 @@
  *-*-fuchsia*)
    native_system_header_dir=/include
    ;;
--*-*-linux* | frv-*-*linux* | *-*-kfreebsd*-gnu | *-*-gnu* | *-*-kopensolaris*-gnu)
-+*-*-linux* | frv-*-*linux* | *-*-kfreebsd*-gnu | *-*-kopensolaris*-gnu)
+-*-*-linux* | frv-*-*linux* | *-*-kfreebsd*-gnu | *-*-gnu* | *-*-kopensolaris*-gnu | *-*-uclinuxfdpiceabi)
++*-*-linux* | frv-*-*linux* | *-*-kfreebsd*-gnu | *-*-kopensolaris*-gnu | *-*-uclinuxfdpiceabi)
    extra_options="$extra_options gnu-user.opt"
    gas=yes
    gnu_ld=yes
-@@ -1203,6 +1203,32 @@
+@@ -1332,6 +1332,32 @@
  	esac
- 	tm_file="${tm_file} arm/aout.h vxworks-dummy.h arm/arm.h"
+ 	tm_file="${tm_file} arm/aout.h arm/arm.h"
  	;;
 +arm*-riscos-gnueabihf)
 +	gas=yes

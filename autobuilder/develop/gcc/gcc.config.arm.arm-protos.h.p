@@ -1,9 +1,10 @@
---- gcc/config/arm/arm-protos.h.orig	2016-02-10 12:36:03.000000000 +0000
-+++ gcc/config/arm/arm-protos.h	2016-10-25 17:44:24.389363490 +0100
-@@ -617,4 +617,13 @@
+--- gcc/config/arm/arm-protos.h.orig	2020-07-24 17:16:30.845914454 +0100
++++ gcc/config/arm/arm-protos.h	2020-07-24 21:14:56.937469244 +0100
+@@ -583,4 +583,14 @@
+ const char * arm_gen_far_branch (rtx *, int, const char * , const char *);
  
- 
- 
+ bool arm_mve_immediate_check(rtx, machine_mode, bool);
++
 +extern bool arm_apcs_frame_needed (void);
 +extern void arm_expand_save_stack_block (rtx, rtx);
 +extern void arm_expand_restore_stack_block (rtx, rtx);

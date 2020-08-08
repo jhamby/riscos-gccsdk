@@ -1,6 +1,6 @@
---- libstdc++-v3/include/tr1/cmath.orig	2018-06-29 15:15:19.000000000 +0100
-+++ libstdc++-v3/include/tr1/cmath	2018-06-29 15:38:17.989706783 +0100
-@@ -166,139 +166,206 @@
+--- libstdc++-v3/include/tr1/cmath.orig	2020-07-23 07:35:19.280405881 +0100
++++ libstdc++-v3/include/tr1/cmath	2020-07-24 17:16:30.801914818 +0100
+@@ -164,139 +164,206 @@
  
    using ::asinh;
    using ::asinhf;

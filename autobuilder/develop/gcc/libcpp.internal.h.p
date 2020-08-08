@@ -1,6 +1,6 @@
---- libcpp/internal.h.orig	2016-04-06 19:35:16.000000000 +0100
-+++ libcpp/internal.h	2016-11-16 21:34:45.777040226 +0000
-@@ -752,7 +752,7 @@
+--- libcpp/internal.h.orig	2020-07-23 07:35:18.712399623 +0100
++++ libcpp/internal.h	2020-07-24 17:16:30.829914587 +0100
+@@ -812,7 +812,7 @@
  extern void _cpp_destroy_iconv (cpp_reader *);
  extern unsigned char *_cpp_convert_input (cpp_reader *, const char *,
  					  unsigned char *, size_t, size_t,

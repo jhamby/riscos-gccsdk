@@ -1,14 +1,14 @@
---- gcc/config/arm/arm.md.orig	2018-03-23 16:43:43.000000000 +0000
-+++ gcc/config/arm/arm.md	2018-05-09 19:43:11.825048489 +0100
-@@ -31,6 +31,7 @@
-   [(R0_REGNUM         0)	; First CORE register
+--- gcc/config/arm/arm.md.orig	2020-07-23 07:35:17.344384552 +0100
++++ gcc/config/arm/arm.md	2020-07-24 21:06:05.710065728 +0100
+@@ -32,6 +32,7 @@
     (R1_REGNUM	      1)	; Second CORE register
     (R4_REGNUM	      4)	; Fifth CORE register
+    (FDPIC_REGNUM      9)	; FDPIC register
 +   (SL_REGNUM	     10)	; Stack limit register (APCS-32 only)
     (IP_REGNUM	     12)	; Scratch register
     (SP_REGNUM	     13)	; Stack pointer
     (LR_REGNUM        14)	; Return address register
-@@ -6296,7 +6297,7 @@
+@@ -6693,7 +6694,7 @@
  	(mem:SI (plus:SI (match_operand:SI 1 "register_operand" "r")
  			 (unspec:SI [(match_operand:SI 2 "" "X")]
  				    UNSPEC_PIC_OFFSET))))]

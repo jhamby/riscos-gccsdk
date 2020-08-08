@@ -1,6 +1,6 @@
---- configure.ac.orig	2018-02-13 13:01:33.000000000 +0000
-+++ configure.ac	2018-05-11 20:48:14.572573822 +0100
-@@ -148,6 +148,7 @@
+--- configure.ac.orig	2020-07-23 07:35:16.916379838 +0100
++++ configure.ac	2020-07-24 17:16:30.737915350 +0100
+@@ -147,6 +147,7 @@
  target_libraries="target-libgcc \
  		target-libbacktrace \
  		target-libgloss \
@@ -8,7 +8,7 @@
  		target-newlib \
  		target-libgomp \
  		target-liboffloadmic \
-@@ -1196,6 +1197,14 @@
+@@ -1299,6 +1300,14 @@
      ;;
  esac
  
@@ -23,7 +23,7 @@
  # If we aren't building newlib, then don't build libgloss, since libgloss
  # depends upon some newlib header files.
  case "${noconfigdirs}" in
-@@ -3159,6 +3168,10 @@
+@@ -3290,6 +3299,10 @@
     ;;
    esac
    ;;

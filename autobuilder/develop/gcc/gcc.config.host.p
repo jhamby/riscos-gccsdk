@@ -1,15 +1,15 @@
---- gcc/config.host.orig	2018-01-03 10:03:58.000000000 +0000
-+++ gcc/config.host	2018-05-17 19:40:06.765301270 +0100
+--- gcc/config.host.orig	2020-07-23 07:35:17.316384243 +0100
++++ gcc/config.host	2020-07-24 21:53:51.529434564 +0100
 @@ -107,7 +107,7 @@
  	;;
      esac
      ;;
--  arm*-*-freebsd* | arm*-*-linux* | arm*-*-fuchsia*)
-+  arm*-*-freebsd* | arm*-*-linux* | arm*-*-fuchsia* | arm*-riscos*)
+-  arm*-*-freebsd* | arm*-*-netbsd* | arm*-*-linux* | arm*-*-fuchsia*)
++  arm*-*-freebsd* | arm*-*-netbsd* | arm*-*-linux* | arm*-*-fuchsia* | arm*-riscos*)
      case ${target} in
        arm*-*-*)
  	host_extra_gcc_objs="driver-arm.o"
-@@ -204,6 +204,9 @@
+@@ -200,6 +200,9 @@
  
  # Machine-specific settings.
  case ${host} in

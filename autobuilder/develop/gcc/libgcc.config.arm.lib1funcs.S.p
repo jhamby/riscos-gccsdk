@@ -1,6 +1,6 @@
---- libgcc/config/arm/lib1funcs.S.orig	2018-01-03 10:03:58.000000000 +0000
-+++ libgcc/config/arm/lib1funcs.S	2018-05-20 11:36:45.244185430 +0100
-@@ -1556,7 +1556,8 @@
+--- libgcc/config/arm/lib1funcs.S.orig	2020-07-23 07:35:18.752400064 +0100
++++ libgcc/config/arm/lib1funcs.S	2020-07-24 17:16:30.833914553 +0100
+@@ -1510,7 +1510,8 @@
  	
  #endif /* L_dvmd_lnx */
  #ifdef L_clear_cache
@@ -10,7 +10,7 @@
  @ EABI GNU/Linux call to cacheflush syscall.
  	ARM_FUNC_START clear_cache
  	do_push	{r7}
-@@ -1572,6 +1573,17 @@
+@@ -1526,6 +1527,17 @@
  	do_pop	{r7}
  	RET
  	FUNC_END clear_cache

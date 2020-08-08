@@ -1,6 +1,6 @@
-AB_URL=https://ftp.gnu.org/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz
+AB_URL=https://ftp.gnu.org/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz
 
-GCC_VERSION=8.2.0
+GCC_VERSION=10.2.0
 BINUTILS_VERSION=2.30
 
 AB_CATEGORY="Development"
@@ -91,7 +91,8 @@ build_native_binutils() {
   pushd native-build > /dev/null
   CC=arm-riscos-gnueabihf-gcc CXX=arm-riscos-gnueabihf-g++ \
   ../configure --prefix=$(realpath ../native-install) --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf \
-		--disable-nls --disable-werror --with-stage1-ldflags="-L$GCCSDK_INSTALL_ENV/lib -ldl"
+		--with-stage1-ldflags="$S/cross-build/ld-riscos/d-link/libdl/libdl.2.0.0.so" \
+		--disable-nls --disable-werror --with-system-zlib=no
   make -j4 && make install
   popd > /dev/null
 
@@ -146,15 +147,15 @@ copy_link_gcc() {
 
 build_cross_compiler() {
   ( autogen Makefile.def )
-  ( PATH="$AUTOTOOLS_BUILD:$PATH" $AUTOTOOLS_BUILD/autoconf )
-  ( PATH="$AUTOTOOLS_BUILD:$PATH" $HOST_4_7_4_SCRIPTS/gcc/reconf-libunixlib )
-  ( PATH="$AUTOTOOLS_BUILD:$PATH" $HOST_4_7_4_SCRIPTS/gcc/reconf-libstdc++ )
+  ( autoconf )
+  ( $HOST_4_7_4_SCRIPTS/gcc/reconf-libunixlib )
+  ( $HOST_4_7_4_SCRIPTS/gcc/reconf-libstdc++ )
 
   mkdir -p cross-build
   pushd cross-build >/dev/null
 
   # This uses the system compiler to build the cross compiler. I believe GCC 4.8 is the minimum
-  # requirement to build GCC 8.2. If a newer system compiler is required, this can be built seperately
+  # requirement to build GCC 8.2.0. If a newer system compiler is required, this can be built seperately
   # and set in the CC/CXX variables below.
   #CC=$HOME/ProgDev/toolchains/bin/gcc CXX=$HOME/ProgDev/toolchains/bin/g++ \
   CC=/usr/bin/gcc CXX=/usr/bin/g++ \
@@ -174,7 +175,8 @@ build_cross_compiler() {
 	       --disable-libgomp \
 	       --disable-libitm \
 	       --disable-wchar_t \
-	       --with-pkgversion='GCCSDK GCC 8.2.0 Release 1' \
+	       --disable-lto \
+	       --with-pkgversion='GCCSDK GCC 10.2.0 Release 1' \
 	       --with-bugurl=http://gccsdk.riscos.info/ \
 	       --with-abi=aapcs-linux \
 	       --with-float=hard \
@@ -206,7 +208,8 @@ build_native_compiler() {
 	       --disable-libssp \
 	       --disable-libgomp \
 	       --disable-wchar_t \
-	       --with-pkgversion='GCCSDK GCC 8.2.0 Release 1' \
+	       --disable-lto \
+	       --with-pkgversion='GCCSDK GCC 10.2.0 Release 1' \
 	       --with-bugurl=http://gccsdk.riscos.info/ \
 	       --with-abi=aapcs-linux \
 	       --with-float=hard \
@@ -232,8 +235,14 @@ build_dynamic_linker() {
 }
 
 install_cross_compiler_to_env() {
-  sed -e "s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:g" -e "s:GCCSDK_BIN:$GCCSDK_INSTALL_CROSSBIN:g" \
-       <$H/arm-riscos-gnueabihf-gcc >$GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc
+  FILES="arm-riscos-gnueabihf-gcc meson-arm-riscos-gnueabihf.txt toolchain-gcc-riscos-gnueabihf.cmake"
+
+  for f in $FILES
+    do
+	sed -e "s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:g" -e "s:GCCSDK_BIN:$GCCSDK_INSTALL_CROSSBIN:g" \
+	    <$H/$f >$GCCSDK_INSTALL_ENV/$f
+    done
+
   chmod 755 $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc
   ln -sf $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-g++
   ln -sf $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc $GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-cpp
@@ -358,10 +367,10 @@ ab_package() {
   arm-riscos-gnueabihf-strip --strip-all $S/native-install/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/f951 \
 					 -o $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/f951,e1f
 
-  # This is a dlopen library
-  cp -fT $S/native-install/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so.0.0.0 $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so.0.0.0,E1F
-  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s liblto_plugin/so/0/0/0 $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so,1C8
-  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s liblto_plugin/so/0/0/0 $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so.0,1C8
+  # This is a dlopen library (LTO is currently disabled, so this library isn't present)
+  # cp -fT $S/native-install/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so.0.0.0 $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so.0.0.0,E1F
+  # $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s liblto_plugin/so/0/0/0 $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so,1C8
+  # $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s liblto_plugin/so/0/0/0 $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so.0,1C8
 
   mkdir -p $A/arm-riscos-gnueabihf/include
   ab_add_headers $S/native-install/include $A/include
@@ -403,5 +412,5 @@ ab_package() {
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s ^.^.^.^.bin.nm $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/nm,1C8
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s ^.^.^.^.bin.strip $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/strip,1C8
 
-  $AB_HOME/add-riscpkg -package gcc -depends SharedLibs-$GCCSDK_RISCOS_ABI_VERSION -depends ZLib1g
+  $AB_HOME/add-riscpkg -package gcc -depends SharedLibs-$GCCSDK_RISCOS_ABI_VERSION
 }

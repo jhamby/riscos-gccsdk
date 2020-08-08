@@ -1,6 +1,6 @@
---- gcc/ira.c.orig	2017-02-06 13:27:19.000000000 +0000
-+++ gcc/ira.c	2017-02-06 13:27:35.978256456 +0000
-@@ -2262,7 +2262,9 @@
+--- gcc/ira.c.orig	2020-07-23 07:35:17.676388210 +0100
++++ gcc/ira.c	2020-07-24 17:16:30.845914454 +0100
+@@ -2261,7 +2261,9 @@
       sp-adjusting insns for this case.  */
    frame_pointer_needed
      = (! flag_omit_frame_pointer
