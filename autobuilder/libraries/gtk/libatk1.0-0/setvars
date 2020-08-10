@@ -1,4 +1,43 @@
-
-
 AB_INSTALL=yes
+AB_MESON=yes
 
+AB_MESON_FLAGS="$AB_MESON_FLAGS -Dc_link_args=-lgcc_s"
+
+ab_package() {
+  ab_create_app LibAtk Apps/Library libatk-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/atk-1.0/atk atk
+  rm -rf include
+
+  mv lib/*.a .
+  
+  rm -rf lib
+  rm -rf doc
+
+  cd $HERE
+
+  ab_docs AUTHORS README COPYING NEWS
+#  devdir=$D/libatk-dev/Apps/Library/\!LibAtk/
+#  mkdir -p $devdir
+
+#  ab_add_headers $GCCSDK_INSTALL_ENV/include/atk-1.0 $devdir
+#  cp $AB_MESON_BUILD_DIR/atk/libatk-1.0.a $devdir
+
+  $AB_HOME/add-riscpkg -package "libatk-dev" -name LibAtk1-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libatk
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $AB_MESON_BUILD_DIR/atk libatk-1.0.so.0
+
+    $AB_HOME/add-riscpkg -package "libatk" -name LibAtk1 \
+	-depends SharedLibs-C2 -depends LibGlib2.0
+  fi
+}
