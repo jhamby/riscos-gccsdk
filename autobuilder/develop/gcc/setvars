@@ -1,5 +1,7 @@
 AB_URL=https://ftp.gnu.org/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz
 
+AB_INSTALL=no
+
 GCC_VERSION=10.2.0
 BINUTILS_VERSION=2.30
 
@@ -215,7 +217,8 @@ build_native_compiler() {
 	       --with-float=hard \
 	       --with-fpu=vfpv3 \
 	       --with-arch=armv7-a \
-	       --with-stage1-ldflags=""
+	       --with-stage1-ldflags="" \
+	       --with-diagnostics-color=never
 
   make -j4 && make install
 
@@ -282,13 +285,15 @@ do_copy_and_suffix_swap() {
   HERE=`pwd`
   cd $src_object_dir
 
+  echo "Copying $suffix files from $src_object_dir"
+
   for f in *
   do
     if [ -d "$f" ] ; then
       do_copy_and_suffix_swap $suffix $src_object_dir/$f $dst_object_dir/$f
     else
       filename=$(basename "$f")
-      extension=${filename##*.}
+      extension=$([[ "$filename" = *.* ]] && echo "${filename##*.}" || echo '')
       filename="${filename%.*}"
       if [ "$suffix" = "$extension" ]; then
 	mkdir -p $dst_object_dir/$extension
@@ -313,14 +318,17 @@ do_copy() {
   HERE=`pwd`
   cd $src_object_dir
 
+  echo "Copying non-suffixed files from $src_object_dir"
+
   for f in *
   do
     if [ -d "$f" ] ; then
       do_copy $src_object_dir/$f $dst_object_dir/$f
     else
       filename=$(basename "$f")
+      extension=$([[ "$filename" = *.* ]] && echo "${filename##*.}" || echo '')
       filename="${filename%.*}"
-      if [[ ! $f =~ \.h$ ]]; then
+      if [ "x$extension" = "x" ]; then
 	cp -v -T $f $dst_object_dir/$filename
       fi
     fi
@@ -373,11 +381,12 @@ ab_package() {
   # $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s liblto_plugin/so/0/0/0 $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/liblto_plugin.so.0,1C8
 
   mkdir -p $A/arm-riscos-gnueabihf/include
-  ab_add_headers $S/native-install/include $A/include
-  ab_add_headers $S/libunixlib/include $A/arm-riscos-gnueabihf/include
-
+  do_copy_and_suffix_swap h $S/native-install/include $A/include
+  do_copy_and_suffix_swap tcc $S/native-install/include $A/include
   # Copy the c++ headers that do not have an extension
   do_copy $S/native-install/include $A/include
+
+  ab_add_headers $S/libunixlib/include $A/arm-riscos-gnueabihf/include
 
   mkdir -p $A/lib/gcc/arm-riscos-gnueabihf/$GCC_VERSION/include
   do_copy_and_suffix_swap o $S/native-install/lib $A/lib
