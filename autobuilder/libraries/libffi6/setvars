@@ -1,8 +1,8 @@
 AB_INSTALL=yes
 
-ab_package() {
+AB_ROVERSION=2
 
-#  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+ab_package() {
 
   # Developer package
   ab_create_app LibFFI6 Apps/Library libffi6-dev
