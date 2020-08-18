@@ -53,7 +53,7 @@ ab_package() {
     fi
   fi
 
-  ab_create_app LibOGG Apps/Library libogg-dev
+  ab_create_app LibOgg Apps/Library libogg-dev
 
   ab_add_headers $GCCSDK_INSTALL_ENV/include/ogg $A/ogg
 
@@ -69,5 +69,5 @@ ab_package() {
   rsync -rv --exclude=Makefile.* $S/doc $A
   cp $S/AUTHORS $S/CHANGES $S/COPYING $S/README $A/doc/
 
-  $AB_HOME/add-riscpkg -name LibOGG-Dev -unixlib -unixsound -copyrightfile $S/COPYING
+  $AB_HOME/add-riscpkg -name LibOgg-Dev -unixlib -unixsound -copyrightfile $S/COPYING
 }
