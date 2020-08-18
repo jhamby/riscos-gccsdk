@@ -41,7 +41,7 @@ ab_package() {
      ab_add_sharedlib $S/.libs libSDL_ttf-2.0.so.0
 
      $AB_HOME/add-riscpkg -package libsdl-ttf2.0 -name LibSDLTTF2 -depends SharedLibs \
-		 -depends LibFreeType6 -name LibSDL1.2 -section Library \
+		 -depends LibFreeType6 -depends LibSDL1.2 -section Library \
 		 -copyrightfile $H/Copyright
   fi
 }
