@@ -42,7 +42,7 @@ ab_package() {
 
 	AB_COMPONENTS=""
 	$AB_HOME/add-riscpkg -name LibVorbis -section Library -package libvorbis \
-	    -depends LibOGG -depends SharedLibs-C2
+	    -depends LibOgg -depends SharedLibs-C2
     fi
     if [ "$BUILD_VFP" == "yes" ] ; then
 	ab_create_sharedlib_skeleton libvorbis-vfp
@@ -53,7 +53,7 @@ ab_package() {
 
 	AB_COMPONENTS=""
 	$AB_HOME/add-riscpkg -name LibVorbis-VFP -section Library -package libvorbis-vfp \
-	    -depends LibOGG -depends SharedLibs-C2 -env vfp
+	    -depends LibOgg -depends SharedLibs-C2 -env vfp
     fi
   fi
 
