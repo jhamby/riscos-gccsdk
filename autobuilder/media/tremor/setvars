@@ -3,7 +3,7 @@ TREMOR_VERSION=1.0.2
 
 # Fake version as SVN version seems to be stable
 AB_PVERSION=$TREMOR_VERSION
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 AB_INSTALL=yes
 
@@ -40,7 +40,7 @@ ab_package() {
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
      ab_create_sharedlib_skeleton Tremor
-     ab_add_sharedlib $S/.libs libvorbisidec.so
+     ab_add_sharedlib $S/.libs libvorbisidec.so.1
      
      $AB_HOME/add-riscpkg -package tremor -name Tremor -depends SharedLibs \
 		-section Library -copyrightfile $H/Copyright
