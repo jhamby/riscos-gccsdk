@@ -2,7 +2,7 @@ AB_INSTALL=yes
 AB_ROVERSION=2
 
 # Disable smpeg, FLAC and FluidSynth as we don't build them.
-AB_CONFLAGS="--disable-music-mod-shared --disable-music-midi-fluidsynth --disable-music-flac --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
+AB_CONFLAGS="--disable-music-mod-shared --disable-music-midi-fluidsynth --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
 
 AB_DISTCLEAN="rm -rf build build-vfp"
 
@@ -98,7 +98,7 @@ ab_package() {
       ab_add_sharedlib $S/build/.libs libSDL_mixer-1.2.so.0
 
       $AB_HOME/add-riscpkg -package libsdl-mixer1.2 -name LibSDLMixer1.2 -depends SharedLibs-C2 \
-		 -depends LibSDL1.2 -depends Tremor -depends LibMikmod -section Library \
+		 -depends LibSDL1.2 -depends Tremor -depends LibMikMod -section Library \
 		 -copyrightfile $H/Copyright
     fi
     if [ "$BUILD_VFP" == "yes" ] ; then
@@ -106,7 +106,7 @@ ab_package() {
       ab_add_sharedlib $S/build-vfp/build/.libs libSDL_mixer-1.2.so.0
 
       $AB_HOME/add-riscpkg -package libsdl-mixer1.2-vfp -name LibSDLMixer1.2-VFP -depends SharedLibs-C2 \
-		 -depends LibSDL1.2 -depends Tremor -depends LibMikmod -section Library \
+		 -depends LibSDL1.2 -depends Tremor -depends LibMikMod -section Library \
 		 -copyrightfile $H/Copyright -env vfp
     fi
   fi

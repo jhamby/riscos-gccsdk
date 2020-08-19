@@ -45,7 +45,7 @@ ab_package()
      $AB_HOME/add-riscpkg -package libsdl-sound1.2 -name LibSDLSound1.2 -section Library \
        -depends SharedLibs \
        -depends "LibSDL1.2" -depends "LibFlac" \
-       -depends "LibMikmod" -depends "LibOgg" \
+       -depends "LibMikMod" -depends "LibOgg" \
        -depends "LibVorbis" -depends "LibSpeex1"
   fi
 }
