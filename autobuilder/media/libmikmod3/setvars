@@ -33,7 +33,7 @@ ab_package() {
      ab_create_sharedlib_skeleton libmikmod
      ab_add_sharedlib $S/.libs libmikmod.so.3
      
-     $AB_HOME/add-riscpkg -package libmikmod -name LibMikmod -depends SharedLibs \
+     $AB_HOME/add-riscpkg -package libmikmod -name LibMikMod -depends SharedLibs \
 		-section Library -copyrightfile $H/Copyright
   fi
 
