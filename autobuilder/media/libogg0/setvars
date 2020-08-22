@@ -1,5 +1,5 @@
 AB_INSTALL=no
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 AB_DISTCLEAN="rm -rf build build-vfp"
 
