@@ -1,7 +1,8 @@
-AB_CONFLAGS="--disable-esd"
-
 AB_INSTALL=yes
 
+AB_ROVERSION=2
+
+AB_CONFLAGS="--disable-esd"
 
 ab_package() {
   ab_create_app LibMikMod Apps/Library libmikmod-dev
