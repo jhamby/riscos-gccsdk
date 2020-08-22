@@ -1,14 +1,22 @@
 AB_INSTALL=yes
-AB_ROVERSION=3
+AB_ROVERSION=4
 
-AB_CONFLAGS="--with-pic=no"
+ # Can't seem to build both shared and static libraries together
+ if [ "$RO_SHAREDLIBS" == "no" ]; then
+   AB_CONFLAGS="--disable-shared --without-pic"
+ else
+    AB_CONFLAGS="--disable-static"
+ fi
+
+./autogen.sh
 
 ab_package () {
 
 #TODO: Create package with flac program
 #	cp $S/src/flac/flac$AB_EXEEXT COPYING.* $D
 
-  ab_create_app LibFLAC Apps/Library libflac-dev
+  if [ "$RO_SHAREDLIBS" == "no" ]; then
+    ab_create_app LibFLAC Apps/Library libflac-dev
 
   HERE=`pwd`
   cd $A
@@ -33,6 +41,8 @@ ab_package () {
   cp -r $S/doc/html $A/doc
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -name LibFlac-Dev -copyrightfile $S/COPYING.Xiph
+
+  fi
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
      ab_create_sharedlib_skeleton libflac
