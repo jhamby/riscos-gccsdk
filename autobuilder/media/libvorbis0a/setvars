@@ -3,7 +3,7 @@ BUILD_NORMAL=yes
 BUILD_VFP=yes
 
 AB_INSTALL=no
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 AB_DISTCLEAN="rm -rf build ; rm -rf build-vfp"
 
