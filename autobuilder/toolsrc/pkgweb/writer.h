@@ -70,6 +70,7 @@ class OneReplaceWriter : public Writer
 {
 public:
 	OneReplaceWriter(const std::string &token, const std::string &replace);
+	OneReplaceWriter(const std::string &token, char replace);
 
 	virtual std::string resolve(const std::string &token);
 

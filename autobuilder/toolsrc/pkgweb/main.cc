@@ -237,12 +237,14 @@ int main(int argc, char *argv[])
    {
 	   const SummaryInfo &summary = *(alpha_iter);
 
-	   if (summary.get_name()[0] != last_letter)
+      char first_char = toupper(summary.get_name()[0]);
+
+	   if (first_char != last_letter)
 	   {
 		   if (last_letter != 0) alpha_file << endLetter;
 
-		   last_letter = summary.get_name()[0];
-		   OneReplaceWriter letterWriter("letter", summary.get_name().substr(0,1));
+		   last_letter = first_char;
+		   OneReplaceWriter letterWriter("letter", first_char);
 		   letterWriter.write(startLetter, alpha_file);
 	   }
 		   

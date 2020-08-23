@@ -57,7 +57,7 @@ void Writer::write(const std::string &pattern, std::ostream &out)
 			}
 			out << token_text;
 			start = end+1;
-			end = pattern.find('%',start);
+			end = pattern.find('\%',start);
 		}
 	}
 
@@ -204,6 +204,12 @@ std::string SummaryWriter::resolve(const std::string &token)
 
 
 OneReplaceWriter::OneReplaceWriter(const std::string &token, const std::string &replace)
+{
+	_token = lowercase(token);
+	_replace = replace;
+}
+
+OneReplaceWriter::OneReplaceWriter(const std::string &token, char replace)
 {
 	_token = lowercase(token);
 	_replace = replace;
