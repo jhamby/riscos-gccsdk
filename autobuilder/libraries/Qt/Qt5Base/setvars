@@ -3,12 +3,12 @@
 BUILD_NORMAL=yes
 BUILD_VFP=yes
 
-AB_URL=http://download.qt-project.org/archive/qt/5.5/5.5.0/submodules/qtbase-opensource-src-5.5.0.tar.xz
+AB_URL=http://download.qt-project.org/new_archive/qt/5.5/5.5.0/submodules/qtbase-opensource-src-5.5.0.tar.xz
 
 # We'll call "make install" ourselves.
 AB_INSTALL=no
 AB_PVERSION=5.5.0
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 AB_DISTCLEAN="rm -rf build ; rm -rf build-vfp"
 
