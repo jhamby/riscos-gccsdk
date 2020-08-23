@@ -1,6 +1,8 @@
 AB_ROVERSION=3
 AB_INSTALL=yes
 
+AB_PVERSION=2.2.6
+
 cd expat
 ./buildconf.sh
 
