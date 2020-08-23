@@ -3,10 +3,11 @@
 BUILD_NORMAL=yes
 BUILD_VFP=yes
 
-AB_URL=http://download.qt-project.org/archive/qt/5.5/5.5.0/submodules/qtwebkit-opensource-src-5.5.0.tar.xz
+AB_URL=http://download.qt-project.org/new_archive/qt/5.5/5.5.0/submodules/qtwebkit-opensource-src-5.5.0.tar.xz
 
 # We'll do make install ourselves.
 AB_INSTALL=no
+AB_ROVERSION=2
 AB_PVERSION=5.5.0
 
 # "make -C WebKitBuild/Release distclean" gets stuck in an infinite loop so disable
