@@ -338,7 +338,7 @@ else
       echo "$AB_URL" >> $D/RiscPkg/Copyright
     fi
     AB_GIT=$(grep ^AB_GIT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
-    if [  -z "$AB_GIT" ] ; then
+    if [ ! -z "$AB_GIT" ] ; then
       echo "Upstream source fetched by GIT with" >> $D/RiscPkg/Copyright
       echo "" >> $D/RiscPkg/Copyright
       echo "$AB_GIT" >> $D/RiscPkg/Copyright
