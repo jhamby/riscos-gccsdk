@@ -3,12 +3,6 @@ AB_INSTALLTARGET="-C libtiff install"
 
 ./autogen.sh
 
- if [ "$RO_SHAREDLIBS" == "no" ]; then
-   AB_CONFLAGS='--disable-shared --without-pic'
- else
-   AB_CONFLAGS='--disable-static'
- fi
-
 ab_package() {
   ab_create_app LibTIFF5 Apps/Library libtiff5-dev
 
@@ -16,7 +10,6 @@ ab_package() {
   cp README.md $A/\!Help
   cp -r html $A
 
-  if [ "$RO_SHAREDLIBS" == "no" ]; then
     HERE=`pwd`
     cd $A
 
@@ -34,8 +27,6 @@ ab_package() {
 
     $AB_HOME/add-riscpkg -unixlib -name LibTIFF5-Dev -depends ZLib1g-Dev
   
-  fi
-
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
     ab_create_sharedlib_skeleton libtiff5
 
@@ -43,7 +34,7 @@ ab_package() {
     ab_add_sharedlib $S/libtiff/.libs libtiff.so.5
 
     AB_COMPONENTS=""
-    $AB_HOME/add-riscpkg -package libtiff5 -name LibTiff5 \
+    $AB_HOME/add-riscpkg -package libtiff5 -name LibTIFF5 \
 	-depends SharedLibs -section Library
   fi
 
