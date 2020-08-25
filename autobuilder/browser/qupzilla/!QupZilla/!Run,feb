@@ -14,4 +14,7 @@ X removeda "Webkit JIT Code"
 X removeda "Webkit VM Stack"
 
 Set QupZilla$Dir <Obey$Dir>
+<QupZilla$Dir>.Poll 3
+<QupZilla$Dir>.Banner
+<QupZilla$Dir>.redblueswap
 Run <QupZilla$Dir>.qupzilla -po ><QupZilla$Dir>.debug 2>&1
