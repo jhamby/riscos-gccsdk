@@ -1,16 +1,6 @@
-
-#AB_GIT=https://chromium.googlesource.com/webm/libwebp
-
-#AB_PVERION=0.7.1
-
 AB_INSTALL=yes
 
-  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-    AB_CONFLAGS='--disable-static'
-  fi
-
 ./autogen.sh
-#autoreconf -fi
 
 ab_package() {
 
