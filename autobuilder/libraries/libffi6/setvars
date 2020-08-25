@@ -27,10 +27,14 @@ ab_package() {
   
   mv doc/$RO_PKG/* doc
   rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  AB_DEBNAME=libffi-dev
  
   $AB_HOME/add-riscpkg -package libffi6-dev -name LibFFI6-dev -section Library -unixlib -copyrightfile $S/COPYING 
   
-  cd $HERE
+  AB_DEBNAME=
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
   
