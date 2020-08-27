@@ -3,6 +3,8 @@ export config_TARGET_EXEEXT=$AB_EXEEXT
 
 AB_INSTALL=yes
 
+AB_ROVERSION=2
+
 if [ "$RO_SHAREDLIBS" == "yes" ] ; then
   AB_CONFLAGS="--disable-tcl"
 else
