@@ -1,5 +1,5 @@
 AB_INSTALL=yes
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 if [ "$RO_SHAREDLIBS" == "yes" ] ; then
 AB_PACKAGES="libsdl-sound1.2-dev libsdl-sound1.2"
