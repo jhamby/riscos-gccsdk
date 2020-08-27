@@ -28,13 +28,14 @@ ab_package() {
 # The sqlite3 binary causes an assertion to fail in rpcemu.
 #  cp $GCCSDK_INSTALL_ENV/bin/sqlite3$AB_EXEEXT $A
 
-  AB_DEBNAME=sqlibsqlite-dev
 
   $AB_HOME/add-riscpkg -package "libsqlite3-dev" -unixlib -name LibSQLite3-Dev
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
      ab_create_sharedlib_skeleton libsqlite3
      ab_add_sharedlib $S/.libs libsqlite3.so.0
+
+     AB_DEBNAME=libsqlite3-0
 
      $AB_HOME/add-riscpkg -package libsqlite3 -name LibSQLite3 -depends SharedLibs \
 		-section Library
