@@ -1,5 +1,5 @@
 AB_CONFLAGS="--disable-png-shared --disable-tif-shared --disable-jpg-shared"
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 AB_INSTALL=yes
 
