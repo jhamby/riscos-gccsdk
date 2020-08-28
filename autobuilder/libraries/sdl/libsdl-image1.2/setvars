@@ -45,7 +45,7 @@ ab_package() {
      
      $AB_HOME/add-riscpkg -package libsdl-image1.2 -name LibSDLImage1.2 -depends SharedLibs \
 		-depends "LibJPEG8" -depends "LibPNG16-16" \
-		-depends "LibTiff5" -depends "LibSDL1.2" \
+		-depends "LibTIFF5" -depends "LibSDL1.2" \
 		-section Library -copyrightfile $H/Copyright
   fi
 
