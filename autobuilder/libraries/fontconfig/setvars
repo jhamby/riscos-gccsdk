@@ -1,7 +1,7 @@
 AB_URL=http://deb.debian.org/debian/pool/main/f/fontconfig/fontconfig_2.11.0.orig.tar.xz
 
 AB_CATEGORY=Fonts
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 if [ "$RO_SHAREDLIBS" == "yes" ]; then
   AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
