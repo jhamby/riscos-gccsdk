@@ -1,5 +1,5 @@
 AB_INSTALL=yes
-AB_ROVERSION=3
+AB_ROVERSION=4
 
 # Disable smpeg, FLAC and FluidSynth as we don't build them.
 AB_CONFLAGS="--disable-music-mod-shared  --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared"
