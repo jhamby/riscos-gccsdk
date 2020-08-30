@@ -16,4 +16,7 @@ X removeda "Webkit GC Heap"
 X removeda "Webkit VM Stack"
 
 Set Otter-browser$Dir <Obey$Dir>
+<Otter-browser$Dir>.Poll 3
+<Otter-browser$Dir>.Banner
+<Otter-browser$Dir>.redblueswap
 Run <Otter-browser$Dir>.otter-browser ><Otter-browser$Dir>.debug 2>&1

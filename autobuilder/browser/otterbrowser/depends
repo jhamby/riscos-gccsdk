@@ -2,7 +2,5 @@ Qt5Webkit
 Qt5Svg
 Qt5XmlPatterns
 Qt5Multimedia
-hunspell
-cacertificates
 libhunspell-1.4-0
-libgcrypt20
+

@@ -1,8 +1,8 @@
---- src/main.cpp.orig	2015-04-30 01:40:58.902075449 +0100
-+++ src/main.cpp	2015-04-30 01:41:52.134074268 +0100
-@@ -26,6 +26,11 @@
- #include <QtCore/QLibraryInfo>
+--- src/main.cpp
++++ src/main.cpp
+@@ -37,6 +37,11 @@
  #include <QtCore/QUrl>
+ #include <QtWidgets/QMessageBox>
  
 +#ifdef __riscos__
 +#include <features.h>
@@ -11,4 +11,6 @@
 +
  using namespace Otter;
  
- void otterMessageHander(QtMsgType type, const QMessageLogContext &context, const QString &message)
+ #if !defined(Q_OS_WIN32)
+
+
