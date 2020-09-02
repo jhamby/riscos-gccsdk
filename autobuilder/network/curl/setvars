@@ -2,7 +2,7 @@ AB_URL=https://curl.haxx.se/download/curl-7.72.0.tar.xz
 
 AB_ROVERSION=2
 
-AB_CONFLAGS='--with-ssl --without-gnutls --with-libssh2 --with-ca-bundle=InetDBase:CertData'
+AB_CONFLAGS='--with-ssl --enable-ares --disable-ipv6 --without-gnutls --with-libssh2 --with-ca-bundle=InetDBase:CertData'
 
 ./buildconf
 
