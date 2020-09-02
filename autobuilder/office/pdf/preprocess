@@ -1,9 +1,4 @@
-export CVSROOT=:pserver:anonymous:@riscosopen.org:/home/rool/cvsroot
-cvs co  castle/RiscOS/Sources/Toolbox/Libs/flexlib/c/flex
-mv castle/RiscOS/Sources/Toolbox/Libs/flexlib/c/flex GuiLib/GuiFlex/flex.c
-cvs co  castle/RiscOS/Sources/Toolbox/Libs/flexlib/h/flex
-mv castle/RiscOS/Sources/Toolbox/Libs/flexlib/h/flex GuiLib/GuiFlex/flex.h
-cvs co  castle/RiscOS/Sources/Toolbox/Libs/flexlib/h/opts
-mv castle/RiscOS/Sources/Toolbox/Libs/flexlib/h/opts GuiLib/GuiFlex/opts.h
-cvs co  castle/RiscOS/Sources/Toolbox/Libs/flexlib/h/swiextra
-mv castle/RiscOS/Sources/Toolbox/Libs/flexlib/h/swiextra GuiLib/GuiFlex/swiextra.h
+cp $H/flex.c GuiLib/GuiFlex/flex.c
+cp $H/flex.h GuiLib/GuiFlex/flex.h
+cp $H/opts.h GuiLib/GuiFlex/opts.h
+cp $H/swiextra.h GuiLib/GuiFlex/swiextra.h
