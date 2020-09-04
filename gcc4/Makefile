@@ -720,7 +720,7 @@ $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.bz2:
 # Download ppl source:
 $(SRCORIGDIR)/ppl-$(PPL_VERSION).tar.gz:
 	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && wget -c ftp://ftp.cs.unipr.it/pub/ppl/releases/$(PPL_VERSION)/ppl-$(PPL_VERSION).tar.gz
+	cd $(SRCORIGDIR) && wget -c https://www.bugseng.com/external/ppl/download/ftp/releases/$(PPL_VERSION)/ppl-$(PPL_VERSION).tar.gz
 	touch $@
 
 # Download CLooG source:
