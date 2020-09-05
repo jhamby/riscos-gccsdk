@@ -3,7 +3,7 @@ AB_INSTALL=yes
 export ac_cv_libgcrypt=yes
 export gl_cv_func_gettimeofday_clobber=no
 
-AB_CONFLAGS="--prefix=$GCCSDK_INSTALL_ENV --with-libnettle-prefix=$GCCSDK_INSTALL_ENV --enable-local-libopts --without-p11-kit --with-pic=no --with-included-unistring"
+AB_CONFLAGS="--prefix=$GCCSDK_INSTALL_ENV --disable-tools --disable-nls --enable-local-libopts --disable-guile --without-p11-kit --with-included-unistring"
 
 ab_package() {
   ab_create_app LibGNUTLS Apps/Library libgnutls-dev
@@ -32,3 +32,5 @@ ab_package() {
 
   $AB_HOME/add-riscpkg -name LibGNUTLS-Dev -unixlib -copyrightfile $S/COPYING
 }
+
+export LIBS='-lgmp'
