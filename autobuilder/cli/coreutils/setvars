@@ -1,5 +1,6 @@
 AB_ROVERSION=2
 
+AB_CONFLAGS='--enable-threads=pth'
 autoreconf -fi
 
 ab_package() {
