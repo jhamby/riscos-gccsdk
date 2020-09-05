@@ -1,6 +1,8 @@
 
 AB_INSTALL=yes
 
+export CFLAGS='-std=c99'
+
 ab_package() {
   ab_create_app LibNettle Apps/Library libnettle-dev
 
