@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set Hatari$Dir <Obey$Dir>
+
+Run <Hatari$Dir>.hatari 1><Hatari$Dir>.hatari/log 2>&1
