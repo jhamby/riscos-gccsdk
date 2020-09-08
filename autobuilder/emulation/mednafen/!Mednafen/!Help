@@ -1,4 +1,4 @@
-Mednafen - Multi-system Emulator (v0.8.D)
+Mednafen - Multi-system Emulator (v0.9.48)
 
 This RISC OS version was created by the GCCSDK Autobuilder
 
@@ -42,6 +42,8 @@ History
 -------
 RISC OS Version 1.00 (05-Apr-12)
 - this is the initial version of Mednafen built for RISC OS.
+RISC OS Version 1.01 (08-Sep-20)
+- update to versions 0.9.48, this is the latest version that support SDL1
 
 Issues
 ------

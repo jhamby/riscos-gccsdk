@@ -1,14 +1,15 @@
+AB_URL=https://mednafen.github.io/releases/files/mednafen-0.9.48.tar.xz
 
-AB_PVERSION=0.8.D
+AB_PVERSION=0.9.48
 
 ab_package() {
 
   ab_create_app Mednafen Apps/Emulation
   ab_makerun $S/src/mednafen$AB_EXEEXT mednafen
-    
+
   cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/NEWS $S/README $S/TODO $A
   cp -av Documentation $A
-  
+
   $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }
 
