@@ -4,13 +4,13 @@ AB_PVERSION=0.9.48
 
 ab_package() {
 
-  ab_create_app Mednafen Apps/Emulation
+  ab_create_app Mednafen Apps/Emulation mednafen
   ab_makerun $S/src/mednafen$AB_EXEEXT mednafen
 
   cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/NEWS $S/README $S/TODO $A
   cp -av Documentation $A
 
-  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+  $AB_HOME/add-riscpkg -unixlib -unixsound -package mednafen -name Mednafen -copyrightfile COPYING
 }
 
 export LIBS='-logg -lvorbisfile'
