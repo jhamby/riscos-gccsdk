@@ -3,6 +3,7 @@
 AB_URL=http://deb.debian.org/debian/pool/main/l/leveldb/leveldb_1.18.orig.tar.gz
 
 AB_INSTALL=env
+AB_ROVERSION=2
 
 export TARGET_OS="RISC_OS"
 export PREFIX=$GCCSDK_INSTALL_ENV
@@ -35,7 +36,7 @@ install_headers()
 }
 
 ab_package() {
-  ab_create_app leveldb Library libleveldb-dev
+  ab_create_app leveldb Apps/Library libleveldb-dev
 
   install_headers $GCCSDK_INSTALL_ENV/include/leveldb $A
   cp $S/*.a $A
