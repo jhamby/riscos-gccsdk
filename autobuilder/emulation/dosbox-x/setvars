@@ -1,0 +1,22 @@
+AB_GIT=https://github.com/joncampbell123/dosbox-x.git
+
+AB_CONFLAGS='--enable-core-inline --disable-opengl'
+
+AB_PVERSION=0.83.3
+
+./autogen.sh
+
+ab_package() {
+
+  ab_create_app DosBox-X Apps/Emulation dosbox-x
+  ab_makerun $S/src/dosbox-x$AB_EXEEXT dosbox-x
+
+  cp -av $S/AUTHORS $S/CHANGELOG $S/CODE_OF_CONDUCT.md $S/CONTRIBUTING.md $S/COPYING $S/NEWS $S/README.* $S/THANKS $A
+  cp -av docs doc-collection BUGS NOTES NOTES-TESTING-LOG OLD-REFERENCE $A
+  mkdir $A/resources
+  cp $S/font/FREECG98.BMP $A/resources/freecg98.bmp,69c
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -package dosbox-x -name DosBox-X -copyrightfile COPYING
+}
+
+export LIBS='-lbz2'
