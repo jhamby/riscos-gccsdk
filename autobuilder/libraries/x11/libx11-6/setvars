@@ -1,12 +1,13 @@
 AB_INSTALL=yes
 
-AB_URL=http://ftp.de.debian.org/debian/pool/main/libx/libx11/libx11_1.5.0.orig.tar.gz
+AB_URL=https://deb.sipwise.com/debian/pool/main/libx/libx11/libx11_1.5.0.orig.tar.gz
 
 AB_CONFLAGS="--enable-malloc0returnsnull --disable-loadable-xcursor --with-xcb=no"
 
 # This patch doesn't apply to all versions, so use sed instead
 sed s/"libX11_la_LDFLAGS ="/"#libX11_la_LDFLAGS = "/ < src/Makefile.in > src/Makefile.in.new
 mv src/Makefile.in.new src/Makefile.in
+
 
 if [ ! -d man/man3 ] ; then
   ln -s ../man man/man3
