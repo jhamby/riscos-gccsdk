@@ -1,5 +1,5 @@
---- examples/manual/Makefile.examples.orig	2012-12-07 04:00:17.000000000 +1300
-+++ examples/manual/Makefile.examples	2015-04-23 21:08:21.556568000 +1200
+--- examples/manual/Makefile.examples.orig	2016-10-21 13:43:44.000000000 +1300
++++ examples/manual/Makefile.examples	2020-09-05 21:59:33.352739885 +1200
 @@ -8,7 +8,8 @@
  #
  #############################################################

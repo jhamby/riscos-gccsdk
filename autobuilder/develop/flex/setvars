@@ -2,7 +2,10 @@
 AB_CATEGORY=Development
 AB_ROVERSION=1
 AB_COPYSOURCE=yes
-
+# needed for cross-compiling, see dfsg NEW text.
+AB_CONFLAGS="--disable-bootstrap"
+# overide configure failing to link regcomp in flex_2.6.4 version
+export ac_cv_func_regcomp=yes
 # Helper to swap suffixes for package
 ab_swap_suffix() {
     dirname=$1
@@ -18,16 +21,14 @@ ab_swap_suffix() {
 ab_package() {
 
   ab_create_command_app Flex Apps/Development
-  ab_add_commands $S/flex$AB_EXEEXT
+  ab_add_commands $S/src/flex$AB_EXEEXT
   
   echo -e "\nSet UnixEnv\$flex\$sfix \"l:y:c:cc:c++:cpp:cxx:h:hh\"" >> $A/\!Boot,feb
   echo -e "Set Alias\$lex WimpSlot -min 665k|MRun <Flex\$Dir>.flex -i -I %%*0" >> $A/\!Boot,feb
   echo -e "Set Alias\$flex++ WimpSlot -min 665k|MRun <Flex\$Dir>.flex %%*0" >> $A/\!Boot,feb
   
   rman -f HTML $S/doc/flex.info-1 > $A/!Help,faf
-  cp -f $S/doc/flex.pdf $A/flex.pdf,adf
-  cp $S/AUTHORS $S/ChangeLog $S/COPYING $A
-  cp $S/README $S/THANKS $S/TODO $A  
+  cp $S/AUTHORS $S/ChangeLog $S/COPYING $A 
   
   mkdir -p $A/examples
   cp -rf $S/examples/* $A/examples
@@ -58,12 +59,9 @@ ab_package() {
   echo "*/<Obey\$Dir>.!Boot" > $A/!Run,feb
   
   mkdir -p $A/h
-  cp -f $S/FlexLexer.h $A/h/FlexLexer
-  cp -f $S/.libs/libfl.a $A
-  cp -f $S/.libs/libfl.a $A/libl.a
-  
-  cp $S/COPYING $A
-  cp $S/README $A    
+  cp -f $S/src/FlexLexer.h $A/h/FlexLexer
+  cp -f $S/src/.libs/libfl.a $A
+  cp -f $S/src/.libs/libfl.a $A/libl.a  
 
   $AB_HOME/add-riscpkg -package LibFL-Dev -section Library \
           -components "Apps.Library.!LibFL (Movable)" \

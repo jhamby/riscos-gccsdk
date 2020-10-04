@@ -1,53 +1,44 @@
---- filter.c.orig	2014-03-27 01:46:44.000000000 +1300
-+++ filter.c	2015-04-18 13:08:44.433791971 +1200
-@@ -26,6 +26,9 @@
-     "m4_dnl ifdef(`__gnu__', ,"
+--- src/filter.c.orig	2020-09-11 14:12:39.728233000 +1200
++++ src/filter.c	2020-09-28 21:59:30.387833569 +1300
+@@ -27,7 +27,9 @@
      "`errprint(Flex requires GNU M4. Set the PATH or set the M4 environment variable to its path name.)"
      " m4exit(2)')\n";
-+int pass = -1;
-+extern FILE *flout; 
-+extern FILE *flhout;
  
- 
+-
++bool h_out = false;
++extern FILE *flout;
++extern char *flo; 
  /** global chain. */
-@@ -65,7 +68,7 @@
+ struct filter *output_chain = NULL;
+ 
+@@ -64,7 +66,7 @@
  
  
  	/* allocate argv, and populate it with the argument list. */
 -	max_args = 8;
 +	max_args = 11;
- 	f->argv =
- 		(const char **) flex_alloc (sizeof (char *) *
- 					    (max_args + 1));
-@@ -128,17 +131,19 @@
- 	return f;
- }
- 
-+/* a chain emptying filter so the fork/exec of m4 doesn't run unwanted filters */
-+int filter_empty (struct filter *chain)
-+{
-+return 0;
-+}
-+
- /** Fork and exec entire filter chain.
-  *  @param chain The head of the chain.
-  *  @return true on success.
+ 	f->argv = malloc(sizeof(char *) * (size_t) (max_args + 1));
+ 	if (!f->argv)
+ 		flexerror(_("malloc failed (f->argv) in filter_create_ext"));
+@@ -125,9 +127,8 @@
   */
  bool filter_apply_chain (struct filter * chain)
  {
 -	int     pid, pipes[2];
--	int     r;
--	const int readsz = 512;
--	char   *buf;
 -
-+    pid_t pid;
- 
+-
++	pid_t pid;
++	
  	/* Tricky recursion, since we want to begin the chain
  	 * at the END. Why? Because we need all the forked processes
-@@ -152,32 +157,12 @@
- 	/* Now we are the right-most unprocessed link in the chain.
- 	 */
+ 	 * to be children of the main flex process.
+@@ -137,37 +138,12 @@
+ 	else
+ 		return true;
  
+-	/* Now we are the right-most unprocessed link in the chain.
+-	 */
+-
 -	fflush (stdout);
 -	fflush (stderr);
 -
@@ -73,11 +64,13 @@
 -			flexfatal (_("dup2(pipes[0],0)"));
 -		close (pipes[0]);
 -        fseek (stdin, 0, SEEK_CUR);
+-        ungetc(' ', stdin); /* still an evil hack, but one that works better */
+-        (void)fgetc(stdin); /* on NetBSD than the fseek attempt does */
 -
  		/* run as a filter, either internally or by exec */
  		if (chain->filter_func) {
  			int     r;
-@@ -197,11 +182,6 @@
+@@ -187,12 +163,11 @@
  	}
  
  	/* Parent */
@@ -86,10 +79,16 @@
 -		flexfatal (_("dup2(pipes[1],1)"));
 -	close (pipes[1]);
 -    fseek (stdout, 0, SEEK_CUR);
- 
+-
++  int child_status;
++    while (wait(&child_status) > 0){
++       if (!WIFEXITED (child_status) || WEXITSTATUS (child_status) != 0)
++         lerr_fatal (_("flex: child error from m4"));     
++		}
  	return true;
  }
-@@ -227,111 +207,37 @@
+ 
+@@ -217,108 +192,56 @@
  	return len;
  }
  
@@ -102,13 +101,12 @@
   *  @return 0 (zero) on success, and -1 on failure.
   */
  int filter_tee_header (struct filter *chain)
- {
+-{
 -	/* This function reads from stdin and writes to both the C file and the
 -	 * header file at the same time.
 -	 */
 -
--	const int readsz = 512;
--	char   *buf;
+-	char    buf[512];
 -	int     to_cfd = -1;
 -	FILE   *to_c = NULL, *to_h = NULL;
 -	bool    write_header;
@@ -134,9 +132,7 @@
 -
 -	/* Now to_c is a pipe to the C branch, and to_h is a pipe to the H branch.
 -	 */
-+    bool    write_header;
-+    write_header = (chain->extra != NULL);
- 
+-
 -	if (write_header) {
 -        fputs (check_4_gnu_m4, to_h);
 -		fputs ("m4_changecom`'m4_dnl\n", to_h);
@@ -160,18 +156,9 @@
 -	fputs ("m4_changequote([[,]])[[]]m4_dnl\n", to_c);
 -	fputs ("m4_define([[M4_YY_NOOP]])[[]]m4_dnl\n", to_c);
 -	fprintf (to_c, "m4_define( [[M4_YY_OUTFILE_NAME]],[[%s]])m4_dnl\n",
-+    fputs (check_4_gnu_m4, flout);
-+	fputs ("m4_changecom`'m4_dnl\n", flout);
-+	fputs ("m4_changequote`'m4_dnl\n", flout);
-+	fputs ("m4_changequote([[,]])[[]]m4_dnl\n", flout);
-+	fputs ("m4_define([[M4_YY_NOOP]])[[]]m4_dnl\n", flout);
-+	fprintf (flout, "m4_define( [[M4_YY_OUTFILE_NAME]],[[%s]])m4_dnl\n",
- 		 outfilename ? outfilename : "<stdout>");
- 
--	buf = (char *) flex_alloc (readsz);
--	if (!buf)
--		flexerror (_("flex_alloc failed in filter_tee_header"));
--	while (fgets (buf, readsz, stdin)) {
+-		 outfilename ? outfilename : "<stdout>");
+-
+-	while (fgets (buf, sizeof buf, stdin)) {
 -		fputs (buf, to_c);
 -		if (write_header)
 -			fputs (buf, to_h);
@@ -181,7 +168,8 @@
 -		fprintf (to_h, "\n");
 -
 -		/* write a fake line number. It will get fixed by the linedir filter. */
--		fprintf (to_h, "#line 4000 \"M4_YY_OUTFILE_NAME\"\n");
+-		if (gen_line_dirs)
+-			fprintf (to_h, "#line 4000 \"M4_YY_OUTFILE_NAME\"\n");
 -
 -		fprintf (to_h, "#undef %sIN_HEADER\n", prefix);
 -		fprintf (to_h, "#endif /* %sHEADER_H */\n", prefix);
@@ -189,105 +177,142 @@
 -
 -		fflush (to_h);
 -		if (ferror (to_h))
--			lerrsf (_("error writing output file %s"),
+-			lerr (_("error writing output file %s"),
 -				(char *) chain->extra);
 -
 -		else if (fclose (to_h))
--			lerrsf (_("error closing output file %s"),
+-			lerr (_("error closing output file %s"),
 -				(char *) chain->extra);
 -	}
 -
 -	fflush (to_c);
 -	if (ferror (to_c))
--		lerrsf (_("error writing output file %s"),
+-		lerr (_("error writing output file %s"),
 -			outfilename ? outfilename : "<stdout>");
 -
 -	else if (fclose (to_c))
--		lerrsf (_("error closing output file %s"),
+-		lerr (_("error closing output file %s"),
 -			outfilename ? outfilename : "<stdout>");
 -
 -	while (wait (0) > 0) ;
 -
--	exit (0);
-+if (write_header) {
-+        fputs (check_4_gnu_m4, flhout);
-+		fputs ("m4_changecom`'m4_dnl\n", flhout);
-+		fputs ("m4_changequote`'m4_dnl\n", flhout);
-+		fputs ("m4_changequote([[,]])[[]]m4_dnl\n", flhout);
-+		fputs ("m4_define([[M4_YY_NOOP]])[[]]m4_dnl\n", flhout);
-+		fputs ("m4_define( [[M4_YY_IN_HEADER]],[[]])m4_dnl\n", flhout);
-+		fprintf (flhout, "#ifndef %sHEADER_H\n", prefix);
-+		fprintf (flhout, "#define %sHEADER_H 1\n", prefix);
-+		fprintf (flhout, "#define %sIN_HEADER 1\n\n", prefix);
-+		fprintf (flhout, "m4_define( [[M4_YY_OUTFILE_NAME]],[[%s]])m4_dnl\n",
-+			 headerfilename ? headerfilename : "<stdout>");
-+        }
+-	FLEX_EXIT (0);
++{ 
++	/* c file opened and closed in main.c  */
++	if( fseek(flout,0,SEEK_CUR) == 0){
++        fputs (check_4_gnu_m4, flout);
++	fputs ("m4_changecom`'m4_dnl\n", flout);
++	fputs ("m4_changequote`'m4_dnl\n", flout);
++	fputs ("m4_changequote([[,]])[[]]m4_dnl\n", flout);
++	fputs ("m4_define([[M4_YY_NOOP]])[[]]m4_dnl\n", flout);
++	/* overwriting for a headerfile begins here */
++	fprintf (flout, "m4_define( [[M4_YY_OUTFILE_NAME]],[[%s]])m4_dnl\n",
++ 		 outfilename ? outfilename : "<stdout>");
++ 	/* create extra space to add extra headerfile lines later */  	 
++ 		      if (headerfilename) {
++	fprintf (flout,"m4_dnl reserve some space for %s          \n", headerfilename);
++	fputs ("m4_dnl prints no output to c file                          \n", flout);
++				}	 
++			}
++		/* file gas been closed after c file use */
++	else if (headerfilename && !h_out) {
++			flout = fopen (flo, "r+");
++			if (flout == NULL)
++		    lerr (_("hdr: error re-opening temp file %s"),flo);
++		    /* overwrite temp file beginning at pos 248 */
++		    if(fseek (flout,248,SEEK_SET) !=0)
++	           lerr (_("error with initial seek_set in header temp %ld\n"));
++				
++		fputs ("m4_define( [[M4_YY_IN_HEADER]],[[]])m4_dnl\n", flout);
++		fprintf (flout, "#ifndef %sHEADER_H\n", prefix);
++		fprintf (flout, "#define %sHEADER_H 1\n", prefix);
++		fprintf (flout, "#define %sIN_HEADER 1\n\n", prefix);
++		fprintf (flout, "m4_define( [[M4_YY_OUTFILE_NAME]],[[%s]])m4_dnl\n",
++ 			 headerfilename ? headerfilename : "<stdout>");
++ 			 	if (fseek (flout,0,SEEK_END) !=0)
++	                lerr (_("error with seek_end of header temp %S"),flout);     
++		    	/* append header file ending */
++		fprintf (flout, "\n#line 4000 \"M4_YY_OUTFILE_NAME\"\n");
++		fprintf (flout, "#undef %sIN_HEADER\n", prefix);
++		fprintf (flout, "#endif /* %sHEADER_H */\n", prefix);
++		fputs ("m4_undefine( [[M4_YY_IN_HEADER]])m4_dnl\n", flout);
++
++	    if (fclose (flout) != 0)
++		    lerr(_("error closing h temp file %s"),flo);
++		
++		}
  	return 0;
  }
  
-@@ -340,6 +246,8 @@
-  * can add or remove lines.  This only adjusts line numbers for generated code,
-  * not user code. This also happens to be a good place to squeeze multiple
-  * blank lines into a single blank line.
-+ * RISC OS - this is not added to the the filter chain, it is run as a function
-+ * after the m4 output tempfile (m4o) as been received.
+@@ -337,16 +260,40 @@
   */
  int filter_fix_linedirs (struct filter *chain)
  {
-@@ -348,15 +256,28 @@
+-	char   buf[512];
+-	const size_t readsz = sizeof buf;
++	char    *buf = malloc(512);
++	const size_t readsz = 512;
  	int     lineno = 1;
  	bool    in_gen = true;	/* in generated code */
  	bool    last_was_blank = false;
-+    extern char *m4o;
  
++    extern char *m4o;
++    
  	if (!chain)
  		return 0;
-+    pass += 1;
-+	FILE *infn = fopen(m4o, "r");
-+	FILE *outfn = NULL;
-+		char *ldoutfile = ""; 
-+	if (headerfilename && pass)
-+	ldoutfile = headerfilename;
-+	else if(outfilename)
-+	ldoutfile = outfilename;
++		
++	 FILE *flfn;
+ 
+-	while (fgets (buf, (int) readsz, stdin)) {
++	if (headerfilename && h_out==true) 
++	outfilename = headerfilename;
++
 +	if (use_stdout)
-+	outfn = stdout;
-+	else
-+	outfn = fopen( ldoutfile, "w");
- 
- 	buf = (char *) flex_alloc (readsz);
- 	if (!buf)
- 		flexerror (_("flex_alloc failed in filter_fix_linedirs"));
- 
--	while (fgets (buf, readsz, stdin)) {
-+	while (fgets (buf, readsz, infn)) {
++	flfn = stdout;
++	else {
++		if (outfilename) {
++		remove (outfilename);
++	flfn = fopen (outfilename, "w");
++	if (flfn == NULL)
++	lerr (_("flex out: error opening output file %s"),
++ 			outfilename );
++ 			setlinebuf(flfn);
++		}
++	}
++	
++	FILE *m4fn = fopen (m4o, "r");
++	     if (m4fn == NULL)
++	     lerr (_("flex out: error opening m4 file %s"),m4o);
++		
++	while (fgets (buf, (int) readsz, m4fn)) {
  
  		regmatch_t m[10];
  
-@@ -426,17 +347,22 @@
+@@ -412,18 +359,17 @@
  			last_was_blank = false;
  		}
  
 -		fputs (buf, stdout);
-+		fputs (buf, outfn);
++		fputs (buf, flfn);
  		lineno++;
  	}
 -	fflush (stdout);
 -	if (ferror (stdout))
-+if (fclose (infn))
-+		lerrsf (_("error closing m4output file %s"),m4o);
-+if (!use_stdout){
-+fsync((int)outfn);
-+	if (ferror (outfn))
- 		lerrsf (_("error writing output file %s"),
- 			outfilename ? outfilename : "<stdout>");
- 
+-		lerr (_("error writing output file %s"),
+-			outfilename ? outfilename : "<stdout>");
+-
 -	else if (fclose (stdout))
-+	else if (fclose (outfn))
- 		lerrsf (_("error closing output file %s"),
- 			outfilename ? outfilename : "<stdout>");
-+        }
-+else fflush(outfn);
- 
+-		lerr (_("error closing output file %s"),
+-			outfilename ? outfilename : "<stdout>");
+-
++            free(buf);
++ 		if (fclose (m4fn) != 0)
++		    lerr (_("flex out: error closing m4 file %s"),m4o);
++  		if (fclose (flfn) != 0)
++		    lerr (_("flex out: error closing output %s"),
++		    outfilename ? outfilename : "<stdout>");
++		h_out = true;
++		
  	return 0;
  }
+ 

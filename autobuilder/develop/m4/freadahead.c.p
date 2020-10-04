@@ -1,6 +1,6 @@
---- lib/freadahead.c.orig	2015-02-19 12:52:16.529992764 +0000
-+++ lib/freadahead.c	2015-02-27 13:02:16.710974683 +0000
-@@ -84,6 +84,10 @@
+--- lib/freadahead.c.orig	2017-01-01 02:54:41.000000000 +1300
++++ lib/freadahead.c	2020-09-08 00:45:58.397763420 +1200
+@@ -85,6 +85,10 @@
    if (fp->state == 4 /* WR */ || fp->rp >= fp->wp)
      return 0;
    return fp->wp - fp->rp;

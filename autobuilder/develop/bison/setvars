@@ -1,7 +1,27 @@
-AB_URL=ftp://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
-AB_ROVERSION=2
 
+# patches are for the default stable fetches - Sept 2020
+# bison_3.3.2.dsfg.orig.tar.xz
+# and bison_3.3.2.dsfg-1.debian.tar.xz
+AB_ROVERSION=2
 AB_CONFLAGS="--prefix=/home"
+#  for "previous declaration of 'rpl_gettimeofday' was here" error
+export gl_cv_func_gettimeofday_clobber=no
+# workaround for new dfsg changes stopping the build 
+#  (taken from debian patch rules file)
+echo '@setfilename bison.info' > $S/doc/bison.texi
+#this autoreconf because of bison.texi node warning
+autoreconf
+# The build also requires these: 
+	install -d $S/doc/figs
+	touch --date="Jan 01 2000" \
+		$S/doc/bison.info \
+		$S/doc/bison.help \
+		$S/doc/figs/example.txt \
+		$S/doc/figs/example-reduce.txt \
+		$S/doc/figs/example-shift.txt \
+		$S/doc/*.texi \
+		$S/build-aux/cross-options.pl \
+		$S/src/getargs.c
 
 # Helper to swap suffixes for package
 ab_swap_suffix() {
@@ -33,9 +53,9 @@ ab_package() {
   cp -avr $S/data/* $A/data
   
   # Convert c, cc, hh files to RISC OS format  
-  ab_swap_suffix $A/data c
-  ab_swap_suffix $A/data cc
-  ab_swap_suffix $A/data hh
+  ab_swap_suffix $A'data/skeletons' c
+  ab_swap_suffix $A'data/skeletons' cc
+  ab_swap_suffix $A'data/skeletons' hh
     
   $AB_HOME/add-riscpkg -unixlib
   
