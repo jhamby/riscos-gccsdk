@@ -1,8 +1,8 @@
 
 AB_GIT=https://github.com/danmar/cppcheck.git
-AB_GIT_TAGORBRANCH=1.85
+AB_GIT_TAGORBRANCH=2.2
 
-AB_PVERSION=1.85
+AB_PVERSION=2.2
 AB_ROVERSION=1
 
 ab_package() {
