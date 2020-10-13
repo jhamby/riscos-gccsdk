@@ -1,17 +1,17 @@
 cp $H/makefile.riscos $S/makefile.machine
-AB_ROVERSION=3
+AB_ROVERSION=1
+AB_PVERSION=16.02
 
 ab_package() {
   mv $S/bin/7za $S/bin/7za$AB_EXEEXT  
 
-  ab_create_command_app p7zip Apps/Utilities
+  ab_create_command_app P7zip Apps/Utilities
   ab_add_commands $S/bin/7za$AB_EXEEXT
 
   rman -f HTML $S/man1/7za.1 > $A/\!Help,faf  
 
-  mkdir $A/\doc
-  cp $H/README.RISCOS $A/\doc
-  cp $S/DOCS/copying.txt $S/README $A/\doc
+  cp -av $S/DOC $A/doc
+  cp -av $H/README.RISCOS $S/README $S/TODO $A/doc
 
-  $AB_HOME/add-riscpkg -unixlib  
+  $AB_HOME/add-riscpkg -unixlib -name P7zip -copyrightfile $S/DOC/copying.txt
 }
