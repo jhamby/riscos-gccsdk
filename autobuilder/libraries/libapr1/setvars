@@ -17,3 +17,8 @@ export apr_cv_mutex_recursive=yes
 export ac_cv_func_mmap=yes
 export ac_cv_func_munmap=yes
 
+# generate apr_escape_test.char.h by native build (just a part) and making sure the crosscompile doesn't overwrite it again (the touch-command)
+CC=$HOST_CC ./configure $AB_CONFLAGS --disable-shared --enable-static
+touch ./tools/gen_test_char,e1f
+make include/private/apr_escape_test_char.h
+
