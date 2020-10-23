@@ -1,3 +1,9 @@
+Fri Oct 23 14:16:24 BST 2020  Lee Noar  <lee.noar@sky.com>
+
+	* som_elf.c(elffile_open): Improve library loading speed by increasing
+	the file buffer size. Credit to Stuart Swales for pointing this out on
+	the RISC OS Open forums.
+
 Wed Dec 11 11:31:23 GMT 2019  Lee Noar  <lee.noar@sky.com>
 
 	* som_swihandler.c(SWI "ELFFile",reason_code_SOM_ELFFILE_OPEN): Fix

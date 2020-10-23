@@ -68,6 +68,11 @@ elffile_open (const char *filename, elf_file *file)
   if ((file->handle = fopen (file->name, "r")) == NULL)
     goto error;
 
+  /* This improves library loading speeds.
+   * Credit to Stuart Swales for pointing this out on the RISC OS Open
+   * forums.  */
+  setvbuf(file->handle, NULL, _IOFBF, 64 * 1024);
+
   /* Read the main ELF header at the beginning of the file.  */
   if (fread (&file->elf_header, sizeof (Elf32_Ehdr), 1, file->handle) != 1)
     goto error;
