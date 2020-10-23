@@ -1,3 +1,7 @@
+Fri Oct 23 14:39:25 BST 2020  Lee Noar  <lee.noar@sky.com>
+
+	* configure.ac: Bump version number to mark improved library loading speed.
+
 Fri Oct 23 14:16:24 BST 2020  Lee Noar  <lee.noar@sky.com>
 
 	* som_elf.c(elffile_open): Improve library loading speed by increasing
