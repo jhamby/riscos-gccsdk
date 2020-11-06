@@ -1,0 +1,35 @@
+Gnu Tar 1.30 for RISC OS
+The built in capability of piping to and from the compression utilities will not work in RISC OS.
+Potentially it could be done externally with redirection, or just perform the tasks separately.
+
+General use
+Creating
+It is usual to have the folder(s)/file(s) to be compressed located in the CSD so as to avoid
+leading slash complications
+This also allows the tarfile to be expanded into different places later.
+It's possible this could be managed by using options though. (untested by author) 
+Using tar vcf foo.tar would also set the RISC OS filetype, but if there is a path involved,
+it would need unixifying also. eg RAMFS::RamDisc0.$/foo.tar 
+
+Multivolumes
+RISC OS does not get required tar environment variables (probably because of the child process)
+the way linux does, but a feature has been added so auto naming of volume numbers can be done.
+A tar path of RAMFS::RamDisc0.$.foo  will output foo for the initial file and foo-02 foo-03
+foo-04 ...  thereafter.
+The un-numbered initial file is also used to kick off the multivolume extraction process.
+ eg tar vxf RAMFS::RamDisc0.$.foo   
+
+The volume size (-L64M etc) is not needed or used when extracting.
+The multivolume option will pause at the end of each volume requiring <return> or 'y' to
+continue, however if this pause is not required, use the option -Fnostop 
+This is non-standard useage, but using an info-script-file or command would negate the added 
+autorenaming feature anyway. Using -F implies multivolume -M.
+The pause can also be used in the standard tar way for naming or running an interactive shell
+or command by entering '!'
+The default is to run dash interactively. !Dash must be seen by filer first.  
+Alternatively, previously use *set SHELL bash  (or other, BASIC, Python, Lua etc) or a command.
+The -F option can run a command or shell also, volume autorenaming will be cancelled, and
+an alternative volume naming/handling method could be used.
+
+This tar is compiled to use ,xyz filetype preservation, but will extract generic untyped tars.
+
