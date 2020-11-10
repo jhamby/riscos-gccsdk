@@ -94,6 +94,7 @@ __atomic_exchange_##size (type *ptr, type val, int memmodel) \
 ATOMIC_EXCHANGE(1,uint8_t)
 ATOMIC_EXCHANGE(2,short)
 ATOMIC_EXCHANGE(4,uint32_t)
+ATOMIC_EXCHANGE(8,uint64_t)
 
 /* This built-in function implements an atomic compare and exchange operation.
  * This compares the contents of *ptr with the contents of *expected and if equal,
@@ -143,6 +144,7 @@ __atomic_compare_exchange_##size (type *ptr, \
 ATOMIC_COMPARE_AND_EXCHANGE(1,uint8_t)
 ATOMIC_COMPARE_AND_EXCHANGE(2,short)
 ATOMIC_COMPARE_AND_EXCHANGE(4,uint32_t)
+ATOMIC_COMPARE_AND_EXCHANGE(8,uint64_t)
 
 #ifndef __ARM_EABI__
 
@@ -192,6 +194,12 @@ SYNC_FETCH_AND_OP(or,|,4,int)
 SYNC_FETCH_AND_OP(xor,^,4,int)
 SYNC_FETCH_AND_OP(and,&,4,int)
 
+SYNC_FETCH_AND_OP(add,+,8,long long)
+SYNC_FETCH_AND_OP(sub,-,8,long long)
+SYNC_FETCH_AND_OP(or,|,8,long long)
+SYNC_FETCH_AND_OP(xor,^,8,long long)
+SYNC_FETCH_AND_OP(and,&,8,long long)
+
 #endif
 
 /* These built-in functions perform the operation suggested by the name,
@@ -233,6 +241,12 @@ SYNC_OP_AND_FETCH(or,|,4,int)
 SYNC_OP_AND_FETCH(xor,^,4,int)
 SYNC_OP_AND_FETCH(and,&,4,int)
 
+SYNC_OP_AND_FETCH(add,+,8,long long)
+SYNC_OP_AND_FETCH(sub,-,8,long long)
+SYNC_OP_AND_FETCH(or,|,8,long long)
+SYNC_OP_AND_FETCH(xor,^,8,long long)
+SYNC_OP_AND_FETCH(and,&,8,long long)
+
 /* These built-in functions perform an atomic compare and swap. That is,
  * if the current value of *ptr is oldval, then write newval into *ptr.
  * The “bool” version returns true if the comparison is successful and
@@ -264,6 +278,7 @@ __asm__("__sync_bool_compare_and_swap_"__STRING(size)"=__builtin_sync_bool_compa
 SYNC_BOOL_COMPARE_SWAP(1,char)
 SYNC_BOOL_COMPARE_SWAP(2,short)
 SYNC_BOOL_COMPARE_SWAP(4,int)
+SYNC_BOOL_COMPARE_SWAP(8,long long)
 
 #define SYNC_VAL_COMPARE_SWAP(size, type) \
 type \
@@ -287,6 +302,7 @@ __asm__("__sync_val_compare_and_swap_"__STRING(size)"=__builtin_sync_val_compare
 SYNC_VAL_COMPARE_SWAP(1,char)
 SYNC_VAL_COMPARE_SWAP(2,short)
 SYNC_VAL_COMPARE_SWAP(4,int)
+SYNC_VAL_COMPARE_SWAP(8,long long)
 
 /* This built-in function implements an atomic load operation.
  * It returns the contents of *ptr.
