@@ -1,3 +1,11 @@
+Sun Nov 22  13:26:08 GMT 2020 Lee Noar  <lee.noar@sky.com>
+
+	* include/paths.h: New header. This header is common on Unix systems,
+	and contains a reduced set of defines from other platforms that are
+	relevant to UnixLib.
+	* Makefile.am: Add new header.
+	Submitted by Cameron Cawley.
+
 Tue Nov 10  15:32:07 GMT 2020 Lee Noar  <lee.noar@sky.com>
 
 	* gcccompat/atomics.c: Add missing 64-bit atomic functions.

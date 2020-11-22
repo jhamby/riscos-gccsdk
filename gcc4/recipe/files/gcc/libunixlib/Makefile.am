@@ -1357,6 +1357,7 @@ libc_headers = \
 	netinet/tcp.h \
 	netinet/udp.h \
 	nl_types.h \
+	paths.h \
 	poll.h \
 	pthread.h \
 	pwd.h \
