@@ -1,5 +1,7 @@
 
 AB_PRECONF="LIBS=\"-lintl -ldl\""
+#  for "previous declaration of 'rpl_gettimeofday' was here" error
+export gl_cv_func_gettimeofday_clobber=no
 
 ab_package() {
   ab_create_command_app grep Apps/Utilities

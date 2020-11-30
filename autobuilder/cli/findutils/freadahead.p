@@ -1,13 +1,13 @@
---- gnulib/lib/freadahead.c.orig	2009-05-10 14:23:57.000000000 -0700
-+++ gnulib/lib/freadahead.c	2009-08-02 20:32:27.000000000 -0700
-@@ -60,6 +60,10 @@
+--- gl/lib/freadahead.c.orig	2020-11-30 15:01:05.915184730 +0000
++++ gl/lib/freadahead.c	2020-11-30 15:02:37.323937102 +0000
+@@ -94,6 +94,10 @@
+   if (fp->state == 4 /* WR */ || fp->rp >= fp->wp)
      return 0;
-   /* fp->_Buf <= fp->_Next <= fp->_Rend */
-   return fp->_Rend - fp->_Next;
+   return fp->wp - fp->rp;
 +#elif defined __riscos__
 +  if (fp->__mode.__bits.__read != 0)
 +    return fp->i_cnt;
 +  return 0;
- #else
-  #error "Please port gnulib freadahead.c to your platform! Look at the definition of fflush, fread on your system, then report this to bug-gnulib."
- #endif
+ #elif defined SLOW_BUT_NO_HACKS     /* users can define this */
+   abort ();
+   return 0;

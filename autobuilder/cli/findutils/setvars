@@ -4,10 +4,12 @@ AB_ROVERSION=3
 
 export gl_cv_func_fflush_stdin=yes
 export gl_cv_list_mounted_fs=no
+export fu_cv_sys_mounted_fs_stat_dev=no
 
 export fu_cv_sys_mounted_fread=yes
 export fu_cv_sys_mounted_fread_fstyp=no
-export gl_cv_func_gettimeofday_clobber=no
+export gl_cv_func_gettimeofday_clobber=false
+export ac_cv_func_getgroups_works=yes
 
 AB_MANPAGE="find/find.1 xargs/xargs.1 locate/locate.1"
 
