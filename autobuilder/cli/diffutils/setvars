@@ -15,5 +15,5 @@ ab_package() {
   
   cp $S/COPYING $A
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -name DiffUtils
 }
