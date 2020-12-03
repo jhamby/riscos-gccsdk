@@ -1,5 +1,6 @@
 
 AB_CONFLAGS="--disable-nls"
+AB_PVERSION=$(echo $AB_FULLNAME | cut -d - -f 2-)
 AB_ROVERSION=3
 
 export gl_cv_func_fflush_stdin=yes
