@@ -1,7 +1,9 @@
 AB_ROVERSION=2
 AB_MANPAGE=man/mawk.1
 
+AB_DISTCLEAN="$AB_MAKE clean"
 AB_MAKE="$AB_MAKE mawk"
+
 
 ab_package() {
   ab_create_command_app Mawk Apps/Utilities
