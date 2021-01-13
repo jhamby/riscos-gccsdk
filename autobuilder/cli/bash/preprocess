@@ -1,2 +1,2 @@
-tar xfJ bash-*.tar.xz
-mv bash-*/* .
+wget http://deb.debian.org/debian/pool/main/b/bash/bash_4.4-5.debian.tar.xz
+tar -xvJf bash_4.4-5.debian.tar.xz | patch -p1 || true

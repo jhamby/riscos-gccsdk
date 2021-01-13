@@ -1,3 +1,5 @@
+AB_URL=http://deb.debian.org/debian/pool/main/b/bash/bash_4.4.orig.tar.xz
+
 AB_ROVERSION=2
 AB_CONFLAGS="--disable-nls --without-bash-malloc --disable-process-substitution --with-installed-readline=yes --enable-readline --with-curses=yes"
 
