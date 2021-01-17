@@ -1,0 +1,19 @@
+
+touch doc/gawk.texi
+touch doc/gawkinet.texi
+touch doc/gawkworkflow.texi
+touch doc/gawktexi.in
+
+AB_DISTCLEAN="$AB_MAKE clean"
+AB_MANPAGE=doc/gawk.1
+
+ab_package() {
+  ab_create_command_app Gawk Apps/Utilities
+  ab_add_commands $S/gawk$AB_EXEEXT
+
+  mv $D/gawk.1,faf $A/\!Help,faf
+
+  cp $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib
+}
