@@ -1,5 +1,5 @@
---- Makefile.unix.orig	2011-03-27 10:44:48.000000000 +0100
-+++ Makefile.unix	2011-03-27 10:46:13.000000000 +0100
+--- Makefile.unix.orig	2021-01-18 16:31:09.530992768 +0000
++++ Makefile.unix	2021-01-18 16:31:32.454538833 +0000
 @@ -28,7 +28,7 @@
  BINDIR = /usr/local/bin
  SCRIPTDIR = $(BINDIR)
@@ -9,7 +9,7 @@
  
  BINMODE = 0755
  MANMODE = 0644
-@@ -39,7 +39,7 @@
+@@ -39,17 +39,17 @@
  MANDIR = /usr/local/share/man/man$(MANEXT)
  
  CC = gcc
@@ -18,6 +18,18 @@
  
  BIN = psbook psselect pstops epsffit psnup \
  	psresize
+ SHELLSCRIPTS = getafm showchar
+-PERLSCRIPTS = fixfmps fixmacps fixpsditps fixpspps \
++PERLSCRIPTS = fixfmps fixpsditps fixpspps \
+ 	fixtpps fixwfwps fixwpps fixscribeps fixwwps \
+ 	fixdlsrps extractres includeres psmerge
+ MANPAGES = psbook.$(MANEXT) psselect.$(MANEXT) pstops.$(MANEXT) epsffit.$(MANEXT) psnup.$(MANEXT) \
+ 	psresize.$(MANEXT) psmerge.$(MANEXT) fixscribeps.$(MANEXT) getafm.$(MANEXT) \
+-	fixdlsrps.$(MANEXT) fixfmps.$(MANEXT) fixmacps.$(MANEXT) fixpsditps.$(MANEXT) \
++	fixdlsrps.$(MANEXT) fixfmps.$(MANEXT) fixpsditps.$(MANEXT) \
+ 	fixpspps.$(MANEXT) fixtpps.$(MANEXT) fixwfwps.$(MANEXT) fixwpps.$(MANEXT) \
+ 	fixwwps.$(MANEXT) extractres.$(MANEXT) includeres.$(MANEXT)
+ INCLUDES = md68_0.ps md71_0.ps
 @@ -65,30 +65,30 @@
  epsffit.o: epsffit.c pserror.h patchlev.h
  
