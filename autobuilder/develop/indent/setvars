@@ -1,5 +1,8 @@
 $HOST_CC -o man/texinfo2man man/texinfo2man.c
 AB_ROVERSION=2
+export ac_cv_func_setlocale=no
+
+AB_CONFLAGS='--disable-nls'
 
 ab_package() {
   ab_create_command_app Indent Apps/Development
