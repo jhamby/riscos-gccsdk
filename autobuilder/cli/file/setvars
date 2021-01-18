@@ -8,11 +8,11 @@ automake
 autoconf
 
 AB_PRECONF="CFLAGS=\"-I$GCCSDK_INSTALL_ENV/include -O2 -D_USE_BSD\""
-AB_CONFLAGS="--disable-elf --disable-elf-core"
+AB_CONFLAGS="--disable-elf --disable-elf-core --with-pic=no"
 
 ab_package() {
   ab_create_command_app File Apps/Utilities
-  ab_add_commands $S/src/*$AB_EXEEXT
+  ab_add_commands $S/src/.libs/*$AB_EXEEXT
 
   rman -f HTML $S/doc/file.1 > $A/\!Help,faf
 
