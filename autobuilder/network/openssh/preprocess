@@ -1,0 +1,2 @@
+wget http://ftp.debian.org/debian/pool/main/o/openssh/openssh_6.7p1-5.debian.tar.xz
+tar -xvJf openssh_6.7p1-5.debian.tar.xz | patch -p1 || true

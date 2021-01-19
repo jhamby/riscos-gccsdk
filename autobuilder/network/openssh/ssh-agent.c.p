@@ -1,6 +1,6 @@
---- ./ssh-agent.c.orig	2015-09-23 16:04:35.509552334 +0200
-+++ ./ssh-agent.c	2015-09-23 16:28:32.413538799 +0200
-@@ -95,6 +95,10 @@
+--- ssh-agent.c.orig	2014-07-30 03:32:46.000000000 +0100
++++ ssh-agent.c	2021-01-19 18:59:51.839511697 +0000
+@@ -86,6 +86,10 @@
  #include <sys/prctl.h>	/* For prctl() and PR_SET_DUMPABLE */
  #endif
  
@@ -11,73 +11,73 @@
  typedef enum {
  	AUTH_UNUSED,
  	AUTH_SOCKET,
-@@ -160,47 +164,57 @@
+@@ -145,47 +149,57 @@
  static void
  close_socket(SocketEntry *e)
  {
-+        debugRO("Entered close_socket().");
++	debugRO("Entered close_socket().");
  	close(e->fd);
  	e->fd = -1;
  	e->type = AUTH_UNUSED;
- 	sshbuf_free(e->input);
- 	sshbuf_free(e->output);
- 	sshbuf_free(e->request);
+ 	buffer_free(&e->input);
+ 	buffer_free(&e->output);
+ 	buffer_free(&e->request);
 +	close(e->fd);
-+        debugRO("Leaving close_socket().");
++	debugRO("Leaving close_socket().");
  }
  
  static void
  idtab_init(void)
  {
-+        debugRO("Entered idtab_init().");
++	debugRO("Entered idtab_init().");
  	int i;
  
  	for (i = 0; i <=2; i++) {
  		TAILQ_INIT(&idtable[i].idlist);
  		idtable[i].nentries = 0;
  	}
-+        debugRO("Leaving idtab_init().");
++	debugRO("Leaving idtab_init().");
  }
  
  /* return private key table for requested protocol version */
  static Idtab *
  idtab_lookup(int version)
  {
-+        debugRO("Entered idtab_lookup().");
++	debugRO("Entered idtab_lookup().");
  	if (version < 1 || version > 2)
  		fatal("internal error, bad protocol version %d", version);
-+        debugRO("Leaving idtab_lookup().");
++	debugRO("Leaving idtab_lookup().");
  	return &idtable[version];
  }
  
  static void
  free_identity(Identity *id)
  {
-+        debugRO("Entered free_identity().");
- 	sshkey_free(id->key);
++	debugRO("Entered free_identity().");
+ 	key_free(id->key);
  	free(id->provider);
  	free(id->comment);
  	free(id);
-+        debugRO("Leaving free_identity().");
++	debugRO("Leaving free_identity().");
  }
  
  /* return matching private key for given public key */
  static Identity *
- lookup_identity(struct sshkey *key, int version)
+ lookup_identity(Key *key, int version)
  {
 +        debugRO("Entered lookup_identity().");
  	Identity *id;
  
  	Idtab *tab = idtab_lookup(version);
-@@ -208,6 +222,7 @@
- 		if (sshkey_equal(key, id->key))
+@@ -193,6 +207,7 @@
+ 		if (key_equal(key, id->key))
  			return (id);
  	}
 +        debugRO("Leaving lookup_identity().");
  	return (NULL);
  }
  
-@@ -215,6 +230,7 @@
+@@ -200,6 +215,7 @@
  static int
  confirm_key(Identity *id)
  {
@@ -85,7 +85,7 @@
  	char *p;
  	int ret = -1;
  
-@@ -224,6 +240,7 @@
+@@ -208,6 +224,7 @@
  	    id->comment, p))
  		ret = 0;
  	free(p);
@@ -93,37 +93,23 @@
  
  	return (ret);
  }
-@@ -231,18 +248,21 @@
- static void
- send_status(SocketEntry *e, int success)
- {
-+        debugRO("Entered send_status().");
- 	int r;
- 
- 	if ((r = sshbuf_put_u32(e->output, 1)) != 0 ||
- 	    (r = sshbuf_put_u8(e->output, success ?
- 	    SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE)) != 0)
- 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-+        debugRO("Leaving send_status().");
- }
- 
- /* send list of supported public keys to 'client' */
+@@ -216,6 +233,7 @@
  static void
  process_request_identities(SocketEntry *e, int version)
  {
 +        debugRO("Entered process_request_identities().");
  	Idtab *tab = idtab_lookup(version);
  	Identity *id;
- 	struct sshbuf *msg;
-@@ -287,6 +307,7 @@
- 	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
- 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
- 	sshbuf_free(msg);
-+        debugRO("Leaving process_request_identities().");
+ 	Buffer msg;
+@@ -243,6 +261,7 @@
+ 	buffer_put_int(&e->output, buffer_len(&msg));
+ 	buffer_append(&e->output, buffer_ptr(&msg), buffer_len(&msg));
+ 	buffer_free(&msg);
++        debugRO("leaving process_request_identities().");
  }
  
  #ifdef WITH_SSH1
-@@ -294,6 +315,7 @@
+@@ -250,6 +269,7 @@
  static void
  process_authentication_challenge1(SocketEntry *e)
  {
@@ -131,26 +117,26 @@
  	u_char buf[32], mdbuf[16], session_id[16];
  	u_int response_type;
  	BIGNUM *challenge;
-@@ -368,6 +390,7 @@
- 	sshkey_free(key);
+@@ -315,6 +335,7 @@
+ 	key_free(key);
  	BN_clear_free(challenge);
- 	sshbuf_free(msg);
+ 	buffer_free(&msg);
 +        debugRO("Leaving process_authentication_challenge1().");
  }
  #endif
  
-@@ -375,6 +398,7 @@
+@@ -322,6 +343,7 @@
  static void
  process_sign_request2(SocketEntry *e)
  {
 +        debugRO("Entered process_sign_request2().");
  	u_char *blob, *data, *signature = NULL;
- 	size_t blen, dlen, slen = 0;
- 	u_int compat = 0, flags;
-@@ -426,12 +450,14 @@
- 	free(data);
+ 	u_int blen, dlen, slen = 0;
+ 	extern int datafellows;
+@@ -362,12 +384,14 @@
  	free(blob);
  	free(signature);
+ 	datafellows = odatafellows;
 +        debugRO("Leaving process_sign_request2().");
  }
  
@@ -159,18 +145,18 @@
  process_remove_identity(SocketEntry *e, int version)
  {
 +        debugRO("Entered process_remove_identity().");
- 	size_t blen;
- 	int r, success = 0;
- 	struct sshkey *key = NULL;
-@@ -490,6 +516,7 @@
- 		sshkey_free(key);
- 	}
- 	send_status(e, success);
+ 	u_int blen;
+ 	int success = 0;
+ 	Key *key = NULL;
+@@ -420,6 +444,7 @@
+ 	buffer_put_int(&e->output, 1);
+ 	buffer_put_char(&e->output,
+ 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 +        debugRO("Leaving process_remove_identity().");
  }
  
  static void
-@@ -497,6 +524,7 @@
+@@ -427,6 +452,7 @@
  {
  	Idtab *tab = idtab_lookup(version);
  	Identity *id;
@@ -178,15 +164,15 @@
  
  	/* Loop over all identities and clear the keys. */
  	for (id = TAILQ_FIRST(&tab->idlist); id;
-@@ -510,6 +538,7 @@
- 
+@@ -441,6 +467,7 @@
  	/* Send success. */
- 	send_status(e, 1);
+ 	buffer_put_int(&e->output, 1);
+ 	buffer_put_char(&e->output, SSH_AGENT_SUCCESS);
 +        debugRO("Left process_remove_all_identities().");
  }
  
  /* removes expired keys and returns number of seconds until the next expiry */
-@@ -520,6 +549,7 @@
+@@ -451,6 +478,7 @@
  	Identity *id, *nxt;
  	int version;
  	Idtab *tab;
@@ -194,7 +180,7 @@
  
  	for (version = 1; version < 3; version++) {
  		tab = idtab_lookup(version);
-@@ -537,6 +567,7 @@
+@@ -468,6 +496,7 @@
  				    MIN(deadline, id->death);
  		}
  	}
@@ -202,112 +188,72 @@
  	if (deadline == 0 || deadline <= now)
  		return 0;
  	else
-@@ -553,6 +584,7 @@
- {
- 	struct sshkey *k = NULL;
- 	int r = SSH_ERR_INTERNAL_ERROR;
-+        debugRO("Entering agent_decode_rsa1().");
- 
- 	*kp = NULL;
- 	if ((k = sshkey_new_private(KEY_RSA1)) == NULL)
-@@ -579,6 +611,7 @@
- 
- 	r = 0; /* success */
-  out:
-+        debugRO("Leaving agent_decode_rsa1().");
- 	if (r == 0)
- 		*kp = k;
- 	else
-@@ -590,6 +623,7 @@
+@@ -477,6 +506,7 @@
  static void
  process_add_identity(SocketEntry *e, int version)
  {
 +        debugRO("Entered process_add_identity().");
  	Idtab *tab = idtab_lookup(version);
  	Identity *id;
- 	int success = 0, confirm = 0;
-@@ -661,6 +695,7 @@
- 	id->confirm = confirm;
- send:
- 	send_status(e, success);
+ 	int type, success = 0, confirm = 0;
+@@ -559,6 +589,7 @@
+ 	buffer_put_int(&e->output, 1);
+ 	buffer_put_char(&e->output,
+ 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 +        debugRO("Leaving process_add_identity().");
  }
  
  /* XXX todo: encrypt sensitive data with passphrase */
-@@ -671,6 +706,7 @@
- 	char *passwd, passwdhash[LOCK_SIZE];
- 	static u_int fail_count = 0;
- 	size_t pwlen;
-+        debugRO("Entered process_add_identity().");
- 
- 	if ((r = sshbuf_get_cstring(e->request, &passwd, &pwlen)) != 0)
- 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-@@ -708,6 +744,7 @@
- 	explicit_bzero(passwd, pwlen);
- 	free(passwd);
- 	send_status(e, success);
-+        debugRO("Leaving process_add_identity().");
- }
- 
+@@ -591,6 +622,7 @@
  static void
-@@ -715,6 +752,7 @@
+ no_identities(SocketEntry *e, u_int type)
  {
- 	struct sshbuf *msg;
- 	int r;
 +        debugRO("Entered no_identities().");
+ 	Buffer msg;
  
- 	if ((msg = sshbuf_new()) == NULL)
- 		fatal("%s: sshbuf_new failed", __func__);
-@@ -726,6 +764,7 @@
- 	    (r = sshbuf_put_stringb(e->output, msg)) != 0)
- 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
- 	sshbuf_free(msg);
+ 	buffer_init(&msg);
+@@ -601,6 +633,7 @@
+ 	buffer_put_int(&e->output, buffer_len(&msg));
+ 	buffer_append(&e->output, buffer_ptr(&msg), buffer_len(&msg));
+ 	buffer_free(&msg);
 +        debugRO("Leaving no_identities().");
  }
  
  #ifdef ENABLE_PKCS11
-@@ -740,6 +779,7 @@
- 	struct sshkey **keys = NULL, *k;
+@@ -613,6 +646,7 @@
+ 	Key **keys = NULL, *k;
  	Identity *id;
  	Idtab *tab;
 +        debugRO("Entered process_add_smartcard_key().");
  
- 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
- 	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0)
-@@ -792,6 +832,7 @@
- 	free(provider);
- 	free(keys);
- 	send_status(e, success);
+ 	provider = buffer_get_string(&e->request, NULL);
+ 	pin = buffer_get_string(&e->request, NULL);
+@@ -661,6 +695,7 @@
+ 	buffer_put_int(&e->output, 1);
+ 	buffer_put_char(&e->output,
+ 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 +        debugRO("Leaving process_add_smartcard_key().");
  }
  
  static void
-@@ -801,6 +842,7 @@
- 	int r, version, success = 0;
+@@ -670,6 +705,7 @@
+ 	int version, success = 0;
  	Identity *id, *nxt;
  	Idtab *tab;
 +        debugRO("Entered process_remove_smartcard_key().");
  
- 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
- 	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0)
-@@ -828,6 +870,7 @@
- 		    " pkcs11_del_provider failed");
- 	free(provider);
- 	send_status(e, success);
-+        debugRO("Leaving process_remove_smartcard_key().");
- }
- #endif /* ENABLE_PKCS11 */
- 
-@@ -840,6 +883,7 @@
- 	u_char type;
- 	const u_char *cp;
- 	int r;
+ 	provider = buffer_get_string(&e->request, NULL);
+ 	pin = buffer_get_string(&e->request, NULL);
+@@ -708,6 +744,7 @@
+ {
+ 	u_int msg_len, type;
+ 	u_char *cp;
 +        debugRO("Entered process_message().");
  
- 	if (sshbuf_len(e->input) < 5)
+ 	if (buffer_len(&e->input) < 5)
  		return;		/* Incomplete message. */
-@@ -932,12 +976,14 @@
- 		send_status(e, 0);
+@@ -803,12 +840,14 @@
+ 		buffer_put_char(&e->output, SSH_AGENT_FAILURE);
  		break;
  	}
 +        debugRO("Leaving process_message().");
@@ -321,23 +267,23 @@
  
  	set_nonblock(fd);
  
-@@ -954,6 +1000,7 @@
- 			if ((sockets[i].request = sshbuf_new()) == NULL)
- 				fatal("%s: sshbuf_new failed", __func__);
+@@ -822,6 +861,7 @@
+ 			buffer_init(&sockets[i].output);
+ 			buffer_init(&sockets[i].request);
  			sockets[i].type = type;
 +                        debugRO("Leaving new_socket() inside for... if...");
  			return;
  		}
  	old_alloc = sockets_alloc;
-@@ -970,6 +1017,7 @@
- 	if ((sockets[old_alloc].request = sshbuf_new()) == NULL)
- 		fatal("%s: sshbuf_new failed", __func__);
+@@ -835,6 +875,7 @@
+ 	buffer_init(&sockets[old_alloc].output);
+ 	buffer_init(&sockets[old_alloc].request);
  	sockets[old_alloc].type = type;
 +        debugRO("Leaving new_socket().");
  }
  
  static int
-@@ -980,6 +1028,7 @@
+@@ -845,6 +886,7 @@
  	int n = 0;
  	static struct timeval tv;
  	time_t deadline;
@@ -345,7 +291,7 @@
  
  	for (i = 0; i < sockets_alloc; i++) {
  		switch (sockets[i].type) {
-@@ -1032,12 +1081,14 @@
+@@ -897,12 +939,14 @@
  		tv.tv_usec = 0;
  		*tvpp = &tv;
  	}
@@ -360,7 +306,7 @@
  	struct sockaddr_un sunaddr;
  	socklen_t slen;
  	char buf[1024];
-@@ -1116,11 +1167,13 @@
+@@ -975,11 +1019,13 @@
  		default:
  			fatal("Unknown type %d", sockets[i].type);
  		}
@@ -374,7 +320,7 @@
  	if (cleanup_pid != 0 && getpid() != cleanup_pid)
  		return;
  	debug("%s: cleanup", __func__);
-@@ -1128,11 +1181,13 @@
+@@ -987,11 +1033,13 @@
  		unlink(socket_name);
  	if (socket_dir[0])
  		rmdir(socket_dir);
@@ -388,7 +334,7 @@
  	cleanup_socket();
  	_exit(i);
  }
-@@ -1141,16 +1196,19 @@
+@@ -1000,16 +1048,19 @@
  static void
  cleanup_handler(int sig)
  {
@@ -408,7 +354,7 @@
  	/*
  	 * If our parent has exited then getppid() will return (pid_t)1,
  	 * so testing for that should be safe.
-@@ -1160,6 +1218,7 @@
+@@ -1019,6 +1070,7 @@
  		cleanup_socket();
  		_exit(2);
  	}
@@ -416,30 +362,12 @@
  }
  
  static void
-@@ -1175,7 +1234,7 @@
- int
- main(int ac, char **av)
- {
--	int c_flag = 0, d_flag = 0, D_flag = 0, k_flag = 0, s_flag = 0;
-+        int c_flag = 0, d_flag = 0, D_flag = 0, k_flag = 0, s_flag = 0;
- 	int sock, fd, ch, result, saved_errno;
- 	u_int nalloc;
- 	char *shell, *format, *pidstr, *agentsocket = NULL;
-@@ -1210,7 +1269,7 @@
+@@ -1069,7 +1121,7 @@
  	__progname = ssh_get_progname(av[0]);
  	seed_rng();
  
--	while ((ch = getopt(ac, av, "cDdksE:a:t:")) != -1) {
-+	while ((ch = getopt(ac, av, "cDdksE:a:t:v")) != -1) {
+-	while ((ch = getopt(ac, av, "cdksa:t:")) != -1) {
++	while ((ch = getopt(ac, av, "cdksa:t:v")) != -1) {
  		switch (ch) {
- 		case 'E':
- 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
-@@ -1231,7 +1290,7 @@
- 			s_flag++;
- 			break;
- 		case 'd':
--			if (d_flag || D_flag)
-+			if (D_flag)
- 				usage();
- 			d_flag++;
- 			break;
+ 		case 'c':
+ 			if (s_flag)

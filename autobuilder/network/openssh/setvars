@@ -1,3 +1,4 @@
+AB_URL=http://ftp.debian.org/debian/pool/main/o/openssh/openssh_6.7p1.orig.tar.gz
 
 AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp --with-maildir=~/Mail --disable-utmpx --disable-wtmpx"
 
