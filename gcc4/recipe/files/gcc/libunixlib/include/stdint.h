@@ -84,10 +84,6 @@ typedef long int intmax_t;
 typedef unsigned long int uintmax_t;
 #endif
 
-/* The ISO C 9X standard specifies that in C++ implementations these
-   macros should only be defined if explicitly requested.  */
-#if !defined __cplusplus || defined __STDC_LIMIT_MACROS
-
 /* Limits of integral types.  */
 
 /* Minimum of signed integral types.  */
@@ -184,10 +180,6 @@ typedef unsigned long int uintmax_t;
 #define WINT_MIN	(0)
 #define WINT_MAX	(4294967295U)
 
-#endif	/* C++ && limit macros */
-
-#if !defined __cplusplus || defined __STDC_CONSTANT_MACROS
-
 /* Signed.  */
 #define INT8_C(c)	c
 #define INT16_C(c)	c
@@ -203,7 +195,5 @@ typedef unsigned long int uintmax_t;
 /* Maximal type.  */
 #define INTMAX_C(c)	c ## LL
 #define UINTMAX_C(c)	c ## ULL
-
-#endif
 
 #endif
