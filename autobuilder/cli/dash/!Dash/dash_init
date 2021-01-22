@@ -1,3 +1,12 @@
-`stty erase ^H`
-#`stty werase ^?`
+# The path of this file must be set in the system variable ENV
+# It can have any name or path but needs to be something unixlib/dash can read
+# The ENV variable (and file pointed to) is only read when starting dash interactively.
+# Examples that would replace a previously set PATH (by RISC OS or dash)
+# export PATH=\<CoreUtils\$Dir\>
+# Generally unixlib converts either full RISC OS or full unix paths. 
+# The second entry here for the <Dash$Dir>.bin is quirky, it mixes path types
+# export PATH=/ADFS::4.$/Utilities/!CoreUtils;\<Dash\$Dir\>/bin
+printf "dash_init has been run\n"
+
+
 

@@ -6,7 +6,8 @@ Set Alias$dash Wimpslot -min 384K|MRun <Dash$Dir>.dash %%*0
 | This file will be run by dash (interactive shell)
 | Set ENV /ADFS::4.$/home/dash_init
 | Dash will not find external cmds without PATH -Note semicolon path separator used.
-| Set PATH /ADFS::4.$/home/bin;/ADFS::4/$/home/bin/CoreUtils
+| The dir variable path (3rd one) needs the RISC OS delay bar
+| Set PATH /ADFS::4.$/home/bin;/ADFS::4/$/home/bin/CoreUtils;|<Dash$Dir>/bin;
 | To exclude a builtin cmd in this case mv, use 
 | Set PATH /ADFS::4.$/home/bin;/ADFS::4/$/home/bin/CoreUtils;mv%builtin
 

@@ -2,7 +2,7 @@ AB_URL=http://ftp.uk.debian.org/debian/pool/main/d/dash/dash_0.5.8.orig.tar.gz
 AB_VERBOSE="yes"
 #AB_NOREMOTE="yes"
 #AB_USEAPT="no"
-AB_ROVERSION=4
+AB_ROVERSION=5
 cp $H/cat.c $H/ls.c $H/mv.c $H/rm.c $S/src/bltin
 cp $H/signames.c $S/src
 #JOBS is set to 0 with makefile.in.p

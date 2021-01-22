@@ -1,9 +1,17 @@
 Useage of Debian ash in RISC OS   - Please read the WARNING text before using.
 
+  Major diffs to linux useage:
 dash has been compiled with JOBS=0 so bg, fg and job control tokens are disabled.
-dash interactive now uses ReadLine32, so can benefit from the LineEditor module when installed. 
 
-ENV would need to be set to the full path of the dash_init file if it required(see !Dash.!Boot)
+No linux libedit, but dash uses RISC OS ReadLine32 for input, so benefits from
+the Olly Betts LineEditor module when installed. (editing and arrow key history)
+
+Only inbuilt commands will take part in piping and command substitution, but
+sometimes stdin stdout can be relayed by using dash inbuilts, such as the cat cmd.
+
+  General useage:
+ENV needs to be set to path of the dash_init file if it required (see !Dash.!Boot)
+Only of use in the same (interactive) instance of dash  
 
 In command mode the arguments following dash -c must be quoted, otherwise only the first argument is read.
 *dash -c 'cmd cmdargs...'
@@ -41,13 +49,21 @@ or if SHELL=dash or using interactive dash
 
 Paths for PATH are separated with semicolons instead of colons to allow RISC OS filesystem double colons. 
 Without this full drive/path description, if the CSD (PWD) changes FS, PATH would then search the new FS.
+System directory variables can be used but require special escaping or delaying depending on if PATH is
+being set by RISC OS or dash export (see examples in !Dash.!Boot and dash_init files.
 See (and edit) the PATH and ENV examples to suit your locations in the !Dash.!Boot file.
-Variables could be used in PATH, but the result should still be of the form /ADFS::4.$/my/path/somewhere;
-In other words there is no conversion from RISC OS naming of PATH by the dash PATH search routine.
+setting PATH manually may be helpful initially, as it is tricky knowing if !Boot has re-run properly.
+$ export
+displays environment variables.
 The dash builtin 'type' is useful to observe the actual path used for any given cmd, or if it is a builtin.
 $ type <cmd>
+Included is a simple obey file <Dash$Dir>.bin.sc that better exposes the usual RISC OS star commands
+As long as sc is in the PATH, it can be used thus:
+$ sc <starcommand>
 
 Command names containing a slash are simply executed without performing any searches of PATH or builtins.
+$ \<Dash\$Dir\>/bin/sc show PATH
+
 A <cmd>%builtin PATH item added as in the form
 /ADFS::4.$/home/bin/CoreUtils;cat%builtin
 will cause the cat cmd from CoreUtils to be used /instead/ of the builtin cat cmd.
