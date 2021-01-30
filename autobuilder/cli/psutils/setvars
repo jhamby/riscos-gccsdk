@@ -1,6 +1,6 @@
 
 AB_MAKE="$AB_MAKE -f Makefile.unix"
-AB_PVERSION=1.17
+AB_PVERSION=r1.17
 AB_ROVERSION=2
 
 ab_package() {
