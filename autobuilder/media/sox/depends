@@ -7,4 +7,6 @@ libmad0
 libopencore-amrnb0
 wavpack
 libao4
+libsndfile
+opusfile
 ffmpeg
