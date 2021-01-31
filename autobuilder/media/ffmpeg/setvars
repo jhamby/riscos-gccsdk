@@ -30,7 +30,7 @@ AB_PRECONF=:
 		--enable-libwavpack \
 		--enable-libvorbis \
 		--enable-libtwolame \
-		--disable-libopus \
+		--enable-libopus \
 		--disable-libwebp \
 		--disable-libxml2 \
 		--disable-libfreetype \
@@ -46,9 +46,10 @@ AB_PRECONF=:
 		--enable-pthreads \
 		--disable-runtime-cpudetect \
 		--enable-armv5te \
+                --cpu=armv4 \
 		--disable-vfp \
 		--disable-armv6 \
-		--enable-armv6t2 \
+		--disable-armv6t2 \
 		--disable-vfpv3 \
 		--disable-neon \
 		--disable-thumb \
