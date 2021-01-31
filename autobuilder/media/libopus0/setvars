@@ -1,9 +1,9 @@
 
-AB_URL=http://downloads.xiph.org/releases/opus/opus-1.0.1.tar.gz
 AB_ROVERSION=2
 AB_INSTALL=yes
 
-AB_CONFLAGS='--enable-fixed-point'
+AB_CONFLAGS='--disable-rtcd --disable-asm --enable-fixed-point --disable-intrinsics'
+autoreconf -fi
 
 ab_package() {
   ab_create_app LibOpus Apps/Library libopus-dev
