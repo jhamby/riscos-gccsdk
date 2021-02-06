@@ -1,5 +1,8 @@
 AB_ROVERSION=2
 
+# This is needed when building statically
+AB_CONFLAGS='--without-pic'
+
 ab_package () {
   ab_create_command_app FLAC Apps/Audio
   ab_add_commands $S/src/flac/flac$AB_EXEEXT $S/src/metaflac/metaflac$AB_EXEEXT
