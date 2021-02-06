@@ -1,10 +1,10 @@
 
-AB_PVERSION=9.16
+AB_PVERSION=9.28
 
 rm $S/dcraw.c
-wget http://www.cybercom.net/~dcoffin/dcraw/dcraw.c
+wget https://sources.debian.org/data/main/d/dcraw/9.28-2/dcraw.c
 rm $S/parse.c
-wget http://www.cybercom.net/~dcoffin/dcraw/parse.c
+wget https://sources.debian.org/data/main/d/dcraw/9.28-2/parse.c
 
 ab_package() {
   ab_create_command_app Dcraw Apps/Graphics

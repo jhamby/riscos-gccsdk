@@ -15,7 +15,7 @@
 +default: dcraw$(AB_EXEEXT) dcparse$(AB_EXEEXT) dcfujiturn$(AB_EXEEXT) dcfujiturn16$(AB_EXEEXT) dcfujigreen$(AB_EXEEXT) dccleancrw$(AB_EXEEXT)
 +
 +dcraw$(AB_EXEEXT): dcraw.o
-+	$(CC) -o $@ dcraw.o -lm -ljpeg -llcms -ljasper
++	$(CC) -o $@ dcraw.o -lm -ljpeg -llcms2 -ljasper
 +
 +dcparse$(AB_EXEEXT): parse.o
 +	$(CC) -o $@ parse.o
