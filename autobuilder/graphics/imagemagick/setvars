@@ -29,7 +29,7 @@ ab_package() {
   rm -f $A/display$AB_EXEEXT
   rm -f $A/import$AB_EXEEXT
 
-  $AB_HOME/add-riscpkg -package imagemagick -name ImageMagick  -depends LibImageMagick -depends SharedLibs
+  $AB_HOME/add-riscpkg -package imagemagick -name ImageMagick
 
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
     ab_create_sharedlib_skeleton libimagemagick
@@ -45,4 +45,4 @@ ab_package() {
 
 }
 
-export LIBS='-llzma'
+export LIBS='-llzma -lwebp'
