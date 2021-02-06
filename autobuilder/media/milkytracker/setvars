@@ -1,3 +1,6 @@
+AB_URL=http://security.debian.org/debian-security/pool/updates/main/m/milkytracker/milkytracker_0.90.86+dfsg.orig.tar.bz2
+
+AB_PVERSION=0.90.86
 
 autoreconf -f
 
