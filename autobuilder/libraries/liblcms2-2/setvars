@@ -1,0 +1,41 @@
+AB_INSTALL=yes
+AB_ROVERSION=2
+
+ab_package()
+{
+  ab_create_app LibLcms2 Apps/Library liblcms2-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  # Move static libs to correct place in static package
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd ../man
+  find . -maxdepth 1 -type f -execdir mv {} {},faf \;
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -name LibLcms2-Dev -unixlib \
+       -copyrightfile $S/COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton liblcms2
+     ab_add_sharedlib $S/src/.libs liblcms2.so.2
+
+     $AB_HOME/add-riscpkg -package liblcms2 -name LibLcms2 -depends SharedLibs \
+		-section Library
+  fi
+
+}
