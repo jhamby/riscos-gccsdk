@@ -1,4 +1,4 @@
-AB_URL=https://download.imagemagick.org/ImageMagick/download/ImageMagick-6.9.11-61.tar.xz
+AB_URL=https://download.imagemagick.org/ImageMagick/download/ImageMagick-6.9.12-0.tar.xz
 
 AB_INSTALL=yes
 AB_MANPAGE=utilities/ImageMagick.1
