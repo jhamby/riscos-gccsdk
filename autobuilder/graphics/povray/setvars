@@ -67,7 +67,7 @@ ab_package() {
     cp -av include $A/povray-3.6
 
     # Use -name to put the package name in the Control file back to Povray
-    $AB_HOME/add-riscpkg -arch vfp -name Povray -unixlib -copyrightfile COPYING
+    $AB_HOME/add-riscpkg -env vfp -name Povray -unixlib -copyrightfile COPYING
   fi
 }
 
