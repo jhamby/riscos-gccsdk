@@ -1,3 +1,4 @@
+AB_ROVERSION=2
 
 ab_package() {
   ab_create_app Fillets-ng Apps/Games
@@ -13,4 +14,4 @@ ab_package() {
 
 AB_CONFLAGS="--without-x"
 
-export LIBS='-lvorbisidec -ljpeg -lpng -lz -lbz2 -lfreetype -logg -ltiff -lmikmod'
+export LIBS='-lvorbisidec -ljpeg -lpng -lz -lbz2 -lfreetype -logg -ltiff -lmikmod -lFLAC'

@@ -16,7 +16,7 @@ ab_package() {
 
 }
 
-export LIBS="-lSDL_mixer -logg -lvorbisfile -lvorbis -lmikmod"
+export LIBS="-lSDL_mixer -logg -lvorbisfile -lvorbis -lmikmod -lFLAC"
 
 AB_CONFLAGS=\''--datadir=/<Ri-Li\$$Dir>'\'
 

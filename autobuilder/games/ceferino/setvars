@@ -1,7 +1,5 @@
 
-export LIBS="-static -lintl -ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lmikmod"
 sh ./autogen.sh --host=arm-unknown-riscos
-
 
 ab_package() {
   ab_create_app Ceferino Apps/Games
@@ -17,3 +15,4 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib
 }
 
+export LIBS="-static -lintl -ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lmikmod -lFLAC"

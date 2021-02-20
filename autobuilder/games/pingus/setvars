@@ -1,5 +1,4 @@
 AB_PVERSION=0.7.6
-AB_URL=http://pingus.googlecode.com/files/pingus-0.7.6.tar.bz2
 AB_LICENCE=Free
 AB_DISTCLEAN="$AB_MAKE -f makefile.riscos distclean"
 

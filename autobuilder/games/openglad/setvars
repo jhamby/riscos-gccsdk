@@ -4,9 +4,9 @@ AB_SVN=https://svn.code.sf.net/p/snowstorm/code/openglad/trunk
 AB_PVERSION=0.98.1
 AB_ROVERSION=2
 
-sh ./autogen.sh
+autoreconf -fi
 
-export LIBS='-lSDL_mixer -lvorbisidec'
+export LIBS='-lSDL_mixer -lvorbisidec -logg -lmikmod -lFLAC'
 
 ab_package() {
   ab_create_app OpenGlad Apps/Games

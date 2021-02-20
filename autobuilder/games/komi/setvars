@@ -1,4 +1,4 @@
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 ab_package() {
   ab_create_app komi Apps/Games
@@ -14,3 +14,4 @@ ab_package() {
 
   $AB_HOME/add-riscpkg -unixlib
 }
+

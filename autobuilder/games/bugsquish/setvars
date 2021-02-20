@@ -12,3 +12,5 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib
 }
 
+export LIBS="-lFLAC"
+

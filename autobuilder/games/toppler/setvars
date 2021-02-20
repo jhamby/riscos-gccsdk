@@ -7,7 +7,6 @@ ab_package() {
 
   mkdir -p $A/data/toppler
   cp -av toppler.dat $A/data/toppler
-  cp -av *.ttm $A/data/toppler
   cp -av levelnames.txt $A/data/toppler
 
   $AB_HOME/add-riscpkg -unixhome -unixsound -unixhome

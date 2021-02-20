@@ -15,7 +15,7 @@
  
 -MIXER=-lSDL_mixer
 -SDL_LIB=$(shell sdl-config --libs) $(MIXER)
-+MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile -lmikmod
++MIXER=-lSDL_mixer -logg -lvorbis -lvorbisfile -lmikmod -lFLAC
 +SDL_LIB=$(shell sdl-config --static-libs) $(MIXER)
  
  CFLAGS=-Wall -pedantic -std=c99 -O2 \

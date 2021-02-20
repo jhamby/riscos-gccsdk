@@ -16,7 +16,8 @@ $CC -I$GCCSDK_INSTALL_ENV/include -I$GCCSDK_INSTALL_ENV/include  $GCCSDK_INSTALL
 
 
 export CFLAGS=-I$GCCSDK_INSTALL_ENV/include
-AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/OpenTTD: --data-dir= --without-shared-dir --personal-dir=/OpenTTDChoices:/ --with-freetype=0 --with-fontconfig=0 --with-icu=0 --with-allegro=0 --with-lzo2=$GCCSDK_INSTALL_ENV/lib/liblzo2.a --with-midi=0"
+
+AB_CONFLAGS="--os=unix --prefix-dir=/OpenTTD: --data-dir= --without-shared-dir --personal-dir=/OpenTTDChoices:/ --with-freetype=0 --with-fontconfig=0 --with-icu=0 --with-allegro=0 --with-midi=0"
 
 ab_package () {
   ab_create_app OpenTTD Apps/Games

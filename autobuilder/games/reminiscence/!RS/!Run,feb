@@ -5,4 +5,4 @@ WIMPSLOT
 
 Set Reminiscence$Dir <Obey$Dir>
 
-<Reminiscence$Dir>.rs --datapath=/<Reminiscence$Dir>/data --savepath=/<Reminiscence$Dir>
+<Reminiscence$Dir>.rs --datapath=/<Reminiscence$Dir>/data --savepath=/<Reminiscence$Dir> ><Reminiscence$Dir>.debug/log 2>&1

@@ -1,4 +1,6 @@
 
+AB_CONFLAGS=\''--datadir=/\<LBreakout2\$$Dir\>/data'\'
+
 ab_package() {
   ab_create_app LBreakout2 Apps/Games
   mv $S/client/lbreakout2$AB_EXEEXT $S/client/lbreakout2
@@ -15,7 +17,5 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib
 }
 
-export LIBS="-lvorbisidec -logg -lmikmod"
-
-AB_CONFLAGS=\''--datadir=/\<LBreakout2\$$Dir\>/data'\'
+export LIBS="-lvorbisidec -logg -lmikmod -lFLAC"
 

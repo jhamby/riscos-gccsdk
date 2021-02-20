@@ -1,4 +1,7 @@
 
+AB_ROVERSION=3
+AB_CONFLAGS=\''--datadir=/\<Barrage\$$Dir\>/data'\'
+
 ab_package() {
   ab_create_app Barrage Apps/Games
   ab_makerun $S/src/barrage$AB_EXEEXT
@@ -8,11 +11,8 @@ ab_package() {
 
   cp -av $S/BUGS $S/COPYING $S/NEWS $S/README $A
 
-
-
   $AB_HOME/add-riscpkg -unixlib
 }
 
-export LIBS="-lvorbisidec -logg -lmikmod"
+export LIBS="-lvorbisidec -logg -lmikmod -lFLAC"
 
-AB_CONFLAGS=\''--datadir=/\<Barrage\$$Dir\>/data'\'
