@@ -19,5 +19,5 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -unixsound -name BumpRace
 }
 
-export LIBS="-ljpeg -lpng -ltiff -lz  -lvorbisidec -lmikmod -logg -lintl -lFLAC"
+export LIBS="-ljpeg -lpng -ltiff -lz  -lvorbisidec -lmikmod -logg -lintl -lFLAC -lwebp"
 

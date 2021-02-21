@@ -35,7 +35,7 @@ CXXFLAGS = -Wall -O3
 
 lemmings: $(OBJS) $(MENUOBJS) $(LEVELDOBJS)
 
-	gcc $(CXXFLAGS) -static -o lemmings $(OBJS) $(MENUOBJS) $(LEVELDOBJS) -lstdc++ -lSDL -lSDL_mixer -lSDL_image -logg -lvorbis -lvorbisfile -ljpeg -lpng -lz -lSDL_net -lmikmod -lFLAC
+	gcc $(CXXFLAGS) -static -o lemmings $(OBJS) $(MENUOBJS) $(LEVELDOBJS) -lstdc++ -lSDL -lSDL_mixer -lSDL_image -logg -lvorbis -lvorbisfile -ljpeg -lpng -lz -lSDL_net -lmikmod -lFLAC -lwebp
 
 clean:
 	rm -f $(OBJS) $(MENUOBJS) $(LEVELOBJS)

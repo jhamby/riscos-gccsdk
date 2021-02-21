@@ -17,7 +17,7 @@ $CC -I$GCCSDK_INSTALL_ENV/include -I$GCCSDK_INSTALL_ENV/include  $GCCSDK_INSTALL
 
 export CFLAGS=-I$GCCSDK_INSTALL_ENV/include
 
-AB_CONFLAGS="--os=unix --prefix-dir=/OpenTTD: --data-dir= --without-shared-dir --personal-dir=/OpenTTDChoices:/ --with-freetype=0 --with-fontconfig=0 --with-icu=0 --with-allegro=0 --with-midi=0"
+AB_CONFLAGS="--os=unix --prefix-dir=/OpenTTD: --data-dir= --pkg-config=$GCCSDK_INSTALL_ENV/ro-pkg-config --without-shared-dir --personal-dir=/OpenTTDChoices:/ --with-freetype=0 --with-fontconfig=0 --with-icu=0 --with-allegro=0 --with-midi=0 --with-liblzo2=$GCCSDK_INSTALL_ENV/lib/liblzo2.a"
 
 ab_package () {
   ab_create_app OpenTTD Apps/Games
@@ -38,10 +38,10 @@ ab_package () {
 
   cp -av $S/frontend$AB_EXEEXT $A/Resources/Installer/\!RunImage$AB_EXEEXT
 
-  wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/releases/0.5.2/opengfx-0.5.2.zip -O opengfx.zip
+  wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/releases/0.5.4/opengfx-0.5.4.zip -O opengfx.zip
   unzip opengfx.zip
-  tar -xvf opengfx-0.5.2.tar
-  cp -av opengfx-0.5.2/*.grf opengfx-0.5.2/*.obg $A/data
+  tar -xvf opengfx-0.5.4.tar
+  cp -av opengfx-0.5.4/*.grf opengfx-0.5.4/*.obg $A/data
 
   wget --progress=bar:force http://bundles.openttdcoop.org/opensfx/releases/opensfx-0.2.3.zip -O opensfx.zip
   unzip opensfx.zip
@@ -54,3 +54,5 @@ ab_package () {
 
   $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -name OpenTTD
 }
+
+export LIBS='-lSDL'

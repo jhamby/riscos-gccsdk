@@ -1,4 +1,4 @@
-RO_VERSION=2
+AB_ROVERSION=2
 
 ab_make() {
   echo "Data only - no make required"
