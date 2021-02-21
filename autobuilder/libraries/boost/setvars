@@ -1,6 +1,6 @@
 AB_CATEGORY=Library
 
-AB_URL=http://ftp.de.debian.org/debian/pool/main/b/boost1.49/boost1.49_1.49.0.orig.tar.bz2
+AB_URL=https://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.bz2
 
 # Just install into env
 # Installation is done by hand in ab_make below
@@ -99,13 +99,13 @@ ab_package() {
 
    mkdir -p $htmldir
 
-   cat debian/documentation-files | xargs cp --parents --target-directory=$htmldir
+   #cat debian/documentation-files | xargs cp --parents --target-directory=$htmldir
    find doc libs -name doc | xargs -n1 cp --archive --target-directory=$htmldir
    rm -f $htmldir/doc/html/images/callouts/Thumbs.db
    rm -rf $htmldir/boost
 
    mkdir -p $exampledir
-   cat debian/example-files | xargs cp -a --parents --target-directory=$exampledir
+   #cat debian/example-files | xargs cp -a --parents --target-directory=$exampledir
 
    # Make example source files RISC OS format
    for file in $(find $exampledir) ; do
