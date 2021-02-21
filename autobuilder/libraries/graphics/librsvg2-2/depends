@@ -1,2 +1,4 @@
-libgtk2.0-0
+fontconfig
 libcroco3
+gdk-pixbuf
+libcairo2

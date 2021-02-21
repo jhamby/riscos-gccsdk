@@ -1,3 +1,5 @@
+AB_URL=http://ftp.debian.org/debian/pool/main/libr/librsvg/librsvg_2.40.16.orig.tar.xz
+
 AB_INSTALL=yes
 
 AB_MANPAGE="rsvg-convert.1"

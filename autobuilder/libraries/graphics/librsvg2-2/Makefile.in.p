@@ -1,20 +1,11 @@
---- Makefile.in.orig	2012-09-20 17:37:57.000000000 +0100
-+++ Makefile.in	2012-09-20 17:38:43.000000000 +0100
-@@ -202,7 +202,7 @@
- 	distdir dist dist-all distcheck
- ETAGS = etags
- CTAGS = ctags
--DIST_SUBDIRS = . gdk-pixbuf-loader tests tools doc gtk-engine
-+DIST_SUBDIRS = . tools doc
- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
- distdir = $(PACKAGE)-$(VERSION)
- top_distdir = $(distdir)
-@@ -409,7 +409,7 @@
+--- Makefile.in.orig	2021-02-21 14:15:53.752135250 +0000
++++ Makefile.in	2021-02-21 14:16:32.628146789 +0000
+@@ -577,7 +577,7 @@
  top_build_prefix = @top_build_prefix@
  top_builddir = @top_builddir@
  top_srcdir = @top_srcdir@
--SUBDIRS = . gdk-pixbuf-loader tests tools doc $(am__append_1)
-+SUBDIRS = . tests tools doc
+-SUBDIRS = . gdk-pixbuf-loader tests tools doc build
++SUBDIRS = . tests tools doc build
  NULL = 
- ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
+ BUILT_SOURCES = $(enum_sources)
  lib_LTLIBRARIES = librsvg-@RSVG_API_MAJOR_VERSION@.la
