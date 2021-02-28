@@ -5,7 +5,7 @@ AB_PVERSION=0.9.3
 cp $H/Makefile .
 
 ab_package() {
-  ab_create_app Lemmings Apps/Games
+  ab_create_app LemmingsSDL Apps/Games
   
   ab_makerun $S/lemmings
   
@@ -13,7 +13,7 @@ ab_package() {
   tar -jxvf lemmings.bz2
   cp -av LemmingsSDL_linux/data $A
   
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -package lemmingssdl -name LemmingsSDL
   
 }
 
