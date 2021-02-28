@@ -14,7 +14,7 @@
  
  $(TARGET):	bugsquish.o
 -	$(CC) $(CFLAGS) bugsquish.o -o $(TARGET) $(SDL_LIB)
-+	$(CC) -static $(CFLAGS) bugsquish.o -o $(TARGET) $(SDL_LIB) -ljpeg -lpng -lz -lvorbisidec -logg -lmikmod -lFLAC -lwebp
++	$(CC) -static $(CFLAGS) bugsquish.o -o $(TARGET) $(SDL_LIB) -ljpeg -lpng -lz -lvorbisidec -logg -lmikmod -lFLAC -lwebp -ltiff -llzma
  
  
  # Main object:

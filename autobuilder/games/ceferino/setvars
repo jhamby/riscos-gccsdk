@@ -17,4 +17,4 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib
 }
 
-export LIBS='-static -lintl -ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lmikmod -lFLAC -lwebp'
+export LIBS='-static -lintl -ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lmikmod -lFLAC -lwebp -ltiff -llzma'
