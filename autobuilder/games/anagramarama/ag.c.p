@@ -1,5 +1,5 @@
---- src/ag.c.orig	2010-08-20 20:08:52.000000000 +0100
-+++ src/ag.c	2010-08-20 20:07:38.000000000 +0100
+--- trunk/src/ag.c.orig	2010-08-20 20:08:52.000000000 +0100
++++ trunk/src/ag.c	2010-08-20 20:07:38.000000000 +0100
 @@ -74,7 +74,7 @@
  //module level variables for game control
  char shuffle[]  = "£££££££";

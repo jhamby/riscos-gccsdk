@@ -1,8 +1,10 @@
 
-AB_SVN=http://anagramarama.googlecode.com/svn/trunk/
+AB_URL=https://storage.googleapis.com/google-code-archive-source/v2/code.google.com/anagramarama/source-archive.zip
 
 AB_PVERSION=0.3
 AB_ROVERSION=2
+
+cd trunk
 
 AB_MAKE="$AB_MAKE -f makefile.linux"
 
