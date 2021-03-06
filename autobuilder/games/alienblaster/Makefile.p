@@ -18,7 +18,7 @@
 +#GAME_FLAGS+=`dpkg-buildflags --get CFLAGS`
 +#GAME_FLAGS+=`dpkg-buildflags --get CXXFLAGS`
 -GAME_LIBS=-lSDL_mixer $(SDL_LIBS) $(OPTIMIZATION)
-+GAME_LIBS=-lSDL_mixer $(SDL_LIBS) $(OPTIMIZATION) -lvorbisidec -lvorbisfile -logg -lmikmod
++GAME_LIBS=-lSDL_mixer $(SDL_LIBS) $(OPTIMIZATION) -lvorbisidec -lvorbisfile -logg -lmikmod -lFLAC
 -GAME_LIBS+=`dpkg-buildflags --get LDFLAGS`
 +#GAME_LIBS+=`dpkg-buildflags --get LDFLAGS`
  
