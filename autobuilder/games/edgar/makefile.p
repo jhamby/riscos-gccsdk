@@ -1,10 +1,19 @@
---- makefile.orig	2011-05-16 21:00:04.000000000 +0100
-+++ makefile	2011-05-21 13:02:54.798169461 +0100
-@@ -48,7 +48,7 @@
+--- makefile.orig	2012-01-03 17:58:43.000000000 +0000
++++ makefile	2021-03-06 12:30:38.799461696 +0000
+@@ -32,7 +32,7 @@
  ifeq ($(OS),Windows_NT)
- LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_net -lz -llibintl -lm
+ DATA_DIR =
  else
--LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_net -lz
+-DATA_DIR = $(PREFIX)/share/games/edgar/
++DATA_DIR = "/<Edgar\$$Dir>/data/"
+ endif
+ 
+ ifeq ($(DEV),1)
+@@ -46,7 +46,7 @@
+ ifeq ($(OS),Windows_NT)
+ LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lz -lintl -lm
+ else
+-LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lz -lm
 +LFLAGS = -static `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_net -lz -lbz2 -lintl -lpng -ljpeg -lfreetype -lvorbisidec -lvorbisfile -logg -lmikmod -ltiff -lFLAC -lwebp
  endif
  

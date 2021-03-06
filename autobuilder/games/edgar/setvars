@@ -1,8 +1,9 @@
-AB_URL=https://github.com/riksweeney/edgar/archive/0.94.tar.gz
+AB_URL=https://github.com/riksweeney/edgar/archive/0.98.tar.gz
 AB_ROVERSION=3
 
-$HOST_CC -O2 src/pak_creator.c -o pak -lz
+$HOST_CC -O2 -DVERSION=0.98 src/pak_creator.c -o pak -lz
 touch pak_creator.o
+touch pak
 make buildpak
 
 ab_package() {
