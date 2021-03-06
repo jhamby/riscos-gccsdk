@@ -1,0 +1,15 @@
+
+autoreconf -fi
+
+ab_package () {
+
+  ab_create_app ROTT Apps/Games
+  ab_makerun $S/rott/rott$AB_EXEEXT rott
+
+  cp -av doc $A
+  cp -av COPYING README $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+
+export LIBS='-logg -lmikmod -lFLAC -lvorbisfile -lvorbis'
