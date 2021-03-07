@@ -1,6 +1,8 @@
+AB_URL=http://deb.debian.org/debian/pool/main/j/jumpnbump/jumpnbump_1.51+dfsg1.orig.tar.gz
+
 AB_LICENCE=Free
 
-AB_PVERSION=1.50
+AB_PVERSION=1.51
 AB_ROVERSION=3
 
 AB_PRECONF=:
