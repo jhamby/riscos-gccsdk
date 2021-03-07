@@ -5,7 +5,7 @@
  EXENAME=rockdodger
  
 -SOUNDLIBRARIES=-lSDL_mixer
-+SOUNDLIBRARIES=-lSDL_mixer -lvorbisfile -lvorbis -logg -lmikmod -static
++SOUNDLIBRARIES=-lSDL_mixer -lvorbisfile -lvorbis -logg -lmikmod -lFLAC -ljpeg -lpng -lwebp -lz -static
  SDL_CONFIG=sdl-config
  
  LIBRARIES=`$(SDL_CONFIG) --libs` -lSDL_image $(SOUNDLIBRARIES) -lm

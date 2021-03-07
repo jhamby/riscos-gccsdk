@@ -1,15 +1,11 @@
---- datafun.c.orig	2013-12-28 16:42:18.000000000 +0000
-+++ datafun.c	2014-04-11 12:52:31.000000000 +0100
-@@ -17,7 +17,12 @@
-   // default: ./data
-   // second alternative: ROCK_DODGERS_DATADIR
-   // final alternative: @datadir@/@PACKAGENAME@
-+#ifdef __riscos__
-+    strcpy(buf, "<RockD$Dir>/data");
-+    if (missing(data_dir))
-+#else
-   strcpy(buf, "./data");
-+#endif
+--- datafun.c.orig	2021-03-06 17:48:29.852064064 +0000
++++ datafun.c	2021-03-06 17:50:44.630832669 +0000
+@@ -13,7 +13,7 @@
+   char buf[4096];
+ 
+   buf[sizeof(buf) - 1] = 0;
+-  strcpy(buf, "./data");
++  strcpy(buf, "/<RockDodger$Dir>/data");
    if(missing(buf)) {
      char *env;
  
