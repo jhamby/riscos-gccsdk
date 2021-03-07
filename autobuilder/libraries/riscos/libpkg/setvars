@@ -16,7 +16,7 @@ ab_package()
 
    ab_create_app LibPkg Apps/Library LibPkg-Common
    cp -f $S/!* $A
-   cp -f $S/Copyright $A
+   cp -f $S/LICENSE $A
    cp -f $S/History $A
    cp -f $S/README $A
    
