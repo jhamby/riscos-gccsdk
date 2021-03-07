@@ -1,8 +1,9 @@
-
-AB_SVN=https://svn.code.sf.net/p/snowstorm/code/openglad/trunk
+#AB_GIT=https://github.com/openglad/openglad.git
+#AB_SVN=https://svn.code.sf.net/p/snowstorm/code/openglad/trunk
+AB_URL=https://github.com/openglad/openglad/archive/trunk@1326-svn.zip
 
 AB_PVERSION=0.98.1
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 autoreconf -fi
 
