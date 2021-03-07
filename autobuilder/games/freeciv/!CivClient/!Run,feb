@@ -5,7 +5,7 @@ Set FreeCiv$Path <Obey$Dir>.
 IconSprites <FreeCiv$Dir>.!Sprites
 
 If "<UnixFont$Dir>" = "" Then Error FreeCiv client needs UnixFont to have been seen by the filer
-IfThere UnixFont:truetype.ttf-dejavu Then Else Error FreeCiv needs the ttf-dejavu font installed
+IfThere UnixFont:truetype.dejavu Then Else Error FreeCiv needs the dejavu font installed
 
 CDir <Choices$Write>.Freeciv
 Set FREECIV_PATH /FreeCiv:/data/

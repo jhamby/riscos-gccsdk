@@ -1,6 +1,6 @@
 
-AB_URL=http://sourceforge.net/projects/freeciv/files/Freeciv%202.4/2.4.4/freeciv-2.4.4.tar.bz2
-AB_PVERSION=2.4.4
+AB_URL=http://sourceforge.net/projects/freeciv/files/Freeciv%202.4/2.4.5/freeciv-2.4.5.tar.bz2
+AB_PVERSION=2.4.5
 
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
@@ -8,7 +8,7 @@ AB_DEBNAME=freeciv-client-sdl
 
 AB_CONFLAGS="--enable-client=sdl --enable-debug=no --enable-ipv6=no"
 
-export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lSDL"
+export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lSDL -lmikmod -lFLAC"
 
 export ac_cv_lib_SDL_image_IMG_Load=yes
 
@@ -26,5 +26,5 @@ ab_package() {
   cp server/freeciv-server$AB_EXEEXT $A/../\!CivServer/
 
   $AB_HOME/add-riscpkg -unixlib -unixsound \
-         -nobootvars -depends ttf-dejavu-core -copyrightfile COPYING
+         -depends TTF-DejaVu-Core -copyrightfile COPYING
 }

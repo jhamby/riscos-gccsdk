@@ -1,5 +1,5 @@
---- client/connectdlg_common.c.orig	2011-07-30 20:33:31.000000000 +0100
-+++ client/connectdlg_common.c	2011-07-30 20:34:57.000000000 +0100
+--- client/connectdlg_common.c.orig	2015-08-15 11:10:33.000000000 +0000
++++ client/connectdlg_common.c	2021-03-07 10:03:05.516555283 +0000
 @@ -19,6 +19,7 @@
  #include <signal.h>             /* SIGTERM and kill */
  #include <string.h>
@@ -8,7 +8,7 @@
  
  #ifdef WIN32_NATIVE
  #include <windows.h>
-@@ -100,6 +101,13 @@
+@@ -101,6 +102,13 @@
           the game.
  **************************************************************************/ 
  
@@ -22,9 +22,9 @@
  /************************************************************************** 
  Tests if the client has started the server.
  **************************************************************************/ 
-@@ -208,7 +216,24 @@
-   /* find a free port */ 
-   internal_server_port = find_next_free_port(DEFAULT_SOCK_PORT);
+@@ -229,7 +237,24 @@
+     return FALSE;
+   }
  
 -# ifdef HAVE_WORKING_FORK
 +# ifdef __riscos__
@@ -45,10 +45,10 @@
 +  }
 +
 +# elif HAVE_WORKING_FORK
-   server_pid = fork();
-   
-   if (server_pid == 0) {
-@@ -356,8 +381,10 @@
+   {
+     int argc = 0;
+     const int max_nargs = 18;
+@@ -427,8 +452,10 @@
    while (connect_to_server(user_name, "localhost", internal_server_port, 
                             buf, sizeof(buf)) == -1) {
      fc_usleep(WAIT_BETWEEN_TRIES);
@@ -61,7 +61,7 @@
      if (waitpid(server_pid, NULL, WNOHANG) != 0) {
        break;
      }
-@@ -469,7 +496,11 @@
+@@ -524,7 +551,11 @@
  
      /* get the full filename path */
      interpret_tilde(challenge_fullname, sizeof(challenge_fullname),
