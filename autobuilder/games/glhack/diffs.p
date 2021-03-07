@@ -1,104 +1,3 @@
-diff -ur Makefile Makefile
---- Makefile	2004-05-28 09:58:32.000000000 +0100
-+++ Makefile	2005-07-06 09:45:37.000000000 +0100
-@@ -14,8 +14,8 @@
- # MAKE = make
-
- # make NetHack
--PREFIX	 = /usr
--GAME     = glhack
-+PREFIX	 = $GCCSDK_INSTALL_ENV
-+GAME     = glhack,ff8
- # GAME     = glhack.prg
- GAMEUID  = root
- GAMEGRP  = games
-@@ -38,7 +38,7 @@
- # (if there is, you'll have to do the installation by hand or modify the
- # instructions)
- GAMEDIR  = $(PREFIX)/lib/games/$(GAME)
--VARDIR   = /var/lib/games/glhack
-+VARDIR   = $GCCSDK_INSTALL_ENV/var/lib/games/glhack
- SHELLDIR = $(PREFIX)/bin
- MANDIR   = $(PREFIX)/share/man
- 
-@@ -208,28 +208,29 @@
- 		< win/gl/glhack.sh \
- 		> $(SHELLDIR)/$(GAME)
- # set up their permissions
--	-( cd $(GAMEDIR) ; $(CHOWN) $(GAMEUID) $(GAME) recover_glhack ; \
--			$(CHGRP) $(GAMEGRP) $(GAME) recover_glhack )
--	chmod $(GAMEPERM) $(GAMEDIR)/$(GAME)
--	chmod $(EXEPERM) $(GAMEDIR)/recover_glhack
--	-$(CHOWN) $(GAMEUID) $(SHELLDIR)/$(GAME)
--	$(CHGRP) $(GAMEGRP) $(SHELLDIR)/$(GAME)
--	chmod $(EXEPERM) $(SHELLDIR)/$(GAME)
-+#	-( cd $(GAMEDIR) ; $(CHOWN) $(GAMEUID) $(GAME) recover_glhack ; 
-+#\
-+#			$(CHGRP) $(GAMEGRP) $(GAME) recover_glhack )
-+#	chmod $(GAMEPERM) $(GAMEDIR)/$(GAME)
-+#	chmod $(EXEPERM) $(GAMEDIR)/recover_glhack
-+#	-$(CHOWN) $(GAMEUID) $(SHELLDIR)/$(GAME)
-+#	$(CHGRP) $(GAMEGRP) $(SHELLDIR)/$(GAME)
-+#	chmod $(EXEPERM) $(SHELLDIR)/$(GAME)
- 
- dofiles-dlb: check-dlb
- 	( cd dat ; cp nhdat $(DATNODLB) $(GAMEDIR) )
- # set up their permissions
--	-( cd $(GAMEDIR) ; $(CHOWN) $(GAMEUID) nhdat $(DATNODLB) ; \
--			$(CHGRP) $(GAMEGRP) nhdat $(DATNODLB) ; \
--			chmod $(FILEPERM) nhdat $(DATNODLB) )
-+#	-( cd $(GAMEDIR) ; $(CHOWN) $(GAMEUID) nhdat $(DATNODLB) ; \
-+#			$(CHGRP) $(GAMEGRP) nhdat $(DATNODLB) ; \
-+#			chmod $(FILEPERM) nhdat $(DATNODLB) )
- 
- dofiles-nodlb:
- # copy over the game files
- 	( cd dat ; cp $(DAT) $(GAMEDIR) )
- # set up their permissions
--	-( cd $(GAMEDIR) ; $(CHOWN) $(GAMEUID) $(DAT) ; \
--			$(CHGRP) $(GAMEGRP) $(DAT) ; \
--			chmod $(FILEPERM) $(DAT) )
-+#	-( cd $(GAMEDIR) ; $(CHOWN) $(GAMEUID) $(DAT) ; \
-+#			$(CHGRP) $(GAMEGRP) $(DAT) ; \
-+#			chmod $(FILEPERM) $(DAT) )
- 
- update: $(GAME) recover_glhack $(VARDAT) dungeon spec_levs
- #	(don't yank the old version out from under people who're playing it)
-@@ -256,16 +257,16 @@
- 	-rm -rf $(GAMEDIR) $(VARDIR)
- 	-mkdir -p $(GAMEDIR) $(VARDIR) $(VARDIR)/save
- 	-rmdir ./-p
--	-$(CHOWN) $(GAMEUID) $(GAMEDIR) $(VARDIR) $(VARDIR)/save
--	$(CHGRP) $(GAMEGRP) $(GAMEDIR) $(VARDIR) $(VARDIR)/save
--	chmod $(VARDIRPERM) $(GAMEDIR) $(VARDIR) $(VARDIR)/save
-+#	-$(CHOWN) $(GAMEUID) $(GAMEDIR) $(VARDIR) $(VARDIR)/save
-+#	$(CHGRP) $(GAMEGRP) $(GAMEDIR) $(VARDIR) $(VARDIR)/save
-+#	chmod $(VARDIRPERM) $(GAMEDIR) $(VARDIR) $(VARDIR)/save
- # set up the game files
- 	( $(MAKE) dofiles )
- # set up some additional files
- 	touch $(VARDIR)/perm $(VARDIR)/record $(VARDIR)/logfile
--	-( cd $(VARDIR) ; $(CHOWN) $(GAMEUID) perm record logfile ; \
--			$(CHGRP) $(GAMEGRP) perm record logfile ; \
--			chmod $(VARFILEPERM) perm record logfile )
-+#	-( cd $(VARDIR) ; $(CHOWN) $(GAMEUID) perm record logfile ; \
-+#			$(CHGRP) $(GAMEGRP) perm record logfile ; \
-+#			chmod $(VARFILEPERM) perm record logfile )
- # do the documentation [AJA]
- 	( $(MAKE) manpages )
- # and a reminder
-diff -ur doc/Makefile doc/Makefile
---- doc/Makefile	2002-06-28 07:57:30.000000000 +0100
-+++ doc/Makefile	2005-07-06 09:45:37.000000000 +0100
-@@ -38,7 +38,7 @@
- 
- 
- GAME	= nethack
--MANDIR	= /usr/man/man6
-+MANDIR	= $GCCSDK_INSTALL_ENV/usr/man/man6
- MANEXT	= 6
- 
- # manual installation for most BSD-style systems
 diff -ur include/config.h include/config.h
 --- include/config.h	2004-05-28 11:06:59.000000000 +0100
 +++ include/config.h	2005-07-06 09:45:37.000000000 +0100
@@ -125,45 +24,6 @@ Only in include: dgn_comp.h
 Only in include: lev_comp.h
 Only in include: onames.h
 Only in include: pm.h
-diff -ur include/unixconf.h include/unixconf.h
---- include/unixconf.h	2004-05-28 09:00:02.000000000 +0100
-+++ include/unixconf.h	2005-07-06 09:45:37.000000000 +0100
-@@ -95,14 +95,14 @@
-  *		Ralf Brown, 7/26/89 (from v2.3 hack of 10/10/88)
-  */
- 
--/* #define NO_FILE_LINKS */	/* if no hard links */
--/* #define LOCKDIR "/usr/games/lib/nethackdir" */	/* where to put locks */
-+#define NO_FILE_LINKS 	/* if no hard links */
-+#define LOCKDIR "<GLHack$Dir>/locks"	/* where to put locks */
- 
- /*
-  * If you want the static parts of your playground on a read-only file
-  * system, define VAR_PLAYGROUND to be where the variable parts are kept.
-  */
--#define VAR_PLAYGROUND "/var/lib/games/glhack"
-+#define VAR_PLAYGROUND "<GLHack$Dir>/var"
- 
- 
- /*
-Only in include: vis_tab.h
-diff -ur src/files.c src/files.c
---- src/files.c	2004-05-28 09:00:03.000000000 +0100
-+++ src/files.c	2005-07-06 09:45:37.000000000 +0100
-@@ -1424,11 +1424,11 @@
- #endif
- 
- #if defined(UNIX) || defined(VMS)
--		if (unlink(lockname) < 0)
--			HUP raw_printf("Can't unlink %s.", lockname);
- # ifdef NO_FILE_LINKS
- 		(void) close(lockfd);
- # endif
-+		if (unlink(lockname) < 0)
-+			HUP raw_printf("Can't unlink %s.", lockname);
- 
- #endif  /* UNIX || VMS */
- 
 diff -ur sys/share/unixtty.c sys/share/unixtty.c
 --- sys/share/unixtty.c	2003-12-07 23:39:13.000000000 +0000
 +++ sys/share/unixtty.c	2005-07-06 10:14:31.000000000 +0100
@@ -172,7 +32,7 @@ diff -ur sys/share/unixtty.c sys/share/unixtty.c
  #  include <sys/ioctl.h>
  #  undef delay_output	/* curses redefines this */
 -#  include <curses.h>
-+#  include <ncurses.h>
++#  include <ncurses/ncurses.h>
  # endif
  # define kill_sym	c_cc[VKILL]
  # define erase_sym	c_cc[VERASE]

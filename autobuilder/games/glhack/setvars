@@ -1,6 +1,5 @@
-AB_URL=http://kent.dl.sourceforge.net/sourceforge/glhack/glhack-1.2.tar.gz
 
-AB_ROVERSION=2
+AB_ROVERSION=3
 AB_MAKE="$AB_MAKE -j1"
 
 ab_package() {
