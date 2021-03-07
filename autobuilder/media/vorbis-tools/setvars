@@ -1,5 +1,6 @@
 
 AB_CONFLAGS="--enable-vcut=yes"
+AB_ROVERSION=2
 
 #AB_MANPAGE="ogg123/ogg123.1 oggenc/man/oggenc.1 oggdec/oggdec.1 \
 #                ogginfo/ogginfo.1 vcut/vcut.1 \
