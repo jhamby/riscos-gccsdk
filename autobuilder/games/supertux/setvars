@@ -1,17 +1,23 @@
+#AB_URL=https://github.com/SuperTux/supertux/archive/v0.1.4.zip
+
+AB_ROVERSION=2
+
+./autogen.sh
 
 ab_package() {
   ab_create_app SuperTux Apps/Games
 
+  mv $S/src/supertux-milestone1$AB_EXEEXT $S/src/supertux$AB_EXEEXT
   ab_makerun $S/src/supertux$AB_EXEEXT
 
   cp -av AUTHORS ChangeLog COPYING LEVELDESIGN NEWS README $A/
 
   mkdir -p $A/data/supertux
-  cp -r data/* $A/data/supertux
+  cp -r data/* $A/data/supertux-milestone1
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome -name SuperTux
 }
 
-export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile"
+export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile -lmikmod -lFLAC -lwebp"
 AB_CONFLAGS=\''--datadir=/<SuperTux$$Dir>/data'\'
 
