@@ -3,5 +3,9 @@ Set GLHack$Dir <Obey$Dir>
 IfThere "<GLHack$Dir>.locks" then else cdir "<GLHack$Dir>.locks"
 IfThere "<GLHack$Dir>.var" then else cdir "<GLHack$Dir>.var"
 
+X wipe <GLhack$Dir>.locks.perm_lock ~V~C
+X wipe <GLhack$Dir>.locks.record_lock ~V~C
+X wipe <GLhack$Dir>.locks.logfile_lock ~V~C
+
 WIMPSLOT
 Run <GLHack$Dir>.glhack --windowed >null: 2>null:
