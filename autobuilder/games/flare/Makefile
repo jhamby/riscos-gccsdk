@@ -77,7 +77,7 @@ OBJS = src/main.o \
 CXXFLAGS = -Wall -O3 -I. -I$(GCCSDK_INSTALL_ENV)/include/SDL
 
 flare: $(OBJS)
-	gcc $(CXXFLAGS) -static -o flare $(OBJS) -L$(GCCSDK_INSTALL_ENV) -lSDL -lSDL_gfx -lSDL_image -lSDL_mixer -lSDL_ttf -lfreetype  -lbz2 -lpng -lz -ljpeg -lvorbisidec -logg -lstdc++ -lFLAC -lmikmod -lwebp
+	gcc $(CXXFLAGS) -static -o flare $(OBJS) -L$(GCCSDK_INSTALL_ENV) -lSDL -lSDL_gfx -lSDL_image -lSDL_mixer -lSDL_ttf -lfreetype  -lbz2 -lpng -lz -ljpeg -lvorbisidec -logg -lstdc++ -lFLAC -lmikmod -lwebp -ltiff -llzma
 
 clean:
 	rm -f $(OBJS) flare

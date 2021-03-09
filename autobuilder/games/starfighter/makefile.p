@@ -4,7 +4,7 @@
  CFLAGS ?= -O2 -Wall -g
  CFLAGS += `sdl-config --cflags` -DLINUX
 -LIBS = `sdl-config --libs` -lSDL_mixer -lSDL_image
-+LIBS = `sdl-config --libs` -lSDL_mixer -lSDL_image -lpng -ljpeg -lz -lvorbisidec -logg -lFLAC -lmikmod -lwebp
++LIBS = `sdl-config --libs` -lSDL_mixer -lSDL_image -lpng -ljpeg -lz -lvorbisidec -logg -lFLAC -lmikmod -lwebp -ltiff -llzma
  OBJS = ai.o aliens.o audio.o bullets.o cargo.o collectable.o comms.o debris.o events.o explosions.o game.o globals.o graphics.o init.o intermission.o loadSave.o messages.o misc.o missions.o player.o resources.o script.o shop.o Starfighter.o title.o unpack.o weapons.o
  
  VERSION = 1.2

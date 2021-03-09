@@ -2,7 +2,7 @@
 AB_URL=https://storage.googleapis.com/google-code-archive-source/v2/code.google.com/anagramarama/source-archive.zip
 
 AB_PVERSION=0.3
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 cd trunk
 

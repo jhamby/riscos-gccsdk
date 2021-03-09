@@ -14,4 +14,4 @@ ab_package() {
 
 AB_CONFLAGS="--without-x"
 
-export LIBS='-lvorbisidec -ljpeg -lpng -lz -lbz2 -lfreetype -logg -ltiff -lmikmod -lFLAC -lwebp'
+export LIBS='-lvorbisidec -ljpeg -lpng -lz -lbz2 -lfreetype -logg -ltiff -lmikmod -lFLAC -lwebp -llzma'
