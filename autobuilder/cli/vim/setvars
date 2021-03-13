@@ -1,0 +1,22 @@
+AB_INSTALL=no
+
+export vim_cv_toupper_broken=no
+export vim_cv_terminfo=no
+export vim_cv_tgetent=false
+export vim_cv_tty_group=no
+export vim_cv_tty_mode=no
+export vim_cv_getcwd_broken=yes
+export vim_cv_stat_ignores_slash=yes
+export vim_cv_memmove_handles_overlap=no
+export vim_cv_bcopy_handles_overlap=no
+export vim_cv_memcpy_handles_overlap=no
+
+ab_package() {
+  ab_create_command_app Vim Apps/Utilities
+  ab_add_commands $S/src/vim$AB_EXEEXT
+  
+  cp -av $S/README.txt $A
+  cp -av $S/runtime $A
+
+  $AB_HOME/add-riscpkg -unixlib -name Vim
+}
