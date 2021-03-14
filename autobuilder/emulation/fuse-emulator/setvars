@@ -15,7 +15,6 @@ ab_package() {
 
   cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/README $S/THANKS $A/docs
   cp -av roms $A
-  cp -av lib/compressed/*.szx $A
   cp -av lib/*.bmp $A
   cp -ab ui/widget/fuse.font $A
 
