@@ -1,0 +1,4 @@
+for sfiles in $(find . -name "*.[hc]") ; do
+ sed -i -e 's/^INLINE /static inline /g' $sfiles
+done
+
