@@ -1,5 +1,7 @@
 
-AB_URL=http://ppa.launchpad.net/c.falco/mame/ubuntu/pool/main/m/mame/mame_0.145.orig.tar.bz2
+AB_ROVERSION=2
+
+AB_URL=http://ftp.ubuntu.com/ubuntu/ubuntu/pool/multiverse/m/mame/mame_0.145.orig.tar.bz2
 
 ab_package () {
   ab_create_app Mame Apps/Emulation

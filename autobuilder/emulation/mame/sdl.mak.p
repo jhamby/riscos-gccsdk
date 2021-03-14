@@ -31,7 +31,7 @@
 +DEFS += -DNO_AFFINITY_NP
 +DEFS += -DSDLMAME_NO64BITIO
 +LDFLAGS += -static
-+LIBS += -lfreetype -lbz2 -lstdc++
++LIBS += -lfreetype -lbz2 -lstdc++ -lpng16 -lz
  else
  ifeq ($(DISTRO),debian-stable)
  DEFS += -DNO_AFFINITY_NP

@@ -1,5 +1,5 @@
---- makefile.orig	2012-04-09 17:01:41.000000000 +0100
-+++ makefile	2012-04-09 17:02:56.000000000 +0100
+--- makefile.orig	2012-02-06 21:30:44.000000000 +0000
++++ makefile	2021-03-14 10:52:47.948554724 +0000
 @@ -24,7 +24,7 @@
  #-------------------------------------------------
  
@@ -18,6 +18,15 @@
  ifndef TARGETOS
  
  ifeq ($(OS),Windows_NT)
+@@ -209,7 +211,7 @@
+ BUILD_EXPAT = 1
+ 
+ # uncomment next line to build zlib as part of MAME build
+-BUILD_ZLIB = 1
++BUILD_ZLIB = 0
+ 
+ # uncomment next line to include the symbols
+ # SYMBOLS = 1
 @@ -234,6 +236,8 @@
  # (default is OPTIMIZE = 3 normally, or OPTIMIZE = 0 with symbols)
  # OPTIMIZE = 3
@@ -44,7 +53,7 @@
  	-I$(SRC)/emu \
  	-I$(OBJ)/emu \
  	-I$(OBJ)/emu/layout \
-@@ -770,12 +770,12 @@
+@@ -765,12 +770,12 @@
  
  $(OBJ)/%.lh: $(SRC)/%.lay $(FILE2STR_TARGET)
  	@echo Converting $<...
@@ -60,7 +69,7 @@
  
  $(DRIVLISTOBJ): $(DRIVLISTSRC)
  	@echo Compiling $<...
-@@ -787,11 +787,11 @@
+@@ -782,11 +787,11 @@
  
  $(DRIVLISTSRC): $(SRC)/$(TARGET)/$(SUBTARGET).lst $(MAKELIST_TARGET)
  	@echo Building driver list $<...
