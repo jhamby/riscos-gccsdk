@@ -1,23 +1,32 @@
 AB_ROVERSION=2
 
+AB_CONFLAGS=\''--datadir=/<Ri-Li\$$Dir>'\'
+
+autoreconf -fi
+
+# build data files natively
+cd data-src
+make
+./MakeDat
+cd ..
+
 ab_package() {
   ab_create_app Ri-Li Apps/Games
   mv $S/src/Ri_li$AB_EXEEXT $S/src/Ri_li
   ab_makerun $S/src/Ri_li
 
   mkdir $A/ri-li
-  cp -av $S/data/* $A/ri-li
+  cp -av $S/data/*.png $S/data/levels.dat $A/ri-li
+  cp -av $S/data-src/sprites.dat $S/data-src/language* $A/ri-li
   cp -av $S/Sounds $A/ri-li
 
   mkdir $A/doc
   cp -av AUTHORS COPYING COPYING.Music NEWS README $A/doc
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/COPYING
 
 }
 
 export LIBS="-lSDL_mixer -logg -lvorbisfile -lvorbis -lmikmod -lFLAC"
-
-AB_CONFLAGS=\''--datadir=/<Ri-Li\$$Dir>'\'
 
 
