@@ -1,6 +1,6 @@
 /* som_register.c
  *
- * Copyright 2007-2019 GCCSDK Developers
+ * Copyright 2007-2021 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -27,7 +27,8 @@ typedef struct srelpic_section
     /* Offset of the reloc from the start of the library.  */
     unsigned int offset : 30;
 
-    unsigned int reserved : 1;
+    /* Set for a __GOTT_THUMB_INDEX reloc.  */
+    unsigned int thumb : 1;
 
     /* Set for an __GOTT_INDEX__ reloc, clear for a __GOTT_BASE__ reloc.  */
     unsigned int index : 1;
@@ -144,7 +145,7 @@ som_register_client (som_handle handle,
   /* Allocation of 0 elements can't fail, so don't check for errors.  */
   somarray_init (&client->runtime_array, sizeof (som_rt_elem), 0);
   somarray_init (&client->gott_base, sizeof (void *), 0);
-      
+
   /* A GOT with a 5 word header was built with GCC 4.1.*. A 3 word header
      won't have a zero at index 3.  */
   if (*((unsigned int *) client->object.got_addr + 3) == 0)
@@ -176,23 +177,30 @@ process_relpic (som_object *object)
   if (srelpic->version > SRELPIC_VERSION)
     return somerr_srelpic_unknown; /* We don't know how to deal with this.  */
 
+  /* The elements of the array are 32 bits and the maximum offset the instruction
+     allows is 0xFFF. This gives a maximum of 1024 libraries loaded at any one time.  */
+  const unsigned int gott_index = object->index * sizeof (void *);
+  if (gott_index >= 0x1000)
+    return somerr_srelpic_overflow;
+
   for (int i = 0;
        i < srelpic->rel_count;
        i++)
     {
       unsigned int *location = (unsigned int *)(object->text_segment +
 				    srelpic->array[i].offset);
-      if (srelpic->array[i].index)
-        {
-	  /* The elements of the array are 32 bits and the maximum offset the instruction
-	     allows is 0xFFF. This gives a maximum of 1024 libraries loaded at any one time.  */
-	  unsigned int gott_index = object->index * sizeof (void *);
-	  if (gott_index >= 0x1000)
-	    return somerr_srelpic_overflow;
-
-	  /* Assume that the link editor has zero'd the lower 12 bits.  */
-	  *location |= gott_index;
+      /* Assume that the link editor has zero'd the relevant 12 bits.  */
+      if (srelpic->array[i].thumb)
+	{
+	  /* The Thumb2 LDR with imm offset instruction has the offset encoded
+	     in a different place to the equivalent ARM instruction and we also
+	     have to allow for non-word alignment.  */
+	  unsigned char *byte_loc = (unsigned char *)location;
+	  byte_loc[2] = gott_index & 0xff;
+	  byte_loc[3] |= (gott_index >> 8) & 0xf;
 	}
+      else if (srelpic->array[i].index)
+	*location |= gott_index;
       else
 	*location = RT_WORKSPACE_GOTT_BASE;
     }

@@ -1,3 +1,10 @@
+Thu Mar 25 21:28:26 GMT 2021  Lee Noar  <lee.noar@sky.com>
+
+	* som_register.c(process_relpic): Add support for relocations in Thumb
+	code. Note that the compiler doesn't actually generate these, but the
+	handwritten JIT stubs in Webkit require it.
+	* configure.ac: Bump version number for Thumb support.
+
 Fri Oct 23 14:39:25 BST 2020  Lee Noar  <lee.noar@sky.com>
 
 	* configure.ac: Bump version number to mark improved library loading speed.
