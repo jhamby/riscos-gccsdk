@@ -1,5 +1,5 @@
 --- bfd/elf32-arm.c.orig	2018-01-13 13:31:15.000000000 +0000
-+++ bfd/elf32-arm.c	2019-01-21 22:38:00.484254229 +0000
++++ bfd/elf32-arm.c	2020-05-14 21:27:18.795372467 +0100
 @@ -2140,6 +2140,11 @@
  
  #define CMSE_PREFIX "__acle_se_"
@@ -521,7 +521,7 @@
  	  if (!elf32_arm_use_long_plt_entry)
  	    {
  	      BFD_ASSERT ((got_displacement & 0xf0000000) == 0);
-@@ -9948,6 +10410,69 @@
+@@ -9948,6 +10410,75 @@
    else
      addend = signed_addend = rel->r_addend;
  
@@ -529,15 +529,21 @@
 +  if (bfd_link_pic(info) && info->flag_pic == 2
 +      && sym_name[0] == '_' && sym_name[1] == '_'
 +      && (strcmp (sym_name, "__GOTT_INDEX__") == 0
-+	  ||  strcmp (sym_name, "__GOTT_BASE__") == 0))
++      ||  strcmp (sym_name, "__GOTT_THUMB_INDEX__") == 0
++      ||  strcmp (sym_name, "__GOTT_BASE__") == 0))
 +    {
 +      const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset + rel->r_offset;
-+
 +      BFD_ASSERT (globals->srelpic_offset < globals->srelpic_size);
 +
-+      /* Set bit 31 of the offset for a __GOTT_INDEX__ reloc.  */
++      /* Set bit 31 of the offset for a __GOTT_INDEX__ reloc.
++         Set bit 30 for a Thumb2 instruction.  */
++      unsigned offset = osection_addr & 0x3fffffff;
++      if (sym_name[7] == 'T')
++	offset |= (3 << 30); /* Set both bits 30 and 31.  */
++      else if (sym_name[7] == 'I')
++	offset |= (1 << 31);
 +      bfd_put_32 (input_bfd,
-+		  (osection_addr & 0x3fffffff) | ((sym_name[7] == 'I') << 31),
++		  offset,
 +		  globals->srelpic->contents + globals->srelpic_offset);
 +      globals->srelpic_offset += 4;
 +    }
@@ -591,7 +597,7 @@
    /* ST_BRANCH_TO_ARM is nonsense to thumb-only targets when we
       are resolving a function call relocation.  */
    if (using_thumb_only (globals)
-@@ -11024,6 +11549,9 @@
+@@ -11024,6 +11555,9 @@
  	 define _GLOBAL_OFFSET_TABLE in a different way, as is
  	 permitted by the ABI, we might have to change this
  	 calculation.  */
@@ -601,7 +607,7 @@
        value -= sgot->output_section->vma;
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
-@@ -12876,10 +13404,93 @@
+@@ -12876,10 +13410,93 @@
  {
    struct elf32_arm_link_hash_table *globals = elf32_arm_hash_table (info);
    asection *sec, *osec;
@@ -695,7 +701,7 @@
    /* Invoke the regular ELF backend linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
      return FALSE;
-@@ -12930,6 +13541,64 @@
+@@ -12930,6 +13547,64 @@
  					   ARM_BX_GLUE_SECTION_NAME))
  	return FALSE;
      }
@@ -760,7 +766,7 @@
  
    return TRUE;
  }
-@@ -14392,6 +15061,23 @@
+@@ -14392,6 +15067,24 @@
  	}
  
        eh = (struct elf32_arm_link_hash_entry *) h;
@@ -778,13 +784,14 @@
 +        htab->ro_module_reloccode_size += 4;
 +
 +      if (h && (strcmp (h->root.root.string, "__GOTT_INDEX__") == 0
++		|| strcmp (h->root.root.string, "__GOTT_THUMB_INDEX__") == 0
 +		|| strcmp (h->root.root.string, "__GOTT_BASE__") == 0))
 +	htab->srelpic_size += 4;
 +#endif
  
        call_reloc_p = FALSE;
        may_become_dynamic_p = FALSE;
-@@ -15300,6 +15986,10 @@
+@@ -15300,6 +15993,10 @@
  	{
  	  elf32_arm_allocate_plt_entry (info, eh->is_iplt, &h->plt, &eh->plt);
  
@@ -795,7 +802,7 @@
  	  /* If this symbol is not defined in a regular file, and we are
  	     not generating a shared library, then set the symbol to this
  	     location in the .plt.  This is required to make function
-@@ -15688,6 +16378,15 @@
+@@ -15688,6 +16385,15 @@
  	}
      }
  
@@ -811,7 +818,7 @@
    /* Set up .got offsets for local syms, and space for local dynamic
       relocs.  */
    for (ibfd = info->input_bfds; ibfd != NULL; ibfd = ibfd->link.next)
-@@ -15992,7 +16691,23 @@
+@@ -15992,7 +16698,23 @@
  #define add_dynamic_entry(TAG, VAL) \
    _bfd_elf_add_dynamic_entry (info, TAG, VAL)
  
@@ -836,7 +843,7 @@
  	{
  	  if (!add_dynamic_entry (DT_DEBUG, 0))
  	    return FALSE;
-@@ -16305,6 +17020,14 @@
+@@ -16305,6 +17027,14 @@
  	      name = ".gnu.version_r";
  	      goto get_vma_if_bpabi;
  
@@ -851,7 +858,7 @@
  	    case DT_PLTGOT:
  	      name = htab->symbian_p ? ".got" : ".got.plt";
  	      goto get_vma;
-@@ -16471,7 +17194,44 @@
+@@ -16471,7 +17201,44 @@
  	  else
  	    {
  	      got_displacement = got_address - (plt_address + 16);
@@ -896,7 +903,7 @@
  	      plt0_entry = elf32_arm_plt0_entry;
  	      put_arm_insn (htab, output_bfd, plt0_entry[0],
  			    splt->contents + 0);
-@@ -16489,6 +17249,7 @@
+@@ -16489,6 +17256,7 @@
  #else
  	      bfd_put_32 (output_bfd, got_displacement, splt->contents + 16);
  #endif
@@ -904,7 +911,7 @@
  	    }
  	}
  
-@@ -18800,13 +19561,34 @@
+@@ -18800,13 +19568,35 @@
  				       flagsp, secp, valp))
      return FALSE;
  
@@ -912,7 +919,8 @@
 +  if (bfd_link_pic(info)
 +      && (*namep)[0] == '_' && (*namep)[1] == '_'
 +      && (strcmp (*namep, "__GOTT_BASE__") == 0
-+	  || strcmp (*namep, "__GOTT_INDEX__") == 0))
++	  || strcmp (*namep, "__GOTT_INDEX__") == 0
++	  || strcmp (*namep, "__GOTT_THUMB_INDEX__") == 0))
 +    {
 +      struct elf_link_hash_table *htab;
 +      struct elf_link_hash_entry *h;
@@ -939,7 +947,7 @@
    sizeof (Elf32_External_Phdr),
    sizeof (Elf32_External_Shdr),
    sizeof (Elf32_External_Rel),
-@@ -19195,6 +19977,8 @@
+@@ -19195,6 +19985,8 @@
  #define ELF_MACHINE_CODE		EM_ARM
  #ifdef __QNXTARGET__
  #define ELF_MAXPAGESIZE			0x1000
