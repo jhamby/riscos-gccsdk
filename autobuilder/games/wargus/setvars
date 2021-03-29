@@ -1,5 +1,5 @@
-AB_URL=http://heanet.dl.sourceforge.net/sourceforge/wargus/wargus-2.2.4-src.tar.gz
-AB_ROVERSION=2
+AB_URL=https://sourceforge.net/projects/wargus/files/wargus/for%20Stratagus%202.2.4/wargus-2.2.4-src.tar.gz
+AB_ROVERSION=3
 
 # Doesn't have a configure command
 AB_PRECONF=:
