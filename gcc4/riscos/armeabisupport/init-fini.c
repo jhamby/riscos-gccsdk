@@ -1,6 +1,6 @@
 /* init-fini.c
  *
- * Copyright 2019 GCCSDK Developers
+ * Copyright 2019-2021 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -92,6 +92,19 @@ _kernel_oserror *module_initialise (const char *tail, int podule_base, void *pw)
    || (err = install_post_filter()) != NULL)
     goto error;
 
+  get_os_permissions(OS_PERMISSION_FLAG_USER_READ,
+		     OS_PERMISSION_FLAG_USER_READ | OS_PERMISSION_FLAG_USER_WRITE | OS_PERMISSION_FLAG_USER_EXEC,
+		     &global.os_memory_prot_read);
+  get_os_permissions(OS_PERMISSION_FLAG_USER_READ | OS_PERMISSION_FLAG_USER_WRITE,
+		     OS_PERMISSION_FLAG_USER_READ | OS_PERMISSION_FLAG_USER_WRITE | OS_PERMISSION_FLAG_USER_EXEC,
+		     &global.os_memory_prot_read_write);
+  get_os_permissions(OS_PERMISSION_FLAG_USER_EXEC,
+		     OS_PERMISSION_FLAG_USER_READ | OS_PERMISSION_FLAG_USER_WRITE | OS_PERMISSION_FLAG_USER_EXEC,
+		     &global.os_memory_prot_exec);
+  get_os_permissions(OS_PERMISSION_FLAG_PRIV_READ,
+		     OS_PERMISSION_FLAG_PRIV_READ | OS_PERMISSION_FLAG_PRIV_WRITE | OS_PERMISSION_FLAG_PRIV_EXEC |
+		     OS_PERMISSION_FLAG_USER_READ | OS_PERMISSION_FLAG_USER_WRITE | OS_PERMISSION_FLAG_USER_EXEC,
+		     &global.os_memory_prot_none);
   return NULL;
 
 error:
@@ -103,8 +116,10 @@ error:
 
 _kernel_oserror *module_finalisation (int fatal, int podule_base, void *pw)
 {
+#if !DEBUG_ALLOCATOR
   if (global.app_list.count > 0)
     return armeabisupport_in_use;
+#endif
 
   allocator_destroy_internal(global.stack_allocator);
 

@@ -22,6 +22,13 @@
 #define PMP_MEM_ACCESS_RWE_NONE		2
 #define PMP_MEM_ACCESS_RE_RE		3
 
+#define OS_PERMISSION_FLAG_USER_EXEC	(1 << 0)
+#define OS_PERMISSION_FLAG_USER_WRITE	(1 << 1)
+#define OS_PERMISSION_FLAG_USER_READ	(1 << 2)
+#define OS_PERMISSION_FLAG_PRIV_EXEC	(1 << 3)
+#define OS_PERMISSION_FLAG_PRIV_WRITE	(1 << 4)
+#define OS_PERMISSION_FLAG_PRIV_READ	(1 << 5)
+
 #define ARMEABISUPPORT_ABORTOP_REGISTER		0
 #define ARMEABISUPPORT_ABORTOP_DEREGISTER	1
 #define ARMEABISUPPORT_ABORTOP_INSTALL		2
@@ -35,16 +42,16 @@ _kernel_oserror *dynamic_area_create (const char *name,
 #ifndef USE_INLINE_SWIS
 _kernel_oserror *rma_claim (int __size, void **block_ret);
 _kernel_oserror *rma_free (void *_block);
-_kernel_oserror *dynamic_pmp_claim_release (const int da,
+_kernel_oserror *dynamic_pmp_claim_release (int da,
 					    pmp_phy_page_entry *page_list,
 					    int num_entries);
-_kernel_oserror *dynamic_pmp_map_unmap (const int da,
+_kernel_oserror *dynamic_pmp_map_unmap (int da,
 					pmp_log_page_entry *page_list,
 					int num_entries);
-_kernel_oserror *dynamic_pmp_resize (const int da,
+_kernel_oserror *dynamic_pmp_resize (int da,
 				     int page_diff,
 				     int *changed_ret);
-_kernel_oserror *dynamic_pmp_page_info(const int da,
+_kernel_oserror *dynamic_pmp_page_info(int da,
 				       pmp_page_info_entry *page_list,
 				       int num_entries);
 void report_text(const char *text);
@@ -73,6 +80,14 @@ _kernel_oserror *filter_deregister_post_filter (const char *filter_name,
 						void *pw,
 						unsigned task_handle);
 _kernel_oserror *get_app_base(unsigned *base_ret);
+
+/* Use OS_Memory,18 to find OS memory access permissions.  */
+_kernel_oserror *get_os_permissions(uint32_t in, uint32_t mask, uint32_t *out);
+
+/* Use OS_Memory,17 to get the permission flags for the given access permissions.
+ * Retun -1 if unsuccessful.  */
+int get_access_permissions(unsigned access_in);
+
 #else
 enum
 {

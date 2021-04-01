@@ -1,3 +1,43 @@
+Thu Apr 1  17:34:49 BST 2021  Lee Noar  <lee.noar@sky.com>
+
+	* types.h(dynamicarea_block): Store the size of the DA in pages
+	rather than the end address.
+	Move some type declarations from memory.h to here.
+	Define separate objects for each allocator type derived from
+	a base type so that each type only holds data relevant to
+	itself.
+	* swihandler.c: Handle new mmap SWI.
+	* armeabisupport.cmhg: Add new mmap SWI and a new error.
+	* swi.c(dynamic_area_create): Handle new mmap allocator type.
+	Follow change to dynamicarea_block above where the size in pages is stored.
+	* swi-asm.{s/h}(get_os_permissions,get_access_permissions): New
+	swi veneers for OSMemory 17 & 18.
+	* stack.h: Reduce maximum size of stack dynamic area from 512MB to 256MB.
+	The former may have been a bit excessive.
+	* stack.c: Variable name change size->page_count.
+	Use a dedicated data block for the stack abort handler rather than
+	piggy backing onto the main abort data block.
+	* stack-asm.s: Make use of dedicated data block passed in r12.
+	Abort handler can now return an error code that Unixlib can query.
+	* mmap.{c/h},mmap-asm.s: mmap SWI implementation for use by Unixlib.
+	mmap, munmap and madvise are the main targets, mprotect needs more work.
+	File mapping relies on Unixlib to load the file as before.
+	Implemented as a pool of mmap allocators (dynamic area) each of which
+	can be upto 100MB in size.
+	* memory.{c/h}: Add a virtual function table to allocators.
+	Add new mmap allocator type.
+	* main.c: Register/deregister mmap & stack abort handlers.
+	* init-fini.c: Cash the OS memory page permission values.
+	* decl-asm.h: Update ASM structures to match C structures.
+	* configure.ac: Bump version to 1.02.
+	* command.c: Dump mmap allocations with the info command.
+	* armeabi-support.h: Add SWI veneers.
+	* abort.{c/h}: New reason code to allow error status to be read.
+	struct abort_block: Remove stack abort handler specific members, add
+	error status member.
+	* abort-asm.s: Abort handlers can return an error code.
+	* Makefile.am: Add new files to build.
+
 Fri Mar 20 19:27:48 GMT 2020  Lee Noar  <lee.noar@sky.com>
 
 	* armeabi-support.h(armeabi_memory_free): Failed to remove size

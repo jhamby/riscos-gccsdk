@@ -21,7 +21,7 @@ swi-chunk-base-number: 0x59D00
 
 swi-handler-code: module_swihandler
 
-swi-decoding-table: ARMEABISupport, MemoryOp, AbortOp, StackOp, Cleanup
+swi-decoding-table: ARMEABISupport, MemoryOp, AbortOp, StackOp, Cleanup, MMapOp
 
 error-chunk-base-number: 0x81DC20
 
@@ -29,4 +29,5 @@ error-identifiers: armeabisupport_bad_reason("Unknown ARMEABISupport SWI reason 
 		   armeabisupport_bad_param("Bad parameter passed to ARMEABISupport SWI"),
 		   armeabisupport_no_memory("ARMEABISupport was unable to allocate memory"),
 		   armeabisupport_bad_process("Process not known to ARMEABISupport"),
-		   armeabisupport_in_use("There are still clients using ARMEABISupport")
+		   armeabisupport_in_use("There are still clients using ARMEABISupport"),
+		   armeabisupport_page_map_error("Page mapping error")

@@ -37,6 +37,11 @@
 *	  None
 *	 Exit:
 *	  r0 = error pointer if failure (V set) or 0 (V clear)
+*	4 - Read abort error status
+*	 Entry:
+*	  None
+*	 Exit:
+*	  r0 = Error code
 */
 
 _kernel_oserror *
@@ -61,6 +66,9 @@ abort_op(_kernel_swi_regs *r)
     }
     case ABORTOP_REMOVE: {
       err = abort_remove();
+      break;
+    case ABORTOP_READ_STATUS:
+      r->r[0] = abort_read_error_status();
       break;
     }
   }

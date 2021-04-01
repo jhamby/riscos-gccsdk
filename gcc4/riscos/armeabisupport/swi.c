@@ -30,7 +30,7 @@ dynamic_area_create (const char *name, int max_size,
   regs.r[4] = 0x80;		/* Not draggable */
   regs.r[5] = max_size;
   regs.r[8] = (int) name;
-  if (type == ALLOCATOR_TYPE_PAGE)
+  if (type == ALLOCATOR_TYPE_PAGE || type == ALLOCATOR_TYPE_MMAP)
     {
       /* PMP dynamic areas must have a logical initial size of 0. */
       regs.r[2] = 0;
@@ -58,7 +58,8 @@ dynamic_area_create (const char *name, int max_size,
     {
       ret->number = regs.r[1];
       ret->base = (eabi_PTR)regs.r[3];
-      ret->end = (eabi_PTR)regs.r[3] + initial_size;
+      ret->size = bytes_to_pages (initial_size);
+      ret->max_size = bytes_to_pages (max_size);
     }
 
   return err;

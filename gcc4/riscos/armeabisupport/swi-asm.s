@@ -295,6 +295,39 @@ get_app_base:
 	ADD	sp, sp, #12
 	MOV	pc, ip
 
+	@ _kernel_oserror *get_os_permissions(unsigned in, unsigned mask, unsigned *out);
+	.global	get_os_permissions
+get_os_permissions:
+	MOV	ip, lr
+
+	MOVS	r3, r2
+	MOVEQ	r0, #0
+	MOVEQ	pc, lr
+
+	MOV	r2, r1
+	MOV	r1, r0
+	MOV	r0, #18
+	SWI	XOS_Memory
+	MOVVS	r0, #0
+	STR	r0, [r3, #0]
+	MOVVC	r0, #0
+
+	MOV	pc, ip
+
+	@ int get_access_permissions(unsigned access_in);
+	.global	get_access_permissions
+get_access_permissions:
+	MOV	ip, lr
+
+	MOV	r1, r0
+	MOV	r0, #17
+	SWI	XOS_Memory
+	CMP	r1, #-1
+	MOVEQ	r0, r1
+	MOVNE	r0, r2
+
+	MOV	pc, ip
+
 	.end
 
 #endif

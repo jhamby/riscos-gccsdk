@@ -1,6 +1,6 @@
 /* stack.c
  *
- * Copyright 2019 GCCSDK Developers
+ * Copyright 2019-2021 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -85,7 +85,7 @@ stack_op(_kernel_swi_regs *r)
     }
     case STACKOP_GET_BOUNDS: {
       stack_object *stack;
-      
+
       if ((stack = (stack_object *)r->r[1]) == NULL)
       {
 	r->r[1] = r->r[2] = 0;
@@ -99,7 +99,7 @@ stack_op(_kernel_swi_regs *r)
     }
     case STACKOP_GET_SIZE: {
       stack_object *stack;
-      
+
       if ((stack = (stack_object *)r->r[1]) == NULL)
       {
 	r->r[1] = r->r[2] = 0;
@@ -120,14 +120,14 @@ stack_op(_kernel_swi_regs *r)
 }
 
 _kernel_oserror *
-stack_alloc(unsigned size, unsigned num_guard_pages, const char *name,
+stack_alloc(unsigned page_count, unsigned num_guard_pages, const char *name,
 	    stack_object **handle_ret, eabi_PTR *base_ret, eabi_PTR *top_ret)
 {
-  if (size == 0)
+  if (page_count == 0)
     return armeabisupport_bad_param;
 
   _kernel_oserror *err;
-  armeabisupport_allocator *allocator;
+  armeabi_allocator_t allocator;
 
   if (global.stack_allocator == NULL)
   {
@@ -137,24 +137,25 @@ stack_alloc(unsigned size, unsigned num_guard_pages, const char *name,
 				 &allocator);
     if (err)
       return err;
-    abort_block *block = get_data_abort_support_block();
-    block->stack_allocator = global.stack_allocator = allocator;
+
+    global.stack_allocator = allocator;
   }
   else
     allocator = global.stack_allocator;
 
   eabi_PTR block;
-  unsigned num_pages_required = size + num_guard_pages;
+  unsigned num_pages_required = page_count + num_guard_pages;
   err = allocator_alloc(allocator, num_pages_required, ALLOCATOR_ALLOC_FLAG_ALLOC_ONLY, (eabi_PTR *)&block);
   if (err)
     return err;
 
 #ifdef NO_STACK_ABORT_HANDLER
-  err = allocator_claim_pages(allocator, block + (num_guard_pages << PAGE_SHIFT), size);
+  /* Claim/map the whole stack.  */
+  err = allocator_claim_pages(allocator, block + (num_guard_pages << PAGE_SHIFT), page_count);
   if (err)
     goto error__alloced;
 
-  err = allocator_map_pages(allocator, block + (num_guard_pages << PAGE_SHIFT), size, PMP_MEM_ACCESS_RWE_RWE);
+  err = allocator_map_pages(allocator, block + (num_guard_pages << PAGE_SHIFT), page_count, PMP_MEM_ACCESS_RWE_RWE);
   if (err)
     goto error__claimed;
 #else
@@ -182,7 +183,7 @@ stack_alloc(unsigned size, unsigned num_guard_pages, const char *name,
 
   stack->base = block;
   stack->top = block + (num_pages_required << PAGE_SHIFT);
-  stack->size = size;
+  stack->size = page_count;
   stack->guard_size = num_guard_pages;
 
   if (!name)
@@ -193,12 +194,9 @@ stack_alloc(unsigned size, unsigned num_guard_pages, const char *name,
 
   linklist_add_to_end(&app->stack_list, &stack->link);
 
-  abort_block *abort = get_data_abort_support_block();
-  abort->first_stack = linklist_first_stack_object(&app->stack_list);
-
   *handle_ret = stack;
   *base_ret = block + (num_guard_pages << PAGE_SHIFT);
-  *top_ret = block + ((size + num_guard_pages) << PAGE_SHIFT);
+  *top_ret = block + ((page_count + num_guard_pages) << PAGE_SHIFT);
 
   return NULL;
 
@@ -207,7 +205,11 @@ error__mapped:
 error__claimed:
   allocator_release_pages(allocator, block + ((num_pages_required - 1) << PAGE_SHIFT), 1);
 error__alloced:
+#ifdef NO_STACK_ABORT_HANDLER
   allocator_free(allocator, block);
+#else
+  allocator_free(allocator, block);
+#endif
 
   *handle_ret = 0;
   *base_ret = 0;
@@ -224,10 +226,6 @@ stack_free_internal(stack_object *stack, app_object *app)
   allocator_free(allocator, stack->base);
   linklist_remove(&app->stack_list, &stack->link);
   rma_free(stack);
-
-  /* Reset the abort handler support block in case we free'd the first stack.  */
-  abort_block *abort = get_data_abort_support_block();
-  abort->first_stack = linklist_first_stack_object(&app->stack_list);
 
   return NULL;
 }

@@ -1,6 +1,6 @@
 /* stack.h
  *
- * Copyright 2019 GCCSDK Developers
+ * Copyright 2019-2021 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -10,7 +10,7 @@
 #include "link_list.h"
 #include "types.h"
 
-#define STACK_DA_MAX_SIZE	(1024 * 1024 * 512) /* 512MB */
+#define STACK_DA_MAX_SIZE	(1024 * 1024 * 256) /* 256MB */
 #define STACK_NAME_MAX_LEN	32
 
 #define STACKOP_ALLOC		0

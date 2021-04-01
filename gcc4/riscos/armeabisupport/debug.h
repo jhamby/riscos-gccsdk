@@ -19,7 +19,8 @@
 #define LOG_PRINT 1
 #define LOG_REPORT 2
 
-extern void log_printf(unsigned flags, const char *format, ...);
+extern void log_printf(const char *format, ...);
+extern void reporter_printf(const char *format, ...);
 
 #if (DEBUG_PRINT || DEBUG_REPORT)
 #if DEBUG_PRINT
@@ -34,7 +35,7 @@ extern void log_printf(unsigned flags, const char *format, ...);
 #endif
 #define DEBUG_OUTPUT(format, ...) \
 do {\
-log_printf(DEBUG_FLAG_REPORT | DEBUG_FLAG_PRINT, format, ##__VA_ARGS__); \
+reporter_printf(format, ##__VA_ARGS__); \
 } while (0)
 #else
 #define DEBUG_OUTPUT(format, ...)

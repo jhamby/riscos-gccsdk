@@ -1,4 +1,4 @@
-@ Copyright (c) 2019 GCCSDK Developers
+@ Copyright (c) 2019-2021 GCCSDK Developers
 @ Written by Lee Noar
 
 #include "decl-asm.h"
@@ -42,11 +42,7 @@ USR_mode:
 	@ Guard against an abort in this abort handler, as soon as possible at least
 	LDR	r0, [r7, #ABORT_BLOCK_IN_HANDLER]
 	TEQ	r0, #1
-	.if DEBUG_HANDLER_DUMP_REGS == 1
 	BEQ	handler__internal_abort
-	.else
-	BEQ	handler__pass_on
-	.endif
 
 	@ Read the address of the fault
 	MRC	P15, 0, r8, C6, C0
@@ -63,8 +59,12 @@ USR_mode:
 	LDR	r12, [r10, #ABORT_HANDLER_R12_DATA]
 	MOV	lr, pc
 	LDR	pc, [r10, #ABORT_HANDLER_ROUTINE]
-	TEQ	r0, #ABORT_HANDLER_CLAIM
+	AND	r2, r0, #0xFF
+	TEQ	r2, #ABORT_HANDLER_CLAIM
 	BEQ	handler__exit
+	TEQ	r2, #ABORT_HANDLER_ERROR
+	BEQ	handler__error
+
 	LDR	r10, [r10, #LINKHDR_NEXT]
 	TEQ	r10, #0
 	BNE	0b
@@ -88,11 +88,19 @@ handler__pass_on:
 	MSR	SPSR_cxsf, r9
 	LDMIA	r0, {r0-pc}^			@ Restore all registers and return to old handler
 
-	.if DEBUG_HANDLER_DUMP_REGS == 1
-handler__internal_abort:
-	REPORT_TEXT "Abort in abort handler:"
-	B	handler__dump_regs
+	@ r0 = return value from handler routine
+handler__error:
+	MOV	r0, r0, LSR#8
+	AND	r0, r0, #0xFF
+	STR	r0, [r7, #ABORT_BLOCK_STATUS]
+	B	handler__pass_on
 
+handler__internal_abort:
+	MOV	r0, #ABORT_ERROR_IN_ABORT_HANDLER
+	STR	r0, [r7, #ABORT_BLOCK_STATUS]
+	B	handler__pass_on
+
+	.if DEBUG_HANDLER_DUMP_REGS == 1
 handler__unhandled_abort:
 	REPORT_TEXT "Unhandled abort:"
 	REPORT_HEX r6
@@ -117,19 +125,6 @@ handler__dump_regs:
 	.endif
 
 handler__exit:
-	.if ABORT_COLLECT_STATS == 1
-	LDR	r9, [r7, #ABORT_BLOCK_CURRENT_APP]
-	LDR	r0, [r9, #APP_ABORT_LAST_WIMP_COUNT]
-	ADD	r0, r0, #1
-	STR	r0, [r9, #APP_ABORT_LAST_WIMP_COUNT]
-	LDR	r1, [r9, #APP_ABORT_HIGHEST_WIMP_COUNT]
-	CMP	r0, r1
-	STRGT	r0, [r9, #APP_ABORT_HIGHEST_WIMP_COUNT]
-	LDR	r0, [r9, #APP_ABORT_TOTAL_COUNT]
-	ADD	r0, r0, #1
-	STR	R0, [R9, #APP_ABORT_TOTAL_COUNT]
-	.endif
-
 	LDR	lr, [sp], #4			@ Restore R14_svc
 
 	LDR	r9, registers_SPSR
@@ -190,6 +185,12 @@ get_data_abort_support_block:
 	ADR	r0, data_abort_support_block
 	MOV	pc, lr
 
+	.global abort_read_error_status
+abort_read_error_status:
+	ADR	r0, data_abort_support_block
+	LDR	r0, [r0, #ABORT_BLOCK_STATUS]
+	MOV	pc, lr
+
 data_abort_support_block:
 	.space	ABORT_BLOCK_SIZE
 
@@ -213,7 +214,6 @@ pre_wimp_filter:
 	ADR	r11, data_abort_support_block
 	MOV	r0, #0
 	STR	r0, [r11, #ABORT_BLOCK_FIRST_HANDLER]
-	STR	r0, [r11, #ABORT_BLOCK_FIRST_STACK]
 
 	MSR	CPSR_f, r8
 	LDMFD	sp!, {r0, r8, r11, pc}
@@ -267,16 +267,8 @@ post_wimp_filter:
 	B	postfilter__exit
 postfilter__app_found:
 	ADR	r11, data_abort_support_block
-	STR	r0, [r11, #ABORT_BLOCK_CURRENT_APP]
 	LDR	r1, [r0, #APP_ABORT_HANDLER_LIST + LINKLIST_FIRST]
 	STR	r1, [r11, #ABORT_BLOCK_FIRST_HANDLER]
-	LDR	r1, [r0, #APP_STACK_LIST + LINKLIST_FIRST]
-	STR	r1, [r11, #ABORT_BLOCK_FIRST_STACK]
-	.if ABORT_COLLECT_STATS == 1
-	@ r0 = ptr to APP object
-	MOV	r1, #0
-	STR	r1, [r0, #APP_ABORT_LAST_WIMP_COUNT]
-	.endif
 	@ Fall through
 postfilter__exit:
 	MSR	CPSR_f, r8
@@ -288,7 +280,6 @@ postfilter__exit:
 @ r12 - Workspace pointer passed to OS_DynamicArea 0
 	.global da_handler
 da_handler:
-@REPORT_TEXT "da_handler"
 	CMP     r0, #1<<31
 	CMNVC   r0, #1<<31
 	ADR	r0, error

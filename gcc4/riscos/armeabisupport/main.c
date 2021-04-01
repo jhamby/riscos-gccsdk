@@ -1,6 +1,6 @@
 /* main.c
  *
- * Copyright 2019 GCCSDK Developers
+ * Copyright 2019-2021 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -15,8 +15,7 @@
 #include "abort.h"
 #include "stack.h"
 #include "memory.h"
-#define DEBUG_PRINT 1
-#define DEBUG_REPORT 1
+#include "mmap.h"
 #include "debug.h"
 
 armeabisupport_globals global;
@@ -39,12 +38,11 @@ app_new(app_object **app_ret)
 
   memset(app, 0, sizeof(*app));
   app->ID = app_base;
+  app->stack_abort_data.stack_list = &app->stack_list;
+  app->stack_abort_data.stack_allocator = &global.stack_allocator;
 
-  void *handler = get_stack_abort_handler();
-  abort_block *block = get_data_abort_support_block();
-  abort_register_internal(app, handler, (unsigned)block);
-
-  block->current_app = app;
+  abort_register_internal(app, get_stack_abort_handler(), (unsigned)&app->stack_abort_data);
+  abort_register_internal(app, get_mmap_abort_handler(), (unsigned)&global.mmap_allocator_pool);
 
   linklist_add_to_end(&global.app_list, &app->link);
 
@@ -80,13 +78,13 @@ app_find(app_object **app_ret)
   return NULL;
 }
 
-void app_remove_by_handle(app_object *app)
+static void
+app_remove_by_handle(app_object *app)
 {
   if (app)
     {
-      void *handler = get_stack_abort_handler();
-      abort_block *r12 = get_data_abort_support_block();
-      abort_deregister(handler, (unsigned)r12);
+      abort_deregister(get_mmap_abort_handler(), (unsigned)&global.mmap_allocator_pool);
+      abort_deregister(get_stack_abort_handler(), (unsigned)&app->stack_abort_data);
       linklist_remove(&global.app_list, &app->link);
       rma_free(app);
     }
@@ -111,13 +109,10 @@ armeabi_cleanup(void)
       stack = next;
     }
 
-  armeabisupport_allocator *allocator = linklist_first_armeabisupport_allocator(&app->allocator_list);
-  while (allocator)
-    {
-      armeabisupport_allocator *next = linklist_next_armeabisupport_allocator(allocator);
-      allocator_destroy_internal(allocator);
-      allocator = next;
-    }
+  allocator_destroy_all(&app->allocator_list);
+
+  /* Remove all remaining mmap allocations for this app.  */
+  mmap_cleanup_app(app);
 
   app_remove_by_handle(app);
 
@@ -131,7 +126,7 @@ void report_swi_error(const char *func, int line, _kernel_oserror *err)
   report_text(buffer);
 }
 
-static const char filename[] = "$.armeabisupport/log";
+static const char filename[] = "$.debug/log";
 
 static void logwrite(const char *buffer)
 {
@@ -156,37 +151,58 @@ static void logwrite(const char *buffer)
   }
 }
 
-void log_printf(unsigned flags, const char *format, ...)
+void log_printf(const char *format, ...)
 {
-  if (flags)
-  {
-    char buffer[512];
-    char *p = buffer;
-    time_t t;
-    struct tm *tmp;
+  char buffer[512];
+  char *p = buffer;
+  time_t t;
+  struct tm *tmp;
 
-    va_list ap;
-    va_start (ap, format);
+  va_list ap;
+  va_start (ap, format);
 
-    t = time(NULL);
-    tmp = localtime(&t);
+  t = time(NULL);
+  tmp = localtime(&t);
 
-    *p++ = '[';
-    p += strftime(p, sizeof(buffer) - strlen(buffer) - 1, "%d/%m  %T", tmp);
-    *p++ = ']';
-    *p++ = ' ';
-    *p++ = ':';
-    *p++ = ' ';
-    *p = '\0';
+  *p++ = '[';
+  p += strftime(p, sizeof(buffer) - strlen(buffer) - 1, "%d/%m  %T", tmp);
+  *p++ = ']';
+  *p++ = ' ';
+  *p++ = ':';
+  *p++ = ' ';
+  *p = '\0';
 
-    p += vsnprintf(p, sizeof(buffer) - strlen(buffer) - 1, format, ap);
-    *p++ = '\n';
-    *p = '\0';
+  p += vsnprintf(p, sizeof(buffer) - strlen(buffer) - 1, format, ap);
+  *p++ = '\n';
+  *p = '\0';
 
-    if (flags & LOG_PRINT)
-      logwrite(buffer);  
-    
-    if (flags & LOG_REPORT)
-      report_text(buffer);
-  }
+  logwrite(buffer);
+}
+
+void reporter_printf(const char *format, ...)
+{
+  char buffer[512];
+  char *p = buffer;
+  time_t t;
+  struct tm *tmp;
+
+  va_list ap;
+  va_start (ap, format);
+
+  t = time(NULL);
+  tmp = localtime(&t);
+
+  *p++ = '[';
+  p += strftime(p, sizeof(buffer) - strlen(buffer) - 1, "%d/%m  %T", tmp);
+  *p++ = ']';
+  *p++ = ' ';
+  *p++ = ':';
+  *p++ = ' ';
+  *p = '\0';
+
+  p += vsnprintf(p, sizeof(buffer) - strlen(buffer) - 1, format, ap);
+  *p++ = '\n';
+  *p = '\0';
+
+  report_text(buffer);
 }

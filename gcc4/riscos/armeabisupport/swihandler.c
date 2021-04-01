@@ -1,6 +1,6 @@
 /* som_swihandler.c
  *
- * Copyright 2019 GCCSDK Developers
+ * Copyright 2019-2021 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "abort.h"
 #include "stack.h"
+#include "mmap.h"
 #include "main.h"
 
 #define DEBUG_PRINT 1
@@ -33,6 +34,9 @@ module_swihandler (int number, _kernel_swi_regs * r, void *pw)
       break;
     case ARMEABISupport_Cleanup - ARMEABISupport_00:
       err = armeabi_cleanup();
+      break;
+    case ARMEABISupport_MMapOp - ARMEABISupport_00:
+      err = mmap_op(r);
       break;
     default:
       err = error_BAD_SWI;

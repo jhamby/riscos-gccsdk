@@ -1,6 +1,6 @@
 /* command.c
  *
- * Copyright 2018 GCCSDK Developers
+ * Copyright 2018-2021 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -24,17 +24,8 @@ command_info(void)
     {
       printf("App %X\n", app->ID);
 
-      armeabisupport_allocator *allocator;
-      for (allocator = linklist_first_armeabisupport_allocator(&app->allocator_list);
-	   allocator;
-	   allocator = linklist_next_armeabisupport_allocator(allocator))
-	{
-#if DEBUG_ALLOCATOR
-	  dump_block_list(allocator);
-#else
-	  DEBUG_OUTPUT("  Allocator: '%s'", allocator->name);
-#endif
-	}
+      allocator_dump_all(&app->allocator_list);
+
       stack_object *stack;
       for (stack = linklist_first_stack_object (&app->stack_list);
 	   stack;
@@ -43,6 +34,12 @@ command_info(void)
 	  printf("  Stack: %.32s %p -> %p\n", stack->name, stack->base, stack->top);
 	}
     }
+
+  printf("Global allocators:\n");
+  allocator_dump_all(&global.allocator_list);
+
+  printf("mmaps:\n");
+  allocator_dump_all(&global.mmap_allocator_pool);
 }
 
 _kernel_oserror *
