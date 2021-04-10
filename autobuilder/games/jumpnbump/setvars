@@ -22,5 +22,6 @@ ab_package() {
   cp -r $S/levelmaking $A/
 
   $AB_HOME/add-riscpkg -unixlib -unixsound
+  echo "Description: You are cute fluffy little bunnies and hop on the other bunnies' heads." >> $D/jumpnbump/RiscPkg/Control,fff
 }
 
