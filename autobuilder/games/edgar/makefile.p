@@ -14,7 +14,7 @@
  LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lz -lintl -lm
  else
 -LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lz -lm
-+LFLAGS = -static `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_net -lz -lbz2 -lintl -lpng -ljpeg -lfreetype -lvorbisidec -lvorbisfile -logg -lmikmod -ltiff -lFLAC -lwebp
++LFLAGS = -static `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -llzma -lSDL_net -lz -lbz2 -lintl -lpng -ljpeg -lfreetype -lvorbisidec -lvorbisfile -logg -lmikmod -ltiff -lFLAC -lwebp
  endif
  
  TILE_OBJS  = tile_creator.o save_png.o
