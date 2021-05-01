@@ -14,7 +14,7 @@ if [ -z "$AB_INSTALLTARGET" ] ; then
 fi
 
 mkdir -p $AB_DIR/package/doc/$RO_PKG
-if [ "x$AB_MESON" != "xyes" ] ; then
+if [ "x$AB_MESON" != "xyes" ] && [ "x$AB_CMAKE" != "xyes" ] ; then
   mkdir -p $AB_DIR/package/lib
   mkdir -p $AB_DIR/package/lib/pkgconfig
   mkdir -p $AB_DIR/package/include/
