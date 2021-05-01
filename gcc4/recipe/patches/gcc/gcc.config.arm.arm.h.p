@@ -1,6 +1,6 @@
 Index: gcc/config/arm/arm.h
 ===================================================================
---- gcc/config/arm/arm.h	(revision 210657)
+--- gcc/config/arm/arm.h	(revision 280157)
 +++ gcc/config/arm/arm.h	(working copy)
 @@ -203,7 +203,7 @@
  				         : TARGET_TPCS_FRAME)
@@ -158,16 +158,23 @@ Index: gcc/config/arm/arm.h
  
  #define ARM_REG_OK_FOR_INDEX_P(X)		\
    ((REGNO (X) <= LAST_ARM_REGNUM		\
-@@ -2194,7 +2226,7 @@
+@@ -2194,8 +2226,13 @@
     an ARM chip.  */
  #if defined(__arm__)
  extern const char *host_detect_local_cpu (int argc, const char **argv);
 -# define EXTRA_SPEC_FUNCTIONS						\
-+# define EXTRA_SPEC_FUNCTIONS SUBTARGET_EXTRA_SPEC_FUNCTIONS		\
-   { "local_cpu_detect", host_detect_local_cpu },
+-  { "local_cpu_detect", host_detect_local_cpu },
++# ifdef SUBTARGET_EXTRA_SPEC_FUNCTIONS
++#  define EXTRA_SPEC_FUNCTIONS SUBTARGET_EXTRA_SPEC_FUNCTIONS		\
++   { "local_cpu_detect", host_detect_local_cpu },
++# else
++#  define EXTRA_SPEC_FUNCTIONS						\
++   { "local_cpu_detect", host_detect_local_cpu },
++# endif
  
  # define MCPU_MTUNE_NATIVE_SPECS					\
-@@ -2202,9 +2234,16 @@
+    " %{march=native:%<march=native %:local_cpu_detect(arch)}"		\
+@@ -2202,9 +2239,16 @@
     " %{mcpu=native:%<mcpu=native %:local_cpu_detect(cpu)}"		\
     " %{mtune=native:%<mtune=native %:local_cpu_detect(tune)}"
  #else
