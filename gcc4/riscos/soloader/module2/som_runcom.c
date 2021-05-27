@@ -1,6 +1,6 @@
 /* som_runcom.c
  *
- * Copyright 2007-2019 GCCSDK Developers
+ * Copyright 2007-2021 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -499,6 +499,91 @@ static void clear_mappings (void)
 }
 #endif
 
+static _kernel_oserror *
+init_static_elf (runcom_state *state)
+{
+  _kernel_oserror *err;
+  Elf32_Shdr *section_headers = NULL;
+  char *section_strings = NULL;
+  int shnum = state->elf_prog.elf_header.e_shnum;
+
+  /* There is no dynamic segment, so we have to search the section headers for a GOT instead.  */
+
+  /* Allocate space for section headers and read them from file.  */
+  if ((err = som_alloc (state->elf_prog.elf_header.e_shentsize * shnum,
+			(void **) (void *) &section_headers)) != NULL)
+    goto error;
+
+  fseek (state->elf_prog.handle, state->elf_prog.elf_header.e_shoff, SEEK_SET);
+  if (fread (section_headers, state->elf_prog.elf_header.e_shentsize,
+	     shnum, state->elf_prog.handle) != shnum)
+    goto error;
+
+  if ((err = som_alloc (section_headers[state->elf_prog.elf_header.e_shstrndx].sh_size,
+			(void **) (void *) &section_strings)) != NULL)
+    goto error;
+  fseek (state->elf_prog.handle, section_headers[state->elf_prog.elf_header.e_shstrndx].sh_offset, SEEK_SET);
+  if (fread (section_strings, section_headers[state->elf_prog.elf_header.e_shstrndx].sh_size,
+	     1, state->elf_prog.handle) != 1)
+    goto error;
+
+  Elf32_Shdr *shdr = section_headers;
+  const Elf32_Shdr *got_shdr = NULL;
+  while (shnum--)
+    {
+      if (shdr->sh_type == SHT_PROGBITS)
+	{
+	  const char *name = (const char *) (section_strings + shdr->sh_name);
+	  if (strcmp (name, ".got") == 0)
+	    {
+	      got_shdr = shdr;
+	      break;
+	    }
+	}
+      shdr++;
+    }
+
+  /* If there's no GOT, then there's no PIC, so we don't have to do anything.  */
+  if (!got_shdr)
+    return NULL;
+
+  /* Set up a fake runtime array that contains just one entry for the static executable.
+     We can allocate memory for it in the application slot which means we don't have
+     to worry about cleaning it up on exit.  */
+
+  /* First make sure there's enough space.  */
+  if (state->free_memory + sizeof (som_rt_elem) > (som_PTR) state->env.ram_limit)
+    {
+      err = somerr_wimpslot_too_small;
+      goto error;
+    }
+
+  som_rt_elem *runtime_array = (som_rt_elem *) state->free_memory;
+  state->free_memory += sizeof(som_rt_elem);
+
+  memset(runtime_array, 0, sizeof(som_rt_elem));
+  runtime_array->private_GOT_ptr = (som_PTR) got_shdr->sh_addr;
+
+  rt_workspace_set (rt_workspace_GOTT_BASE, (unsigned int) runtime_array);
+
+  som_free (section_strings);
+  som_free (section_headers);
+
+  return NULL;
+
+error:
+  if (err == NULL
+      && (err = _kernel_last_oserror ()) == NULL)
+    err = somerr_no_memory;	/* Default to OOM error.  */
+
+  if (section_strings)
+    som_free (section_strings);
+  if (section_headers)
+    som_free (section_headers);
+
+  return err;
+}
+
 _kernel_oserror *
 command_run (const char *arg_string, int argc)
 {
@@ -603,6 +688,10 @@ command_run (const char *arg_string, int argc)
     {
       /* No dynamic segment, so assume statically linked.  */
       entry_point = elffile_entry_point (&state->elf_prog);
+      /* Set up the workspace in the ELF header just in case there is PIC in the
+         static binary.  */
+      if ((err = init_static_elf (state)) != NULL)
+	goto error;
     }
   else
     {

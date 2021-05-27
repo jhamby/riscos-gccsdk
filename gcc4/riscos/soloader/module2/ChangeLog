@@ -1,3 +1,16 @@
+Thu May 27 20:30:27 BST 2021  Lee Noar  <lee.noar@sky.com>
+
+	* som_runcom.c: Add support for running statically linked binaries
+	that contain PIC. This is primarily for the benefit of libstdc++
+	which is deliberately built using PIC objects for both shared library
+	and static archive. As Linux supports the use of PIC in static binaries,
+	it's not an issue there. Trying to alter the build system of libstdc++
+	to produce the correct objects for each library is problematic and
+	error prone, so instead we match the behaviour of Linux.
+	The performance hit should be negligible and no worse than for dynamic
+	linking.
+	* configure.ac: Bump version number for PIC in static binary support.
+
 Thu Mar 25 21:28:26 GMT 2021  Lee Noar  <lee.noar@sky.com>
 
 	* som_register.c(process_relpic): Add support for relocations in Thumb
