@@ -2,6 +2,8 @@ AB_URL=https://ftp.gnu.org/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz
 
 AB_INSTALL=no
 
+AB_ROVERSION=1
+
 GCC_VERSION=10.2.0
 BINUTILS_VERSION=2.30
 
@@ -102,7 +104,7 @@ build_native_binutils() {
 }
 
 copy_link_gcc() {
-  mkdir -p $S/libstdc++-v3/src/riscos $S/libstdc++-v3/config/os/riscos
+  mkdir -p $S/libstdc++-v3/config/os/riscos
 
   ln -T -s -f $H/gcc.config.arm.riscos-elf.h $S/gcc/config/arm/riscos-elf.h
   ln -T -s -f $H/gcc.config.arm.riscos-gnueabihf.h $S/gcc/config/arm/riscos-gnueabihf.h
@@ -115,7 +117,6 @@ copy_link_gcc() {
   ln -T -s -f $H/gcc.config.arm.xm-riscos.h $S/gcc/config/arm/xm-riscos.h
   ln -T -s -f $H/libgcc.config.arm.t-arm-riscos-elf $S/libgcc/config/arm/t-arm-riscos-elf
   ln -T -s -f $H/libgcc.config.arm.t-riscos-gnueabihf $S/libgcc/config/arm/t-riscos-gnueabihf
-  ln -T -s -f $H/libstdc++-v3.src.riscos.Makefile.am $S/libstdc++-v3/src/riscos/Makefile.am
   ln -T -s -f $H/libstdc++-v3.config.os.riscos.ctype_base.h $S/libstdc++-v3/config/os/riscos/ctype_base.h
   ln -T -s -f $H/libstdc++-v3.config.os.riscos.ctype_configure_char.cc $S/libstdc++-v3/config/os/riscos/ctype_configure_char.cc
   ln -T -s -f $H/libstdc++-v3.config.os.riscos.ctype_inline.h $S/libstdc++-v3/config/os/riscos/ctype_inline.h
@@ -262,7 +263,10 @@ fi
 
 copy_link_gcc
 
-./contrib/download_prerequisites
+# Make sure we get the system bzip2 and not the cross compiled version.
+# This won't be a problem the first time we build this package because cross compiled bzip2
+# won't exist yet, but if we rebuild gcc later, then we will pick up the wrong bzip2.
+PATH=/usr/bin:$PATH ./contrib/download_prerequisites
 
 build_cross_compiler
 build_dynamic_linker
@@ -338,12 +342,10 @@ do_copy() {
 }
 
 ab_package() {
-  ab_create_sharedlib_skeleton SharedLibs-$GCCSDK_RISCOS_ABI_VERSION
+  ab_create_sharedlib_skeleton SharedLibs-C-$GCCSDK_RISCOS_ABI_VERSION
 
   ab_add_sharedlib $S/native-install/lib libunixlib.so.5
-  ab_add_sharedlib $S/native-install/lib libstdc++.so.6
   ab_add_sharedlib $S/native-install/lib libm.so.1
-  ab_add_sharedlib $S/native-install/lib libgfortran.so.5
 
   # libgcc_s doesn't follow the rules
   cp -fT $S/native-install/lib/libgcc_s.so.1 $A/lib/$GCCSDK_RISCOS_ABI_VERSION/libgcc_s.so.1,E1F
@@ -354,9 +356,21 @@ ab_package() {
   ab_add_sharedlib $GCCSDK_INSTALL_ENV/lib libdl.so.2
 
   AB_COMPONENTS=""
-  $AB_HOME/add-riscpkg -package SharedLibs-$GCCSDK_RISCOS_ABI_VERSION -name SharedLibs-$GCCSDK_RISCOS_ABI_VERSION \
+  $AB_HOME/add-riscpkg -package SharedLibs-C-$GCCSDK_RISCOS_ABI_VERSION -name SharedLibs-C-$GCCSDK_RISCOS_ABI_VERSION \
 	-section Development
-	
+
+  ab_create_sharedlib_skeleton SharedLibs-C++-$GCCSDK_RISCOS_ABI_VERSION
+  ab_add_sharedlib $S/native-install/lib libstdc++.so.6
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package SharedLibs-C++-$GCCSDK_RISCOS_ABI_VERSION -name SharedLibs-C++-$GCCSDK_RISCOS_ABI_VERSION \
+	-section Development
+
+  ab_create_sharedlib_skeleton SharedLibs-Fortran-$GCCSDK_RISCOS_ABI_VERSION
+  ab_add_sharedlib $S/native-install/lib libgfortran.so.5
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package SharedLibs-Fortran-$GCCSDK_RISCOS_ABI_VERSION -name SharedLibs-Fortran-$GCCSDK_RISCOS_ABI_VERSION \
+	-section Development
+
   ab_create_command_app GCC Apps/Utilities gcc
 
   cp -r -t "$A" "$H/dist/!GCC/*"
