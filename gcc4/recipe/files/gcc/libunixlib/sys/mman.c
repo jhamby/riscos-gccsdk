@@ -350,7 +350,7 @@ mprotect (void * addr __attribute__ ((__unused__)),
    file it maps.  Filesystem operations on a file being mapped are
    unpredictable before this is done.  */
 int
-msync (void * addr, size_t len)
+msync (void * addr, size_t len, int flags __attribute__ ((__unused__)))
 {
   const struct ul_global *gbl = &__ul_global;
 

@@ -133,6 +133,13 @@ extern char *strtok_r (char *__restrict __s, const char *__restrict __delim,
 #endif
 
 #ifdef __USE_GNU
+/* Find the first occurrence of NEEDLE in HAYSTACK.
+   NEEDLE is NEEDLELEN bytes long;
+   HAYSTACK is HAYSTACKLEN bytes long.  */
+extern void *memmem (const void *__haystack, size_t __haystacklen,
+		     const void *__needle, size_t __needlelen)
+     __THROW __attribute_pure__ __nonnull ((1, 3));
+
 /* Copy n bytes of src to dest, return pointer to bytes after the
    last written byte.  */
 extern void *mempcpy (void *__restrict __dest,

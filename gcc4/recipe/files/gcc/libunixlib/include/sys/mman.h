@@ -61,6 +61,11 @@ __BEGIN_DECLS
 /* Flags for `mremap'.  */
 #define MREMAP_MAYMOVE	1	/* May move the pages when remapping.  */
 
+/* Flags to `msync'.  */
+#define MS_ASYNC	1		/* Sync memory asynchronously.  */
+#define MS_SYNC		4		/* Synchronous memory sync.  */
+#define MS_INVALIDATE	2		/* Invalidate the caches.  */
+
 /* Map addresses starting near ADDR and extending for LEN bytes.  from
    OFFSET into the file FD describes according to PROT and FLAGS.  If ADDR
    is nonzero, it is the desired mapping address.  If the MAP_FIXED bit is
@@ -87,7 +92,7 @@ extern int mprotect (void * __addr, size_t __len, int __prot) __THROW;
 /* Synchronize the region starting at ADDR and extending LEN bytes with the
    file it maps.  Filesystem operations on a file being mapped are
    unpredictable before this is done.  */
-extern int msync (void * __addr, size_t __len) __THROW;
+extern int msync (void * __addr, size_t __len, int __flags) __THROW;
 
 /* Advise the system about particular usage patterns the program follows
    for the region starting at ADDR and extending LEN bytes.  */

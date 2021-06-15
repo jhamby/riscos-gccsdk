@@ -1027,6 +1027,8 @@ __END_DECLS
 #define ARMEABISupport_AbortOp         0x059D01
 #define ARMEABISupport_StackOp         0x059D02
 #define ARMEABISupport_Cleanup         0x059D03
+#define ARMEABISupport_MMapOp          0x059D04
+#define ARMEABISupport_ShmOp           0x059D05
 
 #define VFPSupport_CheckContext        0x058ec0
 #define VFPSupport_CreateContext       0x058ec1

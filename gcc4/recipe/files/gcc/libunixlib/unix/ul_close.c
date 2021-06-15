@@ -1,5 +1,5 @@
 /* __close (), close () for UnixLib
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2021 UnixLib Developers
  */
 
 #include <errno.h>
@@ -13,6 +13,9 @@
 #include <internal/dev.h>
 #include <internal/fd.h>
 #include <unixlib/local.h>
+#ifdef __ARM_EABI__
+#include <internal/swiparams.h>
+#endif
 
 /* #define DEBUG */
 #ifdef DEBUG
@@ -65,6 +68,17 @@ close (int fd)
 
 #ifdef DEBUG
   debug_printf ("-- close(fd=%d): ", fd);
+#endif
+
+#ifdef __ARM_EABI__
+  if (IS_SHM_FD(fd))
+    {
+      _kernel_oserror *err;
+
+      err = _swix(ARMEABISupport_ShmOp, _INR(0,1), ARMEABISUPPORT_SHMOP_CLOSE,
+						   fd);
+      return err ? __ul_seterr (err, __errno_from_armeabisupport (err->errnum)) : 0;
+    }
 #endif
 
   if (BADF (fd))

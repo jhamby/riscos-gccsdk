@@ -1,3 +1,28 @@
+Tue Jun 15  20:55:10 BST 2021 Lee Noar  <lee.noar@sky.com>
+
+	* Makefile.am: Build armeabi specific version of sys/mman.c.
+	Build string/memmem.c.
+	* incl-local/internal/fd.h(IS_SHM_FD): New macro to determine if
+	a file descriptor is shared memory.
+	* incl-local/internal/local.h(__errno_from_armeabisupport): New
+	function declaration.
+	* incl-local/internal/swiparams.h: Add new ARMEABISupport constants.
+	* include/swis.h: Likewise.
+	* include/string.h(memmem): New function declaration.
+	* include/sys/mman.h(msync): Update to 3 args, although we still don't
+	use the 3rd arg.
+	* signal/post.c: If there is an unhandled abort in ARMEABISupport,
+	report it.
+	* string/memmem.c: Add memmem implementation.
+	* sys/mman-armeabi.c: mmap/shm implementation using ARMEABISupport
+	for memory management.
+	* sys/mman(msync): Update to 3 args although we still don't use the
+	3rd arg. The 3 argument version seems to be standard now.
+	* unix/truncate.c(ftruncate): Don't do anything with a shm file
+	descriptor.
+	* unix/ul_close.c(close): Trap a shm fd and defer to ARMEABISupport to
+	handle it.
+
 Thu Jan 21  20:37:09 GMT 2021 Lee Noar  <lee.noar@sky.com>
 
 	* include/stdint.h: Remove the __STDC_LIMIT_MACROS and

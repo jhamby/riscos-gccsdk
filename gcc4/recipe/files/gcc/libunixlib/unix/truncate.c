@@ -1,5 +1,5 @@
 /* Truncate a file to a specified length.
-   Copyright (c) 2005-2013 UnixLib Developers.  */
+   Copyright (c) 2005-2021 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -23,6 +23,12 @@ ftruncate (int fd, off_t length)
 {
 #ifndef __TARGET_SCL__
   PTHREAD_UNSAFE
+
+#ifdef __ARM_EABI__
+  /* This is currently a NOOP for a shared memory object.  */
+  if (IS_SHM_FD(fd))
+    return 0;
+#endif
 
   if (BADF (fd))
     return __set_errno (EBADF);

@@ -17,12 +17,36 @@
 #include <internal/os.h>
 #include <internal/unix.h>
 #include <internal/sigstate.h>
+#include <internal/swiparams.h>
 
 #include <ucontext.h>
 
 /* #define DEBUG 1*/
 #ifdef DEBUG
 #  include <sys/debug.h>
+#endif
+
+#ifdef __ARM_EABI__
+typedef enum abort_error
+{
+  abort_ERROR_NONE,		/* No error, last abort was handled correctly.  */
+  abort_ERROR_ABORT_HANDLER,	/* There was an abort in the abort handler.  */
+  abort_ERROR_STACK_OVERFLOW,	/* The abort was because of stack overflow.  */
+  abort_ERROR_STACK_INTERNAL,	/* A SWI gave an error in the stack abort handler.  */
+  abort_ERROR_MMAP_READ_ONLY,	/* Abort in mmap area with valid page (probably attempted write to read only page).  */
+  abort_ERROR_MMAP_INTERNAL,	/* A SWI gave an error in mmap abort handler.  */
+  abort_ERROR_MAX
+} abort_error;
+
+static const char *abort_msg[] =
+{
+  "Unknown error code (%d) from abort handler in ARMEABISupport\n\n",
+  "Unixlib detected recursion in the abort handler of ARMEABISupport\n\n",
+  "Unixlib detected stack overflow\n\n",
+  "Unixlib detected that a SWI returned an error in the stack abort handler\n\n",
+  "Unixlib detected an abort in an mmap area\n\n",
+  "Unixlib detected that a SWI returned an error in the mmap abort handler\n\n"
+};
 #endif
 
 static inline unsigned int
@@ -420,6 +444,21 @@ __write_backtrace (int signo)
 
   if (signo != 0)
     fprintf (stderr, "\nFatal signal received: %s\n\n", strsignal (signo));
+
+#ifdef __ARM_EABI__
+  {
+    int abort_error_code;
+    if (_swix(ARMEABISupport_AbortOp, _IN(0)|_OUT(0),
+				      ARMEABISUPPORT_ABORTOP_READ_ERROR,
+				      &abort_error_code) == NULL)
+      {
+        if (abort_error_code > 0 && abort_error_code < abort_ERROR_MAX)
+	  fputs(abort_msg[abort_error_code], stderr);
+	else if (abort_error_code)
+	  fprintf(stderr, abort_msg[0], abort_error_code);
+      }
+  }
+#endif
 
 #ifndef __SOFTFP__
   if (signo == SIGFPE)

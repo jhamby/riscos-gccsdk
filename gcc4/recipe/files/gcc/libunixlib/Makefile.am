@@ -982,6 +982,7 @@ else
 string_src = \
 	string/basename.c \
 	string/memcmp.c \
+	string/memmem.c \
 	string/memrchr.c \
 	string/rawmemchr.c \
 	string/strcat.c \
@@ -1045,7 +1046,6 @@ sys_src = \
 	sys/execlp.c \
 	sys/execv.c \
 	sys/execvp.c \
-	sys/mman.c \
 	sys/mount.c \
 	sys/sigsetjmp.c \
 	sys/stackalloc.c \
@@ -1059,6 +1059,13 @@ sys_src = \
 	sys/_swi.s \
 	sys/_syslib.s \
 	sys/_vfork.s
+if ARM_EABI
+sys_src += \
+	sys/mman-armeabi.c
+else
+sys_src += \
+	sys/mman.c
+endif
 endif
 sys_src += \
 	sys/errlist.c

@@ -1,5 +1,5 @@
 /* UnixLib internal file descriptor interface definition.
-   Copyright (c) 2002-2012 UnixLib Developers.  */
+   Copyright (c) 2002-2021 UnixLib Developers.  */
 
 #ifdef __TARGET_SCL__
 #  error "SCL has no fd support"
@@ -38,6 +38,10 @@ struct __unixlib_fd
   unsigned int dflag; /* File descriptor flags.  */
   int fflag; /* File status flags (attribs for opening a file) */
 };
+
+#ifdef __ARM_EABI__
+#define IS_SHM_FD(fd) ((fd) != -1 && (void *)(fd) > (void *)0x8000)
+#endif
 
 /* Macro for checking file descriptor validity.  */
 #define BADF(fdes) ((unsigned int)(fdes) >= __ul_global.sulproc->maxfd || getfd (fdes)->devicehandle == NULL)

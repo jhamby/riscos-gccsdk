@@ -163,6 +163,9 @@ extern char *__canonicalise_path (const char *pathname, const char *pathvar);
    appropriately.  */
 extern char *__canonicalise_handle (int fh);
 
+/* Translate error codes from ARMEABISupport to errno.  */
+extern int __errno_from_armeabisupport (int errnum);
+
 __END_DECLS
 
 #endif
