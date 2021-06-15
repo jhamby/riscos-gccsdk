@@ -10,6 +10,7 @@
 #include "abort.h"
 #include "stack.h"
 #include "mmap.h"
+#include "shm.h"
 #include "main.h"
 
 #define DEBUG_PRINT 1
@@ -37,6 +38,9 @@ module_swihandler (int number, _kernel_swi_regs * r, void *pw)
       break;
     case ARMEABISupport_MMapOp - ARMEABISupport_00:
       err = mmap_op(r);
+      break;
+    case ARMEABISupport_ShmOp - ARMEABISupport_00:
+      err = shm_op(r);
       break;
     default:
       err = error_BAD_SWI;

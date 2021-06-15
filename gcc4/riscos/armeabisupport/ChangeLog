@@ -1,3 +1,21 @@
+Tue Jun 15 19:49:50 BST 2021  Lee Noar  <lee.noar@sky.com>
+
+	* types.h: Add a list of shared memory objects to the global variables.
+	* decl-asm.h: As above.
+	* shm.{c/h}: Add shared memory implementation.
+	* mmap.c(armeabi_mmap): Check fd for shared memory object and store the
+	allocation in the shared memory.
+	* memory.{c/h}(allocator_munmap_block): New function to unmap a known
+	block.
+	(allocator_munmap): Check fd for a shared memory object and deref.
+	* main.c: Cleanup shared memory objects on program exit.
+	* command.c: Dump list of shared memory objects.
+	* configure.ac: Bump version to 1.03.
+	* Makefile.am: Build shm.c.
+	* swihandler.c: Handle SHMOP SWI.
+	* armeabisupport.cmhg: Add SHMOP SWI. Add errno style errors that should
+	make it easier to map to errno in Unixlib.
+
 Thu Apr 1  17:34:49 BST 2021  Lee Noar  <lee.noar@sky.com>
 
 	* types.h(dynamicarea_block): Store the size of the DA in pages

@@ -8,6 +8,7 @@
 #include "main.h"
 #include "memory.h"
 #include "mmap.h"
+#include "shm.h"
 #include "swi.h"
 #include "types.h"
 
@@ -1197,6 +1198,18 @@ allocator_mmap (armeabisupport_allocator_mmap *allocator,
 }
 
 _kernel_oserror *
+allocator_munmap_block(armeabisupport_allocator_mmap *allocator,
+		       mmap_block *block)
+{
+//reporter_printf/*      TRACE*/("allocator_munmap_block: shared memory object %p, \"%s\"", shm_obj, shm_obj->name);
+  unmap_release_pages(&allocator->base, block->start_page, block->end_page - block->start_page);
+  linklist_remove(&allocator->block_list, &block->link);
+  rma_free(block);
+
+  return NULL;
+}
+
+_kernel_oserror *
 allocator_munmap (armeabisupport_allocator_mmap *allocator,
 		  eabi_PTR addr,
 		  size_t page_count)
@@ -1216,7 +1229,17 @@ allocator_munmap (armeabisupport_allocator_mmap *allocator,
         {
 	  if (page == current->start_page && page_count == current->end_page - current->start_page)
 	    {
-	     /* Freeing whole block.  */
+	      /* Freeing whole block. Does it match a shared memory object? */
+	      if (current->fd != -1 && (void *)current->fd > (void *)0x8000)
+		{
+		  shm_object *shm_obj = (shm_object *)current->fd;
+
+		  TRACE("allocator_munmap: shared memory object %p, \"%s\", fd=%p",
+			shm_obj, shm_obj->name, current->fd);
+		  shm_deref_object(shm_obj);
+		  return NULL;
+		}
+
 	      unmap_release_pages(&allocator->base, page, page_count);
 	      linklist_remove(&allocator->block_list, &current->link);
 	      rma_free(current);

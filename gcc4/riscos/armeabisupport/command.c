@@ -12,6 +12,7 @@
 #include "stack.h"
 #include "types.h"
 #include "memory.h"
+#include "shm.h"
 #include "debug.h"
 
 static void
@@ -40,6 +41,9 @@ command_info(void)
 
   printf("mmaps:\n");
   allocator_dump_all(&global.mmap_allocator_pool);
+
+  printf("SHM:\n");
+  shm_dump_object_list();
 }
 
 _kernel_oserror *

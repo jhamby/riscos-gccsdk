@@ -8,6 +8,7 @@
 #include "mmap.h"
 #include "memory.h"
 #include "abort.h"
+#include "shm.h"
 #include "main.h"
 #include "swi.h"
 #include "debug.h"
@@ -269,14 +270,14 @@ armeabi_mmap_non_null_addr(eabi_PTR addr, size_t size, int prot, armeabisupport_
   armeabisupport_allocator_mmap *allocator = get_allocator(addr);
   if (!allocator)
     {
-      err = armeabisupport_bad_param;
+      err = armeabisupport_ENOMEM;
       goto error;
     }
 
   mmap_block *block = get_block(allocator, addr);
   if (!block)
     {
-      err = armeabisupport_bad_param;
+      err = armeabisupport_ENOMEM;
       goto error;
     }
 
@@ -285,7 +286,7 @@ armeabi_mmap_non_null_addr(eabi_PTR addr, size_t size, int prot, armeabisupport_
 
   if (page + num_pages > block->end_page)
     {
-      err = armeabisupport_page_map_error;
+      err = armeabisupport_ENOMEM;
       goto error;
     }
 
@@ -314,17 +315,40 @@ _kernel_oserror *
 armeabi_mmap(eabi_PTR addr, size_t size, int prot, int flags, int fd, size_t offset,
 	     armeabisupport_allocator_mmap **allocator_ret, mmap_block **block_ret)
 {
-  TRACE("armeabi_mmap(size:%d, prot:%d, flags:%d, fd:%d, offset:%d)",
+  TRACE("armeabi_mmap(size:0x%X, prot:0x%X, flags:0x%X, fd:%p, offset:%d)",
 	size, prot, flags, fd, offset);
 
   if (size == 0)
-    return armeabisupport_bad_param;
+    return armeabisupport_EINVAL;
 
   if (addr != NULL)
     return armeabi_mmap_non_null_addr(addr, size, prot, allocator_ret, block_ret);
 
   if (flags & MAP_FIXED)
-    return armeabisupport_bad_param;
+    return armeabisupport_EINVAL;
+
+  shm_object *shm = NULL;
+  if (IS_SHM_FD(fd))
+    {
+      TRACE("armeabi_mmap: shm detected, fd = %p", (void *)fd);
+      shm = (shm_object *)fd;
+      if (shm->valid != VALID_SHM)
+	{
+	  LOG("armeabi_mmap: Invalid shm @ %p", (void *)fd);
+	  return armeabisupport_EBADF;
+	}
+
+      if (shm->block != NULL)
+	{
+	  /* We've already got a memory allocation for this shared memory object.  */
+	  *allocator_ret = shm->allocator;
+	  *block_ret = shm->block;
+	  shm->ref_count++;
+	  TRACE("armeabi_mmap: shm %p already connected to mmap, name=\"%s\", ref=%d, addr=%p",
+		 shm, shm->name, shm->ref_count, page_to_addr(&shm->allocator->base, shm->block->start_page));
+	  return NULL;
+	}
+    }
 
   armeabisupport_allocator *allocator;
   _kernel_oserror *err;
@@ -381,6 +405,15 @@ armeabi_mmap(eabi_PTR addr, size_t size, int prot, int flags, int fd, size_t off
 
 	*allocator_ret = (armeabisupport_allocator_mmap *)allocator;
 	*block_ret = block;
+
+	if (shm)
+	  {
+	    shm->allocator = (armeabisupport_allocator_mmap *)allocator;
+	    shm->block = block;
+	    shm->ref_count++;
+	    TRACE("armeabi_mmap: shm %p connecting to mmap, name=\"%s\", ref=%d, addr=%p",
+		  shm, shm->name, shm->ref_count, page_to_addr(&shm->allocator->base, shm->block->start_page));
+	  }
         TRACE("armeabi_mmap: Allocated %d pages from allocator %s\n", num_pages, allocator->name);
         return NULL;
       }
@@ -389,7 +422,7 @@ armeabi_mmap(eabi_PTR addr, size_t size, int prot, int flags, int fd, size_t off
     allocator = linklist_next_armeabisupport_allocator(allocator);
   }
 
-  return armeabisupport_no_memory;
+  return armeabisupport_ENOMEM;
 }
 
 _kernel_oserror *
@@ -433,7 +466,7 @@ armeabi_madvise(eabi_PTR addr, size_t size, int advice)
   if (!allocator)
     {
       LOG("armeabi_madvise: Failed to find address in allocator pool\n");
-      return armeabisupport_bad_param;
+      return armeabisupport_ENOMEM;
     }
 
   _kernel_oserror *err;
@@ -449,7 +482,7 @@ armeabi_madvise(eabi_PTR addr, size_t size, int advice)
 	err = allocator_map_pages(&allocator->base, addr, num_pages, 0);
     }
   else
-    err = armeabisupport_bad_param;
+    err = armeabisupport_EINVAL;
 
   return err;
 }
@@ -487,13 +520,13 @@ armeabi_mprotect(void *addr, size_t len, int prot)
 
   /* The caller should already have checked this.  */
   if (!is_page_aligned(addr) || len == 0)
-    return armeabisupport_bad_param;
+    return armeabisupport_EINVAL;
 
   armeabisupport_allocator_mmap *allocator = get_allocator(addr);
   if (!allocator)
     {
       LOG("armeabi_mprotect: Failed to find address in allocator pool");
-      return armeabisupport_bad_param;
+      return armeabisupport_ENOMEM;
     }
 
   uint32_t access_flags;
@@ -515,18 +548,18 @@ armeabi_get_info(eabi_PTR addr,
 		 size_t *offset)
 {
   if (!is_page_aligned(addr))
-    return armeabisupport_bad_param;
+    return armeabisupport_EINVAL;
 
   armeabisupport_allocator_mmap *allocator = get_allocator(addr);
   if (!allocator)
     {
       LOG("armeabi_get_info: Failed to find address in allocator pool");
-      return armeabisupport_bad_param;
+      return armeabisupport_ENOMEM;
     }
 
   mmap_block *block = get_block(allocator, addr);
   if (!block)
-    return armeabisupport_bad_param;
+    return armeabisupport_ENOMEM;
 
   *mmap_addr = page_to_addr(&allocator->base, block->start_page);
   *size = pages_to_bytes(block->end_page - block->start_page);
@@ -535,7 +568,7 @@ armeabi_get_info(eabi_PTR addr,
   *handle = block->fd;
   *offset = block->offset;
 
-  TRACE("armeabi_get_info: addr=%p, mmap_addr=%p size=0x%X, prot=0x%X flags=0x%X, fd=%d, offset=%d",
+  TRACE("armeabi_get_info: addr=%p, mmap_addr=%p size=0x%X, prot=0x%X flags=0x%X, fd=%p, offset=%d",
 	addr, *mmap_addr, *size, *prot, *flags, *handle, *offset);
 
   return NULL;
@@ -557,7 +590,7 @@ armeabi_mremap (eabi_PTR addr,
   if (new_len == 0)
     {
       LOG("armeabi_mremap: new_len = 0");
-      err = armeabisupport_bad_param;
+      err = armeabisupport_EINVAL;
       goto error;
     }
 
@@ -565,7 +598,7 @@ armeabi_mremap (eabi_PTR addr,
   if (!allocator)
     {
       LOG("armeabi_mremap: Failed to find address (%p) in mmap allocator pool", addr);
-      err = armeabisupport_bad_param;
+      err = armeabisupport_ENOMEM;
       goto error;
     }
 
@@ -573,7 +606,7 @@ armeabi_mremap (eabi_PTR addr,
   if (!block)
     {
       LOG("armeabi_mremap: Failed to find block");
-      err = armeabisupport_bad_param;
+      err = armeabisupport_ENOMEM;
       goto error;
     }
 
@@ -590,7 +623,7 @@ armeabi_mremap (eabi_PTR addr,
     {
       LOG("armeabi_mremap: Non matching block, looking for (%d : %d), got (%d : %d)",
 	  page, bytes_to_pages(old_len), block->start_page, block->end_page - block->start_page);
-      err = armeabisupport_bad_param;
+      err = armeabisupport_ENOMEM;
       goto error;
     }
 

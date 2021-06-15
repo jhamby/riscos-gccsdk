@@ -111,6 +111,13 @@ allocator_mmap (armeabisupport_allocator_mmap *allocator,
 		const int required_page_count,
 		unsigned flags,
 		mmap_block **block_ret);
+
+/* Unmap and free memory where we already know the block.  */
+_kernel_oserror *
+allocator_munmap_block(armeabisupport_allocator_mmap *allocator,
+		       mmap_block *block);
+
+/* Unmap and free memory where we have an address and the number of pages.  */
 _kernel_oserror *
 allocator_munmap(armeabisupport_allocator_mmap *handle,
 		 eabi_PTR block, size_t num_pages);

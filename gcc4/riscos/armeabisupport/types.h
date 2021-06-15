@@ -84,6 +84,7 @@ typedef struct armeabisupport_globals
   link_list mmap_allocator_pool;
   link_list app_list;
   link_list allocator_list;
+  link_list shm_object_list;
   bool pre_filter_installed;
   bool post_filter_installed;
   unsigned os_memory_prot_none;
