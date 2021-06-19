@@ -7,7 +7,7 @@
 # Makefile to cross-compile from the autobuilder
 
 # Can use same native build of libpkg as the autobuilder packaging tools
-LIBPKG_PATH=$(GCCSDK_INSTALL_ENV)/../autobuilder/toolsrc/libpkg
+LIBPKG_PATH=$(AB_HOME)/toolsrc/libpkg
 
 CC=/usr/bin/gcc
 CXX=/usr/bin/g++
