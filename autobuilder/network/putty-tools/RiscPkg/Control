@@ -1,0 +1,5 @@
+Description: PSFTP is a command-line tool from the Putty suite.
+ PSFTP (PuTTY SFTP client) transfers files securely between systems using
+ the SSH file transfer protocol, which is specific to SSH protocol 2. In
+ interactive mode its interface is much like the traditional Unix FTP
+ client, although it can also operate in batch mode.
