@@ -1,0 +1,19 @@
+SDLQuake - Port of ID Software's popular Quake 3-D shooter game
+---------
+
+This game requires the original Quake datafiles.  You can get the shareware
+data files from http://www.libsdl.org/projects/quake/data/quakesw-1.0.6.zip
+.
+Copy the id folder into the !SDLQuake folder.
+
+See the !Run file in the !SDLQuake folder for default runtime settings.
+If sound is too fast/slow try changing the '-sndpseed 44100' options. Valid values are 11024, 22050, 44100, 48000.
+Remove '-fullscreen' if you want to play in the desktop.
+Reduce the values for '-winsize' if it runs too slowly. e.g. '-winsize 640 480'.
+
+This version created by the GCCSDK Autobuilder for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+It also requires that the SharedUnixLibrary which is available from:
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip

@@ -1,0 +1,8 @@
+#!/bin/bash
+# Auto-generate 'cloog'
+# Copyright (c) 2011 GCCSDK Developers
+
+# This is a fix for the CLooG 0.15.10 release
+
+( ./autogen.sh )
+

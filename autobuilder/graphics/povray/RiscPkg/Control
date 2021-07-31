@@ -1,0 +1,14 @@
+License: Free
+Description: Persistence of vision raytracer (3D renderer)
+ POV-Ray is a full-featured ray tracer. Ray tracers simulate objects
+ and light sources of the real world to calculate photorealistic, computer
+ generated images. Because of the nature of ray tracing, this process is
+ quite CPU-intensive, at the benefit of more realistic images compared to
+ real time rendering techniques. For example, in POV-Ray, you can model a
+ glass prism, and you will see a spectrum in the resulting image.
+ .
+ POV-Ray by itself is a command-line utility that will take scene
+ descriptions, written in a special easy-to-understand language, to
+ produce ray-traced images (or even a sequence of images, for animations).
+ You can either write those scene-descriptions by hand, or use external
+ tools to generate (parts of) the scene.

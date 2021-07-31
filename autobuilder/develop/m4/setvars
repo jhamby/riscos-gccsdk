@@ -1,0 +1,31 @@
+
+AB_FILESNOPATH="src/m4$AB_EXEEXT"
+
+export gl_cv_func_fflush_stdin=yes
+export gl_cv_func_gettimeofday_clobber=no
+export gl_cv_func_gettimeofday_posix_signature=yes
+export gl_cv_sys_struct_timeval=yes
+export gl_cv_func_working_mkstemp=yes
+export gl_cv_func_svid_putenv=yes
+export ac_cv_func_chown_works=yes
+export gl_cv_func_getcwd_null=yes
+export ac_cv_func_lchown=yes
+
+
+ab_package() {
+ ab_create_command_app Apps/Development
+ ab_add_commands $S/src/*$AB_EXEEXT
+
+ rman -f HTML $S/doc/m4.1 > $A/\!Help,faf
+
+ cp -av $S/README $S/THANKS $A
+ cp -av $S/AUTHORS $S/COPYING $A
+ cp -av $S/NEWS $S/ChangeLog $A
+ cp -av $S/TODO $A
+ mkdir -p $A/examples
+ cp -av $S/examples/* $A/examples
+ rm -rf $A/examples/Makefile*
+
+ $AB_HOME/add-riscpkg -unixlib
+}
+

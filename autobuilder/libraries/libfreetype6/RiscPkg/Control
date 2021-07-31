@@ -1,0 +1,10 @@
+License: Free
+Description: FreeType 2 font engine, development files.
+ The FreeType project is a team of volunteers who develop free,
+ portable and high-quality software solutions for digital typography.
+ They specifically target embedded systems and focus on bringing small,
+ efficient and ubiquitous products.
+ .
+ This package contains all supplementary files (static library, headers
+ and documentation) you need to develop your own programs using the
+ FreeType 2 library.

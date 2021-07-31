@@ -1,0 +1,6 @@
+| Boot file for LibLcms1
+|
+If "<LibLcms1$Dir>" = "" Then Set LibLcms1$Dir <Obey$Dir>
+If "<LibLcms1$Path>" = "" Then Set LibLcms1$Path <Obey$Dir>.
+
+IconSprites <LibLcms1$Dir>.!Sprites

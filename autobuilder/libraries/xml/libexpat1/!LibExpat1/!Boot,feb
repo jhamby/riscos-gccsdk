@@ -1,0 +1,6 @@
+| Boot file for LibExpat1
+|
+If "<LibExpat1$Dir>" = "" Then Set LibExpat1$Dir <Obey$Dir>
+If "<LibExpat1$Path>" = "" Then Set LibExpat1$Path <Obey$Dir>.
+
+IconSprites <LibExpat1$Dir>.!Sprites

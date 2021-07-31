@@ -1,0 +1,11 @@
+| Run file for dosbox
+
+| We need a wimpslot of more then 28M so this will
+| only run on RISC OS 5
+RMEnsure UtilityModule 5.00 Error This application needs RISC OS 5 to run
+
+WIMPSLOT
+
+Set DosBox$Dir <Obey$Dir>
+
+Run <DosBox$Dir>.dosbox %*0 >null: 2>null:

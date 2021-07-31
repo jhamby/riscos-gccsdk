@@ -1,0 +1,17 @@
+
+ab_package() {
+  ab_create_app ChoxVNC Apps/Network
+
+  mv $A/Launch,feb $A/\!Run,feb
+  ab_makerun $S/vncviewer
+  mv $A/\!Run,feb $A/Launch,feb
+  cp $H/\!ChoxVNC/\!Run,feb $A/
+
+  ab_docs vncviewer.man
+
+  $AB_HOME/add-riscpkg -package choxvnc -unixlib
+}
+
+cd vncviewer
+cp -av $H/Makefile .
+mv Imakefile Imakefile.old

@@ -1,0 +1,12 @@
+# We need this aliased version of cairo in order to bootstrap gtk+-2.0
+# The reason for this is a need to avoid a circular dependency chain:
+# gtk+-2.0 -> cairo -> librsvg -> gdk-pixbuf-2.0
+# gdk-pixbuf-2.0 is a component of gtk+-2.0 & thus building the cairo 
+# SVG backend requires that gtk+-2.0 is already installed, which it isn't
+# in the case where we're installing gtk+-2.0
+
+AB_INSTALL=yes
+
+export FONTCONFIG_LIBS="-lfontconfig -lfreetype -lexpat -lz"
+AB_CONFLAGS="--enable-xlib=yes --enable-xcb=no --enable-xcb-shm=no --enable-png=yes --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=yes"
+

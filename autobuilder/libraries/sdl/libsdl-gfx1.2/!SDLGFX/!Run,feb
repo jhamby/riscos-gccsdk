@@ -1,0 +1,6 @@
+| Run file for SDLGFX
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set SDLGFX$Dir <Obey$Dir>
+Set SDLGFX$Path <Obey$Dir>.,<Obey$Dir>.SDL.

@@ -1,0 +1,6 @@
+| Boot file for LibOpus
+|
+If "<LibOpus$Dir>" = "" Then Set LibOpus$Dir <Obey$Dir>
+If "<LibOpus$Path>" = "" Then Set LibOpus$Path <Obey$Dir>.
+
+IconSprites <LibOpus$Dir>.!Sprites

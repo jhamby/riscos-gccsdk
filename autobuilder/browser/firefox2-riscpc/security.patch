@@ -1,0 +1,122 @@
+? security/coreconf/riscos.mk
+Index: security/coreconf/config.mk
+===================================================================
+RCS file: /cvsroot/mozilla/security/coreconf/config.mk,v
+retrieving revision 1.17.28.3
+diff -u -r1.17.28.3 config.mk
+--- security/coreconf/config.mk	4 May 2007 06:54:05 -0000	1.17.28.3
++++ security/coreconf/config.mk	26 Aug 2008 03:14:46 -0000
+@@ -63,7 +63,7 @@
+ #######################################################################
+ 
+ TARGET_OSES = FreeBSD BSD_OS NetBSD OpenUNIX OS2 QNX Darwin BeOS OpenBSD \
+-              OpenVMS AIX
++              OpenVMS AIX RISCOS
+ 
+ ifeq (,$(filter-out $(TARGET_OSES),$(OS_TARGET)))
+ include $(CORE_DEPTH)/coreconf/$(OS_TARGET).mk
+Index: security/coreconf/rules.mk
+===================================================================
+RCS file: /cvsroot/mozilla/security/coreconf/rules.mk,v
+retrieving revision 1.66.2.8
+diff -u -r1.66.2.8 rules.mk
+--- security/coreconf/rules.mk	9 May 2007 01:38:16 -0000	1.66.2.8
++++ security/coreconf/rules.mk	26 Aug 2008 03:14:46 -0000
+@@ -356,8 +356,12 @@
+ ifdef XP_OS2_VACPP
+ 	$(MKSHLIB) $(DLLFLAGS) $(LDFLAGS) $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+ else
++ifeq ($(OS_TARGET),riscos-static)
++	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
++else
+ 	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+ endif
++endif
+ 	chmod +x $@
+ ifeq ($(OS_TARGET),Darwin)
+ ifdef MAPFILE
+Index: security/coreconf/nsinstall/nsinstall.c
+===================================================================
+RCS file: /cvsroot/mozilla/security/coreconf/nsinstall/nsinstall.c,v
+retrieving revision 1.8
+diff -u -r1.8 nsinstall.c
+--- security/coreconf/nsinstall/nsinstall.c	25 Apr 2004 15:02:18 -0000	1.8
++++ security/coreconf/nsinstall/nsinstall.c	26 Aug 2008 03:14:46 -0000
+@@ -58,7 +58,7 @@
+ 
+ #define HAVE_LCHOWN
+ 
+-#if defined(AIX) || defined(BSDI) || defined(HPUX) || defined(LINUX) || defined(SUNOS4) || defined(SCO) || defined(UNIXWARE) || defined(VMS) || defined(NTO) || defined(DARWIN) || defined(BEOS)
++#if defined(AIX) || defined(BSDI) || defined(HPUX) || defined(LINUX) || defined(SUNOS4) || defined(SCO) || defined(UNIXWARE) || defined(VMS) || defined(NTO) || defined(DARWIN) || defined(BEOS) || defined(__riscos__)
+ #undef HAVE_LCHOWN
+ #endif
+ 
+@@ -68,9 +68,9 @@
+ #undef HAVE_FCHMOD
+ #endif
+ 
+-#ifdef LINUX
++/*#if defined(LINUX)*/
+ #include <getopt.h>
+-#endif
++/*#endif*/
+ 
+ #if defined(SCO) || defined(UNIXWARE) || defined(SNI) || defined(NCR) || defined(NEC)
+ #if !defined(S_ISLNK) && defined(S_IFLNK)
+Index: security/nss/lib/freebl/unix_rand.c
+===================================================================
+RCS file: /cvsroot/mozilla/security/nss/lib/freebl/unix_rand.c,v
+retrieving revision 1.17.10.7
+diff -u -r1.17.10.7 unix_rand.c
+--- security/nss/lib/freebl/unix_rand.c	25 Jul 2007 23:18:55 -0000	1.17.10.7
++++ security/nss/lib/freebl/unix_rand.c	26 Aug 2008 03:14:47 -0000
+@@ -34,6 +34,8 @@
+  *
+  * ***** END LICENSE BLOCK ***** */
+ 
++#define __USE_BSD
++
+ #include <stdio.h>
+ #include <string.h>
+ #include <signal.h>
+@@ -185,7 +187,7 @@
+ #endif
+ 
+ #if defined(SCO) || defined(UNIXWARE) || defined(BSDI) || defined(FREEBSD) \
+-    || defined(NETBSD) || defined(NTO) || defined(DARWIN) || defined(OPENBSD)
++    || defined(NETBSD) || defined(NTO) || defined(DARWIN) || defined(OPENBSD) || defined(__riscos__)
+ #include <sys/times.h>
+ 
+ #define getdtablesize() sysconf(_SC_OPEN_MAX)
+Index: security/nss/lib/softoken/pcertdb.c
+===================================================================
+RCS file: /cvsroot/mozilla/security/nss/lib/softoken/Attic/pcertdb.c,v
+retrieving revision 1.53.2.11
+diff -u -r1.53.2.11 pcertdb.c
+--- security/nss/lib/softoken/pcertdb.c	16 Nov 2007 02:05:58 -0000	1.53.2.11
++++ security/nss/lib/softoken/pcertdb.c	26 Aug 2008 03:14:47 -0000
+@@ -4055,7 +4064,7 @@
+     if (appName) {
+ 	handle->permCertDB=rdbopen( appName, prefix, "cert", NO_CREATE, &status);
+     } else {
+-	handle->permCertDB=dbsopen(certdbname, NO_CREATE, 0600, DB_HASH, 0);
++	handle->permCertDB=dbsopen(certdbname, NO_CREATE, 0666, DB_HASH, 0);
+     }
+ 
+     /* if create fails then we lose */
+Index: security/nss-fips/lib/freebl/unix_rand.c
+===================================================================
+RCS file: /cvsroot/mozilla/security/nss/lib/freebl/unix_rand.c,v
+retrieving revision 1.17.10.5
+diff -u -r1.17.10.5 unix_rand.c
+--- security/nss-fips/lib/freebl/unix_rand.c	12 Oct 2006 22:50:48 -0000	1.17.10.5
++++ security/nss-fips/lib/freebl/unix_rand.c	26 Aug 2008 03:14:47 -0000
+@@ -365,7 +365,7 @@
+ 
+ #endif /* Alpha */
+ 
+-#if defined(_IBMR2)
++#if defined(_IBMR2) || defined(__riscos__)
+ static size_t
+ GetHighResClock(void *buf, size_t maxbytes)
+ {

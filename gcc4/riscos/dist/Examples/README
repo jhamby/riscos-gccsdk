@@ -1,0 +1,5 @@
+These are very simple examples for assembler, C, C++ and module programs.
+To compile them, you need at least 'make' program (separately
+downloadable at <URL:http://www.riscos.info/packages/>).
+
+They also show both the use of static and shared ELF libraries.

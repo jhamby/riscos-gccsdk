@@ -1,0 +1,52 @@
+
+Battle for Westnoth
+-------------------
+
+RISC OS port improvements for 1.4.5 and later by Christopher Martin
+
+1st October 2008.
+
+(The 1.4.5 version on the autobuilder website was currently built
+using GCC 3.4.6 on Christopher's machine. The patches he used
+have been added to the autobuilder and it is hoped that a
+runnable version compiled by GCC4 will be available in future.)
+ 
+RISC OS port for the autobuilder by Alan Buckley
+
+10th July 2007
+
+An earlier version was ported to RISC OS by Peter Naulls
+on 23rd December 2004 as part of the Unix Porting Project, for its
+Xmas 2004 games porting promotion. See the following URL for more
+details: http://www.drobe.co.uk/riscos/artifact1242.html
+
+Because of the CPU and graphical demands of Battle for Wesnoth,
+running it on a RiscPC will not be very satisfactory.  To get the most from the game, you will need an Iyonix.
+
+It has not been tested it on an A9Home so I can not comment on
+its speed on this machine.
+
+I recommend you run the game at 800x600 (see the configuration)
+and full screen and turn the music off.
+
+Known problems:
+1. It can take a long time to load at startup, load a scenario,
+   save games and quit.   
+2. The music is choppy.
+
+
+The recipe to build this game is in the autobuilder.
+See: http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+This program requires:
+
+SharedUnixLibrary module available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
+
+!UnixHome application available from:
+
+http://www.riscos.info/unix/downloads/support/UnixHome-1.03.zip
+
+
+Contact: alan_baa@hotmail.com

@@ -1,0 +1,6 @@
+| Boot file for LibGCrypt20
+|
+If "<LibGCrypt20$Dir>" = "" Then Set LibGCrypt20$Dir <Obey$Dir>
+If "<LibGCrypt20$Path>" = "" Then Set LibGCrypt20$Path <Obey$Dir>.
+
+IfThere <LibGCrypt20$Dir>.!Sprites then IconSprites <LibGCrypt20$Dir>.!Sprites

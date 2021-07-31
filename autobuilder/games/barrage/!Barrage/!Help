@@ -1,0 +1,104 @@
+
+                        ================
+                            Barrage
+                        ================
+
+                     a game by  Michael Speck
+		      http://lgames.sf.net
+
+
+------------
+Introduction
+------------
+
+Barrage is a rather violent action game with the objective to kill
+and destroy as many targets as possible within 3 minutes. The player
+controls a gun that may either fire small or large grenades at
+soldiers, jeeps and tanks. It is a very simple gameplay though it is
+not that easy to get high scores. 
+
+I wrote this game ''by accident''. I created a little particle system
+just because I never did this before and I had read somewhere that it
+allows nifty effects for games. Okay, but of course I needed an
+enviroment to test it so I started with a background... than I defined
+the grenade explosions... but what's an explosion without something
+that is destroyed by it? So little inanimate soldiers followed...
+and soon I wanted some moving targets... then why not adding scores
+to the whole thing? Plus a little menu and a highscore chart and then
+there it was. I know a one-gun barrage is not really a barrage but
+I like the title, so what? :)
+
+------------
+How To Start
+------------
+
+As stated in the INSTALL file, start barrage from the proper location.
+You may pass the following options to barrage when running it from a
+console:
+  -d <DELAY>      wait <DELAY> milliseconds in the main loop and when
+                  fading; this may reduce CPU usage a great deal but
+                  may have impact on the frame rate depending on the
+                  speed of your CPU
+  -w              don't start in fullscreen but in windowed mode; you
+                  can switch this anytime while playing by pressing 'f'
+  -s              play silently, thus don't play any sounds; this can
+                  also be switched by pressing 's' while playing
+
+-----------
+How To Play
+-----------
+
+The main menu is quite self-explaining, so we get directly to what is up
+when entering the shooting range:
+The gun is located at the left side of the screen and has an ammunition
+of 36 shots. Aiming is done by simply moving the mouse pointer which is
+a crosshair above a target and left-click it for example. A shot is then
+fired and an angle of 60 degrees and it will exactly hit the spot you
+aimed at. The meaning of the mouse buttons is as follows:
+	Left Button		Fire a large grenade.
+	Middle Button or
+	Ctrl + Left Button	Fire a small grenade.
+	Right Button		Reload gun to full 36 rounds.
+Similiar to Ctrl+LeftButton being an alternative to MiddleButton
+you can use the SpaceBar to reload the gun. ESC quits the game
+without checking the highscore. To enter the highscore you'll have
+to play a full game of 3 minutes.
+
+Whenever you fire a large grenade the crosshair will turn red for
+0.5 seconds. In this time you cannot shoot. Small grenades can be
+fired so fast that the crosshair will not change its appearance.
+If you run out of ammo the crosshair becomes a triple of red rounds
+indicating that you have to reload either by pressing SPACE or 
+clicking the right mouse button. Note, that reloading ALWAYS costs
+36 points of your score (which cannot drop below 0) no matter how
+may rounds where actually reloaded! 
+
+Small grenades cannot damage a tank. Use large ones and aim carefully
+you have to hit quite exactly. Also try to prevent jeeps and tanks
+from escaping. Tanks come from the bottom and jeeps come from the top
+of the screen and for any vehicle that makes it safe through the 
+battlefield you will loose half the score you would have received 
+for destroying it. Soldiers do not have such a penalty.
+
+Target Scores are:
+Soldier		 5 points	(no penalty)
+Jeep		20 points	(10 points escape penalty)
+Tank		50 points	(25 points escape penalty)
+
+Also keep an eye at the ammo to see wether you have to reload. If you
+aimed at a target and clicked, just to realize you have no rounds left,
+the target may be out of sight before you can try to fire a second 
+time.
+
+Good luck! Dismissed.
+
+
+Michael Speck
+http://lgames.sf.net
+
+This version created by the GCCSDK Autobuilder for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+It also requires that the SharedUnixLibrary which is available from:
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip

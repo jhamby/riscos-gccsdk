@@ -1,0 +1,11 @@
+
+AB_CATEGORY=Network
+
+AB_PRECONF=:
+
+AB_MAKE="$AB_MAKE riscos"
+
+AB_MANPAGE=nc.1
+
+AB_FILESNOPATH="nc$AB_EXEEXT README netcat.blurb"
+

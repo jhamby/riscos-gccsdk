@@ -1,0 +1,14 @@
+| !Boot file for MPlayer
+
+Set MPlayer$Dir <Obey$Dir>
+Iconsprites <MPlayer$Dir>.!Sprites
+
+Set Alias$mencoder Run <MPlayer$Dir>.mencoder %%*0
+Set Alias$mplayer Run <MPlayer$Dir>.mplayer %%*0
+set mplayer$heap ""
+if "<File$Type_FB2>" = "" then Set File$Type_FB2 "AVI"
+if "<File$Type_BF8>" = "" then Set File$Type_BF8 "MPEG"
+if "<File$Type_A8D>" = "" then Set File$Type_A8D "VOB"
+Set Alias$@RunType_BF8 Run <Obey$Dir>.!Run %%*0
+Set Alias$@RunType_FB2 Run <Obey$Dir>.!Run %%*0
+Set Alias$@RunType_A8D Run <Obey$Dir>.!Run %%*0

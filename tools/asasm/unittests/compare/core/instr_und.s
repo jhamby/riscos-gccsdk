@@ -1,0 +1,42 @@
+; Tests UND instruction.
+
+	AREA Code, CODE
+
+	[ :LNOT: REFERENCE
+
+	ARM
+	UND
+	UND #&FDB9
+	UND.W #2
+
+	THUMB
+	UND
+	UND #&FDB
+	UND #&FD
+
+	UNDNE
+	UNDVS #&FDB
+	UNDCC #&FD
+
+	|
+
+	ARM
+	DCI 0xe7F000F0 
+	DCI 0xe7F000F0 | 0xFDB09
+	DCI 0xe7F000F0 | 0x00002
+
+	THUMB
+	DCI.N 0xDE00 | 0
+	DCI.W 0xF7F0A0F0 | 0xF0D0B 
+	DCI.N 0xDE00 | 0xFD
+
+	IT NE
+	DCI.N 0xDE00 | 0
+	IT VS
+	DCI.W 0xF7F0A0F0 | 0xF0D0B
+	IT CC 
+	DCI.N 0xDE00 | 0xFD
+
+	]
+
+	END

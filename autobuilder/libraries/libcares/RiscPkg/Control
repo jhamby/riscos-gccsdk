@@ -1,0 +1,12 @@
+Description: library for asynchronous name resolves (development files)
+ c-ares is a C library that performs DNS requests
+ and name resolves asynchronously.
+ .
+ c-ares is a fork of the library named 'ares'
+ .
+ additionally it features
+  * IPv6 support
+  * Extended cross platform portability
+  * 64bit cleaned sources
+ .
+ This package contains development files (headers and static libraries).

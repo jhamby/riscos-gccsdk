@@ -1,0 +1,23 @@
+AB_ROVERSION=2
+AB_CONFLAGS=\''--datadir=/\<BumpRace\$$Dir\>/data'\'
+AB_PVERSION=1.5.7
+
+ab_package() {
+  ab_create_app BumpRace Apps/Games
+
+  ab_makerun src/bumprace$AB_EXEEXT
+
+  cp -av AUTHORS $ChangeLog COPYING FAQ README $A/
+
+  mkdir -p $A/data/bumprace
+  cp -r data/gfx $A/data/bumprace
+# Sounds and music have been removed from debian 1.5.4 release
+# due to questions on copyright
+# Sound and music exists in the 1.5.7 build so can be copied.
+  cp -r data/sound $A/data/bumprace
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name BumpRace
+}
+
+export LIBS="-ljpeg -lpng -ltiff -lz  -lvorbisidec -lmikmod -logg -lintl -lFLAC -lwebp -ltiff -llzma"
+

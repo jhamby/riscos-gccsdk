@@ -1,0 +1,15 @@
+AB_INSTALL=yes
+AB_CONFLAGS="--enable-compat185"
+
+chmod u+w dist/configure
+
+# We're no longer allowed to build in dist subdir.  Create build dir 'obj'
+# and point to ro-config where 'configure' script can be found.
+mkdir -p obj
+cd obj
+export RO_CPATH=../dist
+
+export LN=ln
+
+rm -f $GCCSDK_INSTALL_ENV/lib/libdb-4.a
+ln -s libdb-4.7.a $GCCSDK_INSTALL_ENV/lib/libdb-4.a

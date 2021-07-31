@@ -1,0 +1,40 @@
+AB_ROVERSION=2
+
+AB_CONFLAGS='--enable-threads=pth'
+autoreconf -fi
+
+ab_package() {
+  ab_create_command_app CoreUtils Apps/Utilities
+  
+# remove these as they interfere with the function of RISC OS
+  rm -f $S/src/cat$AB_EXEEXT
+  rm -f $S/src/dir$AB_EXEEXT
+
+  ab_add_commands $S/src/*$AB_EXEEXT
+
+  cp $S/COPYING $A
+  cp $S/AUTHORS $A
+  cp $S/THANKS $A
+  cp $S/NEWS $A/!Help
+  cp $S/README $A/!Help
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/COPYING -name CoreUtils
+}
+
+export gl_cv_func_fflush_stdin=yes
+export gl_cv_func_gettimeofday_clobber=no
+export gl_cv_func_gettimeofday_posix_signature=yes
+export gl_cv_func_working_mkstemp=yes
+export gl_cv_func_svid_putenv=yes
+export ac_cv_func_chown_works=yes
+export gl_cv_func_getcwd_null=yes
+export ac_cv_func_lchown=yes
+export gl_cv_func_rename_trailing_slash_bug=no
+export gl_cv_func_rename_dest_exists_bug=no
+
+export fu_cv_sys_mounted_fread=yes
+
+export ac_cv_exeext=,e1f
+
+
+

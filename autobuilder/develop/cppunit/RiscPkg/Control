@@ -1,0 +1,9 @@
+Package: CppUnit
+Section: Library
+Priority: Optional
+Licence: Free
+Maintainer: Matthew Hambley <matthew@aether.demon.co.uk>
+Standards-Version: 0.1.0
+Version: ROVERSION
+Description: A unit testing library for use with C++
+

@@ -1,0 +1,4 @@
+RISC OS specific notes for p7zip
+--------------------------------
+
+This package seems to work fine, as long as the full pathname of the current working directory does not have hard spaces (ASCII code 160) in it. 

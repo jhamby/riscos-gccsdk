@@ -1,0 +1,48 @@
+AB_INSTALL=env
+
+AB_URL=http://poppler.freedesktop.org/poppler-0.65.0.tar.xz
+
+AB_INSTALLTARGET=" -C build install"
+AB_DISTCLEAN="$AB_MAKE -C build clean"
+
+ab_make() {
+   mkdir build && cd build
+   cmake -DCMAKE_TOOLCHAIN_FILE=../../../../env/toolchain-riscos.cmake \
+         -DCMAKE_FIND_LIBRARY_SUFFIXES='.a' \
+         -DCMAKE_EXE_LINKER_FLAGS='-static -L../../../../../env/lib -lssl -lcrypto -lfontconfig -lglib-2.0 -lcairo -lcares -lharfbuzz -lfreetype -ljpeg -lpng -lexpat -lbz2 -lz -llzma  -ltiff -lpcre -lintl -lpixman-1 -lcurl -lwebp' \
+         -DENABLE_CPP=ON \
+         -DBUILD_CPP_TESTS=OFF \
+         -DENABLE_LIBOPENJPEG=openjpeg2 \
+         -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV \
+         -DENABLE_SPLASH=ON \
+         -DENABLE_GLIB=ON \
+         -DSPLASH_CMYK=ON \
+         -DBUILD_SHARED_LIBS=OFF \
+         ..
+   $AB_MAKE
+   cd ..
+ }
+
+ab_package() {
+  # Package programs
+  ab_create_command_app PDFUtils Apps/Document pdfutils
+
+ab_add_commands $S/build/utils/pdfdetach
+ab_add_commands $S/build/utils/pdffonts
+ab_add_commands $S/build/utils/pdfimages
+ab_add_commands $S/build/utils/pdfinfo
+ab_add_commands $S/build/utils/pdfseparate
+ab_add_commands $S/build/utils/pdftocairo
+ab_add_commands $S/build/utils/pdftohtml
+ab_add_commands $S/build/utils/pdftoppm
+ab_add_commands $S/build/utils/pdftops
+ab_add_commands $S/build/utils/pdftotext
+ab_add_commands $S/build/utils/pdfunite
+
+  cp $S/AUTHORS $S/ChangeLog $S/COPYING $S/COPYING3 $S/NEWS $S/README $S/README-XPDF $S/README.contributors $A/
+
+  ab_docs $S/utils/*.1
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -package pdfutils -name PDFUtils -section Document
+
+ }

@@ -1,0 +1,34 @@
+| Run file for pingus
+
+Set HasLargeWimpSlot no
+RMEnsure UtilityModule 6.00 Set HasLargeWimpSlot yes
+RMEnsure UtilityModule 5.00 Set HasLargeWimpSlot no
+
+If "<HasLargeWimpSlot>" = "no" Then Set pingus$Heap ""
+If "<HasLargeWimpSlot>" = "no" Then SetEval pingus$HeapMax 96
+
+Unset HasLargeWimpSlot
+
+WimpSlot -min 8192k -max 8192k
+
+Set SDL$pingus$BackBuffer 2
+
+Dir <Obey$Dir>
+Set Pingus$Dir <Obey$Dir>
+
+| The following options have been added to get the game up to 8-12fps on
+| an Iyonix
+|
+| Please feel free to add/remove them to see if you can get better results
+| on other machines
+|
+| -m Turn of music
+| -f Start full screen
+| -g 640x480 use 640x480 resolution (if taken off runs at 800x600)
+|
+| -d sets the data file so don't remove it or following options
+|
+| For debug output change the >null: 2>null: to
+|  ><Pingus$Dir>.stdout 2><Pingus$Dir>.stderr
+
+Run <Pingus$Dir>.pingus -m -d /<Pingus$Dir>/data >null: 2>null:

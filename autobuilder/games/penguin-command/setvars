@@ -1,0 +1,19 @@
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app PengCmnd Apps/Games
+
+  ab_makerun $S/src/penguin-command$AB_EXEEXT
+
+  cat README $H/RISCOSNotes > $A/\!Help
+
+  cp -av AUTHORS $ChangeLog COPYING $A
+
+  mkdir -p $A/data/penguin-command
+  cp -r data/gfx $A/data/penguin-command
+  cp -r data/sound $A/data/penguin-command
+  
+  $AB_HOME/add-riscpkg -unixlib -unixsound
+}
+
+AB_CONFLAGS=\''--datadir=/\<PengCmnd\$$Dir\>/data'\'

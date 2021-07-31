@@ -1,0 +1,3 @@
+| This is a wrapper to the MCS compiler which is suitable for use with
+| profile 4.0.
+mcs -sdk:4 %*0

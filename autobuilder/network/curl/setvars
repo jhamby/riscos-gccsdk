@@ -1,0 +1,21 @@
+AB_URL=http://deb.debian.org/debian/pool/main/c/curl/curl_7.74.0.orig.tar.gz
+
+AB_ROVERSION=2
+
+# make distclean seems to get stuck in an infinite loop
+AB_DISTCLEAN='$AB_MAKE -C src clean'
+
+AB_CONFLAGS='--with-ssl --enable-ares --disable-ipv6 --without-gnutls --with-libssh2 --with-ca-bundle=InetDBase:CertData'
+
+./buildconf
+
+export RO_SHAREDLIBS=no
+
+ab_package() {
+  ab_create_command_app Curl Apps/Network
+  ab_add_commands $S/src/*$AB_EXEEXT
+
+  ab_docs -h $S/RELEASE-NOTES $S/README $S/CHANGES $S/COPYING
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/COPYING
+}

@@ -1,0 +1,22 @@
+# Based on ${target}, ${target_cpu}, ${target_os} and/or ${target_vendor},
+# determine ...
+# Only used when host triplet differs from target triplet, i.e. native or
+# canadian cross compilation.
+
+case ${target_cpu} in
+  armeb)
+	libelf_arch=EM_ARM
+	libelf_byteorder=ELFDATA2MSB
+	libelf_class=ELFCLASS32
+	;;
+  arm*)
+	libelf_arch=EM_ARM
+	libelf_byteorder=ELFDATA2LSB
+	libelf_class=ELFCLASS32
+	;;
+  *)
+	echo "*** Configuration ${target} not supported" 1>&2
+	exit 1
+	;;
+esac
+

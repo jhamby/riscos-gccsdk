@@ -1,0 +1,64 @@
+AB_INSTALL=yes
+AB_INSTALLDOCS="README docs/LICENSE docs/FTL.TXT docs/GPL.TXT docs/CHANGES"
+AB_ROVERSION=2
+
+echo "echo arm-riscos-aof" > builds/unix/config.guess
+
+(cd builds/unix ; autoconf)
+
+AB_PRECONF="RO_CPATH=builds/unix/"
+
+$AB_MAKE setup unix
+
+mkdir -p $D/include/freetype2/config
+mkdir -p $D/include/freetype2/freetype/config
+mkdir -p $D/include/freetype2/freetype/cache
+mkdir -p $D/include/freetype2/freetype/internal
+
+AB_MAKE="$AB_MAKE CCexe=$HOST_CC"
+
+export LIBPNG_CFLAGS="-I$GCCSDK_INSTALL_ENV/include"
+export LIBPNG_LDFLAGS="-L$GCCSDK_INSTALL_ENV/lib -lpng"
+
+ab_make() {
+  cp ftconfig.h ftoption.h libtool *.mk builds/unix
+
+  eval $AB_MAKE
+}
+
+ab_package() {
+  ab_create_app FreeType2 Apps/Library libfreetype6-dev
+
+  cp README $A/\!Help
+  cp README $A
+  cp -r docs $A
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip  
+
+  mv include/freetype2 freetype2
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  rm -rf bin
+  rm -rf doc
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package libfreetype6-dev -name LibFreeType6-Dev -unixlib \
+    -depends "ZLib1g-Dev" -depends "LibBZ2-Dev" -depends "LibPNG16-Dev" \
+    -copyrightfile $S/docs/GPLv2.TXT
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libfreetype6
+    ab_add_sharedlib $S/objs/.libs libfreetype.so.6
+
+    $AB_HOME/add-riscpkg -package libfreetype6 -name LibFreeType6 -section Library \
+      -depends ZLib1g -depends LibBZ2-1.0 -depends LibPNG16-16 -copyrightfile $S/docs/GPLv2.TXT
+  fi
+
+}

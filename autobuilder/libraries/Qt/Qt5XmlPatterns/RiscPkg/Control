@@ -1,0 +1,5 @@
+Description: QtXmlPatterns library
+  Qt is a cross-platform C++ application framework. Qt's primary feature
+  is its rich set of widgets that provide standard GUI functionality.
+  .
+  QtXmlPatterns is a XQuery and XPath engine for XML and custom data models.

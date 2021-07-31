@@ -1,0 +1,6 @@
+| Boot file for LibSSH2
+|
+If "<LibSSH2$Dir>" = "" Then Set LibSSH2$Dir <Obey$Dir>
+If "<LibSSH2$Path>" = "" Then Set LibSSH2$Path <Obey$Dir>.
+
+IconSprites <LibSSH2$Dir>.!Sprites

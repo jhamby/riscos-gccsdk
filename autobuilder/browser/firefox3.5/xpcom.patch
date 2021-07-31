@@ -1,0 +1,186 @@
+diff -r 456a088b297b xpcom/glue/standalone/Makefile.in
+--- a/xpcom/glue/standalone/Makefile.in	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/glue/standalone/Makefile.in	Sun Aug 09 10:38:00 2009 -0700
+@@ -62,7 +62,7 @@
+ ifneq (,$(filter WINNT WINCE,$(OS_ARCH)))
+ LINKSRC = nsGlueLinkingWin.cpp
+ endif
+-ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS,$(OS_ARCH)))
++ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS RISCOS,$(OS_ARCH)))
+ LINKSRC = nsGlueLinkingDlopen.cpp
+ endif
+ ifeq (OS2,$(OS_ARCH))
+diff -r 456a088b297b xpcom/io/nsAppFileLocationProvider.cpp
+--- a/xpcom/io/nsAppFileLocationProvider.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/io/nsAppFileLocationProvider.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -352,6 +352,9 @@
+         rv = directoryService->Get(NS_WIN_WINDOWS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
+     }
+     if (NS_FAILED(rv)) return rv;
++#elif defined(XP_RISCOS)
++    rv = NS_NewNativeLocalFile(nsDependentCString("/<Choices$Write>/"), PR_TRUE, getter_AddRefs(localDir));
++    if (NS_FAILED(rv)) return rv;
+ #elif defined(XP_UNIX)
+     rv = NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")), PR_TRUE, getter_AddRefs(localDir));
+     if (NS_FAILED(rv)) return rv;
+diff -r 456a088b297b xpcom/io/nsDirectoryService.cpp
+--- a/xpcom/io/nsDirectoryService.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/io/nsDirectoryService.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -186,7 +186,10 @@
+     NS_ASSERTION(*aFile, "nsDirectoryService - Could not determine CurrentProcessDir.\n");
+     if (*aFile)
+         return NS_OK;
+-
++#elif defined(XP_RISCOS)
++    localFile->InitWithNativePath(nsDependentCString("Firefox:"));
++    *aFile = localFile;
++    return NS_OK;
+ #elif defined(XP_UNIX)
+ 
+     // In the absence of a good way to get the executable directory let
+diff -r 456a088b297b xpcom/io/nsLocalFileUnix.cpp
+--- a/xpcom/io/nsLocalFileUnix.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/io/nsLocalFileUnix.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -308,7 +308,11 @@
+         
+         mPath = homePath + Substring(filePath, 1, filePath.Length() - 1);
+     } else {
++#ifdef XP_RISCOS
++        if (filePath.IsEmpty())
++#else
+         if (filePath.IsEmpty() || filePath.First() != '/')
++#endif
+             return NS_ERROR_FILE_UNRECOGNIZED_PATH;
+         mPath = filePath;
+     }
+diff -r 456a088b297b xpcom/reflect/xptcall/src/md/unix/Makefile.in
+--- a/xpcom/reflect/xptcall/src/md/unix/Makefile.in	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/reflect/xptcall/src/md/unix/Makefile.in	Sun Aug 09 10:38:00 2009 -0700
+@@ -205,6 +205,13 @@
+ endif
+ endif
+ #
++# RISC OS
++#
++ifeq ($(OS_ARCH),RISCOS)
++CPPSRCS		:= xptcinvoke_arm.cpp xptcstubs_arm_riscos.cpp
++CXXFLAGS += -O2
++endif
++#
+ # OpenBSD/ARM
+ #
+ ifneq (,$(filter OpenBSDarmish OpenBSDzaurus,$(OS_ARCH)$(OS_TEST)))
+diff -r 456a088b297b xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp
+--- a/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -39,9 +39,10 @@
+ 
+ #include "prlog.h"
+ 
++#include <stdio.h>
+ #include "xptcprivate.h"
+ 
+-#if !defined(LINUX) || !defined(__arm__)
++#if (!defined(LINUX) && !defined(RISCOS)) || !defined(__arm__)
+ #error "This code is for Linux ARM only. Check that it works on your system, too.\nBeware that this code is highly compiler dependent."
+ #endif
+ 
+@@ -173,7 +174,8 @@
+                    PRUint32 paramCount, nsXPTCVariant* params)
+ {
+     PRUint32 result;
+-    struct my_params_struct my_params;
++    volatile struct my_params_struct my_params;
++
+     my_params.that = that;
+     my_params.Index = methodIndex;
+     my_params.Count = paramCount;
+@@ -181,6 +183,9 @@
+     my_params.fn_copy = (PRUint32) &invoke_copy_to_stack;
+     my_params.fn_count = (PRUint32) &invoke_count_words;
+ 
++//    puts("invoke");
++//    printf("invoke: %p %d %d\n", (void *)that, methodIndex, paramCount);
++
+ /* This is to call a given method of class that.
+  * The parameters are in params, the number is in paramCount.
+  * The routine will issue calls to count the number of words
+@@ -207,43 +212,44 @@
+  */
+  
+   __asm__ __volatile__(
+-    "ldr	r1, [%1, #12]	\n\t"	/* prepare to call invoke_count_words	*/
+-    "ldr	ip, [%1, #16]	\n\t"	/* r0=paramCount, r1=params		*/
+-    "ldr	r0, [%1,  #8]	\n\t"
++    "mov	r5, %1		\n\t"
++    "ldr	r1, [r5, #12]	\n\t"	/* prepare to call invoke_count_words	*/
++    "ldr	ip, [r5, #16]	\n\t"	/* r0=paramCount, r1=params		*/
++    "ldr	r4, [r5,  #8]	\n\t"
++    "mov	r0, r4		\n\t"
+     "mov	lr, pc		\n\t"	/* call it...				*/
+     "mov	pc, ip		\n\t"
+-    "mov	r4, r0, lsl #2	\n\t"	/* This is the amount of bytes needed.	*/
+-    "sub	sp, sp, r4	\n\t"	/* use stack space for the args...	*/
++    "sub	sp, sp, r4, lsl #2\n\t"	/* use stack space for the args...	*/
+     "mov	r0, sp		\n\t"	/* prepare a pointer an the stack	*/
+-    "ldr	r1, [%1,  #8]	\n\t"	/* =paramCount				*/
+-    "ldr	r2, [%1, #12]	\n\t"	/* =params				*/
+-    "ldr	ip, [%1, #20]	\n\t"	/* =invoke_copy_to_stack		*/
++    "ldr	r1, [r5,  #8]	\n\t"	/* =paramCount				*/
++    "ldr	r2, [r5, #12]	\n\t"	/* =params				*/
++    "ldr	ip, [r5, #20]	\n\t"	/* =invoke_copy_to_stack		*/
+     "mov	lr, pc		\n\t"	/* copy args to the stack like the	*/
+     "mov	pc, ip		\n\t"	/* compiler would.			*/
+-    "ldr	r0, [%1]	\n\t"	/* =that				*/
++    "ldr	r0, [r5]	\n\t"	/* =that				*/
+     "ldr	r1, [r0, #0]	\n\t"	/* get that->vtable offset		*/
+-    "ldr	r2, [%1, #4]	\n\t"
+-    "mov	r2, r2, lsl #2	\n\t"	/* a vtable_entry(x)=8 + (4 bytes * x)	*/
++    "ldr	r2, [r5, #4]	\n\t"
++    //"mov	r2, r2, lsl #2	\n\t"	/* a vtable_entry(x)=8 + (4 bytes * x)	*/
+ #if defined(__GXX_ABI_VERSION) && __GXX_ABI_VERSION >= 100 /* G++ V3 ABI */
+-    "ldr        ip, [r1, r2]    \n\t"   /* get method adress from vtable        */
++    "ldr        ip, [r1, r2, lsl #2]    \n\t"   /* get method adress from vtable        */
+ #else /* non G++ V3 ABI */
+-    "add	r2, r2, #8	\n\t"	/* with this compilers			*/
+-    "ldr	ip, [r1, r2]	\n\t"	/* get method adress from vtable	*/
++    "add	r2, r2, #2	\n\t"	/* with this compilers			*/
++    "ldr	ip, [r1, r2, lsl #2]	\n\t"	/* get method adress from vtable	*/
+ #endif
+-    "cmp	r4, #12		\n\t"	/* more than 3 arguments???		*/
++    "cmp	r4, #3		\n\t"	/* more than 3 arguments???		*/
+     "ldmgtia	sp!, {r1, r2, r3}\n\t"	/* yes: load arguments for r1-r3	*/
+-    "subgt	r4, r4, #12	\n\t"	/*      and correct the stack pointer	*/
++    "subgt	r4, r4, #3	\n\t"	/*      and correct the stack pointer	*/
+     "ldmleia	sp, {r1, r2, r3}\n\t"	/* no:  load r1-r3 from stack		*/ 
+-    "addle	sp, sp, r4	\n\t"	/*      and restore stack pointer	*/
++    "addle	sp, sp, r4, lsl #2	\n\t"	/*      and restore stack pointer	*/
+     "movle	r4, #0		\n\t"	/*	a mark for restoring sp		*/
+-    "ldr	r0, [%1, #0]	\n\t"	/* get (self)				*/
++    "ldr	r0, [r5, #0]	\n\t"	/* get (self)				*/
+     "mov	lr, pc		\n\t"	/* call mathod				*/
+     "mov	pc, ip		\n\t"
+-    "add	sp, sp, r4	\n\t"	/* restore stack pointer		*/
++    "add	sp, sp, r4, lsl #2\n\t"	/* restore stack pointer		*/
+     "mov	%0, r0		\n\t"	/* the result...			*/
+     : "=r" (result)
+     : "r" (&my_params), "m" (my_params)
+-    : "r0", "r1", "r2", "r3", "r4", "ip", "lr", "sp"
++    : "r0", "r1", "r2", "r3", "r4", "r5", "ip", "lr", "sp"
+     );
+     
+   return result;
+diff -r 456a088b297b xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp
+--- a/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -41,8 +41,8 @@
+ #include "xptcprivate.h"
+ #include "xptiprivate.h"
+ 
+-#if !defined(LINUX) || !defined(__arm__)
+-#error "This code is for Linux ARM only. Please check if it works for you, too.\nDepends strongly on gcc behaviour."
++#if (!defined(LINUX) || !defined(__arm__)) && !defined(__riscos__)
++#error "This code is for Linux ARM/RISC OS only. Please check if it works for you, too.\nDepends strongly on gcc behaviour."
+ #endif
+ 
+ #if (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 4))

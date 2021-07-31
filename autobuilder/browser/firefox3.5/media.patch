@@ -1,0 +1,16 @@
+diff -r 456a088b297b media/libsydneyaudio/src/Makefile.in
+--- a/media/libsydneyaudio/src/Makefile.in	Sun Aug 09 16:45:00 2009 +0200
++++ b/media/libsydneyaudio/src/Makefile.in	Sun Aug 09 10:36:39 2009 -0700
+@@ -51,6 +51,12 @@
+ 		$(NULL)
+ endif
+ 
++ifeq ($(OS_ARCH),RISCOS)
++CSRCS           = \
++                sydney_audio_oss.c \
++                $(NULL)
++endif
++
+ ifneq (,$(filter WINNT WINCE,$(OS_ARCH)))
+ CSRCS		= \
+ 		sydney_audio_waveapi.c \

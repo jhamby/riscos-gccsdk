@@ -1,0 +1,16 @@
+;modheader.cmhg
+;Written by John Tytgat / BASS
+;<URL:mailto:John.Tytgat@aaug.net>
+
+help-string:  SysLogD 0.05 (c) 1999-2010 John Tytgat / BASS
+
+title-string: SysLogD
+
+initialisation-code: SysLogD_Init
+
+finalisation-code: SysLogD_Final
+
+;Internet event handler
+event-handler: eventv_handler_entry/eventv_handler 19
+;Callback handler
+irq-handlers: callback_handler_entry/callback_handler

@@ -1,0 +1,13 @@
+bin_PROGRAMS = addr2line
+
+addr2line_SOURCES = addr2line.c
+addr2line_CFLAGS = -I${top_srcdir}/common \
+		   -I${top_srcdir}/libelf \
+		   -I${top_srcdir}/libelftc \
+		   -I${top_srcdir}/libdwarf 
+addr2line_LDADD = ../libelftc/libelftc.la \
+		  ../libdwarf/libdwarf.la \
+		  ../libelf/libelf.la
+
+dist_man1_MANS = addr2line.1
+

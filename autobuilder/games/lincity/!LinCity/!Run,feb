@@ -1,0 +1,8 @@
+| Run file for LinCity
+
+WIMPSLOT
+
+Set Lincity$Path <Obey$Dir>.
+Set LINCITY_HOME /Lincity:
+
+Run <Obey$Dir>.xlincity >null: 2>null:

@@ -1,0 +1,105 @@
+dir <Obey$Dir>.^.!CLISP-SWI.src
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -x "(and (load \"init.lisp\") (sys::%saveinitmem) (ext::exit)) (ext::exit t)"
+rename lispimag/mem interpreted/mem
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M interpreted.mem -q -c compiler.lisp
+delete interpreted/mem
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -x "(and (load \"init.lisp\") (sys::%saveinitmem) (ext::exit)) (ext::exit t)"
+rename lispimag/mem halfcompiled/mem
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c init.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c defseq.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c backquote.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c defmacro.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c macros1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c macros2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c defs1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c timezone.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c lambdalist.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c places.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c floatprint.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c defpackage.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c type.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c subtypep.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-package.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-macros.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-class0.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-metaobject1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-slotdef1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-stablehash1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-specializer1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-class1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-class2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-class3.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c defstruct.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c format.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c international.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c savemem.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c functions.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c trace.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c cmacros.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c defs2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c loop.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-stablehash2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-specializer2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-specializer3.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-class4.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-class5.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-class6.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-slotdef2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-slotdef3.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-slots1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-slots2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-method1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-method2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-method3.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-method4.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-methcomb1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-methcomb2.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-methcomb3.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-methcomb4.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-genfun1.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-genfun2a.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-genfun2b.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-genfun3.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-genfun4.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-genfun5.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-dependent.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-print.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clos-custom.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c documentation.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c fill-out.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c disassem.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c condition.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c loadform.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c gstream.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c xcharin.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c keyboard.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c screen.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c runprog.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c query.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c reploop.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c dribble.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c complete.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c pprint.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c describe.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c room.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c edit.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c macros3.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c clhs.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c inspect.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c gray.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c riscos.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c case-sensitive.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c exporting.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c german.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c french.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c spanish.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c russian.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c danish.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c dutch.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c deprecated.lisp
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -m 1800KW -M halfcompiled.mem -q -c config.lisp
+delete halfcompiled/mem
+^.base.lisp/run -B . -Efile UTF-8 -Eterminal UTF-8 -Emisc 1:1 -norc -x "(and (load \"init.fas\") (ext::saveinitmem) (ext::exit)) (ext::exit t)"
+copy lispinit/mem ^.base.lispinit/mem ~CD
+Obey ^.^.obey.make_readme

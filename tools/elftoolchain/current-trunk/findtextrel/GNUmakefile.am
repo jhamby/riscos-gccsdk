@@ -1,0 +1,13 @@
+bin_PROGRAMS = findtextrel
+findtextrel_SOURCES = findtextrel.c
+findtextrel_CFLAGS = -I${top_srcdir}/common \
+		     -I${top_srcdir}/libelftc \
+		     -I${top_srcdir}/libdwarf \
+		     -I${top_srcdir}/libelf
+
+findtextrel_LDADD = ../libelftc/libelftc.la \
+		    ../libdwarf/libdwarf.la \
+		    ../libelf/libelf.la
+
+dist_man1_MANS = findtextrel.1
+

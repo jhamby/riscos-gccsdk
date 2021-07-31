@@ -1,0 +1,47 @@
+AB_LICENCE=Free
+
+# Use cmake to config and build
+ab_make() {
+   mkdir build && cd build
+   cmake -DCMAKE_TOOLCHAIN_FILE=~/toolchain-riscos.cmake \
+         -DLUA_LIBRARIES=$GCCSDK_INSTALL_ENV/lib/liblua.a \
+         -DPKG_CONFIG_EXECUTABLE=$GCCSDK_INSTALL_ENV/ro-pkg-config \
+         -DSDL_CONFIG=$GCCSDK_INSTALL_ENV/bin/sdl-config \
+         -DSDL_INCLUDE_DIR=$GCCSDK_INSTALL_ENV/include/SDL \
+         -DENABLE_STRICT_COMPILATION=OFF \
+         -DCMAKE_EXE_LINKER_FLAGS=-static \
+         -DBINARY_SUFFIX=,e1f \
+         ..
+   $AB_MAKE
+   cd ..
+}
+
+ab_package() {
+  ab_create_app Wesnoth Apps/Games
+  ab_makerun build/wesnoth$AB_EXEEXT
+
+  mkdir -p $A/docs
+  cp -av $S/changelog $S/COPYING $S/copyright README $A/docs
+
+  cp -av $S/doc/manual $A/docs
+
+  cp -r $S/data $A/
+  # Some of the language files have an @ char in that RISC OS
+  # doesn't like in filenames.
+  for fname in `find $A -name "*@*"` ; do mv $fname ${fname/@/A} ; done
+
+  cp -r $S/fonts $A/
+  cp -r $S/images $A/
+  cp -r $S/sounds $A/
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
+}
+
+# Boost directory finding doesn't work in configure script so
+# we find it here.
+BOOST_DIR=`echo $GCCSDK_INSTALL_ENV/include/*/boost | cut -d ' ' -f 1`
+BOOST_INC=`dirname $BOOST_DIR`
+
+export LIBS="-L$GCCSDK_INSTALL_ENV/lib -ljpeg -lpng -ltiff -lz -lvorbisidec -lintl"
+AB_CONFLAGS="--without-x --without-fribidi --disable-sdltest --with-boost=$BOOST_INC --with-zlib-prefix=$GCCSDK_INSTALL_ENV"
+

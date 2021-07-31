@@ -1,0 +1,29 @@
+
+AB_INSTALL=yes
+
+export CFLAGS='-std=c99'
+
+ab_package() {
+  ab_create_app LibNettle Apps/Library libnettle-dev
+
+  HERE=`pwd`
+
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/nettle nettle
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -name LibNettle-Dev -unixlib -copyrightfile $S/COPYING
+}

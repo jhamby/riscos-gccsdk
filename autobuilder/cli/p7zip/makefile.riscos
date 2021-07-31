@@ -1,0 +1,20 @@
+#
+# makefile for RISC OS
+# LITTLE_ENDIAN and BIG_ENDIAN are already defined by the system headers
+#
+
+OPTFLAGS=-O2
+
+ALLFLAGS=${OPTFLAGS} \
+    	-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE \
+	-DDEBUG -D_REENTRANT -DENV_UNIX \
+	$(LOCAL_FLAGS) -static
+
+CXX:=$(CXX) $(ALLFLAGS)
+CC:=$(CC) $(ALLFLAGS)
+LINK_SHARED=-static
+
+LOCAL_LIBS_DLL=$(LOCAL_LIBS) 
+
+OBJ_CRC32=$(OBJ_CRC32_C)
+

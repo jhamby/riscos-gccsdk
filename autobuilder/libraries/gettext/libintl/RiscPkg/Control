@@ -1,0 +1,2 @@
+Description: GNU gettext runtime library.
+ This package contains the libintl shared library.

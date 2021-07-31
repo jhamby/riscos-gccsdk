@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+verbose=false
+
+
+if [ "$1" == '-v' ] ; then
+  verbose=true
+  shift
+fi
+
+packages=$(find $1 -type f | grep "/setvars\$" | sort)
+
+
+for package in $packages; do 
+  dir=$(dirname $package | sed s#^./##)
+
+  if [ -e $dir/last-depends ] ; then
+    echo "$dir: Dependency '$(cat $dir/last-depends)' not built"
+  elif [ -e $dir/last-success ] ; then
+    $verbose && echo "$dir: Built ok"
+  elif [ -e $dir/last-failure ] ; then
+    echo "$dir: Build failed"
+  else
+    echo "$dir: Never built"
+  fi
+done

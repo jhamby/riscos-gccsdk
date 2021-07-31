@@ -1,0 +1,6 @@
+| Boot file for the FreeType2 library
+|
+If "<FreeType2$Dir>" = "" Then Set FreeType2$Dir <Obey$Dir>
+If "<FreeType2$Path>" = "" Then Set FreeType2$Path <Obey$Dir>.
+
+IconSprites <FreeType2$Dir>.!Sprites

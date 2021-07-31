@@ -1,0 +1,102 @@
+AB_GIT=https://github.com/unicode-org/icu
+
+ICU_VERSION=52
+
+# We call the install target ourselves in ab_make() below.
+AB_INSTALL=no
+
+# Need to change to the source directory to find configure.
+cd icu4c/source
+
+echo "Checking for native ICU installation..."
+if [ ! -e native-env/bin/icu-config ]; then
+  echo "Building ICU natively..."
+  mkdir -p native-build native-env
+  cd native-build
+  CC=/usr/bin/gcc CXX=/usr/bin/g++ ../configure --prefix=$PWD/../native-env
+  make $MAKEFLAGS
+  make install
+  cd ..
+fi
+
+mkdir -p $D/bin
+mkdir -p $D/lib/pkgconfig
+
+AB_PRECONF=:
+AB_DISTCLEAN="clean_build"
+
+# Build into a separate directory to make it easier to delete the build
+# files later if required.
+mkdir -p riscos-build
+( cd riscos-build; $AB_CONFIG --with-cross-build=$PWD/../native-build )
+
+ab_make() {
+  ( cd riscos-build; $AB_MAKE && $AB_MAKE install )
+
+  # As installation is not using standard ro-libpack, simulate it here so
+  # that Jenkins has something to work with
+  pushd . > /dev/null
+
+  cd $GCCSDK_INSTALL_ENV
+  RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
+  files="include/layout/* include/unicode/* lib/libicu*"
+  files="$files lib/pkgconfig/icu*.pc"
+  tar cfvz $AB_OUTPUTLIB/$RO_PKG.tgz $files
+
+  popd > /dev/null
+}
+
+# "make distclean" appears to be broken; it wipes files that subsequent
+# makefiles still require, so create our own version. This will be called
+# by ab_package_source.
+clean_build() {
+  echo "Deleting build files"
+  rm -rf native-build
+  rm -rf native-env
+  rm -rf riscos-build
+}
+
+ab_package() {
+  ab_create_app icu Apps/Library libicu52-dev
+
+  mkdir -p $A/include/layout $A/include/unicode $A/lib $A/docs
+
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/layout $A/include/layout
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/unicode $A/include/unicode
+
+  cp $GCCSDK_INSTALL_ENV/lib/libicudata.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicui18n.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicuio.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicule.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libiculx.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicutu.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicuuc.a $A/lib
+  cp $GCCSDK_INSTALL_ENV/lib/libicutest.a $A/lib
+
+  cp $S/../license.html $A/docs/license.html
+  cp $S/../readme.html $A/docs/readme.html
+
+  ab_add_commands $S/riscos-build/tools/icuinfo/icuinfo
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    # elf extension is missing for some reason, so add it on.
+    mv -f $A/icuinfo $A/icuinfo$AB_EXEEXT
+  fi
+
+  $AB_HOME/add-riscpkg -unixlib -name LibICU52-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libicu52
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/riscos-build/lib libicudata.so.$ICU_VERSION
+    ab_add_sharedlib $S/riscos-build/lib libicui18n.so.$ICU_VERSION
+    ab_add_sharedlib $S/riscos-build/lib libicuio.so.$ICU_VERSION
+    ab_add_sharedlib $S/riscos-build/lib libicule.so.$ICU_VERSION
+    ab_add_sharedlib $S/riscos-build/lib libiculx.so.$ICU_VERSION
+    ab_add_sharedlib $S/riscos-build/lib libicutu.so.$ICU_VERSION
+    ab_add_sharedlib $S/riscos-build/lib libicuuc.so.$ICU_VERSION
+
+    $AB_HOME/add-riscpkg -name LibICU52 -depends SharedLibs
+  fi
+}

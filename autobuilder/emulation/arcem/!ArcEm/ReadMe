@@ -1,0 +1,25 @@
+This version created by the GCCSDK Autobuilder for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+It also requires that the SharedUnixLibrary which is available from:
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip
+
+Known Problems
+==============
+
+Mouse movement only works if 'mouse following' is turned on. This
+is toggled on/off by pressing the F4 key.
+
+Due to resource requirements it will only run on RISC OS 5 capable
+hardware. This includes the Iyonix and Beagleboard based hardware.
+
+Screen update is very slow. Don't expect playable framerates in games.
+
+Shift clicks are ignored.
+
+The screen is shifted over to the left a bit.
+
+
+
+

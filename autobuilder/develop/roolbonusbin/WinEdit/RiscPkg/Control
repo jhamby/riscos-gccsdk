@@ -1,0 +1,4 @@
+Licence: Free
+Description: WIMP Template editor
+Components: Apps.Development.!WinEdit (Movable LookAt)
+Depends: ApacheLicense2

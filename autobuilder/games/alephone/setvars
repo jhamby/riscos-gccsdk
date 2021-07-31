@@ -1,0 +1,28 @@
+
+AB_URL=http://downloads.sourceforge.net/project/marathon/Aleph%20One/2009-10-15/AlephOne-20091015.tar.bz2
+
+#echo This package needs updating to the latest version
+#sleep 5
+
+# Have to compile gennmtab with native compiler
+#gcc -O2 -isystem  -D_GNU_SOURCE=1 -D_REENTRANT -DSDL  Source_Files/Expat/gennmtab.c -o Source_Files/Expat/gennmtab
+
+ab_package() {
+   ab_create_app AlephOne Apps/Games
+
+   cp -av $S/Source_Files/alephone$AB_EXEEXT $A/
+   cp -rv data/* $A/
+   cp -av docs $A/
+   cp -av AUTHORS COPYING COPYING.SDL README $A/
+
+   # Compile the RISC OS wrapper creation utility
+   # It must be copied and deleted as it can't be stored in the appplication
+   # with the .c extension or it stops games loading
+   cp -f $A/c/aowrapper $A/aowrapper.c 
+   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc $A/aowrapper.c -static -o $A/aowrapper$AB_EXEEXT
+   # Need to move aowrapper.c or it interferes with game loading
+   rm -f $A/aowrapper.c
+
+   $AB_HOME/add-riscpkg -unixlib -unixhome -unixsound \
+      -copyrightfile $S/COPYING
+}

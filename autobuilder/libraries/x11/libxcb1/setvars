@@ -1,0 +1,7 @@
+AB_INSTALL=yes
+
+if [ ! -d src/man3 ] ; then
+  ln -s ../src/man src/man3
+fi
+
+

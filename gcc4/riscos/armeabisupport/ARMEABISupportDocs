@@ -1,0 +1,219 @@
+SWI "ARMEABISupport_AbortOp"
+ r0 = reason code:
+	0 - register abort handler
+	 Entry:
+	  r1 = ptr to abort handler routine
+	  r2 = data to be passed in r12 to routine
+	 Exit:
+	  r0 = error pointer if failure (V set) or 0 (V clear)
+	1 - deregister abort handler
+	 Entry:
+	  r1 = ptr to abort handler routine
+	  r2 = data to be passed in r12 to routine
+	 Exit:
+	  r0 = error pointer if failure (V set) or 0 (V clear)
+	2 - install system abort handler
+	 Entry:
+	  None
+	 Exit:
+	  r0 = error pointer if failure (V set) or 0 (V clear)
+	3 - remove system abort handler
+	 Entry:
+	  None
+	 Exit:
+	  r0 = error pointer if failure (V set) or 0 (V clear)
+	4 - Read abort error status
+	 Entry:
+	  None
+	 Exit:
+	  r0 = Error code
+
+Abort Handler routine
+  Entry:
+    r1  = memory address that caused the fault
+    r11 = pointer to block of registers at time of fault (r0-r15, cpu flags)
+    r12 = pointer to user data
+  Exit:
+    r0  = ABORT_HANDLER_CLAIM (1) if able to handle, otherwise ABORT_HANDLER_PASS_ON (0)
+    r12 can be corrupted
+    All other registers preserved
+
+SWI "ARMEABISupport_MemoryOp"
+ r0 = reason code:
+	0 - new allocator
+	  Entry:
+	   r1 = ptr to name
+	   r2 = max size
+	   r3 = flags
+		bit 0-3 = Type: 1 - page allocator
+				2 - heap allocator
+				3 - single use
+				4 - mmap allocator (for internal use by mmap pool)
+		bit 4   = Set: allocator is global
+			  Clear: allocator is specific to current task and will be destroyed
+			  	 on program exit.
+	  Exit:
+	   r0 = handle of new allocator (V flag clear) or error pointer (V flag set)
+	1 - destroy allocator
+	  Entry:
+	   r1 = handle of allocator
+	  Exit:
+	   r0 = 0 for success, or error pointer
+	2 - allocate memory
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = number of pages required
+	   r3 = flags
+		bits 0-15  = Memory page access flags if bits 16,17 = 2 (claim and map)
+		bits 16,17 = 0 - Leave all pages unclaimed and unmapped
+			     1 - claim all pages
+			     2 - claim and map all pages
+	  Exit:
+	   r0 = address of allocated memory block if successful (V flag clear) or error pointer (V flag set)
+	3 - claim pages
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of first page
+	   r3 = number of pages
+	  Exit:
+	   r0 = 0 for success or error pointer
+	4 - release pages
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of first page
+	   r3 = number of pages
+	  Exit:
+	   r0 = 0 for success or error pointer
+	5 - map pages
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of first page
+	   r3 = number of pages
+	   r4 = memory access flags
+	  Exit:
+	   r0 = 0 for success or error pointer
+	6 - unmap pages
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of first page
+	   r3 = number of pages
+	  Exit:
+	   r0 = 0 for success or error pointer
+	7 - free memory - unmap and release memory pages, then deallocate memory.
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address of block to free
+	  Exit:
+	   r0 = 0 for success or error pointer
+	8 - info
+	  Entry:
+	   r1 = handle of allocator
+	  Exit:
+	   r0 = dynamic area number (V clear) or error pointer (V set)
+	   r1 = base address or 0 if error
+	   r2 = end address or 0 if error
+	9 - return page number for given address
+	  Entry:
+	   r1 = handle of allocator
+	   r2 = address
+	  Exit:
+	   r0 = page number (V clear) or error pointer (V set)
+	10 - allocator from address
+	  Entry:
+	    r1 = address
+	  Exit:
+	    r0 = handle of allocator, 0 if not found (no error)
+	11 - allocator from dynamic area
+	  Entry:
+	    r1 = dynamic area number
+	  Exit:
+	    r0 = handle of allocator, 0 if not found (no error)
+
+SWI "ARMEABISupport_StackOp"
+  r0 = reason
+	0 - Alloc
+	  Entry:
+	    r1 = Size of stack to allocate in pages
+	    r2 = Number of guard pages
+	    r3 = Ptr to name of stack (max 32 chars inc. term., can be NULL)
+	  Exit:
+	    r0 = handle of stack (V clear), or error ptr (V Set)
+	    r1 = Base of stack (above any guard pages)
+	    r2 = Top of stack (where register SP starts initially).
+	1 - Free
+	  Entry:
+	    r1 = handle of stack to free
+	2 - Get Stack
+	  Entry:
+	    r1 = address within stack
+	  Exit:
+	    r1 = handle of stack
+	3 - Get Bounds
+	  Entry:
+	    r1 = stack handle
+	  Exit:
+	    r1 = Base of stack (above any guard pages).
+	    r2 = Top of stack (where register SP starts initially).
+	4 - Get Sizes
+	  Entry:
+	    r1 = stack handle
+	  Exit:
+	    r1 = Size of given stack (excluding any guard pages), in bytes, or 0 if not found.
+	    r2 = Size of stack guard in bytes (may be 0).
+
+SWI "ARMEABISupport_MMapOp"
+  r0 = reason
+	0 - Map
+	  Entry:
+	    r1 = address (usually NULL, otherwise must point to existing block and even then can
+			  only be used to change protection)
+	    r2 = length of mapping in bytes
+	    r3 = protection flags as used by mmap
+	    r4 = mmap flags
+	    r5 = fd
+	    r6 = offset
+	Exit:
+	    r0 = page aligned address of allocated block if successful (V flag clear) or error pointer (V flag set)
+	1 - Unmap
+	  Entry:
+	    r1 = address - must exist in an existing block, but does not have to be its start address
+	    r2 = length of mapping in bytes - address + length must be contained within an existing block
+	  Exit:
+	    r0 = 0 if successful (V flag clear) or error pointer (V flag set)
+	2 - Advise
+	  Entry:
+	    r1 = address
+	    r2 = number of bytes
+	    r3 = advice - as per madvise
+	  Exit:
+	    r0 = 0 if successful (V flag clear) or error pointer (V flag set)
+	3 - Protect
+	  Entry:
+	    r1 = address
+	    r2 = number of bytes
+	    r3 = prot - as per mprotect
+	  Exit:
+	    r0 = 0 if successful (V flag clear) or error pointer (V flag set)
+	4 - GetInfo
+	  Entry:
+	    r1 = address within an existing block
+	  Exit:
+	    r0 = address of start of block if successful (V flag clear) or error pointer (V flag set)
+	    r1 = length of block in bytes
+	    r2 = mmap protection flags when block was allocated
+	    r3 = mmap flags used when block was allocated
+	    r4 = mmap fd given when block was allocated
+	    r5 = mmap offset given when block was allocated
+	5 - Remap
+	  Entry:
+	    r1 = address of block to remap
+	    r2 = old length of block in bytes
+	    r3 = new length of block in bytes
+	    r4 = flags as mremap
+	  Exit:
+	    r0 = address of block's new address if successful (V flag clear) or error pointer (V flag set)
+	6 - Get Protection
+	  Entry:
+	    r1 = address within page to get protection flags of
+	  Exit:
+	    r0 = mmap protection flags for page containing address given

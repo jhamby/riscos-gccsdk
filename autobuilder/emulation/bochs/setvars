@@ -1,0 +1,12 @@
+AB_CATEGORY=Emulation
+
+AB_CONFLAGS="--disable-cdrom --with-sdl"
+
+AB_MANPAGE="doc/man/bochs.1 doc/man/bxcommit.1 doc/man/bximage.1"
+
+ab_package () {
+  for afile in CHANGES COPYING README TODO bochs$AB_EXEEXT bxcommit$AB_EXEEXT bximage$AB_EXEEXT bios/BIOS-* bios/VGABIOS* .bochsrc ; do
+    echo $afile
+    cp $S/$afile $D
+  done
+}

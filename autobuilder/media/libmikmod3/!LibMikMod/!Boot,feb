@@ -1,0 +1,6 @@
+| Boot file for LibMikMod
+|
+If "<LibMikMod$Dir>" = "" Then Set LibMikMod$Dir <Obey$Dir>
+If "<LibMikMod$Path>" = "" Then Set LibMikMod$Path <Obey$Dir>.
+
+IconSprites <LibMikMod$Dir>.!Sprites

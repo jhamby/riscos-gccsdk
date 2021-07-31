@@ -1,0 +1,83 @@
+    ________________________________README_________________________________
+         _________ __                 __                               
+        /   _____//  |_____________ _/  |______     ____  __ __  ______
+        \_____  \\   __\_  __ \__  \\   __\__  \   / ___\|  |  \/  ___/
+        /        \|  |  |  | \// __ \|  |  / __ \_/ /_/  >  |  /\___ | 
+       /_______  /|__|  |__|  (____  /__| (____  /\___  /|____//____  >
+               \/                  \/          \//_____/            \/ 
+    ______________________                           ______________________
+                          T H E   W A R   B E G I N S
+           Stratagus - A free fantasy real time strategy game engine
+
+Read 'doc/index.html' for general information and license information.
+Read 'doc/ChangeLog.html' for the Stratagus changelog.
+
+
+RISC OS Notes
+-------------
+
+Version 2.2 Ported by Alan Buckley 1st September 2008.
+Version 2.1 Ported by Alan Buckley 8th February 2005.
+
+This is the game engine only to play any games the games must be downloaded
+separately. See the end of this document for how to set up games under
+RISC OS.
+
+This is a binary distribution for RISC OS.
+
+The installation instructions in 'doc/install.html' do not apply to this
+binary distribution.
+
+This program is 32-bit compatible, and is suitable for all RISC OS
+ARM6, ARM7, StrongARM and XScale machines.  It may not be suitable for
+earlier machines.
+
+Switch to fullscreen mode to increase the speed. If the sound breaks up or
+you need more speed for a particular game turn off the sound in the game
+menus.
+
+The program needs a lot of memory possibly over 64MB.
+
+The Digital Renderer module (available from http://home.t-online.de/~zarquon)
+must be installed in System:Modules for sound playback.
+
+The !UnixHome application (available from http://www.riscos.info/packages/) has
+to have been seen by the filer.
+
+See www.stratagus.org for more information on the engine and links to
+download games.
+
+
+Setting up a game
+-----------------
+
+Download the game and unpack it to a directory.
+
+Create an obey file to run the game which does the following:
+
+1. Check that the Stratagus engine has been seen
+2. Set up a path variable to the directory
+3. Run the <Stratagus$Dir>.RunStrat program passing the location of the
+   data file using the -d option. It is also recommended that you use
+   the -D 16 option to set the display to fullscreen 16bpp.
+
+See the RunBOS example obey file provided here that can be used with
+the Battle of Survival game.
+
+If you want the game to run on a double click, make the folder into
+an application folder by renaming it to a name starting with a "!"
+and name the Obey file to run the engine to !Run.
+
+If nothing happens you can modify the RunStrat script to log the
+output and error (there is a commented out line in the script that
+shows how to do this) and check the log file for errors.
+
+
+Compiling RISC OS version from source
+-------------------------------------
+
+Both stratagus and a patched version of lua50 can be recompiled using
+the autobuilder scripts
+
+(see http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder for
+details).

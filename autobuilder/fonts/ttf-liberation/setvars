@@ -1,0 +1,17 @@
+AB_MAKE="make"
+
+AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#ttf-liberation-## -e "s/[^-]*-//")
+
+ab_package()
+{
+   ab_create_app UnixFont Apps/Fonts
+
+   mkdir -p $A/truetype/ttf-liberation
+   cp liberation-fonts-ttf-*/*.ttf $A/truetype/ttf-liberation
+   mkdir -p $A/doc/ttf-liberation
+   cp AUTHORS License.txt README $A/doc/ttf-liberation
+
+   rm $A/\!Boot,feb
+
+   $AB_HOME/add-riscpkg -depends UnixFont
+}

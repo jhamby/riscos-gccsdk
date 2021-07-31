@@ -1,0 +1,22 @@
+AB_CATEGORY="Development"
+AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
+AB_LICENCE="Free"
+AB_SVN=https://ro-oslib.svn.sourceforge.net/svnroot/ro-oslib/trunk/!OSLib
+AB_PVERSION=7.00
+AB_INSTALL=no
+
+# ro-make turns an empty $CC into our cross-compiler filename.
+AB_MAKE="CC=$HOST_CC $AB_MAKE vapis"
+
+ab_package() {
+  mkdir -p $D/oslibvapis/Apps/Development/\!Vala
+
+  cp -av $S/Source/Build/\!Vala/vapi $D/oslibvapis/Apps/Development/\!Vala/
+  cp -av $S/Source/Build/\!Vala/oslib $D/oslibvapis/Apps/Development/\!Vala/
+
+  export AB_SUBPACKAGE=$AB_PACKAGE
+
+  $AB_HOME/add-riscpkg -package "OSLibVapis" \
+    -depends Vala
+}
+

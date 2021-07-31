@@ -1,0 +1,14 @@
+
+ab_package() {
+  ab_create_app Tgif Apps/Graphics
+
+  cp -av $S/tgif$AB_EXEEXT $A
+
+  mkdir -p $A/Docs
+  cp -av -L $S/Copyright $S/License $S/README $A/Docs
+
+  mkdir -p $A/data
+  cp -av $S/tgificon.xpm $A/data
+
+  rman -f HTML $S/tgif.man > $A/Docs/tgif.html
+}

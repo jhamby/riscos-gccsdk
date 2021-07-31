@@ -1,0 +1,4 @@
+| !Boot for !Hunspell
+
+Set Hunspell$Dir <Obey$Dir>
+IfThere <Hunspell$Dir>.!Sprites then Iconsprites <Hunspell$Dir>.!Sprites

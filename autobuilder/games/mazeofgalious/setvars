@@ -1,0 +1,20 @@
+
+ab_make() {
+  $AB_MAKE mogs
+}
+
+
+ab_package() {
+  ab_create_app MazeOfGalious Apps/Games
+  ab_makerun $S/mogs
+
+  mkdir -p $A/data/graphics
+  mkdir -p $A/data/sound
+
+  cp -av $S/rooms $A/data
+  cp -aLv $S/graphics/original $A/data/graphics/
+  cp -aLv $S/sound/original $A/data/sound/
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+

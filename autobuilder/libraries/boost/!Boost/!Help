@@ -1,0 +1,59 @@
+Boost libraries for RISC OS
+
+This application holds a copy of the Boost C++ libraries
+packaged for use on RISC OS.
+
+The Boost libraries are packaged into several parts all
+of which need the LibBoost-Dev package (which includes this
+help file) installed first.
+
+Search the autobuilder website (or your package manager)
+for the packages starting with LibBoost to see all the
+packages.
+
+The LibBoost-Doc package is very large and once installed
+provides Examples in the examples subdirectory and
+HTML documentation in the html directory.
+
+To use header only boost libraries add
+  -IBoost:
+to the c++ command line.
+
+For components with a static library add
+ -LBoost: -l<libname>
+to the link line where libname is the name of the
+static library.
+
+The boost libraries consist of a lot of header files
+so it may be necessary to increase the amount of
+memory available to the preprocessor.
+
+On RISC OS 5 allow the preprocessor to use a larger
+wimpslot with:
+Unset cc1plus$Heap
+
+On other versions of RISC OS allow more memory to the
+preprocessor with:
+SetEval cc1plus$HeapMax 96
+(for 96 Megabytes)
+
+More details of the Boost C++ libraries can be found at:
+   www.boost.org
+
+Current status
+--------------
+
+As the autobuilder automatically builds these packages
+there is a chance this help file will not be up to date
+with the latest version.
+
+On 16th March 2011:
+- Only provides static single and multi threading version
+  of the libraries.
+- filesystem module compiles but has not been properly
+  adjusted for RISC OS filenames.
+- mpl, graph and python libraries don't compile
+- math may be missing some libraries
+- None of the tools are provided.
+- Very little testing has been done.
+

@@ -1,0 +1,6 @@
+| Run file for LibLcms1
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibLcms1$Dir <Obey$Dir>
+Set LibLcms1$Path <Obey$Dir>.

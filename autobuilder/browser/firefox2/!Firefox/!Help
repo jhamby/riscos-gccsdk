@@ -1,0 +1,223 @@
+
+Mozilla Firefox 2 for RISC OS
+=============================
+
+http://www.riscos.info/index.php/Firefox
+
+August 2009
+RISC OS Release (Work in Progress)
+Peter Naulls
+peter@chocky.org
+
+For discussion of Firefox 2 for RISC OS, riscos.info mailing list is suitable
+and is more likely to be responded to than anywhere else:
+
+http://www.riscos.info/mailman/listinfo/gcc
+
+Please also see bug reporting guidelines at the bottom.
+
+About RISC OS Firefox
+----------------------
+
+Firefox was ported to RISC OS to fill the requirement for a comprehensive
+browsing solution.  Based upon the original Mozilla and Netscape work, Firefox
+is potentially able to access almost any website, and is one of the most widely
+used browsers.  Its open source nature means that anyone inside or outside
+RISC OS development can update it.  These features made it an ideal choice for
+porting to RISC OS.
+
+Firefox was ported to RISC OS by Peter Naulls under the Unix Porting
+Project (now part of riscos.info) as part of a programme of bringing
+Unix programs to RISC OS in order to fill gaps in the application space.
+Firefox was only possible at all because it built upon work by the GCCSDK
+team with GCC and UnixLib and current work by the project such as the ChoX11
+library.   And of course, the many subscribers to the project who made it
+financially viable.  Thanks for supporting the future of RISC OS.
+
+The ongoing development is only possible with donations to the project.
+See http://www.riscos.info/index.php/Donations for more details.
+
+
+This Version
+------------
+
+This version is suitable for the following RISC OS systems:
+
+IYONIX pc, A9, Omega, VirtualRPC (StrongARM edition only).  It is not suitable
+for RiscPCs or older RISC OS machines due to the use of half-word instructions.
+See instead the RiscPC version.
+
+
+Changes
+-------
+
+Work in Progress (Oct 2009)
+
+Upstream update to ongoing Mozilla 1.8 branch, post 2.0.0.20
+
+ - Nominal upstream version of 2.0.0.22pre
+ - Rewritten graphics engine for RISC OS to increase speed and
+   memory performance
+ - Native scrollbars
+
+Release 8 (Aug 2009)
+
+Upstream update to last 2.0.0.x release.
+
+- Update to 2.0.0.20
+- Some of the libraries weren't compiled with optimisation, hindering performance
+
+
+Release 7 (Dec 2008)
+
+Upstream update and minor bug fixes.
+
+- Update to 2.0.0.18:
+  http://www.mozilla.com/en-US/firefox/2.0.0.18/releasenotes/
+- A timing issue was fixed, which means caret flashing/animated
+  GIFs now work properly, and some operations are more responsive.
+- Fixes so that the package works with RiscPkg.
+
+
+Release 6 (May 2008)
+
+This is an upstream update only.
+
+- Update to 2.0.0.14:
+  http://www.mozilla.com/en-US/firefox/2.0.0.14/releasenotes/
+
+
+Release 5 (April 2008)
+
+This is an upstream update only.
+
+- Update to 2.0.0.13:
+  http://www.mozilla.com/en-US/firefox/2.0.0.13/releasenotes/
+
+
+Release 4 (Feburary 2008)
+
+This fixes minor issues with the previous release.  The code is otherwise the same.
+
+- Some widget handling fixes promised in the last release didn't make it, these
+  are now included, and some additional debugging is disabled.
+- There were some issues with the packaging process which meant that the wrong
+  name was in the RiscPkg information.  Unfortunately, RiscPkg still doesn't
+  like the resulting package much.
+
+
+Release 3 (February 2008)
+
+This is a bug fix release only.  There are no other RISC OS-specific enhancements.
+
+- Update to upstream Firefox 2.0.0.12 (from 2.0.0.1), see:
+  http://www.mozilla.com/en-US/firefox/2.0.0.12/releasenotes/
+  and older URLs.  This means many security and stability fixes.
+- Build with GCC 4.1, but converted to AOF using new tool.  Since dynamic
+  linking is not yet production ready, ELFLoader is not required for this
+  version.
+- Fixes situation of not being able to start Firefox at all on many systems.
+- Iconbar quit performs proper shutdown sequence.
+- Removes "mystery" 1x1 pixel window.
+- Fixes vanishing panes in some tab closing combinations.
+- Fixes bookmark handling.
+- Work around for odd spacing in some menu items until keyboard shortcuts are implemented.
+- Possibly some incidental speed improvements.
+
+
+Release 2 (December 2006)
+
+- Firefox becomes the first RISC OS GCC 4.1 application released
+- RISC OS Menus and iconbar icon enabled, although functionality is incomplete
+- !UnixHome not used any longer - preferences stored in standard RISC OS
+  Choices directory - Choices:Mozilla.Firefox
+- Handling of multiple windows fixed - this was causing Firefox to mysteriously
+  exit at times, particularly those with pop up windows like banking sites.
+- Updated to the upstream 2.0.0.1 version.
+
+
+Release 1 (November 2006)
+
+- First release of version 2 of Firefox for RISC OS
+
+
+I just want to run it
+---------------------
+
+Merge these with your !System:
+
+Tinct
+  http://www.tinct.net/download/tinct_013.zip
+SharedUnixLibrary
+ http://www.riscos.info/downloads/gccsdk/sharedunixlib/sharedunixlib.zip
+
+
+Running First Time
+------------------
+
+It takes longer the first time due to creation of profiles.  Please be
+patient before the first window opens.  There is a desktop refresh which
+I was not able to fix for this release.
+
+
+Reporting bugs
+--------------
+
+I would much prefer you *didn't* report mis-features, things you'd
+like to see, and any odd behaviour.  This might seem unhelpful, but chances
+are, I already know all about it, and extra emails will not help.
+
+I would like to hear from you only if you have a crash that is repeatable.
+Please send me !Firefox.stderr and precisely what sequence of actions
+is required to repeat it.
+
+The most obvious list of mis-features is listed below.  Just because I
+didn't list it, doesn't mean I don't know about it:
+
+ - RISC OS Menus
+
+   Not perfect, and doesn't include keyboard shortcuts.
+
+ - RISC OS Scrollbars and fullscreen toggle button
+
+   Making proper use of RISC OS scrollbars is a surprising amount of
+   work.  I expect that to be done for some future release.
+
+ - Root certificates and SSL sites
+
+   For technical reasons, it is not yet possible to support the
+   mechanism used to access the Mozilla root certificates.  That means
+   that you will be asked to verify the identity of https:// websites.
+   This works in a test shared library version, but that is not yet
+   stable.
+
+ - Speed
+
+   This version is faster than the 1.5 versions for a variety of
+   reasons, but there is still much that can be done.  However,
+   I expect the current performance will be satisfactory for many
+   users.
+
+ - Unicode characters
+
+   This version will only display 7-bit ASCII characters.  Anything else
+   is shown as a question mark.  I expect to use the same font engine
+   in use by NetSurf in a future release.
+
+ - Plugin support
+
+   There is no RISC OS plugin support in this version.
+
+ - Spellchecker, extensions, printing, other stuff.
+
+   Use at your own risk.
+
+
+Troubleshooting
+---------------
+
+You might have problems starting up, especially if you had an aborted
+start up from a previous version.  In this case, I recommend you
+delete Choices:Mozilla.Firefox and try again.
+
+

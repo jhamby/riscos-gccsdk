@@ -1,0 +1,4 @@
+AB_SVN=svn://svn.riscos.info/ChoX11/trunk/
+AB_PVERSION=svn-$(date +%Y%m%d)
+
+AB_MAKE="$AB_MAKE install"

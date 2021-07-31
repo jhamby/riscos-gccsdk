@@ -1,0 +1,46 @@
+This file is part of the RISC OS Autobuilder distribution of FTPc.
+
+FTPc was written by Colin Granville <colin@ftpc.iconbar.com>.
+
+Source code is not available.  The binary was downloaded from the URL:
+
+http://ftpc.iconbar.com/FtpNNN.zip
+
+where NNN is the version number (148 for the first autobuilder package)
+
+There is a homepage at the URL:
+
+http://ftpc.iconbar.com/
+
+Distribution of FTPc is subject to the following licence (from the file
+Documents/help):
+
+== begin ==
+Copyright (c) 1999 Colin Granville.  All rights reserved.
+
+Redistribution and use of this program is permitted provided that the
+following conditions are met:
+
+1. Redistributions of this program must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+   You may charge a fee for the physical act of transferring a copy, and
+   you may at your option offer warranty protection in exchange for a fee.
+
+2. The name of the author may not be used to endorse or promote
+   products derived from this software without specific prior written
+   permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR(S) ``AS IS'' AND ANY EXPRESS
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+== end ==

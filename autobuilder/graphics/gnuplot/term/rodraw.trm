@@ -1,0 +1,4403 @@
+/* * $Id: rodraw.trm,v 0.01 2001/04/17 00:00:00 $ */
+
+/* GNUPLOT - rodraw.trm */
+
+/*[
+ * Copyright 1990 - 1993, 1998, 2001
+ *
+ * Permission to use, copy, and distribute this software and its
+ * documentation for any purpose with or without fee is hereby granted,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.
+ *
+ * Permission to modify the software is granted, but not the right to
+ * distribute the complete modified source code.  Modifications are to
+ * be distributed as patches to the released version.  Permission to
+ * distribute binaries produced by compiling modified sources is granted,
+ * provided you
+ *   1. distribute the corresponding source modifications from the
+ *    released version in the form of a patch file along with the binaries,
+ *   2. add special version identification to distinguish your version
+ *    in addition to the base release version number,
+ *   3. provide your name and address as the primary contact for the
+ *    support of your modified version, and
+ *   4. retain our contact information in regard to use of the base
+ *    software.
+ * Permission to distribute the released version of the source code along
+ * with corresponding source modifications in the form of a patch file is
+ * granted with same provisions 2 through 4 for binary distributions.
+ *
+ * This software is provided "as is" without express or implied warranty
+ * to the extent permitted by applicable law.
+]*/
+
+/*
+ * This terminal driver supports:
+ *     Acorn/RISC OS draw format
+ *
+ * AUTHORS
+ *   Bob Brand
+ *
+ * Based in parts on the PostScript(tm) driver.
+ *
+ * send your comments or suggestions to (info-gnuplot@dartmouth.edu).
+ *
+ * The `rodraw' driver produces output in RISC OS draw (vector)
+ * format. When compiled on a RISC OS system it may also include
+ * a viewer (in this version it just launches the output files to
+ * be viewed by !Draw or any other program that accepts draw files).
+ */
+
+#include "driver.h"
+
+/* Round and cast. */
+#define RODRAW_ROUND(type,val) ((type)((val) + 0.5))
+
+#ifdef TERM_REGISTER
+register_term(rodraw)
+#endif
+
+#ifdef TERM_PROTO
+TERM_PUBLIC void RODRAW_options       __PROTO((void));
+TERM_PUBLIC void RODRAW_init          __PROTO((void));
+TERM_PUBLIC void RODRAW_reset         __PROTO((void));
+TERM_PUBLIC void RODRAW_text          __PROTO((void));
+TERM_PUBLIC void RODRAW_graphics      __PROTO((void));
+TERM_PUBLIC void RODRAW_move          __PROTO((unsigned int x,
+                                               unsigned int y));
+TERM_PUBLIC void RODRAW_vector        __PROTO((unsigned int x,
+                                               unsigned int y));
+TERM_PUBLIC void RODRAW_linetype      __PROTO((int linetype));
+TERM_PUBLIC void RODRAW_put_text      __PROTO((unsigned int x,
+                                               unsigned int y,
+                                               char * str));
+TERM_PUBLIC int  RODRAW_text_angle    __PROTO((int angle));
+TERM_PUBLIC int  RODRAW_justify_text  __PROTO((enum JUSTIFY mode));
+TERM_PUBLIC void RODRAW_point         __PROTO((unsigned int x,
+                                               unsigned int y,
+                                               int pointno));
+TERM_PUBLIC void RODRAW_arrow         __PROTO((unsigned int sx,
+                                               unsigned int sy,
+                                               unsigned int ex,
+                                                unsigned int ey,
+                                               int head));
+TERM_PUBLIC int  RODRAW_set_font      __PROTO((char * font));
+                                                 /* "font,size" */
+TERM_PUBLIC void RODRAW_set_pointsize __PROTO((double size));
+#ifdef __riscos
+TERM_PUBLIC void RODRAW_suspend       __PROTO((void));
+#endif /* __riscos */
+/* no _resume() */
+TERM_PUBLIC void RODRAW_boxfill       __PROTO((int style,
+                                               unsigned int x,
+                                               unsigned int y,
+                                               unsigned int width,
+                                               unsigned int height));
+TERM_PUBLIC void RODRAW_linewidth     __PROTO((double linewidth));
+
+
+/*
+ * Default is draw format on A5 landscape, about the right size
+ * for inclusion in TechWriter/EasyWriter, Impression, Ovation...
+ * A4: 21,00 cm x 29,70 cm (8,27" x 11,69")
+ * A5: 14,85 cm x 21,00 cm (5,85" x  8,27")
+ * Internal OS units are signed 32 bits integers representing
+ * 1/640 of a (big-) point of 1/72".
+ *
+ * struct term assumes int and those can be 16 bits wide on some
+ * systems.  So use a scaling mechanism like used in the
+ * PostScript(tm) terminal driver.  1/20pt seems quite enough for
+ * most practical purposes and will still fit for larger paper
+ * sizes up to A3.
+ * 20010630 BB: In fact 1/20pt can be a bit too much if the program
+ * has to run in a small WimpSlot (< 6MB).  For most unix (linux)
+ * and windows versions this does not really matter but I'm not quite
+ * sure whether unixlib and flex go together well since unixlib uses
+ * its own version of malloc() and free().  And it means that people
+ * will need the Acorn/Norcroft compiler and not only gcc.  And
+ * incorporating dynamic areas isn't a good idea either since then
+ * it will not work on RISC OS < 3.50 and older hardware.
+ * (I haven't tried lcc for RISC OS.)
+ * So revert to a resolution of 1/10 of a point.
+ */
+
+#define RODRAW_SCALE   64L   /* one GnuPlot unit is 64 OS units */
+#define RODRAW_PTSC    10.0  /* one (big-) point, 1/72", is 10 GnuPlot
+                                units */
+
+#define RODRAW_A4X \
+         RODRAW_ROUND(int, 21.00 * 72.0 * RODRAW_PTSC / 2.54 + 0.5)
+                                      /* 5953, 595,3pt, 21,00 cm */
+#define RODRAW_A4Y \
+         RODRAW_ROUND(int, 29.70 * 72.0 * RODRAW_PTSC / 2.54 + 0.5)
+                                      /* 8419, 841,9pt, 29,70 cm */
+#define RODRAW_A5X \
+         RODRAW_ROUND(int, 14.85 * 72.0 * RODRAW_PTSC / 2.54 + 0.5)
+                                      /* 4209, 420,9pt, 14,85 cm */
+#define RODRAW_A5Y RODRAW_A4X
+
+/* default A5 landscape */
+#define RODRAW_XMAX RODRAW_A5Y
+#define RODRAW_YMAX RODRAW_A5X
+
+#define RODRAW_FONTSIZE 14.0 /* 14pt from PostScript(tm) driver seems a
+                                good value and can be scaled down a
+                                little without problems */
+#define RODRAW_FONT_ASPECT_RATIO (11.0/20.0)
+                             /* PostScript driver assumes a font aspect
+                                ratio of 6.0/10.0, but this seems just
+                                a wee bit too wide. */
+#define RODRAW_VCHAR (RODRAW_FONTSIZE * RODRAW_PTSC)
+#define RODRAW_HCHAR \
+  RODRAW_ROUND(unsigned int, RODRAW_VCHAR * RODRAW_FONT_ASPECT_RATIO)
+#define RODRAW_VTIC  (RODRAW_YMAX / 80) /* again, 1/80 seems a good
+                                           value from PostScript
+                                           driver */
+#define RODRAW_HTIC  (RODRAW_YMAX / 80)
+
+#endif /* TERM_PROTO */
+
+
+#ifndef TERM_PROTO_ONLY
+#ifdef TERM_BODY
+/* RISC OS draw driver by Bob Brand, rogp@brandpoint.tmfweb.nl
+   (preferred for discussions about this driver) or bbrand@nki.nl */
+
+
+/* If there exists a port of GnuPlot for VM/CMS, MVS or any other
+   system that uses EBCDIC then care should be taken when converting
+   strings.  I added some possible support based on the sources of
+   info-zip (http://www.freesoftware.com/pub/infozip/).
+   You'll need (at least) util.c and ebcdic.h from info-zip. */
+#ifdef EBCDIC
+#include "ebcdic.h"
+#endif
+
+
+/*
+ * Local types.
+ */
+
+/* Block of memory for actual draw data and font table.
+   Use HUGE pointers (for 16bits x86) since draw block may become
+   larger than 64k. A font block that big would be ridiculous though. */
+typedef unsigned char GPHUGE * RODRAW_pblockdata;
+typedef struct RODRAW_block {
+  RODRAW_pblockdata data;
+  size_t size;
+  size_t ptr;
+} RODRAW_block;
+
+/* Bounding box. */
+typedef struct RODRAW_boundingbox {
+  long llx, lly, urx, ury;
+} RODRAW_boundingbox;
+
+/* Stack of groups (reverse linked list: groups can be nested,
+   paths cannot). */
+typedef struct RODRAW_group RODRAW_group, GPFAR * RODRAW_pgroup;
+struct RODRAW_group {
+  long llx, lly, urx, ury; /* no need to group in a struct _boundingbox */
+  size_t startptr;
+  int objects;
+  RODRAW_pgroup prev;
+#ifdef RISCOS_BB_DEBUG
+  int level;
+  int groupno;
+#endif /* RISCOS_BB_DEBUG */
+};
+#ifdef RISCOS_BB_DEBUG
+static int RODRAW_debug_groupno = 0;
+#endif /* RISCOS_BB_DEBUG */
+
+
+/*
+ * Local function prototypes.
+ */
+
+static long RODRAW_insert_font  __PROTO((const char * fontname));
+static void RODRAW_insert_transformed_text_object
+                                __PROTO((long lx, long ly,
+                                         enum JUSTIFY dir,
+                                         const char * str));
+static void RODRAW_add_header   __PROTO((void));
+static void RODRAW_path         __PROTO((long type, long lx, long ly));
+static void RODRAW_bezier       __PROTO((long cp1x, long cp1y,
+                                         long cp2x, long cp2y,
+                                         long ex,   long ey));
+static void RODRAW_bbx          __PROTO((long lx, long ly));
+static void RODRAW_start_path   __PROTO((long fillcolour,
+                                         const long * style));
+static void RODRAW_end_path     __PROTO((void));
+static void RODRAW_start_group  __PROTO((const char * name));
+static void RODRAW_end_group    __PROTO((void));
+static void RODRAW_write4       __PROTO((long lval));
+static void RODRAW_write4n      __PROTO((long lval, int n));
+                                                /* repeated _write4s */
+static void RODRAW_start_object __PROTO((long lval));
+                  /* As _write4, but increments path count in group. */
+static void RODRAW_writestr     __PROTO((const char * str,
+                                         int pad, /* default promotions in
+                                                     old style C prevent
+                                                     type char */
+                                         int len));
+               /* As write4, but now insert whole string and pad it. */
+
+static void RODRAW_enlarge_block __PROTO((RODRAW_block * block,
+                                          size_t increment,
+                                          size_t minrequired));
+
+#ifdef __riscos
+void RISCOS_viewer(RODRAW_pblockdata block, size_t size, int filetype);
+#endif /* __riscos */
+
+
+/*
+ * Local constants.
+ */
+
+/* Block increments.
+   30k for draw block. */
+#define RODRAW_DRAWBLOCKINCSIZE 30720L
+/* 1k for font table. */
+#define RODRAW_FONTBLOCKINCSIZE 1024L
+
+/* Initial and default values. */
+#define RODRAW_COLOURMODE FALSE
+#define RODRAW_SOLIDMODE  FALSE
+
+#define RODRAW_LINEWIDTH /* 0.5 pt from PostScript driver */ \
+                 RODRAW_ROUND(long, 0.5 * RODRAW_PTSC * RODRAW_SCALE)
+#define RODRAW_DASH_LENGTH /* 2.0 pt, PS driver uses 1pt, this */ \
+                           /* looks better imho. */ \
+                 RODRAW_ROUND(long, 2.0 * RODRAW_PTSC * RODRAW_SCALE)
+
+/* Draw objects. */
+#define RODRAW_FONT_TABLE_OBJECT        0L
+#define RODRAW_TEXT_OBJECT              1L
+#define RODRAW_PATH_OBJECT              2L
+#define RODRAW_GROUP_OBJECT             6L
+#define RODRAW_OPTIONS_OBJECT          11L
+#define RODRAW_TRANSFORMED_TEXT_OBJECT 12L
+
+/* Path types. */
+#define RODRAW_END_OF_PATH   0L
+#define RODRAW_MOVE          2L
+#define RODRAW_CLOSE_SUBPATH 5L
+#define RODRAW_BEZIER        6L
+#define RODRAW_LINE          8L
+
+/* Path style:
+   Draw's default is 0x20100042:
+   0010 0000 | 0001 0000 | 0000 0000 | 0100 0010
+   tr cap wd | tr cap ln | reserved  | dwec scjj
+   jj: bevelled join style (0: mitred, 1: round, 2: bevelled))
+   sc: butt start cap (0: butt, 1: round, 2: square, 3: triangular)
+   ec: butt end cap
+   w : even-odd winding rule (0: non-zero)
+   d : no dash pattern
+   tr cap wd: triangular cap width  (unsigned, 1/16 linewidth)
+   tr cap ln: triangular cap length (unsigned, 1/16 linewidth)
+ */
+static const GPFAR long RODRAW_regular_path_style = 0x20100042L,
+/* as above but use dash pattern following this style */
+                        RODRAW_dash_style = 0x20100042L | 0x80L;
+/* Note: pointers!
+   Pass a NULL pointer to _start_path to use the current line style
+   otherwise use the given style.  This way one can get solid lines
+   even when dash pattern are in effect. */
+#define RODRAW_REGULAR_PATH_STYLE (&RODRAW_regular_path_style)
+#define RODRAW_DASH_PATTERN_STYLE (&RODRAW_dash_style)
+
+/* no fill colour */
+#define RODRAW_NO_FILL (-1L)
+
+/* Some strings that are needed more than once. */
+static const char GPFAR RODRAW_defaultfont[] = "Homerton.Medium";
+/* Next ought to be const as well, but gp_alloc() and gp_realloc
+   are prototyped as char * rather than const char *. */
+static char GPFAR RODRAW_allocmsg[]          = "RISC OS draw block";
+
+/* Paper sizes. */
+enum RODRAW_papersizes {
+  RODRAW_CUSTOM, RODRAW_A4, RODRAW_A4L, RODRAW_A5, RODRAW_A5L,
+  RODRAW_A0L /* default for `too big' custom sizes,
+                although RISC OS's limit is a sheet of about
+                2.4km x 2.4km (1.5 mile x 1.5 mile). */
+};
+
+/* Constants for calculations. */
+#define RODRAW_K       0.5522847498 /* 4.0/3.0 * (sqrt(2.0)-1.0) */
+                    /* factor for Bezier approximation of circle */
+#define RODRAW_SQRT2   1.414213562  /* sqrt(2.0) */
+#define RODRAW_SQRT2_2 0.7071067812 /* sqrt(2.0)/2.0 or 1.0/sqrt(2.0) */
+#define RODRAW_SIN72   0.951056516  /* sin(72 deg) */
+#define RODRAW_COS72   0.309016994  /* cos(72 deg) */
+
+/* WIMP colours: RGB stored as 0xBBGGRR00L.
+   Use these colours rather than the RGB values from the PostScript(tm)
+   driver since these are guaranteed to display well in 16 colour modes. */
+#define RODRAW_WHITE       0xffffff00L
+#define RODRAW_GREY1       0xdddddd00L /* very light grey */
+#define RODRAW_GREY2       0xbbbbbb00L /* light grey */
+#define RODRAW_GREY3       0x99999900L /* medium light grey */
+#define RODRAW_GREY4       0x77777700L /* medium dark grey */
+#define RODRAW_GREY5       0x55555500L /* dark grey */
+#define RODRAW_GREY6       0x33333300L /* very dark grey */
+#define RODRAW_BLACK       0x00000000L
+#define RODRAW_DARKBLUE    0x99440000L
+#define RODRAW_YELLOW      0x00eeee00L
+#define RODRAW_LIGHTGREEN  0x00cc0000L
+#define RODRAW_RED         0x0000dd00L
+#define RODRAW_BEIGE       0xbbeeee00L
+#define RODRAW_DARKGREEN   0x00885500L
+#define RODRAW_ORANGE      0x00bbff00L
+#define RODRAW_LIGHTBLUE   0xffbb0000L
+
+
+/*
+ * The linetypes.
+ */
+
+static void RODRAW_lt_border __PROTO((void));
+static void RODRAW_lt_axes   __PROTO((void));
+static void RODRAW_lt_0      __PROTO((void));
+static void RODRAW_lt_1      __PROTO((void));
+static void RODRAW_lt_2      __PROTO((void));
+static void RODRAW_lt_3      __PROTO((void));
+static void RODRAW_lt_4      __PROTO((void));
+static void RODRAW_lt_5      __PROTO((void));
+static void RODRAW_lt_6      __PROTO((void));
+static void RODRAW_lt_7      __PROTO((void));
+static void RODRAW_lt_8      __PROTO((void));
+
+static const GPFAR struct {
+  void (*linetype) __PROTO((void));
+  long colour;
+} RODRAW_linetypes [] = {
+  { RODRAW_lt_border, RODRAW_BLACK      },
+  { RODRAW_lt_axes  , RODRAW_BLACK      },
+  { RODRAW_lt_0     , RODRAW_RED        },
+  { RODRAW_lt_1     , RODRAW_LIGHTGREEN },
+  { RODRAW_lt_2     , RODRAW_DARKBLUE   },
+  { RODRAW_lt_3     , RODRAW_BEIGE      },
+  { RODRAW_lt_4     , RODRAW_YELLOW     },
+  { RODRAW_lt_5     , RODRAW_LIGHTBLUE  },
+  { RODRAW_lt_6     , RODRAW_BLACK      },
+  { RODRAW_lt_7     , RODRAW_ORANGE     },
+  { RODRAW_lt_8     , RODRAW_GREY3      }
+};
+
+
+/*
+ * The point types.
+ */
+
+static void RODRAW_Pnt     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_Pls     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_Crs     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_Star    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_Box     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_BoxF    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_Circle  __PROTO((long, long, TBOOLEAN));
+static void RODRAW_CircleF __PROTO((long, long, TBOOLEAN));
+static void RODRAW_TriU    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_TriUF   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_TriD    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_TriDF   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_Dia     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_DiaF    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_Pent    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_PentF   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C0      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C1      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C2      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C3      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C4      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C5      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C6      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C7      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C8      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C9      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C10     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C11     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C12     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C13     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C14     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_C15     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S0      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S1      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S2      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S3      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S4      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S5      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S6      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S7      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S8      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S9      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S10     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S11     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S12     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S13     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S14     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_S15     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D0      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D1      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D2      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D3      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D4      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D5      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D6      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D7      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D8      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D9      __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D10     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D11     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D12     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D13     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D14     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_D15     __PROTO((long, long, TBOOLEAN));
+static void RODRAW_BoxE    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_CircE   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_TriUE   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_TriDE   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_DiaE    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_PentE   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_BoxW    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_CircW   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_TriUW   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_TriDW   __PROTO((long, long, TBOOLEAN));
+static void RODRAW_DiaW    __PROTO((long, long, TBOOLEAN));
+static void RODRAW_PentW   __PROTO((long, long, TBOOLEAN));
+
+typedef void (* RODRAW_pointdeffctptr) __PROTO((long, long, TBOOLEAN));
+static const GPFAR RODRAW_pointdeffctptr RODRAW_pt[] = {
+  RODRAW_Pnt,   RODRAW_Pls,   RODRAW_Crs,    RODRAW_Star,
+  RODRAW_Box,   RODRAW_BoxF,  RODRAW_Circle, RODRAW_CircleF,
+  RODRAW_TriU,  RODRAW_TriUF, RODRAW_TriD,   RODRAW_TriDF,
+  RODRAW_Dia,   RODRAW_DiaF,  RODRAW_Pent,   RODRAW_PentF,
+  RODRAW_C0,    RODRAW_C1,    RODRAW_C2,     RODRAW_C3,
+  RODRAW_C4,    RODRAW_C5,    RODRAW_C6,     RODRAW_C7,
+  RODRAW_C8,    RODRAW_C9,    RODRAW_C10,    RODRAW_C11,
+  RODRAW_C12,   RODRAW_C13,   RODRAW_C14,    RODRAW_C15,
+  RODRAW_S0,    RODRAW_S1,    RODRAW_S2,     RODRAW_S3,
+  RODRAW_S4,    RODRAW_S5,    RODRAW_S6,     RODRAW_S7,
+  RODRAW_S8,    RODRAW_S9,    RODRAW_S10,    RODRAW_S11,
+  RODRAW_S12,   RODRAW_S13,   RODRAW_S14,    RODRAW_S15,
+  RODRAW_D0,    RODRAW_D1,    RODRAW_D2,     RODRAW_D3,
+  RODRAW_D4,    RODRAW_D5,    RODRAW_D6,     RODRAW_D7,
+  RODRAW_D8,    RODRAW_D9,    RODRAW_D10,    RODRAW_D11,
+  RODRAW_D12,   RODRAW_D13,   RODRAW_D14,    RODRAW_D15,
+  RODRAW_BoxE,  RODRAW_CircE, RODRAW_TriUE,  RODRAW_TriDE,
+  RODRAW_DiaE,  RODRAW_PentE, RODRAW_BoxW,   RODRAW_CircW,
+  RODRAW_TriUW, RODRAW_TriDW, RODRAW_DiaW,   RODRAW_PentW
+};
+
+
+/*
+ * Preprocessor `magic' to stop complaints about unused variables.
+ * Good optimizers may optimize the variable away altogether.
+ */
+#define RODRAW_IGNORE(x) ((void)((x)=(x)))
+
+/*
+ * Odd number?
+ */
+#define RODRAW_ISODD(x) ((x) & 1)
+
+
+/*
+ * Status- and other local variables.
+ *
+ * Note: internal coordinates are all in OS coordinates for reasons
+ * of accuracy, especially for the point shapes.
+ * xsize and ysize are in GnuPlot units since these are int and
+ * therefore possibly only 16 bits wide.
+ */
+
+static unsigned int RODRAW_xsize = RODRAW_A5Y,
+                    RODRAW_ysize = RODRAW_A5X;
+static enum RODRAW_papersizes RODRAW_papersize = RODRAW_A5L;
+static long         RODRAW_curr_linewidth;
+static int          RODRAW_curr_linetype;
+static long         RODRAW_hpointsize, RODRAW_vpointsize,
+                    RODRAW_default_hpointsize,
+                    RODRAW_default_vpointsize;
+static TBOOLEAN     RODRAW_colourmode = RODRAW_COLOURMODE,
+                    RODRAW_solidmode  = RODRAW_SOLIDMODE;
+static long         RODRAW_colour;
+
+static RODRAW_block RODRAW_drawblock = {NULL, 0, 0};
+
+static RODRAW_block RODRAW_fontblock  = {NULL, 0, 0};
+static char GPFAR   RODRAW_fontname [MAX_ID_LEN] = { '\0' };
+               /* Seems sufficient in other terminal drivers and I do
+                  not know about RISC OS fonts with very long names. */
+static long         RODRAW_fontno;
+static double       RODRAW_default_fontsize  = RODRAW_FONTSIZE,
+                    RODRAW_curr_fontsize     = RODRAW_FONTSIZE;
+                                  /* RISC OS fonts can have any size */
+static int          RODRAW_angle;
+static enum JUSTIFY RODRAW_justify;
+static TBOOLEAN     RODRAW_no_right_left = FALSE;
+
+/* path data (group in to a struct?) */
+static size_t       RODRAW_firstobjectptr;
+static size_t       RODRAW_pathptr;
+static size_t       RODRAW_pathdataptr;
+static TBOOLEAN     RODRAW_pathmoveonly;
+static TBOOLEAN     RODRAW_pending_move;
+static long         RODRAW_pending_move_lx, RODRAW_pending_move_ly;
+static long         RODRAW_last_lx, RODRAW_last_ly;
+static long         RODRAW_start_lx, RODRAW_start_ly;
+static TBOOLEAN     RODRAW_inpath = FALSE;
+
+/* Bounding boxes, calculated along the way. */
+static RODRAW_boundingbox RODRAW_globalbbx, RODRAW_pathbbx;
+
+/* Group info. */
+static RODRAW_pgroup RODRAW_curr_group = NULL;
+
+
+#ifdef RISCOS_BB_DEBUG
+static FILE * RODRAW_debugfile = NULL;
+#endif /* RISCOS_BB_DEBUG */
+
+
+/*
+ * The GnuPlot interface functions.
+ */
+
+/* _options()  Called when terminal type is selected. */
+
+TERM_PUBLIC void RODRAW_options()
+{
+  TBOOLEAN first_option = TRUE;
+  while (!END_OF_COMMAND)
+  {
+    if (almost_equals(c_token,"de$fault"))
+    {
+      if (first_option)
+      {
+        RODRAW_papersize     = RODRAW_A5L;
+        RODRAW_xsize         = RODRAW_A5Y;
+        RODRAW_ysize         = RODRAW_A5X;
+        RODRAW_fontname[0]   = '\0';
+        RODRAW_curr_fontsize = RODRAW_default_fontsize = RODRAW_FONTSIZE;
+        RODRAW_no_right_left = FALSE;
+        RODRAW_colourmode    = RODRAW_COLOURMODE;
+        RODRAW_solidmode     = RODRAW_SOLIDMODE;
+        c_token++;
+      }
+      else
+        int_error("`default\' must be the first option", c_token);
+    }
+    else if (almost_equals(c_token, "mo$nochrome") ||
+             equals(c_token, "bw"))
+    {
+      RODRAW_colourmode = FALSE;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "co$lour") ||
+             almost_equals(c_token, "co$lor"))
+    {
+      RODRAW_colourmode = TRUE;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "da$shed"))
+    {
+      RODRAW_solidmode = FALSE;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "so$lid"))
+    {
+      RODRAW_solidmode = TRUE;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "nor$ightleft"))
+    {
+      RODRAW_no_right_left = TRUE;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "rig$htleft"))
+    {
+      RODRAW_no_right_left = FALSE;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "si$ze"))
+    {
+      if (END_OF_COMMAND)
+        int_error("size: expecting size name or two numbers", c_token);
+      else
+      {
+        c_token++;
+
+        if (equals(c_token, "a4"))
+        {
+          RODRAW_papersize = RODRAW_A4;
+          RODRAW_xsize     = RODRAW_A4X;
+          RODRAW_ysize     = RODRAW_A4Y;
+          c_token++;
+        }
+        else if (equals(c_token, "a4l"))
+        {
+          RODRAW_papersize = RODRAW_A4L;
+          RODRAW_xsize     = RODRAW_A4Y;
+          RODRAW_ysize     = RODRAW_A4X;
+          c_token++;
+        }
+        else if (equals(c_token, "a5"))
+        {
+          RODRAW_papersize = RODRAW_A5;
+          RODRAW_xsize     = RODRAW_A5X;
+          RODRAW_ysize     = RODRAW_A5Y;
+          c_token++;
+        }
+        else if (equals(c_token, "a5l"))
+        {
+          RODRAW_papersize = RODRAW_A5L;
+          RODRAW_xsize     = RODRAW_A5Y;
+          RODRAW_ysize     = RODRAW_A5X;
+          c_token++;
+        }
+        else
+        {
+          double custom_xsize, custom_ysize;
+          struct value val;
+
+          /* expect comma separated size in 1/20 pt or units followed by
+             either cm or inch */
+
+          custom_xsize = real(const_express(&val));
+
+          if (END_OF_COMMAND)
+            int_error("size: expecting two numbers", c_token);
+          else
+          {
+            if (equals(c_token, "cm"))
+            {
+              custom_xsize *= 72.0 * RODRAW_PTSC / 2.54;
+              c_token++;
+            }
+            else if (almost_equals(c_token, "in$ch"))
+            {
+              custom_xsize *= 72.0 * RODRAW_PTSC;
+              c_token++;
+            }
+          }
+
+          if (END_OF_COMMAND || !equals(c_token, ","))
+            int_error("size: expecting two numbers", c_token);
+          else
+          {
+            c_token++;
+
+            custom_ysize = real(const_express(&val));
+
+            if (!END_OF_COMMAND)
+            {
+              if (equals(c_token, "cm"))
+              {
+                custom_ysize *= 72 * RODRAW_PTSC / 2.54;
+                c_token++;
+              }
+              else if (almost_equals(c_token, "in$ch"))
+              {
+                custom_ysize *= 72 * RODRAW_PTSC;
+                c_token++;
+              }
+            }
+
+            if (custom_xsize <= 0 || custom_ysize <= 0)
+              int_error("Sizes must be > 0", NO_CARET);
+
+            RODRAW_papersize = RODRAW_CUSTOM;
+            RODRAW_xsize     = RODRAW_ROUND(unsigned int, custom_xsize);
+            RODRAW_ysize     = RODRAW_ROUND(unsigned int, custom_ysize);
+          }
+        }
+      }
+    }
+    else if (isstring(c_token))
+    {
+      /* font name */
+      quote_str(RODRAW_fontname, c_token, MAX_ID_LEN);
+      c_token++;
+    }
+    else
+    {
+      /* only font size is possible */
+      struct value val;
+      RODRAW_default_fontsize = RODRAW_curr_fontsize =
+        real(const_express(&val));
+      if (RODRAW_default_fontsize <= 0)
+      {
+        RODRAW_default_fontsize = RODRAW_curr_fontsize =
+          RODRAW_FONTSIZE;
+        int_error("font size must be > 0", c_token);
+      }
+    }
+
+    first_option = FALSE;
+
+  } /* end while */
+
+  strcpy (term_options, "size ");
+  switch (RODRAW_papersize)
+  {
+    case RODRAW_CUSTOM:
+      sprintf(term_options + strlen(term_options), "%u,%u",
+              RODRAW_xsize, RODRAW_ysize);
+      break;
+    case RODRAW_A4:
+      strcpy (term_options + strlen(term_options), "a4");
+      break;
+    case RODRAW_A4L:
+      strcpy (term_options + strlen(term_options), "a4l");
+      break;
+    case RODRAW_A5:
+      strcpy (term_options + strlen(term_options), "a5");
+      break;
+    case RODRAW_A5L:
+    default:
+      strcpy (term_options + strlen(term_options), "a5l");
+      break;
+  }
+
+  strcpy (term_options + strlen(term_options),
+          (RODRAW_colourmode ? " colour" : " monochrome"));
+  strcpy (term_options + strlen(term_options),
+          (RODRAW_solidmode  ? " solid" : " dashed"));
+  sprintf(term_options + strlen(term_options), " %srightleft",
+          (RODRAW_no_right_left ? "no" : ""));
+  sprintf(term_options + strlen(term_options), " \"%s\" %g",
+          (RODRAW_fontname[0] ? RODRAW_fontname : RODRAW_defaultfont),
+          RODRAW_default_fontsize);
+}
+
+
+/* _init()  Called once, when the device is first selected. */
+
+TERM_PUBLIC void RODRAW_init ()
+{
+  /* Set sizes. */
+  term->xmax         = RODRAW_xsize;
+  term->ymax         = RODRAW_ysize;
+  term->v_tic        = RODRAW_ROUND(unsigned int,
+                                    GPMAX(term->xmax, term->ymax)/80.0);
+  term->h_tic        = RODRAW_ROUND(unsigned int,
+                                    GPMAX(term->xmax, term->ymax)/80.0);
+  term->v_char       = RODRAW_ROUND(unsigned int,
+                                    RODRAW_default_fontsize * RODRAW_PTSC);
+  term->h_char       = RODRAW_ROUND(unsigned int,
+                                    RODRAW_default_fontsize * RODRAW_PTSC *
+                                    RODRAW_FONT_ASPECT_RATIO);
+
+  /* Sizes from PostScript driver, looks about the right size,
+     though I prefer pointsize 2 in EPS plots. */
+  RODRAW_hpointsize  = RODRAW_default_hpointsize =
+    RODRAW_ROUND(long, RODRAW_SCALE * term->h_tic/2.0);
+  RODRAW_vpointsize  = RODRAW_default_vpointsize =
+    RODRAW_ROUND(long, RODRAW_SCALE * term->v_tic/2.0);
+}
+
+
+/* _reset()  Called when gnuplot is exited, the output device
+   changed or the terminal type changed. */
+
+TERM_PUBLIC void RODRAW_reset ()
+{
+  /* Free allocated block (if any).
+     Some compilers produce `interesting' results for a free(NULL),
+     in spite of the standard. */
+  if (RODRAW_drawblock.data) free(RODRAW_drawblock.data);
+#ifdef RISCOS_BB_DEBUG
+  if (!RODRAW_debugfile)
+    RODRAW_debugfile = fopen(
+#ifdef __riscos
+        /* Open in GnuPlot (develop) directory. */
+        "<GnuPlot371$Dir>.rodrawdbg"
+#else /* !__riscos */
+        /* Open in current directory. */
+        "rodrawdbg.txt"
+#endif /* !__riscos */
+      ,"at");
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "free()'d drawblock size %ld\n",
+            (unsigned long) RODRAW_drawblock.size);
+#endif /* RISCOS_BB_DEBUG */
+
+  RODRAW_drawblock.data = NULL;
+  RODRAW_drawblock.size = 0;
+
+  /* Likewise for fontblock. */
+  if (RODRAW_fontblock.data) free(RODRAW_fontblock.data);
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "free()'d fontblock size %ld\n",
+            (unsigned long) RODRAW_fontblock.size);
+#endif /* RISCOS_BB_DEBUG */
+
+  RODRAW_fontblock.data = NULL;
+  RODRAW_fontblock.size = 0;
+
+  /* And likewise for orphaned group info. */
+  while (RODRAW_curr_group)
+  {
+    RODRAW_pgroup tmpgroup = RODRAW_curr_group;
+    RODRAW_curr_group      = RODRAW_curr_group->prev;
+#ifdef RISCOS_BB_DEBUG
+    if (RODRAW_debugfile)
+      fprintf(RODRAW_debugfile, "free()ing orphaned group level %d no %d\n",
+              tmpgroup->level, tmpgroup->groupno);
+#endif /* RISCOS_BB_DEBUG */
+    free (tmpgroup);
+  }
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile) {
+    fprintf(RODRAW_debugfile, "_reset\n");
+    fclose(RODRAW_debugfile);
+    RODRAW_debugfile = NULL;
+  }
+#endif /* RISCOS_BB_DEBUG */
+}
+
+
+/* _graphics()  Called just before a plot is going to be displayed. */
+
+TERM_PUBLIC void RODRAW_graphics()
+{
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "_graphics: debug file still open\n");
+  else
+    RODRAW_debugfile = fopen(
+#ifdef __riscos
+        /* Open in GnuPlot (develop) directory. */
+        "<GnuPlot371$Dir>.rodrawdbg"
+#else /* !__riscos */
+        /* Open in current directory. */
+        "rodrawdbg.txt"
+#endif /* !__riscos */
+      ,"at");
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "_graphics: new plot\n");
+#endif /* RISCOS_BB_DEBUG */
+
+  /* Should there be any group info left (because of an int_error
+     or something like that), remove it. */
+  while (RODRAW_curr_group)
+  {
+    RODRAW_pgroup tmpgroup = RODRAW_curr_group;
+    RODRAW_curr_group = RODRAW_curr_group->prev;
+#ifdef RISCOS_BB_DEBUG
+    if (RODRAW_debugfile)
+      fprintf(RODRAW_debugfile, "free()ing orphaned group level %d no %d\n",
+              tmpgroup->level, tmpgroup->groupno);
+#endif /* RISCOS_BB_DEBUG */
+    free(tmpgroup);
+  }
+
+  /* Initialize draw block. */
+  RODRAW_drawblock.ptr = 0;
+  /* Note: memory will be reserved by first _write4(). */
+
+  /* Initialize font table. */
+  RODRAW_fontblock.ptr = 0;
+  /* Note: _insert_font will reserve memory for font block
+     if none is left from a previous plot. */
+  RODRAW_fontno = RODRAW_insert_font(RODRAW_fontname[0] ?
+                                     RODRAW_fontname :
+                                     RODRAW_defaultfont);
+
+  /* Inverse bounding box to start with. */
+  RODRAW_globalbbx.llx = (long)RODRAW_xsize * RODRAW_SCALE;
+  RODRAW_globalbbx.lly = (long)RODRAW_ysize * RODRAW_SCALE;
+  RODRAW_globalbbx.urx = 0L;
+  RODRAW_globalbbx.ury = 0L;
+
+  /* Ready for first object! */
+  RODRAW_angle          = 0;
+  RODRAW_justify        = LEFT;
+  RODRAW_curr_linetype  = 0;
+  RODRAW_colour         = RODRAW_BLACK;
+  RODRAW_curr_linewidth = RODRAW_LINEWIDTH;
+  RODRAW_firstobjectptr = 0L;
+  RODRAW_inpath         = FALSE;
+
+  /* Start overall group. */
+#ifdef RISCOS_BB_DEBUG
+  RODRAW_debug_groupno  = 0;
+#endif
+  RODRAW_start_group("gnuplot-all");
+}
+
+
+/* _text()  Called immediately after a plot is displayed. */
+
+TERM_PUBLIC void RODRAW_text()
+{
+  RODRAW_end_path();
+
+  while (RODRAW_curr_group) RODRAW_end_group();
+
+  RODRAW_add_header();
+
+#ifdef __riscos
+  /* send to viewer (if any) */
+  if ((!outstr || !*outstr) && isatty(fileno(gpoutfile)))
+  {
+    RISCOS_viewer(RODRAW_drawblock.data, RODRAW_drawblock.ptr, 0xaff);
+  }
+  else
+#endif /* __riscos */
+  {
+    fwrite(RODRAW_drawblock.data, 1, RODRAW_drawblock.ptr, gpoutfile);
+  }
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+  {
+    fprintf(RODRAW_debugfile, "saved or viewed draw file\n");
+    fclose(RODRAW_debugfile);
+    RODRAW_debugfile = NULL;
+  }
+#endif /* RISCOS_BB_DEBUG */
+
+  /* Keep the block and the font table block just in case there is
+     another plot waiting.  It will be free()d in _reset(). */
+}
+
+
+/* _move(x,y)  Called at the start of a line. */
+
+TERM_PUBLIC void RODRAW_move(x, y)
+unsigned int x, y;
+{
+  long lx = x * RODRAW_SCALE, ly = y * RODRAW_SCALE;
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile,"move x %u y %u (%ld %ld)\n",x,y,lx,ly);
+#endif
+
+  if (!RODRAW_inpath)
+    RODRAW_start_path(RODRAW_NO_FILL, NULL);
+
+  RODRAW_pending_move    = TRUE;
+  RODRAW_pending_move_lx = lx;
+  RODRAW_pending_move_ly = ly;
+
+  /* Every move creates a new start point.  GnuPlot does not generate
+     filled shapes with only moves, so this is safe. */
+  RODRAW_start_lx = lx;
+  RODRAW_start_ly = ly;
+}
+
+
+/* _vector(x,y)  Called when a line is to be drawn. */
+
+TERM_PUBLIC void RODRAW_vector(x, y)
+unsigned int x, y;
+{
+  long lx = x * RODRAW_SCALE, ly = y * RODRAW_SCALE;
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile,"vector %u %u (%ld %ld)\n",x,y,lx,ly);
+#endif
+
+  if (RODRAW_inpath)
+  {
+    if (RODRAW_pending_move)
+    {
+      RODRAW_pending_move = FALSE;
+      RODRAW_path(RODRAW_MOVE,
+                  RODRAW_pending_move_lx, RODRAW_pending_move_ly);
+    }
+
+    if (RODRAW_last_lx != lx || RODRAW_last_ly != ly)
+    {
+      if (lx != RODRAW_start_lx || ly != RODRAW_start_ly)
+        RODRAW_path(RODRAW_LINE, lx, ly);
+      else
+      {
+        /* Reached previous starting point again, close path for
+           nice join caps. */
+        RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+        RODRAW_pending_move = TRUE;
+        RODRAW_pending_move_lx = lx;
+        RODRAW_pending_move_ly = ly;
+        /* And do what a _path(RODRAW_LINE) would have done. */
+        RODRAW_last_lx         = lx;
+        RODRAW_last_ly         = ly;
+        RODRAW_pathmoveonly    = FALSE;
+      }
+    }
+  }
+  else
+  {
+     /* trying to draw line without previous _move or _vector, so
+        can come from anywhere, ignore */
+     int_error("rodraw: trying to draw line without previous point",
+               NO_CARET);
+  }
+}
+
+
+/* _linetype(linetype)  Called to set the line type before text is
+   displayed or line(s) plotted. */
+
+TERM_PUBLIC void RODRAW_linetype(linetype)
+int linetype;
+{
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "linetype %d\n", linetype);
+#endif
+
+  if (linetype < -2)
+    linetype = -2;
+  else
+    linetype %=
+      (int)(sizeof(RODRAW_linetypes)/sizeof(RODRAW_linetypes[0]) - 2);
+  if (RODRAW_curr_linetype != linetype)
+  {
+    RODRAW_end_path();
+    RODRAW_curr_linetype = linetype;
+    if (RODRAW_colourmode)
+      RODRAW_colour = RODRAW_linetypes[RODRAW_curr_linetype + 2].colour;
+    /* else it remains RODRAW_BLACK */
+  }
+}
+
+
+/* _put_text(x,y,str)  Called to display text at the (x,y)
+   position, while in graphics mode.
+
+   When compiling under RISC OS, SWI Font_ScanString (or on RISC OS 2
+   Font_StringBBox) could be used to calculate the exact size.  But
+   since this SWI is not available on other platforms (and quite
+   possibly they lack the correct font information anyway) something
+   else is needed.  We could let GnuPlot do the sizing on the basis of
+   the font information in the header: with = 6/10 of height, but this
+   turns out to be not too nice.  Especially when proportional fonts
+   are involved.
+   On the other hand, a drawfile does not have its own mechanism to
+   determine stringsize and do internal calculations, like PostScript
+   has.  But drawfile does have a plot right-to-left option that can
+   be used to display right-justified text.
+   Which leaves centred text.  This is done by splitting the text in
+   half and plotting the left part right-to-left and the right part in
+   the ususal left-to-right way.  A string with an odd length is split
+   in three.  The centre character is plotted left-to-right and is
+   assumed to have an aspect-ration of 6:10 so it is plotted 3/10 of
+   the current character size to the left of the insertion point.  The
+   left part is plotted right-to-left, also starting 3/10 of the cur-
+   rent character size to the left and the right part is plotted the
+   usual way starting 3/10 of a character size to the right of the in-
+   sertion point.
+   It does provide some interesting effects when one wants to edit
+   the resulting drawfile in !Draw, !DrawPlus, !Vector, ...
+ */
+
+/*
+ * Helper macro (might be inline function if compiler supprts that).
+ * Rudimentary test on `narrow' characters when determining a stings's
+ * width.  Letters only, since punctuation usually is followed by a
+ * space so the extra space to the right does not matter too much.  This
+ * works for most proportional fonts.
+ */
+#define RODRAW_ISNARROW(c) (strchr("IJfijlrt", (char)(c)) != NULL)
+
+TERM_PUBLIC void RODRAW_put_text(x, y, str)
+unsigned int x, y;
+char * str;
+{
+  long lx = x * RODRAW_SCALE, ly = y * RODRAW_SCALE;
+  size_t len; /* needed quite a few times */
+
+  if (!str || !*str) return; /* NULL or empty string. */
+
+  len = strlen(str); /* never try a strlen(NULL)... */
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile,
+            "put_text %u %u (%ld %ld) `%s\' %s len %lu\n",
+            x,y,lx,ly,str,
+            (RODRAW_angle == 0 ? "" : " rotated"),
+            (unsigned long) strlen(str));
+  /* C-style printf/scanf formats...
+     size_t can be unsigned int or unsigned long depending on compiler,
+     so format must either be %u or %lu.  Give me C++ and rigid type
+     checking any time! */
+#endif
+
+  RODRAW_end_path();
+
+#ifdef __riscos
+#if 0 /* temp. disabled */
+  /* First try it with RISC OS string functions. */
+  {
+    long llx, lly, urx, ury
+    if (RISCOS_getboundingbox(str, angle, &urx, &ury))
+    {
+      /* Calculate new bounding box and insertion point.
+         Do not use right-to-left text, the bounding box ought
+         to be accurate. */
+      if (RODRAW_angle == 0)
+      {
+        switch(RODRAW_justify)
+          case RIGHT:
+            llx = lx - urx;
+            lly = ly;
+            urx = lx + urx;
+            ury = ly + ury;
+            break;
+          case CENTRE:
+            llx = lx - urx / 2;
+            lly = ly;
+            urx = lx + urx / 2;
+            ury = ly + ury;
+            break;
+          case LEFT:
+          default:
+            llx = lx;
+            lly = ly;
+            urx += lx;
+            ury += ly;
+            break;
+        }
+      }
+      else
+      {
+        switch(RODRAW_justify)
+          case RIGHT:
+            llx = lx - urx;
+            lly = ly - ury;
+            urx = lx;
+            ury = ly;
+            break;
+          case CENTRE:
+            llx = lx - urx;
+            lly = ly - ury/2;
+            urx = lx;
+            ury = ly + ury/2;
+            break;
+          case LEFT:
+          default:
+            llx = lx - urx;
+            lly = ly;
+            urx = lx;
+            ury = ly + ury;
+            break;
+        }
+      }
+
+      /* Adjust bounding box(es). */
+      RODRAW_bbx(llx, lly);
+      RODRAW_bbx(urx, ury);
+
+      startptr = RODRAW_drawblock.ptr;
+
+      if (RODRAW_angle == 0)
+      {
+        /* Horizontal text, insert regular text object */
+        RODRAW_start_object(RODRAW_TEXT_OBJECT);
+        RODRAW_write4(0L); /* room for size */
+        /* Bounding box */
+        RODRAW_write4(llx);
+        RODRAW_write4(lly);
+        RODRAW_write4(urx + 1L);
+        RODRAW_write4(ury + 1L);
+
+      }
+      else
+      {
+        /* Vertical text, insert transformed text object. */
+        RODRAW_start_object(RODRAW_TRANSFORMED_TEXT_OBJECT);
+        RODRAW_write4(0L); /* room for size */
+        /* Bounding box */
+        RODRAW_write4(llx);
+        RODRAW_write4(lly);
+        RODRAW_write4(urx + 1L);
+        RODRAW_write4(ury + 1L);
+        /* transformation matrix (fixed point, 16 bits mantissa) */
+        RODRAW_write4(0L); /* rotation part 0.0 */
+        RODRAW_write4(0x00010000L);     /*  1.0 */
+        RODRAW_write4(0xffff0000L);     /* -1.0 */
+        RODRAW_write4(0L);              /*  0.0 */
+        RODRAW_write4(0L); /* translation part 0.0 */
+        RODRAW_write4(0L);                 /* 0.0 */
+        /* font flags: no (extra) kerning, no right to left */
+        RODRAW_write4(0L);
+      }
+      /* Common for both horizontal and rotated text: */
+
+      /* foreground and background/hint colour */
+      RODRAW_write4(RODRAW_colour);
+      RODRAW_write4(RODRAW_NO_FILL);
+      RODRAW_write4(RODRAW_fontno);
+      /* font size (a double!) */
+      RODRAW_write4((long)(RODRAW_curr_fontsize * RODRAW_PTSC *
+                           RODRAW_SCALE));
+      RODRAW_write4((long)(RODRAW_curr_fontsize * RODRAW_PTSC *
+                           RODRAW_SCALE));
+      /* start of baseline */
+      if (RODRAW_angle == 0)
+      {
+        RODRAW_write4(llx);
+        RODRAW_write4(lly);
+      }
+      else
+      {
+        RODRAW_write4(urx);
+        RODRAW_write4(lly);
+      }
+
+      /* write the text */
+      RODRAW_writestr(str, '\0', -1);
+
+      endptr = RODRAW_drawblock.ptr;
+      RODRAW_drawblock.ptr = startptr + 4L;
+      RODRAW_write4((long)(endptr - startptr));
+      RODRAW_drawblock.ptr = endptr;
+
+      /* Done! */
+      return;
+    }
+  } /* else fall through to default `guess' mode */
+#endif /* 0 */
+#endif /* __riscos */
+
+  switch (RODRAW_justify) {
+    case CENTRE:
+      if (RODRAW_no_right_left)
+      {
+        /* Impression-friendly: try to make a more accurate guess
+           of the string's length and insert it left-to-right. */
+        int i;
+        long newlx, newly;
+        double strwidth = 0.0;
+
+        for (i = 0; i < len; i++)
+          /* Assume a narrow char has 0.6 the width of a wide char.
+             (And a char has a width of 0.6 times its height.) */
+          strwidth += (RODRAW_ISNARROW(str[i]) ? 0.36 : 0.6);
+        if (RODRAW_angle == 0)
+        {
+          RODRAW_insert_transformed_text_object(
+            lx - RODRAW_ROUND(long, strwidth * RODRAW_curr_fontsize *
+                              RODRAW_PTSC * RODRAW_SCALE * 0.5),
+            ly, LEFT, str);
+        }
+        else
+        {
+          RODRAW_insert_transformed_text_object(
+            lx,
+            ly - RODRAW_ROUND(long, strwidth * RODRAW_curr_fontsize *
+                              RODRAW_PTSC * RODRAW_SCALE * 0.5),
+            LEFT, str);
+        }
+      }
+      else
+      {
+        /* Centred text consists of two or three parts, joined in a
+           group if longer than one char. */
+        size_t partlen = len / 2;
+        long halfwidth;
+
+        if (len > 1) RODRAW_start_group("text centred");
+
+        /* Try to fit the central chacacter (if any) a bit better
+           than the rest of the string. */
+        if (RODRAW_ISODD(len)) {
+          if (RODRAW_ISNARROW(str[partlen]))
+            /* `Narrow' char: assume 0,6 of average width. */
+            halfwidth =
+              RODRAW_ROUND(long, 0.3 * RODRAW_curr_fontsize * RODRAW_PTSC *
+                                 RODRAW_SCALE * RODRAW_FONT_ASPECT_RATIO);
+          else
+            /* Regular char. */
+            halfwidth =
+              RODRAW_ROUND(long, 0.5 * RODRAW_curr_fontsize * RODRAW_PTSC *
+                                 RODRAW_SCALE * RODRAW_FONT_ASPECT_RATIO);
+        }
+        else
+          halfwidth = 0; /* no extra shift */
+
+        /* Left part. */
+        if (partlen > 0)
+        {
+          long newlx, newly;
+          int i;
+          char * rev;
+
+          if (RODRAW_angle == 0)
+          {
+            newlx = lx - halfwidth;
+            newly = ly;
+          }
+          else
+          {
+            newlx = lx;
+            newly = ly - halfwidth;
+          }
+
+          rev = (char *) gp_alloc(partlen + 1, RODRAW_allocmsg);
+          for (i = 0; i < partlen; i++)
+            rev[partlen - i - 1] = str[i]; /* reverse string */
+          rev[partlen] = '\0';
+
+          RODRAW_insert_transformed_text_object(newlx, newly, RIGHT, rev);
+          free(rev);
+        }
+
+        /* Centre part if odd number of characters. */
+        if (RODRAW_ISODD(len))
+        {
+          long newlx, newly;
+          char centre[2];
+          centre[0] = str[partlen];
+          centre[1] = '\0';
+
+          if (RODRAW_angle == 0)
+          {
+            newlx = lx - halfwidth;
+            newly = ly;
+          }
+          else
+          {
+            newlx = lx;
+            newly = ly - halfwidth;
+          }
+
+          RODRAW_insert_transformed_text_object(newlx, newly, LEFT, centre);
+
+        }
+
+        /* Right part. */
+        if (partlen > 0)
+        {
+          long newlx, newly;
+
+          if (RODRAW_angle == 0)
+          {
+            newlx = lx + halfwidth;
+            newly = ly;
+          }
+          else
+          {
+            newlx = lx;
+            newly = ly + halfwidth;
+          }
+
+          RODRAW_insert_transformed_text_object(newlx, newly, LEFT,
+                                                str + len - partlen);
+        }
+
+        if (len > 1) RODRAW_end_group();
+      }
+      break;
+
+    case RIGHT:
+      {
+        if (RODRAW_no_right_left)
+        {
+          /* Make an estimated guess about the string's real width.
+             See above under CENTRE. */
+          int i;
+          double strwidth = 0.0;
+          for (i = 0; i < len; i++)
+            /* Assume a narrow char has 0.6 the width of a wide char.
+               (And a char has a width of 0.6 times its height.) */
+            strwidth += (RODRAW_ISNARROW(str[i]) ? 0.36 : 0.6);
+          if (RODRAW_angle == 0)
+          {
+            RODRAW_insert_transformed_text_object(
+              lx - RODRAW_ROUND(long,strwidth * RODRAW_curr_fontsize *
+                                RODRAW_PTSC * RODRAW_SCALE),
+              ly, LEFT, str);
+          }
+          else
+          {
+            RODRAW_insert_transformed_text_object(
+              lx,
+              ly - RODRAW_ROUND(long, strwidth * RODRAW_curr_fontsize *
+                                RODRAW_PTSC * RODRAW_SCALE),
+              LEFT, str);
+          }
+        }
+        else
+        {
+          int i;
+          char * rev = (char *) gp_alloc(len + 1, RODRAW_allocmsg);
+          for (i = 0; i < len; i++)
+            rev[len - i - 1] = str[i];
+          rev[len] = '\0';
+          RODRAW_insert_transformed_text_object(lx, ly, RIGHT, rev);
+          free(rev);
+        }
+      }
+      break;
+    case LEFT:
+    default:
+      RODRAW_insert_transformed_text_object(lx, ly, LEFT, str);
+      break;
+  }
+}
+
+
+/* _text_angle(angle)  Called to rotate the text angle when
+   placing the y label. */
+
+TERM_PUBLIC int RODRAW_text_angle(angle)
+int angle;
+{
+#ifdef RISCOS_BB_DEBUG
+    if (RODRAW_debugfile)
+      fprintf(RODRAW_debugfile,"text_angle %d\n",angle);
+#endif /* RISCOS_BB_DEBUG */
+
+  RODRAW_angle = angle;
+  return TRUE;
+}
+
+
+/* _justify_text(mode)  Called to justify text left, right or
+   centre. */
+
+TERM_PUBLIC int RODRAW_justify_text(mode)
+enum JUSTIFY mode;
+{
+  RODRAW_justify = mode;
+  return TRUE;
+}
+
+
+/* _point(x,y,pointno)  Called to place a point at position (x,y). */
+
+TERM_PUBLIC void RODRAW_point (x, y, pointno)
+unsigned int x, y;
+int pointno;
+{
+  long lx = x * RODRAW_SCALE, ly = y * RODRAW_SCALE;
+  char groupname[20];
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile,
+            "point x %u y %u (%ld %ld) point %d\n",
+            x, y, lx, ly, pointno);
+#endif /* RISCOS_BB_DEBUG */
+
+  if (pointno < 0)
+    pointno = -1;
+  else
+    pointno %= (int)(sizeof(RODRAW_pt)/sizeof(RODRAW_pt[0]) - 1);
+
+  RODRAW_end_path();
+
+  /* Call function for this point.
+     Description of the working of the functions in the RODRAW_pt
+     array follows below.
+     Group wil be removed if the point consists of only one path. */
+
+  sprintf(groupname, "point %d", pointno);
+  RODRAW_start_group(groupname);
+  (*(RODRAW_pt[pointno+1]))(lx, ly, TRUE);
+  RODRAW_end_group();
+}
+
+
+/* _arrow(sx,sy,ex,ey,head)  Called to draw an arrow from (sx,sy)
+   to (ex,ey).
+   Rather than drawing three lines, use a proper triangle in the
+   form of a triangular end cap. */
+
+TERM_PUBLIC void RODRAW_arrow(sx, sy, ex, ey, head)
+unsigned int sx, sy, ex, ey;
+int head;
+{
+#if 0
+  /* Use GnuPlot's do_arrow(), group the separate lines. */
+  RODRAW_end_path();
+  RODRAW_start_group("arrow");
+  do_arrow(sx, sy, ex, ey, head);
+  RODRAW_end_group();
+#else /* !0 */
+  /* Use line with triangular end cap at one end and butted end
+     cap at the other end. */
+  long lsx = sx * RODRAW_SCALE, lsy = sy * RODRAW_SCALE,
+       lex = ex * RODRAW_SCALE, ley = ey * RODRAW_SCALE;
+  RODRAW_end_path();
+  if (head)
+  {
+    size_t startptr = RODRAW_drawblock.ptr, tmpptr;
+    long style;
+    long dx = lex - lsx, dy = ley - lsy;
+    double arrowlen = sqrt((double)dx * dx + (double)dy * dy),
+           headlen = 15.0, headwidth = 9.0; /* in linewidth */
+
+    /* Check that arrow is long enough, otherwise make the head smaller.
+       Short arrows have a head 1/3 of the total length.  The head should
+       not be narrower than 3 linewidths or it gets too invisible.  This
+       does mean that very short arrows may look a bit strange. */
+    if (arrowlen < headlen * RODRAW_curr_linewidth)
+    {
+      double newheadlen = (arrowlen / 3.0) / RODRAW_curr_linewidth;
+                                      /* 1/3 arrow length in linewidths */
+      headwidth /= newheadlen / headlen; /* same scale for head width */
+      if (headwidth < 3.0) headwidth = 3.0;
+      headlen = newheadlen;
+    }
+
+    /* Shorten arrow by length of head. */
+    lex = lsx + RODRAW_ROUND(long,
+               (double)dx * (arrowlen - headlen * RODRAW_curr_linewidth) /
+                             arrowlen);
+    ley = lsy + RODRAW_ROUND(long,
+               (double)dy * (arrowlen - headlen * RODRAW_curr_linewidth) /
+                             arrowlen);
+
+    RODRAW_start_path(RODRAW_NO_FILL, NULL);
+    /* Now read style back and change it to butted start cap and
+       triangular end cap.
+       (This is easier than figuring it out from current line style
+       especially if someone ever adds more line styles.) */
+    tmpptr = RODRAW_drawblock.ptr;
+    RODRAW_drawblock.ptr = startptr + 36L;
+    /* little endian, read back in portable way */
+#ifdef BYTE_ORDER_LITTLE_ENDIAN
+    style = *(long*)(RODRAW_drawblock.data + RODRAW_drawblock.ptr);
+#else /* !BYTE_ORDER_LITTLE_ENDIAN or unknown byte order */
+    style =  RODRAW_drawblock.data[RODRAW_drawblock.ptr]             +
+            (RODRAW_drawblock.data[RODRAW_drawblock.ptr + 1L] <<  8) +
+            (RODRAW_drawblock.data[RODRAW_drawblock.ptr + 2L] << 16) +
+            (RODRAW_drawblock.data[RODRAW_drawblock.ptr + 3L] << 24);
+#endif /* !BYTE_ORDER_LITTLE_ENDIAN or unknown byte order */
+    style &= ~0xffff003cL; /* clear relevant bits */
+    style |= 0x0cL;  /* no start cap, triangular end cap */
+    /* headlength and width in 1/16 of a linewidth */
+    style |= (RODRAW_ROUND(int,   headlen * 16) & 0xff) << 24;
+    style |= (RODRAW_ROUND(int, headwidth * 16) & 0xff) << 16;
+    RODRAW_write4(style);
+    RODRAW_drawblock.ptr = tmpptr;
+  }
+  else
+    /* no head */
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lsx, lsy);
+  RODRAW_path(RODRAW_LINE, lex, ley);
+  /* Arrows are a bit longer, adjust bbx to real values. */
+  RODRAW_bbx((long)(ex * RODRAW_SCALE), (long)(ey * RODRAW_SCALE));
+  RODRAW_end_path(); /* explicitely end path to end changed linestyle */
+#endif /* !0 */
+}
+
+/* _set_font() is called to set the font of labels, etc [new 3.7
+   feature]. */
+
+TERM_PUBLIC int  RODRAW_set_font(font) /* "font,size" */
+char * font;
+{
+  if (font && *font)
+  {
+    size_t sep = strcspn(font, ",");
+
+    font[sep] = '\0';
+    RODRAW_fontno = RODRAW_insert_font(font);
+
+    sscanf(font + sep + 1, "%lg", &RODRAW_curr_fontsize);
+    /* but do not reset term's idea of fontsize! */
+  }
+  else
+  {
+    /* restore default */
+    RODRAW_fontno = 1L;
+    RODRAW_curr_fontsize = RODRAW_default_fontsize;
+  }
+  return TRUE;
+}
+
+
+/* _pointsize() is used to set the pointsize for subsequent points */
+
+TERM_PUBLIC void RODRAW_set_pointsize(pointsize)
+double pointsize;
+{
+  RODRAW_hpointsize =
+    RODRAW_ROUND(long, pointsize * RODRAW_default_hpointsize);
+  RODRAW_vpointsize =
+    RODRAW_ROUND(long, pointsize * RODRAW_default_vpointsize);
+}
+
+
+/* _suspend() - called before gnuplot issues a prompt in multiplot
+   mode */
+
+/* Under RISC OS, show partial plot, on other systems ignore. */
+
+#ifdef __riscos
+TERM_PUBLIC void RODRAW_suspend()
+{
+#if 0 /* temp. disabled */
+  /* send to viewer (if any) */
+  if ((!outstr || !*outstr) && isatty(fileno(gpoutfile)))
+  {
+    TBOOLEAN groupsaved = FALSE;
+    struct RODRAW_group tmpgroup;
+    size_t tmpptr = 0;
+
+    RODRAW_end_path();
+
+    while (RODRAW_curr_group)
+    {
+      if (RODRAW_curr_group->prev == NULL)
+      {
+        /* last group is global group, save state since we'll
+           continue here for next subplot. */
+        tmpgroup = *RODRAW_curr_group;
+        tmpptr = RODRAW_drawblock.ptr;
+        groupsaved = TRUE;
+      }
+      RODRAW_end_group();
+    }
+
+    RODRAW_add_header();
+
+    RISCOS_viewer(RODRAW_drawblock.data, RODRAW_drawblock.ptr, 0xaff);
+
+    /* And restore to outer group level. */
+    if (groupsaved)
+    {
+      RODRAW_curr_group =
+        (RODRAW_pgroup) gp_alloc(sizeof(struct RODRAW_group),
+                                 RODRAW_allocmsg);
+      *RODRAW_curr_group = tmpgroup;
+      RODRAW_drawblock.ptr = tmpptr;
+    }
+  }
+#endif /* 0 */
+}
+#endif /* __riscos */
+
+
+/* _resume() - called after suspend(), before subsequent plots
+   of a multiplot. */
+
+/* Don't need to do anything to resume. */
+
+
+/* _boxfill() - fills a box in given style (currently unimplemented
+   - always background colour at present). */
+
+TERM_PUBLIC void RODRAW_boxfill(style, x, y, width, height)
+int style;
+unsigned int x, y, width, height;
+{
+  long lx        =      x * RODRAW_SCALE,
+       ly        =      y * RODRAW_SCALE,
+       lw        =  width * RODRAW_SCALE,
+       lh        = height * RODRAW_SCALE,
+       orgcolour,
+       orglinewidth;;
+
+  RODRAW_IGNORE(style);
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile,
+            "boxfill style %d x %u y %u w %u h %u (%ld %ld %ld %ld)\n",
+            style, x, y, width, height, lx, ly, lw, lh);
+#endif /* RISCOS_BB_DEBUG */
+
+  RODRAW_end_path();
+
+  orgcolour             = RODRAW_colour;
+  orglinewidth          = RODRAW_curr_linewidth;
+
+  RODRAW_colour         = RODRAW_WHITE; /* background for outline/strike */
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_WHITE /* fill with background */,
+                    RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx + lw, ly);
+  RODRAW_path(RODRAW_LINE, lx + lw, ly + lh);
+  RODRAW_path(RODRAW_LINE, lx, ly + lh);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = orglinewidth;
+  RODRAW_colour         = orgcolour;
+}
+
+
+/* _linewidth() - sets the linewidth */
+
+TERM_PUBLIC void RODRAW_linewidth(linewidth)
+double linewidth;
+{
+  long newlinewidth = RODRAW_ROUND(long, linewidth * RODRAW_LINEWIDTH);
+  /* Fail safe..., we do not want `thin' (0) width.
+     Linewidth is in fact an unsigned value, but lines 4.8 km (3 mile)
+     wide are a bit over the top... */
+  if (newlinewidth <= 0) newlinewidth = RODRAW_LINEWIDTH;
+  if (newlinewidth != RODRAW_curr_linewidth)
+  {
+    RODRAW_end_path();
+    RODRAW_curr_linewidth = newlinewidth;
+  }
+}
+
+
+/*
+ * Local functions.
+ */
+
+/* Insert a font in the font table.
+   Note for EBCDIC porters: strings should be stored in ASCII
+   format in the font block!  strnicmp() etc, might still work as
+   expected on these (converted) strings, otherwise convert back
+   to EBCDIC before comparing. */
+
+static long RODRAW_insert_font(fontname)
+const char * fontname;
+{
+  size_t fontptr;
+  long fontno = 0L;
+
+  if (RODRAW_fontblock.ptr > 0)
+  {
+    /* Look in table whether we used this font before. */
+    fontptr = 0;
+    while (fontptr < RODRAW_fontblock.ptr)
+    {
+#ifdef EBCDIC
+      char ebcdicname [MAX_ID_LEN]; /* should suffice */
+#endif /* EBCDIC */
+
+      fontno = (long) RODRAW_fontblock.data[fontptr];
+
+#ifdef EBCDIC
+      strtoebc(ebcdicname, RODRAW_fontblock.data + fontptr + 1L);
+      if (stricmp(ebcdicname, fontname) == 0)
+#else /* !EBCDIC */
+      if (stricmp(RODRAW_fontblock.data + fontptr + 1L, fontname) == 0)
+#endif /* !EBCDIC */
+      {
+        /* found font */
+        return fontno;
+      }
+
+      /* fontptr +=
+           ((1L + strlen(RODRAW_fontblock.data + fontptr + 1L)
+              + 1L + 3L) & ~3L); */
+      /* PRMs and StrongHelp say font names are padded with zeroes.
+         mkdrawf/decdrawf say that is not true.
+         And !Draw agrees with mkdrawf. */
+      fontptr += 1L + strlen(RODRAW_fontblock.data + fontptr + 1L) + 1L;
+    }
+  }
+
+  /* If we get here, the font was not in the table. */
+  fontno ++; /* font 0 is system bitmap font, outline fonts start at 1. */
+  if (fontno > 255)
+    int_error("rodraw: too many fonts, max 255", NO_CARET);
+
+  if (!RODRAW_fontblock.data ||
+      (RODRAW_fontblock.ptr + ((1L + strlen(fontname) + 1L + 3L) & ~3L) >
+       RODRAW_fontblock.size))
+    RODRAW_enlarge_block(&RODRAW_fontblock, RODRAW_FONTBLOCKINCSIZE,
+                         (1L + strlen(fontname) + 1L + 3L) & ~3L);
+
+  /* write font number in first byte. */
+  RODRAW_fontblock.data[RODRAW_fontblock.ptr] =
+    (unsigned char) fontno;
+
+#ifndef EBCDIC
+  strcpy(RODRAW_fontblock.data + RODRAW_fontblock.ptr + 1L, fontname);
+#else /* EBCDIC */
+  /* Convert to ASCII and copy in one go. */
+  strtoasc(RODRAW_fontblock.data + RODRAW_fontblock.ptr + 1L,
+           fontname);
+#endif /* EBCDIC */
+
+  RODRAW_fontblock.ptr += 1L + strlen(fontname) + 1L;
+
+  /* pad with zeroes up to next 4 byte boundary.
+     but do not increment pointer!
+     See note above. */
+  /* while (RODRAW_fontblock.ptr & 3L)                        */
+  /*   RODRAW_fontblock.data[RODRAW_fontblock.ptr++] = '\0'; */
+  fontptr = RODRAW_fontblock.ptr;
+  while (fontptr & 3L) RODRAW_fontblock.data[fontptr++] = '\0';
+
+  return fontno;
+}
+
+
+/* Insert a transformed text object. */
+static void RODRAW_insert_transformed_text_object (lx, ly, dir, str)
+long lx, ly;
+enum JUSTIFY dir;
+const char * str;
+{
+  size_t startptr, endptr;
+  long llx, lly, urx, ury; /* Bounding box. */
+  long xwidth, yheight, ydepth;
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "transf'd obj: %ld, %ld, %s `%s\'\n",
+             lx, ly, (dir == LEFT ? "l-r" : "r-l"), str);
+#endif /* RISCOS_BB_DEBUG */
+
+  /* Guess bounding box, based on fontsize and scale factor.
+     Shift 1/3 fontsize down for baseline (factor borrowed from
+     PostScript driver). */
+  /* remember: fontsize is a double */
+  xwidth  = RODRAW_ROUND(long, RODRAW_curr_fontsize * strlen(str) *
+                 RODRAW_PTSC * RODRAW_SCALE * RODRAW_FONT_ASPECT_RATIO);
+  yheight = RODRAW_ROUND(long, RODRAW_curr_fontsize * RODRAW_PTSC *
+                         RODRAW_SCALE * 2.0 / 3.0);
+  ydepth  = RODRAW_ROUND(long, RODRAW_curr_fontsize * RODRAW_PTSC *
+                         RODRAW_SCALE / 3.0);
+  if (RODRAW_angle == 0)
+  {
+    llx = (dir == LEFT ? lx : lx - xwidth);
+    lly = ly - ydepth;
+    urx = (dir == LEFT ? lx + xwidth : lx);
+    ury = ly + yheight;
+  }
+  else
+  {
+    llx = lx - yheight;
+    lly = (dir == LEFT ? ly : ly - xwidth);
+    urx = lx + ydepth;
+    ury = (dir == LEFT ? ly + xwidth : ly);
+  }
+
+  /* Adjust bounding box. */
+  RODRAW_bbx(llx, lly);
+  RODRAW_bbx(urx, ury);
+
+#ifdef RODRAW_BOX_DEBUG
+  RODRAW_start_group("t-text-obj");
+#endif
+
+  startptr = RODRAW_drawblock.ptr;
+
+  RODRAW_start_object(RODRAW_TRANSFORMED_TEXT_OBJECT);
+  RODRAW_write4(0L); /* room for size */
+
+  /* Bounding box. */
+  RODRAW_write4(llx);
+  RODRAW_write4(lly);
+  RODRAW_write4(urx + 1L);
+  RODRAW_write4(ury + 1L);
+
+  /* Transformation matrix:
+     4 32bits words rotation in fixed point with 16bits mantissa
+     and 2 32bits words translation in OS units. */
+  /* Rotation part. */
+  if (RODRAW_angle == 0)
+  {
+    RODRAW_write4(0x00010000L); /* 1.0 */
+    RODRAW_write4(0x00000000L); /* 0.0 */
+    RODRAW_write4(0x00000000L); /* 0.0 */
+    RODRAW_write4(0x00010000L); /* 1.0 */
+  }
+  else
+  {
+    RODRAW_write4(0x00000000L); /*  0.0 */
+    RODRAW_write4(0x00010000L); /*  1.0 */
+    RODRAW_write4(0xffff0000L); /* -1.0 */
+    RODRAW_write4(0x00000000L); /*  0.0 */
+  }
+  /* Translation part. */
+  RODRAW_write4(0L);
+  RODRAW_write4(0L);
+
+  /* font flags: no (extra) kerning,
+     right-to-left for right justified text. */
+  RODRAW_write4(dir == LEFT ? 0L : 2L);
+
+  /* foreground and background/hint colour */
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_NO_FILL);
+  /* font to use */
+  RODRAW_write4(RODRAW_fontno);
+  /* font size */
+  RODRAW_write4(RODRAW_ROUND(long, RODRAW_curr_fontsize * RODRAW_PTSC *
+                       RODRAW_SCALE));
+  RODRAW_write4(RODRAW_ROUND(long, RODRAW_curr_fontsize * RODRAW_PTSC *
+                       RODRAW_SCALE));
+  /* Start of baseline, including shift. */
+  if (RODRAW_angle == 0)
+  {
+    if (dir == LEFT)
+      RODRAW_write4(llx);
+    else
+      RODRAW_write4(urx);
+    RODRAW_write4(lly);
+  }
+  else
+  {
+    RODRAW_write4(urx);
+    if (dir == LEFT)
+      RODRAW_write4(lly);
+    else
+      RODRAW_write4(ury);
+  }
+  /* write the text */
+  RODRAW_writestr(str, '\0', -1);
+
+  endptr = RODRAW_drawblock.ptr;
+  RODRAW_drawblock.ptr = startptr + 4L;
+  RODRAW_write4((long)(endptr - startptr)); /* size of object */
+  RODRAW_drawblock.ptr = endptr;
+
+#ifdef RODRAW_BOX_DEBUG
+  {
+    /* Draw box around string just plotted. */
+    long orgcolour        = RODRAW_colour,
+         orglinewidth     = RODRAW_curr_linewidth;
+    RODRAW_colour         = RODRAW_BLACK;
+    RODRAW_curr_linewidth = RODRAW_LINEWIDTH;
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+    RODRAW_path(RODRAW_MOVE, llx, lly);
+    RODRAW_path(RODRAW_LINE, urx, lly);
+    RODRAW_path(RODRAW_LINE, urx, ury);
+    RODRAW_path(RODRAW_LINE, llx, ury);
+    RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+    RODRAW_end_path();
+    RODRAW_colour         = orgcolour;
+    RODRAW_curr_linewidth = orglinewidth;
+    RODRAW_end_group();
+  }
+#endif /* RODRAW_BOX_DEBUG */
+}
+
+
+/* Add the draw header to the data block. */
+
+static void RODRAW_add_header()
+{
+  size_t headersize, endptr;
+  enum RODRAW_papersizes papersize;
+
+  /* Draw file header (40 bytes), options object (88 bytes) and font
+     table object (RODRAW_fontblock.ptr + 8 bytes). */
+  /* Font block should be rounded to next 4 byte boundary! */
+  /* headersize = 40L + 88L + RODRAW_fontblock.ptr + 8L; */
+  headersize = 40L + 88L + ((RODRAW_fontblock.ptr + 3L) & ~3L) + 8L;
+
+  if (RODRAW_firstobjectptr != headersize) {
+    /* Make room for header (first time, or font table has grown
+       during second or later parts of multiplot).
+       Note that we can get here without any path information after
+       something like:
+         set term rodraw
+         set term someotherterm
+       in which case _drawblock may be uninitialized. */
+
+    if (!RODRAW_drawblock.data ||
+        (RODRAW_drawblock.ptr + headersize > RODRAW_drawblock.size))
+      RODRAW_enlarge_block(&RODRAW_drawblock,
+                           RODRAW_DRAWBLOCKINCSIZE,
+                           headersize);
+
+    memmove(RODRAW_drawblock.data + headersize,
+            RODRAW_drawblock.data + RODRAW_firstobjectptr,
+            RODRAW_drawblock.ptr - RODRAW_firstobjectptr);
+
+    RODRAW_drawblock.ptr += headersize - RODRAW_firstobjectptr;
+    RODRAW_firstobjectptr = headersize;
+  }
+
+  /* write header */
+  endptr = RODRAW_drawblock.ptr;
+  RODRAW_drawblock.ptr = 0;
+
+  RODRAW_write4(0x77617244L); /* ASCII string "Draw" */
+  RODRAW_write4(       201L); /* major drawfile format version: 201 */
+  RODRAW_write4(         0L); /* minor drawfile format version:   0 */
+  RODRAW_write4(0x50756E47L); /* creator name: 12 bytes ASCII padded */
+  RODRAW_write4(0x20746F6CL); /* with spaces */
+  RODRAW_write4(0x20204F52L); /* "GnuPlot RO  " */
+
+  /* Bounding box. */
+  RODRAW_write4(RODRAW_globalbbx.llx);
+  RODRAW_write4(RODRAW_globalbbx.lly);
+  RODRAW_write4(RODRAW_globalbbx.urx + 1L);
+  RODRAW_write4(RODRAW_globalbbx.ury + 1L);
+
+  /* Options object, set options for loading in !Draw, !DrawPlus,
+     !Vector, ... */
+  RODRAW_write4(RODRAW_OPTIONS_OBJECT); /* not _start_object, this is
+                                           the main header! */
+  RODRAW_write4(88L); /* size of object */
+  RODRAW_write4n(0L,4); /* Curiously, options object has a bounding box
+                           but all elements must be 0. */
+  if (RODRAW_papersize == RODRAW_CUSTOM)
+  {
+    /* Find the smallest paper size that fits. */
+    if (RODRAW_xsize <= RODRAW_A5Y && RODRAW_ysize <= RODRAW_A5X)
+      papersize = RODRAW_A5L;
+    else if (RODRAW_xsize <= RODRAW_A5X && RODRAW_ysize <= RODRAW_A5Y)
+      papersize = RODRAW_A5;
+    else if (RODRAW_xsize <= RODRAW_A4Y && RODRAW_ysize <= RODRAW_A4X)
+      papersize = RODRAW_A4L;
+    else if (RODRAW_xsize <= RODRAW_A4X && RODRAW_ysize <= RODRAW_A4Y)
+      papersize = RODRAW_A4;
+    else
+    /* Assume A0 landscape, should be big enough for most
+       purposes. */
+      papersize = RODRAW_A0L;
+  }
+  else
+    /* Use supplied size. */
+    papersize = RODRAW_papersize;
+
+  switch (papersize)
+  {
+    case RODRAW_A0L:
+      RODRAW_write4(0x100L);
+      RODRAW_write4(0x111L); /* show limits, landscape, use printer
+                                                         defaults */
+      break;
+    case RODRAW_A4:
+      RODRAW_write4(0x500L);
+      RODRAW_write4(0x101L); /* show limits, use printer defaults */
+      break;
+    case RODRAW_A4L:
+      RODRAW_write4(0x500L);
+      RODRAW_write4(0x111L); /* show limits, landscape, use printer
+                                                         defaults */
+      break;
+    case RODRAW_A5:
+      RODRAW_write4(0x600L);
+      RODRAW_write4(0x101L); /* show limits, use printer defaults */
+      break;
+    case RODRAW_A5L:
+    default:
+      RODRAW_write4(0x600L);
+      RODRAW_write4(0x111L); /* show limits, landscape, use printer
+                                                         defaults */
+      break;
+  }
+  RODRAW_write4(   0L); /* Grid spacing, little endian IEEE double, */
+  RODRAW_write4(   0L); /* set to zero so user may enable grid him/-
+                           herself.  (And I do not have to device a
+                           portable way to calculate it from paper
+                           size and used units and generate a little
+                           endian IEEE double from that.) */
+
+  RODRAW_write4(   0L); /* grid division */
+  RODRAW_write4(   0L); /* isometric grid */
+  RODRAW_write4(   0L); /* no auto adjust */
+  RODRAW_write4(   0L); /* no grid shown */
+  RODRAW_write4(   0L); /* no grid locking NB: option missing in
+                           StrongHelp! */
+  RODRAW_write4(   1L); /* use cm rather than inches */
+  RODRAW_write4(   1L); /* zoom multiplication factor */
+  RODRAW_write4(   1L); /* zoom division factor (zoom is quotient of
+                           these two fields) */
+  RODRAW_write4(   0L); /* no zoom locking (on powers of two) */
+  RODRAW_write4(   1L); /* show toolbox */
+  RODRAW_write4(0x80L); /* start in select mode */
+  RODRAW_write4(5000L); /* undo buffer size (default from !Draw) */
+
+  /* Font table object. */
+  RODRAW_write4(RODRAW_FONT_TABLE_OBJECT); /* no _start_object, as above. */
+  /* Size of object.  Font table entries are /not/ word aligned...
+     (see note earlier on about differences between PRM/StrongHelp
+     and that what !Draw produces) but table is already padded with
+     zeroes, so will fit right in.
+     BTW: we should have a valid font block here, there are no extra
+     tests on its validity. */
+  RODRAW_write4((long)((RODRAW_fontblock.ptr + 3L) & ~3L) + 8L);
+  memcpy(RODRAW_drawblock.data + RODRAW_drawblock.ptr,
+         RODRAW_fontblock.data,
+         (RODRAW_fontblock.ptr + 3L) & ~3L);
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_drawblock.ptr + ((RODRAW_fontblock.ptr + 3L) & ~3L) !=
+      headersize) {
+    if (RODRAW_debugfile)
+      fprintf(RODRAW_debugfile,"header size incorrect, want %d, have %d\n",
+              headersize,
+              RODRAW_drawblock.ptr + ((RODRAW_fontblock.ptr + 3L) & ~3L));
+    exit(1);
+  }
+#endif /* RISCOS_BB_DEBUG */
+
+  /* Done. */
+  RODRAW_drawblock.ptr = endptr;
+}
+
+
+/* Adjust global-, path- and optionally group bounding boxes for
+   these coordinates. */
+
+static void RODRAW_bbx (lx, ly)
+long lx, ly;
+{
+  if (RODRAW_inpath)
+  {
+    /* in a path */
+    if (lx < RODRAW_pathbbx.llx) RODRAW_pathbbx.llx = lx;
+    if (lx > RODRAW_pathbbx.urx) RODRAW_pathbbx.urx = lx;
+    if (ly < RODRAW_pathbbx.lly) RODRAW_pathbbx.lly = ly;
+    if (ly > RODRAW_pathbbx.ury) RODRAW_pathbbx.ury = ly;
+  }
+  else if (RODRAW_curr_group)
+  {
+    /* outside a path but in a group */
+    if (lx < RODRAW_curr_group->llx) RODRAW_curr_group->llx = lx;
+    if (lx > RODRAW_curr_group->urx) RODRAW_curr_group->urx = lx;
+    if (ly < RODRAW_curr_group->lly) RODRAW_curr_group->lly = ly;
+    if (ly > RODRAW_curr_group->ury) RODRAW_curr_group->ury = ly;
+  }
+  else
+  {
+    /* at global level */
+    if (lx < RODRAW_globalbbx.llx) RODRAW_globalbbx.llx = lx;
+    if (lx > RODRAW_globalbbx.urx) RODRAW_globalbbx.urx = lx;
+    if (ly < RODRAW_globalbbx.lly) RODRAW_globalbbx.lly = ly;
+    if (ly > RODRAW_globalbbx.ury) RODRAW_globalbbx.ury = ly;
+  }
+}
+
+
+/* Start a new path.
+   Set styles, initialize bounding box etc. */
+
+static void RODRAW_start_path (fillcolour, style)
+long fillcolour;
+const long * style;
+{
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile) {
+    fprintf(RODRAW_debugfile, "start_path fill %ld", fillcolour);
+    if (style)
+      fprintf(RODRAW_debugfile, " style %#lx\n", *style);
+    else
+      fprintf(RODRAW_debugfile, " default style\n");
+  }
+#endif
+
+  RODRAW_end_path();
+
+  /* Start new path object. */
+  RODRAW_inpath      = TRUE;
+  RODRAW_pathptr     = RODRAW_drawblock.ptr;
+
+  /* Inverse bounding box to start with. */
+  RODRAW_pathbbx.llx = (long)RODRAW_xsize * RODRAW_SCALE;
+  RODRAW_pathbbx.lly = (long)RODRAW_ysize * RODRAW_SCALE;
+  RODRAW_pathbbx.urx = 0L;
+  RODRAW_pathbbx.ury = 0L;
+
+  RODRAW_start_object(RODRAW_PATH_OBJECT);
+  RODRAW_write4n(0L, 5); /* room for size of object and bounding box */
+
+  RODRAW_write4(fillcolour); /* fill colour */
+  if (style) {
+    RODRAW_write4(RODRAW_colour); /* outline/strike colour */
+    RODRAW_write4(RODRAW_curr_linewidth); /* obvious */
+    RODRAW_write4(*style); /* provided line style (no dash patterns!)*/
+  }
+  else
+  {
+    /* Call linetype function to set linewidth, dash pattern (if
+       any) and colour. */
+    (*(RODRAW_linetypes[RODRAW_curr_linetype + 2].linetype))();
+  }
+
+  RODRAW_last_lx = -1;
+  RODRAW_last_ly = -1;
+
+  /* Safeguards against empty paths without fill style.
+     Note: not entirely water tight: moves without a CLOSE_SUBPATH
+     but with a fill colour in effect will leave a phantom path
+     in the draw file.  This cannot be triggered by GnuPlot in
+     its current form though, only the points and boxfill use this. */
+  RODRAW_pathdataptr  = RODRAW_drawblock.ptr;
+  RODRAW_pathmoveonly = (fillcolour == RODRAW_NO_FILL);
+
+  /* The driver tries to close paths when a point is reached after
+     several line segments have been drawn.  Before new line segments
+     can be drawn at least one MOVE is necessary, but only moves as
+     the last segments of a path are just wasting space.  So mark
+     the next move as pending. */
+  RODRAW_pending_move = FALSE;
+}
+
+
+
+/* Add actual part of path. */
+
+static void RODRAW_path (type, lx, ly)
+long type, lx, ly;
+{
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "path %s %ld %ld\n",
+            type == RODRAW_MOVE ? "move" : "line", lx, ly);
+#endif /* RISCOS_BB_DEBUG */
+
+  RODRAW_write4(type);
+  RODRAW_write4(lx);
+  RODRAW_write4(ly);
+  RODRAW_last_lx = lx;
+  RODRAW_last_ly = ly;
+  RODRAW_bbx(lx, ly);
+  if (type != RODRAW_MOVE) RODRAW_pathmoveonly = FALSE;
+}
+
+
+/* Add Bezier part of path (assumes appropriate move, line or other
+   Bezier curve before). */
+
+static void RODRAW_bezier(cp1x, cp1y, cp2x, cp2y, ex, ey)
+long cp1x, cp1y, cp2x, cp2y, ex, ey;
+{
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "bezier cp1 %ld %ld cp2 %ld %ld end %ld %ld\n",
+            cp1x, cp1y, cp2x, cp2y, ex, ey);
+#endif /* RISCOS_BB_DEBUG */
+
+  RODRAW_write4(RODRAW_BEZIER);
+  RODRAW_write4(cp1x); /* 1st control point */
+  RODRAW_write4(cp1y);
+  RODRAW_bbx(cp1x, cp1y); /* may not be wat you want, but here it is only
+                             used for circle approximations, so it is
+                             not a point outside the actual bounding box. */
+  RODRAW_write4(cp2x); /* 2nd control point */
+  RODRAW_write4(cp2y);
+  RODRAW_bbx(cp2x, cp2y);
+  RODRAW_write4(ex); /* endpoint */
+  RODRAW_write4(ey);
+  RODRAW_bbx(ex, ey);
+  RODRAW_pathmoveonly = FALSE;
+  RODRAW_last_lx = ex;
+  RODRAW_last_ly = ey;
+}
+
+
+
+
+/* Finish path if currently in a path. */
+
+static void RODRAW_end_path ()
+{
+  if (RODRAW_inpath)
+  {
+    size_t endptr;
+
+#ifdef RISCOS_BB_DEBUG
+    if (RODRAW_debugfile)
+      fprintf(RODRAW_debugfile, "end path\n");
+#endif /* RISCOS_BB_DEBUG */
+
+    RODRAW_inpath = FALSE;
+
+    if (RODRAW_drawblock.ptr == RODRAW_pathdataptr ||
+        RODRAW_pathmoveonly)
+    {
+      /* No elements added after first move or only moves and no
+         fill colour, so forget about it. */
+      RODRAW_drawblock.ptr = RODRAW_pathptr;
+      if (RODRAW_curr_group) RODRAW_curr_group->objects--;
+    }
+    else
+    {
+      RODRAW_write4(RODRAW_END_OF_PATH); /* end of path */
+
+      /* Fill in size of path object. */
+      endptr = RODRAW_drawblock.ptr;
+      RODRAW_drawblock.ptr = RODRAW_pathptr + 4;
+      RODRAW_write4((long)(endptr - RODRAW_pathptr));
+
+      /* Fill in bounding box of path object. */
+      RODRAW_write4(RODRAW_pathbbx.llx);
+      RODRAW_write4(RODRAW_pathbbx.lly);
+      RODRAW_write4(RODRAW_pathbbx.urx + 1L);
+      RODRAW_write4(RODRAW_pathbbx.ury + 1L);
+
+      RODRAW_drawblock.ptr = endptr;
+
+      /* Update enveloping bounding box (group or global). */
+      RODRAW_bbx(RODRAW_pathbbx.llx, RODRAW_pathbbx.lly);
+      RODRAW_bbx(RODRAW_pathbbx.urx, RODRAW_pathbbx.ury);
+    }
+  }
+}
+
+
+/* Start a new group. */
+
+static void RODRAW_start_group(name)
+const char * name;
+{
+  RODRAW_pgroup newgroup;
+
+  RODRAW_end_path();
+
+  newgroup =
+    (RODRAW_pgroup) gp_alloc(sizeof(struct RODRAW_group),
+                             RODRAW_allocmsg);
+#ifdef RISCOS_BB_DEBUG
+  newgroup->level    = (RODRAW_curr_group ?
+                       RODRAW_curr_group->level + 1 : 0);
+  newgroup->groupno  = RODRAW_debug_groupno++;
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "alloc()'d group level %d no %d `%s\'\n",
+            newgroup->level, newgroup->groupno,
+            (name && *name ? name : "<anonymous>") );
+#endif /* RISCOS_BB_DEBUG */
+
+  /* Reverse bounding box to start with. */
+  newgroup->llx      = (long)RODRAW_xsize * RODRAW_SCALE;
+  newgroup->lly      = (long)RODRAW_ysize * RODRAW_SCALE;
+  newgroup->urx      = 0L;
+  newgroup->ury      = 0L;
+
+  newgroup->startptr = RODRAW_drawblock.ptr;
+  newgroup->objects  = 0;
+
+  RODRAW_start_object(RODRAW_GROUP_OBJECT); /* Increment object count
+                                               of current group. */
+  RODRAW_write4n(0L, 5); /* placeholders for size and boundingbox */
+
+  /* Name is 12 ASCII chars, padded with spaces. */
+  RODRAW_writestr(name, ' ', 12);
+
+  /* Now make this group current. */
+  newgroup->prev     = RODRAW_curr_group;
+  RODRAW_curr_group  = newgroup;
+}
+
+
+/* End a group. */
+
+static void RODRAW_end_group()
+{
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+  {
+    fprintf(RODRAW_debugfile, "end_group");
+    if (RODRAW_curr_group)
+      fprintf(RODRAW_debugfile, " no %d, objects %d\n",
+              RODRAW_curr_group->groupno,
+              RODRAW_curr_group->objects);
+    else
+      fprintf(RODRAW_debugfile, ": not in group!\n");
+  }
+#endif
+
+  if (RODRAW_curr_group)
+  {
+    RODRAW_pgroup ending_group;
+
+    RODRAW_end_path();
+
+    ending_group = RODRAW_curr_group;
+    RODRAW_curr_group = RODRAW_curr_group->prev;
+
+    if (ending_group->objects <= 1)
+    {
+      /* No objects, or only one object in group.  No need to group! */
+
+      memmove(RODRAW_drawblock.data + ending_group->startptr,
+              RODRAW_drawblock.data + ending_group->startptr + 36L,
+              RODRAW_drawblock.ptr - ending_group->startptr - 36L);
+      RODRAW_drawblock.ptr -= 36L;
+
+      /* Decrement no. of objects in enveloping group (if any). */
+      if (RODRAW_curr_group) RODRAW_curr_group->objects--;
+    }
+    else
+    {
+      size_t tmpptr = RODRAW_drawblock.ptr;
+
+      RODRAW_drawblock.ptr = ending_group->startptr + 4L;
+      /* Write size of group object. */
+      RODRAW_write4((long)(tmpptr - ending_group->startptr));
+      /* Write bounding box of group object. */
+      RODRAW_write4(ending_group->llx);
+      RODRAW_write4(ending_group->lly);
+      RODRAW_write4(ending_group->urx + 1L);
+      RODRAW_write4(ending_group->ury + 1L);
+      RODRAW_drawblock.ptr = tmpptr;
+
+      if (RODRAW_curr_group)
+        RODRAW_curr_group->objects++; /* /one/ group object, even
+                                         though that group may
+                                         contain many objects */
+    }
+
+    if (ending_group->objects >= 1)
+    {
+      /* At least one object, even if group itself is removed, the
+         enveloping bounding box (group or global) must be updated. */
+      RODRAW_bbx(ending_group->llx, ending_group->lly);
+      RODRAW_bbx(ending_group->urx, ending_group->ury);
+    }
+
+#ifdef RISCOS_BB_DEBUG
+    if (RODRAW_debugfile)
+      fprintf(RODRAW_debugfile, "free()ing group level %d no %d\n",
+              ending_group->level,
+              ending_group->groupno);
+#endif /* RISCOS_BB_DEBUG */
+
+    free(ending_group);
+  }
+}
+
+
+/* Write 4 byte (long) integer in little endian format.
+   Note for porters: if you know the destination system has little
+   endian byte order (low byte first or least significant byte first)
+   then define the macro BYTE_ORDER_LITTLE_ENDIAN for a more efficient
+   version of _write4(). */
+
+static void RODRAW_write4(lval)
+long lval;
+{
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "write4 ptr %#07lx: %#010lx %ld\n",
+            (unsigned long) RODRAW_drawblock.ptr, lval, lval);
+            /* C style printf/scanf formats and size_t again... */
+#endif /* RISCOS_BB_DEBUG */
+
+  if (!RODRAW_drawblock.data ||
+      (RODRAW_drawblock.ptr + 4L > RODRAW_drawblock.size))
+    RODRAW_enlarge_block(&RODRAW_drawblock, RODRAW_DRAWBLOCKINCSIZE, 4L);
+
+#ifdef BYTE_ORDER_LITTLE_ENDIAN
+  *(long*)(RODRAW_drawblock.data + RODRAW_drawblock.ptr) = lval;
+  RODRAW_drawblock.ptr += 4L;
+#else /* !BYTE_ORDER_LITTLE_ENDIAN or unknown byte order */
+  /* a bit inefficient on little-endian machines but portable to
+     any byte order... as long as longs are (at least) 32bits */
+  RODRAW_drawblock.data[RODRAW_drawblock.ptr++] =
+     (unsigned long) lval        & 0xff;
+  RODRAW_drawblock.data[RODRAW_drawblock.ptr++] =
+    ((unsigned long) lval >>  8) & 0xff;
+  RODRAW_drawblock.data[RODRAW_drawblock.ptr++] =
+    ((unsigned long) lval >> 16) & 0xff;
+  RODRAW_drawblock.data[RODRAW_drawblock.ptr++] =
+    ((unsigned long) lval >> 24) & 0xff;
+#endif /* !BYTE_ORDER_LITTLE_ENDIAN or unknown byte order */
+}
+
+/* Repeated _write4()s. */
+
+static void RODRAW_write4n(lval, n)
+long lval;
+int n;
+{
+  while(n--) RODRAW_write4(lval);
+}
+
+/* _write4() and increment object ount in current group (if any). */
+
+static void RODRAW_start_object(lval)
+long lval;
+{
+  if (RODRAW_curr_group) RODRAW_curr_group->objects++;
+  RODRAW_write4(lval);
+}
+
+
+/* Write a string padded with pad of length maxlen, rounded up to the
+   next 4 byte boundary.
+   If max length is -1 then at least one pad character is needed to
+   terminate the string, otherwise the string may fit exact, or will
+   be truncated without any padding or terminating '\0'. */
+
+static void RODRAW_writestr(str, pad, maxlen)
+const char * str;
+int pad; /* default promotions in old style C prevent type char */
+int maxlen;
+{
+  size_t len, insertlen, i;
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile) {
+    fprintf(RODRAW_debugfile, "write str %#07lx ",
+            /* C-style printf/scanf formats and size_t again. */
+            (unsigned long) RODRAW_drawblock.ptr);
+    if (str)
+      fprintf(RODRAW_debugfile, "`%s\'", str);
+    else
+      fprintf(RODRAW_debugfile, "NULL");
+    fprintf(RODRAW_debugfile, " pad ");
+    if (isprint(pad))
+      fprintf(RODRAW_debugfile, "`%c\'",pad);
+    else
+      fprintf(RODRAW_debugfile, "%#04x",pad);
+    fprintf(RODRAW_debugfile, " max %d\n", maxlen);
+  }
+#endif /* RISCOS_BB_DEBUG */
+
+  if ((!str || !*str) && maxlen == -1) {
+    /* Nothing to insert but terminators/padding. */
+    RODRAW_write4((long)pad         + (long)(pad <<  8) +
+                  (long)(pad << 16) + (long)(pad << 24));
+    return;
+  }
+
+  len = (str && *str ? strlen(str) : 0); /* never strlen(NULL) ! */
+  if (maxlen == -1)
+    insertlen = (len + 1L + 3L) & ~3L; /* rounded to next 4 bytes */
+  else
+    insertlen = (maxlen + 3L) & ~3L; /* also rounded, just in case */
+
+  if (!RODRAW_drawblock.data ||
+      (RODRAW_drawblock.ptr + insertlen > RODRAW_drawblock.size))
+    RODRAW_enlarge_block(&RODRAW_drawblock,
+                         RODRAW_DRAWBLOCKINCSIZE,
+                         insertlen);
+
+  /* Copy string and/or pad. */
+  for (i = 0; i < insertlen; i++)
+  {
+    RODRAW_drawblock.data[RODRAW_drawblock.ptr + i] =
+#ifndef EBCDIC
+      (unsigned char) (i < len ? str[i] : (unsigned char) pad);
+#else /* EBCDIC */
+      /* convert to ASCII before insertion via lookup table
+         defined in ebcdic.h, see note (far) above. */
+      (unsigned char) ascii[
+        (unsigned char) (i < len ? str[i] : (unsigned char) pad)];
+#endif /* EBCDIC */
+  }
+  RODRAW_drawblock.ptr += insertlen;
+}
+
+
+/* Enlarge block in chunks of incsize until it is at least
+   mininc larger. */
+
+static void RODRAW_enlarge_block(block, incsize, mininc)
+RODRAW_block * block;
+size_t incsize, mininc;
+{
+  size_t newsize;
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile,
+            "realloc()ing %s (ptr %p, act size %ld) size %lu by min %lu\n",
+            (block == &RODRAW_drawblock ? "draw block" : "font block"),
+            block->data,
+            /* do I need to insert another comment about size_t and
+               scanf/printf formats? */
+            (unsigned long) block->size,
+            (block->data ? (unsigned long) block->size : 0UL),
+            (unsigned long) mininc);
+#endif /* RISCOS_BB_DEBUG */
+
+  /* First time or a previous realloc failed, in which case size
+     will not reflect true size. */
+  if (!block->data) block->size = 0;
+
+  /* Increment in (at least) 4 byte chunks. */
+  incsize = (incsize + 3L) & ~3L;
+
+  newsize = block->size + incsize;
+  while (newsize < block->size + mininc) newsize += incsize;
+
+  block->data = (RODRAW_pblockdata) gp_realloc(block->data, newsize,
+                                               RODRAW_allocmsg);
+  block->size = newsize;
+
+#ifdef RISCOS_BB_DEBUG
+  if (RODRAW_debugfile)
+    fprintf(RODRAW_debugfile, "realloc()'d %s: ptr %p inc\'d to %d\n",
+            (block == &RODRAW_drawblock ? "draw block" : "font block"),
+            block->data, newsize);
+#endif /* RISCOS_BB_DEBUG */
+}
+
+
+/*
+ * The linetypes.
+ *
+ * Shamelessly copied from PostScript driver.
+ */
+
+static void RODRAW_lt_border()
+{
+  RODRAW_write4(RODRAW_BLACK);
+  RODRAW_write4(RODRAW_curr_linewidth * 2);
+  RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+}
+
+static void RODRAW_lt_axes()
+{
+  RODRAW_write4(RODRAW_BLACK);
+  RODRAW_write4(RODRAW_curr_linewidth / 2);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(2L); /* elements of pattern */
+    /* PostScript driver uses a factor of 10 [gnuplot units] as basis,
+       which is twice the default linewidth.  Both of course multiplied
+       by the current multiplication factor. */
+    RODRAW_write4(2L*RODRAW_curr_linewidth);
+    RODRAW_write4(4L*RODRAW_curr_linewidth);
+  }
+}
+
+static void RODRAW_lt_0()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+}
+
+static void RODRAW_lt_1()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(2L); /* elements of pattern */
+    RODRAW_write4(4L*RODRAW_DASH_LENGTH);
+    RODRAW_write4(2L*RODRAW_DASH_LENGTH);
+  }
+}
+
+static void RODRAW_lt_2()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(2L); /* elements of pattern */
+    RODRAW_write4(2L*RODRAW_DASH_LENGTH);
+    RODRAW_write4(3L*RODRAW_DASH_LENGTH);
+  }
+}
+
+static void RODRAW_lt_3()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(2L); /* elements of pattern */
+    RODRAW_write4(   RODRAW_DASH_LENGTH);
+    RODRAW_write4(3L*RODRAW_DASH_LENGTH/2L);
+  }
+}
+
+static void RODRAW_lt_4()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(4L); /* elements of pattern */
+    RODRAW_write4(5L*RODRAW_DASH_LENGTH);
+    RODRAW_write4(2L*RODRAW_DASH_LENGTH);
+    RODRAW_write4(1L*RODRAW_DASH_LENGTH);
+    RODRAW_write4(2L*RODRAW_DASH_LENGTH);
+  }
+}
+
+static void RODRAW_lt_5()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(4L); /* elements of pattern */
+    RODRAW_write4(4L*RODRAW_DASH_LENGTH);
+    RODRAW_write4(3L*RODRAW_DASH_LENGTH);
+    RODRAW_write4(1L*RODRAW_DASH_LENGTH);
+    RODRAW_write4(3L*RODRAW_DASH_LENGTH);
+  }
+}
+
+static void RODRAW_lt_6()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(4L); /* elements of pattern */
+    RODRAW_write4n(2L*RODRAW_DASH_LENGTH, 3);
+    RODRAW_write4(4L*RODRAW_DASH_LENGTH);
+  }
+}
+
+static void RODRAW_lt_7()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(6L); /* elements of pattern */
+    RODRAW_write4n(2L*RODRAW_DASH_LENGTH, 5);
+    RODRAW_write4(4L*RODRAW_DASH_LENGTH);
+  }
+}
+
+static void RODRAW_lt_8()
+{
+  RODRAW_write4(RODRAW_colour);
+  RODRAW_write4(RODRAW_curr_linewidth);
+  if (RODRAW_solidmode)
+  {
+    RODRAW_write4(*RODRAW_REGULAR_PATH_STYLE);
+  }
+  else
+  {
+    RODRAW_write4(*RODRAW_DASH_PATTERN_STYLE);
+    RODRAW_write4(0L); /* offset into pattern */
+    RODRAW_write4(8L); /* elements of pattern */
+    RODRAW_write4n(2L*RODRAW_DASH_LENGTH, 7);
+    RODRAW_write4(4L*RODRAW_DASH_LENGTH);
+  }
+}
+
+
+
+/*
+ * The points, shamelessly copied from PostScript(tm) driver.
+ * Some `earlier' points use definitions of `later' ones.
+ *
+ * All points are relative to lx, ly as calculated from x, y passed
+ * to _point() and scaled by pointsize.
+ * Parameter start controls whether a path should be started or
+ * just continued.  These functions are called from _point with
+ * TRUE and from inside each other usually with FALSE, but some
+ * points with fill style need to start a new path every time.
+ */
+
+
+/* Helper functions: RISC OS draw has no circles or arcs but
+   approximates it with Bezier curves.  It uses four segments
+   for an ellipse or circle.  See e.g.
+   http://www.undu.com/Articles/990623a.html
+   and http://www.whizkidtech.net/bezier/circle/
+   for approximations on how to do it.
+   These functions draw an arc of 90 degrees in positive rotation
+   sense (anti clockwise) with lx, ly as centre and radius lr.  They
+   assume a suitable MOVE, LINE or previous BEZIER to the first point
+   has already been made.  No checks are made whether a current path
+   is in effect. */
+static void RODRAW_arc1 __PROTO((long, long, long));
+static void RODRAW_arc2 __PROTO((long, long, long));
+static void RODRAW_arc3 __PROTO((long, long, long));
+static void RODRAW_arc4 __PROTO((long, long, long));
+
+/* 1st quadrant, 0-90 degrees */
+static void RODRAW_arc1 (lx, ly, lr)
+long lx, ly, lr;
+{
+  /* start: (lx + lr, ly) */
+  RODRAW_bezier(lx + lr, (long)(ly + RODRAW_K * lr),
+                (long)(lx + RODRAW_K * lr), ly + lr,
+                lx, ly + lr); /* endpoint */
+}
+
+/* 2nd quadrant, 90-180 degrees */
+static void RODRAW_arc2 (lx, ly, lr)
+long lx, ly, lr;
+{
+  /* start: (lx, ly + lr) */
+  RODRAW_bezier((long)(lx - RODRAW_K * lr), ly + lr,
+                lx - lr, (long)(ly + RODRAW_K * lr),
+                lx - lr, ly);
+}
+
+/* 3rd quadrant, 180-270 degrees */
+static void RODRAW_arc3 (lx, ly, lr)
+long lx, ly, lr;
+{
+  /* start: (lx - lr, ly) */
+  RODRAW_bezier(lx - lr, (long)(ly - RODRAW_K * lr),
+                (long)(lx - RODRAW_K * lr), ly - lr,
+                lx, ly - lr);
+}
+
+/* 4th quadrant, 270-360 degrees */
+static void RODRAW_arc4 (lx, ly, lr)
+long lx, ly, lr;
+{
+  /* start: (lx, ly - lr) */
+  RODRAW_bezier((long)(lx + RODRAW_K * lr), ly - lr,
+                lx + lr, (long)(ly - RODRAW_K * lr),
+                lx + lr, ly);
+}
+
+
+/* The actual points. */
+
+/* Point (from PostScript driver: line with no length but
+   rounded endcaps, clever!) */
+static void RODRAW_Pnt(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth,
+       /* Rounded start and end cap (see definition of
+          RODRAW_REGULAR_PATH_STYLE). */
+       newstyle = 0x20100056L;
+
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth *= 2; /* make the point larger */
+  RODRAW_start_path(RODRAW_NO_FILL, &newstyle);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  /* Note: The drawfile import of Xara X (demo version)
+     chokes on lines with no length.  So increase the length
+     to 1.  It still look remarkably like a filled circle. */
+  RODRAW_path(RODRAW_LINE, lx, ly+1L);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* Plus. */
+static void RODRAW_Pls(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_MOVE, lx - RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+}
+
+/* Cross. */
+static void RODRAW_Crs(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE,
+              lx - RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_MOVE,
+              lx - RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly + RODRAW_vpointsize);
+}
+
+/* Star. */
+static void RODRAW_Star(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_Pls(lx, ly, start);
+  RODRAW_Crs(lx, ly, FALSE);
+}
+
+/* Box with dot. */
+static void RODRAW_Box(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_BoxE(lx, ly, start);
+  RODRAW_Pnt(lx, ly, TRUE);
+}
+
+/* Filled box. */
+static void RODRAW_BoxF(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx, ly, FALSE);
+  RODRAW_end_path();
+}
+
+/* Circle with dot. */
+static void RODRAW_Circle(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_CircE(lx, ly, start);
+  RODRAW_Pnt(lx, ly, TRUE);
+}
+
+/* Filled circle. */
+static void RODRAW_CircleF(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_CircE(lx, ly, FALSE);
+}
+
+/* Triangle Up with dot. */
+static void RODRAW_TriU(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_TriUE(lx, ly, start);
+  RODRAW_Pnt(lx, ly, TRUE);
+}
+
+/* Filled triangle Up. */
+static void RODRAW_TriUF(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_TriUE(lx, ly, FALSE);
+}
+
+/* Triangle Down with dot. */
+static void RODRAW_TriD(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_TriDE(lx, ly, start);
+  RODRAW_Pnt(lx, ly, TRUE);
+}
+
+/* Filled triangle Down. */
+static void RODRAW_TriDF(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_TriUE(lx, ly, FALSE);
+}
+
+/* Diamond with dot. */
+static void RODRAW_Dia(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_DiaE(lx, ly, start);
+  RODRAW_Pnt(lx, ly, TRUE);
+}
+
+/* Filled diamond. */
+static void RODRAW_DiaF(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx, ly, FALSE);
+}
+
+/* Pentagon with dot. */
+static void RODRAW_Pent(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_PentE(lx, ly, start);
+  RODRAW_Pnt(lx, ly, TRUE);
+}
+
+/* Filled pentagon. */
+static void RODRAW_PentF(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_PentE(lx, ly, FALSE);
+}
+
+
+/* 16 differently filled circles. */
+/* Top vertical radius. */
+static void RODRAW_C0(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_curr_linewidth *= 2;
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_end_path();
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 0-90 */
+static void RODRAW_C1(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_vpointsize, ly);
+  RODRAW_arc1(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90-180 */
+static void RODRAW_C2(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_arc2(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 0-180 */
+static void RODRAW_C3(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx + RODRAW_vpointsize, ly);
+  RODRAW_arc1(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc2(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 180-270 */
+static void RODRAW_C4(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_vpointsize, ly);
+  RODRAW_arc3(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 0-90 & 180-270 */
+static void RODRAW_C5(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_vpointsize, ly);
+  RODRAW_arc1(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_vpointsize, ly);
+  RODRAW_arc3(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90-270 */
+static void RODRAW_C6(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly + RODRAW_vpointsize);
+  RODRAW_arc2(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc3(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 0-270 */
+static void RODRAW_C7(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_vpointsize, ly);
+  RODRAW_arc1(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc2(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc3(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 270-360 */
+static void RODRAW_C8(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_arc4(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 270 - 450 */
+static void RODRAW_C9(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly - RODRAW_vpointsize);
+  RODRAW_arc4(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc1(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90-180 & 270-360 */
+static void RODRAW_C10(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_arc2(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_arc4(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 270 - 540 */
+static void RODRAW_C11(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_arc4(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc1(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc2(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 180-360 */
+static void RODRAW_C12(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx - RODRAW_vpointsize, ly);
+  RODRAW_arc3(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc4(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 180 - 450 */
+static void RODRAW_C13(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_vpointsize, ly);
+  RODRAW_arc3(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc4(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc1(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90 - 360 */
+static void RODRAW_C14(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_arc2(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc3(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc4(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_CircE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* solid, thick line */
+static void RODRAW_C15(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth *= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_CircE(lx, ly, FALSE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+
+/* 16 differently filled boxes
+   and 16 differently filled diamonds (approx. the same, rotated
+   45 degrees, so a bit different from the way the PostScript(tm)
+   driver implements them). */
+
+/* Vertical half heart line. */
+static void RODRAW_S0(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 2 * RODRAW_curr_linewidth;
+  RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_end_path();
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D0(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 2 * RODRAW_curr_linewidth;
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_end_path();
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 0-90 */
+static void RODRAW_S1(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize /= 2;
+  RODRAW_vpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx + RODRAW_hpointsize, ly + RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D1(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2_2;
+  RODRAW_vpointsize *= RODRAW_SQRT2_2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx, ly + RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize     = orghpointsize * RODRAW_SQRT2;
+  RODRAW_vpointsize     = orgvpointsize * RODRAW_SQRT2;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90 - 180 */
+static void RODRAW_S2(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize /= 2;
+  RODRAW_vpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx - RODRAW_hpointsize, ly + RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D2(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2_2;
+  RODRAW_vpointsize *= RODRAW_SQRT2_2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx - RODRAW_hpointsize, ly, FALSE);
+  RODRAW_hpointsize     = orghpointsize * RODRAW_SQRT2;
+  RODRAW_vpointsize     = orgvpointsize * RODRAW_SQRT2;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 0 - 180 */
+static void RODRAW_S3(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_vpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx, ly + RODRAW_vpointsize, FALSE);
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D3(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE,
+              lx + RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize/2, ly - RODRAW_vpointsize /2);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 180 - 270 */
+
+static void RODRAW_S4(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize /= 2;
+  RODRAW_vpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx - RODRAW_hpointsize, ly - RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize = orghpointsize;
+  RODRAW_vpointsize = orgvpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D4(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2_2;
+  RODRAW_vpointsize *= RODRAW_SQRT2_2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx, ly - RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize     = orghpointsize * RODRAW_SQRT2;
+  RODRAW_vpointsize     = orgvpointsize * RODRAW_SQRT2;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90-180 & 270-360 */
+static void RODRAW_S5(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize /= 2;
+  RODRAW_vpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx + RODRAW_hpointsize, ly + RODRAW_vpointsize, FALSE);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx - RODRAW_hpointsize, ly - RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize = orghpointsize;
+  RODRAW_vpointsize = orgvpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D5(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2_2;
+  RODRAW_vpointsize *= RODRAW_SQRT2_2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx, ly + RODRAW_vpointsize, FALSE);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx, ly - RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize     = orghpointsize * RODRAW_SQRT2;
+  RODRAW_vpointsize     = orgvpointsize * RODRAW_SQRT2;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90 - 270 */
+static void RODRAW_S6(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx - RODRAW_hpointsize, ly, FALSE);
+  RODRAW_hpointsize = orghpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D6(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE,
+              lx - RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize/2, ly - RODRAW_vpointsize/2);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 0 - 270 */
+static void RODRAW_S7(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D7(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize/2, ly - RODRAW_vpointsize/2);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 270 - 360 */
+
+static void RODRAW_S8(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize /= 2;
+  RODRAW_vpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx + RODRAW_hpointsize, ly - RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D8(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2_2;
+  RODRAW_vpointsize *= RODRAW_SQRT2_2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx + RODRAW_hpointsize, ly, FALSE);
+  RODRAW_hpointsize     = orghpointsize * RODRAW_SQRT2;
+  RODRAW_vpointsize     = orgvpointsize * RODRAW_SQRT2;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 270 - 450 */
+static void RODRAW_S9(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx + RODRAW_hpointsize, ly, FALSE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D9(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE,
+              lx + RODRAW_hpointsize/2, ly - RODRAW_vpointsize/2);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_hpointsize     = orghpointsize * RODRAW_SQRT2;
+  RODRAW_vpointsize     = orgvpointsize * RODRAW_SQRT2;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90 - 180 & 270 - 360 */
+static void RODRAW_S10(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize /= 2;
+  RODRAW_vpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx - RODRAW_hpointsize, ly + RODRAW_vpointsize, FALSE);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx + RODRAW_hpointsize, ly - RODRAW_vpointsize, FALSE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D10(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2_2;
+  RODRAW_vpointsize *= RODRAW_SQRT2_2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx - RODRAW_hpointsize, ly, FALSE);
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx + RODRAW_hpointsize, ly, FALSE);
+  RODRAW_hpointsize     = orghpointsize * RODRAW_SQRT2;
+  RODRAW_vpointsize     = orgvpointsize * RODRAW_SQRT2;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 270 - 540 */
+static void RODRAW_S11(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_hpointsize, ly);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D11(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize/2, ly - RODRAW_vpointsize/2);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize/2, ly - RODRAW_vpointsize/2);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 180 - 360 */
+static void RODRAW_S12(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_vpointsize /= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx, ly - RODRAW_vpointsize, FALSE);
+  RODRAW_vpointsize = orgvpointsize;
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D12(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE,
+              lx - RODRAW_hpointsize/2, ly - RODRAW_vpointsize/2);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 180 - 450 */
+static void RODRAW_S13(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D13(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize/2, ly - RODRAW_vpointsize/2);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* 90 - 360 */
+static void RODRAW_S14(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_BoxE(lx, ly, TRUE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D14(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth = 0; /* thin */
+  RODRAW_hpointsize *= RODRAW_SQRT2;
+  RODRAW_vpointsize *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize/2, ly + RODRAW_vpointsize/2);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+  RODRAW_curr_linewidth = 2 * orglinewidth;
+  RODRAW_DiaE(lx, ly, TRUE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+/* solid, thick lines */
+static void RODRAW_S15(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth *= 2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx, ly, FALSE);
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+static void RODRAW_D15(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  long orglinewidth  = RODRAW_curr_linewidth,
+       orghpointsize = RODRAW_hpointsize,
+       orgvpointsize = RODRAW_vpointsize;
+  RODRAW_IGNORE(start);
+  RODRAW_curr_linewidth *= 2;
+  RODRAW_hpointsize     *= RODRAW_SQRT2;
+  RODRAW_vpointsize     *= RODRAW_SQRT2;
+  RODRAW_start_path(RODRAW_colour, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx, ly, FALSE);
+  RODRAW_hpointsize     = orghpointsize;
+  RODRAW_vpointsize     = orgvpointsize;
+  RODRAW_curr_linewidth = orglinewidth;
+}
+
+
+/* Empty box. */
+static void RODRAW_BoxE(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE,
+              lx - RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, ly + RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+}
+
+/* Empty circle. */
+static void RODRAW_CircE(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx + RODRAW_vpointsize, ly);
+  RODRAW_arc1(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc2(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc3(lx, ly, RODRAW_vpointsize);
+  RODRAW_arc4(lx, ly, RODRAW_vpointsize);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+}
+
+/* Empty triangle Up. */
+static void RODRAW_TriUE(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, (long)(ly + 1.12*RODRAW_vpointsize));
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, (long)(ly - 0.5*RODRAW_vpointsize));
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, (long)(ly - 0.5*RODRAW_vpointsize));
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+}
+
+/* Empty triangle Down. */
+static void RODRAW_TriDE(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, (long)(ly - 1.12*RODRAW_vpointsize));
+  RODRAW_path(RODRAW_LINE,
+              lx - RODRAW_hpointsize, (long)(ly + 0.5*RODRAW_vpointsize));
+  RODRAW_path(RODRAW_LINE,
+              lx + RODRAW_hpointsize, (long)(ly + 0.5*RODRAW_vpointsize));
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+}
+
+/* Empty diamond. */
+static void RODRAW_DiaE(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly + RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_hpointsize, ly);
+  RODRAW_path(RODRAW_LINE, lx, ly - RODRAW_vpointsize);
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_hpointsize, ly);
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+}
+
+/* Empty pentagon. */
+static void RODRAW_PentE(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  if (start)
+    RODRAW_start_path(RODRAW_NO_FILL, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_path(RODRAW_MOVE, lx, ly + RODRAW_hpointsize);
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_ROUND(long,
+                                RODRAW_SIN72 * RODRAW_hpointsize),
+                           ly + RODRAW_ROUND(long,
+                                RODRAW_COS72 * RODRAW_hpointsize));
+  RODRAW_path(RODRAW_LINE, lx - RODRAW_ROUND(long,
+                                RODRAW_COS72 * RODRAW_hpointsize),
+                           ly - RODRAW_ROUND(long,
+                                RODRAW_SIN72 * RODRAW_hpointsize));
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_ROUND(long,
+                                RODRAW_COS72 * RODRAW_hpointsize),
+                           ly - RODRAW_ROUND(long,
+                                RODRAW_SIN72 * RODRAW_hpointsize));
+  RODRAW_path(RODRAW_LINE, lx + RODRAW_ROUND(long,
+                                RODRAW_SIN72 * RODRAW_hpointsize),
+                           ly + RODRAW_ROUND(long,
+                                RODRAW_COS72 * RODRAW_hpointsize));
+  RODRAW_write4(RODRAW_CLOSE_SUBPATH);
+  RODRAW_end_path();
+}
+
+/* White (opaque) box. */
+static void RODRAW_BoxW(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_WHITE, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_BoxE(lx, ly, FALSE);
+}
+
+/* White (opaque) circle. */
+static void RODRAW_CircW(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_WHITE, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_CircE(lx, ly, FALSE);
+}
+
+/* White (opaque) triangle Up. */
+static void RODRAW_TriUW(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_WHITE, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_TriUE(lx, ly, FALSE);
+}
+
+/* White (opaque) triangle Down. */
+static void RODRAW_TriDW(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_WHITE, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_TriDE(lx, ly, FALSE);
+}
+
+/* White (opaque) diamond. */
+static void RODRAW_DiaW(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_WHITE, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_DiaE(lx, ly, FALSE);
+}
+
+/* White (opaque) pentagon. */
+static void RODRAW_PentW(lx, ly, start)
+long lx, ly;
+TBOOLEAN start;
+{
+  RODRAW_IGNORE(start);
+  RODRAW_start_path(RODRAW_WHITE, RODRAW_REGULAR_PATH_STYLE);
+  RODRAW_PentE(lx, ly, FALSE);
+}
+
+
+
+#endif /* TERM_BODY */
+
+
+#ifdef TERM_TABLE
+TERM_TABLE_START(rodraw_driver)
+  "rodraw",
+  "RISC OS draw(file) driver",
+  RODRAW_XMAX,
+  RODRAW_YMAX,
+  RODRAW_VCHAR,
+  RODRAW_HCHAR,
+  RODRAW_VTIC,
+  RODRAW_HTIC,
+  RODRAW_options,
+  RODRAW_init,
+  RODRAW_reset,
+  RODRAW_text,
+  null_scale,
+  RODRAW_graphics,
+  RODRAW_move,
+  RODRAW_vector,
+  RODRAW_linetype,
+  RODRAW_put_text,
+  RODRAW_text_angle,
+  RODRAW_justify_text,
+  RODRAW_point,
+  RODRAW_arrow,
+  RODRAW_set_font,
+  RODRAW_set_pointsize,
+#ifdef __riscos
+  TERM_CAN_MULTIPLOT |
+#endif /* __riscos */
+    TERM_BINARY /*flags*/,
+#ifdef __riscos
+  RODRAW_suspend,
+#else  /* !__riscos */
+  NULL /* suspend */,
+#endif /* !__riscos */
+  NULL /* resume */,
+  RODRAW_boxfill,
+  RODRAW_linewidth
+TERM_TABLE_END(rodraw_driver)
+
+#undef LAST_TERM
+#define LAST_TERM rodraw_driver
+#endif /* TERM_TABLE */
+
+#endif /* !TERM_PROTO_ONLY */
+
+#ifdef TERM_HELP
+START_HELP(rodraw)
+"1 rodraw",
+"?commands set terminal rodraw",
+"?set terminal rodraw",
+"?set term rodraw",
+"?terminal rodraw",
+"?term rodraw",
+"?rodraw",
+" The `rodraw` terminal driver generates images in `Acorn/RISC OS`",
+" drawfile (vector) format.",
+"",
+" Syntax:",
+"       set term rodraw { default } { <colour mode> }",
+"                       { <dash mode> } { size <size> }",
+"                       { rightleft | norightleft }",
+"                       { \"<font name>\" } { <fontsize> }",
+"",
+" where `default` sets or restores the defaults, which may be followed",
+" by new settings, when used, this must be the first keyword;",
+" <colour mode> is `colour` (or `color`) to select colour output or",
+" `monochrome` or `bw` to select monochrome output;",
+" <dash mode> is `solid` to draw all plots with solid lines or `dashed`",
+" to use dash patterns;",
+" <size> is `a4`, `a4l`, `a5` or `a5l` for A4 portrait (21.0cm x 29.7cm or",
+" 8.27\" x 11.96\"), A4 landscape,"
+" A5 portrait (14.9cm x 21.0cm or 5.85\" x 8.27\") or A5 landscape",
+" or `<x,y>` where `x` and `y ` are numbers, optionally followed by `cm`",
+" or `inch` to indicate the units, otherwise this is in 1/10pt;",
+" <font name> is a valid RISC OS font name, it need not be present on",
+" the machine generating the plot but it is advisable to have it on the",
+" machine used to view it;",
+" and <fontsize> is the font\'s size in pt.",
+"",
+" `norightleft` is there for compatibility with drawfile renderers that",
+" cannot handle right-to-left justified text. For use with regular draw",
+" or programs that use the drawfile module the default `rightleft` is just",
+" fine.",
+"",
+" Defaults are `monochrome`, `dashed`, `a5l`(andscape) and",
+" \"Homerton.Medium\" 14pt",
+"",
+" Examples:",
+"       set terminal rodraw size a4l colour \"Trinity.Medium\" 16",
+"       set terminal rodraw default size 2835,2835",
+"       set terminal rodraw default size 10 cm, 10 cm",
+" The first example sets the size to A4 landscape, selects colour and",
+" \"Trinity.Medium\" at 16pt as the font to use, other settings are",
+" unchanged;",
+" the latter two examples both select a size of 10 cm x 10 cm and",
+" restore all other settings to their defaults."
+END_HELP(rodraw)
+#endif /* TERM_HELP */

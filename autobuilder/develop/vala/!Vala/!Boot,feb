@@ -1,0 +1,5 @@
+If "<Vala$Dir>"="" Then Set Vala$Dir <Obey$Dir>
+If "<Vala$Path>"="" Then Set Vala$Path <Vala$Dir>.
+If "<ValaVapi$Path>"="" Then Set ValaVapi$Path Vala:vapi.
+If "<Alias$valac>"="" Then Set Alias$valac Run Vala:bin.valac %*0
+

@@ -1,0 +1,31 @@
+; Module header description file for the GDBServer
+
+#include "constants.h"
+
+help-string: GDBServer 0.01
+
+title-string: GDBServer
+
+initialisation-code: mod_init
+
+finalisation-code: mod_fini
+
+command-keyword-table: command_handler
+	GDB(min-args: 1, max-args: 255,
+			invalid-syntax: "Syntax: *GDB <filename> [<args>]",
+			help-text: "*GDB runs the specified binary under GDB.\n")
+
+event-handler: internet_event 19
+
+vector-handlers: changeenv_vector
+
+generic-veneers: post_run,
+	appexit, apperror, appupcall,
+	post_wimp_initialise,
+	session_pre_poll, session_post_poll,
+	session_dabort, session_prefetch, session_undef
+
+service-call-handler: mod_service &2a
+
+error-chunk-base-number: kGDBServer_ErrorBase
+error-identifiers: kErr_AlreadyWaitingForGDB("Already waiting for a GDB to connect")

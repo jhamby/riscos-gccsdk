@@ -1,0 +1,14 @@
+Compiling libgee programs on RISC OS
+
+C flags
+-I/LibGee:gee
+
+Linking flags for shared libraries
+-LLibGee: -lgee
+
+Linking flags for static libraries
+-LLibGee: -lgee
+
+For running of shared programs you will need the
+libgee runtime
+

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Given an input mtree file, build a tarball of files that have changed subsequently
+# Syntax:
+# mtree-diff <original mtree file> <file for list of changed files> <tarball of changed files>
+
+# based on Message-ID: <7e3fibx0m8.ln2@perseus.wenlock-data.co.uk>
+# From: dave.gma+news002@googlemail.com.invalid (Dave Sines)
+# Newsgroups: uk.comp.os.linux
+# Subject: Re: Temporal filesystem diffs
+
+
+ORIGINAL_MTREE=$1
+CHANGED_LIST=$2
+CHANGED_TARBALL=$3
+
+dirlist=$CHANGED_LIST
+rm -f "$dirlist" 
+
+mtree < $ORIGINAL_MTREE | 
+sed '/^\t/d' | 
+while IFS= read -r what ; do 
+  p=${what% *} 
+  if [ -d "$p" ] && [ "${what% changed}" = "$p" ]; then 
+    printf '%s\n' "$p" >> "$dirlist" 
+    continue 
+  fi 
+  printf '%s\n' "$p" 
+done | 
+tar cvf $CHANGED_TARBALL --ignore-failed-read -T - 
+tar rvf $CHANGED_TARBALL --no-recursion -T "$dirlist"

@@ -1,0 +1,21 @@
+BindHelp is a tool to take a folder full of files and
+turn them into a StrongHelp Manual.
+
+It is invoked with:
+
+BindHelp <SourceDir> <DestFile> [options]
+  options: -f - use appended filetypes
+           -r - use existing !Root
+           -v - verbose
+
+
+BindHelp was created by Tony van der Hoff
+and modified by Stephen Fryatt.
+
+It is a tool developed and supplied with the OSLib
+project.
+
+The source code for this project can be found in the
+OSLib source code.
+
+

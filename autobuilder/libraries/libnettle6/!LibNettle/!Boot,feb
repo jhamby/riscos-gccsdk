@@ -1,0 +1,6 @@
+| Boot file for LibNettle
+|
+If "<LibNettle$Dir>" = "" Then Set LibNettle$Dir <Obey$Dir>
+If "<LibNettle$Path>" = "" Then Set LibNettle$Path <Obey$Dir>.
+
+IconSprites <LibNettle$Dir>.!Sprites

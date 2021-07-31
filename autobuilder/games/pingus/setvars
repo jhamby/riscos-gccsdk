@@ -1,0 +1,23 @@
+AB_PVERSION=0.7.6
+AB_LICENCE=Free
+AB_DISTCLEAN="$AB_MAKE -f makefile.riscos distclean"
+
+mkdir -p src/riscos
+cp $H/config.h src/riscos
+cp $H/makefile.riscos .
+
+ab_make() {
+  eval $AB_MAKE -f makefile.riscos
+  return
+}
+
+ab_package() {
+  ab_create_app Pingus Apps/Games
+  ab_makerun pingus$AB_EXEEXT
+
+  cp -av README AUTHORS ChangeLog COPYING $A
+
+  svn export data $A/data
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}

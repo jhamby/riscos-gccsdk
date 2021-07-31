@@ -1,0 +1,18 @@
+
+(cd crc; $HOST_CC -O -o makecrc makecrc.c; ./makecrc)
+
+AB_MANPAGE="man/binhex.1 man/frommac.1 man/hexbin.1 man/macsave.1 man/macstream.1 man/macunpack.1 man/macutil.1 man/tomac.1"
+
+ab_package() {
+  ab_create_command_app MacUtils Apps/Utilities
+
+  for app in binhex/binhex comm/tomac comm/frommac mixed/macsave mixed/macstream hexbin/hexbin macunpack/macunpack; do
+    ab_add_commands $S/$app
+  done
+
+  cp -av $S/doc $A/
+  cp -av README $A/doc
+  mv $D/*faf $A/doc
+
+  $AB_HOME/add-riscpkg -unixlib
+}

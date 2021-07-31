@@ -1,0 +1,6 @@
+| Boot file for LibGMP
+|
+If "<LibGMP$Dir>" = "" Then Set LibGMP$Dir <Obey$Dir>
+If "<LibGMP$Path>" = "" Then Set LibGMP$Path <Obey$Dir>.
+
+IconSprites <LibGMP$Dir>.!Sprites

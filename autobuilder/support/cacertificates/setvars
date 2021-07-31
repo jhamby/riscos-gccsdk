@@ -1,0 +1,22 @@
+AB_NOREMOTE=yes
+AB_PVERSION=1.00
+AB_ROVERSION=2
+AB_COPYSOURCE=no
+AB_CATEGORY=System
+AB_PACKAGES=CaCertificates
+AB_PRECONF=:
+AB_MAKE=:
+
+ab_package() {
+
+  mkdir -p $D/CaCertificates/Resources
+
+  cp -rav $H/!CaCertificates $D/CaCertificates/Resources
+  cp -av /etc/ssl/certs/ca-certificates.crt $D/CaCertificates/Resources/!CaCertificates
+  cp -v /usr/share/doc/ca-certificates/copyright $D/CaCertificates/Resources/!CaCertificates
+
+  $AB_HOME/add-riscpkg -section System -package CaCertificates
+}
+
+
+

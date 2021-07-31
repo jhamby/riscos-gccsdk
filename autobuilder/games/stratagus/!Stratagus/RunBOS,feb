@@ -1,0 +1,11 @@
+| Run Battle of Survival
+| Example obey file, modify for a particular game and
+| copy it to the games directory. See !Help for details
+
+If "<Stratagus$Dir>" = "" Then Error Stratagus Game engine must have been seen by the filer
+
+Set BOS$Dir <obey$dir>
+Set BOS$Path <BOS$Dir>.
+
+| Start the stratagus engine up with our data
+Run <Stratagus$Dir>.RunStrat -d /BOS:data

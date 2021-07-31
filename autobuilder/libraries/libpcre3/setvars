@@ -1,0 +1,48 @@
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libpcre3-dev libpcre3"
+else
+AB_PACKAGES="libpcre3-dev"
+fi
+AB_INSTALL=yes
+AB_LICENCE=Free
+AB_ROVERSION=2
+AB_CONFLAGS="$AB_CONFLAGS --enable-utf8 --enable-unicode-properties --enable-pcre16"
+
+ab_package()
+{
+  # Developer package
+  ab_create_app LibPcre3 Apps/Library libpcre3-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  # Move static libs to correct place in static package
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo lib*`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd ../man
+  find . -maxdepth 1 -type f -execdir mv {} {},faf \;
+
+  $AB_HOME/add-riscpkg -package LibPcre3-Dev -copyrightfile $S/COPYING -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libpcre3
+    ab_add_sharedlib $S/.libs libpcre.so.1
+    ab_add_sharedlib $S/.libs libpcrecpp.so.0
+    ab_add_sharedlib $S/.libs libpcreposix.so.0
+    ab_add_sharedlib $S/.libs libpcre16.so.0
+
+    $AB_HOME/add-riscpkg -package libpcre3 -name LibPcre3 -unixlib \
+         -depends SharedLibs -copyrightfile $S/COPYING
+  fi
+}

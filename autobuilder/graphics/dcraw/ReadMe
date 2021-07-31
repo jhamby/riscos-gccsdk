@@ -1,0 +1,19 @@
+ReadMe for dcraw
+================
+
+This is a quick (and untested) compilation of dcraw for RISC OS. 
+The original sources may be found here:
+
+  http://www.cybercom.net/~dcoffin/dcraw/
+
+See the above site for help and other information. Simply running dcraw 
+with no arguments should provide some basic usage information.
+
+For those wishing to rebuild it, it is included in the GCCSDK autobuilder.
+
+I have no intention of providing any further support for this (especially as
+I have no digital camera to test it with).
+
+
+J-M Bell (jmb202@ecs.soton.ac.uk), 8/5/05.
+

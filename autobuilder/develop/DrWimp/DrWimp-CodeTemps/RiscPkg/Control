@@ -1,0 +1,6 @@
+Description: A tool for generating DrWimp code from window templates
+ CodeTemps allows the conversion of window templates (created in
+ utilities such as !TemplEd) to DrWimp wimp-function calls.
+ This allows windows to be defined and created entirely in BASIC
+ using DrWimp within your 'RunImage', instead of loading them in from a
+ Templates file.

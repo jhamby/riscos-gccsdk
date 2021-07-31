@@ -1,0 +1,3 @@
+rm -Rf __MACOSX
+find . -name "._*" -exec rm -f {} \;
+

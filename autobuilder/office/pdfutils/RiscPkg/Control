@@ -1,0 +1,14 @@
+Description: PDF file utilities
+ This package contains command line utilities (based on Poppler) for
+ getting information of PDF documents or convert them to other formats:
+ * pdfdetach -- embedded file extractor
+ * pdffonts -- font analyzer
+ * pdfimages -- image extractor
+ * pdfinfo -- document information
+ * pdfseparate -- PDF page extractor
+ * pdftocairo -- PDF to PNG/JPEG/PDF/PS/EPS/SVG converter using Cairo
+ * pdftohtml -- PDF to HTML converter
+ * pdftoppm -- PDF to PPM/PNG/JPEG image converter
+ * pdftops -- PDF to PostScript (PS) converter
+ * pdftotext -- text extraction
+ * pdfunite -- PDF file merger

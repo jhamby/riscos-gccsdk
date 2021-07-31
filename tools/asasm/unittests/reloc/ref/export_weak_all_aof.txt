@@ -1,0 +1,38 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+2 areas
+8 symbols
+
+** Area (0x000000) "Data", aligned at 4 bytes, [data] 
+   Size 12 bytes, 0 relocations
+
+000000: 00000001 00000002 00000003
+
+** Area (0x000102) "Code", aligned at 4 bytes, [code] [32bit] 
+   Size 12 bytes, 0 relocations
+
+000000: e3a00001 e3a00002 e3a00003
+
+** Symbol table:
+
+Code             (01) local at "Code" + 0x000000
+Data             (01) local at "Data" + 0x000000
+ExtCod1          (03) global at "Code" + 0x000004
+ExtCod2          (03) global at "Code" + 0x00000c
+ExtDat1          (03) global at "Data" + 0x000004
+ExtDat2          (03) global at "Data" + 0x00000c
+$a               (01) local at "Code" + 0x000000
+$d               (01) local at "Data" + 0x000000
+
+** String table:
+
+000004: Code
+000009: Data
+00000e: ExtCod1
+000016: ExtCod2
+00001e: ExtDat1
+000026: ExtDat2
+00002e: $a
+000031: $d

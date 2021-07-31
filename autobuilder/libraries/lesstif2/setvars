@@ -1,0 +1,6 @@
+AB_CONFLAGS="--ro-recurse"
+AB_INSTALL=yes
+
+$HOST_CC scripts/man2html.c -o scripts/man2html
+chmod a-w scripts/man2html
+

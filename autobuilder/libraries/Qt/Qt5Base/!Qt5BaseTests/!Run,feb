@@ -1,0 +1,2 @@
+Filer_OpenDir <Obey$Dir>
+IfThere <Obey$Dir>.VFP Then Filer_OpenDir <Obey$Dir>.VFP

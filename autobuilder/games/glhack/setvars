@@ -1,0 +1,26 @@
+
+AB_ROVERSION=3
+AB_MAKE="$AB_MAKE -j1"
+
+ab_package() {
+  ab_create_app GLHack Apps/Games
+
+  ab_makerun src/glhack
+  mkdir -p $A/Docs
+  mkdir -p $A/locks
+  mkdir -p $A/usr
+  mkdir -p $A/var/save
+
+  cp $S/dat/*.png $A/usr
+  cp $S/dat/glface*.lst $A/usr
+  cp $S/dat/license $A/usr
+  cp $S/dat/nhdat $A/usr
+  cp $S/CHANGELOG.GL $S/NEWS.GL $S/README* $A/Docs
+
+  rman -f HTML $S/doc/glhack.6 > $A/Docs/glhack.html,faf
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile dat/license
+}
+
+
+

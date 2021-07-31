@@ -1,0 +1,4 @@
+Description: Network socket helper module 
+ SocketWatch is a simple module designed to reduce the requirement of
+ Wimp applications using sockets to constantly poll them using Null
+ Wimp polls for data.

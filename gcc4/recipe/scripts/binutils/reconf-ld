@@ -1,0 +1,5 @@
+#!/bin/bash -e
+# Auto-generate 'ld' as we've patched it.
+# Copyright (c) 2007-2010 GCCSDK Developers
+
+( cd ld && automake )

@@ -1,0 +1,588 @@
+? widget/src/riscos
+Index: widget/public/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/widget/public/Makefile.in,v
+retrieving revision 1.100.6.1
+diff -u -r1.100.6.1 Makefile.in
+--- widget/public/Makefile.in	2 Nov 2005 20:42:23 -0000	1.100.6.1
++++ widget/public/Makefile.in	30 Aug 2008 23:06:10 -0000
+@@ -74,7 +74,7 @@
+ 		nsINativeKeyBindings.h \
+ 		$(NULL)
+ 
+-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter mac cocoa riscos,$(MOZ_WIDGET_TOOLKIT)))
+ EXPORTS       += nsWidgetAtoms.h nsWidgetAtomList.h
+ endif
+ 
+@@ -100,7 +100,7 @@
+ 		nsINativeScrollbar.idl \
+ 		$(NULL)
+ 
+-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter mac cocoa riscos,$(MOZ_WIDGET_TOOLKIT)))
+ XPIDLSRCS       += nsIEventSink.idl
+ endif
+ 
+Index: widget/public/nsIMenuBar.h
+===================================================================
+RCS file: /cvsroot/mozilla/widget/public/nsIMenuBar.h,v
+retrieving revision 1.16
+diff -u -r1.16 nsIMenuBar.h
+--- widget/public/nsIMenuBar.h	3 Jan 2005 22:51:13 -0000	1.16
++++ widget/public/nsIMenuBar.h	30 Aug 2008 23:06:10 -0000
+@@ -1,3 +1,61 @@
++/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
++ *
++ * ***** BEGIN LICENSE BLOCK *****
++ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
++ *
++ * The contents of this file are subject to the Mozilla Public License Version
++ * 1.1 (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ * http://www.mozilla.org/MPL/
++ *
++ * Software distributed under the License is distributed on an "AS IS" basis,
++ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
++ * for the specific language governing rights and limitations under the
++ * License.
++ *
++ * The Original Code is mozilla.org code.
++ *
++ * The Initial Developer of the Original Code is
++ * Christopher Blizzard <blizzard@mozilla.org>.
++ * Portions created by the Initial Developer are Copyright (C) 1998
++ * the Initial Developer. All Rights Reserved.
++ *
++ * Contributor(s):
++ *   Christopher Blizzard <blizzard@mozilla.org>
++ *   Peter Hartshorn <peter@igelaus.com.au>
++ *
++ * Alternatively, the contents of this file may be used under the terms of
++ * either the GNU General Public License Version 2 or later (the "GPL"), or
++ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
++ * in which case the provisions of the GPL or the LGPL are applicable instead
++ * of those above. If you wish to allow use of your version of this file only
++ * under the terms of either the GPL or the LGPL, and not to allow others to
++ * use your version of this file under the terms of the MPL, indicate your
++ * decision by deleting the provisions above and replace them with the notice
++ * and other provisions required by the GPL or the LGPL. If you do not delete
++ * the provisions above, a recipient may use your version of this file under
++ * the terms of any one of the MPL, the GPL or the LGPL.
++ *
++ * ***** END LICENSE BLOCK ***** */
++
++#ifndef nsIDragSessionXLIB_h_
++#define nsIDragSessionXLIB_h_
++
++#include "nsISupports.h"
++#include "nsIWidget.h"
++
++#define NS_IDRAGSESSIONXLIB_IID \
++{ 0xa6b49c42, 0x1dd1, 0x11b2, { 0xb2, 0xdf, 0xc1, 0xd6, 0x1d, 0x67, 0x45, 0xcf } };
++
++class nsIDragSessionXlib : public nsISupports {
++ public:
++  NS_DEFINE_STATIC_IID_ACCESSOR(NS_IDRAGSESSIONXLIB_IID)
++
++  NS_IMETHOD IsDragging(PRBool *result) = 0;
++  NS_IMETHOD UpdatePosition(PRInt32 x, PRInt32 y) = 0;
++};
++
++#endif /* nsIDragSessionXLIB_h_ */
+ /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+ /* ***** BEGIN LICENSE BLOCK *****
+  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+@@ -119,7 +177,7 @@
+ 
+    /**
+     * Sets Native MenuHandle. Temporary hack for mac until 
+-    * nsMenuBar does it's own construction
++    * nsMenuBar does its own construction
+     */
+     NS_IMETHOD  SetNativeData(void* aData) = 0;
+     
+@@ -128,7 +186,8 @@
+     *
+     */
+     NS_IMETHOD  Paint() = 0;
+-   
++
++    PRPackedBool            mNeedsRebuild;
+ };
+ 
+ #endif
+Index: widget/src/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/Makefile.in,v
+retrieving revision 1.34
+diff -u -r1.34 Makefile.in
+--- widget/src/Makefile.in	4 Apr 2005 19:08:50 -0000	1.34
++++ widget/src/Makefile.in	30 Aug 2008 23:06:10 -0000
+@@ -51,6 +51,7 @@
+ 	MOZ_ENABLE_XLIB \
+ 	MOZ_ENABLE_PHOTON \
+ 	MOZ_ENABLE_XREMOTE \
++	MOZ_ENABLE_RISCOS \
+ 	$(NULL)
+ 
+ DIRS		= xpwidgets support
+@@ -64,7 +65,7 @@
+ endif
+ 
+ #
+-# Dont build the DSO under the 'build' directory as windows does.
++# Don't build the DSO under the 'build' directory as windows does.
+ #
+ # The DSOs get built in the toolkit dir itself.  Do this so that 
+ # multiple implementations of widget can be built on the same
+@@ -94,5 +95,10 @@
+ DIRS		+= photon
+ endif
+ 
++ifeq ($(MOZ_WIDGET_TOOLKIT),riscos)
++DIRS            += xlibxtbin
++DIRS            += riscos
++endif
++
+ include $(topsrcdir)/config/rules.mk
+ 
+Index: widget/src/gtk/nsAppShell.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/gtk/Attic/nsAppShell.cpp,v
+retrieving revision 1.96
+diff -u -r1.96 nsAppShell.cpp
+--- widget/src/gtk/nsAppShell.cpp	20 Dec 2004 21:53:31 -0000	1.96
++++ widget/src/gtk/nsAppShell.cpp	30 Aug 2008 23:06:10 -0000
+@@ -359,7 +359,7 @@
+     /* add listener */
+     PRInt32 key = aQueue->GetEventQueueSelectFD();
+ 
+-    /* only add if we arn't already in the table */
++    /* only add if we aren't already in the table */
+     if (!PL_HashTableLookup(sQueueHashTable, GINT_TO_POINTER(key))) {
+       gint tag;
+       tag = our_gdk_input_add(aQueue->GetEventQueueSelectFD(),
+Index: widget/src/xlib/nsAppShell.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsAppShell.cpp,v
+retrieving revision 1.92
+diff -u -r1.92 nsAppShell.cpp
+--- widget/src/xlib/nsAppShell.cpp	28 Apr 2005 23:48:28 -0000	1.92
++++ widget/src/xlib/nsAppShell.cpp	30 Aug 2008 23:06:10 -0000
+@@ -66,13 +66,14 @@
+ 
+ #define CHAR_BUF_SIZE 80
+ 
++/* #define DEBUG_APPSHELL */
++
+ static NS_DEFINE_CID(kEventQueueServiceCID, NS_EVENTQUEUESERVICE_CID);
+ static NS_DEFINE_IID(kCDragServiceCID,  NS_DRAGSERVICE_CID);
+ 
+ /* nsAppShell static members */
+ Display *nsAppShell::mDisplay = nsnull;
+ XlibRgbHandle *nsAppShell::mXlib_rgb_handle = nsnull;
+-XtAppContext nsAppShell::mAppContext;
+ PRTime nsAppShell::mClickTime = 0;
+ PRInt16 nsAppShell::mClicks = 1;
+ PRUint16 nsAppShell::mClickedButton = 0;
+@@ -161,7 +162,7 @@
+   /* this should _never_ be happen... but if this happens - debug mode or not - scream !!! */
+   char errmsg[80];
+   XGetErrorText(display, ev->error_code, errmsg, sizeof(errmsg));
+-  fprintf(stderr, "nsAppShellXlib: Warning (X Error) -  %s\n", errmsg);
++  //fprintf(stderr, "nsAppShellXlib: Warning (X Error) -  %s\n", errmsg);
+   abort(); // die !!
+   
+   return 0;
+@@ -170,8 +171,8 @@
+ 
+ NS_METHOD nsAppShell::Create(int* bac, char ** bav)
+ {
+-  /* Create the Xt Application context... */
+-  if (mAppContext == nsnull) {
++  /* Create the Application context */
++  if (mDisplay == nsnull) {
+     int      argc = bac ? *bac : 0;
+     char   **argv = bav;
+     nsresult rv;
+@@ -231,12 +232,7 @@
+     if (!XSetLocaleModifiers (""))
+       NS_WARNING("can not set locale modifiers");
+ 
+-    XtToolkitInitialize();
+-    mAppContext = XtCreateApplicationContext();
+-
+-    if (!(mDisplay = XtOpenDisplay (mAppContext, displayName, 
+-                                    "Mozilla5", "Mozilla5", nsnull, 0, 
+-                                    &argc, argv))) 
++    if (!(mDisplay = XOpenDisplay (displayName))) 
+     {
+       fprintf (stderr, "%s:  unable to open display \"%s\"\n", argv[0], XDisplayName(displayName));
+       exit (EXIT_FAILURE);
+@@ -310,18 +306,9 @@
+   return rv;
+ }
+ 
+-/* must be a |XtInputCallbackProc| !! */
+-PR_BEGIN_EXTERN_C
+-static
+-void HandleQueueXtProc(XtPointer ptr, int *source_fd, XtInputId* id)
+-{
+-  nsIEventQueue *queue = (nsIEventQueue *)ptr;
+-  queue->ProcessPendingEvents();
+-}
+-PR_END_EXTERN_C
+-
+ nsresult nsAppShell::Run()
+ {
++
+   if (mEventQueue == nsnull)
+     Spinup();
+ 
+@@ -335,18 +322,21 @@
+   /* process events. */
+   while (!DieAppShellDie) 
+   {   
+-    XtAppNextEvent(mAppContext, &xevent);
+-  
+-    if (XtDispatchEvent(&xevent) == False)
+-      DispatchXEvent(&xevent);
+-    
++
++#if 1
+     if (XEventsQueued(mDisplay, QueuedAlready) == 0)
+     {
+       /* Flush the nsWindow's drawing queue */
+       nsWindow::UpdateIdle(nsnull);
++    } else {
++      XNextEvent(mDisplay, &xevent);
++      DispatchXEvent(&xevent);
+     }
++#endif
++
++    mEventQueue->ProcessPendingEvents();
+   }
+-  
++
+   Spindown();
+   return NS_OK;
+ }
+@@ -400,16 +390,10 @@
+   void *key      = aQueue;
+   if (aListen) {
+     /* Add listener -
+-     * but only if we arn't already in the table... */
++     * but only if we aren't already in the table... */
+     if (!PL_HashTableLookup(sQueueHashTable, key)) {
+-      long tag;
+-        
+-      /* set up our fds callbacks */
+-      tag = (long)XtAppAddInput(mAppContext,
+-                                queue_fd,
+-                                (XtPointer)(long)(XtInputReadMask),
+-                                HandleQueueXtProc,
+-                                (XtPointer)mEventQueue);
++      long tag = 0;
++
+ 
+ /* This hack would not be neccesary if we would have a hashtable function
+  * which returns success/failure in a separate var ...
+@@ -437,7 +421,6 @@
+     int tag = long(PL_HashTableLookup(sQueueHashTable, key));
+     if (tag) {
+       tag -= NEVER_BE_ZERO_MAGIC;
+-      XtRemoveInput((XtInputId)tag);
+       PL_HashTableRemove(sQueueHashTable, key);
+     }  
+   }
+@@ -460,28 +443,21 @@
+ nsresult nsAppShell::DispatchNativeEvent(PRBool aRealEvent, void *aEvent)
+ {
+   XEvent xevent;
+-  
++
+   if (!mEventQueue)
+     return NS_ERROR_NOT_INITIALIZED;
+ 
+-#if 1
+-  /* gisburn: Why do we have to call this explicitly ?
+-   * I have registered a callback via XtAddAppInput() above... 
+-   */  
+-  mEventQueue->ProcessPendingEvents();  
+-#endif
+-
+-  XtAppNextEvent(mAppContext, &xevent);
+-    
+-  if (XtDispatchEvent(&xevent) == False)
+-    DispatchXEvent(&xevent);
+-   
+   if (XEventsQueued(mDisplay, QueuedAlready) == 0)
+   {
+     /* Flush the nsWindow's drawing queue */
+     nsWindow::UpdateIdle(nsnull);
++  } else {
++    XNextEvent(mDisplay, &xevent);
++    DispatchXEvent(&xevent);
+   }
+-    
++  //fprintf(stderr, "Native: Pending Events\n");
++  mEventQueue->ProcessPendingEvents();
++
+   return NS_OK;
+ }
+ 
+Index: widget/src/xlib/nsAppShell.h
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsAppShell.h,v
+retrieving revision 1.28
+diff -u -r1.28 nsAppShell.h
+--- widget/src/xlib/nsAppShell.h	18 Apr 2004 22:00:30 -0000	1.28
++++ widget/src/xlib/nsAppShell.h	30 Aug 2008 23:06:10 -0000
+@@ -70,7 +70,7 @@
+   /* |xxlib_find_handle(XXLIBRGB_DEFAULT_HANDLE)| would be the official 
+    * way - but |nsAppShell::GetXlibRgbHandle()| one is little bit faster... :-)
+    */
+-  static XtAppContext   mAppContext; 
++//  static XtAppContext   mAppContext; 
+   static XlibRgbHandle *GetXlibRgbHandle() { return mXlib_rgb_handle; }
+   static Display       *mDisplay;
+  private:
+Index: widget/src/xlib/nsKeyCode.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsKeyCode.cpp,v
+retrieving revision 1.11
+diff -u -r1.11 nsKeyCode.cpp
+--- widget/src/xlib/nsKeyCode.cpp	18 Apr 2004 22:00:30 -0000	1.11
++++ widget/src/xlib/nsKeyCode.cpp	30 Aug 2008 23:06:10 -0000
+@@ -182,7 +182,7 @@
+ 
+ //////////////////////////////////////////////////////////////////////////
+ /* static */ PRBool
+-nsKeyCode::KeyCodeIsModifier(KeyCode aKeyCode)
++nsKeyCode::KeyCodeIsModifier(KeySym aKeyCode)
+ {
+   if (aKeyCode == XK_Shift_L    ||
+       aKeyCode == XK_Shift_R    ||
+Index: widget/src/xlib/nsKeyCode.h
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsKeyCode.h,v
+retrieving revision 1.5
+diff -u -r1.5 nsKeyCode.h
+--- widget/src/xlib/nsKeyCode.h	18 Apr 2004 22:00:30 -0000	1.5
++++ widget/src/xlib/nsKeyCode.h	30 Aug 2008 23:06:10 -0000
+@@ -47,7 +47,7 @@
+ {
+   static PRInt32  ConvertKeySymToVirtualKey(KeySym aKeySym);
+ 
+-  static PRBool   KeyCodeIsModifier(KeyCode aKeyCode);
++  static PRBool   KeyCodeIsModifier(KeySym aKeyCode);
+ 
+   static KeySym   ConvertKeyCodeToKeySym(Display *aDisplay,
+                                          KeyCode aKeyCode);
+Index: widget/src/xlib/nsSound.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsSound.cpp,v
+retrieving revision 1.10
+diff -u -r1.10 nsSound.cpp
+--- widget/src/xlib/nsSound.cpp	27 Apr 2004 18:01:08 -0000	1.10
++++ widget/src/xlib/nsSound.cpp	30 Aug 2008 23:06:10 -0000
+@@ -53,7 +53,7 @@
+ #include <unistd.h>
+ 
+ 
+-NS_IMPL_THREADSAFE_ISUPPORTS2(nsSound, nsISound, nsIStreamLoaderObserver)
++NS_IMPL_ISUPPORTS2(nsSound, nsISound, nsIStreamLoaderObserver)
+ 
+ ////////////////////////////////////////////////////////////////////////
+ nsSound::nsSound()
+Index: widget/src/xlib/nsToolkit.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsToolkit.cpp,v
+retrieving revision 1.13
+diff -u -r1.13 nsToolkit.cpp
+--- widget/src/xlib/nsToolkit.cpp	18 Apr 2004 22:00:30 -0000	1.13
++++ widget/src/xlib/nsToolkit.cpp	30 Aug 2008 23:06:10 -0000
+@@ -41,6 +41,10 @@
+ #include "nsGCCache.h"
+ #include "nsAppShell.h" // needed for nsAppShell::GetXlibRgbHandle()
+ 
++#ifdef XP_RISCOS
++#include "nsWidgetAtoms.h"
++#endif
++
+ // Static Thread Local Storage index of the toolkit object associated with
+ // a given thread...
+ static PRUintn gToolkitTLSIndex = 0;
+@@ -84,6 +88,10 @@
+ {
+   CreateSharedGC();
+ 
++#ifdef XP_RISCOS
++  nsWidgetAtoms::RegisterAtoms();
++#endif  
++
+   return NS_OK;
+ }
+ 
+Index: widget/src/xlib/nsWidget.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsWidget.cpp,v
+retrieving revision 1.99.6.2
+diff -u -r1.99.6.2 nsWidget.cpp
+--- widget/src/xlib/nsWidget.cpp	20 Oct 2005 23:34:13 -0000	1.99.6.2
++++ widget/src/xlib/nsWidget.cpp	30 Aug 2008 23:06:10 -0000
+@@ -354,7 +354,9 @@
+   default:
+     break;
+   }
+-  
++
++//printf("widget create: %p %d\n", this, mIsToplevel);
++
+   return NS_OK;
+ }
+ 
+@@ -416,21 +418,6 @@
+       aX = screenWidth - mBounds.width;
+     if (aY >= screenHeight)
+       aY = screenHeight - mBounds.height;
+-
+-    aRect.x = aX;
+-    aRect.y = aY;
+-
+-    if (mParentWidget) {
+-      mParentWidget->WidgetToScreen(aRect, transRect);
+-    } else if (mParentWindow) {
+-      Window child;
+-      XTranslateCoordinates(mDisplay, mParentWindow,
+-                            XRootWindowOfScreen(mScreen),
+-                            aX, aY, &transRect.x, &transRect.y,
+-                            &child);
+-    }
+-    aX = transRect.x;
+-    aY = transRect.y;
+   }
+ 
+   mRequestedSize.x = aX;
+@@ -601,8 +588,8 @@
+     return (void *)NS_STATIC_CAST(nsToolkit*,mToolkit)->GetSharedGC();
+     break;
+   default:
+-    fprintf(stderr, "nsWidget::GetNativeData(%d) called with crap value.\n",
+-            aDataType);
++    //fprintf(stderr, "nsWidget::GetNativeData(%d) called with crap value.\n",
++    //        aDataType);
+     return nsnull;
+     break;
+   }
+@@ -861,7 +848,7 @@
+ 
+     /* clear out the cursor cache */
+ #ifdef DEBUG_CURSORCACHE
+-    printf("freeing cursor cache\n");
++    //printf("freeing cursor cache\n");
+ #endif
+     for (int i = 0; i < eCursorCount; i++)
+       if (gsXlibCursorCache[i])
+@@ -945,7 +932,7 @@
+ 
+   /* Get the origin (top left corner) coordinate and window's size */
+   if (XGetWindowAttributes(mDisplay, window, &inWindowAttributes) == 0) {
+-    fprintf(stderr, "Failed calling XGetWindowAttributes in nsWidget::IsMouseInWindow");
++    //fprintf(stderr, "Failed calling XGetWindowAttributes in nsWidget::IsMouseInWindow");
+     return PR_FALSE;
+   }
+ 
+@@ -961,8 +948,8 @@
+   if (!XTranslateCoordinates(mDisplay, mBaseWindow, rootWindow,
+     inMouseX, inMouseY,
+     &root_inMouse_x, &root_inMouse_y, &returnedChild)){
+-    fprintf(stderr, "Could not get coordinates for origin coordinates for mouseclick\n");
+-    // should we return true or false??????
++    //fprintf(stderr, "Could not get coordinates for origin coordinates for mouseclick\n");
++    // should we return true or false?
+     return PR_FALSE;
+   }
+   //fprintf(stderr, "Here are the mouse click coordinates x:%i y%i\n", root_inMouse_x, root_inMouse_y);
+@@ -1282,6 +1269,7 @@
+                     aWidget->mRequestedSize.y,
+                     aWidget->mRequestedSize.width,
+                     aWidget->mRequestedSize.height);
++  XMapWindow(aWidget->mDisplay, aWidget->mBaseWindow);
+ }
+ 
+ void nsWidget::WidgetShow(nsWidget *aWidget)
+@@ -1464,7 +1452,7 @@
+       break;
+   }
+ 
+-  /* if by now we dont have a xcursor, this means we have to make a custom one */
++  /* if by now we don't have a xcursor, this means we have to make a custom one */
+   if (!xcursor) {
+     NS_ASSERTION(newType != 0xff, "Unknown cursor type and no standard cursor");
+     
+Index: widget/src/xlib/nsWidgetFactory.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsWidgetFactory.cpp,v
+retrieving revision 1.26
+diff -u -r1.26 nsWidgetFactory.cpp
+--- widget/src/xlib/nsWidgetFactory.cpp	18 Apr 2004 22:00:30 -0000	1.26
++++ widget/src/xlib/nsWidgetFactory.cpp	30 Aug 2008 23:06:10 -0000
+@@ -157,3 +157,4 @@
+ NS_IMPL_NSGETMODULE_WITH_DTOR(nsWidgetXLIBModule,
+                               components,
+                               nsWidgetXLIBModuleDtor)
++
+Index: widget/src/xlib/nsWindow.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsWindow.cpp,v
+retrieving revision 1.70.6.1
+diff -u -r1.70.6.1 nsWindow.cpp
+--- widget/src/xlib/nsWindow.cpp	18 Aug 2005 08:11:23 -0000	1.70.6.1
++++ widget/src/xlib/nsWindow.cpp	30 Aug 2008 23:06:10 -0000
+@@ -681,7 +681,7 @@
+     Invalidate(bounds, PR_TRUE);
+   }
+ 
+-  // If we are obscurred by another window we have to update those areas
++  // If we are obscured by another window we have to update those areas
+   // which were not copied with the XCopyArea function.
+ 
+   if (mVisibility == VisibilityPartiallyObscured)
+Index: widget/src/xlibxtbin/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlibxtbin/Attic/Makefile.in,v
+retrieving revision 1.9
+diff -u -r1.9 Makefile.in
+--- widget/src/xlibxtbin/Makefile.in	9 Dec 2004 19:28:34 -0000	1.9
++++ widget/src/xlibxtbin/Makefile.in	30 Aug 2008 23:06:10 -0000
+@@ -56,9 +56,11 @@
+ CPPSRCS         = \
+                 xlibxtbin.cpp \
+ 
++EXTRA_DSO_LDOPTS += $(XLDFLAGS) $(XLIBS) -lSM -lICE
++
+ EXTRA_DSO_LDOPTS += -L$(DIST)/bin -L$(DIST)/lib -lxlibrgb
+ 
+-EXTRA_DSO_LDOPTS += $(MOZ_XLIB_LDFLAGS) -L/usr/X11R6/lib -lXt
++EXTRA_DSO_LDOPTS += $(MOZ_XLIB_LDFLAGS) -L/usr/X11R6/lib -lXt $(XLDFLAGS) $(XLIBS)
+ 
+ EXPORTS         = xlibxtbin.h 
+ 
+Index: widget/src/xpwidgets/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xpwidgets/Makefile.in,v
+retrieving revision 1.68
+diff -u -r1.68 Makefile.in
+--- widget/src/xpwidgets/Makefile.in	28 Jun 2005 22:04:03 -0000	1.68
++++ widget/src/xpwidgets/Makefile.in	30 Aug 2008 23:06:10 -0000
+@@ -73,7 +73,7 @@
+ 		nsClipboardHelper.cpp \
+ 		$(NULL)
+ 
+-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter mac cocoa riscos,$(MOZ_WIDGET_TOOLKIT)))
+ CPPSRCS += nsWidgetAtoms.cpp
+ endif
+ 

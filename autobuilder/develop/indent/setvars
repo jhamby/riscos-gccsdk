@@ -1,0 +1,15 @@
+$HOST_CC -o man/texinfo2man man/texinfo2man.c
+AB_ROVERSION=2
+export ac_cv_func_setlocale=no
+
+AB_CONFLAGS='--disable-nls'
+
+ab_package() {
+  ab_create_command_app Indent Apps/Development
+  ab_add_commands $S/src/indent$AB_EXEEXT
+
+  cp -av $S/COPYING $A/
+  cp -av $S/doc/indent.html $A/!Help,faf
+
+  $AB_HOME/add-riscpkg -unixlib
+}

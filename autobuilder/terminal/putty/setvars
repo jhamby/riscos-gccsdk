@@ -1,0 +1,27 @@
+
+AB_CATEGORY=Terminal
+
+ab_package() {
+  echo S=$S
+  echo D=$D
+  EXECUTABLES="$S/psftp$AB_EXEEXT $S/plink$AB_EXEEXT $S/pscp$AB_EXEEXT $S/puttygen$AB_EXEEXT"
+  # $S/puttytel$AB_EXEEXT $S/pterm$AB_EXEEXT
+  DOCS="$S/../README $S/../LICENCE"
+  cp -av $H/\!PuTTY $D
+  cp -av $S/putty$AB_EXEEXT $D/\!PuTTY
+  cp $EXECUTABLES $DOCS $D
+}
+
+# setup PuTTY before we configure it
+# generate makefiles (including Makefile.in)
+./mkfiles.pl
+# run autoconf
+#./mkauto.sh
+# build from unix/ directory
+cd unix
+
+ab_make() {
+  $AB_MAKE -f Makefile.gtk COMPAT=-DNO_GSSAPI CC=$CC CFLAGS=-O1 tree234.o
+  $AB_MAKE -f Makefile.gtk "COMPAT=-DNO_GSSAPI -DHAVE_NO_SETRESUID -DOMIT_UTMP -DBSD_PTYS" \
+    CC=$CC "LDFLAGS=-L$GCCSDK_INSTALL_ENV/lib -lz -lpng -lpixman-1 -lxml2 -lexpat -lCX11 -lDesk -static"
+}

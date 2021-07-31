@@ -1,0 +1,184 @@
+AB_CATEGORY="Development"
+
+AB_URL=http://download.mono-project.com/sources/mono/mono-3.2.1.tar.bz2
+
+AB_CONFLAGS="--ro-recurse --with-sgen=yes --with-gc=sgen --with-tls=pthread --with-xen-opt=no --with-ikvm-native=no --with-moonlight=no --disable-shared-memory --with-sigaltstack=no --with-jit=yes --with-malloc-mempools --with-static_mono=yes --with-shared_mono=yes"
+
+export RO_SHAREDLIBS=yes
+
+export ac_cv_func_madvise=yes
+export ac_cv_func_mmap=no
+export armv6=no
+
+ln -T -s -f $H/mono.utils.riscos-memory.c $S/mono/utils/riscos-memory.c
+
+build_riscosdotnet() {
+  echo "Building riscosdotnet..."
+  mkdir -p $S/libriscosdotnet/build
+
+  echo "Symlinking source tree..."
+  pushd . >/dev/null
+    cd $S/libriscosdotnet
+    find "$H/riscosdotnet" -mindepth 1 -depth -type d -printf "%P\n" | while read dir; do mkdir -p "$dir"; done
+    find "$H/riscosdotnet" -type f -printf "%P\n" | while read file; do ln -s -f "$H/riscosdotnet/$file" "$file"; done
+
+    mkdir -p config && libtoolize -c
+
+    pushd . >/dev/null
+      echo "Patching libtool to recognise RISC OS..."
+      cd config/m4 && mv -T libtool.m4 libtool.m4.orig && ../../patch-libtool.pl libtool.m4 libtool.m4.orig
+    popd >/dev/null
+
+    pushd . >/dev/null
+      echo "Building riscosdotnet ..."
+      aclocal -I config && autoconf && automake --add-missing
+      cd build
+      ../configure --enable-shared --host=arm-unknown-riscos --prefix=$GCCSDK_INSTALL_ENV && make -j1 install
+      # Ignore errors incase doxygen isn't installed
+      make -i doxygen-doc
+    popd >/dev/null
+
+  popd >/dev/null
+}
+
+ab_make() {
+  $AB_MAKE
+  $AB_MAKE install
+
+  build_riscosdotnet
+}
+
+# $1 = source profile directory
+# $2 = destination profile directory
+copy_gac() {
+  mkdir -p $2
+
+  echo Symlinking dll assemblies for .net ${1##*/} framework
+
+  # Symlinks from the profile directory to the GAC.
+  for file in $( ls "$1" ); do
+    if [ -L "$1/$file" ]; then
+      ux_link=$(readlink $1/$file)
+      ro_link=$(echo $(echo $ux_link | sed -e 's|..|^|') | tr /. ./)
+      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_link $2/$file,1C8
+    else
+      # If a dll assembly is not symlinked then copy it (only mscorlib.dll I think).
+      ext=${file##*.}
+      if [ "$ext" = "dll" ]; then
+	cp -T "$1/$file" "$2/$file"
+      fi
+    fi
+  done
+
+  echo Copying dll assemblies for .net ${1##*/} framework
+
+  # Copy assemblies that are symlinked and in the GAC.
+  # Define the start of the path that we need to delete from all filenames found.
+  mono_lib_dir=$GCCSDK_INSTALL_ENV/lib/mono/
+  # Search the gac directory for all .dll files.
+  for file in `find "$GCCSDK_INSTALL_ENV/lib/mono/gac" -name "*.dll"`; do
+    # Extract the end of the filename after and including the gac directory.
+    gac_file=$(echo ${file#$mono_lib_dir})
+    mkdir -p $A/lib/mono/`dirname "$gac_file"`
+    cp -T "$file" "$A/lib/mono/$gac_file"
+  done
+}
+
+# $1 = profile
+copy_framework_exes() {
+  echo Copying exe files for .net $1 framework
+
+  for file in `find "$GCCSDK_INSTALL_ENV/lib/mono/$1" -name "*.exe"`; do
+    cp -T "$GCCSDK_INSTALL_ENV/lib/mono/$1/`basename $file`" "$A/lib/mono/$1/`basename $file`,A7D";
+  done
+}
+
+ab_package() {
+  ab_create_app Mono Apps/Develop
+
+  mkdir -p $A/bin
+
+  if [ -e $S/mono/mini/mono$AB_EXEEXT ]; then
+    cp $S/mono/mini/mono$AB_EXEEXT $A/bin/
+  fi
+
+  if [ -e $S/mono/mini/mono-sgen$AB_EXEEXT ]; then
+    cp $S/mono/mini/mono-sgen$AB_EXEEXT $A/bin/
+  fi
+
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/2.0" "$A/lib/mono/2.0"
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/3.5" "$A/lib/mono/3.5"
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/4.0" "$A/lib/mono/4.0"
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/4.5" "$A/lib/mono/4.5"
+
+  copy_framework_exes "2.0"
+  copy_framework_exes "3.5"
+  copy_framework_exes "4.0"
+  copy_framework_exes "4.5"
+
+  # Copy config files
+  mkdir -p $A/etc/mono/2.0 $A/etc/mono/4.0 $A/etc/mono/4.5
+  cp "$GCCSDK_INSTALL_ENV/etc/mono/2.0/machine.config" "$A/etc/mono/2.0/"
+  cp "$GCCSDK_INSTALL_ENV/etc/mono/4.0/machine.config" "$A/etc/mono/4.0/"
+  cp "$GCCSDK_INSTALL_ENV/etc/mono/4.5/machine.config" "$A/etc/mono/4.5/"
+  cp "$GCCSDK_INSTALL_ENV/etc/mono/config" "$A/etc/mono/"
+
+  # Copy the riscos assembly
+  cp $S/libriscosdotnet/build/assembly/riscos.dll $A/lib
+  cp $S/libriscosdotnet/build/assembly/riscos.dll.mdb $A/lib
+
+  # Copy documentation
+  cp $S/COPYING.LIB $S/AUTHORS $S/LICENSE $A/Docs
+  cp -T $S/libriscosdotnet/Copyright $A/Docs/rdn-Copyright
+  cp -R $S/libriscosdotnet/build/doxygen-doc/* $A/Docs/rdn-Manual
+
+  # Create a skeleton !SharedLibs directory and copy shared library.
+  # Determine which ABI is in use and therefor which directory to install
+  # to. We assume that GCC 4.1.1 is obsolete. For GCC 4.1.2, the ABI
+  # directory is "abi-1.0", for newer versions of GCC, it is "abi-2.0".
+  abi_dir=abi-2.0
+  gcc_version=$($GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc --version)
+  if [[ "$gcc_version" == *4.1.2* ]]; then
+    abi_dir=abi-1.0
+  fi
+
+  so_lib_installdir=$D/$package/$section/mono/Apps/Develop/\!SharedLibs/lib/$abi_dir
+
+  mkdir -p $so_lib_installdir
+  cp -T "$S/libriscosdotnet/build/src/.libs/libriscosdotnet.1.0.0.so" "$so_lib_installdir/libriscosdotnet.1.0.0.so,E1F"
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f libriscosdotnet/1/0/0/so $so_lib_installdir/libriscosdotnet.so.1,1C8
+
+  # Copy tests
+  tests_installdir=$D/$package/$section/mono/Apps/Develop/Tests
+  mkdir -p $tests_installdir
+  cp -T "$S/libriscosdotnet/build/test/test-font.exe" "$tests_installdir/test-font.exe,A7D"
+  cp -T "$S/libriscosdotnet/build/test/test-font.exe.mdb" "$tests_installdir/test-font.exe.mdb"
+
+  # Copy !MonoTestApp
+  svn export $H/riscosdotnet/test/\!MonoTestApp $tests_installdir/\!MonoTestApp
+  cp -T $S/libriscosdotnet/build/test/test-app.exe $tests_installdir/\!MonoTestApp/test-app.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/test-app.exe.mdb $tests_installdir/\!MonoTestApp/test-app.exe.mdb
+
+  # Copy !MonoTestTB
+  svn export $H/riscosdotnet/test/\!MonoTestTB $tests_installdir/\!MonoTestTB
+  cp -T $S/libriscosdotnet/build/test/test-toolbox.exe $tests_installdir/\!MonoTestTB/test-toolbox.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/test-toolbox.exe.mdb $tests_installdir/\!MonoTestTB/test-toolbox.exe.mdb
+
+  # Copy !TestSprite
+  svn export $H/riscosdotnet/test/\!TestSprite $tests_installdir/\!TestSprite
+  cp -T $S/libriscosdotnet/build/test/test-sprite.exe $tests_installdir/\!TestSprite/test-sprite.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/test-sprite.exe.mdb $tests_installdir/\!TestSprite/test-sprite.exe.mdb
+
+  # Copy !MonoTestGadget
+  svn export $H/riscosdotnet/test/\!MonoTestGadget $tests_installdir/\!MonoTestGadget
+  cp -T $S/libriscosdotnet/build/test/test-gadget.exe $tests_installdir/\!MonoTestGadget/test-gadget.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/test-gadget.exe.mdb $tests_installdir/\!MonoTestGadget/test-gadget.exe.mdb
+
+  # Copy !TBTemplate
+  svn export $H/riscosdotnet/test/\!TBTemplate $tests_installdir/\!TBTemplate
+  cp -T $S/libriscosdotnet/build/test/tb-template.exe $tests_installdir/\!TBTemplate/tb-template.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/tb-template.exe.mdb $tests_installdir/\!TBTemplate/tb-template.exe.mdb
+}
+
+# Regenerate configure from the patched configure.in
+autoreconf -f

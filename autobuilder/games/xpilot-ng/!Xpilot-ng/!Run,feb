@@ -1,0 +1,7 @@
+WIMPSLOT
+
+Set XPilot-NG$Dir <Obey$Dir>
+
+Set Chox11$XPilot-NG-X11$SubPixelFont 1
+
+Run <XPilot-NG$Dir>.xpilot-ng-x11 >null: 2>null:

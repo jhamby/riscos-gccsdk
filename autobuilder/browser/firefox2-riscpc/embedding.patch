@@ -1,0 +1,32 @@
+Index: embedding/components/build/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/embedding/components/build/Makefile.in,v
+retrieving revision 1.51
+diff -u -r1.51 Makefile.in
+--- embedding/components/build/Makefile.in	29 Apr 2005 13:33:46 -0000	1.51
++++ embedding/components/build/Makefile.in	26 Nov 2007 00:28:58 -0000
+@@ -126,7 +126,7 @@
+ LOCAL_INCLUDES += -I$(srcdir)/../printingui/src/os2 
+ endif
+ 
+-ifneq (,$(filter gtk gtk2 xlib beos photon qt, $(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter gtk gtk2 xlib beos photon qt riscos, $(MOZ_WIDGET_TOOLKIT)))
+ LOCAL_INCLUDES += -I$(srcdir)/../printingui/src/unixshared 
+ endif
+ 
+Index: embedding/components/printingui/src/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/embedding/components/printingui/src/Makefile.in,v
+retrieving revision 1.6
+diff -u -r1.6 Makefile.in
+--- embedding/components/printingui/src/Makefile.in	18 Apr 2004 22:00:46 -0000	1.6
++++ embedding/components/printingui/src/Makefile.in	26 Nov 2007 00:28:58 -0000
+@@ -42,7 +42,7 @@
+ 
+ include $(DEPTH)/config/autoconf.mk
+ 
+-ifneq (,$(filter gtk gtk2 xlib photon qt beos,$(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter gtk gtk2 xlib photon qt beos riscos,$(MOZ_WIDGET_TOOLKIT)))
+ DIRS	+= unixshared
+ endif
+ 

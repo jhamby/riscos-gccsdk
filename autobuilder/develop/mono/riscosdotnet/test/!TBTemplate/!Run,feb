@@ -1,0 +1,11 @@
+Set TBTemplate$Dir <Obey$Dir>
+
+RMEnsure Toolbox 1.33  RMLoad System:modules.Toolbox.Toolbox
+RMEnsure Toolbox 1.33  Error TBTemplate requires ToolBox 1.33 or later
+RMEnsure Window  1.17  RMLoad System:modules.toolbox.window
+RMEnsure Window  1.17  Error TBTemplate requires Window 1.17 or later
+RMEnsure IconBar  1.20  RMLoad System:modules.toolbox.IconBar
+RMEnsure IconBar  1.20  Error TBTemplate requires IconBar 1.20 or later
+
+Wimpslot -min 5000k -max 5000k
+Mono-SGen <TBTemplate$Dir>.tb-template/exe

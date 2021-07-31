@@ -1,0 +1,26 @@
+AB_ROVERSION=5
+
+# AB_MAKE="$AB_MAKE circuslinux"
+
+
+ab_package() {
+  ab_create_app CircusLnx Apps/Games
+
+  ab_makerun circuslinux
+
+  cat $S/README.txt >> $A/\!Help
+
+  cp -av $S/AUTHORS.txt $S/CHANGES.txt $S/FAQ.txt $S/README-SDL.txt $S/COPYING.txt $A
+
+  mkdir -p $A/data
+  cp -r $S/data/images $S/data/music $S/data/sounds $A/data
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name CircusLinux
+}
+
+export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -lmikmod -logg -lFLAC -lwebp -ltiff -llzma"
+
+# Stop automake re-running as one used in circuslinux is not
+# compatible with latest from debian
+touch Makefile.in
+touch data/Makefile.in

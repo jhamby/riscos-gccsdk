@@ -1,0 +1,34 @@
+beta_level=`grep -m1 BETALEVEL revision.h | cut -d\" -f2 | cut -d' ' -f1`
+AB_PVERSION=`grep -m1 VERSION revision.h | cut -d\" -f2`$beta_level
+AB_ROVERSION=2
+
+AB_PRECONF=:
+
+# We're using SCL so extension is always ,ff8.
+AB_MAKE="$AB_MAKE CC=arm-unknown-riscos-gcc E=,ff8 NOASM=1"
+
+cp $S/acorn/GMakefile $S/Makefile
+
+rm $S/acorn/swiven.s
+
+ab_package() {
+  ab_create_command_app Zip Apps/Utilities
+  # We're using SCL so use ,ff8 instead of $AB_EXEEXT
+  ab_add_commands $S/*,ff8
+  test ! -f $S/acorn/zipsfx || mv $S/acorn/zipsfx $S/acorn/zipsfx,feb
+  ab_add_commands $S/acorn/zipsfx,feb
+
+  echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
+
+  # Copy documentation:
+  mkdir $A/docs
+  rman -f HTML $S/man/zip.1 > $A/docs/zip,faf
+  rman -f HTML $S/man/zipcloak.1 > $A/docs/zipcloak,faf
+  rman -f HTML $S/man/zipnote.1 > $A/docs/zipnote,faf
+  rman -f HTML $S/man/zipsplit.1 > $A/docs/zipsplit,faf
+  cp $S/{BUGS,CHANGES,LICENSE,README,README.CR,TODO,WHATSNEW,WHERE,zip30.ann} $A/docs
+
+  # No -unixlib as we're using SCL
+  $AB_HOME/add-riscpkg -copyrightfile $S/LICENSE -name Zip
+}
+

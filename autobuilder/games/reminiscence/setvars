@@ -1,0 +1,10 @@
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app RS Apps/Games
+  ab_makerun $S/rs
+
+  cp README $A/\!Help
+
+  $AB_HOME/add-riscpkg -name Reminiscence -unixlib -unixsound
+}

@@ -1,0 +1,32 @@
+Before you start
+----------------
+
+Please obtain Nettle from:
+
+    http://nettle.sourceforge.net/
+
+And !UnixHome from
+
+    http://www.riscos.info/packages/
+
+
+Installing
+----------
+
+Place the Lynx binary anywhere you like - somewhere in the Run$Path
+may be sensible.   Lynx's config file is in a dummy !UnixHome
+application.  Place this over the top of the real !UnixHome application.
+
+
+Usage
+-----
+
+Lynx is designed to work running as an "ANSI Task" under Nettle. Its use
+running outside of Nettle is limited.
+
+Lynx also requires a large wimpslot - greater than about 1.4MB before it will
+start.
+
+Lynx is started by typing "lynx" into the command dialogue of Nettle as an ANSI
+task, with an optional URL as a parameter.
+

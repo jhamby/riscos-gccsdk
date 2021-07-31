@@ -1,0 +1,23 @@
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app PipeNight Apps/Games
+
+  ab_makerun $S/src/pipenightdreams
+
+  cp -av AUTHORS ChangeLog COPYING README $A
+
+  mkdir -p $A/games/pipenightdreams
+  cp -ar images $A/games/pipenightdreams
+  cp -ar levels $A/games/pipenightdreams
+
+  # Need to remove a shortcut or zip issues a warning
+  rm $A/games/pipenightdreams/images/pipes_space/back04/board_back.jpg
+  cp $A/games/pipenightdreams/images/pipes_space/back01/board_back.jpg $A/games/pipenightdreams/images/pipes_space/back04/board_back.jpg
+
+  $AB_HOME/add-riscpkg -unixlib -name PipeNightDreams
+}
+
+export LIBS="-lSDL_image -ljpeg -lpng -ltiff -lz -lwebp -static"
+AB_CONFLAGS=\''--datadir=/<PipeNight$$Dir>/'\'
+

@@ -1,0 +1,23 @@
+AB_URL=http://www.artpol-software.com/Downloads/ziparchive.zip 
+AB_MAKE="$AB_MAKE -C ZipArchive -f ../_projects/Linux/Makefile"
+AB_INSTALL=env
+AB_LICENCE=Free
+AB_PVERSION=`grep -m 1 "linkindex" Doc/history.html | cut -d '>' -f3 | cut -d ' ' -f1`
+
+
+ab_package() {
+  ab_create_app ZipArchive Apps/Library ziparchive-dev
+  echo 'Set ZipArchive$Path <Obey$Dir>.' >> $A/!Boot,feb
+
+  mkdir -p $A/ziparchive/h
+  hdrs=$S/ZipArchive/*.h
+  for hdr in $hdrs; do
+     dhdr=$(basename $hdr | sed s#\.h\$##)
+     cp -av $hdr $A/ziparchive/h/$dhdr
+  done
+  cp $S/ZipArchive/libziparch.a $A
+  mkdir -p $A/docs
+  cp -av $S/Doc/* $A/docs
+
+  $AB_HOME/add-riscpkg -package ziparchive-dev -name ZipArchive-Dev -unixlib
+}

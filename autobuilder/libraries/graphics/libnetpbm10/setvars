@@ -1,0 +1,15 @@
+
+AB_INSTALL=yes
+
+AB_CONFIG="cp -af Makefile.config.in Makefile.config; make depend"
+
+ln -sf shhopt.h shhopt/netpbm-shhopt.h
+mkdir -p lib/static
+
+ab_make() {
+  eval $AB_MAKE build.lib.static
+}
+
+export PREFIX=$GCCSDK_INSTALL_ENV
+
+AB_INSTALLTARGET="install.lib.hdr install.lib.static"

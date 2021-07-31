@@ -1,0 +1,16 @@
+AB_CONFLAGS="--disable-sdl-client --disable-replay --disable-xp-mapedit --datadir=\"/\<XPilot-NG\\\\$\\\$Dir\>/data\""
+
+ab_package () {
+  ab_create_app Xpilot-ng Apps/Games
+
+  ab_makerun $S/src/client/x11/xpilot-ng-x11$AB_EXEEXT
+
+  mkdir -p $A/docs
+  cp -av $S/COPYING $S/README $A/docs
+
+  mkdir -p $A/data/xpilot-ng/textures
+  cp -av $S/lib/textures/*.ppm $A/data/xpilot-ng/textures
+  cp -av $S/lib/shipshapes.txt $A/data/xpilot-ng
+
+ $AB_HOME/add-riscpkg
+}

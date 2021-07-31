@@ -1,0 +1,8 @@
+| Run file for PuTTY
+
+Wimpslot -min 4096K -max 4096K
+
+Set PuTTY$Path <Obey$Dir>.
+
+Run <Obey$Dir>.putty > null: 2>&1
+| ><Obey$Dir>.stdout 2><Obey$Dir>.stderr

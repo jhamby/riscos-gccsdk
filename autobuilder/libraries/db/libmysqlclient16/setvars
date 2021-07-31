@@ -1,0 +1,21 @@
+
+AB_INSTALL=yes
+
+AB_URL=http://mysql.mirrors.pair.com/Downloads/MySQL-5.0/mysql-5.0.96.zip
+
+AB_CONFLAGS="--without-server --without-docs --without-debug"
+
+mkdir -p Docs/Images
+
+for dir in Docs Docs/Images dbug extra mysql-test; do
+  echo -e "all:\ninstall:\n" > $dir/Makefile.in
+done
+
+for dir in libmysql client sql cmd-line-utils/libedit scripts strings regex mysys tests netware; do
+  echo -e ".deps/%.Po .deps/%.Plo:\n\t@mkdir -p .deps\n\t@touch \$@" >> $dir/Makefile.in
+done
+
+autoconf
+
+ln -s . man/man1
+

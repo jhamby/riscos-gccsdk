@@ -1,0 +1,36 @@
+This is Enhanced CTorrent, a client for BitTorrent filesharing.
+
+Installing
+----------
+
+Place the ctorrent binary anywhere you like - somewhere in the Run$Path
+or Library may be sensible.
+
+
+Usage
+-----
+
+ctorrent is normally invoked in a TaskWindow.  First find a .torrent file for
+the download you want, and save it on your machine with your web browser or
+wget, for example:
+
+ *wget http://releases.ubuntu.com/6.10/ubuntu-6.10-desktop-i386.iso.torrent
+then invoke ctorrent
+ *ctorrent ubuntu-6.10-desktop-i386.iso.torrent
+
+Note dots in this filename, not slashes.  It will proceed to find other
+servers and download.  If you're behind a firewall, BitTorrent is often
+accelerated if you open or forward ports so that other servers can reach your
+machine.  As BitTorrent is a sharing medium, it's polite to leave ctorrent
+running for a time after you've got the whole file so others can download the
+file from you.  You can set which ports ctorrent listens on with command line
+options.
+
+See the accompanying documentation for more complex use, and for explanation
+of the progress displays.
+
+Enhanced CTorrent homepage:
+http://www.rahul.net/dholmes/ctorrent/
+
+BitTorrent FAQ & Guide
+http://btfaq.com/

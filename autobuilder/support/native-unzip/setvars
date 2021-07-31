@@ -1,0 +1,9 @@
+AB_PRECONF=:
+
+make -f unix/Makefile generic LOCAL_UNZIP=-DACORN_FTYPE_NFS
+
+mkdir -p $GCCSDK_INSTALL_ENV/bin
+cp unzip $GCCSDK_INSTALL_ENV/bin/
+
+echo "all:" > Makefile
+

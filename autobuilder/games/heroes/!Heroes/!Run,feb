@@ -1,0 +1,20 @@
+
+Set SDL_VIDEODRIVER riscos
+
+Set Heroes$Dir <Obey$Dir>
+Set Heroes$Path <Heroes$Dir>.
+
+Set HEROES_PREFIX Heroes:
+
+RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
+RMEnsure DigitalRenderer 0.51 Error Heroes requires version 0.51 of the DigitalRenderer module
+
+WIMPSLOT
+
+| Windowed    <no switch>
+| Double size -2
+| Triple size -3
+| Fullscreen  -F
+| High quality sound -i
+
+<Heroes$Dir>.heroes >null: 2>null: -J -i

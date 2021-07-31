@@ -1,0 +1,3 @@
+wget http://ftp.debian.org/debian/pool/main/libr/librsvg/librsvg_2.40.16-1.debian.tar.xz
+tar -xvJf librsvg_2.40.16-1.debian.tar.xz
+

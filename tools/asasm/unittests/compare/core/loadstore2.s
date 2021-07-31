@@ -1,0 +1,648 @@
+; -RUNOPT: -CPU=7-A
+
+		AREA |C$$code|, CODE, READONLY, HALFWORD
+
+		; Addressing Mode 2 - Load/Store Word or Unsigned Byte
+		; Loads
+
+	[ :LNOT: REFERENCE
+		; 1
+		LDR	R0,[R1]
+		LDR	R0,[R1,#0]
+		LDR	R0,[R1,#4]
+		LDR	R0,[R1,#-4]
+		; 2
+		LDR	R0,[R1,R2]
+		LDR	R0,[R1,-R2]
+		; 3
+		LDR	R0,[R1,R2, LSL #2]
+		LDR	R0,[R1,-R2, ASR #4]
+		; 4
+		LDR	R0,[R1]!
+		LDR	R0,[R1,#0]!
+		LDR	R0,[R1,#4]!
+		LDR	R0,[R1,#-4]!
+		; 5
+		LDR	R0,[R1,R2]!
+		LDR	R0,[R1,-R2]!
+		; 6
+		LDR	R0,[R1,R2, LSL #2]!
+		LDR	R0,[R1,-R2, ASR #4]!
+		; 7
+		LDR	R0,[R1],#4
+		LDR	R0,[R1],#-4
+		; 8
+		LDR	R0,[R1],R2
+		LDR	R0,[R1],-R2
+		; 9
+		LDR	R0,[R1],R2, LSL #2
+		LDR	R0,[R1],-R2, ASR #4
+	|
+		DCI	&E5910000
+		DCI	&E5910000
+		DCI	&E5910004
+		DCI	&E5110004
+
+		DCI	&E7910002
+		DCI	&E7110002
+
+		DCI	&E7910102
+		DCI	&E7110242
+
+		DCI	&E5B10000
+		DCI	&E5B10000
+		DCI	&E5B10004
+		DCI	&E5310004
+
+		DCI	&E7B10002
+		DCI	&E7310002
+
+		DCI	&E7B10102
+		DCI	&E7310242
+
+		DCI	&E4910004
+		DCI	&E4110004
+
+		DCI	&E6910002
+		DCI	&E6110002
+
+		DCI	&E6910102
+		DCI	&E6110242
+	]
+
+	[ :LNOT: REFERENCE
+		; 1
+		LDRB	R0,[R1]
+		LDRB	R0,[R1,#0]
+		LDRB	R0,[R1,#4]
+		LDRB	R0,[R1,#-4]
+		; 2
+		LDRB	R0,[R1,R2]
+		LDRB	R0,[R1,-R2]
+		; 3
+		LDRB	R0,[R1,R2, LSL #2]
+		LDRB	R0,[R1,-R2, ASR #4]
+		; 4
+		LDRB	R0,[R1]!
+		LDRB	R0,[R1,#0]!
+		LDRB	R0,[R1,#4]!
+		LDRB	R0,[R1,#-4]!
+		; 5
+		LDRB	R0,[R1,R2]!
+		LDRB	R0,[R1,-R2]!
+		; 6
+		LDRB	R0,[R1,R2, LSL #2]!
+		LDRB	R0,[R1,-R2, ASR #4]!
+		; 7
+		LDRB	R0,[R1],#4
+		LDRB	R0,[R1],#-4
+		; 8
+		LDRB	R0,[R1],R2
+		LDRB	R0,[R1],-R2
+		; 9
+		LDRB	R0,[R1],R2, LSL #2
+		LDRB	R0,[R1],-R2, ASR #4
+	|
+		DCI	&E5D10000
+		DCI	&E5D10000
+		DCI	&E5D10004
+		DCI	&E5510004
+
+		DCI	&E7D10002
+		DCI	&E7510002
+
+		DCI	&E7D10102
+		DCI	&E7510242
+
+		DCI	&E5F10000
+		DCI	&E5F10000
+		DCI	&E5F10004
+		DCI	&E5710004
+
+		DCI	&E7F10002
+		DCI	&E7710002
+
+		DCI	&E7F10102
+		DCI	&E7710242
+
+		DCI	&E4D10004
+		DCI	&E4510004
+
+		DCI	&E6D10002
+		DCI	&E6510002
+
+		DCI	&E6D10102
+		DCI	&E6510242
+	]
+
+	[ :LNOT: REFERENCE
+		; 7
+		LDRT	R0,[R1],#4
+		LDRT	R0,[R1],#-4
+		; 8
+		LDRT	R0,[R1],R2
+		LDRT	R0,[R1],-R2
+		; 9
+		LDRT	R0,[R1],R2, LSL #2
+		LDRT	R0,[R1],-R2, ASR #4
+		; Pre-index can not be chosen with 'T' so test
+		; switch to post-index.
+		LDRT	r1,[r2]
+
+		; 7
+		LDRBT	R0,[R1],#4
+		LDRBT	R0,[R1],#-4
+		; 8
+		LDRBT	R0,[R1],R2
+		LDRBT	R0,[R1],-R2
+		; 9
+		LDRBT	R0,[R1],R2, LSL #2
+		LDRBT	R0,[R1],-R2, ASR #4
+		; Pre-index can not be chosen with 'T' so test
+		; switch to post-index.
+		LDRBT	r1,[r2]
+	|
+		DCI	&E4B10004
+		DCI	&E4310004
+
+		DCI	&E6B10002
+		DCI	&E6310002
+
+		DCI	&E6B10102
+		DCI	&E6310242
+
+		DCI	&e4b21000	; LDRT R1, [R2], #0
+
+		DCI	&E4F10004
+		DCI	&E4710004
+
+		DCI	&E6F10002
+		DCI	&E6710002
+
+		DCI	&E6F10102
+		DCI	&E6710242
+
+		DCI	&e4f21000	; LDRBT R1, [R2], #0
+	]
+
+		; Addressing Mode 3 - Miscellaneous Loads/Stores
+	[ :LNOT: REFERENCE
+		; 1
+		LDRD	R0,[R1]
+		LDRD	R0,[R1,#0]
+		LDRD	R0,[R1,#4]
+		LDRD	R0,[R1,#-4]
+		; 2
+		LDRD	R0,[R1,R2]
+		LDRD	R0,[R1,-R2]
+		; 3
+		LDRD	R0,[R1]!
+		LDRD	R0,[R1,#0]!
+		LDRD	R0,[R1,#4]!
+		LDRD	R0,[R1,#-4]!
+		; 4
+		LDRD	R0,[R1,R2]!
+		LDRD	R0,[R1,-R2]!
+		; 5
+		LDRD	R0,[R1],#4
+		LDRD	R0,[R1],#-4
+		; 6
+		LDRD	R0,[R1],R2
+		LDRD	R0,[R1],-R2
+	|
+		DCI	&E1C100D0
+		DCI	&E1C100D0
+		DCI	&E1C100D4
+		DCI	&E14100D4
+
+		DCI	&E18100D2
+		DCI	&E10100D2
+
+		DCI	&E1E100D0
+		DCI	&E1E100D0
+		DCI	&E1E100D4
+		DCI	&E16100D4
+
+		DCI	&E1A100D2
+		DCI	&E12100D2
+
+		DCI	&E0C100D4
+		DCI	&E04100D4
+
+		DCI	&E08100D2
+		DCI	&E00100D2
+	]
+
+		; Stores
+
+	[ :LNOT: REFERENCE
+		; 1
+		STR	R0,[R1]
+		STR	R0,[R1,#0]
+		STR	R0,[R1,#4]
+		STR	R0,[R1,#-4]
+		; 2
+		STR	R0,[R1,R2]
+		STR	R0,[R1,-R2]
+		; 3
+		STR	R0,[R1,R2, LSL #2]
+		STR	R0,[R1,-R2, ASR #4]
+		; 4
+		STR	R0,[R1]!
+		STR	R0,[R1,#0]!
+		STR	R0,[R1,#4]!
+		STR	R0,[R1,#-4]!
+		; 5
+		STR	R0,[R1,R2]!
+		STR	R0,[R1,-R2]!
+		; 6
+		STR	R0,[R1,R2, LSL #2]!
+		STR	R0,[R1,-R2, ASR #4]!
+		; 7
+		STR	R0,[R1],#4
+		STR	R0,[R1],#-4
+		; 8
+		STR	R0,[R1],R2
+		STR	R0,[R1],-R2
+		; 9
+		STR	R0,[R1],R2, LSL #2
+		STR	R0,[R1],-R2, ASR #4
+	|
+		DCI	&E5810000
+		DCI	&E5810000
+		DCI	&E5810004
+		DCI	&E5010004
+
+		DCI	&E7810002
+		DCI	&E7010002
+
+		DCI	&E7810102
+		DCI	&E7010242
+
+		DCI	&E5A10000
+		DCI	&E5A10000
+		DCI	&E5A10004
+		DCI	&E5210004
+
+		DCI	&E7A10002
+		DCI	&E7210002
+
+		DCI	&E7A10102
+		DCI	&E7210242
+
+		DCI	&E4810004
+		DCI	&E4010004
+
+		DCI	&E6810002
+		DCI	&E6010002
+
+		DCI	&E6810102
+		DCI	&E6010242
+	]
+
+	[ :LNOT: REFERENCE
+		; 1
+		STRB	R0,[R1]
+		STRB	R0,[R1,#0]
+		STRB	R0,[R1,#4]
+		STRB	R0,[R1,#-4]
+		; 2
+		STRB	R0,[R1,R2]
+		STRB	R0,[R1,-R2]
+		; 3
+		STRB	R0,[R1,R2, LSL #2]
+		STRB	R0,[R1,-R2, ASR #4]
+		; 4
+		STRB	R0,[R1]!
+		STRB	R0,[R1,#0]!
+		STRB	R0,[R1,#4]!
+		STRB	R0,[R1,#-4]!
+		; 5
+		STRB	R0,[R1,R2]!
+		STRB	R0,[R1,-R2]!
+		; 6
+		STRB	R0,[R1,R2, LSL #2]!
+		STRB	R0,[R1,-R2, ASR #4]!
+		; 7
+		STRB	R0,[R1],#4
+		STRB	R0,[R1],#-4
+		; 8
+		STRB	R0,[R1],R2
+		STRB	R0,[R1],-R2
+		; 9
+		STRB	R0,[R1],R2, LSL #2
+		STRB	R0,[R1],-R2, ASR #4
+	|
+		DCI	&E5C10000
+		DCI	&E5C10000
+		DCI	&E5C10004
+		DCI	&E5410004
+
+		DCI	&E7C10002
+		DCI	&E7410002
+
+		DCI	&E7C10102
+		DCI	&E7410242
+
+		DCI	&E5E10000
+		DCI	&E5E10000
+		DCI	&E5E10004
+		DCI	&E5610004
+
+		DCI	&E7E10002
+		DCI	&E7610002
+
+		DCI	&E7E10102
+		DCI	&E7610242
+
+		DCI	&E4C10004
+		DCI	&E4410004
+
+		DCI	&E6C10002
+		DCI	&E6410002
+
+		DCI	&E6C10102
+		DCI	&E6410242
+	]
+
+	[ :LNOT: REFERENCE
+		; 7
+		STRT	R0,[R1],#4
+		STRT	R0,[R1],#-4
+		; 8
+		STRT	R0,[R1],R2
+		STRT	R0,[R1],-R2
+		; 9
+		STRT	R0,[R1],R2, LSL #2
+		STRT	R0,[R1],-R2, ASR #4
+
+		; 7
+		STRBT	R0,[R1],#4
+		STRBT	R0,[R1],#-4
+		; 8
+		STRBT	R0,[R1],R2
+		STRBT	R0,[R1],-R2
+		; 9
+		STRBT	R0,[R1],R2, LSL #2
+		STRBT	R0,[R1],-R2, ASR #4
+	|
+		DCI	&E4A10004
+		DCI	&E4210004
+
+		DCI	&E6A10002
+		DCI	&E6210002
+
+		DCI	&E6A10102
+		DCI	&E6210242
+
+		DCI	&E4E10004
+		DCI	&E4610004
+
+		DCI	&E6E10002
+		DCI	&E6610002
+
+		DCI	&E6E10102
+		DCI	&E6610242
+	]
+
+		; Addressing Mode 3 - Miscellaneous Loads/Stores
+		; Loads
+
+	[ :LNOT: REFERENCE
+		; 1
+		LDRH	R0,[R1]
+		LDRH	R0,[R1,#0]
+		LDRH	R0,[R1,#4]
+		LDRH	R0,[R1,#-4]
+		; 2
+		LDRH	R0,[R1,R2]
+		LDRH	R0,[R1,-R2]
+		; 3
+		LDRH	R0,[R1]!
+		LDRH	R0,[R1,#0]!
+		LDRH	R0,[R1,#4]!
+		LDRH	R0,[R1,#-4]!
+		; 4
+		LDRH	R0,[R1,R2]!
+		LDRH	R0,[R1,-R2]!
+		; 5
+		LDRH	R0,[R1],#4
+		LDRH	R0,[R1],#-4
+		; 6
+		LDRH	R0,[R1],R2
+		LDRH	R0,[R1],-R2
+	|
+		DCI	&E1D100B0
+		DCI	&E1D100B0
+		DCI	&E1D100B4
+		DCI	&E15100B4
+
+		DCI	&E19100B2
+		DCI	&E11100B2
+
+		DCI	&E1F100B0
+		DCI	&E1F100B0
+		DCI	&E1F100B4
+		DCI	&E17100B4
+
+		DCI	&E1B100B2
+		DCI	&E13100B2
+
+		DCI	&E0D100B4
+		DCI	&E05100B4
+
+		DCI	&E09100B2
+		DCI	&E01100B2
+	]
+
+	[ :LNOT: REFERENCE
+		; 1
+		LDRSH	R0,[R1]
+		LDRSH	R0,[R1,#0]
+		LDRSH	R0,[R1,#4]
+		LDRSH	R0,[R1,#-4]
+		; 2
+		LDRSH	R0,[R1,R2]
+		LDRSH	R0,[R1,-R2]
+		; 3
+		LDRSH	R0,[R1]!
+		LDRSH	R0,[R1,#0]!
+		LDRSH	R0,[R1,#4]!
+		LDRSH	R0,[R1,#-4]!
+		; 4
+		LDRSH	R0,[R1,R2]!
+		LDRSH	R0,[R1,-R2]!
+		; 5
+		LDRSH	R0,[R1],#4
+		LDRSH	R0,[R1],#-4
+		; 6
+		LDRSH	R0,[R1],R2
+		LDRSH	R0,[R1],-R2
+	|
+		DCI	&E1D100F0
+		DCI	&E1D100F0
+		DCI	&E1D100F4
+		DCI	&E15100F4
+
+		DCI	&E19100F2
+		DCI	&E11100F2
+
+		DCI	&E1F100F0
+		DCI	&E1F100F0
+		DCI	&E1F100F4
+		DCI	&E17100F4
+
+		DCI	&E1B100F2
+		DCI	&E13100F2
+
+		DCI	&E0D100F4
+		DCI	&E05100F4
+
+		DCI	&E09100F2
+		DCI	&E01100F2
+	]
+
+	[ :LNOT: REFERENCE
+		; 1
+		LDRSB	R0,[R1]
+		LDRSB	R0,[R1,#0]
+		LDRSB	R0,[R1,#4]
+		LDRSB	R0,[R1,#-4]
+		; 2
+		LDRSB	R0,[R1,R2]
+		LDRSB	R0,[R1,-R2]
+		; 3
+		LDRSB	R0,[R1]!
+		LDRSB	R0,[R1,#0]!
+		LDRSB	R0,[R1,#4]!
+		LDRSB	R0,[R1,#-4]!
+		; 4
+		LDRSB	R0,[R1,R2]!
+		LDRSB	R0,[R1,-R2]!
+		; 5
+		LDRSB	R0,[R1],#4
+		LDRSB	R0,[R1],#-4
+		; 6
+		LDRSB	R0,[R1],R2
+		LDRSB	R0,[R1],-R2
+	|
+		DCI	&E1D100D0
+		DCI	&E1D100D0
+		DCI	&E1D100D4
+		DCI	&E15100D4
+
+		DCI	&E19100D2
+		DCI	&E11100D2
+
+		DCI	&E1F100D0
+		DCI	&E1F100D0
+		DCI	&E1F100D4
+		DCI	&E17100D4
+
+		DCI	&E1B100D2
+		DCI	&E13100D2
+
+		DCI	&E0D100D4
+		DCI	&E05100D4
+
+		DCI	&E09100D2
+		DCI	&E01100D2
+	]
+
+		; Stores
+
+	[ :LNOT: REFERENCE
+		; 1
+		STRH	R0,[R1]
+		STRH	R0,[R1,#0]
+		STRH	R0,[R1,#4]
+		STRH	R0,[R1,#-4]
+		; 2
+		STRH	R0,[R1,R2]
+		STRH	R0,[R1,-R2]
+		; 3
+		STRH	R0,[R1]!
+		STRH	R0,[R1,#0]!
+		STRH	R0,[R1,#4]!
+		STRH	R0,[R1,#-4]!
+		; 4
+		STRH	R0,[R1,R2]!
+		STRH	R0,[R1,-R2]!
+		; 5
+		STRH	R0,[R1],#4
+		STRH	R0,[R1],#-4
+		; 6
+		STRH	R0,[R1],R2
+		STRH	R0,[R1],-R2
+	|
+		DCI	&E1C100B0
+		DCI	&E1C100B0
+		DCI	&E1C100B4
+		DCI	&E14100B4
+
+		DCI	&E18100B2
+		DCI	&E10100B2
+
+		DCI	&E1E100B0
+		DCI	&E1E100B0
+		DCI	&E1E100B4
+		DCI	&E16100B4
+
+		DCI	&E1A100B2
+		DCI	&E12100B2
+
+		DCI	&E0C100B4
+		DCI	&E04100B4
+
+		DCI	&E08100B2
+		DCI	&E00100B2
+	]
+
+	[ :LNOT: REFERENCE
+		; 1
+		STRD	R0,[R1]
+		STRD	R0,[R1,#0]
+		STRD	R0,[R1,#4]
+		STRD	R0,[R1,#-4]
+		; 2
+		STRD	R0,[R1,R2]
+		STRD	R0,[R1,-R2]
+		; 3
+		STRD	R0,[R1]!
+		STRD	R0,[R1,#0]!
+		STRD	R0,[R1,#4]!
+		STRD	R0,[R1,#-4]!
+		; 4
+		STRD	R0,[R1,R2]!
+		STRD	R0,[R1,-R2]!
+		; 5
+		STRD	R0,[R1],#4
+		STRD	R0,[R1],#-4
+		; 6
+		STRD	R0,[R1],R2
+		STRD	R0,[R1],-R2
+	|
+		DCI	&E1C100F0
+		DCI	&E1C100F0
+		DCI	&E1C100F4
+		DCI	&E14100F4
+
+		DCI	&E18100F2
+		DCI	&E10100F2
+
+		DCI	&E1E100F0
+		DCI	&E1E100F0
+		DCI	&E1E100F4
+		DCI	&E16100F4
+
+		DCI	&E1A100F2
+		DCI	&E12100F2
+
+		DCI	&E0C100F4
+		DCI	&E04100F4
+
+		DCI	&E08100F2
+		DCI	&E00100F2
+	]
+
+		END

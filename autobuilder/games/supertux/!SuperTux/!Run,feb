@@ -1,0 +1,16 @@
+| Run file for SuperTux
+
+Set SuperTux$Dir <Obey$Dir>
+
+RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
+RMEnsure DigitalRenderer 0.51 Error SuperTux requires version 0.51 of the DigitalRenderer module
+
+WIMPSLOT
+| Use dynamic heap size on less than Iyonix
+RMEnsure UtilityModule 5.00 Set supertux$Heap ""
+RMEnsure UtilityModule 5.00 SetEval supertux$HeapMax 64
+
+Set SDL$supertux$BackBuffer 2
+
+|<SuperTux$Dir>.supertux ><SuperTux$Dir>.!log 2><SuperTux$Dir>.!errlog
+<SuperTux$Dir>.supertux >null: 2>null:

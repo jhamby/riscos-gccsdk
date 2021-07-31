@@ -1,0 +1,15 @@
+LibGetText - Message catalogs for internationalization library
+
+This RISC OS version was created by the GCCSDK Autobuilder.
+
+See the "doc" and "man" subdirectories for more documentation.
+
+To include in you C programs.
+
+include "libintl.h"
+
+and add the include flag
+ -ILibGetText:
+
+Link with
+ -LLibGetText: -lintl

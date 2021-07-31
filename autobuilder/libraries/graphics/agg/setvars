@@ -1,0 +1,9 @@
+AB_INSTALL=yes
+AB_CONFLAGS=--disable-examples
+
+# Need to generate configure files
+aclocal -I $GCCSDK_INSTALL_ENV/share/aclocal
+autoheader
+autoconf
+libtoolize --force
+automake --foreign --add-missing --ignore-deps

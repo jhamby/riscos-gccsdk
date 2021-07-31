@@ -1,0 +1,13 @@
+| !Boot file for ImageMagick
+
+Set ImageMagick$Dir <Obey$Dir>
+IfThere <ImageMagick$Dir>.!Sprites then Iconsprites <ImageMagick$Dir>.!Sprites
+
+Set Alias$compare Wimpslot -min 15200k |M /<ImageMagick$Dir>.compare %%*0
+Set Alias$composite Wimpslot -min 15200k |M /<ImageMagick$Dir>.composite %%*0
+Set Alias$conjure Wimpslot -min 15200k |M /<ImageMagick$Dir>.conjure %%*0
+Set Alias$convert Wimpslot -min 15200k |M /<ImageMagick$Dir>.convert %%*0
+Set Alias$identify Wimpslot -min 15200k |M /<ImageMagick$Dir>.identify %%*0
+Set Alias$mogrify Wimpslot -min 15200k |M /<ImageMagick$Dir>.mogrify %%*0
+Set Alias$montage Wimpslot -min 15200k |M /<ImageMagick$Dir>.montage %%*0
+Set Alias$stream Wimpslot -min 15200k |M /<ImageMagick$Dir>.stream %%*0

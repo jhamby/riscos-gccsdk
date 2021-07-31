@@ -1,0 +1,17 @@
+| Run file for Rocksndiamonds
+
+Set RocksNDmds$Dir <Obey$Dir>
+Set RocksNDmds$Path <Obey$Dir>.
+
+Set HasLargeWimpSlot no
+RMEnsure UtilityModule 6.00 Set HasLargeWimpSlot yes
+RMEnsure UtilityModule 5.00 Set HasLargeWimpSlot no
+
+If "<HasLargeWimpSlot>" = "no" Then Set rocksndiamonds$Heap ""
+If "<HasLargeWimpSlot>" = "no" Then SetEval rocksndiamonds$HeapMax 64
+
+Unset HasLargeWimpSlot
+
+WIMPSLOT
+
+<RocksNDmds$Dir>.rocksndiamonds >null: 2>null:

@@ -1,0 +1,33 @@
+
+AB_CONFLAGS="\
+--with-apr=$GCCSDK_INSTALL_ENV/bin/apr-1-config \
+--with-apr-util=$GCCSDK_INSTALL_ENV/bin/apu-1-config \
+--with-neon=$GCCSDK_INSTALL_ENV \
+--with-berkeley-db \
+--without-apxs"
+
+ab_package() {
+  ab_create_app SVN Apps/Development
+
+  cp $S/subversion/svn/svn$AB_EXEEXT $A/
+  cp $S/subversion/svnadmin/svnadmin$AB_EXEEXT $A/
+  cp $S/ee/ee$AB_EXEEXT $A
+  ab_docs $S/COPYING
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+
+export LIBS=-lexpat
+
+
+svn co svn://svn.riscos.info/cvsgui/trunk/CVSee ee
+
+cd ee
+sed -i s#CVS#SVN# riscosify_ee.c
+
+$CC -c eecode.S
+$CC -c -O2 riscosify_ee.c
+$CC -static -o ee$AB_EXEEXT *.o
+cd ..
+
+

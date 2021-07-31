@@ -1,0 +1,12 @@
+--- src/cairo-error-private.h.orig	2019-11-04 11:00:55.132950869 +0000
++++ src/cairo-error-private.h	2019-11-04 11:50:10.177635282 +0000
+@@ -98,6 +98,9 @@
+     CAIRO_INT_STATUS_FREETYPE_ERROR,
+     CAIRO_INT_STATUS_WIN32_GDI_ERROR,
+     CAIRO_INT_STATUS_TAG_ERROR,
++#ifdef __riscos__
++    CAIRO_INT_STATUS_RISCOS_ERROR,
++#endif
+ 
+     CAIRO_INT_STATUS_LAST_STATUS,
+ 

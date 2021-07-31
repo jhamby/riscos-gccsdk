@@ -1,0 +1,24 @@
+AB_PVERSION=`echo "$AB_PVERSION" | sed -e"s/.orig//"`
+AB_ROVERSION=3
+
+cd src
+
+ab_make() {
+  $AB_MAKE -C bulletml clean
+  $AB_MAKE -C bulletml
+  $AB_MAKE
+}
+
+ab_package() {
+  ab_create_app Noiz2sa Apps/Games
+  
+  ab_makerun $S/noiz2sa$AB_EXEEXT
+ 
+  cat $S/../readme_e.txt >> $A/!Help
+  cp -av $S/../debian/copyright $A
+  
+  mkdir -p $A/data
+  cp -av $S/../noiz2sa_share/* $A/data/
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -copyrightfile $S/../debian/copyright
+}

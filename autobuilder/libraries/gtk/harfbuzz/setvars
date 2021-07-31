@@ -1,0 +1,39 @@
+AB_URL=http://deb.debian.org/debian/pool/main/h/harfbuzz/harfbuzz_0.9.35.orig.tar.bz2
+AB_INSTALL=yes
+
+AB_CONFLAGS='--with-icu=yes --enable-static'
+
+ab_package() {
+  #libharfbuzz-dev
+  ab_create_app LibHarfbuzz Apps/Library libharfbuzz-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/harfbuzz harfbuzz
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package "libharfbuzz-dev"
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libharfbuzz-lib
+
+    ab_add_sharedlib $S/src/.libs libharfbuzz-icu.so.0
+       ab_add_sharedlib $S/src/.libs libharfbuzz.so.0
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package libharfbuzz-lib -name LibHarfBuzz \
+	-depends SharedLibs -section Library
+  fi
+
+}

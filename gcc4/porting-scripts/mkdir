@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+if [ -z "$RO_PKG" ] ; then
+  /bin/mkdir $@
+else
+  params=
+  for param in $@; do
+    params="$params $(sed s#GCCSDK_ENV/#$AB_DIR/package/# <<<$param)"
+  done
+
+  echo "RISC OS Cross installer mkdir: $params"
+  /bin/mkdir $params
+fi
+

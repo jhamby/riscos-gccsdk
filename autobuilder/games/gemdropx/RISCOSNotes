@@ -1,0 +1,34 @@
+
+RISC OS Notes
+=============
+
+This program requires a 1024x768 desktop to play in.
+
+To exit you need to press ESC (twice from the game screen).
+
+This program is 32-bit compatible, and is suitable for all RISC OS
+ARM6, ARM7, StrongARM and XScale machines.  It may not be suitable for earlier machines.
+
+This program requires:
+
+SharedUnixLibrary module available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
+
+Contact: alan_baa@hotmail.com or the GCCSDK list
+
+This port:
+----------
+
+Alan Buckley August 2007.
+
+This version created by the GCCSDK Autobuilder
+for details see:
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+
+Original port:
+--------------
+
+Ported by Alan Buckley, May 6th 2003
+

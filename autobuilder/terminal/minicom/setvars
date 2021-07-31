@@ -1,0 +1,7 @@
+
+AB_CATEGORY=Terminal/test
+
+AB_FILESNOPATH="src/minicom$AB_EXEEXT Copyright"
+AB_MANPAGE=man/minicom.1
+
+AB_CONFLAGS=--disable-nls

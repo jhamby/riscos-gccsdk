@@ -1,0 +1,18 @@
+# OSLib trunk suppors both ELF as AOF building:
+AB_SVN=https://svn.code.sf.net/p/ro-oslib/code/trunk/!OSLib
+AB_PVERSION=1.20-svn-$(date +%Y%m%d)
+AB_LICENCE=Free
+
+cd Tools/BindHelp
+
+AB_MAKE="$AB_MAKE CFLAGS='-g' LDFLAGS='-lOSLib32 -lOSLibSupport32 -static'"
+AB_DISTCLEAN="$AB_MAKE clean ; rm -f bindhelp,ff8"
+
+ab_package()
+{
+   ab_create_command_app BindHelp Apps/Development
+   ab_add_commands bindhelp
+
+   $AB_HOME/add-riscpkg -unixlib -name BindHelp
+}
+

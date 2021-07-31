@@ -1,0 +1,12 @@
+SUBDIRS = common libelf libdwarf libelftc
+if BUILDING_TOOLS
+  SUBDIRS += addr2line ar as \
+	  brandelf cxxfilt elfcopy elfdump findtextrel \
+	  isa ld nm readelf size strings
+endif
+
+pkgconfig_DATA = libelf-elftoolchain.pc libdwarf-elftoolchain.pc \
+	libelftc-elftoolchain.pc
+
+ACLOCAL_AMFLAGS = -I m4
+

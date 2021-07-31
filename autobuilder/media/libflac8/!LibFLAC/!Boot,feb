@@ -1,0 +1,6 @@
+| Boot file for LibFLAC
+|
+If "<LibFLAC$Dir>" = "" Then Set LibFLAC$Dir <Obey$Dir>
+If "<LibFLAC$Path>" = "" Then Set LibFLAC$Path <Obey$Dir>.
+
+IconSprites <LibFLAC$Dir>.!Sprites

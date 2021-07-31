@@ -1,0 +1,19 @@
+AB_ROVERSION=4
+
+ab_package() {
+  ab_create_command_app BC Apps/Utilities
+  ab_add_commands $S/bc/bc$AB_EXEEXT $S/dc/dc$AB_EXEEXT
+
+  mkdir $A/docs/
+
+  cp -av $S/COPYING $A/docs/
+  rman -f HTML doc/bc.1 > $A/docs/bc.html
+  rman -f HTML doc/dc.1 > $A/docs/dc.html
+
+  echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/COPYING
+}
+
+
+

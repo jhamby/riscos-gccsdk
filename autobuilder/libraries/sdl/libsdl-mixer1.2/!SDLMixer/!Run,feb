@@ -1,0 +1,6 @@
+| Run file for SDLMixer
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set SDLMixer$Dir <Obey$Dir>
+Set SDLMixer$Path <Obey$Dir>.,<Obey$Dir>.SDL.

@@ -1,0 +1,8 @@
+ab_package () {
+  ab_create_command_app MP3Info Apps/Audio
+  ab_add_commands $S/mp3info $S/gmp3info 
+
+  ab_docs $S/README $S/LICENSE
+
+  $AB_HOME/add-riscpkg -unixlib
+}

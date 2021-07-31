@@ -1,0 +1,11 @@
+bin_PROGRAMS = nm
+nm_SOURCES = nm.c
+nm_CFLAGS = -I${top_srcdir}/common \
+	    -I${top_srcdir}/libdwarf \
+	    -I${top_srcdir}/libelftc \
+	    -I${top_srcdir}/libelf
+	    
+nm_LDADD =  ../libdwarf/libdwarf.la \
+	    ../libelftc/libelftc.la \
+	    ../libelf/libelf.la
+

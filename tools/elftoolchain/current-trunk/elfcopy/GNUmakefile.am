@@ -1,0 +1,15 @@
+bin_PROGRAMS = elfcopy mcs strip
+MAINSOURCES = archive.c ascii.c binary.c main.c sections.c segments.c symbols.c
+elfcopy_SOURCES = $(MAINSOURCES)
+mcs_SOURCES = $(MAINSOURCES)
+strip_SOURCES = $(MAINSOURCES)
+AM_CFLAGS = -I${top_srcdir}/common \
+		 -I${top_srcdir}/libelftc \
+		 -I${top_srcdir}/libelf \
+		 ${LIBARCHIVE_CFLAGS}
+
+LDADD = ../libelftc/libelftc.la \
+		../libelf/libelf.la
+
+LDADD += ${LIBARCHIVE_LIBS}
+

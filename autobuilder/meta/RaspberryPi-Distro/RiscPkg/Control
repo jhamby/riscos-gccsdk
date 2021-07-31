@@ -1,0 +1,4 @@
+Description: Potential future upgrades to Raspberry Pi distro (currently does nothing)
+ This is a dummy package which might be used for future upgrades to RISC OS
+ Open Ltd's SD card image for the Raspberry Pi.  At the moment it does
+ exactly nothing!

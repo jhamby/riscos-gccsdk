@@ -1,0 +1,4 @@
+| Boot file for Stratagus
+
+IconSprites <Obey$Dir>.!Sprites22
+Set Stratagus$Dir <Obey$Dir>

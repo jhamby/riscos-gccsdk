@@ -1,0 +1,28 @@
+About
+-----
+
+Dillo is a simple Unix browser; it's not particularly capable, but can
+be nice in some instances.
+
+
+Installation
+------------
+
+Copy the !UnixHome skeleton over your existing !UnixHome application to
+provide a configuration file for Dillo.   Place !Dillo in your location
+of choice.
+
+
+Usage
+-----
+
+Dillo simply runs as a normal RISC OS application, and makes use of the ChoX11
+library to translation X Window System calls into RISC OS Wimp calls.
+
+
+Support
+-------
+
+Part of riscos.info: http://www.riscos.info/
+
+Contact: peter@chocky.org

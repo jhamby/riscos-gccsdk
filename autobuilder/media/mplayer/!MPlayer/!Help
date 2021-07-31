@@ -1,0 +1,50 @@
+MPlayer - The Movie Player
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+See the "doc" subdirectory for more documentation or the official mplayer
+website at http://www.mplayerhq.hu
+
+Getting Started
+---------------
+The !MPlayer folder needs to be seen by the filer for the filetype associations to be
+set. These being 'AVI', 'MPEG' and 'VOB'. Alternatively just double-click the !MPlayer
+folder.
+The filetype of the file you want to play in !MPlayer needs to be set to one of the above.
+As long a !MPlayer recognises the file it doesn't matter what the filetype is set to as
+long as it is one of 'AVI', 'MPEG' or 'VOB'.
+If nothing happens when you double-click a file try looking at the 'stdout' and 'stderr'
+files in the !MPlayer folder. These may give a clue to the problem.
+From version 1.01 it is now possible to play audio streams. See the example 'mplayacc' Obey
+file in the !Mplayer folder.
+
+History
+-------
+RISC OS Version 1.00 (29-Feb-12)
+- this is the initial version of mplayer/mencoder built for RISC OS.
+RISC OS Version 1.01 (13-Sep-12)
+- built with latest source
+  added support for Opus Interactive Audio Codec
+  added oss audio device support, uses much less CPU time playing audio streams
+
+Issues
+------
+Its slow. But what did you expect. What it will do is make a passable attempt at
+playing any file you throw at it without collapsing in a heap.
+
+If you find a file that doesn't play feel free to contact me on the email address
+below. It may be the required library is not linked into the executable.
+
+There seems to be a problem with sound and having alignment exceptions turned on on ARMv7.
+If nothing happens when you double-click on a file try turning alignment exceptions off.
+
+Faster Version
+------------
+If you have omap3/4 based hardware. This currently includes Beagleboard and Pandaboard based
+machines. There is a further optimised version. Contact me on the below email address if you
+would like to try it.
+For best results run on a Pandaboard ES at 1500MHz.
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net

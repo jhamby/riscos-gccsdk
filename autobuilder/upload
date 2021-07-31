@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+zips=$(dirname $0)/last-zips
+
+if ! [ -e "$zips" ] ; then
+  echo $zips does not exist 1>&2
+  exit 1
+fi
+
+if [ "$(wc -l < $zips)" != 2 ] ; then
+  echo $zips does not contain a binary and source entry 1>&2
+  exit 1
+fi
+
+bin=$(head -1 $zips)
+src=$(tail -1 $zips)
+cat=$(basename $(dirname $bin))
+
+path=/var/www/info/downloads/packages
+
+echo mkdir -p $path/arm/$cat | ssh www.riscos.info
+scp $bin www.riscos.info:$path/arm/$cat/
+echo mkdir -p $path/src/$cat | ssh www.riscos.info
+scp $src www.riscos.info:$path/src/$cat/
+
+echo "cd $path; ./build-index" | ssh www.riscos.info

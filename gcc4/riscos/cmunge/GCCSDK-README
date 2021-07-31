@@ -1,0 +1,39 @@
+Note for the GCCSDK developers:
+
+This is a copy of CMunge for use in the GCCSDK project.
+
+When importing a new version of CMunge:
+
+ * The original sources are and should first be stored in the
+   'svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge'
+   SVN branch. Then they are merged to the GCCSDK development/stable
+   branch (like 'svn://svn.riscos.info/gccsdk/gcc4/riscos/cmunge')
+   where all the GCCSDK changes & bug fixes are to be done.
+
+     $ svn merge svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge svn://svn.riscos.info/gccsdk/trunk/gcc4/riscos/cmunge
+
+   Do not make any bug fixes or changes in the 'CMungeImportBranch' branch
+   except for importing newer offical CMunge source releases.
+
+ * Then the official sources in the 'CMungeImportBranch' SVN branch are
+   tagged using 'svn://svn.riscos.info/gccsdk/tags/CMunge-X_YZ/cmunge' tags
+   where 'X_YZ' is the 'Module_MajorVersion_CMHG' #define value in the
+   'VersionNum' file but having its dot character changed into a
+   underscore character.
+
+     [ Replace 'X_YZ' in the following ! ]
+     $ svn copy svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge svn://svn.riscos.info/gccsdk/tags/CMunge-X_YZ/cmunge
+
+Doing this in a consistent way allows us to easily find out what the
+GCCSDK changes are in the CMunge GCCSDK version.
+
+An overview of all GCCSDK changes has to be kept up-to-date in
+'GCCSDK-CHANGES' file.
+
+When additional changes would be needed in the future, please read the
+CMunge licence (the 'Docs/Copyright' file) carefully and follow it, like
+submitting your changes back to the CMunge authors.  The CMunge authors
+expressed their wish not to make any incompatible changes to the GCCSDK
+CMunge version.
+
+-EOF-

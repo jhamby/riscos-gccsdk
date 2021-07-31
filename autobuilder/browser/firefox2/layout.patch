@@ -1,0 +1,113 @@
+Index: layout/base/nsCSSFrameConstructor.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/layout/base/nsCSSFrameConstructor.cpp,v
+retrieving revision 1.1110.6.96
+diff -u -r1.1110.6.96 nsCSSFrameConstructor.cpp
+--- layout/base/nsCSSFrameConstructor.cpp	26 Jan 2009 15:46:21 -0000	1.1110.6.96
++++ layout/base/nsCSSFrameConstructor.cpp	12 Sep 2009 04:07:37 -0000
+@@ -6068,7 +6068,7 @@
+         rv = NS_NewMenuFrame(mPresShell, &newFrame, (aTag != nsXULAtoms::menuitem));
+       }
+       else if (aTag == nsXULAtoms::menubar) {
+-  #ifdef XP_MACOSX
++  #if defined(XP_MACOSX) || defined(XP_RISCOS)
+         // On Mac OS X, we use the system menubar for any root chrome shell
+         // XUL menubars.
+         PRBool isRootChromeShell = PR_FALSE;
+Index: layout/build/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/layout/build/Makefile.in,v
+retrieving revision 1.127.8.7
+diff -u -r1.127.8.7 Makefile.in
+--- layout/build/Makefile.in	17 Jul 2006 19:05:13 -0000	1.127.8.7
++++ layout/build/Makefile.in	12 Sep 2009 04:07:37 -0000
+@@ -209,11 +209,11 @@
+ 		$(MOZ_JS_LIBS) \
+ 		$(NULL)
+ 
+-ifdef MOZ_ENABLE_XLIB
++#ifdef MOZ_ENABLE_XLIB
+ EXTRA_DSO_LDOPTS += \
+ 		-lxlibrgb \
+ 		$(NULL)
+-endif
++#endif
+ 
+ ifdef NS_TRACE_MALLOC
+ EXTRA_DSO_LIBS	+= tracemalloc
+Index: layout/generic/nsFrame.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/layout/generic/nsFrame.cpp,v
+retrieving revision 3.574.2.17
+diff -u -r3.574.2.17 nsFrame.cpp
+--- layout/generic/nsFrame.cpp	6 Mar 2008 20:09:59 -0000	3.574.2.17
++++ layout/generic/nsFrame.cpp	12 Sep 2009 04:07:38 -0000
+@@ -354,7 +354,7 @@
+         image->GetImageBytesPerRow(&bpr);
+         image->GetAlphaBytesPerRow(&abpr);
+ 
+-        //its better to temporarily go after heap than put big data on stack
++        //it's better to temporarily go after heap than put big data on stack
+         unsigned char *row_data = (unsigned char *)malloc(bpr);
+         if (!row_data)
+           return NS_ERROR_OUT_OF_MEMORY;
+@@ -381,13 +381,18 @@
+           *data++ = NS_GET_G(aImageColor);
+           *data++ = NS_GET_B(aImageColor);
+ #endif
++#if defined(XP_RISCOS)
++          *data++ = SEL_ALPHA_AMOUNT;
++#endif
+         }
+ 
+         memset((void *)alpha, SEL_ALPHA_AMOUNT, abpr);
+ 
+         for (i = 0; i < SEL_IMAGE_HEIGHT; i++)
+         {
++#if !defined(XP_RISCOS)
+           image->SetAlphaData(alpha, abpr, i*abpr);
++#endif
+           image->SetImageData(row_data,  bpr, i*bpr);
+         }
+         free(row_data);
+Index: layout/generic/nsObjectFrame.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/layout/generic/nsObjectFrame.cpp,v
+retrieving revision 1.510.2.18
+diff -u -r1.510.2.18 nsObjectFrame.cpp
+--- layout/generic/nsObjectFrame.cpp	1 Mar 2009 07:02:08 -0000	1.510.2.18
++++ layout/generic/nsObjectFrame.cpp	12 Sep 2009 04:07:39 -0000
+@@ -915,7 +915,7 @@
+                                aReflowState.mComputedMaxHeight);
+     }
+ 
+-#if defined (MOZ_WIDGET_GTK) || defined (MOZ_WIDGET_GTK2) || defined (MOZ_WIDGET_XLIB)  
++#if defined (MOZ_WIDGET_GTK) || defined (MOZ_WIDGET_GTK2) || defined (MOZ_WIDGET_XLIB) || defined (MOZ_WIDGET_RISCOS)
+     // We need to make sure that the size of the object frame does not
+     // exceed the maximum size of X coordinates.  See bug #225357 for
+     // more information.  In theory Gtk2 can handle large coordinates,
+Index: layout/style/nsLayoutStylesheetCache.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/layout/style/nsLayoutStylesheetCache.cpp,v
+retrieving revision 1.8.28.2
+diff -u -r1.8.28.2 nsLayoutStylesheetCache.cpp
+--- layout/style/nsLayoutStylesheetCache.cpp	18 Jun 2006 22:45:33 -0000	1.8.28.2
++++ layout/style/nsLayoutStylesheetCache.cpp	13 Oct 2009 18:02:04 -0000
+@@ -80,7 +80,7 @@
+   if (!gStyleCache->mScrollbarsSheet) {
+     nsCOMPtr<nsIURI> sheetURI;
+     NS_NewURI(getter_AddRefs(sheetURI),
+-#ifdef XP_MACOSX
++#if defined(XP_MACOSX) || defined(XP_RISCOS)
+               NS_LITERAL_CSTRING("chrome://global/skin/nativescrollbars.css"));
+ #else
+               NS_LITERAL_CSTRING("chrome://global/skin/xulscrollbars.css"));
+@@ -89,7 +89,7 @@
+     // Scrollbars don't need access to unsafe rules
+     if (sheetURI)
+       LoadSheet(sheetURI, gStyleCache->mScrollbarsSheet, PR_FALSE);
+-#ifdef XP_MACOSX
++#if defined(XP_MACOSX) || defined(XP_RISCOS)
+     NS_ASSERTION(gStyleCache->mScrollbarsSheet, "Could not load nativescrollbars.css.");
+ #else
+     NS_ASSERTION(gStyleCache->mScrollbarsSheet, "Could not load xulscrollbars.css.");

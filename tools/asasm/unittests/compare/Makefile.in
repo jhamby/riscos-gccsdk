@@ -1,0 +1,114 @@
+# Simple regression tester:
+#
+# When a test which is known to pass but no longer is, its actual (and wrong)
+# output will be renamed as output_actual_aof/<test>_failed.o and its reference
+# is temporary output_reference_aof/<test>.o.  The source assembler for that test
+# is @srcdir@/{core,option_*}/<test>.s
+# (see check_PROGRAMS_PASS definition below).
+#
+# For testing all test cases which are known to pass (with pwd being
+# @top_builddir@):
+#   $ make -C unittests/compare check
+#
+# For testing one particular test (including a failing one):
+#   $ make -C unittests/compare output_actual_aof/<specific_test>.o
+#
+# When a test fails, its reference file will be automatically deleted.  If you
+# want this to be re-created:
+#   $ make -C unittests/compare output_reference_aof/<specific_test>.o
+#
+# To clean up after testing or to re-do all tests again:
+#   $ make -C unittests/compare clean
+#
+# You can add the "V=" make option argument to its command line to see how the
+# test is invoked.
+#
+# To specify extra ASASM command line parameters (like "-APCS"), define them
+# in one of the first 5 lines of the assembler input file using keyword RUNOPT:
+# E.g.:
+#   ; RUNOPT: -APCS 3
+# RUNOPT is used for both generating the actual and reference output.  RUNOPTACT
+# and RUNOPTREF is used for respectively generate the actual and reference output.
+
+# Environment variables needed in one of the tests:
+export HDR_PATH := @srcdir@/include/hdr
+export APCS := APCS-32
+
+# EXTENSION enables extra tests for functionality AsAsm has but ObjAsm hasn't.
+
+ASASM := @top_builddir@/src/asasm
+ASASMFLAGS := -i @srcdir@ -i @srcdir@/core -PD "EXTENSION SETL {TRUE}"
+DIFF := diff
+DIFFFLAGS := -q
+ECHO := echo
+ECHOFLAGS :=
+MKDIR := mkdir
+OBJDUMP := arm-unknown-eabi-objdump
+OBJDUMPFLAGS := -r -d
+
+ASASMFLAGS_AOF := $(ASASMFLAGS) -PD "OUTPUTTYPE SETS \"AOF\"" -aof
+ASASMFLAGS_ELF := $(ASASMFLAGS) -PD "OUTPUTTYPE SETS \"ELF\"" -elf
+
+V := @
+
+check_PROGRAMS_PASS := \
+	$(notdir $(wildcard @srcdir@/core/*.s) \
+		 $(wildcard @srcdir@/option_apcs/*.s) \
+		 $(wildcard @srcdir@/option_cpu/*.s) \
+		 $(wildcard @srcdir@/option_device/*.s) \
+		 $(wildcard @srcdir@/option_fpu/*.s))
+check_AOF_OUTPUT := $(check_PROGRAMS_PASS:%.s=output_actual_aof/%.o)
+check_ELF_OUTPUT := $(check_PROGRAMS_PASS:%.s=output_actual_elf/%.o)
+check_dep := $(check_PROGRAMS_PASS:%.s=output_actual_aof/%.d) \
+	$(check_PROGRAMS_PASS:%.s=output_actual_elf/%.d) \
+	$(check_PROGRAMS_PASS:%.s=output_reference_aof/%.d) \
+	$(check_PROGRAMS_PASS:%.s=output_reference_elf/%.d)
+
+vpath %.s @srcdir@/core:@srcdir@/option_apcs:@srcdir@/option_cpu:@srcdir@/option_device:@srcdir@/option_fpu
+-include $(check_dep)
+
+# To avoid these being treated as intermediate files which need to be deleted.
+.SECONDARY: $(check_AOF_OUTPUT:output_actual_aof/%.o=output_reference_aof/%.o) \
+	 $(check_ELF_OUTPUT:output_actual_elf/%.o=output_reference_elf/%.o)
+
+all:
+
+check: $(check_ELF_OUTPUT) $(check_AOF_OUTPUT)
+	@$(ECHO) "*** All 'compare' tests were OK (do 'make -C `echo @abs_builddir@ | sed -e s#^@abs_top_builddir@/##` clean' first if you want to re-do them)"
+
+install:
+
+clean:
+	@-rm -fr output_actual_aof output_actual_elf
+	@-rm -fr output_reference_aof output_reference_elf
+	@$(ECHO) Cleaned.
+
+distclean: clean
+
+output_actual_aof/%.o: %.s output_reference_aof/%.o
+	@$(ECHO) +++ $< : Assemble actual for AOF and compare with reference
+	$(V)$(MKDIR) -p output_actual_aof
+	$(V)$(ASASM) $(ASASMFLAGS_AOF) $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -depend $(@:%.o=%.d) -o $@ $<
+	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual_aof/%=output_reference_aof/%) || (mv $@ $(@:%.o=%_failed.o) && false)
+
+output_reference_aof/%.o: %.s
+	@$(ECHO) +++ $< : Create AOF reference $@
+	$(V)$(MKDIR) -p output_reference_aof
+	$(V)$(ASASM) $(ASASMFLAGS_AOF) $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -depend $(@:%.o=%.d) -o $@ $<
+
+output_actual_elf/%.o: %.s output_reference_elf/%.o
+	@$(ECHO) +++ $< : Assemble actual for ELF and compare with reference
+	$(V)$(MKDIR) -p output_actual_elf
+	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -depend $(@:%.o=%.d) -o $@ $<
+	$(V)$(OBJDUMP) $(OBJDUMPFLAGS) $(@:output_actual_elf/%=output_reference_elf/%) > $(@:output_actual_elf/%.o=output_reference_elf/%.txt)
+	$(V)$(OBJDUMP) $(OBJDUMPFLAGS) $@ > $(@:%.o=%.txt)
+	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual_elf/%=output_reference_elf/%) || (mv $@ $(@:%.o=%_failed.o) && diff -u $(@:output_actual_elf/%.o=output_reference_elf/%.txt) $(@:%.o=%.txt))
+
+output_reference_elf/%.o: %.s
+	@$(ECHO) +++ $< : Create ELF reference $@
+	$(V)$(MKDIR) -p output_reference_elf
+	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -depend $(@:%.o=%.d) -o $@ $<
+
+.PHONY: all check install clean distclean
+.SUFFIXES:
+.SUFFIXES: .o .s

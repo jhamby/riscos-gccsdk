@@ -1,0 +1,125 @@
+|      _________ __                 __                               
+|     /   _____//  |_____________ _/  |______     ____  __ __  ______
+|     ._____  ..   __._  __ .__  ..   __.__  .   / ___.|  |  ./  ___/
+|     /        .|  |  |  | .// __ .|  |  / __ ._/ /_/  >  |  /.___ . 
+|    /_______  /|__|  |__|  (____  /__| (____  /.___  /|____//____  >
+|            ./                  ./          .//_____/            ./ 
+| ______________________                           ______________________
+|                       T H E   W A R   B E G I N S
+|	   Stratagus - A free fantasy real time strategy game engine
+|
+|	build.bat	-	The graphics and sound extractor.
+|
+|	(c) Copyright 1999-2005 by Lutz Sammer and Jimmy Salmon.
+|
+|	Stratagus is free software; you can redistribute it and/or modify
+|	it under the terms of the GNU General Public License as published
+|	by the Free Software Foundation; only version 2 of the License.
+|
+|	Stratagus is distributed in the hope that it will be useful,
+|	but WITHOUT ANY WARRANTY; without even the implied warranty of
+|	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+|	GNU General Public License for more details.
+|	
+|
+|
+|     Enter the letter of your CDROM drive.
+|
+
+| SET EXPANSION=-e
+
+|
+|	This is the name of the directory where the files will be extracted.
+|     You shouldn't need to change this.
+|
+
+Dir <Obey$Dir>
+
+set ARCHIVE CDFS::WARCRAFT2.$
+set WTARCHIVE /CDFS::WARCRAFT2/$/data
+
+set DIR data
+
+
+
+
+| ###########################################################################
+| ##      DO NOT EDIT BELOW THIS LINE
+| ###########################################################################
+
+set CONTRIB contrib
+
+|if not [%1] == [] SET CDROM=%1
+|if not [%2] == [] SET DIR=%2
+set ARCHIVE <ARCHIVE>.data
+set WTARCHIVE <WTARCHIVE>/data
+
+IfThere <ARCHIVE>.rezdat/war then Echo "rezdat/war found" else Error "rezdat/war is not in the archive folder"
+IfThere <CONTRIB> then Echo "contrib found" else Error "contrib subdirectory missing"
+
+IfThere <DIR> then Echo "<DIR> found" else cdir <DIR>
+
+| ###########################################################################
+| ##      Extract
+| ###########################################################################
+
+ECHO Extracting files...
+
+| ADD -e      To force the archive are expansion compatible
+| ADD -n      To force the archive is not expansion compatible   
+wartool /CDFS::WARCRAFT2/$/data data
+
+| copy own supplied files
+
+copy <CONTRIB>.cross/png <DIR>.graphics.ui.cursors.cross/png ~CF
+copy <CONTRIB>.red_cross/png <DIR>.graphics.missiles.red_cross/png ~CF
+copy <CONTRIB>.mana/png <DIR>.graphics.ui.mana/png ~CF
+copy <CONTRIB>.mana2/png <DIR>.graphics.ui.mana2/png ~CF
+copy <CONTRIB>.health/png <DIR>.graphics.ui.health/png ~CF
+copy <CONTRIB>.health2/png <DIR>.graphics.ui.health2/png ~CF
+copy <CONTRIB>.food/png <DIR>.graphics.ui.food/png ~CF
+copy <CONTRIB>.score/png <DIR>.graphics.ui.score/png ~CF
+copy <CONTRIB>.ore,stone,coal/png <DIR>.graphics.ui.ore,stone,coal/png ~CF
+copy <CONTRIB>.stratagus/png <DIR>.graphics.ui.stratagus/png ~CF
+cdir <DIR>.music
+copy <CONTRIB>.toccata/mod/gz <DIR>.music.default/mod/gz ~CF
+
+| ###########################################################################
+| ##      MISC
+| ###########################################################################
+
+| Compress HOW-TODO ?
+
+|	*** Copy original maps into data directory ***
+|	for the expansion cd,
+
+IfThere <ARCHIVE>.^.puds.multi then cdir <DIR>.maps.single
+IfThere <ARCHIVE>.^.puds.multi then cdir <DIR>.maps.strange
+IfThere <ARCHIVE>.^.puds.multi then copy <ARCHIVE>.^.puds.multi.*/pud <DIR>.maps.multi.*
+IfThere <ARCHIVE>.^.puds.multi then copy <ARCHIVE>.^.puds.single.*/pud <DIR>.maps.single
+IfThere <ARCHIVE>.^.puds.multi then copy <ARCHIVE>.^.puds.strange.*/pud <DIR>.maps.strange
+
+|	for the original cd,
+IfThere <ARCHIVE>.*/pud then copy <ARCHIVE>.*/pud <DIR>.maps.*
+
+|	*** Copy contrib maps into data directory ***
+cdir <DIR>.maps.other
+copy maps.multi <DIR>.maps.other ~CFR
+| copy maps.single.* <DIR>.maps.other
+
+|	*** Setup the default pud ***
+| copy <DIR>.maps.multi.(2)mysterious-dragon-isle/pud/gz <DIR>.maps.default/pud/gz ~CF
+| No symbolic links so make copies
+copy <DIR>.maps.multi.(2)mysterious-dragon-isle/sms/gz <DIR>.maps.default/sms/gz ~CF
+copy <DIR>.maps.multi.(2)mysterious-dragon-isle/smp/gz <DIR>.maps.default/smp/gz ~CF
+
+
+|	*** Copy script files ***
+cdir <DIR>.scripts.ai
+cdir <DIR>.scripts.human
+cdir <DIR>.scripts.orc
+cdir <DIR>.scripts.tilesets
+copy scripts <DIR>.scripts ~CFR
+
+echo WC2 data setup is now complete
+echo NOTE: you do not need to run this script again

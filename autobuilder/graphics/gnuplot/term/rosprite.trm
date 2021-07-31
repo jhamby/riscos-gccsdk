@@ -1,0 +1,851 @@
+/*
+ * $Id: rosprite.trm,v 0.01 2001/04/17 00:00:00 $
+ */
+
+/* GNUPLOT - rosprite.trm */
+
+/*[
+ * Copyright 1990 - 1993, 1998, 2001
+ *
+ * Permission to use, copy, and distribute this software and its
+ * documentation for any purpose with or without fee is hereby granted,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.
+ *
+ * Permission to modify the software is granted, but not the right to
+ * distribute the complete modified source code.  Modifications are to
+ * be distributed as patches to the released version.  Permission to
+ * distribute binaries produced by compiling modified sources is granted,
+ * provided you
+ *   1. distribute the corresponding source modifications from the
+ *    released version in the form of a patch file along with the binaries,
+ *   2. add special version identification to distinguish your version
+ *    in addition to the base release version number,
+ *   3. provide your name and address as the primary contact for the
+ *    support of your modified version, and
+ *   4. retain our contact information in regard to use of the base
+ *    software.
+ * Permission to distribute the released version of the source code along
+ * with corresponding source modifications in the form of a patch file is
+ * granted with same provisions 2 through 4 for binary distributions.
+ *
+ * This software is provided "as is" without express or implied warranty
+ * to the extent permitted by applicable law.
+]*/
+
+/*
+ * This terminal driver supports:
+ *     Acorn/RISC OS sprite format
+ *
+ * AUTHORS
+ *   Bob Brand
+ *
+ * Based in parts on the PBM and PNG drivers.
+ *
+ * send your comments or suggestions to (info-gnuplot@dartmouth.edu).
+ *
+ * The `rosprite' driver produces output in RISC OS sprite (bitmap)
+ * format.  When compiled on a RISC OS system it may also include
+ * a viewer (in this version it just launches the output files to
+ * be viewed by !Paint or any other program that accepts sprites).
+ *
+ */
+
+#include "driver.h"
+
+#ifdef TERM_REGISTER
+register_term(rosprite)
+#endif
+
+#ifdef TERM_PROTO
+TERM_PUBLIC void ROSPRITE_options  __PROTO((void));
+TERM_PUBLIC void ROSPRITE_init     __PROTO((void));
+TERM_PUBLIC void ROSPRITE_reset    __PROTO((void));
+TERM_PUBLIC void ROSPRITE_text     __PROTO((void));
+TERM_PUBLIC void ROSPRITE_graphics __PROTO((void));
+TERM_PUBLIC void ROSPRITE_linetype __PROTO((int));
+
+
+/*
+ * Default mode 27 sprite: 640x512 pixels, 16 colours
+ * and the smallest of GunPlot's built in fonts.
+ */
+#define ROSPRITE_XMAX        640
+#define ROSPRITE_YMAX        512
+#define ROSPRITE_FONTSIZE    ROSPRITE_SMALLFONT
+#define ROSPRITE_COLOURMODE  ROSPRITE_COLOUR
+#define ROSPRITE_TRANSPARANT TRUE
+/* Derive from fontsize (like in PBM and PNG drivers). */
+#define ROSPRITE_VCHAR       FNT5X9_VCHAR
+#define ROSPRITE_HCHAR       FNT5X9_HCHAR
+#define ROSPRITE_VTIC        FNT5X9_HBITS
+#define ROSPRITE_HTIC        FNT5X9_HBITS
+
+#endif /* TERM_PROTO */
+
+
+#ifndef TERM_PROTO_ONLY
+#ifdef TERM_BODY
+/* RISC OS sprite driver by Bob Brand, rogp@brandpoint.tmfweb.nl
+   (preferred for discussions about this driver) or bbrand@nki.nl */
+
+/*
+ * Local function prototypes.
+ */
+
+static void ROSPRITE_write4       __PROTO((long));
+
+#ifdef __riscos
+void RISCOS_viewer(unsigned char *, size_t, int);
+#endif /* __riscos */
+
+
+/*
+ * Local constants.
+ */
+
+/* WIMP colours for 16 colour modes. */
+
+#define ROSPRITE_WHITE       0
+#define ROSPRITE_GREY1       1 /* very light grey */
+#define ROSPRITE_GREY2       2 /* light grey */
+#define ROSPRITE_GREY3       3 /* medium light grey */
+#define ROSPRITE_GREY4       4 /* medium dark grey */
+#define ROSPRITE_GREY5       5 /* dark grey */
+#define ROSPRITE_GREY6       6 /* very dark grey */
+#define ROSPRITE_BLACK       7
+#define ROSPRITE_DARKBLUE    8
+#define ROSPRITE_YELLOW      9
+#define ROSPRITE_LIGHTGREEN  10
+#define ROSPRITE_RED         11
+#define ROSPRITE_BEIGE       12
+#define ROSPRITE_DARKGREEN   13
+#define ROSPRITE_ORANGE      14
+#define ROSPRITE_LIGHTBLUE   15
+
+static char ROSPRITE_allocmsg[] = "RISC OS sprite memory block";
+
+/* 0 white, 15 black, based on the tables for PNG and PBM */
+static const int ROSPRITE_grey_linetypes[] =
+  { 15, 2 ,12, 10, 8, 6, 4, 1, 7};
+/* based on colour combinations for PostScript and RISC OS draw
+   on the one hand and those for PNG and PBM on the other hand. */
+static const int ROSPRITE_colour_linetypes[] =
+  { ROSPRITE_BLACK     ,
+    ROSPRITE_BLACK     ,
+    ROSPRITE_RED       ,
+    ROSPRITE_LIGHTGREEN,
+    ROSPRITE_DARKBLUE  ,
+    ROSPRITE_BEIGE     ,
+    ROSPRITE_YELLOW    ,
+    ROSPRITE_LIGHTBLUE ,
+    ROSPRITE_BLACK     ,
+    ROSPRITE_ORANGE    ,
+    ROSPRITE_GREY3
+  };
+
+/* Palettes.
+ * First (32bit) word is screen mode, the next are the palette entries.
+ * A palette is in OS_ReadPalette format: twe colours (first flashing
+ * colour and second flashing colour) per entry.  Each colour is
+ * represented as 0xBBGGRR00: a byte for blue, green and red and the
+ * fourth byte is reserved and must be 0.
+ * The colours are /not/ repeated in this array, they are entered
+ * twice in _graphics().
+ */
+static const long ROSPRITE_mono_palette[] =
+  { /* mode 18: b/w, square pixels, !Paint uses 25 */
+    18L,
+    0xffffff00L, /* white, colour 0, background */
+    0x00000000L  /* black, colour 1, foreground */
+  };
+
+static const long ROSPRITE_grey_palette[] =
+  { /* mode 20: 16 grey, square pixels, !Paint uses 27 */
+    20L,
+    0xffffff00L, /* white, colour 0, background */
+    0xeeeeee00L, /* 14 shades of grey */
+    0xdddddd00L,
+    0xcccccc00L,
+    0xbbbbbb00L,
+    0xaaaaaa00L,
+    0x99999900L,
+    0x88888800L,
+    0x77777700L,
+    0x66666600L,
+    0x55555500L,
+    0x44444400L,
+    0x33333300L,
+    0x22222200L,
+    0x11111100L,
+    0x00000000L  /* black, colour 15, foreground */
+  };
+
+/* The standard 16 colour WIMP palette. */
+const long ROSPRITE_colour_palette[] =
+  { /* mode 20: 16 colours, square pixels, !Paint uses 27 */
+    20L,
+    0xffffff00, /* white, colour 0, background */
+    0xdddddd00, /* very light grey */
+    0xbbbbbb00, /* light grey */
+    0x99999900, /* medium light grey */
+    0x77777700, /* medium dark grey */
+    0x55555500, /* dark grey */
+    0x33333300, /* very dark grey */
+    0x00000000, /* black, colour 7, default foreground */
+    0x99440000, /* dark blue */
+    0x00eeee00, /* yellow */
+    0x00cc0000, /* light green */
+    0x0000dd00, /* red */
+    0xbbeeee00, /* beige/cream */
+    0x00885500, /* dark green */
+    0x00bbff00, /* orange */
+    0xffbb0000  /* light blue */
+  };
+
+
+
+/*
+ * Status- and other local variables.
+ */
+
+static unsigned int ROSPRITE_xsize = ROSPRITE_XMAX,
+                    ROSPRITE_ysize = ROSPRITE_YMAX;
+static enum {ROSPRITE_MONO,
+             ROSPRITE_GREY,
+             ROSPRITE_COLOUR} ROSPRITE_colourmode = ROSPRITE_COLOURMODE;
+static enum {ROSPRITE_SMALLFONT,
+             ROSPRITE_MEDIUMFONT,
+             ROSPRITE_LARGEFONT} ROSPRITE_fontsize = ROSPRITE_FONTSIZE;
+static TBOOLEAN ROSPRITE_transparant = ROSPRITE_TRANSPARANT;
+
+static void (*ROSPRITE_org_setpixel) __PROTO((unsigned int, unsigned int,
+                                              unsigned int)) = NULL;
+
+/* block for in-memory creation of sprite */
+static unsigned char GPHUGE * ROSPRITE_block      = NULL;
+static size_t        ROSPRITE_blocksize  = 0;
+static size_t        ROSPRITE_blockptr   = 0;
+static size_t        ROSPRITE_datastart;
+static size_t        ROSPRITE_transstart;
+static size_t        ROSPRITE_spritesize;
+static size_t        ROSPRITE_palettesize;
+static size_t        ROSPRITE_bitmapsize;
+/* Next is a macro, but is more logically at home here. */
+#define              ROSPRITE_HEADERSIZE 44L
+#define              ROSPRITE_BLOCKHEADERSIZE 16L
+
+static unsigned char ROSPRITE_mask;
+static int           ROSPRITE_bpp;
+static unsigned int  ROSPRITE_xwidth;
+
+
+/*
+ * The bitmap plot routine to replace b_setpixel().
+ */
+
+static void ROSPRITE_setpixel __PROTO((unsigned int, unsigned int,
+                                      unsigned int));
+
+
+/*
+ * The GnuPlot interface functions.
+ */
+
+/* _options()  Called when terminal type is selected. */
+
+TERM_PUBLIC void ROSPRITE_options()
+{
+  TBOOLEAN first_option = TRUE;
+
+  while (!END_OF_COMMAND)
+  {
+    if (almost_equals(c_token,"de$fault"))
+    {
+      if (first_option)
+      {
+        ROSPRITE_xsize       = ROSPRITE_XMAX;
+        ROSPRITE_ysize       = ROSPRITE_YMAX;
+        ROSPRITE_fontsize    = ROSPRITE_FONTSIZE;
+        ROSPRITE_colourmode  = ROSPRITE_COLOURMODE;
+        ROSPRITE_transparant = ROSPRITE_TRANSPARANT;
+        c_token++;
+      }
+      else
+        int_error("`default\' must be the first option", c_token);
+    }
+    else if (almost_equals(c_token, "sm$all"))
+    {
+      ROSPRITE_fontsize = ROSPRITE_SMALLFONT;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "me$dium"))
+    {
+      ROSPRITE_fontsize = ROSPRITE_MEDIUMFONT;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "l$arge"))
+    {
+      ROSPRITE_fontsize = ROSPRITE_LARGEFONT;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "mo$nochrome") ||
+             almost_equals(c_token, "b$w"))
+    {
+      ROSPRITE_colourmode = ROSPRITE_MONO;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "g$rey") ||
+             almost_equals(c_token, "g$ray"))
+    {
+      ROSPRITE_colourmode = ROSPRITE_GREY;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "c$olour") ||
+             almost_equals(c_token, "c$olor"))
+    {
+      ROSPRITE_colourmode = ROSPRITE_COLOUR;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "t$ransparant"))
+    {
+      ROSPRITE_transparant = TRUE;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "o$paque"))
+    {
+      ROSPRITE_transparant = FALSE;
+      c_token++;
+    }
+    else if (almost_equals(c_token, "si$ze"))
+    {
+      if (END_OF_COMMAND)
+        int_error("size: expecting two numbers", c_token);
+      else
+      {
+        /* expect comma separated size */
+
+        int custom_xsize, custom_ysize;
+        struct value val;
+
+        c_token++;
+        custom_xsize = real(const_express(&val));
+
+        if (END_OF_COMMAND || !equals(c_token, ","))
+          int_error("size: expecting two numbers", c_token);
+        else
+        {
+          c_token++;
+          custom_ysize = real(const_express(&val));
+          if (custom_xsize <= 1 || custom_ysize <= 1)
+            int_error("sizes must be > 1", c_token);
+
+          ROSPRITE_xsize = custom_xsize;
+          ROSPRITE_ysize = custom_ysize;
+        }
+      }
+    }
+    else
+      int_error("unknown keyword", c_token);
+
+    first_option = FALSE;
+  } /* end while */
+
+  sprintf(term_options,"sprite size %u,%u %s %s %s",
+          ROSPRITE_xsize, ROSPRITE_ysize,
+          (ROSPRITE_colourmode == ROSPRITE_MONO ? "monochrome" :
+           (ROSPRITE_colourmode == ROSPRITE_GREY ? "grey" :
+            "colour" /* default */ )),
+          (ROSPRITE_fontsize == ROSPRITE_LARGEFONT ? "large" :
+           (ROSPRITE_fontsize == ROSPRITE_MEDIUMFONT ? "medium" :
+            "small" /* default */ )),
+          (ROSPRITE_transparant ? "transparant" : "opaque"));
+}
+
+
+/* _init()  Called once, when the device is first selected. */
+
+TERM_PUBLIC void ROSPRITE_init ()
+{
+  /* Size. */
+  term->xmax = ROSPRITE_xsize;
+  term->ymax = ROSPRITE_ysize;
+
+  /* Font. */
+  switch (ROSPRITE_fontsize) {
+    case ROSPRITE_LARGEFONT:
+      b_charsize(FNT13X25);
+      term->v_char = FNT13X25_VCHAR;
+      term->h_char = FNT13X25_HCHAR;
+      term->v_tic  = FNT13X25_HBITS;
+      term->h_tic  = FNT13X25_HBITS;
+      break;
+    case ROSPRITE_MEDIUMFONT:
+      b_charsize(FNT9X17);
+      term->v_char = FNT9X17_VCHAR;
+      term->h_char = FNT9X17_HCHAR;
+      term->v_tic  = FNT9X17_HBITS;
+      term->h_tic  = FNT9X17_HBITS;
+      break;
+    case ROSPRITE_SMALLFONT:
+    default:
+      b_charsize(FNT5X9);
+      term->v_char = FNT5X9_VCHAR;
+      term->h_char = FNT5X9_HCHAR;
+      term->v_tic  = FNT5X9_HBITS;
+      term->h_tic  = FNT5X9_HBITS;
+      break;
+  }
+}
+
+
+/* _reset()  Called when gnuplot is exited, the output device
+   changed or the terminal type changed. */
+
+TERM_PUBLIC void ROSPRITE_reset ()
+{
+  /* Free block for in-memory sprite creation (if any). */
+  /* Use if() since some compilers do produce `interesting'
+     results for free(NULL). */
+  if (ROSPRITE_block) free(ROSPRITE_block);
+  ROSPRITE_block = NULL;
+  ROSPRITE_blocksize = 0;
+  if (ROSPRITE_org_setpixel)
+    b_setpixel = ROSPRITE_org_setpixel;
+  ROSPRITE_org_setpixel = NULL;
+}
+
+
+/* _graphics()  Called just before a plot is going to be displayed. */
+
+/* Use GnuPlot's bitmap routines, but substitute our own pixel
+   insert function to insert bits directly into the sprite rather
+   than to use GnuPlot's bitmap and convert that (possibly in-memory)
+   to RISC OS sprite format. */
+
+TERM_PUBLIC void ROSPRITE_graphics()
+{
+  int i;
+  const long * palette;
+
+  switch (ROSPRITE_colourmode) {
+    case ROSPRITE_MONO:
+      /* 1 bit per pixel, round line up to next 4 byte boundary */
+      ROSPRITE_bpp  = 1;
+      ROSPRITE_mask = 1U;
+      break;
+    case ROSPRITE_GREY:
+    case ROSPRITE_COLOUR:
+    default:
+      /* both colour and greyscale are 4 bits per pixel, 16 colour
+         (or 16 grey) modes. */
+      ROSPRITE_bpp  = 4;
+      ROSPRITE_mask = 0x0fU;
+      break;
+  }
+
+  /* width in bytes of a single x line, rounded up to next multiple
+     of 32 bits */
+  ROSPRITE_xwidth =
+    (((long)ROSPRITE_xsize * (long)ROSPRITE_bpp + 31L) & ~31L)/8L;
+  ROSPRITE_bitmapsize = ROSPRITE_xwidth * ROSPRITE_ysize;
+
+  /* Palette size: two (32 bit) words per colour. */
+  ROSPRITE_palettesize = 8L << ROSPRITE_bpp;
+
+  /* Sprite header + palette + bitmap. */
+  ROSPRITE_spritesize =
+    ROSPRITE_HEADERSIZE + ROSPRITE_palettesize + ROSPRITE_bitmapsize;
+
+  /* transparency mask is the same size als the original bitmap */
+  if (ROSPRITE_transparant)
+    ROSPRITE_spritesize += ROSPRITE_bitmapsize;
+
+  /* sprite block header is 16 bytes */
+  if (ROSPRITE_blocksize < ROSPRITE_spritesize + 16L)
+  {
+    ROSPRITE_blocksize = ROSPRITE_spritesize + 16L;
+    ROSPRITE_block =
+      (unsigned char GPHUGE *)gp_realloc(ROSPRITE_block,
+                                         ROSPRITE_blocksize,
+                                         ROSPRITE_allocmsg);
+  }
+  /* Clear sprite (to transparant). */
+  memset(ROSPRITE_block, 0, ROSPRITE_blocksize);
+
+  ROSPRITE_blockptr = 0;
+
+  /* Write sprite header. */
+  ROSPRITE_write4(ROSPRITE_blocksize);  /* total size of sprite area
+                                           (may be larger than sprite) */
+  ROSPRITE_write4(1L); /* no. of sprites in ares */
+  ROSPRITE_write4(16L); /* offset to first sprite */
+  ROSPRITE_write4(ROSPRITE_spritesize + 16L); /* offset to first free word */
+
+  /* no extension words */
+
+  /* start of actual sprite */
+  ROSPRITE_write4(ROSPRITE_spritesize); /* offset to next sprite */
+  ROSPRITE_write4(0x70756e67L); /* Name: 12 bytes lowercase ASCII */
+  ROSPRITE_write4(0x00746f6cL); /* string padded with zeroes. */
+  ROSPRITE_write4(0x00000000L); /* "gnuplot\0\0\0\0\0" */
+  ROSPRITE_write4((long)ROSPRITE_xwidth/4L - 1L); /* width in 32bit words  - 1 */
+  ROSPRITE_write4((long)ROSPRITE_ysize - 1L); /* height - 1 */
+  ROSPRITE_write4(0L); /* first bit used in leftmost byte */
+  ROSPRITE_write4((ROSPRITE_xsize * ROSPRITE_bpp + 31L) % 32L); /* last bit used in rightmost byte */
+  ROSPRITE_write4(ROSPRITE_HEADERSIZE + ROSPRITE_palettesize); /* offset to sprite data start */
+  if (ROSPRITE_transparant) /* offset to optional mask start */
+    ROSPRITE_write4(ROSPRITE_HEADERSIZE + ROSPRITE_palettesize + ROSPRITE_bitmapsize);
+  else /* point to sprite data itself */
+    ROSPRITE_write4(ROSPRITE_HEADERSIZE + ROSPRITE_palettesize);
+  /* Palette. */
+  switch (ROSPRITE_colourmode) {
+    case ROSPRITE_MONO:
+      palette = ROSPRITE_mono_palette;
+      break;
+    case ROSPRITE_GREY:
+      palette = ROSPRITE_grey_palette;
+      break;
+    case ROSPRITE_COLOUR:
+    default:
+      palette = ROSPRITE_colour_palette;
+      break;
+  }
+  ROSPRITE_write4(palette[0]); /* mode */
+  for (i = 1; i <= (1<<ROSPRITE_bpp); i++)
+  {
+    ROSPRITE_write4(palette[i]); /* first flashing colour */
+    ROSPRITE_write4(palette[i]); /* second flashing colour */
+                                   /* (together steady colour) */
+  }
+
+  /* The actual sprite data. */
+  ROSPRITE_datastart = ROSPRITE_blockptr;
+  if (ROSPRITE_transparant)
+    ROSPRITE_transstart = ROSPRITE_datastart + ROSPRITE_bitmapsize;
+
+  /* Set bitmap plot function to our own. */
+  ROSPRITE_org_setpixel = b_setpixel;
+  b_setpixel = ROSPRITE_setpixel;
+
+  /* And set up the rest of the bitmap plot structure. */
+  b_xsize      = ROSPRITE_xsize; /* no rounding needed! */
+  b_ysize      = ROSPRITE_ysize; /* no rounding needed! */
+  b_currx      = b_curry = 0;
+  b_value      = 1;
+  b_angle      = 0;
+  b_rastermode = 0;
+
+  if (ROSPRITE_colourmode != ROSPRITE_MONO)
+    b_setlinetype(0); /* solid lines */
+}
+
+
+/* _text()  Called immediately after a plot is displayed. */
+
+TERM_PUBLIC void ROSPRITE_text()
+{
+
+#ifdef __riscos
+  /* send to viewer (if any) */
+  if ((!outstr || !*outstr) && isatty(fileno(gpoutfile)))
+  {
+    RISCOS_viewer(ROSPRITE_block,
+                  ROSPRITE_BLOCKHEADERSIZE + ROSPRITE_spritesize,
+                  0xff9);
+  }
+  else
+#endif
+  {
+    /* send to stdout (which must be in binary mode */
+    fwrite(ROSPRITE_block + 4L,
+           1,
+           ROSPRITE_BLOCKHEADERSIZE - 4L + ROSPRITE_spritesize,
+           gpoutfile);
+  }
+}
+
+
+/* _move(x,y)  Called at the start of a line. */
+
+/* Done by b_move(). */
+
+
+/* _vector(x,y)  Called when a line is to be drawn. */
+
+/* Done by b_vector(). */
+
+
+/* _linetype(lt)  Called to set the line type before text is
+   displayed or line(s) plotted. */
+
+TERM_PUBLIC void ROSPRITE_linetype(lt)
+int lt;
+{
+  if (lt < -2) lt = -2;
+  switch (ROSPRITE_colourmode)
+  {
+    case ROSPRITE_MONO:
+      b_setlinetype(lt);
+      break;
+    case ROSPRITE_GREY:
+      if (lt >= (sizeof(ROSPRITE_grey_linetypes) /
+                 sizeof(ROSPRITE_grey_linetypes[0])) - 2)
+        lt %= (sizeof(ROSPRITE_grey_linetypes) /
+               sizeof(ROSPRITE_grey_linetypes[0])) - 2;
+      b_setvalue(ROSPRITE_grey_linetypes[lt+2]);
+      break;
+    case ROSPRITE_COLOUR:
+    default:
+      if (lt >= (sizeof(ROSPRITE_colour_linetypes) /
+                 sizeof(ROSPRITE_colour_linetypes[0])) - 2)
+        lt %= (sizeof(ROSPRITE_colour_linetypes) /
+               sizeof(ROSPRITE_colour_linetypes[0])) - 2;
+      b_setvalue(ROSPRITE_colour_linetypes[lt+2]);
+      break;
+  }
+}
+
+
+/* _put_text(x,y,str)  Called to display text at the (x,y) position,
+   while in graphics mode. */
+
+/* Done by b_put_text(). */
+
+/* _text_angle(ang)  Called to rotate the text angle when placing
+   the y label. */
+
+/* Done by b_text_angle(). */
+
+
+/* _justify_text(mode)  Called to justify text left, right or centre. */
+
+/* Done by b_justify_text(). */
+
+
+/* _point(x, y, point)  Called to place a point at position (x,y). */
+
+/* Done by b_point(). */
+
+
+/* _arrow(sx,sy,ex,ey,head)  Called to draw an arrow from (sx,sy)
+   to (ex,ey). */
+
+/* Done by do_arrow(). */
+
+
+/* _set_font() is called to set the font of labels, etc
+  [new 3.7 feature] */
+
+/* Not available for RISC OS sprite, or rather not available on
+   non-RISC OS machines and I want the driver to produce the same
+   output on all platforms.
+   Otherwise: Redirect output to sprite block (in graphics) and
+   use Font_... SWIs to plot font in whatever font is available
+   on the machine. */
+
+/* _pointsize() is used to set the pointsize for subsequent points */
+
+/* Not used. */
+
+
+/* _suspend() - called before gnuplot issues a prompt in multiplot
+   mode */
+
+#ifdef __riscos
+TERM_PUBLIC void ROSPRITE_suspend()
+{
+#if 0 /* temp. disabled */
+  RISCOS_viewer(ROSPRITE_block,
+                ROSPRITE_BLOCKHEADERSIZE + ROSPRITE_spritesize,
+                0xff9);
+#endif /* 0 */
+}
+#endif /* __riscos */
+
+
+/* _resume() - called after suspend(), before subsequent plots of
+   a multiplot. */
+
+/* nothing needs to be done */
+
+
+/* _boxfill() - fills a box in given style (currently unimplemented -
+  always background colour at present). */
+
+/* Done by bitmap routines (plot lots of white lines). */
+
+
+/* _linewidth() - sets the linewidth */
+
+/* not implemented for bitmaps...*/
+
+
+
+
+/*
+ * Local functions.
+ */
+
+
+/* Write 4 byte (long) integer in little endian format.
+   Note for porters: if you know the destination system has little
+   endian byte order (low byte first or least significant byte first)
+   then define the macro BYTE_ORDER_LITTLE_ENDIAN for a more efficient
+   version of _write4(). */
+
+static void ROSPRITE_write4(lval)
+long lval;
+{
+#ifdef BYTE_ORDER_LITTLE_ENDIAN
+  *(long*)(ROSPRITE_block + ROSPRITE_blockptr) = lval;
+  ROSPRITE_blockptr += 4L;
+#else /* !BYTE_ORDER_LITTLE_ENDIAN or unknown byte order */
+  /* a bit inefficient on little-endian machines but portable to
+     any byte order... as long as longs are (at least) 32bits */
+  ROSPRITE_block[ROSPRITE_blockptr++] =
+     (unsigned long) lval        & 0xff;
+  ROSPRITE_block[ROSPRITE_blockptr++] =
+    ((unsigned long) lval >>  8) & 0xff;
+  ROSPRITE_block[ROSPRITE_blockptr++] =
+    ((unsigned long) lval >> 16) & 0xff;
+  ROSPRITE_block[ROSPRITE_blockptr++] =
+    ((unsigned long) lval >> 24) & 0xff;
+#endif /* !BYTE_ORDER_LITTLE_ENDIAN or unknown byte order */
+}
+
+
+/*
+ * The graphics routines `borrowed' from bitmap.c and bitmap.h.
+ */
+
+/* The `workhorse' that does the actual plotting. */
+
+/* Macro from bitmap.c */
+#define IN(i,size) ((unsigned)i < (unsigned)size)
+
+static void ROSPRITE_setpixel(x, y, val)
+unsigned int x, y, val;
+{
+  if (IN(x, b_xsize) && IN(y, b_ysize))
+  {
+    size_t ptr = (ROSPRITE_ysize - y - 1L) * ROSPRITE_xwidth + (x * ROSPRITE_bpp)/8L;
+
+    ROSPRITE_block[ROSPRITE_datastart + ptr] &=
+      ~(ROSPRITE_mask << ((x * ROSPRITE_bpp) % 8));
+    ROSPRITE_block[ROSPRITE_datastart + ptr] |=
+      ((unsigned char) val) << ((x * ROSPRITE_bpp) % 8);
+
+    if (ROSPRITE_transparant)
+    {
+      if (val) /* colour, not transparant, all bits in transparency mask set */
+        ROSPRITE_block[ROSPRITE_transstart + ptr] |=
+          ROSPRITE_mask << ((x * ROSPRITE_bpp) % 8);
+      else /* transparant, all bits in transparency mask clear */
+        ROSPRITE_block[ROSPRITE_transstart + ptr] &=
+          ~(ROSPRITE_mask << ((x * ROSPRITE_bpp) % 8));
+    }
+  }
+#ifdef BITMAPDEBUG
+  else {
+    if (b_rastermode)
+      fprintf(stderr, "Warning: setpixel(%d, %d, %d) out of bounds\n",
+                      b_ysize - 1 - y, x, value);
+    else
+      fprintf(stderr, "Warning: setpixel(%d, %d, %d) out of bounds\n",
+                      x, y, value);
+  }
+#endif
+}
+
+
+#endif /* TERM_BODY */
+
+
+#ifdef TERM_TABLE
+TERM_TABLE_START(rosprite_driver)
+  "rosprite",
+  "RISC OS sprite driver",
+  ROSPRITE_XMAX,
+  ROSPRITE_YMAX,
+  ROSPRITE_VCHAR,
+  ROSPRITE_HCHAR,
+  ROSPRITE_VTIC,
+  ROSPRITE_HTIC,
+  ROSPRITE_options,
+  ROSPRITE_init,
+  ROSPRITE_reset,
+  ROSPRITE_text,
+  null_scale,
+  ROSPRITE_graphics,
+  b_move,
+  b_vector,
+  ROSPRITE_linetype,
+  b_put_text,
+  b_text_angle,
+  null_justify_text,
+  do_point,
+  do_arrow,
+  set_font_null,
+  NULL /* _pointsize */,
+#ifdef __riscos
+  TERM_CAN_MULTIPLOT |
+#endif /* __riscos */
+  TERM_BINARY  /*flags*/,
+#ifdef __riscos
+  ROSPRITE_suspend,
+#else /* !__riscos */
+  NULL /* suspend */,
+#endif /* !__riscos */
+  NULL /* resume */,
+  NULL /* boxfill */,
+  NULL /* linewidth */
+TERM_TABLE_END(rosprite_driver)
+
+#undef LAST_TERM
+#define LAST_TERM rosprite_driver
+#endif /* TERM_TABLE */
+
+#endif /* TERM_PROTO_ONLY */
+
+#ifdef TERM_HELP
+START_HELP(rosprite)
+"1 rosprite",
+"?commands set terminal rosprite",
+"?set terminal rosprite",
+"?set term rosprite",
+"?terminal rosprite",
+"?term rosprite",
+"?rosprite",
+" The `rosprite` terminal driver generates images in `Acorn/RISC OS`",
+" sprite (bitmap) format.",
+"",
+" Syntax:",
+"       set term rosprite {default} {<fontsize>} {<colour mode>}",
+"                         { transparant | opaque } { size <x,y> }",
+"",
+" where `default` sets or restores the defaults, which may be followed",
+" by new settings, when used, this must be the first keyword;",
+" <fontsize> is `small` (5x9 font), `medium` (9x17) or `large` (13x25);",
+" <colour mode> is `monochrome` or `bw` for monochrome, `grey` (or `gray`)",
+" for 16 grey levels and `colour` (or `color`) for the standard desktop",
+" colours;",
+" `transparant` sets a transparant background; `opaque` sets a solid white",
+" background;",
+" and `x` and `y` are the sizes of the sprite in pixels.",
+"",
+" Defaults are `colour`, `small`, `transparant` and `size` 640, 512",
+" (mode 20).",
+"",
+" Examples:",
+"       set terminal rosprite size 800,600 grey opaque",
+"       set terminal rosprite default bw",
+" The first example sets the size to 800x600 (mode 31), greyscale and",
+" a solid white background and leaves the other settings (from a possible",
+" previous set term rosprite) unchanged.  The second example restores",
+" defaults, but chooses monochrome output."
+END_HELP(rosprite)
+#endif /* TERM_HELP */
+
+

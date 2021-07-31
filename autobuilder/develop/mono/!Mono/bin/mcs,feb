@@ -1,0 +1,3 @@
+| This is a wrapper to the MCS compiler which is suitable for use with
+| any profile and any mscorlib.
+<Mono$Dir>.bin.Mono-SGen /Mono:/lib/mono/4.5/mcs.exe %*0

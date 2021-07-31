@@ -1,0 +1,244 @@
+RISC OS Dynamic Linking and Shared Libraries
+--------------------------------------------
+
+A Technical View
+----------------
+
+As with all RISC OS applications an ELF program image is based at 0x8000. All
+ELF images (both program and shared library) have a workspace placed after
+the ELF header that the system can use at runtime to store useful data. This
+workspace consists of five 32 bit words which in a program image starts at 0x8034.
+
+Currently, the workspace is used like so:
+
++0	Object index
++4	GOT Table Base
++8	Runtime array
++12	Client structure pointer
++16	Reserved
+
+The first entry is used by all objects, the client is always index 0 and shared
+libraries are assigned increasing indices on a first come first served basis. The
+index remains constant while the library remains in memory. It is this index that
+is used to access the arrays at offset 4 & 8. When a library is no longer required
+and removed from the system, its index can be reused.
+All other entries exist in the client workspace only and are zero within library
+workspaces.
+
+When an object is registered with the Shared Object Manager (SOM), its details
+such as name, load address, etc, are stored in a structure and added to a linked
+list. To help determine whether a library index is in use or not, an array of
+pointers to these structure is kept. Any index not in use has its entry in this
+array set to 0.
+
+When a client is initialised, two arrays are created both of which are private to
+the client; the GOT Table Base is used by the PIC register load instruction sequence
+(see below). Each element is a pointer to a private copy of the GOT of a library
+used by the client. The object index is used to access this array, if the client does
+not use a particular library, its entry is set to 0.
+The second array is the runtime array, which is also accessed using the object index.
+Each element consists of fours words:
+
+word[0] - private GOT pointer
+word[1] - public read/write segment pointer
+word[2] - private read/write segment pointer
+word[3] - read/write segment size
+
+If the client does not use the library that the element corresponds to, then all
+four words are 0. The array is used by the dynamic linker to speed up relocation
+fix-ups instead of having to call a SWI multiple times.
+
+Loading of PIC register
+-----------------------
+Every function within a shared library that uses global data is required to load
+the PIC register within its prologue using code similar to the following:
+
+	LDR	r7, .L0
+	LDR	r7, [r7, #0]
+	LDR	r7, [r7, #__GOTT_INDEX__]
+
+	...
+
+.L0:
+	.word	__GOTT_BASE__
+
+
+This is one of the effects of using the -fPIC option.
+
+From GCCSDK v4.6 onwards the compiler is free to choose any register it sees fit as
+the PIC register and this can vary from function to function. This differs from
+previous versions where r7 was always used. Better code generation is possible if,
+for example, the compiler can use a register that does not need to be saved on
+function entry.
+
+The identifiers __GOTT_BASE__ and __GOTT_INDEX__ are special symbols that the
+compiler inserts and are recognised by the assembler and linker.
+Note that as this PIC solution was inspired by the VXWORKS target, the same symbol
+names were used.
+
+Procedure Linkage Table
+-----------------------
+
+The format of the entries in the PLT depends on whether they are part of an
+executable or a library.
+When lazy binding, all functions initially call the first PLT entry so that
+they can be dynamically linked. In the executable there is no separate public
+and private GOT; they are one in the same, ie, they have the same address. This
+allows the first PLT entry to access the GOT directly in much the same way as
+the ARM Linux version does, the only difference being the use of r8 as the
+scratch register instead of r12:
+
+	STR	lr, [sp, #-4]!		@ Save return address
+	LDR	lr, [pc, #4]
+	ADD	lr, pc, lr		@ lr = GOT
+	LDR	pc, [lr, #8]!		@ Call resolver with
+	&GOT[0] - .			@ r8 = &GOT[n+3], lr = &GOT[3]
+
+For a shared library, the first entry must load the relevant GOT pointer
+independently of the caller before jumping to the dynamic resolver:
+
+	STR	lr, [sp, #-4]!		  @ Save return address
+	LDR	lr, .L0
+	LDR	lr, [lr, #0]
+	LDR	lr, [lr, #__GOTT_INDEX__] @ __GOTT_INDEX__ replaced by dynamic linker:
+					  @ (library_index * 4)  lr = GOT
+	LDR	pc, [lr, #8]!		  @ Call resolver with
+					  @ r8 = &GOT[n+3], lr = &GOT[3]
+.L0:
+	.word	__GOTT_BASE__ 		  @ __GOTT_BASE__ replaced by dynamic linker
+
+Subsequent entries of a PLT in an executable are relatively simple as again they
+can take advantage of the fact that there is only one GOT:
+
+	ADD	r8, pc, #0x0XX00000
+	ADD	r8, r8, #0x000XX000
+	LDR	pc,[r8, #0x00000XXX]!
+
+The only difference to ARM Linux is the use of register r8 instead of r12. Under
+RISC OS, r12 cannot be used because the stack extension routines require that it
+be preserved.
+
+In a shared library, a different format must be used:
+
+	LDR	r8, .L0
+	LDR	r8, [r8, #0]
+	LDR	r8, [r8, #__GOTT_INDEX__] @ __GOTT_INDEX__ replaced by dynamic linker:
+					  @ (library_index * 4)  r8 = GOT
+	ADD	r8, r8, #0x000XX000
+	LDR	pc,[r8, #0x00000XXX]!
+.L0:
+	.word	__GOTT_BASE__		  @ __GOTT_BASE__ replaced by dynamic linker
+
+In this case, the immediate values applied in the last two instructions above
+add up to the offset of the relevant function from the start of the GOT. This is
+different from the executable case above whereby the immediate values add up to
+the difference between the current PC and the location of the relevant function in
+the GOT.
+
+As previously mentioned, the symbols __GOTT_INDEX__ and __GOTT_BASE__ are recognised
+by the assembler and linker. These symbols are never defined and would normally
+generate undefined symbol errors and ARM relocations in the output file. The assembler
+suppresses the errors by forcing the symbols to be weak and converts the R_ARM_ABS12
+relocations to R_ARM_NONE which are thrown away by the linker.
+The linker then creates a new segment called ".riscos.pic" which takes the form:
+
+0	Version (currently 1)
+4	Number of relocations (n)
+8	Relocations start
+(n*4)+8	Relocations end
+
+Whenever the linker sees the use of a __GOTT_BASE__ or __GOTT_INDEX__ it takes the offset
+from the beginning of the library of its position and enters it into the .riscos.pic
+segment. Bit 31 of the entry is set for a __GOT_INDEX__ and clear for a __GOT_BASE__,
+bit 30 is reserved and always 0. This gives 30 bits to encode the offset which allows
+for a maximum library size of 1GB. Finally, to allow the dynamic linker to find the
+segment easily, the linker creates an entry in the dynamic segment called DT_RISCOS_PIC.
+
+At runtime when the dynamic linker loads a library for the first time, it will look
+for the .riscos.pic segment and process any relocations that it finds.
+For a __GOT_BASE__ relocation (bit 31 clear), the offset is used to find the address
+of its location and a pointer to the GOT Table Base (as described above) written into
+it. For a __GOT_INDEX__ relocation (bit 31 set), the instruction's location is
+calculated from the offset and altered to contain the library's object index multiplied
+by 4. The maximum immediate offset that the instruction allows is 4096. This means that
+the system can handle a maximum of 1024 libraries.
+Despite the fact that the library code is not executed until after this code alteration
+occurs, it would seem that it is still necessary to use OS_SynchroniseCodeAreas to
+flush the instruction cache (at least on an Iyonix).
+Note that because the data written to the code section is constant for the life of the
+library, this relocation and synchronisation is performed only once when first loaded.
+
+The effects on code generation
+------------------------------
+The PIC/PLT scheme described here was first introduced in V4.6 of GCCSDK. Let's look
+at the (relatively minor) disadvantages first. The normal PLT entries have increased
+in size from three instructions to five instructions and one data. The extra
+instructions are used to load the PIC register independently of the caller. To mitigate
+the size, the ADD r8, r8, 0x0XX00000 instruction was removed; the remaining instructions
+giving a maximum GOT size of 1,048,576 bytes. Baring in mind that each entry in the GOT
+is either a pointer to a global variable or external function, then this gives a maximum
+of 262,144 entries of both combined. I would suggest that if it is even feasible to
+write a library that exceeds this limit, then there is a flaw in its design.
+A second disadvantage is the extra initialisation required for each library. The code to
+load the PIC register has been simplified by giving the Shared Object Manager more work
+to do. However, it is this simplification that allows the PLT entries to load the PIC
+register themselves using only one register and as this extra work is only required once
+when the library is loaded, I feel the advantages give a net gain.
+
+The fact that the PIC register does not need to be live on entry to the PLT allows the
+compiler to generate better code:
+
+1) The compiler isn't constrained to a fixed PIC register. It can use any register it sees
+   fit and as a result may not need to save it in the function prologue.
+2) The compiler does not need to load the PIC register to call a function via the PLT. If
+   the function does not access any global variables, then no PIC register is required.
+3) Because of (2) the stack extension routines don't require the PIC register to be
+   loaded first either. Previously a function requiring a stack frame that didn't access
+   global data would have to load the PIC register unconditionally just in case the stack
+   needed extending.
+4) Because of (3) the compiler has more freedom in placing the PIC register loading
+   code and is also able to schedule other instructions within it.
+5) Tail call optimisation for a function call via PLT is now possible.
+
+Memory layout
+-------------
+The following diagram shows the memory layout of an application wimpslot after
+initialisation of a dynamically linked executable:
+
+0x8000	---------------------------------
+	| Elf program			|
+	|-------------------------------|
+	| Dynamic loader R/W segment	|
+	|-------------------------------|
+	| LD Environment string		|
+	|-------------------------------|
+	| argv array strings		|
+	|-------------------------------|
+	| Library R/W segments		|
+	|  allocated by Dynamic Loader	|
+	|-------------------------------|
+	|				|
+	| Free				|
+	| Memory			|
+	|				|
+     sl	|-------------------------------|
+	| Stack				|
+     sp	|-------------------------------|
+	| argc (4 bytes)		|
+	|-------------------------------|
+	| argv array			|
+	|-------------------------------|
+	| LD Environment array		|
+	|-------------------------------|
+	| Auxiliary data array		|
+	---------------------------------
+
+When the dynamic linker links the client to the libraries it requires, it is
+necessary to make copies of the library data segments for the client's own
+private use. As can be seen from the diagram, these private data segments are
+allocated within application space rather than the support module's dynamic
+areas making cleaning up easier. If the client wishes to load a shared library
+at runtime using dlopen(), then further private data segments are allocated
+using malloc().
+
+Lee Noar.

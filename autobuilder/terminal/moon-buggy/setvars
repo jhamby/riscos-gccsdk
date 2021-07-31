@@ -1,0 +1,8 @@
+
+AB_CATEGORY=Games
+
+AB_FILESNOPATH="moon-buggy$AB_EXEEXT COPYING"
+AB_MANPAGE=moon-buggy.6
+
+find patches -type f | xargs cat | patch -p1 || true
+

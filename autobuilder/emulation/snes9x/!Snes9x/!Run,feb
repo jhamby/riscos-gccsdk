@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set Snes9x$Dir <Obey$Dir>
+if "%*0" = "" then Filer_Run <Snes9x$Dir>.!Help
+Run <Snes9x$Dir>.snes9x %*0 ><Obey$Dir>.stdout 2><Obey$Dir>.stderr

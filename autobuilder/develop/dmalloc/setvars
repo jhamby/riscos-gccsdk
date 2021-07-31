@@ -1,0 +1,8 @@
+AB_URL=http://dmalloc.com/releases/dmalloc-5.5.2.tgz
+
+AB_CONFLAGS=--enable-threads
+
+AB_INSTALLDOCS="docs/dmalloc.html docs/dmalloc.pdf"
+
+AB_INSTALL=yes
+

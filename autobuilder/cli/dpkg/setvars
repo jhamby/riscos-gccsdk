@@ -1,0 +1,18 @@
+
+AB_CATEGORY=Command
+
+AB_CONFLAGS="--disable-nls --disable-start-stop-daemon"
+export dpkg_cv_va_copy=yes
+export dpkg_cv_c99_snprintf=yes
+export LIBS=-lintl
+
+cp /usr/include/ar.h include
+
+ab_package () {
+  ab_create_command_app dpkg Apps/Utilities
+  ab_add_commands $S/src/dpkg$AB_EXEEXT
+
+  cp $S/COPYING $A
+}
+
+

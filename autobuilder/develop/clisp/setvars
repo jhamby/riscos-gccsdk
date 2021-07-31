@@ -1,0 +1,65 @@
+AB_CATEGORY=Command
+
+AB_CONFLAGS="--without-readline --without-dynamic-ffi --with-libiconv-prefix=$GCCSDK_INSTALL_ENV --with-libsigsegv-prefix=$GCCSDK_INSTALL_ENV"
+
+ab_make() {
+  cd src
+  ./makemake --without-readline --with-libiconv-prefix=$GCCSDK_INSTALL_ENV --with-libsigsegv-prefix=$GCCSDK_INSTALL_ENV > Makefile
+
+  sed s%^CC.b*=.b*.*$%CC\ =\ $HOST_CC%g Makefile > HostCCMakefile
+  make -f HostCCMakefile comment5 gctrigger varbrace txt2c
+
+  eval $AB_MAKE config.lisp lisp.run
+}
+
+ab_package() {
+  test -d $D/!CLISP-SWI || mkdir -p $D/!CLISP-SWI
+  test -d $D/!CLISP-SWI/base || mkdir -p $D/!CLISP-SWI/base
+  test -d $D/!CLISP-SWI/doc || mkdir -p $D/!CLISP-SWI/doc
+  test -d $D/!CLISP-SWI/src || mkdir -p $D/!CLISP-SWI/src
+  test -d $D/obey || mkdir -p $D/obey
+  $HOST_CC $H/txt_dummy.c -o txt 
+  make README
+  mv $S/src/txt$AB_EXEEXT $D/obey/README.x$AB_EXEEXT
+  $HOST_CC $H/txt_dummy.c -o txt
+  make README.de
+  mv $S/src/txt$AB_EXEEXT $D/obey/README.de.x$AB_EXEEXT
+  $HOST_CC $H/txt_dummy.c -o txt
+  make README.es
+  mv $S/src/txt$AB_EXEEXT $D/obey/README.es.x$AB_EXEEXT
+  $HOST_CC $H/txt_dummy.c -o txt
+  make clisp.1
+  mv $S/src/txt$AB_EXEEXT $D/obey/clisp.1.x$AB_EXEEXT
+  $HOST_CC $H/txt_dummy.c -o txt
+  make clisp.html
+  mv $S/src/txt$AB_EXEEXT $D/obey/clisp.html.x$AB_EXEEXT
+  make manual
+  rm README
+  rm README.de
+  rm README.es
+  rm clisp.1
+  rm clisp.html
+  cp $S/src/lisp.run$AB_EXEEXT $D/!CLISP-SWI/base/
+  cp $S/src/*.lisp $D/!CLISP-SWI/src/
+  cp $S/src/impnotes.html $S/src/impnotes.css $S/src/clisp.png $D/!CLISP-SWI/doc
+  cp $S/src/LISP-tutorial.txt $S/src/CLOS-guide.txt $S/src/editors.txt $D/!CLISP-SWI/doc
+  cp $S/src/ANNOUNCE $S/src/COPYRIGHT $S/src/GNU-GPL $S/src/SUMMARY $S/src/NEWS $D/!CLISP-SWI/doc
+  cp $H/riscos/RISCOS,fff $D/!CLISP-SWI/doc
+  cp $H/riscos/!Boot,feb $H/riscos/!Help,feb $H/riscos/!Run,feb $D/!CLISP-SWI
+  $GCCSDK_INSTALL_CROSSBIN/gcc $H/riscos/UnixifyPath.c -o $D/!CLISP-SWI/UnixifyPath
+  cp $H/riscos/finish_CLISP,feb $D 
+  cp $H/riscos/make_lispinit,feb $D/obey
+  cp $H/riscos/make_readme,feb $D/obey
+}
+
+export cl_cv_file_intparam_h=1
+export cl_cv_file_floatparam_h=1
+cp $H/riscos/intparam.h $S/src/
+cp $H/riscos/floatparam.h $S/src/
+cp $H/riscos/riscos.d $S/src/
+cp $H/riscos/riscos.lisp $S/src/
+
+# Fix executable permissions which are missing
+chmod u+x src/lndir
+
+#autoconf

@@ -1,0 +1,9 @@
+
+AB_CATEGORY=Terminal
+
+AB_CONFLAGS=--disable-readline
+export CFLAGS=-O2
+
+AB_FILESNOPATH="ncftp$AB_EXEEXT COPYING"
+AB_MANPAGE=doc/man/ncftp.1
+

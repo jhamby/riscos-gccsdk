@@ -1,0 +1,16 @@
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app Blackbox Apps/Games
+  ab_makerun $S/src/black-box$AB_EXEEXT blackbox
+
+  ab_docs $S/AUTHORS $S/ChangeLog $S/COPYING $S/README
+
+  mkdir -p $A/data
+  cp -r $S/data/gfx $S/data/sound $A/data
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+
+# Extra libraries needed by static build of SDL_Mixer
+export LIBS="-static -lpng -ljpeg -lz -lvorbisidec -lvorbisfile -logg -lmikmod -lFLAC -ltiff -lwebp -llzma"

@@ -1,0 +1,10 @@
+| Run file for GemDropX
+
+WIMPSLOT
+
+Set GemDropX$Dir <Obey$Dir>
+
+| Close does nothing so hide close icon
+Set SDL$GemDropX$CloseAction 0
+
+Run <GemDropX$Dir>.gemdropx >null: 2>null:

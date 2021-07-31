@@ -1,0 +1,41 @@
+AB_INSTALL=yes
+
+AB_ROVERSION=2
+
+AB_CONFLAGS="--disable-esd"
+
+ab_package() {
+  ab_create_app LibMikMod Apps/Library libmikmod-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  # Copy HTML documentation
+  cp -av $S/docs/mikmod.html $A/doc
+
+  $AB_HOME/add-riscpkg -package libmikmod-dev -name LibMikMod-Dev -unixlib -unixsound
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libmikmod
+     ab_add_sharedlib $S/.libs libmikmod.so.3
+     
+     $AB_HOME/add-riscpkg -package libmikmod -name LibMikMod -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
+
+}

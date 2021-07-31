@@ -1,0 +1,47 @@
+AB_INSTALL=yes
+AB_ROVERSION=4
+
+./autogen.sh
+
+ab_package () {
+
+#TODO: Create package with flac program
+#	cp $S/src/flac/flac$AB_EXEEXT COPYING.* $D
+
+    ab_create_app LibFLAC Apps/Library libflac-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/FLAC FLAC
+  mv include/FLAC++ FLAC++
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  # Copy HTML documentation
+  cp -r $S/doc/html $A/doc
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name LibFlac-Dev -copyrightfile $S/COPYING.Xiph
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libflac
+     ab_add_sharedlib $S/src/libFLAC/.libs libFLAC.so.8
+     ab_add_sharedlib $S/src/libFLAC++/.libs libFLAC++.so.6
+     
+     $AB_HOME/add-riscpkg -package libflac -name LibFlac -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
+
+
+}

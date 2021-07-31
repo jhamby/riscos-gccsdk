@@ -1,0 +1,16 @@
+AB_MAKE="echo Data package - nothing to make"
+AB_ROVERSION=2
+
+ab_package() {
+  ab_create_app Freepats Apps/Audio
+
+  cp -a freepats/* $A
+  cp $A/README $A/\!Help
+
+  echo "dir /Freepats:/" > $A/timidity.cfg
+  cat freepats/crude.cfg >> $A/timidity.cfg
+
+  AB_COMPONENTS="Apps.Audio.!Freepats (Movable LookAt)"
+  $AB_HOME/add-riscpkg
+}
+

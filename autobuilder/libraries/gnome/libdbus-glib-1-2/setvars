@@ -1,0 +1,4 @@
+AB_INSTALL=yes
+
+export ac_cv_func_posix_getpwnam_r=yes
+export ac_cv_have_abstract_sockets=no

@@ -1,0 +1,4 @@
+
+WIMPSLOT
+
+<ChoxVNC$Dir>.vncviewer %*0 ><ChoxVNC$Dir>.stdout 2><ChoxVNC$Dir>.stderr

@@ -1,0 +1,5 @@
+| Produces an index of a PDF file, it's all postscript!
+| Wimpslot should be set by the alias calling this file ...
+wimpslot -min 15124K
+gs -q -sPDFname=%0 -sDSCname=%1 %*2 pdf2dsc.ps -c quit
+if "%1" <> "" then ifthere %1 then settype %1 ff5

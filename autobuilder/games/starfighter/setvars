@@ -1,0 +1,12 @@
+
+AB_URL=http://downloads.sourceforge.net/project/pr-starfighter/starfighter-1.2.tar.gz
+
+ab_package() {
+  ab_create_app StarFighter Apps/Games
+  ab_makerun $S/starfighter
+
+  cp -av $S/docs $A
+  cp -av starfighter.pak $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile docs/LICENSE
+}

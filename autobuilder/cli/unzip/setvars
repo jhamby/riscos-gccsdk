@@ -1,0 +1,37 @@
+AB_PVERSION=`grep -m1 UZ_VER_STRING unzvers.h | cut -d\" -f2`
+AB_ROVERSION=2
+AB_PRECONF=:
+
+# We're using SCL so extension is always ,ff8.
+AB_MAKE="$AB_MAKE CC=arm-unknown-riscos-gcc E=,ff8"
+
+#cp $S/acorn/GMakefile $S/Makefile
+cp $H/Makefile $S/
+
+rm $S/acorn/swiven.s
+#mv ../zip30-joty/acorn/swiven.c $S/acorn
+cp $H/swiven.c $S/acorn
+cp $H/swiven.h $S/acorn
+
+ab_package() {
+  ab_create_command_app Unzip Apps/Utilities
+  # We're using SCL so use ,ff8 instead of $AB_EXEEXT
+  ab_add_commands $S/*,ff8
+#  test ! -f $S/acorn/unzipsfx || mv $S/acorn/unzipsfx $S/acorn/unzipsfx,feb
+#  ab_add_commands $S/acorn/unzipsfx,feb
+
+  echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
+
+  # Copy documentation:
+  mkdir $A/docs
+  rman -f HTML $S/man/unzip.1 > $A/docs/unzip,faf
+  rman -f HTML $S/man/funzip.1 > $A/docs/funzip,faf
+  rman -f HTML $S/man/unzipsfx.1 > $A/docs/unzipsfx,faf
+  rman -f HTML $S/man/zipinfo.1 > $A/docs/zipinfo,faf
+  rman -f HTML $S/man/zipgrep.1 > $A/docs/zipgrep,faf
+  cp $S/{BUGS,LICENSE,README,WHERE,ToDo,COPYING.OLD} $A/docs
+  cp $S/acorn/ReadMe $A/docs/\!ReadMe-RISCOS
+
+  # No -unixlib as we're using SCL
+  $AB_HOME/add-riscpkg -copyrightfile $S/LICENSE -name Unzip
+}

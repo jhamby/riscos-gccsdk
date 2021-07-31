@@ -1,0 +1,98 @@
+*** Build instructions for native asasm:
+
+1. Generate the configuration files.
+   This should only be done once for a freshly checked output source tree.
+
+   $ cd asasm
+   $ autoreconf --install
+
+2. Create build output directory (preferably outside the source directory):
+   E.g. at the same level where the source directory is located.
+
+   $ mkdir ../build-output
+   $ cd ../build-output
+
+3. Create Makefile in the build output directory:
+
+   $ ../asasm/configure --target=arm-unknown-riscos
+
+   If you're not interested to run the asasm tests, you don't need to
+   build the elftoolchain tools, so you can additionally specify
+   --disable-building-tools
+
+   Also you can specify --prefix=<installdir> with <installdir> a full path
+   of the intended installation directory (used when 'make install' is done).
+
+4. Compile and link asasm:
+
+   $ make
+
+5. Test:
+
+   $ make check-minimal
+
+   When all the tests are successful, you should see at the near end:
+
+   *** All 'compare' tests were OK (do 'make -C unittests/compare clean' first if you want to re-do them)
+   *** All 'reloc' tests were OK (do 'make -C unittests/reloc clean' first if you want to re-do them)
+
+   Tests can be rerun after performing a clean (not necessairy if you want to
+   rerun a particular test after having changed its source file):
+
+   $ make -C unittests/compare clean
+   $ make -C unittests/reloc clean
+   $ make check-minimal
+
+6. Install:
+
+   $ make install
+
+   If you do the installation in a system directory, you might need an
+   additional `sudo'.
+
+   $ sudo make install
+
+*** Build instructions for cross-compiled asasm:
+
+1. Generate the configuration files:
+   This should only be done once for a freshly checked output source tree.
+
+   $ cd asasm
+   $ autoreconf --install
+
+2. Create build output directory (preferably outside the source directory):
+   E.g. at the same level where the source directory is located.
+
+   $ mkdir ../build-output-ro
+   $ cd ../build-output-ro
+
+3. Setup cross-compile environment if necessary.  For GCCSDK (using SCL):
+
+   $ PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
+   $ export CFLAGS=-mlibscl
+
+4. Create Makefile in the build output directory (indicating which
+   cross-compiler needs to be used):
+
+   $ ../asasm/configure --host=arm-unknown-riscos --target=arm-unknown-riscos \
+   --disable-building-tools
+
+   Also you probably want to specify --prefix=<installdir> with <installdir> a
+   full path of the intended installation directory (used when 'make install'
+   is done) as otherwise you will use a system directoy where you don't want
+   to overwrite any files with RISC OS binaries.
+
+5. Cross-compile and link asasm:
+
+   $ make
+
+   You have now a RISC OS version of asasm:
+
+   $ file ./src/asasm
+   ./src/asasm: RISC OS AIF executable
+
+6. Install:
+
+   $ make install
+
+-EOF-

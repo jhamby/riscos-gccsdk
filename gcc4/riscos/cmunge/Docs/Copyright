@@ -1,0 +1,49 @@
+Copyright
+---------
+
+This application is Copyright (C) 1999-2002 Robin Watts/Justin Fletcher. It
+may be freely distributed as long as:
+
+1) The source code/binary remains unchanged.
+2) The documentation is always distributed with the source or binary.
+3) The sources may be removed from the archive to make a binary
+   distribution, but the documentation must still be included.
+4) No charge (except a nominal copying/media fee (1UKP max)) may be made for
+   this software.
+5) This software may not be supplied with any commercial piece of software
+   without written permission from the authors.
+
+If you wish to distribute a changed version of this software, then you may do
+so under the following conditions:
+
+1) Any changes made should be passed back to the authors for possible
+   inclusion in future versions.
+2) A file is included that documents the changes made.
+3) The software should output a note to the effect that it has been changed.
+4) The same rules re: distribution still apply.
+
+If you wish to distribute the software in other ways than this, then please
+contact the authors for permission.
+
+Specific exceptions to these distribution rules are as follows:
+
+1) This program may NOT be included on a magazine cover disc without
+   permission; we want to make sure that only the latest version gets
+   shipped.
+
+2) This program may NOT be included on a commercially distributed CDROM
+   without permission; same reason, and we may ask for a copy of the CDROM at
+   media cost.
+
+When in doubt, contact the authors.
+
+We have toyed with the idea of asking for free copies of any commercial
+software created using this tool, but that seems a bit greedy! Anyone
+wishing to encourage future development however can feel free to offer us
+software out of the goodness of their hearts though :-)
+
+------------------------------------------------------------------------------
+
+This application contains not yet accepted upstream changes, fixes and
+improvements which are Copyright (c) 2007-2014 GCCSDK Developers and
+contributors.

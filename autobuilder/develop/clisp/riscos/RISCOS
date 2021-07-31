@@ -1,0 +1,36 @@
+RISCOS extensions to GNU CLISP
+==============================
+
+I've added the following functions in a package named 'riscos':
+
+(riscos:swi no in)
+  Invokes the SWI with the number specified by the 'no' parameter. Registers R0-R9 are set on entry as specified by the list in the 'in' parameter.
+  The 'in' parameter is a list which may contain the following types:
+    nil: skip the corresponding register.
+    integer: set the register to this integer value.
+    string: point the register at zero-terminated ASCII copy of this string (writeback is lost).
+    (simple-array (unsigned-byte 8)): point the register at the base of this simple byte array.
+    ( (simple-array (unsigned-byte 8)) . integer): point the register integer bytes into this simple byte array.
+
+  The return value is a list of the integer values of registers R0-R9 on exit.
+  This function causes a LISP error if an error is reported by the SWI instead of returning.
+
+
+(riscos:swix no in)
+  As riscos:swi, but returns NIL as the second value if the SWI returns an error (it otherwise returns T).  
+  If successful, the first return value is a list of R0-R9 values on exit from the SWI.
+  If unsuccessful, the first return value is a dotted cons of the error number and error string.
+
+
+(riscos:memoryref addr)
+(setf (riscos:memoryref addr) value)
+  Accesses the byte at the specified address in memory.
+
+
+This build of GNU CLISP only accepts UNIX-style pathnames.
+I attempted to update Peter Burwood's RISC OS pathname code (which was removed from CLISP in 2004), only for terminal stream initialisation to fail.
+
+I modified the processing of command-line arguments to apply OS_GSTrans to filenames - see !Run for a $Path variable example.
+
+
+Crispian Daniels, 15th October 2006.

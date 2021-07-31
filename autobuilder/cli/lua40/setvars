@@ -1,0 +1,8 @@
+
+AB_PRECONF=:
+AB_INSTALL=yes
+
+ln -s $(which lua40) bin/lua
+ln -s $(which luac40) bin/luac
+
+export STRIP=echo

@@ -1,0 +1,6 @@
+| Run file for SDLSound
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set SDLSound$Dir <Obey$Dir>
+Set SDLSound$Path <Obey$Dir>.,<Obey$Dir>.SDL.

@@ -1,0 +1,49 @@
+AB_URL=http://sourceforge.net/projects/xu4/files/xu4/1.0beta3/xu4-1.0beta3.tar.gz
+AB_PVERSION=`grep "VERSION" src/Makefile.common | cut -d'=' -f 2`
+AB_ROVERSION=3
+
+# Get data files
+wget http://www.ultima-universe.com/downloads/ultima4v101.zip
+
+wget http://downloads.sourceforge.net/project/xu4/Ultima%204%20VGA%20Upgrade/1.3/u4upgrad.zip
+
+AB_MAKE="$AB_MAKE -C src EXEEXT=$AB_EXEEXT"
+AB_DISTCLEAN="rm src/*.o *.zip src/*$AB_EXEEXT"
+AB_PVERSION=`grep "VERSION" src/Makefile.common | cut -d'=' -f 2`
+
+ab_package() {
+  ab_create_app xu4 Apps/Games
+  ab_makerun src/u4$AB_EXEEXT !RunImage$AB_EXEEXT
+
+  cp -av README AUTHORS COPYING $A
+
+  mkdir -p $A/pixmaps
+  cp -av icons/u4.bmp $A/pixmaps/u4.bmp
+  cp -av icons/u4.png $A/pixmaps/u4.png
+
+  mkdir -p $A/mid
+  cp -av mid/*.mid $A/mid
+
+  mkdir -p $A/sound
+  cp -av sound/*.ogg $A/sound
+  cp -av sound/*.wav $A/sound
+  cp -av src/dumpsavegame$AB_EXEEXT $A
+  cp -av src/u4enc$AB_EXEEXT $A
+  cp -av src/u4dec$AB_EXEEXT $A
+  cp -av src/tlkconv$AB_EXEEXT $A
+  mkdir -p $A/conf
+  cp -av conf/*.xml $A/conf
+  mkdir -p $A/conf/dtd
+  cp -av conf/dtd/*.dtd $A/conf/dtd
+  mkdir -p $A/graphics/ega
+  mkdir -p $A/graphics/vga
+  cp -av graphics/ega/*.png $A/graphics/ega
+  cp -av graphics/vga/*.png $A/graphics/vga
+
+  cp -av u4upgrad.zip $A
+  cp -av ultima4v101.zip $A/ultima4-1.01.zip
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name xu4 \
+    -copyrightfile COPYING
+
+}

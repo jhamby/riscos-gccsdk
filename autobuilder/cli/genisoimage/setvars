@@ -1,0 +1,31 @@
+
+
+ab_make() {
+   mkdir build && cd build
+   ln -s $GCCSDK_INSTALL_ENV/include/zlib.h zlib.h
+   ln -s $GCCSDK_INSTALL_ENV/include/zconf.h zconf.h
+   ln -s $GCCSDK_INSTALL_ENV/include/bzlib.h bzlib.h
+   cmake -DCMAKE_TOOLCHAIN_FILE=../../../../env/toolchain-riscos.cmake \
+         -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTAL_ENV \
+         -DCMAKE_EXE_LINKER_FLAGS='-static -L ../../../../../env/lib' \
+         -DBITFIELDS_HTOL=1 \
+         ..
+   $AB_MAKE
+   cd ..
+}
+
+ab_package() {
+
+  ab_create_command_app Genisoimage Apps/Utilities
+  ab_add_commands $S/build/genisoimage/devdump
+  ab_add_commands $S/build/genisoimage/genisoimage
+  ab_add_commands $S/build/genisoimage/isodebug
+  ab_add_commands $S/build/genisoimage/isodump
+  ab_add_commands $S/build/genisoimage/isoinfo
+  ab_add_commands $S/build/genisoimage/isovfy
+
+  cp -av $S/ABOUT Changelog COPYING FAQ FORK TODO VERSION doc $A/
+
+  $AB_HOME/add-riscpkg -package genisoimage -name Genisoimage -copyrightfile $S/COPYING -unixlib
+
+}

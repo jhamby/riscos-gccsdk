@@ -1,0 +1,3 @@
+AB_INSTALL=env
+
+AB_CONFLAGS="--enable-x-compile --with-yielding_select=no --enable-slapd=no"

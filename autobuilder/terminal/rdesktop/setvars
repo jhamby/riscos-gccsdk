@@ -1,0 +1,11 @@
+
+AB_CATEGORY=Terminal
+
+AB_MANPAGE=doc/rdesktop.1
+
+ab_package() {
+  cp -av $H/\!RDesktop $D
+  cp -av $S/rdesktop$AB_EXEEXT $D/\!RDesktop
+  cp -av $S/keymaps $D/\!RDesktop
+  sed s#VERSION#$AB_ZIPNAME# < $H/\!RDesktop/Desc > $D/\!RDesktop/Desc
+}

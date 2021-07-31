@@ -1,0 +1,16 @@
+
+AB_ROVERSION=4
+
+ab_package() {
+  ab_create_app Defenguin Apps/Games
+  ab_makerun defendguin !RunImage$AB_EXEEXT
+
+  cat docs/README.txt $H/RISCOSNotes > $A/\!Help
+
+  ab_docs docs/*.txt
+
+  mkdir -p $A/data
+  cp -r data/images data/music data/sounds $A/data
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound
+}

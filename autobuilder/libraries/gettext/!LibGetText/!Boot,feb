@@ -1,0 +1,6 @@
+| Boot file for LibGetText
+|
+If "<LibGetText$Dir>" = "" Then Set LibGetText$Dir <Obey$Dir>
+If "<LibGetText$Path>" = "" Then Set LibGetText$Path <Obey$Dir>.
+
+IconSprites <LibGetText$Dir>.!Sprites

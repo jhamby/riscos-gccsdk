@@ -1,0 +1,6 @@
+| Boot file for ZLib1g
+|
+If "<ZLib1g$Dir>" = "" Then Set ZLib1g$Dir <Obey$Dir>
+If "<ZLib1g$Path>" = "" Then Set ZLib1g$Path <Obey$Dir>.
+
+IconSprites <ZLib1g$Dir>.!Sprites

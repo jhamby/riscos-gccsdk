@@ -1,0 +1,5 @@
+
+Set SDLRoids$Dir <Obey$Dir>
+WIMPSLOT
+
+<SDLRoids$Dir>.sdlroids >null: 2>null:

@@ -1,0 +1,8 @@
+
+AB_CATEGORY=Terminal
+
+AB_PREZIP="cp faq.html faq.html,faf; cp nano.1.html nano.1.html,faf"
+AB_FILESNOPATH="nano$AB_EXEEXT COPYING faq.html,faf nano.1.html,faf"
+
+touch doc/man/nano.1.html
+

@@ -1,0 +1,17 @@
+Installing
+----------
+
+Place the whois binary anywhere you like - somewhere in the Run$Path or
+Library may be sensible.
+
+
+Usage
+-----
+
+whois is normally invoked in a TaskWindow.  e.g:
+
+ *whois riscos.com
+
+See the accompanying documentation for more complex use.
+
+

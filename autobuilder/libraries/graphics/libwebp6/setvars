@@ -1,0 +1,31 @@
+AB_INSTALL=yes
+
+./autogen.sh
+
+ab_package() {
+
+  ab_create_app LibWebp6-Dev Apps/Library libwebp6-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv lib/*.a .
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibWebp6-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libwebp6
+     ab_add_sharedlib $S/src/.libs libwebp.so.6
+
+     $AB_HOME/add-riscpkg -package libwebp6 -name LibWebp6 -depends SharedLibs \
+		-section Library
+  fi
+
+}

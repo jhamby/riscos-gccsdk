@@ -1,0 +1,36 @@
+Index: security/coreconf/rules.mk
+===================================================================
+RCS file: /cvsroot/mozilla/security/coreconf/rules.mk,v
+retrieving revision 1.66.2.8
+diff -u -r1.66.2.8 rules.mk
+--- security/coreconf/rules.mk	9 May 2007 01:38:16 -0000	1.66.2.8
++++ security/coreconf/rules.mk	26 Aug 2008 03:14:46 -0000
+@@ -356,8 +356,12 @@
+ ifdef XP_OS2_VACPP
+ 	$(MKSHLIB) $(DLLFLAGS) $(LDFLAGS) $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+ else
++ifeq ($(OS_TARGET),riscos-static)
++	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
++else
+ 	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+ endif
++endif
+ 	chmod +x $@
+ ifeq ($(OS_TARGET),Darwin)
+ ifdef MAPFILE
+Index: security/nss/lib/softoken/pcertdb.c
+===================================================================
+RCS file: /cvsroot/mozilla/security/nss/lib/softoken/Attic/pcertdb.c,v
+retrieving revision 1.53.2.11
+diff -u -r1.53.2.11 pcertdb.c
+--- security/nss/lib/softoken/legacydb/pcertdb.c	16 Nov 2007 02:05:58 -0000	1.53.2.11
++++ security/nss/lib/softoken/legacydb/pcertdb.c	26 Aug 2008 03:14:47 -0000
+@@ -4055,7 +4064,7 @@
+     if (appName) {
+ 	handle->permCertDB=rdbopen( appName, prefix, "cert", NO_CREATE, &status);
+     } else {
+-	handle->permCertDB=dbsopen(certdbname, NO_CREATE, 0600, DB_HASH, 0);
++	handle->permCertDB=dbsopen(certdbname, NO_CREATE, 0666, DB_HASH, 0);
+     }
+ 
+     /* if create fails then we lose */

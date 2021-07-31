@@ -1,0 +1,31 @@
+About
+-----
+
+madplay is a command line MP3 player.  See the documentation for more details.
+
+It was ported to demonstrated the use of sound support in Unixlib, which
+emulates the /dev/dsp OSS system found on Linux.
+
+
+Installation
+------------
+
+Drag !Madplay anywhere, and double-click to add the command alias.
+
+Usage
+-----
+
+Normally you run madplay in a taskwindow:
+
+*madplay <shift-dragged filename>
+
+Add the -v flag for more info whilst playing, note that there are key
+controls for volume and pausing.
+
+
+Support
+-------
+
+From riscos.info : http://www.riscos.info/
+
+Contact: peter@chocky.org

@@ -1,0 +1,21 @@
+| Thunderbird !Run file
+
+Set Thunderbird$Dir <Obey$Dir>
+Set Thunderbird$Path <Thunderbird$Dir>.
+
+| Large enough to contain the binary
+WimpSlot -min 23000k -max 23000k
+Set thunderbird-bin$heap ""
+
+| Control font behaviour
+Set Chox11$thunderbird-bin$subpixelfont 0
+Set Chox11$thunderbird-bin$scalefont 120
+
+| Application name
+Set thunderbird-bin$Title "Mozilla Thunderbird"
+
+| Latest Tinct
+RMEnsure Tinct 0.13 RMLoad System:Modules.Tinct
+RMEnsure Tinct 0.13 Error Thunderbird requires Tinct 0.13 or later. This can be downloaded from http://www.tinct.net/
+
+<Thunderbird$Dir>.thunderbird-bin >null: 2><Thunderbird$Dir>.stderr

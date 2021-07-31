@@ -1,0 +1,17 @@
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app komi Apps/Games
+
+  ab_makerun komi
+  cat README.txt $H/RISCOSNotes > $A/\!Help
+
+  cp -av CHANGELOG.txt $A/CHANGES
+  cp -av COPYING.txt $A/COPYING
+  cp -av TROUBLESHOOTING.txt $A/TROUBLESHOOTING
+
+  cp -r komidata $A/
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+

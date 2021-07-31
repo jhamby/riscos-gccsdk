@@ -1,0 +1,339 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head><title>GCCSDK Porting Tools Manual</title></head>
+<body>
+
+<hr>
+
+<h2>Porting Tools Manual</h2>
+
+<p>Copyright 2003-2008, <a href="http://gccsdk.riscos.info/">GCCSDK Developers</a>.</p>
+<p>Written by Peter Naulls (<a href="mailto:peter@chocky.org">peter@chocky.org</a>)</p>
+<p>Last updated - 20 Mar 2008</p>
+
+<hr>
+
+<p></p>
+
+<h3>The Idea</h3>
+
+<p>To greatly simplify the repetitive tasks when cross compiling Unix programs
+to RISC OS, especially when using GNU autoconf.  The tools will work most
+effectively (for purposes of fetching source) on a Debian system, but they
+will also work on other systems on which GCCSDK also works.</p>
+
+<p>We have found that there are many problems which are the same, when
+converting Unix programs.  Some of these come about because of the use
+of the ,e1f extension which can confuse scripts and makefiles which have
+not been properly written to expect this (although there is a growing
+trend to improve this, as we see support for .exe in Cygwin, for example).</p>
+
+<p>There are other such mundane things as setting paths, faking the system
+type and passing often used flags to configure.</p>
+
+<p>It is also desirable to be able to run "make install", as this enables
+us to build a proper cross compiling environment, without having to
+fiddle about with libraries, paths, etc.</p>
+
+<p></p>
+
+<h3>Solution</h3>
+
+<p>Have a variety of wrappers to some of the usual Unix tools to pass
+appropriate options, or set variables, etc beforehand.  Notably,
+make, install and configure.</p>
+
+<p>These wrappers are stored in a subdirectory "env" created under the
+normal structure for the cross compiler (specified by the --with-riscos-env
+parameter of the GCCSDK configure).  This directoy is on this system
+currently located at GCCSDK_ENV and more generally accessible via the
+environment variable GCCSDK_INSTALL_ENV and contains directories for the
+usual include, lib, bin, etc, info, man and X11 setup.</p>
+
+<p></p>
+
+<h3>Setup</h3>
+
+<p>The tools are installed as part of the GCCSDK build.
+See the <a href="http://gccsdk.riscos.info/">GCCSDK page</a> for more details.</p>
+
+<p></p>
+
+
+<hr>
+
+<h3>External parameters</h3>
+
+<p>The Porting Tools accept a couple of options which are specified by means of environment
+variables all being prefixed by &quot;RO_&quot;.  It is not necessary to have them
+defined as each one has a suitable default value.</p>
+
+<h4>RO_CPATH</h4>
+
+<p>RO_CPATH specifies a directory which is used to locate the configure
+script.  When RO_CPATH is not specified the current directory will be used.</p>
+
+<p>ro-config will use this directory to look for a configure script.  When there is no
+configure script in that directory, the parent directory will used instead. When the
+--ro-recurse ro-config option is given, all configure scripts in the subdirectories
+will be processed by ro-config too.</p>
+
+<h4>RO_DIST</h4>
+
+<p>RO_DIST is used by ro-config and ro-make and needs to be set to
+&quot;yes&quot; when you want to make use of &quot;distcc&quot; to do
+distributed building.</p>
+
+<h4>RO_PKG</h4>
+
+<p>Mainly used by Autobuilder to implement the packaging process (typically
+during &quot;make install&quot;).</p>
+
+<h4>RO_SHAREDLIBS</h4>
+
+<p>When RO_SHAREDLIBS is set to &quot;yes&quot; the configure options are tuned to
+allow shared builds.  Otherwise they are tuned for static builds.</p>
+
+Aside, we use lower case &quot;ro_&quot; shell and environment variables to
+indicate internal Porting Tools variables.  They should not be used by other
+parties.
+
+<h3>The Porting Tools</h3>
+
+<p>The porting tools currently for this build live in GCCSDK_ENV and
+GCCSDK_ENV/bin and the cross compiler in GCCSDK_BIN. These directories are
+defined by the GCCSDK configure script.</p>
+
+
+<h4>ro-path</h4>
+
+<p>Very simple, to add to the path before calling a command.  This
+adds $GCCSDK_INSTALL_CROSSBIN and GCCSDK_ENV/bin to
+the path before calling the supplied command.   This is useful to ensure
+the RISC OS version of a tool gets called, and not the native version.</p>
+
+<p>Also, some libraries set up a <i>libname</i>-config script in
+GCCSDK_ENV/bin, and we should ensure that gets called, and
+not the native one.</p>
+
+
+<h4>ro-make</h4>
+
+<p>This simply calls ro-path to invoke the native make program, and
+possibly sets environment variables that could be used by the build.  In simple
+makefiles, "gcc" or "cc" may be called directly, and this ensures
+that the cross compiler is used.  In complex setups using configure,
+even though the generated paths to most of the tools will be full,
+it's typical to see "ar" and some other tools not using a path.</p>
+
+
+<h4>ro-install</h4>
+
+<p>Wrapper for the Unix "install" program.  Its purpose is to suffix
+files with ,e1f if the filename does not exist. This enables
+"make install" to succeed when installing binaries belonging to libraries
+(even though we are generally not interested in those binaries, we
+still want the install for headers and libs to work).</p>
+
+<p>Additionally, if the first parameter ends with ,e1f (whether added
+by the ro-install script, or passed in), then it adds it to the second
+parameter too.  This ensures that installed RISC OS binaries have the
+correct ,e1f extension.</p> 
+
+
+<h4>uname</h4>
+
+<p>This is simply a minimal version of the uname program on Unix,
+to return RISC OS and ARM as the OS and processor type.</p>
+
+
+<h4>cp, ln, mkdir, rm, rmdir</h4>
+
+<p>These scripts are made to facilitate the packaging part while doing
+&quot;make install&quot; or similar installation process during building. They
+are typically disabled (i.e. calling their native implementation) when
+the RO_PKG environment variable is not defined or an empty string.</p>
+
+
+<h4>ro-config</h4>
+
+<p>This is by far the most complex of all the scripts. Simply put, it just
+calls configure, via the ro-path script passing on all given argument
+parameters (except for &quot;--ro-recurse&quot;).</p>
+
+<p>Additionally it also does do the following:</p>
+
+<ul>
+ <li><p>Massage the configure script, to correctly accept binaries using ,e1f.</p>
+
+ <li><p>Set a considerable number of ac_cv_* and other variables used by
+   various configure scripts.  This ensures that the configure script
+   doesn't get upset when it tries to determine settings not possible
+   in a cross compilation setup (or set correctly, when it defaults).</p>
+
+ <li><p>Sets defaults, depending on the output of --help:</p>
+
+  <pre>
+     --host=arm-unknown-riscos
+     --build=i686-linux
+     --prefix=GCCSDK_ENV
+     --x-libraries=GCCSDK_ENV/lib
+     --x-includes=GCCSDK_ENV/include
+     --disable-shared <i>(or: --enabled-shared=no)</i>
+     --enable-static <i>(or: -static)</i>
+     --with-glib-prefix=GCCSDK_ENV
+     --with-gtk-prefix=GCCSDK_ENV
+     --with-tclconfig=GCCSDK_ENV/lib/tcl8.4
+     --with-tkconfig=GCCSDK_ENV/lib/tk8.4
+     --disable-threads <i>(subject to change)</i>
+     --with-build-cc=<i>... (used by bash)</i>
+     --with-openssl=GCCSDK_ENV
+     --disable-nls
+     --ro-recursive
+  </pre>   
+
+  <p></p>
+
+  <li><p>Sets typical variables used by Unix build systems:<br>
+    CC, CPPFLAGS, LDFLAGS, CXX, CXXLIBS, AR, NM, RANLIB, INSTALL, STRIP</p>
+</ul>
+
+
+<p>
+The script also accepts some settings: it is not always appropriate to
+have the configure script in the same place as you're building (e.g. bash,
+tcl, tk), so you can set RO_CPATH before calling configure for its actual
+location (usually relative), although it will also check ".."
+</p>
+
+<p>
+Some build setups use multiple configure scripts in subdirectories.
+This isn't desirable by default, as it's not normally needed, and
+calling find may take a little while.  Passing --ro-recurse as an
+option causes it to scan subdirectories, and massage all found configure
+scripts before calling the top level one.
+</p>
+
+<p></p>
+
+
+<h4>ro-hosts</h4>
+
+<p>This is an optional file which is not provided and can be created by the
+user himself.  It can contain one or more hostnames (on one line) which can be
+used to do distributed builds using &quot;distcc&quot;.</p>
+
+<p>To enable the distributed build feature you need the environment variable
+&quot;RO_DIST&quot; set to &quot;yes&quot; at ro-config and ro-make time.</p>
+
+<hr>
+
+<h4>Simple use</h4>
+
+<p>(on Debian)</p>
+
+<pre>
+apt-get source wget
+cd wget-1.8.2
+GCCSDK_ENV/ro-config
+GCCSDK_ENV/ro-make
+</pre>
+
+
+
+<p>
+This is typical simple use.  You can pass any additional configure commands
+to ro-config.  If it was a library, you could now run "make install".
+</p>
+
+<p></p>
+
+
+<hr>
+
+<h4>Problems</h4>
+
+<p>What's important to note about these tools is that they aren't clever -
+they are a substitute for lots of manual effort, but not for experience
+in programming and porting.  Don't forget to rely on your own judgement.
+</p>
+
+<p>If it all possible, we try to avoid patching the original source.  we
+instead try to improve our tools, as this is generally a better solution
+all round.   This isn't always possible, however, and it's common
+for the configure script to need some additional manual changes.
+</p>
+
+<p>
+Some build systems can get a bit unstuck at being cross compiled.
+The typical problem is compiling a program, then expecting it to
+work, to generate parts of the build.  The usual solution is a
+manual compile for the native system, or change to the makefile.
+</p>
+
+<p>
+Having INSTALL explicitly set occasionally causes problems, when
+the build would have otherwise defaulted to 'cp' and been fine, as
+flags 'install' doesn't understand are passed.
+</p>
+
+<p>
+Having the native version of a config script (e.g. esd-config) and
+not having a RISC OS version can cause configure to make unfounded
+assumptions when it locates the native config script.
+</p>
+
+<p></p>
+
+
+<hr>
+
+<h4>X11 and xmkmf/imake</h4>
+
+<p>Build systems using xmkmf and imake will generally work too, using
+the installed XFree under GCCSDK_ENV and a version of xmkmf
+generated by the XFree build for RISC OS.</p>
+
+<p></p>
+
+
+<hr>
+
+<h4>libtool</h4>
+
+<p>ro-config contains the correct sed magic to process the output
+of libfile to extract symbols correctly.   This means that RISC OS
+can correctly work with libtool's simulated dynamic linking (e.g.
+kaffe) by statically linking.  There should be no extra work
+required on your part.</p>
+
+<p></p>
+
+
+<hr>
+
+<h4>Alternate Paths</h4>
+
+<p>Because of the GCCSDK development, you might have multiple
+installations of the cross compiler itself.  You can set
+the environment variable GCCSDK_INSTALL_CROSSBIN to point at an
+alternate path.
+The default value for this build is GCCSDK_BIN.</p>
+
+
+<p></p>
+
+
+<hr>
+
+<h4>Autobuilder</h4>
+
+<p>The GCCSDK Autobuilder makes extensive used of these scripts -
+you may like to experiment with this to see use of them in practice.</p>
+
+<p></p>
+
+<hr>
+
+</body>
+</html>

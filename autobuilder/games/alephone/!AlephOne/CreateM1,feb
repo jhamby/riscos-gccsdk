@@ -1,0 +1,31 @@
+| Obey script to create the Marathon 1 game
+| by building a wrapper app and downloading
+| and unzipping the game data
+
+Dir <Obey$Dir>
+
+IfThere ^.!M1A1 Then Error ^.!M1A1 game directory already exists
+
+IfThere m1a1_sdl/zip Then Else wget http://archives2.bungie.org/a1sdl/m1a1_sdl.zip
+
+IfThere m1a1_sdl/zip Then Else Error m1a1_sdl/zip file was not downloaded
+
+aowrapper "Marathon 1" ^.!M1A1
+
+IfThere m1a1_sdl/zip.M1A1 SDL Then Else Error SparkFS is needed to unzip this automatically
+
+copy m1a1_sdl/zip.M1A1 SDL ^.!M1A1.data ~CFR
+
+| Unzip thougth the Archive was corrupt so couldn't use
+| unzip m1a1_sdl -d ^.!M1A1.data
+
+IfThere ^.!M1A1.data.Scripts Then Else Error Failed to unzip m1a1_sdl/zip
+
+Delete ^.!M1A1.!Help
+
+Copy ^.!M1A1.data.ReadMe M1A1 SDL/html ^.!M1A1.!Help ~CF
+
+SetType ^.!M1A1.!Help HTML
+
+Echo Marathon is ready to play, just double-click !M1A1 in the parent directory
+

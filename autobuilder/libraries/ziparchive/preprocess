@@ -1,0 +1,8 @@
+mkdir temp
+
+mv Doc _projects Zip* temp
+mv temp ziparchive
+cd ziparchive
+dos2unix _projects/Linux/*
+dos2unix ZipArchive/*
+export AB_FULLNAME=ziparchive

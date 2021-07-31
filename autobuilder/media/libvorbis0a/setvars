@@ -1,0 +1,84 @@
+# Build normal and VFP versions by default.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
+
+AB_INSTALL=no
+AB_ROVERSION=4
+
+AB_DISTCLEAN="rm -rf build ; rm -rf build-vfp"
+
+AB_PRECONF=:
+
+autoconf
+
+if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+AB_PACKAGES="libvorbis-dev libvorbis"
+else
+AB_PACKAGES="libvorbis-dev"
+fi
+
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  mkdir $S/build
+  ( cd $S/build; ENABLE_VFP=no $AB_CONFIG && $AB_MAKE && $AB_MAKE install )
+fi
+
+if [ "$BUILD_VFP" == "yes" ]; then
+  mkdir $S/build-vfp
+  ( cd $S/build-vfp; ENABLE_VFP=yes $AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp && $AB_MAKE && $AB_MAKE install )
+fi
+
+ab_make() {
+  :
+}
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    if [ "$BUILD_NORMAL" == "yes" ] ; then
+	ab_create_sharedlib_skeleton libvorbis
+
+	ab_add_sharedlib $S/build/lib/.libs libvorbis.so.0
+	ab_add_sharedlib $S/build/lib/.libs libvorbisenc.so.2
+	ab_add_sharedlib $S/build/lib/.libs libvorbisfile.so.3
+
+	AB_COMPONENTS=""
+	$AB_HOME/add-riscpkg -name LibVorbis -section Library -package libvorbis \
+	    -depends LibOgg -depends SharedLibs-C2
+    fi
+    if [ "$BUILD_VFP" == "yes" ] ; then
+	ab_create_sharedlib_skeleton libvorbis-vfp
+
+	ab_add_sharedlib $S/build-vfp/lib/.libs libvorbis.so.0
+	ab_add_sharedlib $S/build-vfp/lib/.libs libvorbisenc.so.2
+	ab_add_sharedlib $S/build-vfp/lib/.libs libvorbisfile.so.3
+
+	AB_COMPONENTS=""
+	$AB_HOME/add-riscpkg -name LibVorbis-VFP -section Library -package libvorbis-vfp \
+	    -depends LibOgg -depends SharedLibs-C2 -env vfp
+    fi
+  fi
+
+  ab_create_app LibVorbis Apps/Library libvorbis-dev
+
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/vorbis $A/vorbis
+
+  if [ "$BUILD_NORMAL" == "yes" ] ; then
+    if [ -d "$S/build/lib/.libs/" ]; then
+      cp -f $S/build/lib/.libs/*.a $A
+    else
+      cp -f $S/build/lib/*.a $A
+    fi
+  fi
+  if [ "$BUILD_VFP" == "yes" ] ; then
+    mkdir -p $A/vfp
+    if [ -d "$S/build-vfp/lib/.libs/" ]; then
+      cp -f $S/build-vfp/lib/.libs/*.a $A/vfp
+    else
+      cp -f $S/build-vfp/lib/*.a $A/vfp
+    fi
+  fi
+
+  # Copy HTML documentation
+  rsync -rv --exclude=Makefile.* $S/doc $A
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name LibVorbis-Dev -copyrightfile $S/COPYING
+}

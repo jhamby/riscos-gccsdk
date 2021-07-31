@@ -1,0 +1,11 @@
+| Run file for Pipe Night Dreams
+
+WIMPSLOT
+
+Set PipeNight$Dir <Obey$Dir>
+Set SDL$PipeNight$TaskName "PipeNightDreams"
+
+| Close does nothing so hide close icon
+Set SDL$PipeNight$CloseAction 0
+
+Run <PipeNight$Dir>.pipenightdreams --datadir /<PipeNight$Dir>/games/pipenightdreams >null: 2>null:

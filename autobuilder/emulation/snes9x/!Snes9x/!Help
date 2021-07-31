@@ -1,0 +1,37 @@
+Snes9x - Super Nintendo Entertainment System (SNES) Emulator (v1.53)
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+See the "docs" subdirectory for more documentation or the official Snes9x
+website at http://www.snes9x.com/
+
+Getting Started
+---------------
+
+I've set up a filetype 'snesrom', &a8c. All you need to do is set the file
+type of the rom you want to run to 'snesrom'. The !Snes9x folder must first
+be 'seen' by the filer otherwise you'll get an error. Now double-click on
+the rom and if all goes well a window should open on the desktop.
+
+To change various settings for Snes9x edit the file in !Snes9x.snes9x/conf.
+
+
+History
+-------
+RISC OS Version 1.00 (11-Apr-12)
+- this is the initial version of Snes9x built for RISC OS.
+
+Issues
+------
+It's slow. You'll need at least Beagleboard based hardware to get snes9x
+running anywhere near full speed. If you find the sound
+stutters it probably means your machine isn't fast enough. Disabling sound
+will speed things up if you don't mind playing in silence.
+
+For armv7 based machines there seems to be an issue when alignment execptions
+is turned on. If nothing happens when you double-click a rom turn off alignment
+exceptions and try again.
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net

@@ -1,0 +1,4 @@
+Description: Little CMS colour management library (development files)
+ lcms is a standalone CMM engine, which deals with the colour management.
+ LittleCMS implements a fast transformation between ICC profiles. The
+ intention of it is to be portable across several platforms.

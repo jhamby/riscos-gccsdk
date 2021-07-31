@@ -1,0 +1,6 @@
+| Boot file for SDLNet
+|
+If "<SDLNet$Dir>" = "" Then Set SDLNet$Dir <Obey$Dir>
+If "<SDLNet$Path>" = "" Then Set SDLNet$Path <Obey$Dir>.,<Obey$Dir>.SDL.
+
+IconSprites <SDLNet$Dir>.!Sprites

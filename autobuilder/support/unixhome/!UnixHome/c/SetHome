@@ -1,0 +1,28 @@
+
+
+/*  Set HOME variable, given a RISC OS directory path */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unixlib/local.h>
+
+
+int main(int argc, char *argv[]) {
+  char buffer[256];
+  char *value;
+
+  if (argc < 2) {
+    fprintf(stderr, "SetHome must be given a path\n");
+    exit(EXIT_FAILURE);
+  }
+
+  value = getenv(argv[1]);
+
+  __unixify(value, 0, buffer, sizeof(buffer) - (sizeof("/home") - 1), 0xfff);
+  strcat(buffer, "/home");
+
+  setenv("UnixEnv$HOME", buffer, 1);
+
+  return 0;
+}

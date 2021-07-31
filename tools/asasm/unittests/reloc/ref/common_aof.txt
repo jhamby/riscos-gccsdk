@@ -1,0 +1,45 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+9 symbols
+
+** Area (0x000000) "Data", aligned at 4 bytes, [data] 
+   Size 28 bytes, 7 relocations
+
+000000: 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+** Relocations:
+
+At 0x000000 (flags 0x8a000001): Word displaced by symbol "cNoArg" (type-2 reloc)
+At 0x000004 (flags 0x8a000002): Word displaced by symbol "cSize16" (type-2 reloc)
+At 0x000008 (flags 0x8a000000): Word displaced by symbol "cAlign32" (type-2 reloc)
+At 0x00000c (flags 0x8a000003): Word displaced by symbol "cVis0" (type-2 reloc)
+At 0x000010 (flags 0x8a000004): Word displaced by symbol "cVis1" (type-2 reloc)
+At 0x000014 (flags 0x8a000005): Word displaced by symbol "cVis2" (type-2 reloc)
+At 0x000018 (flags 0x8a000006): Word displaced by symbol "cVis3" (type-2 reloc)
+
+** Symbol table:
+
+cAlign32         (42) extern, common = 0x00000008
+cNoArg           (42) extern, common = 0x00000000
+cSize16          (42) extern, common = 0x00000010
+cVis0            (42) extern, common = 0x00000000
+cVis1            (42) extern, common = 0x00000000
+cVis2            (42) extern, common = 0x00000000
+cVis3            (42) extern, common = 0x00000000
+Data             (01) local at "Data" + 0x000000
+$d               (01) local at "Data" + 0x000000
+
+** String table:
+
+000004: cAlign32
+00000d: cNoArg
+000014: cSize16
+00001c: cVis0
+000022: cVis1
+000028: cVis2
+00002e: cVis3
+000034: Data
+000039: $d

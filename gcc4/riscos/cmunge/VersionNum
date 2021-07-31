@@ -1,0 +1,24 @@
+/* CMunge (0.76) 13:12:38 10/5/2006
+ *
+ * This file is automatically maintained by commit, do not edit manually.
+ *
+ */
+#define Module_MajorVersion_CMHG        0.76
+#define Module_MinorVersion_CMHG        
+#define Module_Date_CMHG                10 May 2006
+
+#define Module_MajorVersion             "0.76"
+#define Module_Version                  76
+#define Module_MinorVersion             ""
+#define Module_Date                     "10 May 2006"
+
+#define Module_ApplicationDate2         "10-May-06"
+#define Module_ApplicationDate4         "10-May-2006"
+
+#define Module_ComponentName            "CMunge"
+#define Module_ComponentBranch          ""
+#define Module_ComponentPath            "Sources/BuildTools/CMunge"
+
+#define Module_FullVersion              "0.76"
+#define Module_FullVersionAndDate       "0.76 (10 May 2006) [with GCCSDK 4 changes " GCCSDK_REVISION "]"
+#define Module_HelpVersion              "0.76 (10 May 2006)"

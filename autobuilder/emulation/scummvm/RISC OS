@@ -1,0 +1,34 @@
+
+ScummVM
+-------
+
+RISC OS port by Peter Naulls
+
+29th August 2011
+
+This port is part of the GCCSDK riscos.info autobuilder.  The
+ScummVM for RISC OS page is:
+
+  http://www.riscos.info/index.php/ScummVM
+
+This is version 1.3.1, and updates my 2004 version 0.8 and 2009 1.0.0 RC1, 1.0.0 ports
+
+RISC OS Notes:
+
+ScummVM should run ok and be usable on a RiscPC, although it can be
+a touch slow.  I recommend you turn down screen scaling and run in
+full screen mode.  You might like to investigate the "fast modes"
+in games (e.g. ctrl-f).
+
+To use games from the ScummVM site (see the extras section on 
+http://scummvm.sourceforge.net/downloads.php), I suggest you unzip them to a directory
+at the same level as !ScummVM, change CSD to that directory and run
+and select the directory from within ScummVM.  Once a game is configured,
+it will remember the path in future.
+
+
+Known Issues:
+
+Flight of the Amazon Queen and Beneath a Steel Sky are the only
+games thoroughly tested with the RISC OS version and work fine.
+Simon the Sorceror also seems to work ok.

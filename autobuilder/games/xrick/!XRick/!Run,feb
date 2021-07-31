@@ -1,0 +1,7 @@
+| Run file for XRick
+
+WIMPSLOT
+
+Set XRick$Dir <Obey$Dir>
+Run <XRick$Dir>.xrick -data /<XRick$Dir>/data.zip
+

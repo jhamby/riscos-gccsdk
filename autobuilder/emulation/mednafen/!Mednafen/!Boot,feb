@@ -1,0 +1,6 @@
+| !Boot file for Mednafen
+Set Mednafen$Dir <Obey$Dir>
+Set File$Type_a8a mednafen
+Set Alias$@RunType_a8a Run <Mednafen$Dir>.!Run %%*0
+Iconsprites <Mednafen$Dir>.!Sprites
+

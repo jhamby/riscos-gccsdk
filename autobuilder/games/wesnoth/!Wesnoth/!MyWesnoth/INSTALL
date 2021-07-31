@@ -1,0 +1,37 @@
+
+
+B E F O R E   Y O U   R U N   W E S N O T H . . .
+
+
+Before you run Wesnoth, you must have a properly set-up !MyWesnoth.
+
+!MyWesnoth isn't really an application. It provides somewhere for
+Wesnoth to keep user-specific data such as preferences and saved games.
+
+The master copy of !MyWesnoth lives inside the !Wesnoth application
+folder. You should, at this moment, be able to see it on-screen.
+
+You must do the following once: Make a copy of !MyWesnoth somewhere in
+your private folders. (Copy it; do not move it.) When you make your own
+copy of !MyWesnoth, there are several considerations:
+
+ (1) Each Wesnoth player should have their own copy.
+
+ (2) Your copy must be in a filesystem that allows long filenames.
+
+ (3) Ensure that your copy is writeable. Wesnoth will try to create
+     files and folders inside it. Don't put your copy in a read-only
+     filesystem.
+
+ (4) Don't put your copy in a compressed image filesystem (eg. SparkFS).
+
+ (5) Double-click your copy (to activate it) before running !Wesnoth.
+
+Then, every time you want to run !Wesnoth, you should first be sure that
+your own copy of !MyWesnoth is active. The simplest way to do this is by
+double-clicking your !MyWesnoth before double-clicking !Wesnoth. Or you
+could write an Obey script that first runs your !MyWesnoth then runs
+!Wesnoth.
+
+If you are the only person who uses your computer, then you could simply
+keep !MyWesnoth where the Filer will see it before you run !Wesnoth.

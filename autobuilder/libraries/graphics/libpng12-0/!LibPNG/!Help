@@ -1,0 +1,19 @@
+LibPNG - Portable Network Graphics Library
+
+This RISC OS version was created by the GCCSDK
+Autobuilder.
+
+See the "doc" and "man" subdirectories for more documentation.
+
+To include in your C programs:
+
+#include "png.h"
+
+and add the include flag
+ -ILibPNG:
+
+Link with:
+ -LLibPNG: -lpng
+
+This library requires also requires a version
+of the ZLib1g library.

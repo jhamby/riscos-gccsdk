@@ -1,0 +1,8 @@
+
+
+AB_CONFLAGS="--disable-nls --disable-esd --disable-canberra"
+AB_INSTALL=yes
+
+#AB_INSTALLTARGET="install INSTALL=$GCCSDK_INSTALL_ENV/ro-install"
+
+

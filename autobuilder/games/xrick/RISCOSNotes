@@ -1,0 +1,28 @@
+
+RISC OS PORT
+------------
+
+This program is 32 bit compatible and requires RISC OS 3.6+.
+
+This program requires:
+
+SharedUnixLibrary module available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
+
+Contact: alan_baa@hotmail.com or the GCCSDK list
+
+This port:
+----------
+
+Alan Buckley September 2007.
+
+This version created by the GCCSDK Autobuilder
+for details see:
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+
+Original port:
+--------------
+
+Ported to RISC OS by Alan Buckley, June 2004.

@@ -1,0 +1,7 @@
+|
+| !Arora.!Run
+|
+
+Set Arora$Dir <Obey$Dir>
+WimpSlot -min 5000K -max 5000K
+Run <Arora$Dir>.Arora ><Arora$Dir>.debug 2>&1

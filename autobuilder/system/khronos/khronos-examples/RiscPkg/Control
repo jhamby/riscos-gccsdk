@@ -1,0 +1,5 @@
+Description: Examples using Khronos on a RaspberryPi
+ .
+ This package contains examples of the OpenGL support provided
+ by the Khronos Module a C libraries for the RaspberryPi.
+Suggests: Khronos-Dev

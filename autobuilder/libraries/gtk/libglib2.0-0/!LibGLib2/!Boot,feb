@@ -1,0 +1,4 @@
+| Boot file for Glib2.0
+|
+If "<LibGLib2$Dir>" = "" Then Set LibGLib2$Dir <Obey$Dir>
+If "<LibGLib2$Path>" = "" Then Set LibGLib2$Path <Obey$Dir>.

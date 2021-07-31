@@ -1,0 +1,16 @@
+ELF Tool Chain
+==============
+
+This is a snapshot of SourceForge elftoolchain project
+(http://sourceforge.net/projects/elftoolchain/) and a couple of patches + thin
+wrapper for autotools based buildsystem.
+
+upstream-trunk : Snapshot made from
+  https://svn.code.sf.net/p/elftoolchain/code/trunk
+current-trunk : Copy of upstream-trunk (made at regular times) + patches so
+  it can be built using autotools and RISC OS cross-compiler.
+ChangeLog : Classic ChangeLog.
+README : This file.
+
+-EOF-
+

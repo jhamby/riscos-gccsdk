@@ -1,0 +1,21 @@
+This is the RISC OS port of Simple Direct Media Layer (SDL)
+1.2 branch.
+
+The library was built using the autobuilder cross-compiled
+using the GCCSDK against UnixLib.
+
+See www.riscos.info for more information on the GCCSDK and
+the autobuilder.
+
+To use the main SDL library add -ISDL12: if the
+headers are specified using the SDL subdirectory or
+-ISDL12:SDL if just using the header names.
+
+Link using -LSDL12: -lSDL
+
+See the doc subdirectory for more documentation and/or
+the SDL web site at:
+
+http://www.libsdl.org
+
+Alan Buckley (alan_baa@hotmail.com)

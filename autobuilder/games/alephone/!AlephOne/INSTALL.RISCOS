@@ -1,0 +1,76 @@
+Installing Aleph One SDL data files for RISC OS
+-----------------------------------------------
+
+1. Find a map to install and download it.
+
+A good selection of maps already converted for SDL can be found at:
+  http://archives.bungie.org/
+
+You need to get a map that has been converted to SDL format (or
+figure out a way to convert it to SDL format yourself).
+
+Download the map zip file to your hard disc.
+
+2. Create the RISC OS application folder to run it.
+
+The aowrapper utility with the distribution will do this for you.
+
+i)   Set the current directory to the !AlephOne directory.
+ii)  Start a taskwindow with Ctrl+F12
+iii) Run the aowrapper program:
+
+     aowrapper "<title>" <wrapper_dir>
+
+     where <title> is the title of the game
+     and <wrapper_dir> is the application directory to create.
+
+     e.g. aowrapper "Marathon 1" ^.!M1A1
+
+3. Extract the data from the map zip file into the "data" folder
+   in the wrapper you have just created.
+
+4. Optionally change the sprite.
+
+The sprite created is the same as used by the !AlephOne application,
+feel free to create individual sprites for each map application.
+
+5. Optionally replace the sample !Help file with something more
+useful for this map. Often maps may come with a README you could use.
+
+
+Example
+-------
+
+Creating an Application for the SDL conversion of the original
+Marathon one.
+
+Change to the !AlephOne folder.
+
+Use the file menu to set the current directory.
+
+Start a task window with Ctrl+F12
+
+in the taskwindow type:
+
+aowrapper "Marathon 1" ^.!M1A1
+
+Download m1a1_sdl/zip from http://archives.bungie.org/.
+
+Copy the contents of the M1A1 SDL file to !M1A1.data
+
+If you have a html browser.
+
+Delete the existing !Help file.
+Copy "data.ReadMe M1A1 SDL/html" to !Help
+
+Set the !Help file type to HTML.
+
+
+Obey script to do it for you
+----------------------------
+
+If you have the command line wget program and you are
+using SparkFS (including the read-only version SparkFS)
+or equivalent filing system you can alternatively try
+the CreateM1 Obey script to do all the steps above for
+the Marathon 1 game.

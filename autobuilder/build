@@ -1,0 +1,409 @@
+#!/bin/bash -e
+
+AB_PACKAGES=""
+export AB_DEBUG=no     # Leave source
+export AB_NOFETCH=no   # Using existing source fetched from last time
+export AB_VERBOSE=no          # Echo output
+AB_DEPS=yes            # Build dependencies first
+AB_ALLDEPS=false       # Force build of all dependencies
+export AB_TARGET=      # Name added to packages and logs
+export AB_TRY=no       # Try to build Debian packages not in autobuilder yet
+export AB_ELFBUILD=yes # ELF is default
+export AB_CPUS=X       # Number of CPU cores to use for parallel make (X=guess)
+                       # suffix to append to RiscPkg package version number
+export AB_ROVERSION_SUFFIX=${AB_ROVERSION_SUFFIX:=""} 
+
+for param in $@ ; do
+  case "$param" in
+    -*)
+      byte=3
+      while true; do
+        # The "" parameter for 'echo' is there on purpose because otherwise $param might be
+        # interpreted as an 'echo' parameter.  E.g. with option -n, the input for 'cut' is
+        # now " -n" instead of an empty string.
+        opt=$(echo "" $param | cut -b $byte)
+        byte=$((byte + 1))
+
+        case "$opt" in
+          "")
+            break
+            ;;
+          d)
+            AB_DEBUG=yes
+            ;;
+          D)
+            AB_THISDEBUG=yes
+            ;;
+          f)
+            AB_NOFETCH=yes
+            ;;
+          v)
+            AB_VERBOSE=yes
+            ;;
+          n)
+            AB_DEPS=no
+            ;;
+          F)
+            AB_ALLDEPS=false
+            ;;
+          t)
+            AB_TRY=yes
+            ;;
+          *)
+          echo "Autobuilder: unknown option -$opt"
+          exit 1
+          ;;
+        esac
+      done
+      ;;
+    *)
+      AB_PACKAGES="$AB_PACKAGES $param"
+      ;;
+  esac
+done
+
+# Check for presence of required dependencies on the host system.
+# Exits with a user-friendly error message if not satisfied.
+check_dependencies() {
+  # FIXME: we need also at least libglib1.2-dev libpopt-dev x11proto-core-dev for
+  # some Autobuilder projects but their presence is not checked for at the moment.
+  # Cygwin uses a different name for autoconf2.13 so make a symlink for it
+  if ! type autoconf2.13 > /dev/null 2>&1 ; then
+    if type autoconf-2.13 > /dev/null 2>&1 ; then
+       cygac13=`type autoconf-2.13 | cut -d' ' -f 3`
+       pushd $(dirname $cygac13)
+       ln -s autoconf-2.13 autoconf2.13
+       popd
+    fi
+  fi
+  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext unzip autoconf2.13 flex bison gperf glib-genmarshal xsltproc intltoolize automake-1.11 meson cmake ninja git ; do
+    if ! type $build_prog > /dev/null 2>&1 ; then
+      echo "Autobuilder: $build_prog not found; is it installed on your path?"
+      exit 1;
+    fi
+  done
+  for build_prog in polkit-policy-file-validate ; do
+    if ! type $build_prog  > /dev/null 2>&1 ; then
+      echo "Autobuilder warning: $build_prog not found; continuing anyway"
+    fi
+  done
+}
+
+check_dependencies
+
+set -a
+
+# Autobuilder home
+pushd `dirname $0` > /dev/null
+AB_HOME=`pwd`
+popd > /dev/null
+
+# Determine directory where the packages will be published:
+# Note: the libraries (= result of 'make install') will be published at AB_OUTPUTLIB
+if [ -z "$AB_OUTPUTPACK" ] ; then
+  AB_OUTPUTPACK=$AB_HOME/autobuilder_packages
+  if [ ! -d "$AB_OUTPUTPACK" ] ; then
+    echo "Autobuilder: will store the packages at $AB_OUTPUTPACK"
+    mkdir $AB_OUTPUTPACK
+  fi
+elif [ ! -d "$AB_OUTPUTPACK" ] ; then
+  echo "Autobuilder: Autobuilder package directory $AB_OUTPUTPACK (defined by \$AB_OUTPUTPACK) does not exist."
+  exit 1
+fi
+
+# Determine directory where the libraries will be published:
+# Note: AB_OUTPUTPACK != AB_OUTPUTLIB
+if [ -z "$AB_OUTPUTLIB" ] ; then
+  AB_OUTPUTLIB=$AB_HOME/autobuilder_libraries
+  if [ ! -d "$AB_OUTPUTLIB" ] ; then
+    echo "Autobuilder: will store the libraries at $AB_OUTPUTLIB"
+    mkdir $AB_OUTPUTLIB
+  fi
+elif [ ! -d "$AB_OUTPUTLIB" ] ; then
+  echo "Autobuilder: Autobuilder library directory $AB_OUTPUTLIB (defined by \$AB_OUTPUTLIB) does not exist."
+  exit 1
+fi
+
+
+found_vars=false
+
+# Check for GCCSDK values
+if [ -e $(dirname $0)/../gcc4/gccsdk-params ] ; then
+  echo "Autobuilder: using GCCSDK set values"
+  . $(dirname $0)/../gcc4/gccsdk-params
+  found_vars=true
+fi
+
+# Check for values set in a local build directory
+if [ -e build-setvars ] ; then
+  echo "Autobuilder: using locally set build values"
+  . build-setvars
+  found_vars=true
+else
+  echo "Autobuilder: no local build-setvars found, using default build parameters"
+fi
+
+
+if ! $found_vars ; then
+  echo "Autobuilder: Didn't find GCCSDK settings (looked for $(dirname $0)/../gcc4/gccsdk-params and ./build-setvars), will try to proceed anyway"
+fi
+
+# File extension
+if [ "$AB_ELFBUILD" == "yes" ] ; then
+  export AB_EXEEXT=,e1f
+else
+  export AB_EXEEXT=,ff8
+fi
+
+# GCCSDK Scripts
+if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
+  if [ -d /home/riscos/env ] ; then
+    GCCSDK_INSTALL_ENV=/home/riscos/env
+  else
+    echo "Autobuilder: Directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is not defined and /home/riscos/env does not exist."
+    exit 1
+  fi
+elif [ ! -d "$GCCSDK_INSTALL_ENV" ] ; then
+  echo "Autobuilder: Directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is defined as $GCCSDK_INSTALL_ENV but that does not exist."
+  exit 1
+fi
+export GCCSDK_INSTALL_ENV
+
+# GCCSDK Binaries
+if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  if [ -d /home/riscos/cross/bin ] ; then
+    GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
+  else
+    echo "Autobuilder: directory with cross compiling tools does not exist. \$GCCSDK_INSTALL_CROSSBIN is not defined and /home/riscos/cross/bin does not exist."
+    exit 1
+  fi
+elif [ ! -d "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  echo "Autobuilder: directory with cross compiling tools does not exist. \$GCCSDK_INSTALL_CROSSBIN is defined as $GCCSDK_INSTALL_CROSSBIN but that does not exist."
+  exit 1
+fi
+export GCCSDK_INSTALL_CROSSBIN
+
+export GCCSDK_INSTALL_CROSS=$GCCSDK_INSTALL_CROSSBIN/../
+
+# build location
+AB_TMPDIR=$PWD
+
+
+# If a specific package is named, build that; otherwise everything
+if [ "$AB_PACKAGES" == "" ] ; then
+  AB_PACKAGES=$(find -type d)
+  if [ "$AB_PACKAGES" == "" ] ; then
+    echo "Autobuilder: nothing to build ?"
+    exit 1
+  fi
+fi
+
+if [ "$AB_VERBOSE" == "yes" ] ; then
+  AB_STDOUT=
+else
+  AB_STDOUT=>/dev/null
+fi
+
+
+ab_build() {
+  local PACKAGE_NAME=$1
+  local IS_DEPENDENCY=$2
+  local IS_EXPLICIT=$3
+  local REMOVE_DEPS=$4
+
+  # Because the dependency info only contains the package name, and not the
+  # directory, we need to search for the directory containing this package.
+  local PACKAGE_DIR=`(cd $AB_HOME ; echo */$PACKAGE_NAME/setvars)`
+  if [ ! -e "$AB_HOME/$PACKAGE_DIR" ] ; then
+    PACKAGE_DIR=`(cd $AB_HOME ; echo */*/$PACKAGE_NAME/setvars)`
+  fi
+  PACKAGE_DIR=`dirname $PACKAGE_DIR`
+
+  if [ ! -d $AB_HOME/$PACKAGE_DIR ] ; then
+    if [ "$AB_TRY" == yes ] && ! $IS_DEPENDENCY ; then
+      echo "Autobuilder: Attempting to build \"$PACKAGE_NAME\" not in autobuilder"
+      PACKAGE_DIR=try
+      mkdir -p $AB_HOME/$PACKAGE_DIR
+    else
+      if $IS_DEPENDENCY ; then
+        if $IS_EXPLICIT ; then
+          echo "Autobuilder: No explicit dependency \"$PACKAGE_NAME\" found" 1>&2
+          return 1
+        elif ! $REMOVE_DEPS; then
+          echo "Autobuilder: No match for Debian dependency \"$PACKAGE_NAME\" - ignoring" 1>&2
+        fi
+      else
+        echo "Autobuilder: Package \"$PACKAGE_NAME\" not found"
+        return 1
+      fi 
+
+      return 0
+    fi
+  fi
+
+  if [ ! -e $AB_HOME/$PACKAGE_DIR/setvars ] && [ "$AB_TRY" != yes ] ; then
+    echo "Autobuilder: No setvars found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
+    return 0
+  fi
+
+  if $IS_DEPENDENCY ; then
+    if [ -e "$AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET" ] ; then
+      if $REMOVE_DEPS; then
+        echo "Autobuilder: Dependency $PACKAGE_NAME forcibly being rebuilt"
+        rm $AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET
+      else
+        echo "Autobuilder: Dependency $PACKAGE_NAME satisfied by previous successful build"
+        return 0
+      fi
+    fi
+  fi
+
+  if ! $REMOVE_DEPS; then
+    echo "Autobuilder: Package \"$PACKAGE_NAME\" will be built using rules at \"$AB_HOME/$PACKAGE_DIR\""
+  fi
+
+
+  if [ "$AB_DEPS" == "yes" ] ; then
+    local DEPENDENCIES
+    local DEP
+
+    if [ "$AB_USEAPT" == "yes" ] && [ -n "`which apt-cache 2>/dev/null`" ] ; then
+      DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //'`
+    else
+      DEPENDENCIES=`$AB_HOME/fetch-depends $PACKAGE_NAME`
+    fi
+
+    if [ "$PACKAGE_NAME" != "native-zip" ] && [ "$PACKAGE_NAME" != "native-unzip" ] && [ "$PACKAGE_NAME" != "makerun" ] ; then
+      # Build our version of zip for packaging
+      if ! [ -e $GCCSDK_INSTALL_ENV/bin/zip ] ; then
+        if ! ab_build native-zip true true false; then
+          return 1
+        fi
+      fi
+
+      # Build our version of unzip for unpacking RISC OS zip archives
+      # - if necessary will fallback to system version but may break some builds
+      if ! [ -e $GCCSDK_INSTALL_ENV/bin/unzip ] ; then
+        if ! ab_build native-unzip true true false; then
+          return 1
+        fi
+      fi
+
+      # Build makerun
+      if ! [ -e $GCCSDK_INSTALL_ENV/bin/makerun ] ; then
+        if ! ab_build makerun true true false; then
+          return 1
+        fi
+      fi
+    fi
+
+    for DEP in $DEPENDENCIES ; do
+      case $DEP in
+        # Not useful to report
+        libc6|libstdc++6|libgcc1)
+          continue
+          ;;
+
+        # Handle circular dependency
+        libcairo2)
+          if [ "$PACKAGE_NAME" == "librsvg2-2" -o "$PACKAGE_NAME" == "libgtk2.0-0" -o "$PACKAGE_NAME" == "libpango1.0-0" ] ; then
+            continue
+          fi
+          ;;
+
+       libcroco3|libglib2.0-0|dpkg)
+         if [ "$PACKAGE_NAME" == "gettext" ] ; then
+           continue
+         fi
+         ;;
+
+        # Anything with the same prefix probably came from the same source package
+        ${PACKAGE_NAME}*)
+          continue
+          ;;
+
+        # Debian miscellanea
+        *debconf*)
+          continue
+          ;;
+      esac
+
+      echo $DEP > $AB_HOME/$PACKAGE_DIR/last-depends
+      if ! ab_build $DEP true false $REMOVE_DEPS; then
+        echo "Dependency \"$DEP\" failed for $PACKAGE_NAME"
+        return 1
+      fi
+    done
+
+    unset DEPENDENCIES
+    if [ -e "$AB_HOME/$PACKAGE_DIR/depends" ] ; then
+      DEPENDENCIES=$(cat $AB_HOME/$PACKAGE_DIR/depends | grep -v \^\#)
+    fi
+
+    for DEP in $DEPENDENCIES ; do
+      echo $DEP > $AB_HOME/$PACKAGE_DIR/last-depends
+      if ! ab_build $DEP true true $REMOVE_DEPS; then
+        echo "Dependency \"$DEP\" failed for $PACKAGE_NAME"
+        return 1
+      fi
+    done
+    rm -f $AB_HOME/$PACKAGE_DIR/last-depends
+  fi
+
+  if $REMOVE_DEPS ; then return 0; fi
+
+  # If we get here then all dependencies for this package should be satisfied.
+  AB_PACKAGE=$PACKAGE_NAME
+  AB_PACKAGEDIR=$PACKAGE_DIR
+
+
+  AB_OUTPUT=/tmp/ab-output-$$-$RANDOM
+  if [ "$AB_THISDEBUG" == "yes" ] && ! $IS_DEPENDENCY ; then
+    AB_DEBUG=yes $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
+  else
+    $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
+  fi
+
+  if ! grep -q "Autobuilder: Package stage completed" < $AB_OUTPUT ; then
+    echo "Package $AB_PACKAGE: ***Failure***"
+    mv $AB_OUTPUT $AB_HOME/$AB_PACKAGEDIR/last-failure$AB_TARGET
+    return 1
+  else
+    echo "Package $AB_PACKAGE: Success"
+
+    if ! grep -q "Autobuilder: Running make install" < $AB_OUTPUT   && \
+         grep -q "Autobuilder: No files specified to package" < $AB_OUTPUT ; then
+      echo "Warning: not installed, and not packaged"
+    fi
+
+    mv $AB_OUTPUT $AB_HOME/$AB_PACKAGEDIR/last-success$AB_TARGET
+    rm -f $AB_HOME/$AB_PACKAGEDIR/last-failure$AB_TARGET
+  fi
+  echo
+
+
+  return 0
+}
+
+
+if $AB_ALLDEPS ; then
+ for PACKAGEDIR in $AB_PACKAGES ; do
+   PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
+
+   ab_build $PACKAGE false false $AB_ALLDEPS
+   done
+fi
+
+
+ok=0
+
+for PACKAGEDIR in $AB_PACKAGES ; do
+  PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
+
+  if ! ab_build $PACKAGE false false false; then
+    echo "Build for package \"$PACKAGE\" failed" 1>&2
+    ok=1
+  fi
+done
+
+exit $ok

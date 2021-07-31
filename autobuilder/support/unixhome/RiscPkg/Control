@@ -1,0 +1,3 @@
+Description: Helper to store preferences for some Unix ports
+ This is a helper application to provide a place to store preference files, and
+ set variables required for some Unix ports in RISC OS.

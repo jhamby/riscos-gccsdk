@@ -1,0 +1,100 @@
+diff -r 456a088b297b nsprpub/configure.in
+--- a/nsprpub/configure.in	Sun Aug 09 16:45:00 2009 +0200
++++ b/nsprpub/configure.in	Sun Aug 09 10:43:08 2009 -0700
+@@ -649,6 +649,7 @@
+         mingw*)       OS_ARCH=WINNT ;;
+         wince*)       OS_ARCH=WINCE ;;
+         darwin*)      OS_ARCH=Darwin ;;
++        riscos*)      OS_ARCH=RISCOS ;;
+     esac
+ else
+     OS_ARCH=`uname -s | sed -e 's|/|_|g'`
+@@ -1881,8 +1882,11 @@
+     USE_PTHREADS=1
+     MDCPUCFG_H=_riscos.cfg
+     PR_MD_CSRCS=riscos.c
+-    DLL_SUFFIX=a
+-    LD="/home/riscos/env/ro-ar cr"
++    DSO_CFLAGS=-fPIC
++    DSO_LDOPTS='-shared -Wl,-soname -Wl,$(notdir $@)'
++    #DLL_SUFFIX=a
++    MKSHLIB='$(CC) $(DSO_LDOPTS) -o $@'
++    #MKSHLIB='$(AR) rc $@'
+     ;;
+ 
+ *-*-sco*)
+diff -r 456a088b297b nsprpub/pr/include/md/_riscos.h
+--- a/nsprpub/pr/include/md/_riscos.h	Sun Aug 09 16:45:00 2009 +0200
++++ b/nsprpub/pr/include/md/_riscos.h	Sun Aug 09 10:43:08 2009 -0700
+@@ -44,7 +44,7 @@
+ #define PR_LINKER_ARCH		"riscos"
+ #define _PR_SI_SYSNAME		"RISCOS"
+ #define _PR_SI_ARCHITECTURE	"arm"
+-#define PR_DLL_SUFFIX		".a"
++#define PR_DLL_SUFFIX		".so"
+ 
+ #define _PR_POLL_AVAILABLE
+ #define _PR_USE_POLL
+@@ -60,8 +60,8 @@
+ 
+ 
+ #undef  HAVE_STACK_GROWING_UP
+-#undef  HAVE_DLL
+-#undef  USE_DLFCN
++#define HAVE_DLL
++#define USE_DLFCN
+ #define NEED_STRFTIME_LOCK
+ #define NEED_TIME_R
+ #define PT_NO_SIGTIMEDWAIT
+diff -r 456a088b297b nsprpub/pr/src/misc/prenv.c
+--- a/nsprpub/pr/src/misc/prenv.c	Sun Aug 09 16:45:00 2009 +0200
++++ b/nsprpub/pr/src/misc/prenv.c	Sun Aug 09 10:43:08 2009 -0700
+@@ -79,7 +79,16 @@
+     if (!_pr_initialized) _PR_ImplicitInitialization();
+ 
+     _PR_LOCK_ENV();
++#ifdef __riscos__
++    {
++      char *roenv = alloca(strlen(var) + 9);
++      strcpy(roenv, "Firefox$");
++      strcpy(roenv + 8, var);
++      ev = _PR_MD_GET_ENV(roenv);
++    }
++#else
+     ev = _PR_MD_GET_ENV(var);
++#endif
+     _PR_UNLOCK_ENV();
+     return ev;
+ }
+@@ -93,7 +102,16 @@
+     if ( !strchr(string, '=')) return(PR_FAILURE);
+ 
+     _PR_LOCK_ENV();
++#ifdef __riscos__
++    {
++      char *roenv = alloca(strlen(string) + 9);
++      strcpy(roenv, "Firefox$");
++      strcpy(roenv + 8, string);
++      result = _PR_MD_PUT_ENV(roenv);
++    }
++#else
+     result = _PR_MD_PUT_ENV(string);
++#endif
+     _PR_UNLOCK_ENV();
+     return (result)? PR_FAILURE : PR_SUCCESS;
+ }
+diff -r 456a088b297b nsprpub/pr/tests/Makefile.in
+--- a/nsprpub/pr/tests/Makefile.in	Sun Aug 09 16:45:00 2009 +0200
++++ b/nsprpub/pr/tests/Makefile.in	Sun Aug 09 10:43:08 2009 -0700
+@@ -456,6 +456,11 @@
+ endif
+ endif
+ 
++ifeq ($(OS_ARCH),RISCOS)
++EXTRA_LIBS = -ldl
++endif
++
++
+ ifeq ($(USE_PTHREADS),1)
+ LIBPTHREAD = -lpthread
+ ifeq ($(OS_ARCH),AIX)

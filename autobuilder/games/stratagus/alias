@@ -1,0 +1,2 @@
+# DOS line endings, so force patch
+AB_PATCHOPT="-p0 -F3 -l"

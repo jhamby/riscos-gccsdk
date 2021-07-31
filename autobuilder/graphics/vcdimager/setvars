@@ -1,0 +1,11 @@
+
+ab_package() {
+  ab_create_command_app vcdimage Apps/Graphics
+
+  ab_add_commands $S/frontends/cli/*$AB_EXEEXT
+  ab_add_commands $S/frontends/xml/*$AB_EXEEXT
+
+  cp -av $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib
+  }

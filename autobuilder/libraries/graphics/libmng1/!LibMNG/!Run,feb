@@ -1,0 +1,6 @@
+| Run file for LibMNG
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibMNG$Dir <Obey$Dir>
+Set LibMNG$Path <Obey$Dir>.

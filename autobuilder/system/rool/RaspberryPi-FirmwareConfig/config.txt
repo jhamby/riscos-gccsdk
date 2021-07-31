@@ -1,0 +1,4 @@
+fake_vsync_isr=1
+gpu_mem=64
+init_emmc_clock=100000000
+kernel=RISCOS.IMG

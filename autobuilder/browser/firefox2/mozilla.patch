@@ -1,0 +1,310 @@
+Index: allmakefiles.sh
+===================================================================
+RCS file: /cvsroot/mozilla/allmakefiles.sh,v
+retrieving revision 1.579.2.29
+diff -u -r1.579.2.29 allmakefiles.sh
+--- allmakefiles.sh	3 Oct 2007 23:13:47 -0000	1.579.2.29
++++ allmakefiles.sh	21 Feb 2008 03:26:59 -0000
+@@ -173,6 +173,7 @@
+ gfx/src/xlibrgb/Makefile
+ gfx/src/windows/Makefile
+ gfx/src/cairo/Makefile
++gfx/src/riscos/Makefile
+ gfx/tests/Makefile
+ "
+ 
+Index: parser/htmlparser/src/COtherElements.h
+===================================================================
+RCS file: /cvsroot/mozilla/parser/htmlparser/src/Attic/COtherElements.h,v
+retrieving revision 3.73
+diff -u -r3.73 COtherElements.h
+--- parser/htmlparser/src/COtherElements.h	1 Jun 2005 22:23:12 -0000	3.73
++++ parser/htmlparser/src/COtherElements.h	21 Feb 2008 03:26:59 -0000
+@@ -419,13 +419,13 @@
+ public:
+ 
+   static CGroupMembers& GetGroup(void) {
+-    static CGroupMembers theGroup={0};
++    static CGroupMembers theGroup; //={0};
+     theGroup.mBits.mInlineEntity=1;
+     return theGroup;
+   }
+ 
+   static CGroupMembers& GetContainedGroups(void) {
+-    static CGroupMembers theGroup={0};
++    static CGroupMembers theGroup; //={0};
+     static PRBool initialized=PR_FALSE;
+     if(!initialized) {
+       initialized=PR_TRUE;
+Index: profile/src/nsProfileAccess.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/profile/src/Attic/nsProfileAccess.cpp,v
+retrieving revision 1.99
+diff -u -r1.99 nsProfileAccess.cpp
+--- profile/src/nsProfileAccess.cpp	4 Jan 2005 19:31:30 -0000	1.99
++++ profile/src/nsProfileAccess.cpp	21 Feb 2008 03:26:59 -0000
+@@ -76,7 +76,11 @@
+ #endif
+ 
+ #if defined (XP_UNIX)
++#if defined (XP_RISCOS)
++#define HOME_ENVIRONMENT_VARIABLE "/<Choices$Write>/"
++#else
+ #define USER_ENVIRONMENT_VARIABLE "USER"
++#endif
+ #define LOGNAME_ENVIRONMENT_VARIABLE "LOGNAME"
+ #define HOME_ENVIRONMENT_VARIABLE "HOME"
+ #define PROFILE_NAME_ENVIRONMENT_VARIABLE "PROFILE_NAME"
+Index: rdf/base/src/nsRDFParserUtils.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/rdf/base/src/Attic/nsRDFParserUtils.cpp,v
+retrieving revision 1.17
+diff -u -r1.17 nsRDFParserUtils.cpp
+--- rdf/base/src/nsRDFParserUtils.cpp	17 Apr 2004 18:29:58 -0000	1.17
++++ rdf/base/src/nsRDFParserUtils.cpp	21 Feb 2008 03:26:59 -0000
+@@ -149,6 +149,7 @@
+                 if (cp - cbuf > 5) {
+                     continue;
+                 }
++#undef atoi
+                 PRInt32 ch = PRInt32( ::atoi(cbuf) );
+                 if (ch > 65535) {
+                     continue;
+Index: xpfe/appshell/src/nsAppShellService.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpfe/appshell/src/nsAppShellService.cpp,v
+retrieving revision 1.228
+diff -u -r1.228 nsAppShellService.cpp
+--- xpfe/appshell/src/nsAppShellService.cpp	1 Jul 2005 23:58:15 -0000	1.228
++++ xpfe/appshell/src/nsAppShellService.cpp	21 Feb 2008 03:27:00 -0000
+@@ -153,7 +153,7 @@
+   nsresult rv;
+   PRInt32 initialHeight = 100, initialWidth = 100;
+     
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+   static const char defaultHiddenWindowURL[] = "chrome://global/content/hiddenWindow.xul";
+   PRUint32    chromeMask = 0;
+   nsCOMPtr<nsIPrefBranch> prefBranch;
+Index: xpfe/appshell/src/nsWebShellWindow.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpfe/appshell/src/nsWebShellWindow.cpp,v
+retrieving revision 1.426.4.5
+diff -u -r1.426.4.5 nsWebShellWindow.cpp
+--- xpfe/appshell/src/nsWebShellWindow.cpp	16 Sep 2005 19:11:52 -0000	1.426.4.5
++++ xpfe/appshell/src/nsWebShellWindow.cpp	21 Feb 2008 03:27:00 -0000
+@@ -132,7 +132,7 @@
+ #include "nsIDOMXULDocument.h"
+ // End hack
+ 
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+ #define USE_NATIVE_MENUS
+ #endif
+ 
+Index: xpfe/components/startup/src/nsAppStartup.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpfe/components/startup/src/nsAppStartup.cpp,v
+retrieving revision 1.7.8.4
+diff -u -r1.7.8.4 nsAppStartup.cpp
+--- xpfe/components/startup/src/nsAppStartup.cpp	25 Sep 2006 13:08:37 -0000	1.7.8.4
++++ xpfe/components/startup/src/nsAppStartup.cpp	21 Feb 2008 03:27:00 -0000
+@@ -400,7 +400,7 @@
+ void
+ nsAppStartup::AttemptingQuit(PRBool aAttempt)
+ {
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+   if (aAttempt) {
+     // now even the Mac wants to quit when the last window is closed
+     if (!mAttemptingQuit)
+Index: browser/app/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/browser/app/Makefile.in,v
+retrieving revision 1.85.2.11
+diff -u -r1.85.2.11 Makefile.in
+--- browser/app/Makefile.in	31 Aug 2007 02:40:21 -0000	1.85.2.11
++++ browser/app/Makefile.in	21 Feb 2008 03:27:00 -0000
+@@ -76,7 +76,7 @@
+ LOCAL_INCLUDES += -I$(topsrcdir)/toolkit/xre
+ 
+ ifdef BUILD_STATIC_LIBS
+-STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components
++STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components -lCX11 -lDesk -lXt -lSM -lICE -ldbm -lfreebl3 -lexpat -static -s
+ endif
+ 
+ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+@@ -84,6 +84,7 @@
+ endif
+
+ LIBS = \
++       -Wl,-rpath-link=$(GCCSDK_INSTALL_ENV)/lib \
+        $(STATIC_COMPONENTS_LINKER_PATH) \
+        $(EXTRA_DSO_LIBS) \
+        $(DIST)/lib/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX) \
+Index: browser/app/firefox-branding.js
+===================================================================
+RCS file: /cvsroot/mozilla/browser/app/firefox-branding.js,v
+retrieving revision 1.1.2.2
+diff -u -r1.1.2.2 firefox-branding.js
+--- browser/app/firefox-branding.js	12 Sep 2006 15:50:19 -0000	1.1.2.2
++++ browser/app/firefox-branding.js	21 Feb 2008 03:27:00 -0000
+@@ -1,14 +1,14 @@
+-pref("startup.homepage_override_url","http://www.mozilla.org/projects/%APP%/%VERSION%/whatsnew/");
+-pref("startup.homepage_welcome_url","http://www.mozilla.org/projects/%APP%/%VERSION%/firstrun/");
++pref("startup.homepage_override_url","http://%LOCALE%.www.mozilla.com/%LOCALE%/%APP%/%VERSION%/whatsnew/");
++pref("startup.homepage_welcome_url","http://%LOCALE%.www.mozilla.com/%LOCALE%/%APP%/%VERSION%/firstrun/");
+ // URL user can browse to manually if for some reason all update installation
+ // attempts fail.
+-pref("app.update.url.manual", "http://www.mozilla.org/products/%APP%/");
++pref("app.update.url.manual", "http://%LOCALE%.www.mozilla.com/%LOCALE%/%APP%/");
+ // A default value for the "More information about this update" link
+ // supplied in the "An update is available" page of the update wizard. 
+-pref("app.update.url.details", "http://www.mozilla.org/projects/%APP%/");
++pref("app.update.url.details", "http://%LOCALE%.www.mozilla.com/%LOCALE%/%APP%/releases/");
+ 
+ // Release notes URL
+-pref("app.releaseNotesURL", "http://www.mozilla.org/projects/%APP%/%VERSION%/releasenotes/");
++pref("app.releaseNotesURL", "http://%LOCALE%.www.mozilla.com/%LOCALE%/%APP%/%VERSION%/releasenotes/");
+ 
+ // Search codes belong only in builds with official branding
+ pref("browser.search.param.yahoo-fr", "");
+Index: browser/base/content/browser.xul
+===================================================================
+RCS file: /cvsroot/mozilla/browser/base/content/browser.xul,v
+retrieving revision 1.268.2.68
+diff -u -r1.268.2.68 browser.xul
+--- browser/base/content/browser.xul	14 Sep 2006 06:59:43 -0000	1.268.2.68
++++ browser/base/content/browser.xul	21 Feb 2008 03:27:00 -0000
+@@ -154,6 +154,8 @@
+     <toolbar type="menubar" id="toolbar-menubar" class="chromeclass-menubar" customizable="true"
+ #ifdef XP_MACOSX
+              defaultset="menubar-items"
++#elif XP_RISCOS
++             defaultset="menubar-items,spring"
+ #else
+              defaultset="menubar-items,spring,throbber-box"
+ #endif
+@@ -450,11 +452,14 @@
+              customizable="true"
+ #ifdef XP_MACOSX
+              defaultset="back-button,forward-button,reload-button,stop-button,home-button,urlbar-container,go-container,search-container,throbber-box"
++#elif XP_RISCOS
++             defaultset="back-button,forward-button,reload-button,stop-button,home-button,urlbar-container,go-container,search-container,throbber-box"
+ #else
+              defaultset="back-button,forward-button,reload-button,stop-button,home-button,urlbar-container,go-container,search-container,fullscreenflex,window-controls"
+ #endif
+              context="toolbar-context-menu">
+ #ifndef XP_MACOSX
++#ifndef XP_RISCOS
+       <hbox id="fullscreenflex" flex="1" hidden="true" fullscreencontrol="true"/>
+       <hbox id="window-controls" hidden="true" fullscreencontrol="true">
+         <toolbarbutton id="minimize-button" class="toolbarbutton-1"
+@@ -470,6 +475,7 @@
+                        oncommand="BrowserTryToCloseWindow();"/>
+       </hbox>
+ #endif
++#endif
+     </toolbar>
+  
+     <toolbarset id="customToolbars" context="toolbar-context-menu"/>
+Index: db/sqlite3/src/os_unix.c
+===================================================================
+RCS file: /cvsroot/mozilla/db/sqlite3/src/Attic/os_unix.c,v
+retrieving revision 1.3.8.4
+diff -u -r1.3.8.4 os_unix.c
+--- db/sqlite3/src/os_unix.c	22 May 2006 19:12:32 -0000	1.3.8.4
++++ db/sqlite3/src/os_unix.c	21 Feb 2008 03:27:01 -0000
+@@ -139,7 +139,7 @@
+ ** that always succeeds.  This means that locking does not occur under
+ ** DJGPP.  But it's DOS - what did you expect?
+ */
+-#ifdef __DJGPP__
++#if defined(__DJGPP__) || defined(__riscos__)
+ # define fcntl(A,B,C) 0
+ #endif
+ 
+Index: directory/c-sdk/configure
+===================================================================
+RCS file: /cvsroot/mozilla/directory/c-sdk/configure,v
+retrieving revision 5.0.2.33.4.2
+diff -u -r5.0.2.33.4.2 configure
+--- directory/c-sdk/configure	23 Feb 2006 00:58:13 -0000	5.0.2.33.4.2
++++ directory/c-sdk/configure	21 Feb 2008 03:27:01 -0000
+@@ -560,7 +560,7 @@
+ ac_link='${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&5'
+ cross_compiling=$ac_cv_prog_cc_cross
+ 
+-ac_exeext=
++ac_exeext=,ff8;
+ ac_objext=o
+ if (echo "testing\c"; echo 1,2,3) | grep c >/dev/null; then
+   # Stardent Vistra SVR4 grep lacks -e, says ghazi@caip.rutgers.edu.
+Index: directory/c-sdk/ldap/libraries/libprldap/ldappr-error.c
+===================================================================
+RCS file: /cvsroot/mozilla/directory/c-sdk/ldap/libraries/libprldap/ldappr-error.c,v
+retrieving revision 5.0.2.9.76.1
+diff -u -r5.0.2.9.76.1 ldappr-error.c
+--- directory/c-sdk/ldap/libraries/libprldap/ldappr-error.c	3 Feb 2006 14:44:49 -0000	5.0.2.9.76.1
++++ directory/c-sdk/ldap/libraries/libprldap/ldappr-error.c	21 Feb 2008 03:27:01 -0000
+@@ -223,17 +223,17 @@
+ #define ETXTBSY         -1
+ #endif
+ 
+-#if defined(BSDI) || defined(OPENBSD) || defined (NETBSD)
++#if defined(BSDI) || defined(OPENBSD) || defined (NETBSD) || defined (__riscos__)
+ #define ENOTSUP		-1
+ #endif
+ 
+-#if defined(OSF1) || defined(BSDI) || defined(VMS) || defined(OPENBSD)
++#if defined(OSF1) || defined(BSDI) || defined(VMS) || defined(OPENBSD) || defined (__riscos__)
+ #define EOVERFLOW       -1
+ #endif
+ 
+ #if defined(__hpux) || defined(_AIX) || defined(OSF1) || defined(DARWIN) || \
+   defined(BEOS) || defined(FREEBSD) || defined(BSDI) || defined(VMS) || \
+-  defined(OPENBSD) || defined(NETBSD)
++  defined(OPENBSD) || defined(NETBSD) || defined (__riscos__)
+ #define EDEADLOCK       -1
+ #endif
+ 
+Index: netwerk/protocol/http/src/nsHttpHandler.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/netwerk/protocol/http/src/nsHttpHandler.cpp,v
+retrieving revision 1.114.2.3
+diff -u -r1.114.2.3 nsHttpHandler.cpp
+--- netwerk/protocol/http/src/nsHttpHandler.cpp	18 Apr 2006 14:25:32 -0000	1.114.2.3
++++ netwerk/protocol/http/src/nsHttpHandler.cpp	21 Feb 2008 03:27:04 -0000
+@@ -626,6 +626,8 @@
+     "Macintosh"
+ #elif defined(XP_BEOS)
+     "BeOS"
++#elif defined(XP_RISCOS)
++    "ChoX11"
+ #elif !defined(MOZ_X11)
+     "?"
+ #else
+@@ -697,6 +699,8 @@
+     mOscpu.AssignLiteral("PPC Mac OS X Mach-O");
+ #elif defined (XP_MACOSX) && defined(__i386__)
+     mOscpu.AssignLiteral("Intel Mac OS X");
++#elif defined (XP_RISCOS)
++    mOscpu.AssignLiteral("RISC OS");
+ #elif defined (XP_UNIX) || defined (XP_BEOS)
+     struct utsname name;
+     
+Index: dbm/src/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/dbm/src/Makefile.in,v
+retrieving revision 3.20
+diff -u -r3.20 Makefile.in
+--- dbm/src/Makefile.in	29 Apr 2005 13:33:34 -0000	3.20
++++ dbm/src/Makefile.in	2 Aug 2009 17:22:38 -0000
+@@ -42,7 +42,6 @@
+ 		hash.c \
+ 		hash_buf.c \
+ 		hsearch.c \
+-		mktemp.c \
+ 		ndbm.c \
+ 		strerror.c \
+ 		nsres.c \

@@ -1,0 +1,11 @@
+
+AB_CATEGORY=Terminal
+
+AB_MANPAGE="doc/BitchX.1"
+
+AB_ZIPNAME="bitchx"
+
+
+ab_package() {
+  cp -av $S/source/BitchX$AB_EXEEXT $S/debian/copyright $D
+}

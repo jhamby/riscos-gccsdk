@@ -1,0 +1,224 @@
+Décor version 4.20 (October 2009) Help File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Peter Naulls
+peter@chocky.org
+Geoffery Khoo
+weta1@ihug.co.nz
+
+Automated backdrop changer for JPEGs and Sprites.
+Written for RISC OS 3.1 or higher (with SpriteExtend 0.99 and above),
+although may work on RISC OS 3.1 with SpriteExtend and Dynamic Area support
+
+Décor is a small TSR program I saw on the Macintosh which allows you to
+change the "desktop pattern" or backdrop after a certain amount of time.
+I decided to write a version for RISC OS for fun.
+
+Well, it's a backdrop changer for which is able to alter the RISC OS desktop
+backdrop after a predetermined amount of time. You can also change the
+backdrop manually if you get sick of the one that is already being displayed.
+The advantage of this backdrop changer of others I have seen is that it is
+able to directly process JPEG files, and so the lovely new backdrops you have
+downloaded from the Internet don't have to be converted into sprites. Also,
+it can re-plot the JPEG file upon mode changes so the grotty 256 colour mode
+which did your picture no justice can be shown in up to 16 million colours
+without you having to do anything!
+
+How to use
+~~~~~~~~~~
+When you first run Décor, it will probably report than it needs to
+be configured.  To do this, Adjust click on the icon bar icon, and then
+choose "Backdrops...", then drag your favourite directories of JPEG
+and Sprite image files to the writable icons.  The C, T and S radio
+buttons refer to the pinboard Centre, Tile and Scale options for that
+directory of pictures.  Click Ok, then Save, now click on the icon
+bar icon with Select.
+
+Menu items
+~~~~~~~~~~
+Info        - provides information about !Décor.
+Setup       - allows you to customise various settings for !Décor.
+Save Setup  - saves the current settings to the configuration file.
+Remove Icon - removes the icon from the icon bar. Once this is done, you
+              cannot get it back without restarting the program.
+Quit        - exits the program.
+
+The Setup Window
+~~~~~~~~~~~~~~~~
+In the Décor Controls section there is:
+
+"Delete backdrop file upon quitting"
+This option, when set will delete the Backdrops file inside the Décor
+directory when you quit it. This can save some disc space if you are tight
+on it, but can also cause problems, like backdrops disappearing after mode
+changes, or after returning from a session on the command line. Converted
+JPEG backdrops in 16 million colours can be bigger than 2 MB in size.
+
+"Auto quit after displaying backdrop"
+Décor will display only one of the backdrops, and then quit.
+
+"Let Pinboard handle JPEGs"
+Under RISC OS 4, and with certain OS extension programs, you choose this option and the pinboard will replot the JPEG in real-time on the backdrop when it needs to redraw itself.  Of course, this can be a little slow but it
+will save you a fair amount of memory, as the whole decompressed image
+doesn't have to be held in memory.  It is suggested that you don't use
+this option in 256-colour modes, as the dithering isn't too hot.  If you select this option, then the following two options become unselectable.
+
+"Re-plot JPEG files on mode change"
+This option, when set will re-process the current backdrop after any mode
+change if it is a JPEG file so the maximum picture quality is kept. However,
+it does introduce a bit of extra time, and if you don't have a StrongARM, you
+may have to put up with a few seconds wait with this option on.
+
+"Fast JPEG dithering (lower quality)"
+Enables or disables fast dithering of JPEG pictures. Faster dithering means
+lower quality pictures. Slow dithering takes about twice the time of fast
+dithering. Sprite files are not dithered by this program.
+
+"Automatically change backdrop" and "Time between changes"
+This selects whether you wish !Décor to automatically change backdrops after
+a time specified by the "Time between changes" box, which can be edited.
+
+"Display on icon bar"
+If you choose this option, then the program will be removed from the
+icon bar immediately, and not be placed there when you subsequently
+run it.  If you wish to override this (to reconfigure the program),
+then press the ALT key, when you double-click and run the application.
+
+"Sequential after First"
+The first file chosen will be random, but from then it'll choose files
+in sequence from there.  You can turn this on at any time, and have it
+continue in sequence from the last file it chose.
+
+The Backdrop Controls section details how the backdrop is to be plotted on
+the Pinboard
+"Centered" - the picture is placed in the middle of the screen.
+"Tiled"    - the picture is repeated across and up and down the screen.
+"Scaled"   - the picture is 'stretched' to fit the screen.
+
+Choose your options, and click OK to set them.
+
+Note that while only 12 directories are displayed here, if you
+really need more, you can edit the configuration file.  Just make
+sure the number before the list of directories corresponds to the
+number of entries.
+
+Other Stuff
+~~~~~~~~~~~
+
+The menu options "Centred", "Scaled" and "Tiled" will cause the backdrop to
+be replotted with the chosen option.
+
+You can drag a JPEG or Sprite to the Décor icon on the icon bar - this
+will cause to be immediately displayed.  This will be displayed with the
+current menu option.
+
+If you drag a directory to the icon bar, then the list of backdrops will be
+forgotten about until it gets relogged (by rerunning, or pressing "Ok"
+in the backdrop directories list), and any images in this directory
+will be used in the meantime.  Again, these will use the current option
+from the menu.
+
+If you grow tired of the temporary one, the menu option "Forget temp dir"
+option in the menu can be used, and Décor will revert to the original
+pictures.
+
+Shift-Select on the icon bar during sequential mode will cause the
+previous picture to be chosen, rather than the next.
+
+
+
+List of features added by Peter and bug fixes for version 1.20
+
+- Separate Pathname dialogue box added to allow up to different directories
+  to be added.
+- Adjust-Click on icon bar opens options window.
+- Random number generator seeded so we don't get the same sequence at
+  start up.
+- Changing the backdrop by clicking on the icon bar did not reset the clock.
+- Backdrop removed for delete option, so as not to cause an error when
+  redrawn by the desktop later on.
+- Rouge icon in Templates removed.
+- Stopped Décor failing if it could not find specified paths, or if
+  files in a directory were not JPEGs or Sprites.
+- You can actually press either ALT key at start up.
+- Made sure directories were relogged when paths are changed.
+- Stopped Décor hanging if there was only one picture in a directory
+- Adjust in menu now keeps menu open.
+- Note it is possible to use the Megaboard placement options when using
+  megaboard by manually editing the configuration file.  e.g. "Top" aligns the
+  backdrop with the top of the screen.
+
+1.30 (Peter)
+
+- Minor fixes and changes, most notable, changing of reading of bpp
+  on mode changes.
+
+1.40 (Peter)
+
+- RISC User version
+- Fixed file reading, causing problems with longfiles.
+- Fixed bbp _again_, it had been updated in the wrong order.
+- Added in dragging of directories to the configuration writable icons.
+- Updated outdated !Help.
+
+2.00 (Peter)
+
+- RISC User version 2, including suggestions by Richard Hallas
+- Complete rewrite in C, using the DeskLib library.  I intend to move
+  this to the the newer 'Desk' library when I get a chance, but this is
+  fine for now.
+- Changed the grabbing of the large chunk of memory for sprite creation
+  from adjusting the WimpSlot to a Dynamic area, since this can be nasty
+  in C.
+- Fixed a bug whereby you would have have to press "Ok" and then "Save"
+  for the settings to be saved properly.
+- Extended directory list to 12 entries (you can add extra entries in
+  the config, but won't be displayed).
+- Added dragging sprites, JPEGs and directories to the icon bar.
+- Added menu options for changing the display option of the current backdrop.
+
+2.10 (Peter)
+
+- RISC User version 3, more suggestions by Richard Hallas
+- the sequential option for dragged directories will start from the
+  first file in the directory.
+- Added 'Forget temp dir' option to menu.
+- Removed Save setup from menu.
+- More style guide stuff.
+- Changed icon bar priority.
+- Added shift-click option
+- Misc other bug fixes.
+
+4.00
+
+- Blatant version jump.
+- Allow pinboard to replot JPEGs in real-time.
+- Recreate options file if not there, so don't have to distribute
+  an options file.
+
+4.01
+
+- Ctrl-Select on iconbar toggles between plotted as a sprite or a JPEG.
+  (This idea from David Watson)
+
+4.10
+
+- Updated to be 32-bit.
+- Now puts choices where everyone else does.
+- Now saves generated Backdrop in Scrap.
+
+4.20
+
+- Update for RISC OS Autobuilder
+- Fix spelling mistakes
+- No feature changes since it has been perfect for over 6 years ;-)
+- Released under GPL 2.
+
+-----------------------------------------------------------------------------
+
+Legal stuff
+~~~~~~~~~~~
+
+Décor is copyright Geoffrey Khoo and Peter Naulls, and
+distributed under the terms of the GPL 2.
+

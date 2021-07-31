@@ -1,0 +1,18 @@
+
+AB_URL=https://github.com/flareteam/flare-game/archive/v0.17.1.zip
+AB_PVERSION=0.17.1
+
+cp $H/Makefile $S
+
+ab_package() {
+  ab_create_app Flare Apps/Games  
+  ab_makerun $S/flare
+    
+  cp -av mods $A
+  cp -av tiled $A
+  cp -av README COPYING  $A/
+ 
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+  
+}
+

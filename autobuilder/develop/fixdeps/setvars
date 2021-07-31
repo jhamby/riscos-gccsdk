@@ -1,0 +1,42 @@
+AB_SVN=http://source.riscpkg.org/svn/FixDeps/trunk/
+AB_PVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2`
+AB_COPYSOURCE=yes
+# Default cleanup should get everything
+AB_DISTCLEAN=':'
+
+cd !FixDeps
+
+ab_package()
+{
+   ab_create_app FixDeps Apps/Development FixDeps
+   cp -f $S/!* $A
+   cp -f $S/../RiscPkg/Copyright $A
+   cp -f $S/History $A
+   cp -f $S/Rules.make $A
+   cp -f $S/fixdeps $A/fixdeps$AB_EXEEXT
+   
+   # Create package control record
+   rpkg_dir=$D/FixDeps/RiscPkg
+   mkdir -p $rpkg_dir
+   cp -f $S/../RiscPkg/Copyright $rpkg_dir
+   $GCCSDK_INSTALL_ENV/bin/riscpkg-gencontrol FixDeps < $S/../RiscPkg/Control > $rpkg_dir/Control
+
+   cd ..
+}
+
+ab_package_source() {
+  AB_SRCDIR=$S/..
+  cd $S/..
+
+  # Ensure no RISC OS files left behind
+  find . -name "fixdeps" -type f -print0 | xargs -0 rm -f
+  find . -name "*.o" -type f -print0 | xargs -0 rm -f
+
+  mkdir -p $S/../riscos
+  /bin/cp -r $H/* $S/../riscos || true
+  rm -f $S/../riscos/last-failure
+  rm -f $S/../riscos/last-success
+  
+  cd $S
+}
+

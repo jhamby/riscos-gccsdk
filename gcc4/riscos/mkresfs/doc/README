@@ -1,0 +1,135 @@
+mkrefs - A tool for generating code to register and deregister
+         data from ResourceFS
+
+         Copyright 2006 - 2007, Rob Kendrick <rjek@rjek.com>
+         Copyright 2007 - 2008, GCCSDK Developers <http://gccsdk.riscos.info/>
+
+Purpose
+-------
+       mkresfs generates C code that creates and removes files from ResourceFS
+       on RISC OS.  This makes it easier to add files that can be accessed
+       from modules etc, such as Templates and Messages files, and other such
+       data.
+
+       It creates three functions, one called when you want to register files
+       with it, one which removes them again and one to re-register the files
+       when the ResourceFS module gets restarted.  It creates the data by
+       scanning a directory that you pass it.  You should read the PRM
+       sections on ResourceFS to get a clearer idea of the type of data this
+       program generates before attempting to use it. (Page 2-407).
+
+Known Limitations
+-----------------
+       Under UNIX, mkresfs uses the standard ,xxx prefix kludge to guess
+       RISC OS file type information.  Any file it cannot guess using this
+       method gets set as type 0xfff (text).  This currently cannot be change
+       without editing mkresfs's source code.  Under RISC OS, OS_File is used
+       to aquire the typing information.  If the file does not have a file
+       type (ie, it has a load/exec address instead) it gets given the same
+       0xfff type.  mkresfs does not support creating files with old-style
+       load/exec addresses.
+
+       Local modified date/time data is not encoded into the generated data
+       under either RISC OS or UNIX.  This may be addressed in future
+       versions.  Currently, all files have the date and time of the RISC OS
+       epoch.
+
+       mkresfs can generate very large files, which may take a while to
+       compile under RISC OS, and use a lot of memory.  While this problem
+       could be reduced somewhat, if this is a problem for you, you are most
+       likely trying to put too much data into ResourceFS.
+
+Usage
+-----
+       mkresfs is a simple command-line tool.  It always takes at least one
+       parameter, which is the directory containing files to generate code
+       for.  The layout of this directory will be discussed in the next
+       section.
+
+       mkresfs [-o <file>] [-p <file>] [-v] [-z]
+               [-r <func>] [-d <func>] [-s <func>] <dir>
+
+       [..] donates optional elements, <..> donates compulsory elements.
+
+       The -o switch takes a filename to write the generated code to.  If
+       this option is absent, mkresfs outputs the generated file to the
+       standard output.
+
+       The -p switch takes a filename to write the optional C header file
+       containing suitable function prototypes to.  If it is absent, no
+       header file is generated.
+
+       The -v switch makes mkresfs more verbose, and output status information
+       as it works.
+
+       The -z switch uses OSLib headers instead of SharedCLibrary headers
+       for prototyping used in the generated files.
+
+       The -r, -d and -s switches control the names of the register,
+       deregister and reregister functions, respectively.  If they are absent,
+       then default function names are used (mkresfs_register,
+       mkresfs_deregister and mkresfs_reregister).
+
+       The last parameter is the directory to scan for files to generate code
+       for. All files and directories starting with '/' (RISC OS) or '.'
+       (other OS) character in their name will be ignored.
+
+Data directory layout
+---------------------
+       The contents of the directory are used as the root of ResourceFS.  For
+       example, the following tree:
+
+       test
+       |
+       `-- Apps
+       |   |
+       |   `-- !Example
+       |       |
+       |       `-- !Run
+       |       |
+       |       `-- !Sprites
+       `-- Resources
+           |
+           `-- Example
+               |
+               `-- Templates
+               |
+               `-- Messages
+
+       In this example, if we were to specify 'test' as our data directory,
+       we would add an !Example directory to Resources:$.Apps and our own
+       resources directory, Example, to Resources:$.Resources
+
+       Filenames in the data directory can optionally include a ,xxx suffix
+       if mkresfs is running under UNIX.  It is stripped and file type
+       information gleamed from it if it is entirely hexidecimal.
+
+Working example project
+-----------------------
+       You can find an example in the 'example' subdirectory where we create
+       a module that simply adds a file called README into
+       Resources:$.ThirdParty.mkresfs.
+
+       On initialisation of the module we register our ResourceFS data by
+       calling mkresfs_register.  On finalisation of the module we deregister
+       our ResourceFS data by calling mkresfs_deregister.
+
+       Reregistering our ResourceFS data needs to happen when the service
+       call Service_ResourceFSStarting (&60) is being broadcast which is done
+       during startup of ResourceFS.  We do this by calling
+       mkresfs_reregister.  Note that we can not call mkresfs_register (for
+       more details, see PRM ResourceFS chapter).
+
+       All those three routines are all automatically created in the C file
+       resfs.c produced by mkresfs and their prototype can be found the the
+       generated header file resfs.h.
+
+License
+-------
+       mkresfs has been written by Rob Kendrick <rjek@rjek.com> and is now
+       part of GCCSDK <URL:http://gccsdk.riscos.info>. Bug fixes and
+       enhancements are made by the GCCSDK developers.
+
+       The license for this software can be found in the file COPYING.
+
+-EOF-

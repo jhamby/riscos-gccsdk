@@ -1,0 +1,9 @@
+IconSprites <Obey$Dir>.!Sprites
+
+Set Decor$Dir <Obey$Dir>
+
+RMEnsure SpriteExtend 0.99 Error JPEG SWIs not found - you need SpriteExtend 0.99 or better.
+
+WimpSlot -min 58K -max 58K
+
+Run <Decor$Dir>.Decor

@@ -1,0 +1,4 @@
+| !Boot for !CaCertificates
+
+Set CaCertificates$Dir <Obey$Dir>
+IconSprites <Obey$Dir>.!Sprites

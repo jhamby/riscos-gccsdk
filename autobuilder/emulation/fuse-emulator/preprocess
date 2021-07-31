@@ -1,0 +1,4 @@
+wget --progress=bar:force  http://ftp.de.debian.org/debian/pool/non-free/s/spectrum-roms/spectrum-roms_20081224.orig.tar.gz -O spectrum-roms.tar.gz
+tar -zxvf spectrum-roms.tar.gz
+mv spectrum-roms roms
+cp roms/Makefile roms/Makefile.in

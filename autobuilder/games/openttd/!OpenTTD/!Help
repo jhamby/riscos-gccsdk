@@ -1,0 +1,52 @@
+OpenTTD, RISC OS port version 0.7.5 (approx)
+Peter Naulls - 25th Dev 2009
+
+This is a RISC OS port of OpenTTD, which is itself a clone of Transport
+Tycoon Deluxe.
+
+The original port of version of 0.4.1 in 2005 was by David Llewellyn-Jones.
+
+I made an updated port to version 0.7.3 in November 2009, which was
+functionally similar for RISC OS, but ran considerably faster.
+
+This is a development snapshot, made for the 2009 riscos.info Christmas
+games release.  The main difference with this version is that it now
+includes 100% free graphics and sound replacements, and no long requires
+separate data file downloads.
+
+The website for the RISC OS version of OpenTTD is:
+
+http://www.riscos.info/index.php/OpenTTD
+
+OpenTTD is built with the GCCSDK Autobuilder; refer to that for source
+and patches.
+
+
+
+The text below is David's introduction to version 0.4.1
+
+  =======================================================================
+  OpenTTD is licensed under the GPL (see section 1.0 below for more info).
+  However, in order to use the game, you will need the data files from the
+  original commercial Transport Tycoon Deluxe (see section 4.0 below).
+
+  It is likely that bugs have been introduced during the conversion process to
+  RISC OS. I apologise if this is the case. However, all credit for the game
+  must go to Chris Sawyer, the OpenTTD developers and to the many developers of
+  RISC OS libraries that have made it possible to run the game on RISC OS.
+
+  For more information, see the official OpenTTD website:
+  http://www.openttd.org
+
+  The RISC OS binary and sourcceode for compilation of the RISC OS version can
+  be obtained from my website.
+
+  David Llewellyn-Jones
+  Email: david@flypig.co.uk
+  Website: http://www.flypig.co.uk
+  ==================================
+
+
+What follows is the original OpenTTD ReadMe file.
+------------------------------------------------------------------------
+

@@ -1,0 +1,36 @@
+Black box for RISC OS
+=====================
+
+
+Please note
+-----------
+
+This program is 32-bit compatible, and should run on all
+RISC OS machines from the Risc PC onwards. It may not be
+suitable for earlier machines.
+
+It also requires that the SharedUnixLibrary which is available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
+
+
+Playing
+-------
+
+Black box is controlled by the mouse. See the in-game help.
+
+
+Autobuilder port
+----------------
+
+Alan Buckley (alan_baa@hotmail.com) August 2007
+
+This version was created by the GCCSDK Autobuilder for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+
+Original Port by
+----------------
+
+Neil White (n.white@moose.co.uk) and Peter Naulls (peter@chocky.org)

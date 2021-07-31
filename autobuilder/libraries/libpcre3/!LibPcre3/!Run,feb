@@ -1,0 +1,7 @@
+| Run file for LibPcre3
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibPcre3$Dir <Obey$Dir>
+Set LibPcre3$Path <Obey$Dir>.
+

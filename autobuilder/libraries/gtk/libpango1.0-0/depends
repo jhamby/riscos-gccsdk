@@ -1,0 +1,12 @@
+libcairo2
+libglib2.0-0
+libpcre3
+fontconfig
+libfreetype6
+libffi6
+gettext
+libpixman-1-0
+libpng16-16
+zlib1g
+harfbuzz
+libfribidi0

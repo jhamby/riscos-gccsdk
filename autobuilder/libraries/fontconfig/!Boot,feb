@@ -1,0 +1,7 @@
+| Boot file for UnixFC
+IconSprites <Obey$Dir>.!Sprites
+
+Set UnixFC$Dir <Obey$Dir>
+Set UnixFC$Path <Obey$Dir>.
+
+IfThere <UnixFC$Dir>.BinBoot Then Obey <UnixFC$Dir>.BinBoot

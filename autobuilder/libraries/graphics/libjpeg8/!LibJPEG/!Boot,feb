@@ -1,0 +1,6 @@
+| Boot file for LibJPEG
+|
+If "<LibJPEG$Dir>" = "" Then Set LibJPEG$Dir <Obey$Dir>
+If "<LibJPEGPath>" = "" Then Set LibJPEG$Path <Obey$Dir>.
+
+IconSprites <LibJPEG$Dir>.!Sprites

@@ -1,0 +1,25 @@
+| Firefox !Run file
+
+Set Firefox$Dir <Obey$Dir>
+Set Firefox$Path <Firefox$Dir>.
+
+| Large enough to contain the binary
+|Wimpslot -min 700k -max 700k
+Wimpslot -min 20000k -max 20000k
+Set firefox-bin$heap ""
+
+| Control font behaviour
+Set Chox11$firefox-bin$subpixelfont 0
+Set Chox11$firefox-bin$scalefont 120
+
+| Application name
+Set firefox-bin$Title "Mozilla Firefox"
+
+| Latest Tinct
+RMEnsure Tinct 0.13 RMLoad System:Modules.Tinct
+RMEnsure Tinct 0.13 Error Firefox requires Tinct 0.13 or later. This can be downloaded from http://www.tinct.net/
+
+set LD$Env "LD_WARN=1 LD_LIBRARY_PATH=/Firefox:"
+
+| stdout is not interesting.  stderr may contain crash or debug information.
+<Firefox$Dir>.firefox-bin >null: 2><Firefox$Dir>.stderr

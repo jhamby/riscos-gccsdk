@@ -1,0 +1,5 @@
+Description: Khronos OpenGL module for the RaspberryPi
+ Module to provide access to the OpenGL hardware of the RaspberryPi.
+ .
+ This package includes the Khronos module that interfaces to
+ the RaspberryPi hardware using the VCHIQ module.

@@ -1,0 +1,103 @@
+| !Run file for GCCSDK 4
+| Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
+| Copyright (c) GCCSDK Developers 2002-2011
+
+Run <Obey$Dir>.!Boot
+
+| Search path used for the compiler binaries
+If "<GCCbin$Path>" = "" Then Set Run$Path <Run$Path>,GCCbin:
+Set GCCbin$Path <GCC$Dir>.bin.
+
+| Set the return code limit. UnixLib encodes information within this range
+Set Sys$RCLimit 65536
+
+| Place to store temporary files.  Only needed if you really want it to
+| be different than <Wimp$ScrapDir> (which is the UnixLib default for /tmp
+| files).
+| Set UnixFS$/tmp <Wimp$ScrapDir>
+
+| Ensure correct filename translation for a variety of prefixes
+Set UnixEnv$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:i:ii:rpo:c:m:h:hh:s:S:xrb:xrs:l:o:y:tcc:cmhg:adb:ads:ali"
+Set UnixEnv$cc1$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$collect2$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnat1$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$cpp$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$g++$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$cc1plus$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$c++filt$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$addr2line$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$ar$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$as$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$ld$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$nm$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$objcopy$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$objdump$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$ranlib$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$readelf$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$size$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$strings$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$strip$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gprof$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnat$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnatbind$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnatchop$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnatkr$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnatlink$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnatls$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnatmake$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gnatprep$sfix <UnixEnv$gcc$sfix>
+| For well known programs outside !GCC:
+Set UnixEnv$make$sfix <UnixEnv$gcc$sfix>
+
+| Set system variables for controlling UnixLib heap for dynamic areas.
+| See the documentation about UnixLib and dynamic areas.
+| Comment these out if you do *NOT* wish to use dynamic areas.
+
+| For C
+Set gcc$heap ""
+Set cc1$heap ""
+Set collect2$heap ""
+Set cpp$heap ""
+| For C++
+Set g++$heap ""
+Set cc1plus$heap ""
+Set c++filt$heap ""
+| Binutils
+Set addr2line$heap ""
+Set ar$heap ""
+Set as$heap ""
+Set ld$heap ""
+Set nm$heap ""
+Set objcopy$heap ""
+Set objdump$heap ""
+Set ranlib$heap ""
+Set readelf$heap ""
+Set size$heap ""
+Set strings$heap ""
+Set strip$heap ""
+| Various
+Set gcov$heap ""
+Set gprof$heap ""
+| For Ada
+Set gnat1$heap ""
+Set gnat$heap ""
+Set gnatbind$heap ""
+Set gnatchop$heap ""
+Set gnatkr$heap ""
+Set gnatlink$heap ""
+Set gnatls$heap ""
+Set gnatmake$heap ""
+Set gnatprep$heap ""
+
+| Ensure the latest version of SUL:
+RMEnsure SharedUnixLibrary 1.12 RMLoad System:Modules.SharedULib
+RMEnsure SharedUnixLibrary 1.12 Error GCCSDK 4 requires SharedUnixLibrary 1.12 or later
+
+| Used for extended command lines
+RMEnsure DDEUtils 0.02 RMLoad System:Modules.DDEUtils
+
+| Some tools use SharedCLibrary as runtime library and we need APCS-32
+| support.
+RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.CLib
+RMEnsure SharedCLibrary 5.34 Error This application requires SharedCLibrary 5.34 or later

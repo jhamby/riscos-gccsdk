@@ -1,0 +1,32 @@
+# Configuration file for CPPUnit under autobuilder
+#
+
+AB_CATEGORY=Develop
+
+AB_CONFLAGS="--disable-test-plugin"
+
+AB_INSTALL=yes
+
+ab_package () {
+
+  AD=$D/Apps/Library/!CppUnit
+  mkdir -p $AD/a
+  cp -av $H/\!CppUnit $D/Apps/Library
+  cp -av $S/doc/html $AD
+  cp -av $S/include/cppunit $AD
+  find $AD/cppunit -name "Makefile*" -exec rm {} \;
+  find $AD/cppunit -noleaf -type d -not -name "h" -exec mkdir {}/h \;
+  find $AD/cppunit -exec rename 's/(.+)\/(.+)\.(.+)/$1\/$3\/$2/' {} \;
+  cp -av $S/src/cppunit/.libs/libcppunit.a $AD/a/libcppunit
+
+  mkdir -p $D/RiscPkg
+  cat $H/RiscPkg/Control | sed s/ROVERSION/$AB_ROVERSION/ > $D/RiscPkg/Control
+  echo sed "/AUTHORS/ {r $S/AUTHORS d}"
+  cat $H/RiscPkg/Copyright | sed "/AUTHORS/ {
+                                             r $S/AUTHORS
+                                             d
+                                            }" > $D/RiscPkg/Copyright
+  cat $S/COPYING >> $D/RiscPkg/Copyright
+  mkdir -p $D/SysVars
+  cp -av $H/RiscPkg/CppUnit=24* $D/SysVars
+}

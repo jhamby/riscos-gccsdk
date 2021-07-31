@@ -1,0 +1,14 @@
+AB_URL=https://the.earth.li/~sgtatham/putty/latest/putty-0.76.tar.gz
+
+AB_CONFLAGS='--without-gtk --without-gssapi'
+
+ab_package() {
+  ab_create_command_app PSFtp Apps/Network
+  ab_add_commands $S/psftp$AB_EXEEXT
+
+  rman -f HTML $S/doc/psftp.1 > $A/\!Help,faf
+  
+  cp -av $S/LICENCE $A
+
+  $AB_HOME/add-riscpkg -unixlib -package psftp -name PSFtp -copyrightfile LICENCE -section Network
+}

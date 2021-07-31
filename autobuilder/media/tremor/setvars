@@ -1,0 +1,49 @@
+AB_SVN=https://svn.xiph.org/trunk/Tremor
+TREMOR_VERSION=1.0.2
+
+# Fake version as SVN version seems to be stable
+AB_PVERSION=$TREMOR_VERSION
+AB_ROVERSION=4
+
+AB_INSTALL=yes
+
+./autogen.sh
+
+AB_CONFLAGS='--disable-oggtest'
+
+ab_package() {
+  ab_create_app Tremor Apps/Library libtremor-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/tremor tremor
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  # Copy HTML documentation
+  cp $S/doc/* $A/doc
+  cp $S/ivorbisfile_example.c $A/doc
+
+  $AB_HOME/add-riscpkg -name Tremor-Dev -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton Tremor
+     ab_add_sharedlib $S/.libs libvorbisidec.so.1
+     
+     $AB_HOME/add-riscpkg -package tremor -name Tremor -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
+
+}

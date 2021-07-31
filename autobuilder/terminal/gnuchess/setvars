@@ -1,0 +1,8 @@
+AB_CATEGORY=Terminal
+
+AB_FILESNOPATH="src/gnuchess$AB_EXEEXT COPYING doc/README"
+
+aclocal
+automake --add-missing
+autoconf
+

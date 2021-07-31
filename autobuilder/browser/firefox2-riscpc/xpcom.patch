@@ -1,0 +1,407 @@
+? xpcom/io/nsLocalFileUnix.s
+? xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm_riscos.cpp
+? xpcom/tools/registry/regxpcom,e1f
+? xpcom/typelib/xpidl/host_xpidl
+? xpcom/typelib/xpidl/xpidl,e1f
+? xpcom/typelib/xpt/tools/host_xpt_dump
+? xpcom/typelib/xpt/tools/host_xpt_link
+? xpcom/typelib/xpt/tools/xpt_dump,e1f
+? xpcom/typelib/xpt/tools/xpt_link,e1f
+Index: xpcom/glue/standalone/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/glue/standalone/Makefile.in,v
+retrieving revision 1.24.2.3
+diff -u -r1.24.2.3 Makefile.in
+--- xpcom/glue/standalone/Makefile.in	5 Jan 2006 19:35:46 -0000	1.24.2.3
++++ xpcom/glue/standalone/Makefile.in	30 Aug 2008 18:24:17 -0000
+@@ -59,7 +59,7 @@
+ ifeq (WINNT,$(OS_ARCH))
+ LINKSRC = nsGlueLinkingWin.cpp
+ endif
+-ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS,$(OS_ARCH)))
++ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS RISCOS,$(OS_ARCH)))
+ LINKSRC = nsGlueLinkingDlopen.cpp
+ endif
+ ifeq (OS2,$(OS_ARCH))
+Index: xpcom/io/SpecialSystemDirectory.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/io/SpecialSystemDirectory.cpp,v
+retrieving revision 1.22.4.4
+diff -u -r1.22.4.4 SpecialSystemDirectory.cpp
+--- xpcom/io/SpecialSystemDirectory.cpp	6 Sep 2007 21:44:29 -0000	1.22.4.4
++++ xpcom/io/SpecialSystemDirectory.cpp	30 Aug 2008 18:24:17 -0000
+@@ -307,8 +307,13 @@
+                                      aFile);
+     }
+ #else
+-    return NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")), 
++#ifdef XP_RISCOS
++    return NS_NewNativeLocalFile(nsDependentCString("/<Choices$Write>/"),
+                                  PR_TRUE, aFile);
++#else
++    return NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")),
++                                 PR_TRUE, aFile);
++#endif
+ #endif
+ }
+ #endif
+Index: xpcom/io/nsAppFileLocationProvider.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/io/nsAppFileLocationProvider.cpp,v
+retrieving revision 1.56.4.4
+diff -u -r1.56.4.4 nsAppFileLocationProvider.cpp
+--- xpcom/io/nsAppFileLocationProvider.cpp	17 Jun 2006 00:13:35 -0000	1.56.4.4
++++ xpcom/io/nsAppFileLocationProvider.cpp	30 Aug 2008 18:24:17 -0000
+@@ -85,7 +85,7 @@
+ #endif
+ 
+ // define default product directory
+-#if defined (XP_MAC) || defined (WINCE)
++#if defined (XP_MAC) || defined (WINCE) || defined(XP_RISCOS)
+ #define DEFAULT_PRODUCT_DIR NS_LITERAL_CSTRING("Mozilla")
+ #else
+ #define DEFAULT_PRODUCT_DIR NS_LITERAL_CSTRING(MOZ_USER_DIR)
+@@ -399,6 +399,9 @@
+         rv = directoryService->Get(NS_WIN_WINDOWS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
+     }
+     if (NS_FAILED(rv)) return rv;
++#elif defined(XP_RISCOS)
++    rv = NS_NewNativeLocalFile(nsDependentCString("/<Choices$Write>/"), PR_TRUE, getter_AddRefs(localDir));
++    if (NS_FAILED(rv)) return rv;
+ #elif defined(XP_UNIX)
+     rv = NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")), PR_TRUE, getter_AddRefs(localDir));
+     if (NS_FAILED(rv)) return rv;
+Index: xpcom/io/nsDirectoryService.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/io/nsDirectoryService.cpp,v
+retrieving revision 1.83.4.2
+diff -u -r1.83.4.2 nsDirectoryService.cpp
+--- xpcom/io/nsDirectoryService.cpp	8 Apr 2006 17:12:56 -0000	1.83.4.2
++++ xpcom/io/nsDirectoryService.cpp	30 Aug 2008 18:24:17 -0000
+@@ -172,7 +172,7 @@
+ 
+ #elif defined(XP_MAC)
+     // get info for the the current process to determine the directory
+-    // its located in
++    // it's located in
+     OSErr err;
+     ProcessSerialNumber psn = {kNoProcess, kCurrentProcess};
+     ProcessInfoRec pInfo;
+@@ -232,7 +232,10 @@
+     NS_ASSERTION(*aFile, "nsDirectoryService - Could not determine CurrentProcessDir.\n");  
+     if (*aFile)
+         return NS_OK;
+-
++#elif defined(XP_RISCOS)
++    localFile->InitWithNativePath(nsDependentCString("Firefox:"));
++    *aFile = localFile;
++    return NS_OK;
+ #elif defined(XP_UNIX)
+ 
+     // In the absence of a good way to get the executable directory let
+Index: xpcom/io/nsLocalFileUnix.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/io/nsLocalFileUnix.cpp,v
+retrieving revision 1.126.8.2
+diff -u -r1.126.8.2 nsLocalFileUnix.cpp
+--- xpcom/io/nsLocalFileUnix.cpp	28 Dec 2006 05:19:57 -0000	1.126.8.2
++++ xpcom/io/nsLocalFileUnix.cpp	30 Aug 2008 18:24:18 -0000
+@@ -311,7 +311,11 @@
+         
+         mPath = homePath + Substring(filePath, 1, filePath.Length() - 1);
+     } else {
++#ifdef XP_RISCOS
++        if (filePath.IsEmpty())
++#else
+         if (filePath.IsEmpty() || filePath.First() != '/')
++#endif
+             return NS_ERROR_FILE_UNRECOGNIZED_PATH;
+         mPath = filePath;
+     }
+Index: xpcom/obsolete/nsSpecialSystemDirectory.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/obsolete/Attic/nsSpecialSystemDirectory.cpp,v
+retrieving revision 1.9
+diff -u -r1.9 nsSpecialSystemDirectory.cpp
+--- xpcom/obsolete/nsSpecialSystemDirectory.cpp	6 Jul 2005 01:23:20 -0000	1.9
++++ xpcom/obsolete/nsSpecialSystemDirectory.cpp	30 Aug 2008 18:24:18 -0000
+@@ -747,8 +747,12 @@
+         	    *this = decc$translate_vms(pHome);
+ 	    }
+ #else
++#ifdef __riscos__
++            *this = "/<Choices$Write>/";
++#else
+             *this = PR_GetEnv("HOME");
+ #endif
++#endif
+             break;
+ 
+ #endif        
+Index: xpcom/reflect/xptcall/src/md/unix/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/Makefile.in,v
+retrieving revision 1.80.4.6
+diff -u -r1.80.4.6 Makefile.in
+--- xpcom/reflect/xptcall/src/md/unix/Makefile.in	19 Feb 2008 21:11:34 -0000	1.80.4.6
++++ xpcom/reflect/xptcall/src/md/unix/Makefile.in	30 Aug 2008 18:24:18 -0000
+@@ -185,6 +185,13 @@
+ endif
+ endif
+ #
++# RISC OS
++#
++ifeq ($(OS_ARCH),RISCOS)
++CPPSRCS		:= xptcinvoke_arm.cpp xptcstubs_arm_riscos.cpp
++CXXFLAGS += -O2
++endif
++#
+ # OpenBSD/ARM
+ #
+ # NOTE: won't work w/o optimizations (-O1, -O2)
+Index: xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp,v
+retrieving revision 1.7.28.3
+diff -u -r1.7.28.3 xptcinvoke_arm.cpp
+--- xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	2 Nov 2007 14:35:46 -0000	1.7.28.3
++++ xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	30 Aug 2008 18:24:18 -0000
+@@ -37,9 +37,10 @@
+ 
+ /* Platform specific code to invoke XPCOM methods on native objects */
+ 
++#include <stdio.h>
+ #include "xptcprivate.h"
+ 
+-#if !defined(LINUX) || !defined(__arm__)
++#if (!defined(LINUX) && !defined(__riscos__)) || !defined(__arm__)
+ #error "This code is for Linux ARM only. Check that it works on your system, too.\nBeware that this code is highly compiler dependent."
+ #endif
+ 
+@@ -143,7 +144,8 @@
+                    PRUint32 paramCount, nsXPTCVariant* params)
+ {
+     PRUint32 result;
+-    struct my_params_struct my_params;
++    volatile struct my_params_struct my_params;
++
+     my_params.that = that;
+     my_params.Index = methodIndex;
+     my_params.Count = paramCount;
+@@ -151,6 +153,9 @@
+     my_params.fn_copy = (PRUint32) &invoke_copy_to_stack;
+     my_params.fn_count = (PRUint32) &invoke_count_words;
+ 
++//    puts("invoke");
++//    printf("invoke: %p %d %d\n", (void *)that, methodIndex, paramCount);
++
+ /* This is to call a given method of class that.
+  * The parameters are in params, the number is in paramCount.
+  * The routine will issue calls to count the number of words
+@@ -177,44 +182,46 @@
+  */
+  
+   __asm__ __volatile__(
+-    "ldr	r1, [%1, #12]	\n\t"	/* prepare to call invoke_count_words	*/
+-    "ldr	ip, [%1, #16]	\n\t"	/* r0=paramCount, r1=params		*/
+-    "ldr	r0, [%1,  #8]	\n\t"
+-    "mov	lr, pc		\n\t"	/* call it...				*/
++    "mov	r5, %1		\n\t"
++    "ldr	r1, [r5, #12]	\n\t"	/* prepare to call invoke_count_words	*/
++    "ldr	ip, [r5, #16]	\n\t"	/* r0=paramCount, r1=params		*/
++    "ldr	r4, [r5,  #8]	\n\t"
++    "mov	r0, r4		\n\t"
++    "mov	lr, pc		\n\t"	/* call it				*/
+     "mov	pc, ip		\n\t"
+-    "mov	r4, r0, lsl #2	\n\t"	/* This is the amount of bytes needed.	*/
+-    "sub	sp, sp, r4	\n\t"	/* use stack space for the args...	*/
++    "sub	sp, sp, r4, lsl #2\n\t"	/* Use stack space for the args		*/
+     "mov	r0, sp		\n\t"	/* prepare a pointer an the stack	*/
+-    "ldr	r1, [%1,  #8]	\n\t"	/* =paramCount				*/
+-    "ldr	r2, [%1, #12]	\n\t"	/* =params				*/
+-    "ldr	ip, [%1, #20]	\n\t"	/* =invoke_copy_to_stack		*/
++    "ldr	r1, [r5,  #8]	\n\t"	/* =paramCount				*/
++    "ldr	r2, [r5, #12]	\n\t"	/* =params				*/
++    "ldr	ip, [r5, #20]	\n\t"	/* =invoke_copy_to_stack		*/
+     "mov	lr, pc		\n\t"	/* copy args to the stack like the	*/
+     "mov	pc, ip		\n\t"	/* compiler would.			*/
+-    "ldr	r0, [%1]	\n\t"	/* =that				*/
++    "ldr	r0, [r5]	\n\t"	/* =that				*/
+     "ldr	r1, [r0, #0]	\n\t"	/* get that->vtable offset		*/
+-    "ldr	r2, [%1, #4]	\n\t"
+-    "mov	r2, r2, lsl #2	\n\t"	/* a vtable_entry(x)=8 + (4 bytes * x)	*/
++    "ldr	r2, [r5, #4]	\n\t"
++ /*   "mov	r2, r2, lsl #2	\n\t"*/	/* a vtable_entry(x)=8 + (4 bytes * x)	*/
+ #if defined(__GXX_ABI_VERSION) && __GXX_ABI_VERSION >= 100 /* G++ V3 ABI */
+-    "ldr        ip, [r1, r2]    \n\t"   /* get method adress from vtable        */
++    "ldr        ip, [r1, r2, lsl #2]    \n\t"   /* get method adress from vtable        */
+ #else /* non G++ V3 ABI */
+-    "add	r2, r2, #8	\n\t"	/* with this compilers			*/
+-    "ldr	ip, [r1, r2]	\n\t"	/* get method adress from vtable	*/
++    "add	r2, r2, #2	\n\t"	/* with these compilers			*/
++    "ldr	ip, [r1, r2, lsl #2]	\n\t"	/* get dmethod adress from vtable	*/
+ #endif
+-    "cmp	r4, #12		\n\t"	/* more than 3 arguments???		*/
++    "cmp	r4, #3		\n\t"	/* more than 3 arguments?		*/
+     "ldmgtia	sp!, {r1, r2, r3}\n\t"	/* yes: load arguments for r1-r3	*/
+-    "subgt	r4, r4, #12	\n\t"	/*      and correct the stack pointer	*/
++    "subgt	r4, r4, #3	\n\t"	/*      and correct the stack pointer	*/
+     "ldmleia	sp, {r1, r2, r3}\n\t"	/* no:  load r1-r3 from stack		*/ 
+-    "addle	sp, sp, r4	\n\t"	/*      and restore stack pointer	*/
++    "addle	sp, sp, r4, lsl #2\n\t"	/*      and restore stack pointer	*/
+     "movle	r4, #0		\n\t"	/*	a mark for restoring sp		*/
+-    "ldr	r0, [%1, #0]	\n\t"	/* get (self)				*/
+-    "mov	lr, pc		\n\t"	/* call mathod				*/
++    "ldr	r0, [r5, #0]	\n\t"	/* get (self)				*/
++    "mov	lr, pc		\n\t"	/* call method				*/
+     "mov	pc, ip		\n\t"
+-    "add	sp, sp, r4	\n\t"	/* restore stack pointer		*/
+-    "mov	%0, r0		\n\t"	/* the result...			*/
++    "add	sp, sp, r4, lsl #2\n\t"	/* restore stack pointer		*/
++    "mov	%0, r0		\n\t"	/* the result				*/
+     : "=r" (result)
+     : "r" (&my_params)
+-    : "r0", "r1", "r2", "r3", "r4", "ip", "lr", "sp"
++    : "r0", "r1", "r2", "r3", "r4", "r5", "ip", "lr", "sp"
+     );
+-    
++
++  //puts("invoke returned");
+   return result;
+ }    
+Index: xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp,v
+retrieving revision 1.7.28.2
+diff -u -r1.7.28.2 xptcstubs_arm.cpp
+--- xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	2 Nov 2007 14:35:46 -0000	1.7.28.2
++++ xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	30 Aug 2008 18:24:18 -0000
+@@ -40,14 +40,14 @@
+ 
+ #include "xptcprivate.h"
+ 
+-#if !defined(LINUX) || !defined(__arm__)
+-#error "This code is for Linux ARM only. Please check if it works for you, too.\nDepends strongly on gcc behaviour."
++#if !defined(LINUX) || (!defined(__arm__) && !defined(__riscos__))
++//#error "This code is for Linux ARM only. Please check if it works for you, too.\nDepends strongly on gcc behaviour."
+ #endif
+ 
+ /* Specify explicitly a symbol for this function, don't try to guess the c++ mangled symbol.  */
+-static nsresult PrepareAndDispatch(nsXPTCStubBase* self, uint32 methodIndex, PRUint32* args) asm("_PrepareAndDispatch");
++nsresult PrepareAndDispatch(nsXPTCStubBase* self, uint32 methodIndex, PRUint32* args) asm("_PrepareAndDispatch");
+ 
+-static nsresult
++nsresult
+ PrepareAndDispatch(nsXPTCStubBase* self, uint32 methodIndex, PRUint32* args)
+ {
+ #define PARAM_BUFFER_COUNT     16
+Index: xpcom/threads/TimerThread.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/threads/TimerThread.cpp,v
+retrieving revision 1.22.8.1
+diff -u -r1.22.8.1 TimerThread.cpp
+--- xpcom/threads/TimerThread.cpp	25 Feb 2006 12:54:57 -0000	1.22.8.1
++++ xpcom/threads/TimerThread.cpp	30 Aug 2008 18:24:18 -0000
+@@ -230,6 +230,8 @@
+ #endif
+ }
+ 
++#include <stdio.h>
++
+ /* void Run(); */
+ NS_IMETHODIMP TimerThread::Run()
+ {
+@@ -238,6 +240,8 @@
+   while (!mShutdown) {
+     PRIntervalTime waitFor;
+ 
++//    fprintf(stderr, "timers: %d %d\n", mSleeping, mTimers.Count());
++
+     if (mSleeping) {
+       // Sleep for 0.1 seconds while not firing timers.
+       waitFor = PR_MillisecondsToInterval(100);
+@@ -263,6 +267,11 @@
+           // We release mLock around the Fire call to avoid deadlock.
+           lock.unlock();
+ 
++//          fprintf(stderr, "Timer thread woke up %dms from when it was supposed to\n",
++//                   (now >= timer->mTimeout)
++//                    ? PR_IntervalToMilliseconds(now - timer->mTimeout)
++//                    : -(PRInt32)PR_IntervalToMilliseconds(timer->mTimeout-now));
++
+ #ifdef DEBUG_TIMERS
+           if (PR_LOG_TEST(gTimerLog, PR_LOG_DEBUG)) {
+             PR_LOG(gTimerLog, PR_LOG_DEBUG,
+Index: xpcom/threads/nsEventQueue.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/threads/nsEventQueue.cpp,v
+retrieving revision 3.46.8.3
+diff -u -r3.46.8.3 nsEventQueue.cpp
+--- xpcom/threads/nsEventQueue.cpp	10 Jul 2007 21:17:31 -0000	3.46.8.3
++++ xpcom/threads/nsEventQueue.cpp	30 Aug 2008 18:24:18 -0000
+@@ -445,6 +445,8 @@
+     gEventQueueLogThread = PR_GetCurrentThread();
+   }
+ #endif
++
++//fprintf(stderr, "call PL_ProcessPendingEvents\n");
+   PL_ProcessPendingEvents(mEventQueue);
+ 
+   // if we're no longer accepting events and there are still events in the
+Index: xpcom/threads/nsTimerImpl.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/threads/nsTimerImpl.cpp,v
+retrieving revision 1.35
+diff -u -r1.35 nsTimerImpl.cpp
+--- xpcom/threads/nsTimerImpl.cpp	4 May 2005 20:22:31 -0000	1.35
++++ xpcom/threads/nsTimerImpl.cpp	30 Aug 2008 18:24:18 -0000
+@@ -53,6 +53,7 @@
+ static PRBool           gFireOnIdle = PR_FALSE;
+ static nsTimerManager*  gManager = nsnull;
+ 
++
+ #ifdef DEBUG_TIMERS
+ #include <math.h>
+ 
+@@ -354,6 +355,8 @@
+   return NS_OK;
+ }
+ 
++#include <stdio.h>
++
+ void nsTimerImpl::Fire()
+ {
+   if (mCanceled)
+@@ -379,6 +382,11 @@
+   }
+ #endif
+ 
++//    fprintf(stderr, "[this=%p] expected delay time %4dms\n", (void *)this, mDelay);
++//    fprintf(stderr, "[this=%p] actual delay time   %4dms\n", this, PR_IntervalToMilliseconds(now - mStart));
++//    fprintf(stderr, "[this=%p] (mType is %d)       -------\n", this, mType);
++//    fprintf(stderr, "[this=%p]     delta           %4dms\n", this, (a > b) ? (PRInt32)d : -(PRInt32)d);
++
+   PRIntervalTime timeout = mTimeout;
+   if (mType == TYPE_REPEATING_PRECISE) {
+     // Precise repeating timers advance mTimeout by mDelay without fail before
+@@ -430,9 +438,12 @@
+ };
+ 
+ 
++#include <stdio.h>
++
+ void* handleTimerEvent(TimerEventType* event)
+ {
+   nsTimerImpl* timer = NS_STATIC_CAST(nsTimerImpl*, event->owner);
++//fprintf(stderr, "handlerTimerEvent\n");
+   if (event->mGeneration != timer->GetGeneration())
+     return nsnull;
+ 
+@@ -526,6 +537,7 @@
+     aDelay = PR_IntervalToMilliseconds(delayInterval);
+   }
+ 
++//fprintf(stderr, "delay now = %d\n", aDelay);
+   mDelay = aDelay;
+ 
+   PRIntervalTime now = PR_IntervalNow();

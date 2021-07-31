@@ -1,0 +1,9 @@
+Wimpslot -min 3048k -max 3048k
+
+| These are only relevant if the JIT is enabled.
+Set JSC_useHalfWord false
+Set JSC_useBX true
+Set JSC_useDoubleWord true
+
+Set QtTestBrowser$Dir <Obey$Dir>
+Run <QtTestBrowser$Dir>.QtTestBrowser > <QtTestBrowser$Dir>.debug 2>&1

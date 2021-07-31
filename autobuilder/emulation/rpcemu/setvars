@@ -1,0 +1,28 @@
+
+AB_HG=http://home.marutan.net/hg/rpcemu
+AB_DISTCLEAN="$AB_MAKE -C src/qt5 distclean"
+AB_PVERSION=0.9.2
+
+ab_make() {
+ cd src/qt5
+  $GCCSDK_INSTALL_ENV/bin/qmake rpcemu.pro
+  $AB_MAKE -j4
+  cd ../..
+ }
+
+
+ab_package() {
+  ab_create_app RPCEmu Apps/Emulation rpcemu-interpreter
+  
+  cp -T $S/rpcemu-interpreter $A/rpcemu-interpreter$AB_EXEEXT
+  
+  mkdir -p $A/hostfs
+  mkdir -p $A/poduleroms
+  
+  cp -av roms readme.txt COPYING $A
+    
+  cp -av $S/riscos-progs/HostFS/hostfs,ffa $A/poduleroms
+  cp -av $S/riscos-progs/HostFS/hostfsfiler,ffa $A/poduleroms
+  
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}

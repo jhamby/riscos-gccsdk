@@ -1,0 +1,3 @@
+WimpSlot -min 23205k -max 23205k
+dir <Obey$Dir>
+<Obey$Dir>.mame mrdo 1><Obey$Dir>.stdout 2><Obey$Dir>.stderr

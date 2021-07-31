@@ -1,0 +1,132 @@
+Sat May 24 13:27:47 CEST 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile: Add install target when cross-compiler is used.
+
+Sun Jul  7 14:15:39 CEST 2013  John Tytgat  <John.Tytgat@aaug.net>
+
+	* DRenderer.s: Encode offsets explicitly as offsets.  Update FSF
+	address.
+	* COPYING: Update FSF address.
+	* Makefile (clean,dist-clean): Ignore rm errors.
+
+Fri May 15 20:57:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Modified the 16-bit sound handler 'LinearHandlerCode' and support
+	functions so that it is safe to be called in IRQ mode with interrupts
+	enabled.
+
+Fri May 11 23:40:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Corrected a bug causing catastrophic failure of 8-bit streaming.
+
+Mon Apr 23 01:18:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Tidied and slightly improved DRender.h and DRender.s based on
+	experience of examining <libunixlib/sound/dsp.c>.
+	* A few corrections to the documentation in DocDRender.
+
+Fri Apr 20 19:32:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Addressed a grey area in the documentation concerning which 16-bit
+	channel ordering, left-right or right-left, is "correct" and which is
+	"swapped". The documentation and code now refer explicitly to either
+	left-right or right-left. The default is declared to be right-left.
+	* Added speculative code that adds some silence after a streamed file
+	is closed. It appears on BeagleBoard RISC OS 5.18, a silent tail 3
+	times the buffer length is required in order to avoid a nasty buzz if
+	the file being played does not end in silence. The tail may in fact be
+	smaller than this, depending on the buffer length or sample rate, but
+	I found that 2 buffers worth of silence was not enough; 3 was. Iyonix
+	RISC OS 5.18 exhibits the same problem but to a lesser degree. I
+	haven't experimented enough to determine a precise formulation that is
+	sure to work in all cases. And, of course, this code doesn't help when
+	the DRender: filesystem isn't being used. This speculative code was
+	then commented-out because it may have been responsible for a system
+	crash after the application load caused the desktop to stop
+	multitasking for a couple of seconds. Besides, adding an arbitrary bit
+	of silence to the end of a streamed file is a bodgy solution to what I
+	now suspect is an operating system problem. I discovered that PlayIt
+	suffers from the same problems on RISC OC 5.18, on BeagleBoard and
+	Iyonix, when using its acorn16bit driver.
+	* Added code to the 16-bit streamer so that it transfers to the sound
+	system only as much data has been written into a buffer, rather than
+	the full contents of that buffer which may contain the remnant of a
+	previous buffer-fill operation.
+	* When the 16-bit linear handler is streaming, before finishing it
+	checks for space remaining in the sound system's buffer and writes
+	zeroes into any remainder unless the OS has indicated that the buffer
+	was preset to silence.
+	* Added descriptive comments for some fields in the module work area.
+	* Changed some comparisons from signed to unsigned.
+	* Bumped version to 0.56 beta 6.
+
+Wed Apr 18 15:06:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Ensure that some dynamic branches preserve any 26-bit PSR in
+	the calculated link register. This is vital if flags are to be
+	restored on return. Otherwise, the PC may inadvertently be
+	switched into USR mode and then very bad things happen.
+	* Define and use a new State_Deactivating flag to ensure that
+	SWI XDR_Deactivate doesn't invoke itself again as a result of
+	closing a file being streamed to the DRender: filesystem.
+	* Provide the module's private word in R2 when calling
+	Sound_LinearHandler to remove its 16-bit linear handler.
+
+Tue Apr 17 17:35:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Changed default stream flags to remove buzzing when the desktop is
+	buzy.
+
+Tue Apr 17 13:49:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Ensured that all RMA memory (de-)allocations follow a consistent
+	pattern to minimise risks of memory leaks and IRQ-related problems.
+	* Re-organised SWIActivate16 to address faults specific to Iyonix and
+	BeagleBoard. On Iyonix, the sample rate is set correctly for playback.
+	On BeagleBoard, the sample rate is restored correctly after playback.
+	* Given that 0.55 has been publicly released, bumped the version to
+	0.56 beta 1.
+	* A known remaining problem on BeagleBoard with RISC OS 5.18 is the
+	presence of a harsh buzz any time playback stops abruptly or is paused
+	while the desktop is busy.
+
+Fri Apr 13 17:15:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Corrected a bug that would cause stack corruption should SWI
+	DigitalRenderer_Activate fail to install its voice generator.
+	* Bumped the module version number to 0.55 accordingly.
+	* Shortened the copyright notice and bumped the end-year to 2012.
+
+Mon Mar 12 00:56:56 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* !!Make,fd7: Add.
+	* Makefile: Rename BUILDDIR to CURDIR and only use it where it is
+	absolutely needed.
+	(clean): Fix RONATIVE case.
+	(VPATH): Remove and add SRCDIR explicitly where needed.
+
+Mon Mar 12 00:10:18 CET 2012   Christopher Martin  <belles@internode.on.net>
+                               John Tytgat  <John.Tytgat@aaug.net>
+
+	Convert source DRenderer from BASIC to AsAsm/ObjAsm.
+	* DigiRendV, stdlib, DRender.o,ffd: Remove.
+	* makelogtable.c, DRenderer.s, Makefile: Add.
+
+Sun Mar 11 23:54:31 CET 2012   Christopher Martin  <belles@internode.on.net>
+
+	* DigiRendV, stdlib: Import of v0.54.
+	Substantial bugfixes, work-arounds and optimisations for newer systems
+	based on ARMv5 and later architectures. The primary fault in 0.52
+	addressed by this version could cause some systems to play audio files
+	at the wrong speed.
+	* DRenderer,ffa: Removed.
+
+Sun Mar 11 23:20:36 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* DigiRendV,ffb: Detokenized as DigiRendV.
+	* stdlib,ffb: Detokenized as stdlib.
+
+Sun Mar 11 16:08:40 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* DRender.s: Fix syntax so it can be assembled with AsAsm.
+	* ChangeLog: Add.

@@ -1,0 +1,32 @@
+Diagram showing memory layout when loading dynamically linked executable.
+
+V2.00 Module with intergrated static loader command
+
+0x8000	---------------------------------
+	| ELF program			|
+	|-------------------------------|
+	| Dynamic loader R/W segment	|
+	|-------------------------------|
+	| LD Environment string		|
+	|-------------------------------|
+	| argv array strings		|
+	|-------------------------------|
+	| Library R/W segments		|
+	|  allocated by Dynamic Loader	|
+	|-------------------------------|
+	|				|
+	| Free				|
+	| Memory			|
+	|				|
+     sl	|-------------------------------|
+	| Stack				|
+     sp	|-------------------------------|
+	| argc (4 bytes)		|
+	|-------------------------------|
+	| argv array			|
+	|-------------------------------|
+	| LD Environment array		|
+	|-------------------------------|
+	| Auxillary data array		|
+	---------------------------------
+

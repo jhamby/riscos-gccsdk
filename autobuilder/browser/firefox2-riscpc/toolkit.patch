@@ -1,0 +1,344 @@
+? toolkit/mozapps/extensions/src/nsExtensionManager.js
+? toolkit/mozapps/update/src/nsUpdateService.js
+? toolkit/mozapps/update/src/updater/updater,e1f
+? toolkit/xre/nsNativeAppSupportRISCOS.cpp
+Index: toolkit/components/remote/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/components/remote/Makefile.in,v
+retrieving revision 1.6.8.1
+diff -u -r1.6.8.1 Makefile.in
+--- toolkit/components/remote/Makefile.in	21 Dec 2007 20:04:18 -0000	1.6.8.1
++++ toolkit/components/remote/Makefile.in	12 Aug 2008 05:01:35 -0000
+@@ -80,7 +80,7 @@
+ CXXFLAGS += $(TK_CFLAGS)
+ 
+ # Add explicit X11 dependency when building against X11 toolkits
+-ifneq (,$(filter gtk gtk2 qt xlib,$(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter gtk gtk2 qt xlib riscos,$(MOZ_WIDGET_TOOLKIT)))
+ EXTRA_DSO_LDOPTS += $(XLDFLAGS) $(XLIBS)
+ endif
+ 
+Index: toolkit/components/startup/src/nsAppStartup.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/components/startup/src/nsAppStartup.cpp,v
+retrieving revision 1.8.4.2
+diff -u -r1.8.4.2 nsAppStartup.cpp
+--- toolkit/components/startup/src/nsAppStartup.cpp	8 Jun 2006 17:52:31 -0000	1.8.4.2
++++ toolkit/components/startup/src/nsAppStartup.cpp	12 Aug 2008 05:01:35 -0000
+@@ -346,7 +346,7 @@
+ void
+ nsAppStartup::AttemptingQuit(PRBool aAttempt)
+ {
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+   if (aAttempt) {
+     // now even the Mac wants to quit when the last window is closed
+     if (!mAttemptingQuit)
+Index: toolkit/content/globalOverlay.js
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/content/globalOverlay.js,v
+retrieving revision 1.18.8.9
+diff -u -r1.18.8.9 globalOverlay.js
+--- toolkit/content/globalOverlay.js	17 Sep 2006 23:23:45 -0000	1.18.8.9
++++ toolkit/content/globalOverlay.js	12 Aug 2008 05:01:35 -0000
+@@ -13,10 +13,12 @@
+ 
+ # Closing the last window doesn't quit the application on OS X.
+ #ifndef XP_MACOSX
++#ifndef XP_RISCOS
+   // If we're down to the last window and someone tries to shut down, check to make sure we can!
+   if (windowCount == 1 && !canQuitApplication())
+     return false;
+ #endif
++#endif
+ 
+   if (aClose)    
+     window.close();
+Index: toolkit/content/xul.css
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/content/xul.css,v
+retrieving revision 1.61.2.22
+diff -u -r1.61.2.22 xul.css
+--- toolkit/content/xul.css	29 Jan 2007 19:12:06 -0000	1.61.2.22
++++ toolkit/content/xul.css	12 Aug 2008 05:01:35 -0000
+@@ -230,6 +230,13 @@
+ }
+ %endif
+ 
++%ifdef XP_RISCOS
++toolbar[type="menubar"] {
++  min-height: 0 !important;
++  border: 0 !important;
++}
++%endif
++
+ toolbarseparator {
+   -moz-binding: url("chrome://global/content/bindings/toolbar.xml#toolbardecoration");
+ }
+@@ -345,10 +352,15 @@
+   display: none;
+ }
+ %else
++%ifdef XP_RISCOS
++.statusbar-resizerpanel {
++  display: none;
++}
+ window[sizemode="maximized"] statusbarpanel.statusbar-resizerpanel {
+   visibility: collapse;
+ }
+ %endif
++%endif
+ 
+ /********** floating popups **********/
+ 
+Index: toolkit/library/nsStaticXULComponents.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/library/nsStaticXULComponents.cpp,v
+retrieving revision 1.10.2.3
+diff -u -r1.10.2.3 nsStaticXULComponents.cpp
+--- toolkit/library/nsStaticXULComponents.cpp	3 Apr 2007 14:32:27 -0000	1.10.2.3
++++ toolkit/library/nsStaticXULComponents.cpp	12 Aug 2008 05:01:35 -0000
+@@ -100,6 +100,8 @@
+ #  define GFX_MODULES MODULE(nsGfxQtModule)
+ #  elif defined(MOZ_WIDGET_XLIB)
+ #  define GFX_MODULES MODULE(nsGfxXlibModule)
++#  elif defined(MOZ_WIDGET_RISCOS)
++#  define GFX_MODULES MODULE(nsGfxRISCOSModule)
+ #  elif defined(MOZ_WIDGET_PHOTON)
+ #  define GFX_MODULES MODULE(nsGfxPhModule)
+ #  endif
+@@ -120,6 +122,9 @@
+ #ifdef MOZ_WIDGET_XLIB
+ #define WIDGET_MODULES MODULE(nsWidgetXLIBModule)
+ #endif
++#ifdef MOZ_WIDGET_RISCOS
++#define WIDGET_MODULES MODULE(nsWidgetRISCOSModule)
++#endif
+ #ifdef MOZ_WIDGET_PHOTON
+ #define WIDGET_MODULES MODULE(nsWidgetPhModule)
+ #endif
+Index: toolkit/profile/src/nsToolkitProfileService.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/profile/src/nsToolkitProfileService.cpp,v
+retrieving revision 1.12.2.1
+diff -u -r1.12.2.1 nsToolkitProfileService.cpp
+--- toolkit/profile/src/nsToolkitProfileService.cpp	19 Aug 2005 19:36:57 -0000	1.12.2.1
++++ toolkit/profile/src/nsToolkitProfileService.cpp	12 Aug 2008 05:01:35 -0000
+@@ -305,6 +305,10 @@
+ {
+     nsresult rv;
+ 
++    mDirectory = aDirectory;
++    mLocalDirectory = aLocalDirectory;
++    return 0;
++
+     rv = mLock.Lock(aDirectory, aUnlocker);
+ 
+     if (NS_SUCCEEDED(rv)) {
+Index: toolkit/xre/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/xre/Makefile.in,v
+retrieving revision 1.48.2.5
+diff -u -r1.48.2.5 Makefile.in
+--- toolkit/xre/Makefile.in	6 Feb 2007 07:13:20 -0000	1.48.2.5
++++ toolkit/xre/Makefile.in	12 Aug 2008 05:01:35 -0000
+@@ -133,11 +133,15 @@
+ ifeq ($(MOZ_WIDGET_TOOLKIT),beos)
+ CPPSRCS += nsNativeAppSupportBeOS.cpp
+ else
++ifeq ($(MOZ_WIDGET_TOOLKIT),riscos)
++CPPSRCS += nsNativeAppSupportRISCOS.cpp
++else
+ CPPSRCS += nsNativeAppSupportDefault.cpp
+ endif
+ endif
+ endif
+ endif
++endif
+ 
+ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ CMSRCS = MacLaunchHelper.m
+Index: toolkit/xre/nsAppRunner.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/xre/nsAppRunner.cpp,v
+retrieving revision 1.113.2.24
+diff -u -r1.113.2.24 nsAppRunner.cpp
+--- toolkit/xre/nsAppRunner.cpp	8 Nov 2007 11:56:25 -0000	1.113.2.24
++++ toolkit/xre/nsAppRunner.cpp	12 Aug 2008 05:01:36 -0000
+@@ -935,7 +935,9 @@
+                                   "Native App Support",
+                                   NS_NATIVEAPPSUPPORT_CONTRACTID,
+                                   nativeFactory);
++//puts("native 1");
+   NS_ENSURE_SUCCESS(rv, rv);
++//puts("native 2");
+ 
+   // Inform the chrome registry about OS accessibility
+   nsCOMPtr<nsIToolkitChromeRegistry> cr (do_GetService(NS_CHROMEREGISTRY_CONTRACTID));
+@@ -943,12 +945,15 @@
+     cr->CheckForOSAccessibility();
+ 
+   nsCOMPtr<nsIWindowCreator> creator (do_GetService(NS_APPSTARTUP_CONTRACTID));
++//puts("native 3");
+   if (!creator) return NS_ERROR_UNEXPECTED;
+ 
+   nsCOMPtr<nsIWindowWatcher> wwatch
+     (do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
++//puts("native 4");
+   NS_ENSURE_SUCCESS(rv, rv);
+ 
++//puts("native 5");
+   return wwatch->SetWindowCreator(creator);
+ }
+ 
+@@ -1283,7 +1288,11 @@
+ 
+   if (NS_FAILED(rv))
+     return rv;
+-
++#elif defined(XP_RISCOS)
++  rv = NS_NewNativeLocalFile(nsDependentCString("/Firefox:/firefox-bin"), PR_TRUE, getter_AddRefs(lf));
++  if (NS_FAILED(rv)) {
++    return rv;
++  }
+ #elif defined(XP_UNIX)
+   struct stat fileStat;
+   char exePath[MAXPATHLEN];
+@@ -1513,6 +1522,9 @@
+   if (_execv(exePath.get(), gRestartArgv) == -1)
+     return NS_ERROR_FAILURE;
+ #elif defined(XP_UNIX)
++  fclose(stdout);
++  fclose(stderr);
++//  exit(0);
+   if (execv(exePath.get(), gRestartArgv) == -1)
+     return NS_ERROR_FAILURE;
+ #elif defined(XP_BEOS)
+@@ -2429,6 +2441,7 @@
+   setupProfilingStuff();
+ #endif
+ 
++//puts("main 1");
+   // Try to allocate "native app support."
+   nsCOMPtr<nsINativeAppSupport> nativeApp;
+   rv = NS_CreateNativeAppSupport(getter_AddRefs(nativeApp));
+@@ -2463,6 +2476,7 @@
+       return VerifyInstallation(dirProvider.GetAppDir());
+     }
+   }
++//puts("main 2");
+ 
+ #ifdef MOZ_ENABLE_XREMOTE
+   // handle -remote now that xpcom is fired up
+@@ -2526,6 +2540,7 @@
+   nsCOMPtr<nsIProfileLock> profileLock;
+   PRBool startOffline = PR_FALSE;
+ 
++//puts("main 3");
+   rv = SelectProfile(getter_AddRefs(profileLock), nativeApp, &startOffline);
+   if (rv == NS_ERROR_LAUNCHED_CHILD_PROCESS ||
+       rv == NS_ERROR_ABORT) return 0;
+@@ -2600,6 +2615,7 @@
+     WriteVersion(profD, version, osABI,
+                  dirProvider.GetAppDir(), gAppData->directory);
+   }
++//puts("main 4");
+ 
+   PRBool needsRestart = PR_FALSE;
+   PRBool appInitiatedRestart = PR_FALSE;
+@@ -2613,8 +2629,12 @@
+     rv = xpcom.Initialize();
+     NS_ENSURE_SUCCESS(rv, 1); 
+     rv = xpcom.DoAutoreg();
++//printf("%d\n", rv);
+     rv |= xpcom.InitEventQueue();
++//printf("%d\n", rv);
+     rv |= xpcom.SetWindowCreator(nativeApp);
++//printf("%d\n", rv);
++//puts("main 4a");
+     NS_ENSURE_SUCCESS(rv, 1);
+ 
+     {
+@@ -2623,6 +2643,7 @@
+         NS_ENSURE_TRUE(io, 1);
+         io->SetOffline(PR_TRUE);
+       }
++//puts("main 4b");
+ 
+       {
+         NS_TIMELINE_ENTER("startupNotifier");
+@@ -2633,6 +2654,7 @@
+         startupNotifier->Observe(nsnull, APPSTARTUP_TOPIC, nsnull);
+         NS_TIMELINE_LEAVE("startupNotifier");
+       }
++//puts("main 4c");
+ 
+       nsCOMPtr<nsIAppStartup> appStartup
+         (do_GetService(NS_APPSTARTUP_CONTRACTID));
+@@ -2658,6 +2680,7 @@
+           }
+         }
+       }
++//puts("main 4d");
+ 
+       // Profile Migration
+       if (gAppData->flags & NS_XRE_ENABLE_PROFILE_MIGRATOR && gDoMigration) {
+@@ -2796,7 +2819,7 @@
+           gLogConsoleErrors = PR_TRUE;
+         }
+         else {
+-#ifndef XP_MACOSX
++#if !defined(XP_MACOSX) && !defined(XP_RISCOS)
+           appStartup->ExitLastWindowClosingSurvivalArea();
+ #endif
+ 
+@@ -2860,6 +2883,7 @@
+ 
+     profileLock->Unlock();
+   }
++//puts("main 5");
+ 
+   // Restart the app after XPCOM has been shut down cleanly. 
+   if (needsRestart) {
+Index: toolkit/xre/nsNativeAppSupportWin.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/xre/nsNativeAppSupportWin.cpp,v
+retrieving revision 1.20.4.4
+diff -u -r1.20.4.4 nsNativeAppSupportWin.cpp
+--- toolkit/xre/nsNativeAppSupportWin.cpp	6 Feb 2007 07:13:20 -0000	1.20.4.4
++++ toolkit/xre/nsNativeAppSupportWin.cpp	12 Aug 2008 05:01:36 -0000
+@@ -663,7 +663,7 @@
+  *        If not, then this is the first instance of Mozilla.  In
+  *        that case, we create and set up the message window.
+  *
+- *        The checking for existance of the message window must
++ *        The checking for existence of the message window must
+  *        be protected by use of a mutex semaphore.
+  */
+ NS_IMETHODIMP
+Index: toolkit/xre/nsXREDirProvider.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/xre/nsXREDirProvider.cpp,v
+retrieving revision 1.37.2.11
+diff -u -r1.37.2.11 nsXREDirProvider.cpp
+--- toolkit/xre/nsXREDirProvider.cpp	8 May 2007 19:25:29 -0000	1.37.2.11
++++ toolkit/xre/nsXREDirProvider.cpp	12 Aug 2008 05:01:36 -0000
+@@ -904,6 +904,18 @@
+   rv = localDir->AppendNative(nsDependentCString(gAppData->name));
+   NS_ENSURE_SUCCESS(rv, rv);
+ 
++#elif defined(XP_RISCOS)
++  rv = NS_NewNativeLocalFile(nsDependentCString("/<Choices$Write>/"), PR_TRUE,
++                             getter_AddRefs(localDir));
++  NS_ENSURE_SUCCESS(rv, rv);
++
++  if (gAppData->vendor) {
++    rv = localDir->AppendNative(nsDependentCString(gAppData->vendor));
++    NS_ENSURE_SUCCESS(rv, rv);
++  }
++  rv = localDir->AppendNative(nsDependentCString(gAppData->name));
++  NS_ENSURE_SUCCESS(rv, rv);
++
+ #elif defined(XP_UNIX)
+   const char* homeDir = getenv("HOME");
+   if (!homeDir || !*homeDir)

@@ -1,0 +1,18 @@
+ab_package() 
+{
+  ab_create_app RockDodger Apps/Games
+
+  ab_makerun $S/rockdodger
+  cp -av COPYING $A
+
+  mkdir -p $A/data
+  mkdir -p $A/data/images
+
+  cp data/*.{png,aiff,wav,mod} $A/data
+  cp data/iff.* $A/data
+  cp data/images/*.{png,bmp,ilbm} $A/data/images
+  cp data/images/b*.xpm $A/data/images
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name RockDodger
+}
+

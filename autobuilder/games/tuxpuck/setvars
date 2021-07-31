@@ -1,0 +1,17 @@
+$HOST_CC -g -Wall -Werror utils/ttf2font.c `freetype-config --cflags --libs` -o utils/ttf2font
+$HOST_CC -g -Wall -Werror utils/data2c.c `sdl-config --cflags --libs` -o utils/data2c
+$HOST_CC -g -Wall -Werror utils/anim.c `sdl-config --cflags --libs` -o utils/anim
+
+ab_package() {
+  ab_create_app Tuxpuck Apps/Games
+  ab_makerun $S/tuxpuck
+
+  mkdir -p $A/data/
+
+  cp -av $S/data/arcana $S/data/icons $S/data/jpgs $S/data/pngs $S/data/sounds $S/data/ttfs $S/data/tux $A/data
+
+  cp -av $S/COPYING $S/readme.txt thanks.txt todo.txt $A
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+

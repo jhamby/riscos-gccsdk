@@ -1,0 +1,8 @@
+| Run file for Barrage
+
+WIMPSLOT
+
+Set Barrage$Dir <Obey$Dir>
+
+| Note -w option runs in a window on the desktop
+Run <Barrage$Dir>.barrage -w >null: 2>null:

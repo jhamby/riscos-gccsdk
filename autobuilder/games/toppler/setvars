@@ -1,0 +1,16 @@
+ab_package() {
+  ab_create_app Toppler Apps/Games
+
+  ab_makerun toppler$AB_EXEEXT
+
+  cp -av AUTHORS ChangeLog COPYING NEWS README $A/
+
+  mkdir -p $A/data/toppler
+  cp -av toppler.dat $A/data/toppler
+  cp -av levelnames.txt $A/data/toppler
+
+  $AB_HOME/add-riscpkg -unixhome -unixsound -unixhome
+}
+
+export LIBS="-logg -lvorbis -lvorbisfile"
+AB_CONFLAGS=\''--datadir=/\<Toppler\$$Dir\>/data'\'

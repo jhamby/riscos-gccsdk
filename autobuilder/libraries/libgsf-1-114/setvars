@@ -1,0 +1,4 @@
+AB_INSTALL=yes
+
+AB_CONFLAGS="--without-python --disable-schemas-install"
+

@@ -1,0 +1,6 @@
+| Run file for LibCairo2
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibCairo2$Dir <Obey$Dir>
+Set LibCairo2$Path <Obey$Dir>.

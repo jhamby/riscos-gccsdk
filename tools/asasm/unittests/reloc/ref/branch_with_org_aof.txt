@@ -1,0 +1,34 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+2 areas
+4 symbols
+
+** Area (0x000103) "Code1", aligned at 4 bytes, [code] [abs] [32bit] 
+   Base address 0xa000
+   Size 32 bytes, 1 relocation
+
+00a000: 00000010 00000011 00000012 eafffffc eafffffb eaffdbf9 ea0003f8 eafffffb
+
+** Relocations:
+
+At 0x00001c (flags 0x87000001): Unlimited number of instructions PC-relative to base of area "Code2" (type-2 reloc)
+
+** Area (0x000102) "Code2", aligned at 4 bytes, [code] [32bit] 
+   Size 16 bytes, 0 relocations
+
+000000: 00000020 00000021 00000022 00000023
+
+** Symbol table:
+
+Code1            (05) local, absolute = 0x0000a000
+Code2            (01) local at "Code2" + 0x000000
+$a               (01) local at "Code1" + 0x000000
+$a               (01) local at "Code2" + 0x000000
+
+** String table:
+
+000004: Code1
+00000a: Code2
+000010: $a

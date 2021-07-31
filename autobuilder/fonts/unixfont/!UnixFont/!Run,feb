@@ -1,0 +1,4 @@
+| Run file for !UnixFont
+
+Set UnixFont$Dir <Obey$Dir>
+Set UnixFont$Path <Obey$Dir>.

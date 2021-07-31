@@ -1,0 +1,7 @@
+License: Free
+Description: The Acorn System Emulator.
+ ArcEm is a Acorn A400 hardware emulator that is highly portable, it
+ currently runs on Unix (X Windows), Microsoft Windows, Mac OS X, the
+ GP2X handheld, RISC OS and Amiga OS 4. As it's a hardware emulator
+ it's capable of running multiple operating systems including
+ RISC OS 3.10 and ARM Linux.

@@ -1,0 +1,2 @@
+png_version=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//" -e "s/~//")
+wget -qO- https://sourceforge.net/projects/libpng-apng/files/libpng16/$png_version/libpng-$png_version-apng.patch.gz/download | gzip -d | patch -p1

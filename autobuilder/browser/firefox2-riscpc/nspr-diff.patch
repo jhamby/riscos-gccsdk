@@ -1,0 +1,150 @@
+Index: nsprpub/configure.in
+===================================================================
+RCS file: /cvsroot/mozilla/nsprpub/configure.in,v
+retrieving revision 1.199.2.17
+diff -u -r1.199.2.17 configure.in
+--- nsprpub/configure.in	31 Oct 2007 18:07:38 -0000	1.199.2.17
++++ nsprpub/configure.in	5 Sep 2008 04:34:45 -0000
+@@ -629,6 +629,7 @@
+         linux*)       OS_ARCH=Linux ;;
+         solaris*)     OS_ARCH=SunOS OS_RELEASE=5 ;;
+         mingw*)       OS_ARCH=WINNT ;;
++        riscos*)      OS_ARCH=RISCOS ;;
+         darwin*)      OS_ARCH=Darwin ;;
+     esac
+ else
+@@ -1814,8 +1815,11 @@
+     USE_PTHREADS=1
+     MDCPUCFG_H=_riscos.cfg
+     PR_MD_CSRCS=riscos.c
+-    DLL_SUFFIX=a
+-    LD="/home/riscos/env/ro-ar cr"
++    DSO_CFLAGS=-fPIC
++    DSO_LDOPTS='-shared -Wl,-soname -Wl,$(notdir $@)'
++    #DLL_SUFFIX=a
++    MKSHLIB='$(CC) $(DSO_LDOPTS) -o $@'
++    #MKSHLIB='$(AR) rc $@'
+     ;;
+ 
+ *-*-sco*)
+Index: nsprpub/config/rules.mk
+===================================================================
+RCS file: /cvsroot/mozilla/nsprpub/config/rules.mk,v
+retrieving revision 3.61.2.1
+diff -u -r3.61.2.1 rules.mk
+--- nsprpub/config/rules.mk	22 Feb 2006 22:53:55 -0000	3.61.2.1
++++ nsprpub/config/rules.mk	5 Sep 2008 04:34:45 -0000
+@@ -352,7 +352,11 @@
+ 	  fi; \
+ 	fi
+ endif	# OpenVMS
++ifeq ($(OS_TARGET), RISCOS)
++	$(MKSHLIB) $(OBJS) $(RES)
++else
+ 	$(MKSHLIB) $(OBJS) $(RES) $(EXTRA_LIBS)
++endif
+ endif   # OS2 vacpp
+ endif	# WINNT
+ endif	# AIX 4.1
+Index: nsprpub/pr/include/md/_riscos.h
+===================================================================
+RCS file: /cvsroot/mozilla/nsprpub/pr/include/md/_riscos.h,v
+retrieving revision 3.2
+diff -u -r3.2 _riscos.h
+--- nsprpub/pr/include/md/_riscos.h	21 Jul 2005 18:22:53 -0000	3.2
++++ nsprpub/pr/include/md/_riscos.h	5 Sep 2008 04:34:45 -0000
+@@ -44,7 +44,7 @@
+ #define PR_LINKER_ARCH		"riscos"
+ #define _PR_SI_SYSNAME		"RISCOS"
+ #define _PR_SI_ARCHITECTURE	"arm"
+-#define PR_DLL_SUFFIX		".a"
++#define PR_DLL_SUFFIX		".so"
+ 
+ #define _PR_POLL_AVAILABLE
+ #define _PR_USE_POLL
+@@ -60,8 +60,8 @@
+ 
+ 
+ #undef  HAVE_STACK_GROWING_UP
+-#undef  HAVE_DLL
+-#undef  USE_DLFCN
++#define HAVE_DLL
++#define USE_DLFCN
+ #define NEED_STRFTIME_LOCK
+ #define NEED_TIME_R
+ #define PT_NO_SIGTIMEDWAIT
+Index: nsprpub/pr/src/linking/prlink.c
+===================================================================
+RCS file: /cvsroot/mozilla/nsprpub/pr/src/linking/prlink.c,v
+retrieving revision 3.81.2.5
+diff -u -r3.81.2.5 prlink.c
+--- nsprpub/pr/src/linking/prlink.c	6 Oct 2006 23:36:22 -0000	3.81.2.5
++++ nsprpub/pr/src/linking/prlink.c	5 Sep 2008 04:34:46 -0000
+@@ -964,6 +964,7 @@
+         dl_flags |= RTLD_LOCAL;
+     }
+     h = dlopen(name, dl_flags);
++    if (!h) perror("fail");
+ #elif defined(USE_HPSHL)
+     int shl_flags = 0;
+     shl_t h;
+Index: nsprpub/pr/src/misc/prenv.c
+===================================================================
+RCS file: /cvsroot/mozilla/nsprpub/pr/src/misc/prenv.c,v
+retrieving revision 3.11
+diff -u -r3.11 prenv.c
+--- nsprpub/pr/src/misc/prenv.c	25 Apr 2004 15:01:01 -0000	3.11
++++ nsprpub/pr/src/misc/prenv.c	5 Sep 2008 04:34:46 -0000
+@@ -79,7 +79,16 @@
+     if (!_pr_initialized) _PR_ImplicitInitialization();
+ 
+     _PR_LOCK_ENV();
++#ifdef __riscos__
++    {
++      char *roenv = alloca(strlen(var) + 9);
++      strcpy(roenv, "Firefox$");
++      strcpy(roenv + 8, var);
++      ev = _PR_MD_GET_ENV(roenv);
++    }
++#else
+     ev = _PR_MD_GET_ENV(var);
++#endif
+     _PR_UNLOCK_ENV();
+     return ev;
+ }
+@@ -93,7 +102,16 @@
+     if ( !strchr(string, '=')) return(PR_FAILURE);
+ 
+     _PR_LOCK_ENV();
++#ifdef __riscos__
++    {
++      char *roenv = alloca(strlen(string) + 9);
++      strcpy(roenv, "Firefox$");
++      strcpy(roenv + 8, string);
++      result = _PR_MD_PUT_ENV(roenv);
++    }
++#else
+     result = _PR_MD_PUT_ENV(string);
++#endif
+     _PR_UNLOCK_ENV();
+     return (result)? PR_FAILURE : PR_SUCCESS;
+ }
+Index: nsprpub/pr/tests/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/nsprpub/pr/tests/Makefile.in,v
+retrieving revision 1.47
+diff -u -r1.47 Makefile.in
+--- nsprpub/pr/tests/Makefile.in	25 Apr 2004 15:01:02 -0000	1.47
++++ nsprpub/pr/tests/Makefile.in	5 Sep 2008 04:34:46 -0000
+@@ -435,6 +435,11 @@
+ endif
+ endif
+ 
++ifeq ($(OS_ARCH),RISCOS)
++EXTRA_LIBS = -ldl
++endif
++
++
+ ifeq ($(USE_PTHREADS),1)
+ LIBPTHREAD = -lpthread
+ ifeq ($(OS_ARCH),AIX)

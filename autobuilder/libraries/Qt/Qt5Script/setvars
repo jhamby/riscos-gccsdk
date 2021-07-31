@@ -1,0 +1,52 @@
+# Build both normal and VFP versions by default. Set either of these to no
+# to disable that build.
+BUILD_NORMAL=yes
+BUILD_VFP=yes
+
+AB_URL=http://download.qt.io/archive/qt/5.5/5.5.0/submodules/qtscript-opensource-src-5.5.0.tar.xz
+AB_PVERSION=5.5.0
+
+# We'll call "make install" ourselves.
+AB_INSTALL=no
+
+export RO_SHAREDLIBS=yes
+
+PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
+
+AB_PRECONF=:
+
+if [ "$BUILD_NORMAL" == "yes" ]; then
+  mkdir -p build
+  ( cd build; qmake -spec arm-riscos-g++ ../qtscript.pro )
+fi
+if [ "$BUILD_VFP" == "yes" ]; then
+  mkdir -p build-vfp
+  ( cd build-vfp; qmake -spec arm-riscos-vfp-g++ ../qtscript.pro )
+fi
+
+ab_make() {
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+    ( cd build; $AB_MAKE && $AB_MAKE install )
+  fi
+  if [ "$BUILD_VFP" == "yes" ]; then
+    ( cd build-vfp; $AB_MAKE && $AB_MAKE install )
+  fi
+}
+
+ab_package() {
+  ab_create_sharedlib_skeleton Qt5Script
+
+  if [ "$BUILD_NORMAL" == "yes" ]; then
+    ab_add_sharedlib $S/build/lib libQt5Script.so.5
+    ab_add_sharedlib $S/build/lib libQt5ScriptTools.so.5
+  fi
+
+  if [ "$BUILD_VFP" == "yes" ]; then
+    ab_add_sharedlib $S/build-vfp/lib libQt5Script.so.5
+    ab_add_sharedlib $S/build-vfp/lib libQt5ScriptTools.so.5
+  fi
+
+  AB_COMPONENTS=""
+  $AB_HOME/add-riscpkg -package Qt5Script -name Qt5Script \
+	-depends SharedLibs -depends Qt5Base
+}

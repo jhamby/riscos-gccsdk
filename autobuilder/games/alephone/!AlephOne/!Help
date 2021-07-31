@@ -1,0 +1,388 @@
+
+  Aleph One/SDL
+  An Open Source 3D action game
+
+  Copyright (C) 1995 Bungie Software Corporation
+  Portions Copyright (C) 2000-2005 Christian Bauer, Loren Petrich,
+    Chris Pruett, Rhys Hill, Ben Thompson, Woody Zenfell, Mihai Pararita,
+    Bo Lindbergh et al.
+  Expat XML Library Copyright (C) 1998, 1999 James Clark
+
+
+License
+-------
+
+Aleph One is available under the terms of the GNU General Public License.
+See the file "COPYING" that is included in the distribution for details.
+
+The BeOS and RISC OS version of Aleph One is statically linked against
+SDL which is provided to you under the terms of the GNU Library General
+Public License.
+See the file "COPYING/SDL" that is included in the distribution for details.
+The source code for the version of SDL used is available on
+
+  http://alephone.cebix.net/
+
+
+What is Aleph One?
+------------------
+
+Aleph One is an Open Source 3D first-person shooter game, based on the game
+Marathon 2 by Bungie Software. It is set in a Sci-Fi universe dominated by
+deviant computer AIs and features a well thought-out plot.
+
+This help file
+--------------
+
+This help file is a modified version of the README file that is shipped in
+this directory with details for the RISC OS port only.
+
+System Requirements
+-------------------
+
+RISC OS 3.6 or above with at least 16MB ram.
+
+The game and data files need to be installed on a file system with long file names support.
+
+Although the game will run in a 256 colour screen modes it is designed to run
+in a 32K or better screen mode.
+
+This program requires the SharedUnixLibrary and Digital Renderer module
+both of which are included in the system.zip that must be merged with
+your !System available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip
+
+This versions was built by the GCCSDK Autobuilder. For more details
+on the autobuilder see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+
+RISC OS port status
+-------------------
+
+The current status of the RISC OS port is as follows:
+ - No OpenGL support.
+ - No gamma support
+ - Network support is compiled in but not tested.
+
+Known bugs:
+ - The mouse cursor sometimes disappears on the menu screen. Either waggle
+   it about until it reappears or use the keyboard shortcuts to operate
+   the menu.
+ - Selecting 8 bit screen resolution causes a crash.
+
+
+Installing Aleph One
+--------------------
+
+This application is just the Aleph One SDL engine for RISC OS it does not
+include any data files to run any of the maps.
+
+For instructions on how to set up data files see the file "INSTALL/RISCOS".
+
+
+Playing Aleph One
+-----------------
+
+If you have followed the instructions in INSTALL/RISCOS you just need to
+ensure that this application has been seen by the filer and then
+double-click on the data files application.
+
+The program can take a number of command line arguments. Here is a complete
+list:
+
+  [-h | --help]          Display the help message
+  [-v | --version]       Display the game version
+  [-f | --fullscreen]    Run the game fullscreen
+  [-w | --windowed]      Run the game in a window
+  [-g | --nogl]          Do not use OpenGL
+  [-s | --nosound]       Do not access the sound card
+  [-m | --nogamma]       Disable gamma table effects (menu fades)
+
+If Aleph One complains about missing data files, and you are sure that you
+have installed them, try setting the ALEPHONE_DATA environment variable to
+the path of the data file directory. This variable can also specify a
+semicolon-separated list of directories which are searched for data files
+in the given order.
+
+The background story of the game and the keyboard controls are explained in
+the manual or README file on your Marathon CD or in the Demo archive.
+Here is a rundown of the default keyboard configuration (assuming a US
+keyboard; all keys are mapped by position):
+
+  On the menu screen:
+    N - Begin new game
+    O - Continue saved game
+    P - Preferences
+    R - Replay saved film
+    C - Show game credits
+    Q - Quit
+
+  In-game:
+    KP8     - Walk forward
+    KP5     - Walk backward
+    KP4     - Turn left
+    KP6     - Turn right
+
+    Z       - Sidestep left
+    X       - Sidestep right
+
+    D       - Look up
+    C       - Look down
+    V       - Look ahead
+
+    A       - Glance left
+    S       - Glance right
+
+    Space   - Fire weapon, primary trigger
+    Alt     - Fire weapon, secondary trigger (e.g. grenades)
+    KP7     - Select previous weapon
+    KP9     - Select next weapon
+
+    Tab     - Action (open doors, flip switches, log in to computer terminals)
+
+    Shift   - Sidestep
+    Ctrl    - Walk slowly/swim
+    Meta    - Keyboard look
+
+    M       - Overhead map
+
+  Other keys (not configurable):
+    -       - Zoom overhead map out
+    =       - Zoom overhead map in
+
+    \       - Toggle FPS display
+
+    Esc     - Quit game/leave terminal
+    Alt-Q   - Quit game
+    Alt-C   - Quit game (use this under BeOS because Alt-Q will quit
+              the whole Aleph One application without warning)
+    Alt-P   - Pause game (press Alt-P again to resume)
+
+    F1      - Decrease screen size
+    F2      - Increase screen size
+    F3      - Toggle high/low resolution
+    F4      - Reset OpenGL textures
+    F5      - Make the chase cam switch sides
+    F6      - Toggle chase cam
+    F7      - Toggle tunnel vision
+    F8      - Toggle crosshairs
+    F9      - Screen dump (saved in ~/.alephone/Screenshot_*.bmp files)
+    F10     - Toggle position display
+    F11     - Decrease gamma level
+    F12     - Increase gamma level
+
+    ,       - Decrease sound volume
+    .       - Increase sound volume
+    [ and ] - Scroll player inventory view
+
+    Backspace - Switch player view in replays
+    [ and ] - Adjust film replay speed
+
+If you click on "Defaults" in the keyboard configuration menu when mouse
+control has been turned on you will get a different keyboard layout, more
+suited to mouse play.
+
+
+Playing third-party maps with Aleph One
+---------------------------------------
+
+(If the following instructions are too technical for you, see the "Map
+installation for dummies" section, below)
+
+Aleph One can be extended with custom map, physics, shape and sound files
+which can be selected in the "Environment" section of the preferences menu.
+Aleph One/SDL looks for these files in two places:
+
+  <Choices$Write>.alephone
+ and
+  !AlephOne
+
+Aleph One looks in both of these directories (and in all subdirectories) for
+map, shape and sound files it recognizes and shows a list of them in the
+"Environment" preferences menu when clicking on one of the "Map", "Physics",
+"Shapes" or "Sounds" items. So, for example, under Unix you could create a
+directory ~/.alephone/maps and place all map files you downloaded in there.
+
+Most 3rd-party maps for Marathon 2 and Marathon Infinity you can find on the
+internet, for example in the Marathon HyperArchive
+
+  http://www.marathon.org/hyperarchive/
+
+do in principle work out-of-the box with Aleph One/SDL. I said "in principle",
+because these maps are usually stored in BinHex (.hqx) and/or StuffIt (.sit)
+format, which is difficult to unpack on non-Mac systems.
+
+See the original README files of how to convert maps under linux.
+
+A good selection of maps already converted for SDL can be found at:
+
+  http://archives.bungie.org/
+
+(at the time of writing this only the A1M1 SDL and the Marathon 2 demo
+maps have been tried).
+
+
+Films and saved games
+---------------------
+
+Saved games and films are stored in
+
+<Choices$Write>.alephone.Saved Games
+  and
+<Choices$Write>.alephone.Recordings
+
+If you want to restore games or replay films you have downloaded (or copied
+from another computer), you have to copy them into these directories or
+they won't show up when clicking on "Continue Saved Game" or "Replay Saved
+Film" on the main menu.
+
+
+Themes
+------
+
+Aleph One/SDL supports selectable user interface themes which determine the
+look of the game's dialog boxes (but not the title menu which is a fixed
+picture). The themes are stored in
+
+<Choices$Write>.alephone.Themes
+  and
+!AlephOne.Themes
+
+There is one subdirectory for each theme and you can install new themes by
+unpacking them into the "Themes" directory. Additional themes can be found
+on the Aleph One/SDL home page (see below).
+
+
+File compatibility
+------------------
+
+This section gives a summary of the cross-platform compatibility of the
+various data files used by Aleph One and the original Marathon games:
+
+  "Images" - on Aleph One/SDL this is a data file and not a resource file
+    as on the MacOS versions of Aleph One and Marathon, but the file format
+    is exactly the same, and compatible across all platforms supported by
+    Aleph One/SDL
+  "Shapes" - fully compatible across all versions of Aleph One/Marathon 2/
+    Marathon Infinity
+  "Sounds" - fully compatible across all versions of Aleph One/Marathon 2/
+    Marathon Infinity
+  Map files - maps without resource forks are fully compatible across all
+    versions of Aleph One/Marathon 2/Marathon Infinity; maps with resource
+    forks need to be in one of three formats:
+      a) data and resource forks in separate files, <name> and <name>.rsrc/
+         <name>.resources
+      b) an AppleSingle encoded file containing data and resource fork
+      c) a MacBinary II encoded file containing data and resource fork
+    All of these formats are fully compatible across all platforms supported
+    by Aleph One/SDL.
+  Saved games - fully compatible across all versions of Aleph One/
+    Marathon 2/Marathon Infinity (but the MacOS versions save a small picture
+    of the map at the current player's position in the resource fork of
+    saved games, which is not preserved or used by Aleph One/SDL)
+  Films - fully compatible across all versions of Aleph One/Marathon 2/
+    Marathon Infinity
+  "Aleph One Preferences" - platform-specific, not compatible with the MacOS
+    versions of Aleph One/Marathon nor across the platforms supported by
+    Aleph One/SDL
+  Themes - fully compatible across all versions of Aleph One/SDL; the MacOS
+    versions of Aleph One and Marathon don't support themes
+
+
+Marathon Markup Language (MML)
+------------------------------
+
+The Marathon Markup Language (MML) is a subset of the Extensible Markup
+Language (XML). MML scripts can be used to configure some aspects of
+Aleph One. These scripts are stored in
+
+<Choices$Write>.alephone.MML
+<Choices$Write>.alephone.Scripts
+
+Upon startup, Aleph One reads and parses all scripts found in these
+directories, in alphabetical order. For a description of their contents and
+what you can do by writing your own MML scripts, please consult the file
+"docs/MML.html" that comes in the Aleph One/SDL distribution archive.
+
+
+Bug Reports
+-----------
+
+If you find a bug that's not already in the list above, please submit it
+using the bug database on SourceForge:
+
+  http://sourceforge.net/bugs/?group_id=1997
+
+If you think the bug is for the RISC OS version try posting to the
+GCCSDK mailing list or emailing: alan_baa@hotmail.com
+
+
+Tips
+----
+
+You can start the game at any level by holding the Shift and Control keys
+while clicking on the "Begin New Game" button on the main menu.
+
+To activate the cheat codes, see the file "docs/Cheat_Codes" that is included
+in the Aleph One archive. But remember: Winners don't cheat and cheaters
+don't usually win! :-)
+
+
+Troubleshooting
+---------------
+
+If double-clicking on a data file application doesn't appear to do anything
+it is most likely that it is failing to read the data files.
+
+To see the errors change the Run line in the !Run file in the data file
+application to:
+
+Run <AlephOne$Dir>.alephone ><Obey$Dir>.log 2><Obey$Dir>.errlog
+
+Then re-run the application. Two files in the application directory called
+log and errlog will have been created with the messages from the program.
+
+You can also check to see if the standard aleph one log file has been
+written to "!UnixHome.home.Aleph One log/txt".
+
+
+Support
+-------
+
+Aleph One is not officially supported by Bungie Software, so don't bother
+contacting them about it.
+
+The official Aleph One home page is at
+
+  http://source.bungie.org/
+
+My home page for the SDL port is at
+
+  http://alephone.cebix.net/
+
+The Aleph One pages on SourceForge
+
+  http://www.sourceforge.net/projects/marathon/
+
+provide discussion forums, a database of bugs and feature requests and much
+more.
+
+The GCCSDK Autobuilder for RISC OS is at:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+If you have questions about Marathon in general, you should post them to
+the established marathon forums, such as alt.games.marathon.
+
+
+Happy carnage!
+Christian Bauer <Christian.Bauer@uni-mainz.de>
+
+RISC OS port by Alan Buckley (8 July 2004)
+Version 20051119 ported and added to the Autobuilder by
+Alan Buckley <alan_baa@hotmail.com> (4th Sept 2008) 
+Version 20091015 ported by Peter Naulls and Alan Buckley
+(22nd Jan 2009)

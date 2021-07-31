@@ -1,0 +1,200 @@
+			 Mono for RISC OS
+			Ported by Lee Noar
+			    V3.2.1
+Introduction
+------------
+Mono is an open source version of Microsoft's .net framework. It's home
+page is at:
+
+http://www.mono-project.com/
+
+The main component of the Mono package is Mono itself, which is a program
+written in C that creates an environment in which to run programs that have
+been written in C#. This environment controls many aspects of the program's
+requirements such as memory allocation, file access, object management
+and garbage collection.
+
+This package is a port of Mono to RISC OS. Because of its size and
+complexity, it should be considered a Work In Progress as testing has
+barely scratched the surface.
+
+The Mono package is supplied with the MCS C# 5.0 compiler, a number of
+scripts are provided allowing the compiler to target different profiles:
+
+mcs		Target any profile, and any mscorlib.
+gmcs		Target the 2.0 profile
+dmcs		Target the 4.0 profile.
+
+Using mono runtime
+------------------
+The application !Mono contains the basic elements needed to compile and run
+C# code. The Mono program is dynamically linked and therefore requires the
+shared library system. Dynamic linking is necessary to allow C# programs
+to use code from existing C based shared libraries. This process is called
+Interop and is the process used to access the RISC OS API. A shared library
+and C# assembly (collectively called RISC OS Dot Net) are provided. The
+shared library must be installed within the shared library system, the
+riscos.dll assembly will already be present within !Mono.
+
+Programs compiled with the C# compilers are given the filetype &A7D
+(CILImage) and can be run by double clicking or by typing their name at the
+command line. For finer control, for example, to use command line options,
+the Mono runtime can be invoked directly:
+
+Mono-SGen <options> <Full filename of CIL Image file>
+
+Command line options
+--------------------
+Some useful command line options that are known to work are:
+
+--verbose
+	Gives various details about what Mono is doing while running a program.
+	Can be used multiple times on the command line to give different details.
+
+--trace
+	Trace execution through a program by printing a method's entry/exit.
+
+--stats
+	When the program exits, output a list of statistics.
+
+--debug
+	When generating a stacktrace, display filenames and source code line
+	numbers.
+	For this to work, the program and libraries must have been compiled with
+	the -debug compiler option and the resulting .mdb files placed along
+	side the components they belong to.
+
+System variables
+----------------
+Mono$EnvOptions (Linux version: MONO_ENV_OPTIONS)
+	If set, used as a source of command line arguments that are passed to
+	Mono before the command line arguments specified in the command line.
+
+Mono$CPUArch (Linux version: MONO_CPU_ARCH)
+	Sets the version of the CPU architecture targeted by the JIT. Valid
+	options are armv5, armv6 and armv7. If this variable is not set, then
+	armv4 is assumed.
+
+Using the C# compilers
+----------------------
+
+C# source code is written as text just like C source code, but with a "cs" file
+extension. For example, the following simple hello world program can be saved
+as helloworld/cs:
+
+using System;
+
+public class HelloWorld
+{
+  public static void Main()
+  {
+    //Print Hello World
+    System.Console.WriteLine("Hello World !");
+  }
+}
+
+It can be compiled using:
+
+mcs helloworld.cs
+
+This will create a binary file called helloworld/exe. This file contains the
+compiled code in the form of an intermediate language called CIL (Common Interface
+Language) which Mono can understand and run.
+
+Unlike a C compiler, it is not possible to compile individual files and then
+link them together. Instead all files are passed to the compiler at the same
+time for compilation. It is possible to list all the source files in a text
+file and give that to the compiler rather than listing them all on the
+command line.
+
+Accessing RISC OS
+-----------------
+As mentioned previously a shared library and assembly called "RISC OS Dot Net"
+are provided to allow C# programs to access the RISC OS API. All RISC OS specific
+classes and methods have "riscos" as their root namespace. To use them in your own
+programs you will require the line:
+
+using riscos;
+
+at the top of your source code that references them. Also when compiling, it's
+necessary to tell the compiler where to find the RISC OS API classes by adding:
+
+-R:riscos
+
+to the command line.
+
+RISC OS Dot Net is still in development and not yet complete, I intend to add
+more of the RISC OS API soon (at least the core functionality such as WIMP,
+Font, Toolbox, etc.). In time I hope this will expand into a class library.
+
+What works
+----------
+1) SGen GC
+RISC OS Mono includes the SGen garbage collector to automatically dispose
+of unused objects.
+
+2) JIT
+There is also a JIT (Just In Time compiler) that converts the CIL code into
+ARM code on the fly at runtime. This has been altered to create APCS stack
+frames where necessary and also to support stack extension. 
+
+3) GAC
+The Global Assembly Cache is supported and comes ready populated with the
+same assemblies as installed in Linux. A utility, gacutil, is provided to
+access it.
+
+What doesn't work
+-----------------
+1) AOT
+The Ahead Of Time compiler is not currently supported.
+
+2) Although there are many dll assemblies included, a lot depend on external
+C shared libraries in order to function. So, for example, the Cairo dll
+will not work without a port of the Cario shared library.
+
+3) null reference exceptions
+Currently, hardware detection of null references works only for saves.
+Detection of loads from address zero may work on future versions of RISC OS
+if zero page becomes protected. In the meantime, the JIT is set to generate
+code that explicitly checks for null references.
+
+The porting of Mono uncovered some bugs in UnixLib, and as a result a recent
+version of libunixlib is required. Specifically, at least r5453 is required
+for pthread support and at least r5545 is required for gmcs and dmcs to
+function correctly (previous versions caused a 0 byte sized output file).
+
+Building RISC OS Mono
+---------------------
+Building Mono with the GCCSDK Autobuilder is complicated by the fact that
+some components are themselves written in C# and require a compiler to
+be installed already. Normally this would just be a case of installing
+Mono natively on the host machine, however, there can be problems due
+to mismatched runtimes and/or bugs. For example, Ubuntu 10.10 and 11.04
+both contain V2.6.7 of Mono, but this version causes segmentation faults
+when building RISC OS Mono. The build system for Mono now builds a native
+version itself and uses that during the build of the RISC OS port. A
+packaged version of Mono still needs to be installed to build this native
+version, but is not relied on as much.
+
+Known problems
+--------------
+Sometimes the GC kicks in just before program exit causing a delay before
+control is returned to the command line. This gives the impression that the
+program has hung.
+
+Glossary
+--------
+AOT		Ahead Of Time compiler. Compiles code at build time for reuse.
+
+JIT		Just In Time Compiler. Compiles code on the fly at runtime.
+
+LMF		Last Managed Frame. Used in exception handling.
+
+GC		Garbage collector.
+
+GAC		Global Assembly Cache.
+
+CIL		Common Interface Language. An intermediate low level byte code
+		language which all .net languages are compiled to.
+
+Lee Noar

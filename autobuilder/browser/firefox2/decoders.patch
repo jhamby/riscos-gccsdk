@@ -1,0 +1,320 @@
+? modules/libpr0n/build/nsImgBuildDefines.h
+Index: modules/libpr0n/decoders/bmp/nsBMPDecoder.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/bmp/nsBMPDecoder.cpp,v
+retrieving revision 1.29.4.1
+diff -u -r1.29.4.1 nsBMPDecoder.cpp
+--- modules/libpr0n/decoders/bmp/nsBMPDecoder.cpp	17 Dec 2007 20:49:46 -0000	1.29.4.1
++++ modules/libpr0n/decoders/bmp/nsBMPDecoder.cpp	22 Sep 2009 21:41:15 -0000
+@@ -163,10 +163,10 @@
+ 
+     for (cnt = 0; cnt < rows; cnt++) {
+         line = (mBIH.height < 0) ? (-mBIH.height - mCurLine--) : --mCurLine;
+-        rv = mFrame->SetAlphaData(mAlpha, alpha, line * alpha);
+-        NS_ENSURE_SUCCESS(rv, rv);
+         rv = mFrame->SetImageData(mDecoded, mBpr, line * mBpr);
+         NS_ENSURE_SUCCESS(rv, rv);
++        rv = mFrame->SetAlphaData(mAlpha, alpha, line * alpha);
++        NS_ENSURE_SUCCESS(rv, rv);
+         if (cnt == 0) {
+             memset(mAlpha, 0, mBIH.width);
+             memset(mDecoded, 0, mBpr);
+@@ -435,7 +435,7 @@
+                       default:
+                         NS_NOTREACHED("Unsupported color depth, but earlier check didn't catch it");
+                     }
+-                      
++
+                     nsresult rv = SetData();
+                     NS_ENSURE_SUCCESS(rv, rv);
+ 
+Index: modules/libpr0n/decoders/bmp/nsBMPDecoder.h
+===================================================================
+RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/bmp/nsBMPDecoder.h,v
+retrieving revision 1.20
+diff -u -r1.20 nsBMPDecoder.h
+--- modules/libpr0n/decoders/bmp/nsBMPDecoder.h	18 Apr 2004 22:00:41 -0000	1.20
++++ modules/libpr0n/decoders/bmp/nsBMPDecoder.h	22 Sep 2009 21:41:15 -0000
+@@ -125,7 +125,7 @@
+ #define RLE_GFXFORMAT_ALPHA gfxIFormats::RGB_A1
+ #endif
+ 
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+ #define GFXBYTESPERPIXEL 4
+ #else
+ #define GFXBYTESPERPIXEL 3
+@@ -244,6 +244,9 @@
+     *aDecoded++ = aGreen;
+     *aDecoded++ = aRed;
+ #endif
++#if defined(XP_RISCOS)
++    *aDecoded++ = 255;;
++#endif
+ }
+ 
+ inline void SetPixel(PRUint8*& aDecoded, PRUint8 idx, colorTable* aColors)
+Index: modules/libpr0n/decoders/bmp/nsICODecoder.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/bmp/nsICODecoder.cpp,v
+retrieving revision 1.35
+diff -u -r1.35 nsICODecoder.cpp
+--- modules/libpr0n/decoders/bmp/nsICODecoder.cpp	26 May 2005 22:43:36 -0000	1.35
++++ modules/libpr0n/decoders/bmp/nsICODecoder.cpp	22 Sep 2009 21:41:15 -0000
+@@ -70,10 +70,10 @@
+ {
+   PRUint32 bpr;
+   mFrame->GetImageBytesPerRow(&bpr);
+- 
++
+   // Since the ICO is decoded into an exact sized array, the frame may use
+   // more bytes per row of pixels than the decoding array.
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+   PRUint32 decodedLineLen = mDirEntry.mWidth * 4;
+ #else
+   PRUint32 decodedLineLen = mDirEntry.mWidth * 3;
+@@ -207,8 +207,8 @@
+   // Set Data here because some ICOs don't have a complete AND Mask
+   // see bug 115357
+   if (mDecodingAndMask) {
+-    SetAlphaData();
+     SetImageData();
++    SetAlphaData();
+     mObserver->OnStopFrame(nsnull, mFrame);
+   }
+   return NS_OK;
+@@ -395,7 +395,7 @@
+     if (mPos == (mImageOffset + BITMAPINFOSIZE + mNumColors*4)) {
+       // Increment mPos to avoid reprocessing the info header.
+       mPos++;
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+       mDecodedBuffer = (PRUint8*)malloc(mDirEntry.mHeight*mDirEntry.mWidth*4);
+ #else
+       mDecodedBuffer = (PRUint8*)malloc(mDirEntry.mHeight*mDirEntry.mWidth*3);
+@@ -494,7 +494,7 @@
+ 
+             if (mCurLine == 0)
+               mDecodingAndMask = PR_TRUE;
+-              
++
+             mRowBytes = 0;
+ 
+             // If 32 bit image, gotta set the alpha data here
+Index: modules/libpr0n/decoders/gif/imgContainerGIF.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/gif/Attic/imgContainerGIF.cpp,v
+retrieving revision 1.20.8.1
+diff -u -r1.20.8.1 imgContainerGIF.cpp
+--- modules/libpr0n/decoders/gif/imgContainerGIF.cpp	2 May 2006 18:49:16 -0000	1.20.8.1
++++ modules/libpr0n/decoders/gif/imgContainerGIF.cpp	22 Sep 2009 21:41:15 -0000
+@@ -1021,7 +1021,7 @@
+   PRUint32 bpr; // Bytes Per Row
+   aFrame->GetImageBytesPerRow(&bpr);
+ 
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+   const PRUint8 bpp = 4;
+ #else
+   const PRUint8 bpp = 3;
+Index: modules/libpr0n/decoders/gif/nsGIFDecoder2.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/gif/nsGIFDecoder2.cpp,v
+retrieving revision 1.65
+diff -u -r1.65 nsGIFDecoder2.cpp
+--- modules/libpr0n/decoders/gif/nsGIFDecoder2.cpp	10 Mar 2005 13:31:26 -0000	1.65
++++ modules/libpr0n/decoders/gif/nsGIFDecoder2.cpp	22 Sep 2009 21:41:15 -0000
+@@ -497,18 +497,18 @@
+ 
+     if (!cmap) { // cmap could have null value if the global color table flag is 0
+       for (int i = 0; i < aDuplicateCount; ++i) {
++        decoder->mImageFrame->SetImageData(nsnull,
++                                           bpr, (aRowNumber+i)*bpr);
+         if (format == gfxIFormats::RGB_A1 ||
+             format == gfxIFormats::BGR_A1) {
+           decoder->mImageFrame->SetAlphaData(nsnull,
+                                              abpr, (aRowNumber+i)*abpr);
+         }
+-        decoder->mImageFrame->SetImageData(nsnull,
+-                                           bpr, (aRowNumber+i)*bpr);
+       }
+     } else {
+       PRUint8* rgbRowIndex = decoder->mRGBLine;
+       PRUint8* rowBufIndex = aRowBufPtr;
+-      
++
+       switch (format) {
+         case gfxIFormats::RGB:
+         case gfxIFormats::BGR:
+@@ -533,8 +533,11 @@
+               *rgbRowIndex++ = 0;                    // green
+               *rgbRowIndex++ = 0;                    // blue
+             }
++#if defined(XP_RISCOS)
++            rgbRowIndex++; // RISC OS is always 32bits per pixel, this is the mask
++#endif
+             ++rowBufIndex;
+-          }  
++          }
+           for (int i=0; i<aDuplicateCount; i++) {
+             decoder->mImageFrame->SetImageData(decoder->mRGBLine,
+                                                bpr, (aRowNumber+i)*bpr);
+@@ -567,9 +570,14 @@
+                 *rgbRowIndex++ = 0;                    // green
+                 *rgbRowIndex++ = 0;                    // blue
+               }
++#if defined(XP_RISCOS)
++              *rgbRowIndex++ = 255;   // RISC OS is always 32bits per pixel, this is the mask
++#else
+               decoder->mAlphaLine[x>>3] |= 1<<(7-x&0x7);
++#endif
++
+             } else {
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+               rgbRowIndex+=4;
+ #else
+               rgbRowIndex+=3;
+@@ -578,8 +586,10 @@
+             ++rowBufIndex;
+           }
+           for (int i=0; i<aDuplicateCount; i++) {
++#if !defined(XP_RISCOS)
+             decoder->mImageFrame->SetAlphaData(decoder->mAlphaLine,
+                                                abpr, (aRowNumber+i)*abpr);
++#endif
+             decoder->mImageFrame->SetImageData(decoder->mRGBLine,
+                                                bpr, (aRowNumber+i)*bpr);
+           }
+Index: modules/libpr0n/decoders/jpeg/nsJPEGDecoder.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/jpeg/nsJPEGDecoder.cpp,v
+retrieving revision 1.62.18.1
+diff -u -r1.62.18.1 nsJPEGDecoder.cpp
+--- modules/libpr0n/decoders/jpeg/nsJPEGDecoder.cpp	3 Feb 2006 14:41:10 -0000	1.62.18.1
++++ modules/libpr0n/decoders/jpeg/nsJPEGDecoder.cpp	22 Sep 2009 21:41:15 -0000
+@@ -353,7 +353,7 @@
+ 
+     // Note! row_stride here must match the row_stride in
+     // nsJPEGDecoder::OutputScanlines
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+     row_stride = mInfo.output_width * 4;
+ #else
+     row_stride = mInfo.output_width * 3;
+@@ -363,7 +363,7 @@
+                                            JPOOL_IMAGE,
+                                            row_stride, 1);
+ 
+-#if defined(XP_WIN) || defined(XP_OS2) || defined(XP_BEOS) || defined(XP_MAC) || defined(XP_MACOSX) || defined(MOZ_WIDGET_PHOTON)
++#if defined(XP_WIN) || defined(XP_OS2) || defined(XP_BEOS) || defined(XP_MAC) || defined(XP_MACOSX) || defined(MOZ_WIDGET_PHOTON) || defined(XP_RISCOS)
+     // allocate buffer to do byte flipping / padding
+     mRGBRow = (PRUint8*) PR_MALLOC(row_stride);
+ #endif
+@@ -542,13 +542,25 @@
+       }
+ 
+       samples = mRGBRow;
++#elif defined(XP_RISCOS)
++      PRUint8 *ptrOutputBuf = mRGBRow;
++
++      JSAMPLE *j1 = mSamples[0];
++      for (PRUint32 i=0;i<mInfo.output_width;++i) {
++        ptrOutputBuf[0] = *j1++;
++        ptrOutputBuf[1] = *j1++;
++        ptrOutputBuf[2] = *j1++;
++        ptrOutputBuf += 4;
++      }
++
++      samples = mRGBRow;
+ #else
+       samples = mSamples[0];
+ #endif
+ 
+       // Note! row_stride here must match the row_stride in
+       // nsJPEGDecoder::WriteFrom
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+       int row_stride = mInfo.output_width * 4;
+ #else
+       int row_stride = mInfo.output_width * 3;
+Index: modules/libpr0n/decoders/png/nsPNGDecoder.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/png/nsPNGDecoder.cpp,v
+retrieving revision 1.46.18.1
+diff -u -r1.46.18.1 nsPNGDecoder.cpp
+--- modules/libpr0n/decoders/png/nsPNGDecoder.cpp	26 Sep 2006 21:40:49 -0000	1.46.18.1
++++ modules/libpr0n/decoders/png/nsPNGDecoder.cpp	22 Sep 2009 21:41:15 -0000
+@@ -435,13 +435,18 @@
+     switch (format) {
+     case gfxIFormats::RGB:
+     case gfxIFormats::BGR:
+-#if defined(XP_MAC) || defined(XP_MACOSX)
++#if defined(XP_MAC) || defined(XP_MACOSX) || defined(XP_RISCOS)
+         cptr = decoder->colorLine;
+         for (PRUint32 x=0; x<iwidth; x++) {
++#if defined(XP_MAC) || defined(XP_MACOSX)
+           *cptr++ = 0;
++#endif
+           *cptr++ = *line++;
+           *cptr++ = *line++;
+           *cptr++ = *line++;
++#if defined(XP_RISCOS)
++          cptr++;
++#endif
+         }
+         decoder->mFrame->SetImageData(decoder->colorLine, bpr, row_num*bpr);
+ #else
+@@ -462,16 +467,25 @@
+             *cptr++ = *line++;
+             *cptr++ = *line++;
+             *cptr++ = *line++;
++#if defined(XP_RISCOS)
++            *cptr++ = 255;
++#else
+             aptr[x>>3] |= 1<<(7-x&0x7);
++#endif
+             line++;
+           } else {
+             *cptr++ = 0;
+             *cptr++ = 0;
+             *cptr++ = 0;
++#if defined(XP_RISCOS)
++            *cptr++ = 0;
++#endif
+             line += 4;
+           }
+         }
++#if !defined(XP_RISCOS)
+         decoder->mFrame->SetAlphaData(decoder->alphaLine, abpr, row_num*abpr);
++#endif
+         decoder->mFrame->SetImageData(decoder->colorLine, bpr, row_num*bpr);
+       }
+       break;
+@@ -487,9 +501,15 @@
+           *cptr++ = *line++;
+           *cptr++ = *line++;
+           *cptr++ = *line++;
++#if defined(XP_RISCOS)
++          *cptr++ = *line++;
++#else
+           *aptr++ = *line++;
++#endif
+         }
++#if !defined(XP_RISCOS)
+         decoder->mFrame->SetAlphaData(decoder->alphaLine, abpr, row_num*abpr);
++#endif
+         decoder->mFrame->SetImageData(decoder->colorLine, bpr, row_num*bpr);
+       }
+       break;
+@@ -500,7 +520,9 @@
+         cptr = decoder->colorLine;
+         aptr = decoder->alphaLine;
+         for (PRUint32 x=0; x<iwidth; x++) {
++#if defined(XP_MAC) || defined(XP_MACOSX)
+           *cptr++ = 0;
++#endif
+           *cptr++ = *line++;
+           *cptr++ = *line++;
+           *cptr++ = *line++;

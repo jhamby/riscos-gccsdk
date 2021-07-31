@@ -1,0 +1,2 @@
+wget http://deb.debian.org/debian/pool/main/x/x11proto-fixes/x11proto-fixes_5.0-2.diff.gz
+zcat *.diff.gz | patch -p1 || true

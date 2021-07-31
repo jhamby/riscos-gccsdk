@@ -1,0 +1,27 @@
+AB_URL=http://deb.debian.org/debian/pool/main/j/jumpnbump/jumpnbump_1.51+dfsg1.orig.tar.gz
+
+AB_LICENCE=Free
+
+AB_PVERSION=1.51
+AB_ROVERSION=3
+
+AB_PRECONF=:
+
+CC=$HOST_CC make gobpack
+
+ab_package() {
+  ab_create_app jumpnbump Apps/Games
+
+  ab_makerun jumpnbump
+
+  cp -av $S/README $A/\!Help
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/LINKS $A/
+
+  mkdir -p $A/data
+  cp -r $S/data/jumpbump.dat $A/data
+  cp -r $S/levelmaking $A/
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound
+  echo "Description: You are cute fluffy little bunnies and hop on the other bunnies' heads." >> $D/jumpnbump/RiscPkg/Control,fff
+}
+

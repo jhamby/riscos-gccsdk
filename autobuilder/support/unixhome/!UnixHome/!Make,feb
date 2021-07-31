@@ -1,0 +1,5 @@
+| Build SetHome
+
+Dir <Obey$Dir>
+WimpSlot -min 4000k
+gcc -o SetHome SetHome.c -O2 -Wall

@@ -1,0 +1,8 @@
+| Run file for TuxMath
+
+WIMPSLOT
+
+Set TuxMath$Dir <Obey$Dir>
+Set SDL$TuxMath$BackBuffer 1
+
+Run <TuxMath$Dir>.tuxmath --windowed >null: 2>null:

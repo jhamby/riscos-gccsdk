@@ -1,0 +1,8 @@
+| Run file for Ceferino
+
+WIMPSLOT
+
+Set Ceferino$Dir <Obey$Dir>
+
+| Note -w option runs in a window on the desktop
+Run <Ceferino$Dir>.ceferino -w >null: 2><Obey$Dir>.stderr

@@ -1,0 +1,12 @@
+AB_NOREMOTE=yes
+AB_PVERSION=0.1
+AB_ROVERSION=2
+
+AB_MAKE=":"
+
+ab_package() {
+  ab_create_app UnixFont Apps/Fonts
+  AB_COMPONENTS="Apps.Fonts.!UnixFont (Movable LookAt)" 
+
+  $AB_HOME/add-riscpkg -package UnixFont
+}

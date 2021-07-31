@@ -1,0 +1,14 @@
+; Simple module example showing the use of mkresfs.
+
+help-string: mkresfsExample 0.00
+
+title-string: mkresfsExample
+
+initialisation-code: ex_initialise
+finalisation-code: ex_finalise
+
+; When storing data in ResourceFS, you have to listen and act on service
+; call Service_ResourceFSStarting (&60).  When you make use of ResourceFS
+; files you might want to listen and act on service calls
+; Service_ResourceFSStarted (&59) and Service_ResourceFSDying (&5A).
+service-call-handler: ex_service &60

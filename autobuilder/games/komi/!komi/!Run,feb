@@ -1,0 +1,11 @@
+| Run file for komi
+
+| Try to load the sound
+| If the load fails the game should continue with no sound
+RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
+
+Set komi$dir <Obey$dir>
+
+WIMPSLOT
+
+<komi$dir>.komi >null: 2>null:

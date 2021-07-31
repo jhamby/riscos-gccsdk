@@ -1,0 +1,9 @@
+License: Free
+Description: Role Playing.
+ glHack is a port of the game NetHack. It uses LibSDL as the video
+ and input library.  There is good support for software rendering
+ too, which this version currently uses.
+ 
+ glHack is just one of the many NetHack front-ends.  Others include
+ the original text-terminal (TTY) version, one for the X Window
+ System, and one for GNOME called GnomeHack.

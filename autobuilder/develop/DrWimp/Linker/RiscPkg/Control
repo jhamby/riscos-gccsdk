@@ -1,0 +1,10 @@
+Description: A tool for statically linking programs written in BBC BASIC
+ Linker takes a BASIC 'Image' file (e.g. a !RunImage file or similar)
+ and a BASIC 'Library' file used by the Image (e.g. the DrWimp Library)
+ and creates a new Image file (referred to below as the Output file)
+ which is the old Image file plus just the parts of the Library file
+ that are required.
+ .
+ This can be very useful if the Library is large, and a fair proportion of
+ it is not used.
+

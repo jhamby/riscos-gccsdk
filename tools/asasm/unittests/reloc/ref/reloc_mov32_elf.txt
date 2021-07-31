@@ -1,0 +1,887 @@
+ELF Header:
+  Magic:   7f 45 4c 46 01 01 01 61 00 00 00 00 00 00 00 00 
+  Class:                             ELF32
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            ARM
+  ABI Version:                       0
+  Type:                              REL (Relocatable file)
+  Machine:                           ARM
+  Version:                           0x1
+  Entry point address:               0x0
+  Start of program headers:          0 (bytes into file)
+  Start of section headers:          69524 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               52 (bytes)
+  Size of program headers:           0 (bytes)
+  Number of program headers:         0
+  Size of section headers:           40 (bytes)
+  Number of section headers:         22
+  Section header string table index: 21
+
+Section Headers:
+  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+  [ 1] .symtab           SYMTAB          00000000 000034 000300 10      2  41  4
+  [ 2] .strtab           STRTAB          00000000 000334 000052 00      0   0  1
+  [ 3] CodeBefore        PROGBITS        00000000 000388 00000c 00  AX  0   0  4
+  [ 4] CodeABS1Before    PROGBITS        00000000 000394 00000c 00  AX  0   0  4
+  [ 5] CodeABS2Before    PROGBITS        00000000 0003a0 00000c 00  AX  0   0  4
+  [ 6] CodeABS3Before    PROGBITS        00000000 0003ac 00000c 00  AX  0   0  4
+  [ 7] DataBefore        PROGBITS        00000000 0003b8 007f40 00  WA  0   0  4
+  [ 8] CodeNonABSARM     PROGBITS        00000000 0082f8 0001a8 00  AX  0   0  4
+  [ 9] .rel.CodeNonABSAR REL             00000000 0084a0 000190 08      1   8  4
+  [10] CodeABSARM        PROGBITS        00000000 008630 0001a8 00  AX  0   0  4
+  [11] .rel.CodeABSARM   REL             00000000 0087d8 000130 08      1  10  4
+  [12] CodeNonABSTHUMB   PROGBITS        00000000 008908 0001a8 00  AX  0   0  4
+  [13] .rel.CodeNonABSTH REL             00000000 008ab0 000190 08      1  12  4
+  [14] CodeABSTHUMB      PROGBITS        00000000 008c40 0001a8 00  AX  0   0  4
+  [15] .rel.CodeABSTHUMB REL             00000000 008de8 000130 08      1  14  4
+  [16] CodeAfter         PROGBITS        00000000 008f18 000008 00 WAX  0   0  4
+  [17] CodeABS1After     PROGBITS        00000000 008f20 000008 00  AX  0   0  4
+  [18] CodeABS2After     PROGBITS        00000000 008f28 000008 00  AX  0   0  4
+  [19] CodeABS3After     PROGBITS        00000000 008f30 000008 00  AX  0   0  4
+  [20] DataAfter         PROGBITS        00000000 008f38 007f40 00  WA  0   0  4
+  [21] .shstrtab         STRTAB          00000000 010e78 00011c 00      0   0  1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings)
+  I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
+  O (extra OS processing required) o (OS specific), p (processor specific)
+
+There are no section groups in this file.
+
+There are no program headers in this file.
+
+Relocation section '.rel.CodeNonABSARM' at offset 0x84a0 contains 50 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+00000030  0000242b R_ARM_MOVW_ABS_NC 00000000   CodeBefore
+00000034  0000242c R_ARM_MOVT_ABS    00000000   CodeBefore
+00000038  0000242b R_ARM_MOVW_ABS_NC 00000000   CodeBefore
+0000003c  0000242c R_ARM_MOVT_ABS    00000000   CodeBefore
+00000070  0000252b R_ARM_MOVW_ABS_NC 00000000   CodeNonABSARM
+00000074  0000252c R_ARM_MOVT_ABS    00000000   CodeNonABSARM
+00000078  0000252b R_ARM_MOVW_ABS_NC 00000000   CodeNonABSARM
+0000007c  0000252c R_ARM_MOVT_ABS    00000000   CodeNonABSARM
+00000080  0000252b R_ARM_MOVW_ABS_NC 00000000   CodeNonABSARM
+00000084  0000252c R_ARM_MOVT_ABS    00000000   CodeNonABSARM
+00000088  0000252b R_ARM_MOVW_ABS_NC 00000000   CodeNonABSARM
+0000008c  0000252c R_ARM_MOVT_ABS    00000000   CodeNonABSARM
+00000090  0000252b R_ARM_MOVW_ABS_NC 00000000   CodeNonABSARM
+00000094  0000252c R_ARM_MOVT_ABS    00000000   CodeNonABSARM
+00000098  0000252b R_ARM_MOVW_ABS_NC 00000000   CodeNonABSARM
+0000009c  0000252c R_ARM_MOVT_ABS    00000000   CodeNonABSARM
+000000a0  0000232b R_ARM_MOVW_ABS_NC 00000000   CodeAfter
+000000a4  0000232c R_ARM_MOVT_ABS    00000000   CodeAfter
+000000a8  0000232b R_ARM_MOVW_ABS_NC 00000000   CodeAfter
+000000ac  0000232c R_ARM_MOVT_ABS    00000000   CodeAfter
+00000110  00002c2b R_ARM_MOVW_ABS_NC 00000000   ImpLblB1
+00000114  00002c2c R_ARM_MOVT_ABS    00000000   ImpLblB1
+00000118  0000292b R_ARM_MOVW_ABS_NC 00000000   ImpLblA1
+0000011c  0000292c R_ARM_MOVT_ABS    00000000   ImpLblA1
+00000120  00002f2b R_ARM_MOVW_ABS_NC 00000000   ImpLblNotDeclared
+00000124  00002f2c R_ARM_MOVT_ABS    00000000   ImpLblNotDeclared
+00000128  00002d54 R_ARM_MOVW_BREL_N 00000000   ImpLblB2
+0000012c  00002d55 R_ARM_MOVT_BREL   00000000   ImpLblB2
+00000130  00002a54 R_ARM_MOVW_BREL_N 00000000   ImpLblA2
+00000134  00002a55 R_ARM_MOVT_BREL   00000000   ImpLblA2
+00000138  00002e2b R_ARM_MOVW_ABS_NC 00000000   ImpLblB3
+0000013c  00002e2c R_ARM_MOVT_ABS    00000000   ImpLblB3
+00000140  00002b2b R_ARM_MOVW_ABS_NC 00000000   ImpLblA3
+00000144  00002b2c R_ARM_MOVT_ABS    00000000   ImpLblA3
+00000168  00002854 R_ARM_MOVW_BREL_N 00000000   DataBefore
+0000016c  00002855 R_ARM_MOVT_BREL   00000000   DataBefore
+00000170  00002854 R_ARM_MOVW_BREL_N 00000000   DataBefore
+00000174  00002855 R_ARM_MOVT_BREL   00000000   DataBefore
+00000178  00002854 R_ARM_MOVW_BREL_N 00000000   DataBefore
+0000017c  00002855 R_ARM_MOVT_BREL   00000000   DataBefore
+00000180  00002854 R_ARM_MOVW_BREL_N 00000000   DataBefore
+00000184  00002855 R_ARM_MOVT_BREL   00000000   DataBefore
+00000188  00002754 R_ARM_MOVW_BREL_N 00000000   DataAfter
+0000018c  00002755 R_ARM_MOVT_BREL   00000000   DataAfter
+00000190  00002754 R_ARM_MOVW_BREL_N 00000000   DataAfter
+00000194  00002755 R_ARM_MOVT_BREL   00000000   DataAfter
+00000198  00002754 R_ARM_MOVW_BREL_N 00000000   DataAfter
+0000019c  00002755 R_ARM_MOVT_BREL   00000000   DataAfter
+000001a0  00002754 R_ARM_MOVW_BREL_N 00000000   DataAfter
+000001a4  00002755 R_ARM_MOVT_BREL   00000000   DataAfter
+
+Relocation section '.rel.CodeABSARM' at offset 0x87d8 contains 38 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+00000030  0000242b R_ARM_MOVW_ABS_NC 00000000   CodeBefore
+00000034  0000242c R_ARM_MOVT_ABS    00000000   CodeBefore
+00000038  0000242b R_ARM_MOVW_ABS_NC 00000000   CodeBefore
+0000003c  0000242c R_ARM_MOVT_ABS    00000000   CodeBefore
+000000a0  0000232b R_ARM_MOVW_ABS_NC 00000000   CodeAfter
+000000a4  0000232c R_ARM_MOVT_ABS    00000000   CodeAfter
+000000a8  0000232b R_ARM_MOVW_ABS_NC 00000000   CodeAfter
+000000ac  0000232c R_ARM_MOVT_ABS    00000000   CodeAfter
+00000110  00002c2b R_ARM_MOVW_ABS_NC 00000000   ImpLblB1
+00000114  00002c2c R_ARM_MOVT_ABS    00000000   ImpLblB1
+00000118  0000292b R_ARM_MOVW_ABS_NC 00000000   ImpLblA1
+0000011c  0000292c R_ARM_MOVT_ABS    00000000   ImpLblA1
+00000120  00002f2b R_ARM_MOVW_ABS_NC 00000000   ImpLblNotDeclared
+00000124  00002f2c R_ARM_MOVT_ABS    00000000   ImpLblNotDeclared
+00000128  00002d54 R_ARM_MOVW_BREL_N 00000000   ImpLblB2
+0000012c  00002d55 R_ARM_MOVT_BREL   00000000   ImpLblB2
+00000130  00002a54 R_ARM_MOVW_BREL_N 00000000   ImpLblA2
+00000134  00002a55 R_ARM_MOVT_BREL   00000000   ImpLblA2
+00000138  00002e2b R_ARM_MOVW_ABS_NC 00000000   ImpLblB3
+0000013c  00002e2c R_ARM_MOVT_ABS    00000000   ImpLblB3
+00000140  00002b2b R_ARM_MOVW_ABS_NC 00000000   ImpLblA3
+00000144  00002b2c R_ARM_MOVT_ABS    00000000   ImpLblA3
+00000168  00002854 R_ARM_MOVW_BREL_N 00000000   DataBefore
+0000016c  00002855 R_ARM_MOVT_BREL   00000000   DataBefore
+00000170  00002854 R_ARM_MOVW_BREL_N 00000000   DataBefore
+00000174  00002855 R_ARM_MOVT_BREL   00000000   DataBefore
+00000178  00002854 R_ARM_MOVW_BREL_N 00000000   DataBefore
+0000017c  00002855 R_ARM_MOVT_BREL   00000000   DataBefore
+00000180  00002854 R_ARM_MOVW_BREL_N 00000000   DataBefore
+00000184  00002855 R_ARM_MOVT_BREL   00000000   DataBefore
+00000188  00002754 R_ARM_MOVW_BREL_N 00000000   DataAfter
+0000018c  00002755 R_ARM_MOVT_BREL   00000000   DataAfter
+00000190  00002754 R_ARM_MOVW_BREL_N 00000000   DataAfter
+00000194  00002755 R_ARM_MOVT_BREL   00000000   DataAfter
+00000198  00002754 R_ARM_MOVW_BREL_N 00000000   DataAfter
+0000019c  00002755 R_ARM_MOVT_BREL   00000000   DataAfter
+000001a0  00002754 R_ARM_MOVW_BREL_N 00000000   DataAfter
+000001a4  00002755 R_ARM_MOVT_BREL   00000000   DataAfter
+
+Relocation section '.rel.CodeNonABSTHUMB' at offset 0x8ab0 contains 50 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+00000030  0000242f R_ARM_THM_MOVW_AB 00000000   CodeBefore
+00000034  00002430 R_ARM_THM_MOVT_AB 00000000   CodeBefore
+00000038  0000242f R_ARM_THM_MOVW_AB 00000000   CodeBefore
+0000003c  00002430 R_ARM_THM_MOVT_AB 00000000   CodeBefore
+00000070  0000262f R_ARM_THM_MOVW_AB 00000000   CodeNonABSTHUMB
+00000074  00002630 R_ARM_THM_MOVT_AB 00000000   CodeNonABSTHUMB
+00000078  0000262f R_ARM_THM_MOVW_AB 00000000   CodeNonABSTHUMB
+0000007c  00002630 R_ARM_THM_MOVT_AB 00000000   CodeNonABSTHUMB
+00000080  0000262f R_ARM_THM_MOVW_AB 00000000   CodeNonABSTHUMB
+00000084  00002630 R_ARM_THM_MOVT_AB 00000000   CodeNonABSTHUMB
+00000088  0000262f R_ARM_THM_MOVW_AB 00000000   CodeNonABSTHUMB
+0000008c  00002630 R_ARM_THM_MOVT_AB 00000000   CodeNonABSTHUMB
+00000090  0000262f R_ARM_THM_MOVW_AB 00000000   CodeNonABSTHUMB
+00000094  00002630 R_ARM_THM_MOVT_AB 00000000   CodeNonABSTHUMB
+00000098  0000262f R_ARM_THM_MOVW_AB 00000000   CodeNonABSTHUMB
+0000009c  00002630 R_ARM_THM_MOVT_AB 00000000   CodeNonABSTHUMB
+000000a0  0000232f R_ARM_THM_MOVW_AB 00000000   CodeAfter
+000000a4  00002330 R_ARM_THM_MOVT_AB 00000000   CodeAfter
+000000a8  0000232f R_ARM_THM_MOVW_AB 00000000   CodeAfter
+000000ac  00002330 R_ARM_THM_MOVT_AB 00000000   CodeAfter
+00000110  00002c2f R_ARM_THM_MOVW_AB 00000000   ImpLblB1
+00000114  00002c30 R_ARM_THM_MOVT_AB 00000000   ImpLblB1
+00000118  0000292f R_ARM_THM_MOVW_AB 00000000   ImpLblA1
+0000011c  00002930 R_ARM_THM_MOVT_AB 00000000   ImpLblA1
+00000120  00002f2f R_ARM_THM_MOVW_AB 00000000   ImpLblNotDeclared
+00000124  00002f30 R_ARM_THM_MOVT_AB 00000000   ImpLblNotDeclared
+00000128  00002d57 R_ARM_THM_MOVW_BR 00000000   ImpLblB2
+0000012c  00002d58 R_ARM_THM_MOVT_BR 00000000   ImpLblB2
+00000130  00002a57 R_ARM_THM_MOVW_BR 00000000   ImpLblA2
+00000134  00002a58 R_ARM_THM_MOVT_BR 00000000   ImpLblA2
+00000138  00002e2f R_ARM_THM_MOVW_AB 00000000   ImpLblB3
+0000013c  00002e30 R_ARM_THM_MOVT_AB 00000000   ImpLblB3
+00000140  00002b2f R_ARM_THM_MOVW_AB 00000000   ImpLblA3
+00000144  00002b30 R_ARM_THM_MOVT_AB 00000000   ImpLblA3
+00000168  00002857 R_ARM_THM_MOVW_BR 00000000   DataBefore
+0000016c  00002858 R_ARM_THM_MOVT_BR 00000000   DataBefore
+00000170  00002857 R_ARM_THM_MOVW_BR 00000000   DataBefore
+00000174  00002858 R_ARM_THM_MOVT_BR 00000000   DataBefore
+00000178  00002857 R_ARM_THM_MOVW_BR 00000000   DataBefore
+0000017c  00002858 R_ARM_THM_MOVT_BR 00000000   DataBefore
+00000180  00002857 R_ARM_THM_MOVW_BR 00000000   DataBefore
+00000184  00002858 R_ARM_THM_MOVT_BR 00000000   DataBefore
+00000188  00002757 R_ARM_THM_MOVW_BR 00000000   DataAfter
+0000018c  00002758 R_ARM_THM_MOVT_BR 00000000   DataAfter
+00000190  00002757 R_ARM_THM_MOVW_BR 00000000   DataAfter
+00000194  00002758 R_ARM_THM_MOVT_BR 00000000   DataAfter
+00000198  00002757 R_ARM_THM_MOVW_BR 00000000   DataAfter
+0000019c  00002758 R_ARM_THM_MOVT_BR 00000000   DataAfter
+000001a0  00002757 R_ARM_THM_MOVW_BR 00000000   DataAfter
+000001a4  00002758 R_ARM_THM_MOVT_BR 00000000   DataAfter
+
+Relocation section '.rel.CodeABSTHUMB' at offset 0x8de8 contains 38 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+00000030  0000242f R_ARM_THM_MOVW_AB 00000000   CodeBefore
+00000034  00002430 R_ARM_THM_MOVT_AB 00000000   CodeBefore
+00000038  0000242f R_ARM_THM_MOVW_AB 00000000   CodeBefore
+0000003c  00002430 R_ARM_THM_MOVT_AB 00000000   CodeBefore
+000000a0  0000232f R_ARM_THM_MOVW_AB 00000000   CodeAfter
+000000a4  00002330 R_ARM_THM_MOVT_AB 00000000   CodeAfter
+000000a8  0000232f R_ARM_THM_MOVW_AB 00000000   CodeAfter
+000000ac  00002330 R_ARM_THM_MOVT_AB 00000000   CodeAfter
+00000110  00002c2f R_ARM_THM_MOVW_AB 00000000   ImpLblB1
+00000114  00002c30 R_ARM_THM_MOVT_AB 00000000   ImpLblB1
+00000118  0000292f R_ARM_THM_MOVW_AB 00000000   ImpLblA1
+0000011c  00002930 R_ARM_THM_MOVT_AB 00000000   ImpLblA1
+00000120  00002f2f R_ARM_THM_MOVW_AB 00000000   ImpLblNotDeclared
+00000124  00002f30 R_ARM_THM_MOVT_AB 00000000   ImpLblNotDeclared
+00000128  00002d57 R_ARM_THM_MOVW_BR 00000000   ImpLblB2
+0000012c  00002d58 R_ARM_THM_MOVT_BR 00000000   ImpLblB2
+00000130  00002a57 R_ARM_THM_MOVW_BR 00000000   ImpLblA2
+00000134  00002a58 R_ARM_THM_MOVT_BR 00000000   ImpLblA2
+00000138  00002e2f R_ARM_THM_MOVW_AB 00000000   ImpLblB3
+0000013c  00002e30 R_ARM_THM_MOVT_AB 00000000   ImpLblB3
+00000140  00002b2f R_ARM_THM_MOVW_AB 00000000   ImpLblA3
+00000144  00002b30 R_ARM_THM_MOVT_AB 00000000   ImpLblA3
+00000168  00002857 R_ARM_THM_MOVW_BR 00000000   DataBefore
+0000016c  00002858 R_ARM_THM_MOVT_BR 00000000   DataBefore
+00000170  00002857 R_ARM_THM_MOVW_BR 00000000   DataBefore
+00000174  00002858 R_ARM_THM_MOVT_BR 00000000   DataBefore
+00000178  00002857 R_ARM_THM_MOVW_BR 00000000   DataBefore
+0000017c  00002858 R_ARM_THM_MOVT_BR 00000000   DataBefore
+00000180  00002857 R_ARM_THM_MOVW_BR 00000000   DataBefore
+00000184  00002858 R_ARM_THM_MOVT_BR 00000000   DataBefore
+00000188  00002757 R_ARM_THM_MOVW_BR 00000000   DataAfter
+0000018c  00002758 R_ARM_THM_MOVT_BR 00000000   DataAfter
+00000190  00002757 R_ARM_THM_MOVW_BR 00000000   DataAfter
+00000194  00002758 R_ARM_THM_MOVT_BR 00000000   DataAfter
+00000198  00002757 R_ARM_THM_MOVW_BR 00000000   DataAfter
+0000019c  00002758 R_ARM_THM_MOVT_BR 00000000   DataAfter
+000001a0  00002757 R_ARM_THM_MOVW_BR 00000000   DataAfter
+000001a4  00002758 R_ARM_THM_MOVT_BR 00000000   DataAfter
+
+There are no unwind sections in this file.
+
+Symbol table '.symtab' contains 48 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 00000000     0 NOTYPE  LOCAL  DEFAULT    4 $a
+     2: 00000000     0 NOTYPE  LOCAL  DEFAULT    5 $a
+     3: 00000000     0 NOTYPE  LOCAL  DEFAULT    6 $a
+     4: 00000030     0 NOTYPE  LOCAL  DEFAULT   10 $a
+     5: 00000110     0 NOTYPE  LOCAL  DEFAULT   10 $a
+     6: 00000000     0 NOTYPE  LOCAL  DEFAULT    3 $a
+     7: 00000030     0 NOTYPE  LOCAL  DEFAULT    8 $a
+     8: 00000110     0 NOTYPE  LOCAL  DEFAULT    8 $a
+     9: 00000000     0 NOTYPE  LOCAL  DEFAULT   10 $d
+    10: 000000e0     0 NOTYPE  LOCAL  DEFAULT   10 $d
+    11: 00000000     0 NOTYPE  LOCAL  DEFAULT   14 $d
+    12: 000000e0     0 NOTYPE  LOCAL  DEFAULT   14 $d
+    13: 00000000     0 NOTYPE  LOCAL  DEFAULT    8 $d
+    14: 000000e0     0 NOTYPE  LOCAL  DEFAULT    8 $d
+    15: 00000000     0 NOTYPE  LOCAL  DEFAULT   12 $d
+    16: 000000e0     0 NOTYPE  LOCAL  DEFAULT   12 $d
+    17: 00000000     0 NOTYPE  LOCAL  DEFAULT   20 $d
+    18: 00000000     0 NOTYPE  LOCAL  DEFAULT    7 $d
+    19: 00000000     0 NOTYPE  LOCAL  DEFAULT   17 $t
+    20: 00000000     0 NOTYPE  LOCAL  DEFAULT   18 $t
+    21: 00000000     0 NOTYPE  LOCAL  DEFAULT   19 $t
+    22: 00000030     0 NOTYPE  LOCAL  DEFAULT   14 $t
+    23: 00000110     0 NOTYPE  LOCAL  DEFAULT   14 $t
+    24: 00000000     0 NOTYPE  LOCAL  DEFAULT   16 $t
+    25: 00000030     0 NOTYPE  LOCAL  DEFAULT   12 $t
+    26: 00000110     0 NOTYPE  LOCAL  DEFAULT   12 $t
+    27: 00000000     0 SECTION LOCAL  DEFAULT   17 
+    28: 00000000     0 SECTION LOCAL  DEFAULT    4 
+    29: 00000000     0 SECTION LOCAL  DEFAULT   18 
+    30: 00000000     0 SECTION LOCAL  DEFAULT    5 
+    31: 00000000     0 SECTION LOCAL  DEFAULT   19 
+    32: 00000000     0 SECTION LOCAL  DEFAULT    6 
+    33: 00000000     0 SECTION LOCAL  DEFAULT   10 
+    34: 00000000     0 SECTION LOCAL  DEFAULT   14 
+    35: 00000000     0 SECTION LOCAL  DEFAULT   16 
+    36: 00000000     0 SECTION LOCAL  DEFAULT    3 
+    37: 00000000     0 SECTION LOCAL  DEFAULT    8 
+    38: 00000000     0 SECTION LOCAL  DEFAULT   12 
+    39: 00000000     0 SECTION LOCAL  DEFAULT   20 
+    40: 00000000     0 SECTION LOCAL  DEFAULT    7 
+    41: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND ImpLblA1
+    42: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND ImpLblA2
+    43: 00000000    16 OBJECT  GLOBAL DEFAULT  COM ImpLblA3
+    44: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND ImpLblB1
+    45: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND ImpLblB2
+    46: 00000000    40 OBJECT  GLOBAL DEFAULT  COM ImpLblB3
+    47: 00000000     0 NOTYPE  GLOBAL DEFAULT  UND ImpLblNotDeclared
+
+No version information found in this file.
+
+out/reloc_mov32_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section CodeBefore:
+
+00000000 <CodeBefore>:
+   0:	ef000000 	svc	0x00000000
+   4:	ef000001 	svc	0x00000001
+   8:	ef000002 	svc	0x00000002
+
+Disassembly of section CodeABS1Before:
+
+00000000 <CodeABS1Before>:
+   0:	ef000000 	svc	0x00000000
+   4:	ef000001 	svc	0x00000001
+   8:	ef000002 	svc	0x00000002
+
+Disassembly of section CodeABS2Before:
+
+00000000 <CodeABS2Before>:
+   0:	ef000000 	svc	0x00000000
+   4:	ef000001 	svc	0x00000001
+   8:	ef000002 	svc	0x00000002
+
+Disassembly of section CodeABS3Before:
+
+00000000 <CodeABS3Before>:
+   0:	ef000000 	svc	0x00000000
+   4:	ef000001 	svc	0x00000001
+   8:	ef000002 	svc	0x00000002
+
+Disassembly of section CodeNonABSARM:
+
+00000000 <CodeNonABSARM>:
+	...
+  30:	e3001000 	movw	r1, #0
+			30: R_ARM_MOVW_ABS_NC	CodeBefore
+  34:	e3401000 	movt	r1, #0
+			34: R_ARM_MOVT_ABS	CodeBefore
+  38:	e3002008 	movw	r2, #8
+			38: R_ARM_MOVW_ABS_NC	CodeBefore
+  3c:	e3402008 	movt	r2, #8
+			3c: R_ARM_MOVT_ABS	CodeBefore
+  40:	e3001020 	movw	r1, #32
+  44:	e3401000 	movt	r1, #0
+  48:	e3002028 	movw	r2, #40	; 0x28
+  4c:	e3402000 	movt	r2, #0
+  50:	e30f1f20 	movw	r1, #65312	; 0xff20
+  54:	e3401000 	movt	r1, #0
+  58:	e30f2f28 	movw	r2, #65320	; 0xff28
+  5c:	e3402000 	movt	r2, #0
+  60:	e30f1f20 	movw	r1, #65312	; 0xff20
+  64:	e34010ff 	movt	r1, #255	; 0xff
+  68:	e30f2f28 	movw	r2, #65320	; 0xff28
+  6c:	e34020ff 	movt	r2, #255	; 0xff
+  70:	e3001000 	movw	r1, #0
+			70: R_ARM_MOVW_ABS_NC	CodeNonABSARM
+  74:	e3401000 	movt	r1, #0
+			74: R_ARM_MOVT_ABS	CodeNonABSARM
+  78:	e3002000 	movw	r2, #0
+			78: R_ARM_MOVW_ABS_NC	CodeNonABSARM
+  7c:	e3402000 	movt	r2, #0
+			7c: R_ARM_MOVT_ABS	CodeNonABSARM
+  80:	e3003028 	movw	r3, #40	; 0x28
+			80: R_ARM_MOVW_ABS_NC	CodeNonABSARM
+  84:	e3403028 	movt	r3, #40	; 0x28
+			84: R_ARM_MOVT_ABS	CodeNonABSARM
+  88:	e3001088 	movw	r1, #136	; 0x88
+			88: R_ARM_MOVW_ABS_NC	CodeNonABSARM
+  8c:	e3401088 	movt	r1, #136	; 0x88
+			8c: R_ARM_MOVT_ABS	CodeNonABSARM
+  90:	e30010e0 	movw	r1, #224	; 0xe0
+			90: R_ARM_MOVW_ABS_NC	CodeNonABSARM
+  94:	e34010e0 	movt	r1, #224	; 0xe0
+			94: R_ARM_MOVT_ABS	CodeNonABSARM
+  98:	e3002108 	movw	r2, #264	; 0x108
+			98: R_ARM_MOVW_ABS_NC	CodeNonABSARM
+  9c:	e3402108 	movt	r2, #264	; 0x108
+			9c: R_ARM_MOVT_ABS	CodeNonABSARM
+  a0:	e3001000 	movw	r1, #0
+			a0: R_ARM_MOVW_ABS_NC	CodeAfter
+  a4:	e3401000 	movt	r1, #0
+			a4: R_ARM_MOVT_ABS	CodeAfter
+  a8:	e3002004 	movw	r2, #4
+			a8: R_ARM_MOVW_ABS_NC	CodeAfter
+  ac:	e3402004 	movt	r2, #4
+			ac: R_ARM_MOVT_ABS	CodeAfter
+  b0:	e3001020 	movw	r1, #32
+  b4:	e3401000 	movt	r1, #0
+  b8:	e3002024 	movw	r2, #36	; 0x24
+  bc:	e3402000 	movt	r2, #0
+  c0:	e30f1f20 	movw	r1, #65312	; 0xff20
+  c4:	e3401000 	movt	r1, #0
+  c8:	e30f2f24 	movw	r2, #65316	; 0xff24
+  cc:	e3402000 	movt	r2, #0
+  d0:	e30f1f20 	movw	r1, #65312	; 0xff20
+  d4:	e34010ff 	movt	r1, #255	; 0xff
+  d8:	e30f2f24 	movw	r2, #65316	; 0xff24
+  dc:	e34020ff 	movt	r2, #255	; 0xff
+	...
+ 110:	e3001000 	movw	r1, #0
+			110: R_ARM_MOVW_ABS_NC	ImpLblB1
+ 114:	e3401000 	movt	r1, #0
+			114: R_ARM_MOVT_ABS	ImpLblB1
+ 118:	e3002000 	movw	r2, #0
+			118: R_ARM_MOVW_ABS_NC	ImpLblA1
+ 11c:	e3402000 	movt	r2, #0
+			11c: R_ARM_MOVT_ABS	ImpLblA1
+ 120:	e3003000 	movw	r3, #0
+			120: R_ARM_MOVW_ABS_NC	ImpLblNotDeclared
+ 124:	e3403000 	movt	r3, #0
+			124: R_ARM_MOVT_ABS	ImpLblNotDeclared
+ 128:	e3001000 	movw	r1, #0
+			128: R_ARM_MOVW_BREL_NC	ImpLblB2
+ 12c:	e3401000 	movt	r1, #0
+			12c: R_ARM_MOVT_BREL	ImpLblB2
+ 130:	e3002000 	movw	r2, #0
+			130: R_ARM_MOVW_BREL_NC	ImpLblA2
+ 134:	e3402000 	movt	r2, #0
+			134: R_ARM_MOVT_BREL	ImpLblA2
+ 138:	e3001000 	movw	r1, #0
+			138: R_ARM_MOVW_ABS_NC	ImpLblB3
+ 13c:	e3401000 	movt	r1, #0
+			13c: R_ARM_MOVT_ABS	ImpLblB3
+ 140:	e3002000 	movw	r2, #0
+			140: R_ARM_MOVW_ABS_NC	ImpLblA3
+ 144:	e3402000 	movt	r2, #0
+			144: R_ARM_MOVT_ABS	ImpLblA3
+ 148:	e3001018 	movw	r1, #24
+ 14c:	e3401000 	movt	r1, #0
+ 150:	e30f2f48 	movw	r2, #65352	; 0xff48
+ 154:	e3402000 	movt	r2, #0
+ 158:	e3001014 	movw	r1, #20
+ 15c:	e3401000 	movt	r1, #0
+ 160:	e30f2f44 	movw	r2, #65348	; 0xff44
+ 164:	e3402000 	movt	r2, #0
+ 168:	e3001000 	movw	r1, #0
+			168: R_ARM_MOVW_BREL_NC	DataBefore
+ 16c:	e3401000 	movt	r1, #0
+			16c: R_ARM_MOVT_BREL	DataBefore
+ 170:	e3002008 	movw	r2, #8
+			170: R_ARM_MOVW_BREL_NC	DataBefore
+ 174:	e3402008 	movt	r2, #8
+			174: R_ARM_MOVT_BREL	DataBefore
+ 178:	e3073f3c 	movw	r3, #32572	; 0x7f3c
+			178: R_ARM_MOVW_BREL_NC	DataBefore
+ 17c:	e3473f3c 	movt	r3, #32572	; 0x7f3c
+			17c: R_ARM_MOVT_BREL	DataBefore
+ 180:	e30847ee 	movw	r4, #34798	; 0x87ee
+			180: R_ARM_MOVW_BREL_NC	DataBefore
+ 184:	e34847ee 	movt	r4, #34798	; 0x87ee
+			184: R_ARM_MOVT_BREL	DataBefore
+ 188:	e3001000 	movw	r1, #0
+			188: R_ARM_MOVW_BREL_NC	DataAfter
+ 18c:	e3401000 	movt	r1, #0
+			18c: R_ARM_MOVT_BREL	DataAfter
+ 190:	e3002008 	movw	r2, #8
+			190: R_ARM_MOVW_BREL_NC	DataAfter
+ 194:	e3402008 	movt	r2, #8
+			194: R_ARM_MOVT_BREL	DataAfter
+ 198:	e3073f3c 	movw	r3, #32572	; 0x7f3c
+			198: R_ARM_MOVW_BREL_NC	DataAfter
+ 19c:	e3473f3c 	movt	r3, #32572	; 0x7f3c
+			19c: R_ARM_MOVT_BREL	DataAfter
+ 1a0:	e30847ee 	movw	r4, #34798	; 0x87ee
+			1a0: R_ARM_MOVW_BREL_NC	DataAfter
+ 1a4:	e34847ee 	movt	r4, #34798	; 0x87ee
+			1a4: R_ARM_MOVT_BREL	DataAfter
+
+Disassembly of section CodeABSARM:
+
+00000000 <CodeABSARM>:
+	...
+  30:	e3001000 	.word	0xe3001000
+			30: R_ARM_MOVW_ABS_NC	CodeBefore
+  34:	e3401000 	movt	r1, #0
+			34: R_ARM_MOVT_ABS	CodeBefore
+  38:	e3002008 	movw	r2, #8
+			38: R_ARM_MOVW_ABS_NC	CodeBefore
+  3c:	e3402008 	movt	r2, #8
+			3c: R_ARM_MOVT_ABS	CodeBefore
+  40:	e3001020 	movw	r1, #32
+  44:	e3401000 	movt	r1, #0
+  48:	e3002028 	movw	r2, #40	; 0x28
+  4c:	e3402000 	movt	r2, #0
+  50:	e30f1f20 	movw	r1, #65312	; 0xff20
+  54:	e3401000 	movt	r1, #0
+  58:	e30f2f28 	movw	r2, #65320	; 0xff28
+  5c:	e3402000 	movt	r2, #0
+  60:	e30f1f20 	movw	r1, #65312	; 0xff20
+  64:	e34010ff 	movt	r1, #255	; 0xff
+  68:	e30f2f28 	movw	r2, #65320	; 0xff28
+  6c:	e34020ff 	movt	r2, #255	; 0xff
+  70:	e30f1f40 	movw	r1, #65344	; 0xff40
+  74:	e3401000 	movt	r1, #0
+  78:	e30f2f40 	movw	r2, #65344	; 0xff40
+  7c:	e3402000 	movt	r2, #0
+  80:	e30f3f68 	movw	r3, #65384	; 0xff68
+  84:	e3403000 	movt	r3, #0
+  88:	e30f1fc8 	movw	r1, #65480	; 0xffc8
+  8c:	e3401000 	movt	r1, #0
+  90:	e3001020 	movw	r1, #32
+  94:	e3401001 	movt	r1, #1
+  98:	e3002048 	movw	r2, #72	; 0x48
+  9c:	e3402001 	movt	r2, #1
+  a0:	e3001000 	movw	r1, #0
+			a0: R_ARM_MOVW_ABS_NC	CodeAfter
+  a4:	e3401000 	movt	r1, #0
+			a4: R_ARM_MOVT_ABS	CodeAfter
+  a8:	e3002004 	movw	r2, #4
+			a8: R_ARM_MOVW_ABS_NC	CodeAfter
+  ac:	e3402004 	movt	r2, #4
+			ac: R_ARM_MOVT_ABS	CodeAfter
+  b0:	e3001020 	movw	r1, #32
+  b4:	e3401000 	movt	r1, #0
+  b8:	e3002024 	movw	r2, #36	; 0x24
+  bc:	e3402000 	movt	r2, #0
+  c0:	e30f1f20 	movw	r1, #65312	; 0xff20
+  c4:	e3401000 	movt	r1, #0
+  c8:	e30f2f24 	movw	r2, #65316	; 0xff24
+  cc:	e3402000 	movt	r2, #0
+  d0:	e30f1f20 	movw	r1, #65312	; 0xff20
+  d4:	e34010ff 	movt	r1, #255	; 0xff
+  d8:	e30f2f24 	movw	r2, #65316	; 0xff24
+  dc:	e34020ff 	movt	r2, #255	; 0xff
+	...
+ 110:	e3001000 	movw	r1, #0
+			110: R_ARM_MOVW_ABS_NC	ImpLblB1
+ 114:	e3401000 	movt	r1, #0
+			114: R_ARM_MOVT_ABS	ImpLblB1
+ 118:	e3002000 	movw	r2, #0
+			118: R_ARM_MOVW_ABS_NC	ImpLblA1
+ 11c:	e3402000 	movt	r2, #0
+			11c: R_ARM_MOVT_ABS	ImpLblA1
+ 120:	e3003000 	movw	r3, #0
+			120: R_ARM_MOVW_ABS_NC	ImpLblNotDeclared
+ 124:	e3403000 	movt	r3, #0
+			124: R_ARM_MOVT_ABS	ImpLblNotDeclared
+ 128:	e3001000 	movw	r1, #0
+			128: R_ARM_MOVW_BREL_NC	ImpLblB2
+ 12c:	e3401000 	movt	r1, #0
+			12c: R_ARM_MOVT_BREL	ImpLblB2
+ 130:	e3002000 	movw	r2, #0
+			130: R_ARM_MOVW_BREL_NC	ImpLblA2
+ 134:	e3402000 	movt	r2, #0
+			134: R_ARM_MOVT_BREL	ImpLblA2
+ 138:	e3001000 	movw	r1, #0
+			138: R_ARM_MOVW_ABS_NC	ImpLblB3
+ 13c:	e3401000 	movt	r1, #0
+			13c: R_ARM_MOVT_ABS	ImpLblB3
+ 140:	e3002000 	movw	r2, #0
+			140: R_ARM_MOVW_ABS_NC	ImpLblA3
+ 144:	e3402000 	movt	r2, #0
+			144: R_ARM_MOVT_ABS	ImpLblA3
+ 148:	e3001018 	movw	r1, #24
+ 14c:	e3401000 	movt	r1, #0
+ 150:	e30f2f48 	movw	r2, #65352	; 0xff48
+ 154:	e3402000 	movt	r2, #0
+ 158:	e3001014 	movw	r1, #20
+ 15c:	e3401000 	movt	r1, #0
+ 160:	e30f2f44 	movw	r2, #65348	; 0xff44
+ 164:	e3402000 	movt	r2, #0
+ 168:	e3001000 	movw	r1, #0
+			168: R_ARM_MOVW_BREL_NC	DataBefore
+ 16c:	e3401000 	movt	r1, #0
+			16c: R_ARM_MOVT_BREL	DataBefore
+ 170:	e3002008 	movw	r2, #8
+			170: R_ARM_MOVW_BREL_NC	DataBefore
+ 174:	e3402008 	movt	r2, #8
+			174: R_ARM_MOVT_BREL	DataBefore
+ 178:	e3073f3c 	movw	r3, #32572	; 0x7f3c
+			178: R_ARM_MOVW_BREL_NC	DataBefore
+ 17c:	e3473f3c 	movt	r3, #32572	; 0x7f3c
+			17c: R_ARM_MOVT_BREL	DataBefore
+ 180:	e30847ee 	movw	r4, #34798	; 0x87ee
+			180: R_ARM_MOVW_BREL_NC	DataBefore
+ 184:	e34847ee 	movt	r4, #34798	; 0x87ee
+			184: R_ARM_MOVT_BREL	DataBefore
+ 188:	e3001000 	movw	r1, #0
+			188: R_ARM_MOVW_BREL_NC	DataAfter
+ 18c:	e3401000 	movt	r1, #0
+			18c: R_ARM_MOVT_BREL	DataAfter
+ 190:	e3002008 	movw	r2, #8
+			190: R_ARM_MOVW_BREL_NC	DataAfter
+ 194:	e3402008 	movt	r2, #8
+			194: R_ARM_MOVT_BREL	DataAfter
+ 198:	e3073f3c 	movw	r3, #32572	; 0x7f3c
+			198: R_ARM_MOVW_BREL_NC	DataAfter
+ 19c:	e3473f3c 	movt	r3, #32572	; 0x7f3c
+			19c: R_ARM_MOVT_BREL	DataAfter
+ 1a0:	e30847ee 	movw	r4, #34798	; 0x87ee
+			1a0: R_ARM_MOVW_BREL_NC	DataAfter
+ 1a4:	e34847ee 	movt	r4, #34798	; 0x87ee
+			1a4: R_ARM_MOVT_BREL	DataAfter
+
+Disassembly of section CodeNonABSTHUMB:
+
+00000000 <CodeNonABSTHUMB>:
+	...
+  30:	0100f240 	.word	0x0100f240
+			30: R_ARM_THM_MOVW_ABS_NC	CodeBefore
+  34:	f2c0 0100 	movt	r1, #0
+			34: R_ARM_THM_MOVT_ABS	CodeBefore
+  38:	f240 0208 	movw	r2, #8
+			38: R_ARM_THM_MOVW_ABS_NC	CodeBefore
+  3c:	f2c0 0208 	movt	r2, #8
+			3c: R_ARM_THM_MOVT_ABS	CodeBefore
+  40:	f240 0120 	movw	r1, #32
+  44:	f2c0 0100 	movt	r1, #0
+  48:	f240 0228 	movw	r2, #40	; 0x28
+  4c:	f2c0 0200 	movt	r2, #0
+  50:	f64f 7120 	movw	r1, #65312	; 0xff20
+  54:	f2c0 0100 	movt	r1, #0
+  58:	f64f 7228 	movw	r2, #65320	; 0xff28
+  5c:	f2c0 0200 	movt	r2, #0
+  60:	f64f 7120 	movw	r1, #65312	; 0xff20
+  64:	f2c0 01ff 	movt	r1, #255	; 0xff
+  68:	f64f 7228 	movw	r2, #65320	; 0xff28
+  6c:	f2c0 02ff 	movt	r2, #255	; 0xff
+  70:	f240 0100 	movw	r1, #0
+			70: R_ARM_THM_MOVW_ABS_NC	CodeNonABSTHUMB
+  74:	f2c0 0100 	movt	r1, #0
+			74: R_ARM_THM_MOVT_ABS	CodeNonABSTHUMB
+  78:	f240 0200 	movw	r2, #0
+			78: R_ARM_THM_MOVW_ABS_NC	CodeNonABSTHUMB
+  7c:	f2c0 0200 	movt	r2, #0
+			7c: R_ARM_THM_MOVT_ABS	CodeNonABSTHUMB
+  80:	f240 0328 	movw	r3, #40	; 0x28
+			80: R_ARM_THM_MOVW_ABS_NC	CodeNonABSTHUMB
+  84:	f2c0 0328 	movt	r3, #40	; 0x28
+			84: R_ARM_THM_MOVT_ABS	CodeNonABSTHUMB
+  88:	f240 0188 	movw	r1, #136	; 0x88
+			88: R_ARM_THM_MOVW_ABS_NC	CodeNonABSTHUMB
+  8c:	f2c0 0188 	movt	r1, #136	; 0x88
+			8c: R_ARM_THM_MOVT_ABS	CodeNonABSTHUMB
+  90:	f240 01e0 	movw	r1, #224	; 0xe0
+			90: R_ARM_THM_MOVW_ABS_NC	CodeNonABSTHUMB
+  94:	f2c0 01e0 	movt	r1, #224	; 0xe0
+			94: R_ARM_THM_MOVT_ABS	CodeNonABSTHUMB
+  98:	f240 1208 	movw	r2, #264	; 0x108
+			98: R_ARM_THM_MOVW_ABS_NC	CodeNonABSTHUMB
+  9c:	f2c0 1208 	movt	r2, #264	; 0x108
+			9c: R_ARM_THM_MOVT_ABS	CodeNonABSTHUMB
+  a0:	f240 0100 	movw	r1, #0
+			a0: R_ARM_THM_MOVW_ABS_NC	CodeAfter
+  a4:	f2c0 0100 	movt	r1, #0
+			a4: R_ARM_THM_MOVT_ABS	CodeAfter
+  a8:	f240 0204 	movw	r2, #4
+			a8: R_ARM_THM_MOVW_ABS_NC	CodeAfter
+  ac:	f2c0 0204 	movt	r2, #4
+			ac: R_ARM_THM_MOVT_ABS	CodeAfter
+  b0:	f240 0120 	movw	r1, #32
+  b4:	f2c0 0100 	movt	r1, #0
+  b8:	f240 0224 	movw	r2, #36	; 0x24
+  bc:	f2c0 0200 	movt	r2, #0
+  c0:	f64f 7120 	movw	r1, #65312	; 0xff20
+  c4:	f2c0 0100 	movt	r1, #0
+  c8:	f64f 7224 	movw	r2, #65316	; 0xff24
+  cc:	f2c0 0200 	movt	r2, #0
+  d0:	f64f 7120 	movw	r1, #65312	; 0xff20
+  d4:	f2c0 01ff 	movt	r1, #255	; 0xff
+  d8:	f64f 7224 	movw	r2, #65316	; 0xff24
+  dc:	f2c0 02ff 	movt	r2, #255	; 0xff
+	...
+ 110:	f240 0100 	movw	r1, #0
+			110: R_ARM_THM_MOVW_ABS_NC	ImpLblB1
+ 114:	f2c0 0100 	movt	r1, #0
+			114: R_ARM_THM_MOVT_ABS	ImpLblB1
+ 118:	f240 0200 	movw	r2, #0
+			118: R_ARM_THM_MOVW_ABS_NC	ImpLblA1
+ 11c:	f2c0 0200 	movt	r2, #0
+			11c: R_ARM_THM_MOVT_ABS	ImpLblA1
+ 120:	f240 0300 	movw	r3, #0
+			120: R_ARM_THM_MOVW_ABS_NC	ImpLblNotDeclared
+ 124:	f2c0 0300 	movt	r3, #0
+			124: R_ARM_THM_MOVT_ABS	ImpLblNotDeclared
+ 128:	f240 0100 	movw	r1, #0
+			128: R_ARM_THM_MOVW_BREL_NC	ImpLblB2
+ 12c:	f2c0 0100 	movt	r1, #0
+			12c: R_ARM_THM_MOVT_BREL	ImpLblB2
+ 130:	f240 0200 	movw	r2, #0
+			130: R_ARM_THM_MOVW_BREL_NC	ImpLblA2
+ 134:	f2c0 0200 	movt	r2, #0
+			134: R_ARM_THM_MOVT_BREL	ImpLblA2
+ 138:	f240 0100 	movw	r1, #0
+			138: R_ARM_THM_MOVW_ABS_NC	ImpLblB3
+ 13c:	f2c0 0100 	movt	r1, #0
+			13c: R_ARM_THM_MOVT_ABS	ImpLblB3
+ 140:	f240 0200 	movw	r2, #0
+			140: R_ARM_THM_MOVW_ABS_NC	ImpLblA3
+ 144:	f2c0 0200 	movt	r2, #0
+			144: R_ARM_THM_MOVT_ABS	ImpLblA3
+ 148:	f240 0118 	movw	r1, #24
+ 14c:	f2c0 0100 	movt	r1, #0
+ 150:	f64f 7248 	movw	r2, #65352	; 0xff48
+ 154:	f2c0 0200 	movt	r2, #0
+ 158:	f240 0114 	movw	r1, #20
+ 15c:	f2c0 0100 	movt	r1, #0
+ 160:	f64f 7244 	movw	r2, #65348	; 0xff44
+ 164:	f2c0 0200 	movt	r2, #0
+ 168:	f240 0100 	movw	r1, #0
+			168: R_ARM_THM_MOVW_BREL_NC	DataBefore
+ 16c:	f2c0 0100 	movt	r1, #0
+			16c: R_ARM_THM_MOVT_BREL	DataBefore
+ 170:	f240 0208 	movw	r2, #8
+			170: R_ARM_THM_MOVW_BREL_NC	DataBefore
+ 174:	f2c0 0208 	movt	r2, #8
+			174: R_ARM_THM_MOVT_BREL	DataBefore
+ 178:	f647 733c 	movw	r3, #32572	; 0x7f3c
+			178: R_ARM_THM_MOVW_BREL_NC	DataBefore
+ 17c:	f6c7 733c 	movt	r3, #32572	; 0x7f3c
+			17c: R_ARM_THM_MOVT_BREL	DataBefore
+ 180:	f248 74ee 	movw	r4, #34798	; 0x87ee
+			180: R_ARM_THM_MOVW_BREL_NC	DataBefore
+ 184:	f2c8 74ee 	movt	r4, #34798	; 0x87ee
+			184: R_ARM_THM_MOVT_BREL	DataBefore
+ 188:	f240 0100 	movw	r1, #0
+			188: R_ARM_THM_MOVW_BREL_NC	DataAfter
+ 18c:	f2c0 0100 	movt	r1, #0
+			18c: R_ARM_THM_MOVT_BREL	DataAfter
+ 190:	f240 0208 	movw	r2, #8
+			190: R_ARM_THM_MOVW_BREL_NC	DataAfter
+ 194:	f2c0 0208 	movt	r2, #8
+			194: R_ARM_THM_MOVT_BREL	DataAfter
+ 198:	f647 733c 	movw	r3, #32572	; 0x7f3c
+			198: R_ARM_THM_MOVW_BREL_NC	DataAfter
+ 19c:	f6c7 733c 	movt	r3, #32572	; 0x7f3c
+			19c: R_ARM_THM_MOVT_BREL	DataAfter
+ 1a0:	f248 74ee 	movw	r4, #34798	; 0x87ee
+			1a0: R_ARM_THM_MOVW_BREL_NC	DataAfter
+ 1a4:	f2c8 74ee 	movt	r4, #34798	; 0x87ee
+			1a4: R_ARM_THM_MOVT_BREL	DataAfter
+
+Disassembly of section CodeABSTHUMB:
+
+00000000 <CodeABSTHUMB>:
+	...
+  30:	0100f240 	.word	0x0100f240
+			30: R_ARM_THM_MOVW_ABS_NC	CodeBefore
+  34:	f2c0 0100 	movt	r1, #0
+			34: R_ARM_THM_MOVT_ABS	CodeBefore
+  38:	f240 0208 	movw	r2, #8
+			38: R_ARM_THM_MOVW_ABS_NC	CodeBefore
+  3c:	f2c0 0208 	movt	r2, #8
+			3c: R_ARM_THM_MOVT_ABS	CodeBefore
+  40:	f240 0120 	movw	r1, #32
+  44:	f2c0 0100 	movt	r1, #0
+  48:	f240 0228 	movw	r2, #40	; 0x28
+  4c:	f2c0 0200 	movt	r2, #0
+  50:	f64f 7120 	movw	r1, #65312	; 0xff20
+  54:	f2c0 0100 	movt	r1, #0
+  58:	f64f 7228 	movw	r2, #65320	; 0xff28
+  5c:	f2c0 0200 	movt	r2, #0
+  60:	f64f 7120 	movw	r1, #65312	; 0xff20
+  64:	f2c0 01ff 	movt	r1, #255	; 0xff
+  68:	f64f 7228 	movw	r2, #65320	; 0xff28
+  6c:	f2c0 02ff 	movt	r2, #255	; 0xff
+  70:	f64f 7140 	movw	r1, #65344	; 0xff40
+  74:	f2c0 0100 	movt	r1, #0
+  78:	f64f 7240 	movw	r2, #65344	; 0xff40
+  7c:	f2c0 0200 	movt	r2, #0
+  80:	f64f 7368 	movw	r3, #65384	; 0xff68
+  84:	f2c0 0300 	movt	r3, #0
+  88:	f64f 71c8 	movw	r1, #65480	; 0xffc8
+  8c:	f2c0 0100 	movt	r1, #0
+  90:	f240 0120 	movw	r1, #32
+  94:	f2c0 0101 	movt	r1, #1
+  98:	f240 0248 	movw	r2, #72	; 0x48
+  9c:	f2c0 0201 	movt	r2, #1
+  a0:	f240 0100 	movw	r1, #0
+			a0: R_ARM_THM_MOVW_ABS_NC	CodeAfter
+  a4:	f2c0 0100 	movt	r1, #0
+			a4: R_ARM_THM_MOVT_ABS	CodeAfter
+  a8:	f240 0204 	movw	r2, #4
+			a8: R_ARM_THM_MOVW_ABS_NC	CodeAfter
+  ac:	f2c0 0204 	movt	r2, #4
+			ac: R_ARM_THM_MOVT_ABS	CodeAfter
+  b0:	f240 0120 	movw	r1, #32
+  b4:	f2c0 0100 	movt	r1, #0
+  b8:	f240 0224 	movw	r2, #36	; 0x24
+  bc:	f2c0 0200 	movt	r2, #0
+  c0:	f64f 7120 	movw	r1, #65312	; 0xff20
+  c4:	f2c0 0100 	movt	r1, #0
+  c8:	f64f 7224 	movw	r2, #65316	; 0xff24
+  cc:	f2c0 0200 	movt	r2, #0
+  d0:	f64f 7120 	movw	r1, #65312	; 0xff20
+  d4:	f2c0 01ff 	movt	r1, #255	; 0xff
+  d8:	f64f 7224 	movw	r2, #65316	; 0xff24
+  dc:	f2c0 02ff 	movt	r2, #255	; 0xff
+	...
+ 110:	f240 0100 	movw	r1, #0
+			110: R_ARM_THM_MOVW_ABS_NC	ImpLblB1
+ 114:	f2c0 0100 	movt	r1, #0
+			114: R_ARM_THM_MOVT_ABS	ImpLblB1
+ 118:	f240 0200 	movw	r2, #0
+			118: R_ARM_THM_MOVW_ABS_NC	ImpLblA1
+ 11c:	f2c0 0200 	movt	r2, #0
+			11c: R_ARM_THM_MOVT_ABS	ImpLblA1
+ 120:	f240 0300 	movw	r3, #0
+			120: R_ARM_THM_MOVW_ABS_NC	ImpLblNotDeclared
+ 124:	f2c0 0300 	movt	r3, #0
+			124: R_ARM_THM_MOVT_ABS	ImpLblNotDeclared
+ 128:	f240 0100 	movw	r1, #0
+			128: R_ARM_THM_MOVW_BREL_NC	ImpLblB2
+ 12c:	f2c0 0100 	movt	r1, #0
+			12c: R_ARM_THM_MOVT_BREL	ImpLblB2
+ 130:	f240 0200 	movw	r2, #0
+			130: R_ARM_THM_MOVW_BREL_NC	ImpLblA2
+ 134:	f2c0 0200 	movt	r2, #0
+			134: R_ARM_THM_MOVT_BREL	ImpLblA2
+ 138:	f240 0100 	movw	r1, #0
+			138: R_ARM_THM_MOVW_ABS_NC	ImpLblB3
+ 13c:	f2c0 0100 	movt	r1, #0
+			13c: R_ARM_THM_MOVT_ABS	ImpLblB3
+ 140:	f240 0200 	movw	r2, #0
+			140: R_ARM_THM_MOVW_ABS_NC	ImpLblA3
+ 144:	f2c0 0200 	movt	r2, #0
+			144: R_ARM_THM_MOVT_ABS	ImpLblA3
+ 148:	f240 0118 	movw	r1, #24
+ 14c:	f2c0 0100 	movt	r1, #0
+ 150:	f64f 7248 	movw	r2, #65352	; 0xff48
+ 154:	f2c0 0200 	movt	r2, #0
+ 158:	f240 0114 	movw	r1, #20
+ 15c:	f2c0 0100 	movt	r1, #0
+ 160:	f64f 7244 	movw	r2, #65348	; 0xff44
+ 164:	f2c0 0200 	movt	r2, #0
+ 168:	f240 0100 	movw	r1, #0
+			168: R_ARM_THM_MOVW_BREL_NC	DataBefore
+ 16c:	f2c0 0100 	movt	r1, #0
+			16c: R_ARM_THM_MOVT_BREL	DataBefore
+ 170:	f240 0208 	movw	r2, #8
+			170: R_ARM_THM_MOVW_BREL_NC	DataBefore
+ 174:	f2c0 0208 	movt	r2, #8
+			174: R_ARM_THM_MOVT_BREL	DataBefore
+ 178:	f647 733c 	movw	r3, #32572	; 0x7f3c
+			178: R_ARM_THM_MOVW_BREL_NC	DataBefore
+ 17c:	f6c7 733c 	movt	r3, #32572	; 0x7f3c
+			17c: R_ARM_THM_MOVT_BREL	DataBefore
+ 180:	f248 74ee 	movw	r4, #34798	; 0x87ee
+			180: R_ARM_THM_MOVW_BREL_NC	DataBefore
+ 184:	f2c8 74ee 	movt	r4, #34798	; 0x87ee
+			184: R_ARM_THM_MOVT_BREL	DataBefore
+ 188:	f240 0100 	movw	r1, #0
+			188: R_ARM_THM_MOVW_BREL_NC	DataAfter
+ 18c:	f2c0 0100 	movt	r1, #0
+			18c: R_ARM_THM_MOVT_BREL	DataAfter
+ 190:	f240 0208 	movw	r2, #8
+			190: R_ARM_THM_MOVW_BREL_NC	DataAfter
+ 194:	f2c0 0208 	movt	r2, #8
+			194: R_ARM_THM_MOVT_BREL	DataAfter
+ 198:	f647 733c 	movw	r3, #32572	; 0x7f3c
+			198: R_ARM_THM_MOVW_BREL_NC	DataAfter
+ 19c:	f6c7 733c 	movt	r3, #32572	; 0x7f3c
+			19c: R_ARM_THM_MOVT_BREL	DataAfter
+ 1a0:	f248 74ee 	movw	r4, #34798	; 0x87ee
+			1a0: R_ARM_THM_MOVW_BREL_NC	DataAfter
+ 1a4:	f2c8 74ee 	movt	r4, #34798	; 0x87ee
+			1a4: R_ARM_THM_MOVT_BREL	DataAfter
+
+Disassembly of section CodeAfter:
+
+00000000 <CodeAfter>:
+   0:	df03      	svc	3
+   2:	df04      	svc	4
+   4:	df05      	svc	5
+	...
+
+Disassembly of section CodeABS1After:
+
+00000000 <CodeABS1After>:
+   0:	df00      	svc	0
+   2:	df01      	svc	1
+   4:	df02      	svc	2
+	...
+
+Disassembly of section CodeABS2After:
+
+00000000 <CodeABS2After>:
+   0:	df00      	svc	0
+   2:	df01      	svc	1
+   4:	df02      	svc	2
+	...
+
+Disassembly of section CodeABS3After:
+
+00000000 <CodeABS3After>:
+   0:	df00      	svc	0
+   2:	df01      	svc	1
+   4:	df02      	svc	2
+	...

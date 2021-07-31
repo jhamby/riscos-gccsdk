@@ -1,0 +1,2 @@
+#wget --progress=bar:force http://www.libsdl.org/projects/quake/src/SDLquake.pat -O ../SDLQuake.p
+#cat ../SDLQuake.p|patch -p0

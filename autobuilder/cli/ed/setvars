@@ -1,0 +1,11 @@
+
+AB_CATEGORY=Command
+
+AB_MANPAGE="doc/ed.1"
+
+AB_CONFLAGS="CC=$CC LDFLAGS=-static"
+
+ab_package() {
+  cp -av $S/ed$AB_EXEEXT $S/COPYING $D
+}
+

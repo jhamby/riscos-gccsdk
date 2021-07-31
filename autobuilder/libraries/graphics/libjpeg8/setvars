@@ -1,0 +1,64 @@
+AB_URL=www.ijg.org/files/jpegsrc.v8d.tar.gz
+AB_INSTALL=yes
+# Need to add the 1 to the version so it's greater than the last shipped version
+AB_PVERSION=8d1
+AB_ROVERSION=5
+
+AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
+
+ab_package() {
+  # Package programs
+  ab_create_command_app JPEGProgs Apps/Graphics libjpeg-progs
+  ab_add_commands $S/*$AB_EXEEXT
+  ab_add_commands $S/.libs/*$AB_EXEEXT
+
+  cp $S/usage.txt $A/\!Help
+  cp $S/usage.txt $S/wizard.txt $A/
+  cp $S/README $A/
+
+  mv $D/*,faf $A/
+
+  $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib -section Graphics -copyrightfile $H/Copyright -depends LibJPEG8
+
+  # Package libraries
+  AB_COMPONENTS=""
+  ab_create_app LibJPEG Apps/Library libjpeg8-dev
+
+  HERE=`pwd`
+  cd $A
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  # Add some documentation
+  mkdir -p $A/doc/c
+  cp $S/example.c $A/doc/c/example
+  cp $S/libjpeg.txt $A/\!Help
+  cp $S/libjpeg.txt $S/README $S/structure.txt $A/doc
+
+  $AB_HOME/add-riscpkg -package libjpeg8-dev -name LibJPEG8-Dev -section Library -unixlib -copyrightfile $H/Copyright
+
+  mkdir -p $D/libjpeg8-dev/RiscPkg
+  echo "Description: Development files for the IJG JPEG library" >> $D/libjpeg8-dev/RiscPkg/Control,fff
+  echo " The Independent JPEG Group's JPEG library is a library for handling" >> $D/libjpeg8-dev/RiscPkg/Control,fff
+  echo " JPEG files." >> $D/libjpeg8-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libjpeg8-dev/RiscPkg/Control,fff
+  echo " This package contains the static library, headers and documentation." >> $D/libjpeg8-dev/RiscPkg/Control,fff
+
+  cd $HERE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libjpeg8
+     ab_add_sharedlib $S/.libs libjpeg.so.8
+     
+     $AB_HOME/add-riscpkg -package libjpeg8 -name LibJPEG8 -depends SharedLibs \
+		-section Library -copyrightfile $H/Copyright
+  fi
+}

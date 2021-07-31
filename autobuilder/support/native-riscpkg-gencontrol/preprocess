@@ -1,0 +1,4 @@
+#!/bin/sh
+AB_PACKAGES=native-riscpkg-gencontrol
+AB_FULLNAME=$(pwd)/!RiscPkg-GenControl
+

@@ -1,0 +1,3 @@
+AB_URL=http://archive.debian.org/debian-security/pool/updates/main/libx/libxfixes/libxfixes_5.0.orig.tar.gz
+
+AB_INSTALL=yes

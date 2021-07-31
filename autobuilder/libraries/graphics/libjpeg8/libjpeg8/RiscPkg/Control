@@ -1,0 +1,7 @@
+Licence: Free
+Depends: SharedLibs
+Description: Independent JPEG Group's JPEG runtime library
+ The Independent JPEG Group's JPEG library is a library for handling
+ JPEG files.
+ .
+ This package contains the shared library.

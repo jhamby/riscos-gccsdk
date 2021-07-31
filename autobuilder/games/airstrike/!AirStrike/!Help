@@ -1,0 +1,23 @@
+Airstrike
+---------
+
+You will need a filing system with long file name support to play this game.
+
+Keys
+----
+
+Turn clockwise		Right
+Turn counterclockwise	Left
+Accelerate		,
+Fire			.
+Bomb			Space
+
+
+This version created by the GCCSDK Autobuilder
+for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+It also requires that the SharedUnixLibrary which is
+available from:
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 

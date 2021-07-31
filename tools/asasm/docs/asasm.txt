@@ -1,0 +1,40 @@
+Quick documentation of the asasm extensions beyond its ObjAsm support:
+
+- HEAD <function name>
+  Assembles an APCS function name signature typically at the beginning of
+  the function prologue used for backtracing purposes.
+
+Filename handling and system/environment variable expansion:
+
+Asasm supports both RISC OS as Unix filenames, including the traditional
+suffix swapping done under RISC OS (i.e. the 's.asm' style while everyone else
+in the world use 'asm.s').
+
+This support is also there for cross-compiled versions of asasm.  In order to
+get RISC OS paths working on non-RISC OS platforms, you need to define an
+environment variable (upcasing the RISC OS path name and extending with
+"_PATH") holding one or more directories in platform native format which
+are separated by a colon character.
+
+E.g. to deal with RISC OS path "MyPath:Dir3.Dir4.MyFile" you define the
+environment variable MYPATH_PATH as "/dirA/dirB:/dirC/dirD".  Then the file
+'MyFile' will be accessed as "/dirA/dirB/Dir3/Dir4/MyFile" or
+"/dirC/dirD/Dir3/Dir4/MyFile".
+
+Under RISC OS, asasm also supports the '<foo>' expansion when 'foo' is defined
+as RISC OS system variable.  For a cross-compiled version of asasm, this
+support is also there but the environment variable will be upcased first and
+any dollar sign is replaced by an underscore character.
+
+E.g. "<MyLib$Dir>.Dir3.Dir4.MyFile" will get expanded based on the 'MyLib$Dir'
+system variable under RISC OS and on another platform the environment variable
+MYLIB_DIR will be used instead.
+
+It is worthwhile to note that when the expansion is used for filenames
+(like in previous example), you should still be using RISC OS filename
+syntax for cross-compiled asasm versions as a mixed RISC OS and non-RISC OS
+parts in a filename are not well supported.  So define "MYLIB_DIR" like
+"$.dir1.dir2" so that the result will be "$.dir1.dir2.Dir3.Dir4.MyFile"
+which will result in accessing /dir1/dir2/Dir3/Dir4/MyFile" under Unix.
+
+-EOF-

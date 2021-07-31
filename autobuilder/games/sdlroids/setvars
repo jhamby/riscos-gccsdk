@@ -1,0 +1,19 @@
+AB_URL=https://sourceforge.net/projects/sdlroids/files/sdlroids/1.3.4/sdlroids-1.3.4.tar.bz2
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app SDLRoids Apps/Games
+
+  ab_makerun $S/sdlroids
+
+  mkdir -p $A/data/sdlroids
+  cp -r bmp $A/data/sdlroids
+  cp -r sounds $A/data/sdlroids
+  cp -av ChangeLog COPYING README $A/
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound \
+     -copyrightfile $S/COPYING -name SDLRoids
+}
+
+export LIBS="-lvorbisidec"
+AB_CONFLAGS=\''--datadir=/\<SDLRoids\$$Dir\>/data'\'

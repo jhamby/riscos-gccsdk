@@ -1,0 +1,32 @@
+AB_INSTALL=yes
+
+AB_CONFLAGS=--disable-arm-simd
+
+ab_package() {
+  ab_create_app LibPixman-1 Apps/Library libpixman-1-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+  
+  mv include/ pixman-1
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibPixman-1-Dev -copyrightfile COPYING
+  
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libpixman-1-0
+     ab_add_sharedlib $S/pixman/.libs libpixman-1.so.0     
+     
+     $AB_HOME/add-riscpkg -package libpixman-1-0 -name LibPixman-1-0 -depends SharedLibs-C2
+  fi
+}

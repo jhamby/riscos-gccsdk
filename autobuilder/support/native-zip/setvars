@@ -1,0 +1,10 @@
+
+AB_PRECONF=:
+
+make -f unix/Makefile generic LOCAL_ZIP=-DFORRISCOS  
+
+mkdir -p $GCCSDK_INSTALL_ENV/bin
+cp zip $GCCSDK_INSTALL_ENV/bin/
+
+echo "all:" > Makefile
+

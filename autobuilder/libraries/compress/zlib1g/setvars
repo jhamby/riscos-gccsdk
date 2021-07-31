@@ -1,0 +1,47 @@
+AB_INSTALL=yes
+AB_ROVERSION=3
+
+# Have to repeat sharedlibs default logic here as build sets it after
+# the call to setvars
+if [ -z "$RO_SHAREDLIBS" ] ; then
+  if [ "$AB_ELFBUILD" != "yes" ] ; then
+    AB_CONFLAGS=--static
+  fi
+else
+  if [ "$RO_SHAREDLIBS" != "yes" ] ; then
+    AB_CONFLAGS=--static
+  fi
+fi
+
+ab_package() {
+  ab_create_app ZLib1g Apps/Library zlib1g-dev
+
+  cp README $A\!Help
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip  
+
+  mv include/* .
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  cp -r examples $A/doc
+  cp ChangeLog FAQ $A/doc
+  
+  $AB_HOME/add-riscpkg -package zlib1g-dev -name ZLib1g-Dev -unixlib
+  
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton zlib1g
+     ab_add_sharedlib $S libz.so.1     
+     
+     $AB_HOME/add-riscpkg -package zlib1g -name ZLib1g -depends SharedLibs-C2
+  fi  
+}

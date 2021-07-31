@@ -1,0 +1,6 @@
+| Boot file for LibPcre3
+|
+If "<LibPcre3$Dir>" = "" Then Set LibPcre3$Dir <Obey$Dir>
+If "<LibPcre3$Path>" = "" Then Set LibPcre3$Path <Obey$Dir>.
+
+IconSprites <LibPcre3$Dir>.!Sprites

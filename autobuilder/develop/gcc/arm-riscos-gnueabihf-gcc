@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+cmd=$0
+
+if grep -q arm-riscos- <<< $cmd; then
+  cmd=$(sed s#GCCSDK_ENV#GCCSDK_BIN# <<< $cmd)
+else
+  cmd=$(sed s#GCCSDK_ENV/#GCCSDK_BIN/arm-riscos-armeabihf-# <<< $cmd)
+fi
+
+if $(grep -q -- -cpp <<< $cmd) ; then
+  libs=""
+else
+  libs="-Wl,-rpath-link,GCCSDK_ENV/lib"
+
+  for param in "$@"; do
+    if [ "$param" == "-c" ] ; then
+      libs=""
+      break
+    fi
+  done
+
+  libs="$libs -LGCCSDK_ENV/lib -LGCCSDK_ENV/arm-riscos-armeabihf/lib/`$cmd $@ -print-multi-directory`"
+fi
+
+includes="-isystem GCCSDK_ENV/include"
+
+exec $cmd "$@" $includes $libs

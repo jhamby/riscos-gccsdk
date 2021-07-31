@@ -1,0 +1,29 @@
+
+RISC OS Notes
+=============
+
+RISC OS version requires RISCOS 3.6 or later, long filenames, 8.5MB RAM and a machine capable of displaying 640x480 in 32 thousand colours.
+
+This program requires:
+
+SharedUnixLibrary module available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
+
+Contact: alan_baa@hotmail.com or the GCCSDK list
+
+This port:
+----------
+
+Alan Buckley August 2007.
+
+This version created by the GCCSDK Autobuilder
+for details see:
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+
+Original port:
+--------------
+
+Alan Buckley July 14, 2003.
+

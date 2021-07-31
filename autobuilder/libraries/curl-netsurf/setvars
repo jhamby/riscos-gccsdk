@@ -1,0 +1,5 @@
+
+AB_INSTALL=yes
+
+AB_CONFLAGS="--enable-http --disable-ftp --enable-file --disable-ldap --disable-dict --disable-gopher --disable-telnet --disable-manual --disable-ipv6 --enable-nonblocking --enable-thread --enable-ares=$GCCSDK_INSTALL_ENV/lib --disable-debug --with-random=/dev/urandom --without-libidn"
+

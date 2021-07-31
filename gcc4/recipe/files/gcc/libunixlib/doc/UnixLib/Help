@@ -1,0 +1,80 @@
+                                UnixLib 5.0
+                                ~~~~~~~~~~~
+
+This document provides a VERY short introduction to UnixLib, and only covers
+the RISC OS specific details of using UnixLib. It does not document what
+facilites it provides, or how it works. For this you should look at the
+various documents elsewhere in this distribution, the source, and a proper
+manual (like <URL:http://www.opengroup.org/onlinepubs/007904975/download/>
+and <URL:http://www.opengroup.org/onlinepubs/007908799/>).
+
+The UnixLib is part of the RISC OS GCCSDK and its home page is at
+<URL:http://gccsdk.riscos.info/>. This should be checked for
+updates and bug-fixes.
+
+
+What
+~~~~
+
+UnixLib is an APCS-32 compliant Run-Time Library for the RISC OS based
+computers that provides a mixed System V / BSD / Linux interface for C and
+C++ programs.  It is also an alternative to the "Stubs" libraries supplied
+with the Norcroft/Castle C/C++ compiler.
+
+It is also the default Run-Time Library for the RISC OS port of GCC.
+
+Supported RISC OS versions are currently RISC OS 4 (26-bit and 32-bit
+flavours), RISC OS 5 (32-bit) and RISC OS 6 (26-bit/32-bit).  Other versions
+might work too but are not actively tested by its developers.
+
+Quoting the original documentation :
+
+    [UnixLib] is a complete replacement ANSI compliant C library for use
+    with Acorn RISC OS ANSI C Release 3.0/3.1A/3.1B/4.0. It incorporates
+    a subset of the UNIX system call interface and some common System V
+    and 4.3 BSD C libraries.
+
+UnixLib was originaly developed by Huw Rogers, up to version 3.6c, after
+which Simon Callan took over development. This was mainly triggered by
+his work on the port of GCC 2.4.5 to RISC OS. Nick Burrett and Peter
+Burwood did a lot of the development work starting at version 3.7b and
+working towards 3.8 for their ports of GCC 2.7 and GNAT 3.03 respectively.
+Additional help along the way has been provided by Nick Clark and
+John Tytgat. Peter Naulls and Alex Waugh contributed significantly to
+create 4.0 which features 32-bit compliancy and pthread support.
+
+UnixLib version 5.0 has no longer any support for the Norcroft (nor LCC)
+compiler and is only suited for use with GCC compiler.  It is also the
+first official version supporting ELF static & shared object format.
+
+UnixLib is covered with various licenses, the most significant of which
+is the Lesser GNU Public License. For more details see the file
+COPYRIGHT.
+
+
+Running and distributing UnixLib based programs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When your program is linked with UnixLib, it needs the "SharedUnixLibrary"
+module.  If your program is to be distributed on the internet, we
+recommend you direct users to fetch the latest version from the GCCSDK
+home page (http://gccsdk.riscos.info) to ensure they have the latest version.
+Otherwise, we advise to ship together with your product the following
+directory tree !System.310.Modules containing a copy of the
+"SharedUnixLibrary" module as file "SharedULib".  Users can use the
+!System merger to make sure they have the latest version of this module.
+
+Please don't distribute any development version of SharedUnixLib without
+permission from developers, as you may cause version confusion and the
+potential exists to distribute unstable or untested code.
+
+If you intend your program to run on versions of RISC OS older than 3.7,
+you should also provide an installation note or program to install the
+CallASWI module as !System.Modules.CallASWI.  Or, even better, redirect
+the users to <URL:http://www.iyonix.com/32bit/CallASWI.shtml> for the
+latest known version and approved installation program.
+
+Note you might need other modules used by UnixLib when you're using
+specific functionaly.  See separate document README for more information.
+
+-EOF-

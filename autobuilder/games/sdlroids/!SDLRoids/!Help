@@ -1,0 +1,25 @@
+SDLRoids
+
+Keys:
+    Left/Right arrows - Turn
+    Up/Down arrows    - Thrust
+    Space             - Fire
+    S                 - Smartbomb
+    Tab               - Shields
+
+    Escape            - Quit
+
+This version created by the GCCSDK Autobuilder
+for details see:
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+This program requires:
+
+SharedUnixLibrary module available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
+
+Current port added to autobuilder by
+Alan Buckley (alan_baa@hotmail.com)
+Original port by Peter Naulls <peter@chocky.org>
+

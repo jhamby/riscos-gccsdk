@@ -1,0 +1,17 @@
+GPL Ghostscript 8.71 (04-Apr-17)
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+See the "8_71.doc" subdirectory for more documentation or the official ghostscript website at http://www.ghostscript.com
+
+Getting Started
+---------------
+This is the first version built by the GCCSDK Autobuilder. See the oldHelp file
+for information on previous versions and installation instructions.
+This version now runs correctly on modern RISC OS platforms. Previous versions
+may display colours incorrectly on ARMv7 or fail to run completely on ARMv8. (Notably the Raspberry Pi 3).
+
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net

@@ -1,0 +1,2 @@
+wimpslot -min 15124K
+gs -q -dNODISPLAY -- wftopfa.ps "%*0"

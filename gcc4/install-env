@@ -1,0 +1,41 @@
+#!/bin/bash -e
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2006-2013 GCCSDK Developers
+
+pushd `dirname $0` > /dev/null
+GCCSDK_ROOT=`pwd`
+popd > /dev/null
+source $GCCSDK_ROOT/setup-gccsdk-params
+
+if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
+  echo \$GCCSDK_INSTALL_ENV is not defined
+  exit 1
+fi
+if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  echo \$GCCSDK_INSTALL_CROSSBIN is not defined
+  exit 1
+fi
+
+if [ ! -d $GCCSDK_INSTALL_ENV ] ; then
+  mkdir -p $GCCSDK_INSTALL_ENV
+fi
+
+# Calculate build
+GCCSDK_BUILD=`$GCCSDK_SRCDIR/gcc/config.guess`
+GCCSDK_SCRIPTS=`find $GCCSDK_ROOT/porting-scripts -maxdepth 1 \( -type f -o -type l \) -exec basename {} \; | grep -v -e ChangeLog -e PortingTools.html`
+for f in $GCCSDK_SCRIPTS ; do
+  if [ -L $GCCSDK_ROOT/porting-scripts/$f ] ; then
+    cp -a $GCCSDK_ROOT/porting-scripts/$f $GCCSDK_INSTALL_ENV
+  else
+    sed -e s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:g -e s:GCCSDK_BIN:$GCCSDK_INSTALL_CROSSBIN:g -e s:GCCSDK_BUILD:$GCCSDK_BUILD:g < $GCCSDK_ROOT/porting-scripts/$f > $GCCSDK_INSTALL_ENV/$f
+    test -x $GCCSDK_ROOT/porting-scripts/$f && chmod 755 $GCCSDK_INSTALL_ENV/$f
+  fi
+done
+
+ln -sf $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-strip $GCCSDK_INSTALL_ENV/strip
+
+# Create empty libraries needed to fool configure tests
+for lib in c pthread gcc_s; do 
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/lib${lib}.a
+done
+

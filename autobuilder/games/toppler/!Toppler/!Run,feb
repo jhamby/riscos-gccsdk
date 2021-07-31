@@ -1,0 +1,8 @@
+| Run file for Toppler
+
+WIMPSLOT
+
+Set Toppler$Dir <Obey$Dir>
+
+| Note -f option gives fullscreen
+Run <Toppler$Dir>.toppler >null: 2>null:

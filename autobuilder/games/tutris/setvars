@@ -1,0 +1,18 @@
+AB_ROVERSION=2
+
+export LIBS="-lSDL_image -lpng -ljpeg -lz"
+
+AB_CONFLAGS=\''--datadir=/\<Tutris\$$Dir\>/data'\'
+
+ab_package() {
+  ab_create_app Tutris Apps/Games
+  ab_makerun src/tutris$AB_EXEEXT
+
+  cat README >> $A/\!Help
+  cp -av AUTHORS ChangeLog COPYING $A
+  cp -r data $A
+  rm $A/data/Makefile*
+
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile copying
+}

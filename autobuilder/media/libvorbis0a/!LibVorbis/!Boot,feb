@@ -1,0 +1,6 @@
+| Boot file for LibVorbis
+|
+If "<LibVorbis$Dir>" = "" Then Set LibVorbis$Dir <Obey$Dir>
+If "<LibVorbis$Path>" = "" Then Set LibVorbis$Path <Obey$Dir>.
+
+IconSprites <LibVorbis$Dir>.!Sprites

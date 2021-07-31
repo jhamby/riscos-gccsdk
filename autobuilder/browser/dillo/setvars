@@ -1,0 +1,13 @@
+AB_URL=http://www.dillo.org/download/dillo-2.1.1.tar.bz2
+
+AB_CATEGORY=Browser
+
+AB_CONFLAGS=--disable-dlgui
+
+AB_MANPAGE=debian/dillo.1
+
+ab_package() {
+  cp -av $H/\!Dillo $D
+  cp -av $S/src/dillo$AB_EXEEXT $D/\!Dillo
+  cp -av $S/COPYING $D/\!Dillo
+}

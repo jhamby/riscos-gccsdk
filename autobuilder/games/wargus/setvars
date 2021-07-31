@@ -1,0 +1,13 @@
+AB_URL=https://sourceforge.net/projects/wargus/files/wargus/for%20Stratagus%202.2.4/wargus-2.2.4-src.tar.gz
+AB_ROVERSION=4
+
+# Doesn't have a configure command
+AB_PRECONF=:
+
+ab_package() {
+  ab_create_app Wargus Apps/Games
+
+  cp -av $S/campaigns $S/contrib $S/maps $S/scripts $S/wartool$AB_EXEEXT $A
+
+  $AB_HOME/add-riscpkg -depends Stratagus
+}

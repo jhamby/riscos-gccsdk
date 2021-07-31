@@ -1,0 +1,5 @@
+| !Help file for GCCSDK 4
+| Copyright (c) GCCSDK Developers 2007
+
+Run <Obey$Dir>.!Boot
+If "<Alias$@RunType_FAF>" <> "" then Filer_Run <GCC$Help> else Error The GCC documentation is in HTML only. Please locate or install an HTML browser.

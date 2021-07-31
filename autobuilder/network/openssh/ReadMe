@@ -1,0 +1,55 @@
+About
+-----
+
+This is a port of the ssh client from OpenSSH.  It supports ssh1 and
+ssh2 protcols.  Hopefully in future, there will also be working scp
+and sftp clients.
+
+
+Before you start
+----------------
+
+Please obtain Nettle from:
+
+    http://nettle.sourceforge.net/
+
+And !UnixHome from
+
+    http://www.riscos.info/unix/
+
+
+Installing
+----------
+
+Place the ssh binary anywhere you like - somewhere in the Run$Path
+may be sensible.
+
+
+Usage
+-----
+
+ssh is designed to work running as an "ANSI Task" under Nettle. Its use
+running outside of Nettle is limited.
+
+ssh also requires a large wimpslot - greater than about 1.1MB before it will
+start.
+
+ssh is started by typing "ssh user@host " into the command dialogue of Nettle
+as an ANSI task.  Other options are possible.
+
+There are ongoing issues with escape handling in Unixlib, which happen to
+afflict ssh.  Input sequences which use escape (e.g. arrow keys) do not
+work (but unlike previous versions they won't cause it to exit).  And
+after initial log in, CR/LR is broken.  Type "reset" under unix to fix this.
+Please do not report this issues.  I thought it better to release this version
+as is, to provide some usefulness.
+
+Also unlike previous versions, it should not lock the machine if the
+taskwindow is closed before the program exits.
+
+
+History
+-------
+
+Release 1 - Initial Public version.
+

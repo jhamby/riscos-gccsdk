@@ -1,0 +1,8 @@
+bin_PROGRAMS = as
+as_SOURCES = as.c
+as_CFLAGS = -I${top_srcdir}/common \
+	    -I${top_srcdir}/libelftc \
+	    -I${top_srcdir}/libelf
+as_LDADD = ../libelftc/libelftc.la
+
+dist_man1_MANS = as.1

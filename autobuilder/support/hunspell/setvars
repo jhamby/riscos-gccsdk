@@ -1,0 +1,22 @@
+AB_NOREMOTE=yes
+AB_PVERSION=1.00
+AB_ROVERSION=1
+AB_COPYSOURCE=no
+AB_CATEGORY=System
+AB_PACKAGES=Hunspell
+AB_PRECONF=:
+AB_MAKE=:
+
+ab_package() {
+
+  mkdir -p $D/Hunspell/Resources
+
+  cp -rav $H/!Hunspell $D/Hunspell/Resources
+  cp -av /usr/share/hunspell/en_GB.aff $D/Hunspell/Resources/!Hunspell/en-GB.aff
+  cp -av /usr/share/hunspell/en_GB.dic $D/Hunspell/Resources/!Hunspell/en-GB.dic
+
+  $AB_HOME/add-riscpkg -section System -package Hunspell
+}
+
+
+

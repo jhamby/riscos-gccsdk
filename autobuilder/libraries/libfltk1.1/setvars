@@ -1,0 +1,5 @@
+AB_INSTALL=yes
+
+AB_PRECONF="RO_SHAREDLIBS=no X_EXTRA_LIBS=\"-lz -lpng -lintl -ldl -Wl,-rpath-link,$GCCSDK_INSTALL_ENV/lib\""
+
+AB_CONFLAGS='--with-optim=-O3'

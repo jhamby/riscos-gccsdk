@@ -1,0 +1,6 @@
+| Run file for LibFLAC
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibFLAC$Dir <Obey$Dir>
+Set LibFLAC$Path <Obey$Dir>.

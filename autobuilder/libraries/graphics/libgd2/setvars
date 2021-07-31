@@ -1,0 +1,9 @@
+
+AB_INSTALL=yes
+
+aclocal
+autoheader
+libtoolize --automake
+automake --add-missing
+autoconf
+

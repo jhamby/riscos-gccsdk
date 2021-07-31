@@ -1,0 +1,18 @@
+; Copyright (c) 2005-2007 GCCSDK Developers
+; Small boiler plate example how to write RISC OS FS module using GCCSDK.
+
+#include "gccmodule_config.h"
+
+date-string:            26 Nov 2005
+
+title-string:           GCCExample
+
+help-string:            GCCExample 1.02 (c) 2005-2007 GCCSDK Developers
+
+initialisation-code:    gccmodule_init
+
+finalisation-code:      gccmodule_final
+
+service-call-handler: gccmodule_service Service_FSRedeclare
+
+generic-veneers: fsentry_open fsentry_getbytes fsentry_putbytes fsentry_args fsentry_close fsentry_file fsentry_func fsentry_gbpb

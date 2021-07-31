@@ -1,0 +1,12 @@
+
+AB_CATEGORY=Browser
+
+AB_CONFLAGS=--without-lua
+
+AB_FILESNOPATH="src/elinks$AB_EXEEXT COPYING"
+AB_MANPAGE=elinks.1
+
+# We require this nonsense, otherwise the Makefile goes and regenerates
+# the configure script, which doesn't help with our file extensions
+
+touch configure.in aclocal.m4 stamp-h.in Makefile.in config.status

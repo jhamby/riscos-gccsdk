@@ -1,0 +1,19 @@
+
+ab_package() {
+  ab_create_app TuxMath Apps/Games
+  ab_makerun src/tuxmath$AB_EXEEXT
+
+  cat doc/README.txt $H/RISCOSNotes > $A/\!Help
+
+  cp -r doc $A/
+
+  mkdir -p $A/data/tuxmath
+  cp -r data/* $A/data/tuxmath
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+  -depends ttf-sil-andika -name TuxMath
+}
+
+export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lfreetype"
+AB_CONFLAGS=\''--datadir=/\<TuxMath\$$Dir\>/data'\'
+AB_CONFLAGS="$AB_CONFLAGS --without-sdlpango"

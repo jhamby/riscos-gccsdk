@@ -1,0 +1,24 @@
+| User specfic variables for RISC OS Unix ports
+|
+| Peter Naulls
+| peter@chocky.org
+
+| This file is distributed with !UnixHome, so may be overwritten if
+| you upgrade !UnixHome.  It is suggest therefore that you make your
+| own file "!UserRC" if you want to customise anything.  This is called
+| from the last line of this file.
+
+| Set the variables.  The home location is in UnixEnv$HOME, and you
+| can set values relative to this, although you should use '/' as a
+| directory seperator.  You can set values with the "UnixEnv$" prefix,
+| or plain, as you would see them in Unix.
+
+
+| Default Terminal type for Curses applications
+Set UnixEnv$TERM xterm-vt220
+
+| Lynx needs a path to look for its home
+Set UnixEnv$LYNX_CFG <UnixEnv$HOME>/lynx.cfg
+
+| Call User's custom settings
+IfThere <Obey$Dir>.!UserRC Then <Obey$Dir>.!UserRC

@@ -1,0 +1,56 @@
+Set GhostScript$Dir <Obey$Dir>
+Set GhostScript$Version "8.64"
+
+Set GhostScr$Version "8.64"
+Set GhostScr$Help <Obey$Dir>.!Help
+Set GhostScr$Web "http://www.mw-software.com/software/ghostscript/ghostscript.html"
+Set GhostScr$Title "GhostScript"
+Set GhostScr$Publisher "Martin Wuerthner"
+Set GhostScr$Description "PostScript and PDF interpreter, PostScript to PDF converter"
+
+| Not so nice to create a directory in a !Boot file but GhostScript may want to
+| use a scrap dir
+cdir <Wimp$ScrapDir>.GhostScript
+Set GhostScript$ScrapDir <Wimp$ScrapDir>.GhostScript
+
+set alias$gsalias set alias$%%0 /<GhostScript$Dir>.bin.%%0 %%%%*0
+set alias$gs wimpslot -min 15124K |M /<GhostScript$Dir>.gs %%*0
+
+| The first few convert ps to something useful, args are
+| ps2thingy inputfile.ps outputfile.ps any other gs command line args
+gsalias eps2eps
+gsalias ps2spr
+gsalias ps2bmp
+gsalias ps2eps
+gsalias ps2epsi
+gsalias ps2ps
+gsalias ps2jpeg
+gsalias ps2pbm
+gsalias ps2png
+gsalias ps2pcx
+gsalias ps2tiff
+gsalias ps2pdf
+gsalias ps2pdf12
+gsalias ps2pdf13
+gsalias ps2pdf14
+gsalias ps2pdfwr
+gsalias pdf2ps
+gsalias pdfopt
+gsalias ps2sgi
+gsalias gsbj
+gsalias gsdj
+gsalias gslj
+gsalias gslp
+gsalias pdf2dsc
+gsalias printafm
+gsalias pf2afm
+gsalias pfb2pfa
+gsalias wftopfa
+gsalias ps2ascii
+
+Iconsprites <GhostScript$Dir>.!Sprites
+If "<File$Type_FF5>" = "" then Set File$Type_FF5 PoScript
+
+unset GSCheck$Path
+unset GSOK
+unset gsalias

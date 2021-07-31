@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libelftc-@PACKAGE@
+Description: Common code used by the libelf and libdwarf ELF Tool Chain Project libraries.
+URL: http://sourceforge.net/projects/elftoolchain/
+Version: @VERSION@
+Requires:
+Conflicts:
+Libs: -L${libdir} -lelftc
+Cflags: -I${includedir}

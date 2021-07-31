@@ -1,0 +1,16 @@
+AB_ROVERSION=2
+
+ab_make() {
+  echo "Data only - no make required"
+}
+
+ab_package() {
+  ab_create_app Heroes Apps/Games
+
+  mkdir -p $A/share/heroes/mod
+  cp *.xm $A/share/heroes/mod
+  cp sound.conf $A/share/heroes/mod
+  
+  $AB_HOME/add-riscpkg
+}
+

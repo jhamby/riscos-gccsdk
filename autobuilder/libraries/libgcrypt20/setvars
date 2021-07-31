@@ -1,0 +1,37 @@
+
+AB_INSTALL=yes
+
+AB_CONFLAGS='--disable-neon-support'
+
+ab_package() {
+  ab_create_app LibGCrypt20 Apps/Library libgcrypt20-dev
+
+  HERE=`pwd`
+
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -name LibGCrypt20-Dev -unixlib -copyrightfile $S/COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libgcrypt20
+    ab_add_sharedlib $S/src/.libs libgcrypt.so.20
+
+    $AB_HOME/add-riscpkg -package libgcrypt20 -name LibGCrypt20 -section Library \
+       -depends LibGPG-Error -copyrightfile $S/COPYING
+  fi
+}

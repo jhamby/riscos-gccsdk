@@ -1,0 +1,26 @@
+<html>
+<head>
+<title>Autobuilt Applications and Libraries - Packages Information</title>
+</head>
+<body>
+<h2>Packages Information</h2>
+
+<p><i>Part of <a href="http://www.riscos.info/">www.riscos.info</a></i></p>
+<p><i><a href="./">Return to package index</a></i></p>
+
+<hr>
+
+<p>The binary zip files on this site have been created to be compatible with the RISC OS Packaging project. The source zip files are just dumps of the source code used by the autobuilder and are not RISC OS Packaging project source packages.</p>
+<p>
+The version number of the packages is not changed with every rebuild.
+It only changes if the upstream sources or the details of how they are packaged change version.
+This can lead to the download complaining of invalid package size or a similar message. If this happens try updating the package list and retrying the download.
+</p>
+<p>Many of the autobuilt programs need the !UnixHome application to store settings, so there is a package for it. However the current package does not update the system variables required until !UnixHome is booted. This will happen automatically when the computer is restarted, and can also be done by finding !UnixHome in Boot:Resources and double clicking on it.</p>
+<p>Some applications (especially games) require the Digital Renderer module. If you already have this installed on your system when you first install an application that requires it the package manage will show a conflicts window. In this case you need to move or delete the DRenderer module from your !System.Modules directory. A package version of the DRenderer will then be installed when you try to reinstall the application.
+</p>
+
+<hr>
+
+</body>
+</head>

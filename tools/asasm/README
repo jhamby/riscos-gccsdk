@@ -1,0 +1,61 @@
+             README for 'asasm', formally known as 'as'
+             ------------------------------------------
+
+'asasm' started as a 'simple assembler' and was written by Niklas Röjemo under
+the name 'as' and !AS in its Desktop version.  A non desktop version was
+created for an Unix port by Andy Duplain and used in that form as backend
+assembler in the GCC/GNAT Ada RISC OS ports.
+
+Over time missing features like macro support were added and the emulation of
+Acorn objasm's behavior was improved.
+
+In 2005 the 'asasm' ('as') license changed to GPL v2 after kind permission of
+Niklas Röjemo.
+
+Currently 'asasm'/'as' is part of GCCSDK project (http://gccsdk.riscos.info/)
+and its development continues there. After David Marston contribution, ELF
+output is now possible allowing objasm compatible assembler files to be used
+by GCCSDK 4 which is purely ELF and no longer AOF based like GCCSDK 3.
+
+Over time there were various contributors (cfr. ChangeLog for more detail):
+
+  - Niklas Röjemo: main author.
+  - Andy Duplain: Unix port.
+  - Nick Burrett, Simon Callan, Peter J. Burwood: various improvements needed
+    for their GCC/GNAT Ada RISC OS ports
+  - Darren Salt: macro support.
+  - David Marston: ELF output.
+  - John Tytgat: Two pass support, objasm compatibility improvements.
+  - Timothy Baldwin, John-Mark Bell, Jeffrey Lee, Christopher Martin,
+    Peter Naulls, Lee Noar, Tony van der Hoff, ...
+
+Following persons helped testing and improving the v2.00 release by building
+ROOL RISC OS IOMD, IYONIX and OMAP3 branches:
+
+  - Jeffrey Lee
+  - Andreas Walter
+
+Releases:
+
+- v1.47 :
+  - Part of GCCSDK GCC 4.1.1 Rel 2 release.
+- v2.00 :
+  - Part of GCCSDK GCC 4.1.2 Rel 1.
+  - Assembling happens in two passes.
+  - Hugely improved ObjAsm compatibility : macro's, conditional and repeated
+    directives, include statements, local labels, etc.
+    At the time of its release, ROOL RISC OS 5 ROM builds for IOMD and IYONIX
+    branches could be done using asasm instead of objasm.  The OMAP3 branch
+    needs NEON and SSAT support which hasn't been implemented yet.
+  - Adoption of several new semantics found in ARM Compiler toolchain v5.0.
+- vX.XX:
+  - DWARF debugging support (ELF output only).
+  - Rework of the relocation code.
+
+Future development:
+
+- NEON/VFP support.
+- Thumb support.
+- Better way to enable/disable info/warning messages.
+
+-EOF-

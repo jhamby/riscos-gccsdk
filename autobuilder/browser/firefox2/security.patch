@@ -1,0 +1,16 @@
+Index: security/nss-fips/lib/freebl/unix_rand.c
+===================================================================
+RCS file: /cvsroot/mozilla/security/nss/lib/freebl/unix_rand.c,v
+retrieving revision 1.17.10.5
+diff -u -r1.17.10.5 unix_rand.c
+--- security/nss-fips/lib/freebl/unix_rand.c	12 Oct 2006 22:50:48 -0000	1.17.10.5
++++ security/nss-fips/lib/freebl/unix_rand.c	26 Aug 2008 03:14:47 -0000
+@@ -365,7 +365,7 @@
+ 
+ #endif /* Alpha */
+ 
+-#if defined(_IBMR2)
++#if defined(_IBMR2) || defined(__riscos__)
+ static size_t
+ GetHighResClock(void *buf, size_t maxbytes)
+ {

@@ -1,0 +1,307 @@
+#!/bin/bash -e
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2007-2014 GCCSDK Developers
+#
+# Builds the RISC OS specific binaries in GCCSDK, either for cross-compilation
+# usage, either a native RISC OS binaries.
+#
+# Syntax:
+#   "build-it <options>"
+#   "build-it <options> cross"
+#     Build the RISC OS specific binaries suited for cross-compilation usage
+#   "build-it <options> riscos"
+#     Build the RISC OS specific binaries for native execution on RISC OS
+#
+# With <options>
+#   -h       Show help
+#   -f       Force build everything (otherwise skip already built targets)
+#   -static  Skip building shared library related tools
+
+pushd `dirname $0`/.. > /dev/null
+GCCSDK_ROOT=`pwd`
+popd > /dev/null
+source $GCCSDK_ROOT/setup-gccsdk-params
+
+give_help() {
+  echo -e "$0 [-h|-f|-static] [ \"\" | \"cross\" | \"riscos\" ]\n"
+  echo -e "\t-h\t\tThis help output"
+  echo -e "\t-f\t\tForce build everything (otherwise skip already built targets)"
+  echo -e "\t-static\t\tDon't build any shared library related tools"
+  echo
+  echo -e "\tcross\t\tBuild the RISC OS specific binaries suited for cross-compilation usage (default)"
+  echo -e "\triscos\t\tBuild the RISC OS specific binaries for native execution on RISC OS"
+}
+
+create_empty_dir() {
+  ( test ! -d $1 || rm -rf $1 ) && mkdir -p $1
+}
+
+# Setup the default values which can be overruled by user options given:
+GCCSDK_BUILD_FORCED=false
+GCCSDK_BUILD_ISSTATIC=false
+for param in $@ ; do
+  case "$param" in
+    -h | -help)
+       give_help
+       exit 0
+       ;;
+    -f)
+       GCCSDK_BUILD_FORCED=true
+       ;;
+    -static)
+       GCCSDK_BUILD_ISSTATIC=true
+       ;;
+    -*)
+       echo "Unknown option $param" && echo
+       give_help
+       exit 1
+       ;;
+    *)
+       if [ ! -z "$GCCSDK_BUILD_ACTION" ] ; then
+         echo "More than one build action defined: $GCCSDK_BUILD_ACTION and $param" && echo
+         give_help
+         exit 1
+       fi
+       GCCSDK_BUILD_ACTION=$param
+       ;;
+  esac
+done
+if [ -z "$GCCSDK_BUILD_ACTION" ] ; then
+  GCCSDK_BUILD_ACTION=cross
+fi
+
+# Use autotools we've built for building binutils.  This ensures we can rely on fixed
+# versions for autoconf/automake and avoid subtle build problems.
+PATH=$GCCSDK_BUILDDIR/installed-buildtools-for-binutils/bin:$PATH
+
+# Make sure our cross-compiler binaries can be found.
+PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
+
+GCCSDK_TARGET_NAME=arm-unknown-riscos
+GCCSDK_CROSS_CONFIGURE_ARGS="--target=$GCCSDK_TARGET_NAME"
+GCCSDK_RISCOS_CONFIGURE_ARGS="--host=$GCCSDK_TARGET_NAME --target=$GCCSDK_TARGET_NAME"
+if [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
+  # Build binaries suited for cross-compilation
+  GCCSDK_BUILDDIR=$GCCSDK_BUILDDIR/cross
+  GCCSDK_PREFIX=$GCCSDK_CROSS_PREFIX
+  GCCSDK_CONFIGURE_ARGS=$GCCSDK_CROSS_CONFIGURE_ARGS
+elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
+  # Build binaries suited for native RISC OS usage
+  GCCSDK_RISCOS_GCCPREFIX=$GCCSDK_RISCOS_PREFIX/\!GCC
+  GCCSDK_RISCOS_DSOPREFIX=$GCCSDK_RISCOS_PREFIX/\!SharedLibs
+  GCCSDK_RISCOS_SYSTEMPREFIX=$GCCSDK_RISCOS_PREFIX/system
+
+  GCCSDK_BUILDDIR=$GCCSDK_BUILDDIR/ronative
+  GCCSDK_PREFIX=$GCCSDK_RISCOS_GCCPREFIX
+  GCCSDK_CONFIGURE_ARGS=$GCCSDK_RISCOS_CONFIGURE_ARGS
+else
+  echo "Error: called $0 with unknown build action $GCCSDK_BUILD_ACTION (use cross or riscos)"
+  exit 1
+fi
+
+# Build the programs which we use for cross-compiling and for native RISC OS compiling:
+for roapp in asasm cmunge elf2aif ln mkresfs ; do
+  GCCSDK_BUILD_TARGET1=$GCCSDK_PREFIX/bin/$roapp
+  GCCSDK_BUILD_TARGET2=$GCCSDK_PREFIX/bin/$GCCSDK_TARGET_NAME-$roapp
+  if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_BUILD_TARGET1 -a ! -f $GCCSDK_BUILD_TARGET2 ] ; then
+    echo +++ Building $roapp
+    if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
+      # These apps are using SCL as runtime library:
+      case $roapp in
+        asasm | cmunge | elf2aif | ln)
+          export CFLAGS="-O3 -mlibscl"
+          ;;
+        *)
+          unset CFLAGS
+          ;;
+      esac
+    fi
+    # Determine make target to build & install.
+    case $roapp in
+      asasm)
+        MAKETARGET=install-minimum
+        ;;
+      *)
+        MAKETARGET=install
+        ;;
+    esac
+    # Extra configure arguments.
+    case $roapp in
+      asasm)
+        # Don't build the elftoolchain tools.  They are not needed.
+        EXTRA_CONFIGURE_ARGS=--disable-building-tools
+        test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && ACLOCAL='aclocal -I $GCCSDK_RISCOS/asasm/m4' autoreconf -f --install )
+        ;;
+      *)
+        EXTRA_CONFIGURE_ARGS=
+        test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf -f --install )
+        ;;
+    esac
+    create_empty_dir $GCCSDK_BUILDDIR/$roapp
+    cd $GCCSDK_BUILDDIR/$roapp
+    $GCCSDK_RISCOS/$roapp/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS $EXTRA_CONFIGURE_ARGS
+    make $GCCSDK_MAKE_ARGS $MAKETARGET
+  else
+    echo +++ NOT building $roapp as it already exists
+  fi
+done
+
+# DRenderer module:
+if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_PREFIX/module/DRenderer,ffa ] ; then
+  echo +++ Building DRenderer
+  create_empty_dir $GCCSDK_BUILDDIR/drenderer
+  cd $GCCSDK_BUILDDIR/drenderer
+  make -f $GCCSDK_RISCOS/drenderer/Makefile install PREFIX=$GCCSDK_PREFIX
+else
+  echo +++ NOT building DRenderer,ffa as it already exists
+fi
+
+install_shared_libraries() {
+  src_arch=$1
+  dst_arch=$2
+
+  if [ "$dst_arch"x != "x" ] ; then
+    mkdir -p $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch
+  fi
+
+  test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libunixlib.5.0.0.so,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libunixlib.5.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libunixlib.5.0.0.so,e1f
+  # Runtime symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libunixlib.so.5,1c8
+  # Build time symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libunixlib.so,1c8
+
+  test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libgcc_s.so.1,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libgcc_s.so.1 $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libgcc_s.so.1,e1f
+  # Runtime/build time symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libgcc_s/so/1 $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libgcc_s.so,1c8
+
+  test ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libm.1.0.0.so,e1f && cp $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libm.1.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libm.1.0.0.so,e1f
+  # Runtime symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libm/1/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libm.so.1,1c8
+  # Build time symlink in !SharedLibs:lib.<ABI version>
+  arm-unknown-riscos-ln -s -f libm/1/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libm.so,1c8
+
+  # Added test on libstdc++*.so file as we might not have built C++ frontend.
+  if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libstdc++.6.0.17.so ] ; then
+    cp $GCCSDK_RISCOS_GCCPREFIX/lib$src_arch/libstdc++.6.0.17.so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libstdc++.6.0.17.so,e1f
+    # Runtime symlink in !SharedLibs:lib.<ABI version>
+    arm-unknown-riscos-ln -s -f libstdc++/6/0/17/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libstdc++.so.6,1c8
+    # Build time symlink in !SharedLibs:lib.<ABI version>
+    arm-unknown-riscos-ln -s -f libstdc++/6/0/17/so $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION$dst_arch/libstdc++.so,1c8
+  fi
+}
+
+if [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
+  # Only for cross-compilation:
+
+  if ! $GCCSDK_BUILD_ISSTATIC ; then
+    # Dynamic loader:
+    if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_CROSS_PREFIX/$GCCSDK_TARGET_NAME/lib/ld-1.9.9.so ] ; then
+      echo +++ Building Dynamic Linker V1.9.9
+      PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
+      test -f $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 || ( cd $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 && autoreconf --install )
+      create_empty_dir $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
+      cd $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
+      $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9/configure --prefix=$GCCSDK_CROSS_PREFIX/$GCCSDK_TARGET_NAME $GCCSDK_RISCOS_CONFIGURE_ARGS
+      make BUILD_CROSS=1 $GCCSDK_MAKE_ARGS install
+    else
+      echo +++ NOT building ld-1.9.9.so as it already exists
+    fi
+  fi
+
+  # GDBServer module:
+  if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_CROSS_PREFIX/module/GDBServer,ffa ] ; then
+    echo +++ Building GDBServer
+    test -f $GCCSDK_RISCOS/gdbserver/configure || ( cd $GCCSDK_RISCOS/gdbserver && autoreconf --install )
+    create_empty_dir $GCCSDK_BUILDDIR/gdbserver
+    cd $GCCSDK_BUILDDIR/gdbserver
+    $GCCSDK_RISCOS/gdbserver/configure --prefix=$GCCSDK_PREFIX --bindir=$GCCSDK_PREFIX/module $GCCSDK_RISCOS_CONFIGURE_ARGS
+    make $GCCSDK_MAKE_ARGS install
+  else
+    echo +++ NOT building GDBServer,ffa as it already exists
+  fi
+
+  # syslogd module:
+  if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_CROSS_PREFIX/module/SysLogD,ffa ] ; then
+    echo +++ Building syslogd
+    test -f $GCCSDK_RISCOS/syslogd/configure || ( cd $GCCSDK_RISCOS/syslogd && autoreconf --install )
+    create_empty_dir $GCCSDK_BUILDDIR/syslogd
+    cd $GCCSDK_BUILDDIR/syslogd
+    $GCCSDK_RISCOS/syslogd/configure --prefix=$GCCSDK_PREFIX --bindir=$GCCSDK_PREFIX/module $GCCSDK_RISCOS_CONFIGURE_ARGS
+    make $GCCSDK_MAKE_ARGS install
+  else
+    echo +++ NOT building SysLogD,ffa as it already exists
+  fi
+
+elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
+  # These only make sense in the native RISC OS build:
+
+  # ARMEABISupport module:
+  if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_BUILDDIR/armeabisupport/bin/ARMEABISupport,ffa ] ; then
+    echo +++ Building ARMEABISupport
+    test -f $GCCSDK_RISCOS/armeabisupport/configure || ( cd $GCCSDK_RISCOS/armeabisupport && autoreconf --install )
+    create_empty_dir $GCCSDK_BUILDDIR/armeabisupport
+    cd $GCCSDK_BUILDDIR/armeabisupport
+    $GCCSDK_RISCOS/armeabisupport/configure --prefix=$GCCSDK_BUILDDIR/armeabisupport $GCCSDK_RISCOS_CONFIGURE_ARGS
+    make $GCCSDK_MAKE_ARGS install
+  else
+    echo +++ NOT building ARMEABISupport,ffa as it already exists
+  fi
+
+  # Shared library support:
+  if ! $GCCSDK_BUILD_ISSTATIC ; then
+    # SOManager module:
+    if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_RISCOS_DSOPREFIX/SOManager,ffa ] ; then
+      echo +++ Building SOManager
+      test -f $GCCSDK_RISCOS/soloader/module2/configure || ( cd $GCCSDK_RISCOS/soloader/module2 && autoreconf --install )
+      create_empty_dir $GCCSDK_BUILDDIR/soloader/somanager
+      cd $GCCSDK_BUILDDIR/soloader/somanager
+      $GCCSDK_RISCOS/soloader/module2/configure --prefix=$GCCSDK_RISCOS_DSOPREFIX --bindir=$GCCSDK_RISCOS_DSOPREFIX $GCCSDK_CONFIGURE_ARGS
+      make $GCCSDK_MAKE_ARGS install
+    fi
+
+    # Dynamic loader:
+    if $GCCSDK_BUILD_FORCED || [ ! -f $GCCSDK_RISCOS_DSOPREFIX/lib/ld-1.9.9.so,e1f ] ; then
+      echo +++ Building Dynamic Linker V1.9.9
+      test -f $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 || ( cd $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 && autoreconf --install )
+      create_empty_dir $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
+      cd $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
+      $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9/configure --prefix=$GCCSDK_RISCOS_DSOPREFIX $GCCSDK_CONFIGURE_ARGS
+      make $GCCSDK_MAKE_ARGS install
+    fi
+
+    # Copy !SharedLibs skeleton + shared library files in the gcc build result:
+    svn export -q --force $GCCSDK_RISCOS/soloader/dist/\!SharedLibs $GCCSDK_RISCOS_DSOPREFIX
+    mkdir -p $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION
+
+    install_shared_libraries "" ""
+    install_shared_libraries "/softfp/vfp" "/vfp"
+  fi
+
+  # !System modules:
+  create_empty_dir $GCCSDK_RISCOS_SYSTEMPREFIX
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/400/Modules
+
+  # *** Copy !System skeleton:
+  svn export -q --force $GCCSDK_RISCOS/dist/\!System $GCCSDK_RISCOS_SYSTEMPREFIX/\!System
+
+  # *** ARMEABISupport module:
+  #   1. Copy ARMEABISupport module from to !System:
+  test ! -f $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/400/Modules/ARMEABISupport,ffa && cp $GCCSDK_BUILDDIR/armeabisupport/bin/ARMEABISupport,ffa $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/400/Modules/ARMEABISupport,ffa
+  #   2. Copy ARMEABISupport documentation
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/ARMEABISupport
+  cp $GCCSDK_RISCOS/armeabisupport/ARMEABISupportDocs $GCCSDK_RISCOS_SYSTEMPREFIX/docs/ARMEABISupport
+
+  # *** SharedUnixLibrary module:
+  #   1. Copy SharedUnixLibrary module from !GCC/bin to !System:
+  test ! -f $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules/SharedULib,ffa && cp $GCCSDK_RISCOS_GCCPREFIX/bin/sul $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules/SharedULib,ffa
+  #   2. Copy UnixLib/SharedUnixLibrary license:
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
+  cp $GCCSDK_SRCDIR/gcc/libunixlib/COPYING $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
+
+  # *** DRenderer module:
+  #   1. Copy built DRenderer module from $GCCSDK_BUILDDIR/drenderer to !System:
+  test ! -f $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules/DRenderer,ffa && cp $GCCSDK_BUILDDIR/drenderer/DRenderer,ffa $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules/DRenderer,ffa
+  #   2. Copy license, changelog and documentation:
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
+  cp $GCCSDK_RISCOS/drenderer/{COPYING,ChangeLog,DocDRender} $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
+fi

@@ -1,0 +1,68 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+26 symbols
+
+** Area (0x000102) "Code", aligned at 4 bytes, [code] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Symbol table:
+
+ExpEmptyList     (03) global at "Code" + 0x000000
+ExpWithARM       (03) global at "Code" + 0x000000
+ExpWithCODE      (03) global at "Code" + 0x000000
+ExpWithDATA      (103) global, cadatum at "Code" + 0x000000
+ExpWithFPREGARGS (203) global, fpregargs at "Code" + 0x000000
+ExpWithHARDFP    (03) global at "Code" + 0x000000
+ExpWithLEAF      (803) global, leaf at "Code" + 0x000000
+ExpWithNOFPREGARGS (03) global at "Code" + 0x000000
+ExpWithNOLEAF    (03) global at "Code" + 0x000000
+ExpWithNOUSESSB  (03) global at "Code" + 0x000000
+ExpWithoutARM    (03) global at "Code" + 0x000000
+ExpWithoutCODE   (03) global at "Code" + 0x000000
+ExpWithoutDATA   (03) global at "Code" + 0x000000
+ExpWithoutFPREGARGS (03) global at "Code" + 0x000000
+ExpWithoutHARDFP (03) global at "Code" + 0x000000
+ExpWithoutLEAF   (03) global at "Code" + 0x000000
+ExpWithoutNOFPREGARGS (03) global at "Code" + 0x000000
+ExpWithoutNOLEAF (03) global at "Code" + 0x000000
+ExpWithoutNOUSESSB (03) global at "Code" + 0x000000
+ExpWithoutSOFTFP (03) global at "Code" + 0x000000
+ExpWithoutTHUMB  (03) global at "Code" + 0x000000
+ExpWithoutUSESSB (03) global at "Code" + 0x000000
+ExpWithSOFTFP    (2003) global, softfp at "Code" + 0x000000
+ExpWithTHUMB     (1003) global, thumb at "Code" + 0x000000
+ExpWithUSESSB    (403) global, usessb at "Code" + 0x000000
+Code             (01) local at "Code" + 0x000000
+
+** String table:
+
+000004: ExpEmptyList
+000011: ExpWithARM
+00001c: ExpWithCODE
+000028: ExpWithDATA
+000034: ExpWithFPREGARGS
+000045: ExpWithHARDFP
+000053: ExpWithLEAF
+00005f: ExpWithNOFPREGARGS
+000072: ExpWithNOLEAF
+000080: ExpWithNOUSESSB
+000090: ExpWithoutARM
+00009e: ExpWithoutCODE
+0000ad: ExpWithoutDATA
+0000bc: ExpWithoutFPREGARGS
+0000d0: ExpWithoutHARDFP
+0000e1: ExpWithoutLEAF
+0000f0: ExpWithoutNOFPREGARGS
+000106: ExpWithoutNOLEAF
+000117: ExpWithoutNOUSESSB
+00012a: ExpWithoutSOFTFP
+00013b: ExpWithoutTHUMB
+00014b: ExpWithoutUSESSB
+00015c: ExpWithSOFTFP
+00016a: ExpWithTHUMB
+000177: ExpWithUSESSB
+000185: Code

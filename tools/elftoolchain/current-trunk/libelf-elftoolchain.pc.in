@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libelf-@PACKAGE@
+Description: A library for reading and writing ELF objects (part of ELF Tool Chain Project).
+URL: http://sourceforge.net/projects/elftoolchain/
+Version: @VERSION@
+Requires:
+Requires.private: libelftc-@PACKAGE@ >= @VERSION@
+Conflicts:
+Libs: -L${libdir} -lelf
+Cflags: -I${includedir}

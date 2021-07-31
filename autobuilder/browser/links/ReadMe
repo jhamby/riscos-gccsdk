@@ -1,0 +1,41 @@
+Before you start
+----------------
+
+Please obtain Nettle from:
+
+    http://nettle.sourceforge.net/
+
+And !UnixHome from
+
+    http://www.chocky.org/unix/
+
+
+Installing
+----------
+
+Place the Links binary anywhere you like - somewhere in the Run$Path
+may be sensible.
+
+
+Usage
+-----
+
+Links is designed to work running as an "ANSI Task" under Nettle. Its use
+running outside of Nettle is limited.
+
+Links also requires a large wimpslot - greater than about 1.4MB before it will
+start.
+
+Links is started by typing "links" into the command dialogue of Nettle as an ANSI task, with an optional URL as a parameter.
+
+If you do no specify a URL, it will start with a blank screen.  Press 'G'
+to enter a URL.
+
+
+Colour
+------
+
+The default setup in links is for black and white.  To get colour
+access the menu bar (escape or mouse click on top line), then Setup
+menu -> Terminal Options -> Click Color -> Ok.
+

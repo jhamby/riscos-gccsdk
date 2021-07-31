@@ -1,0 +1,4 @@
+| Help file for XU4
+Set XU4$Dir <obey$dir>
+Set XU4$Help <obey$dir>.Documents.index/htm
+ if "<alias$@RunType_FAF>" <> "" then filer_run <XU4$dir>.Documents.index/htm else filer_run <XU4$dir>.Documents.index/txt 

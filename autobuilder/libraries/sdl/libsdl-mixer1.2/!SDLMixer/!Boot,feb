@@ -1,0 +1,6 @@
+| Boot file for SDLMixer
+|
+If "<SDLMixer$Dir>" = "" Then Set SDLMixer$Dir <Obey$Dir>
+If "<SDLMixer$Path>" = "" Then Set SDLMixer$Path <Obey$Dir>.,<Obey$Dir>.SDL.
+
+IconSprites <SDLMixer$Dir>.!Sprites

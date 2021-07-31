@@ -1,0 +1,18 @@
+
+AB_URL=http://www.cloudsprinter.com/random/crazeespod.src.zip
+
+AB_PVERSION=0.1.1
+
+ab_package() {
+  ab_create_app CrazeeSpod Apps/Games
+  ab_makerun $S/CrazeeSpod
+
+  cp -av $S/gfx $A
+  cp -av $S/sfx $A
+
+  mkdir $A/doc
+  cp -av $S/gpl-2.0.txt $A/doc/
+  cp -av $S/crazeespodreadme.txt $A/doc
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/gpl-2.0.txt
+}

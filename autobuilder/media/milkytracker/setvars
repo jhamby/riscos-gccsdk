@@ -1,0 +1,17 @@
+AB_URL=http://security.debian.org/debian-security/pool/updates/main/m/milkytracker/milkytracker_0.90.86+dfsg.orig.tar.bz2
+
+AB_PVERSION=0.90.86
+
+autoreconf -f
+
+ab_package() {
+  ab_create_app MilkyTracker Apps/Audio
+
+  ab_makerun $S/src/tracker/milkytracker$AB_EXEEXT milkytracker
+
+  cp -av $S/docs $A
+  cp -av $S/resources $A
+  cp -av AUTHORS ChangeLog COPYING NEWS README $A
+
+  $AB_HOME/add-riscpkg -unixlib -unixhome
+}

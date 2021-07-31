@@ -1,0 +1,9 @@
+AB_INSTALL=yes
+
+cd xorg-cf-files
+sed s#GCCSDK_INSTALL_ENV#$GCCSDK_INSTALL_ENV# $H/riscos.cf > riscos.cf
+$GCCSDK_INSTALL_ENV/ro-config
+$AB_MAKE install
+
+cd ../imake
+

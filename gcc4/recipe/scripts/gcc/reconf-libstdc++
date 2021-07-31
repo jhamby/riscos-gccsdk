@@ -1,0 +1,5 @@
+#!/bin/bash -e
+# Auto-generate 'libstdc++' as we've patched it.
+# Copyright (c) 2007-2011 GCCSDK Developers
+
+( cd libstdc++-v3 && ACLOCAL='aclocal -I .. -I ../config' autoreconf -v )

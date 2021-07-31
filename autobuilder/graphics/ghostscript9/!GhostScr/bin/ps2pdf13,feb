@@ -1,0 +1,3 @@
+| Wimpslot should be set by the alias calling this file ...
+wimpslot -min 15124K
+ps2pdfwr -dCompatibilityLevel=1.3 %*0

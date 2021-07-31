@@ -1,0 +1,69 @@
+Wed Feb 12 02:13:58 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
+Sun Aug 31 14:47:54 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/mkresfs.c: Provided new option -z to specify OSLib API instead
+	of SharedCLibrary API; ignore files/directories beginning with "/"
+	(RISC OS) or "." (other OS) as leading character when enumerating
+	resources.
+	* doc/README: Documented made changes.
+	* configure.ac: Version is v1.04.
+
+Wed Oct 17 00:52:47 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/mkresfs.c(generate): Use __asm__ instead of asm in generated C
+	file so that it still compiles with -std=c99 option.
+
+Thu Aug 30 01:47:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* doc/README: Purpose paragraph still talked about two functions
+	being created; Reindent the License section.
+
+Tue Aug 28 00:32:02 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Version is v1.03.
+	* doc/example/{module.cmhg, main.c}: Added support for service call
+	Service_ResourceFSStarting.
+	* doc/example/TestData/Resources: Renamed to...
+	* doc/example/TestData/ThirdParty: ...this.
+	* doc/example/Makefile: Go for -O3, it makes a useful difference.
+	* doc/README: Updated now we can properly support
+	Service_ResourceFSStarting; reworded the example section a bit;
+	Added License section.
+	* AUTHORS: Added myself.
+	* src/mkresfs.c: Added new option -s which names the function name
+	to reregister data with ResourceFS at Service_ResourceFSStarting
+	time; Make sure all errors result in non-0 return value; Using
+	version number from generated config.h file; Using inline assembler
+	in the generated C file; fixed problem that the last incomplete word
+	of resource data file got wrongly omited resulting in corrupted
+	ResourceFS data block; support RISC OS time of resource data
+	* COPYING: Added GCCSDK Developers to (c) line.
+
+Sun Jul 29 23:20:08 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ., src: Added svn:ignore property.
+
+Sun Jul 29 19:25:01 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Corrected version number to v1.02.
+
+Sun Jul 29 18:29:17 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Added.
+	* doc/README: Corrected rjek's contact address.
+
+Thu Jun 14 03:37:52 2007  Rob Kendrick  <rjek@rjek.com>
+
+	* src/mkresfs.c: Add generation of a suitable header file; Add guard
+	#define around emitted header files; Remove C99ism as this isn't
+	default in current GCCSDK, and add a header file needed on RISC OS
+	for __riscosify(); Fix termination bug in guard name generation;
+	Remove redundant limitation comment; Bump version number to 1.02.
+	* doc/README, doc/example: Added.
+
+Tue Jun 12 05:33:27 2007  Rob Kendrick  <rjek@rjek.com>
+
+	* Initial import of version v1.01.

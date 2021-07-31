@@ -1,0 +1,12 @@
+AB_URL=http://www.libsdl.org/projects/xflame/src/xflame-1.0.tar.gz
+
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app Xflame Apps/Graphics
+
+  cp -av $H/!Run,feb $A
+  ab_makerun $S/xflame$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -unixlib
+}

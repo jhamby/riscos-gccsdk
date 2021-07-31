@@ -1,0 +1,19 @@
+AB_URL=https://ftp.gnu.org/gnu/binutils/binutils-2.30.tar.xz
+AB_ROVERSION=1
+AB_INSTALL=yes
+AB_PRECONF=:
+
+HOST_4_7_4_GCC=$(realpath $GCCSDK_INSTALL_CROSSBIN/../../gcc4)
+AUTOTOOLS_BUILD=$HOST_4_7_4_GCC/builddir/installed-buildtools-for-gcc/bin
+
+ln -sTf $H/ld.emulparams.armelf_riscos_eabi.sh $S/ld/emulparams/armelf_riscos_eabi.sh
+ln -sTf $H/gas.config.te-riscos.h $S/gas/config/te-riscos.h
+
+( cd $S/ld; PATH="$AUTOTOOLS_BUILD:$PATH" $AUTOTOOLS_BUILD/autoreconf )
+
+mkdir -p cross-build
+cd cross-build
+
+CC=/usr/bin/gcc CXX=/usr/bin/g++ \
+../configure --prefix=$GCCSDK_INSTALL_ENV --target=arm-riscos-gnueabihf --disable-nls --disable-werror
+make -j6 && make install

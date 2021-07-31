@@ -1,0 +1,9 @@
+bin_PROGRAMS = isa
+isa_SOURCES = isa.c
+isa_CFLAGS = -I${top_srcdir}/common \
+	    -I${top_srcdir}/libelftc \
+	    -I${top_srcdir}/libelf
+isa_LDADD = ../libelftc/libelftc.la
+
+dist_man1_MANS = isa.1
+dist_man5_MANS = isa.5

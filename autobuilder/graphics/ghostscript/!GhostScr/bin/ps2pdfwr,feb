@@ -1,0 +1,4 @@
+| Wimpslot should be set by the alias calling this file ...
+wimpslot -min 15124K
+gs -dSAFER %0 -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=%2 -dSAFER %0 %*3 -c .setpdfwrite -f %1
+if "%2" <> "" then ifthere %2 then settype %2 ADF

@@ -1,0 +1,20 @@
+AB_CATEGORY=Graphics
+AB_NOREMOTE=yes
+AB_PVERSION=1.40
+AB_ROVERSION=2
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
+
+cp -av $H/\!Decor $S/$'!Decor/'
+cp -av $H/Decor.c $H/Makefile $S
+
+ab_package() {
+  # Because of the top bit set name we insist on, it's tricky to call ab_create_app
+  # (sadly this doesn't work on a UTF8 build machine, so we revert to omitting
+  # the accent)
+
+  ab_create_app Decor Apps/Graphics
+  cp -av $S/\!Decor/Decor* $A
+
+  $AB_HOME/add-riscpkg
+}
+

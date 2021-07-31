@@ -1,0 +1,10 @@
+Wargus 2.2
+----------
+
+This is a game that uses the Stratagus game engine, so the !Stratagus
+application must have been seen before it is run.
+
+See http://wargus.sourceforge.net for details of the game.
+
+You should have also installed the files as documented in the ReadMe
+file included in the application before it can be run on RISC OS.

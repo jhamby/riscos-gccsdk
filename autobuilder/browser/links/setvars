@@ -1,0 +1,8 @@
+
+AB_CATEGORY=Browser
+
+AB_CONFLAGS=--without-lua
+
+AB_FILESNOPATH="links$AB_EXEEXT COPYING"
+AB_MANPAGE=links.1
+

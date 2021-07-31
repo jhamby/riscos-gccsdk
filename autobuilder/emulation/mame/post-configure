@@ -1,0 +1,25 @@
+ln -s mame src/tiny
+ln -s mame.c src/mame/tiny.c
+mkdir -p obj/sdl/build
+mkdir -p obj/sdl/osd/sdl
+mkdir -p obj/sdl/lib/util
+mkdir -p obj/sdl/lib/zlib
+mkdir -p obj/sdl/emu/cpu/m68000
+mkdir -p obj/sdl/emu/cpu/tms57002
+make obj/sdl/build/file2str
+make obj/sdl/build/makedep
+make obj/sdl/build/makelist
+make obj/sdl/build/makedev
+make obj/sdl/build/png2bdc
+make obj/sdl/build/verinfo
+#make obj/sdl/build/m68kmake
+#make obj/sdl/build/tmsmake
+mkdir bin
+cp obj/sdl/build/file2str bin/mame-file2str
+#cp obj/sdl/build/m68kmake bin/mame-m68kmake
+cp obj/sdl/build/makedep bin/mame-makedep
+cp obj/sdl/build/makedev bin/mame-makedev
+cp obj/sdl/build/makelist bin/mame-makelist
+cp obj/sdl/build/png2bdc bin/mame-png2bdc
+cp obj/sdl/build/verinfo bin/mame-verinfo
+make clean

@@ -1,0 +1,19 @@
+| !SharedLibs.!Boot
+
+IconSprites <Obey$Dir>.!Sprites
+
+If "<SharedLibs$Path>" = "" Then Set GCCSOLib$Path SharedLibs:lib.,<GCCSOLib$Path>
+
+If "<SharedLibs$Path>" = "" Then Set Alias$SOMRun SharedLibs:SOM1stRun %%*0
+
+Set SharedLibs$Dir <Obey$Dir>
+Set SharedLibs$Path <SharedLibs$Dir>.
+
+Set File$Type_E1F ELF
+
+If "<Alias$@RunType_E1F>"="" Then Set Alias$@RunType_E1F SOMRun %%*0
+
+Set File$Type_1C8 Symlink
+
+| Environment setting
+Set LD$Env "LD_WARN=1"

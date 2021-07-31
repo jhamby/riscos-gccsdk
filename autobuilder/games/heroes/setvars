@@ -1,0 +1,19 @@
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app Heroes Apps/Games
+
+  ab_makerun src/heroes$AB_EXEEXT
+  cp src/heroeslvl$AB_EXEEXT $A
+  cp doc/heroes.html $A/docs
+  cp AUTHORS ChangeLog COPYING README THANKS TODO $A/docs
+
+  mkdir -p $A/share/heroes/etc
+  cp src/etc/heroesrc $A/share/heroes/etc
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound \
+     -depends Heroes-Data
+}
+
+# export LIBS doesn't work so hack configure
+sed -e "s/-lSDL_mixer/-lSDL_mixer -lvorbisidec/" --in-place configure

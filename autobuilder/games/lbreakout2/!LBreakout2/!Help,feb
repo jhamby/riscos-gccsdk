@@ -1,0 +1,4 @@
+| Help file for LBreakout2
+Set LBreakout2$Dir <obey$dir>
+Set LBreakout2$Help <obey$dir>.Documents.index/html
+ if "<alias$@RunType_FAF>" <> "" then filer_run <LBreakout2$dir>.Doc.index/html else filer_run <LBreakout2$dir>.README

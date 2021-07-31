@@ -1,0 +1,36 @@
+VNCViewer for RISC OS
+=====================
+
+Ported by Peter Naulls (peter@chocky.org)
+1st June 2005
+
+
+Please note
+-----------
+
+Part of riscos.info http://www.riscos.info/
+
+About
+-----
+
+This is a (mostly) unmodified port of the Unix VNC viewer.
+
+This client allows you use desktops on other machines running VNC
+servers including Windows, Linux and other RISC OS machines.
+
+The lack of modification to the sources is allowed by the
+X replacement library for RISC OS, ChoX11.  More information on this
+is on its homepage: http://www.riscos.info/index.php/ChoX11
+
+Although there are 'native' RISC OS VNC clients, this port was done
+to test ChoX11, and may or may not be preferrable to clients such
+as !ViNCe.
+
+Usage
+-----
+
+Running !ChoxVNC will launch a FrontEnd dialogue, into which you can enter
+the hostname.  If using the connect button fails to open a window, examine
+the 'stderr' file inside the !ChoxVNC application.
+
+

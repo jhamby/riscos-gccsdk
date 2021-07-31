@@ -1,0 +1,11 @@
+--- Makefile.in.org	2006-07-31 21:01:23.000000000 +0200
++++ Makefile.in	2006-07-31 21:19:41.000000000 +0200
+@@ -131,7 +131,7 @@
+ TEXIFILE = $(MODULE).texi
+ DOCFILES = $(HTMLFILE) $(TEXIFILE)
+ 
+-CCFLAGS = @CFLAGS@
++CCFLAGS = @CFLAGS@ -mpoke-function-name
+ LDFLAGS = @LDFLAGS@
+ 
+ INSTALL = @INSTALL@

@@ -1,0 +1,29 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+4 symbols
+
+** Area (0x000102) "Code", aligned at 4 bytes, [code] [32bit] 
+   Size 32 bytes, 1 relocation
+
+000000: e51f1008 00000000 00000000 00000001 00000002 00000003 00000004 00000000
+
+** Relocations:
+
+At 0x00001c (flags 0x8a000000): Word displaced by symbol "ImpSym" (type-2 reloc)
+
+** Symbol table:
+
+ImpSym           (02) extern
+Code             (01) local at "Code" + 0x000000
+$a               (01) local at "Code" + 0x000000
+$d               (101) local, cadatum at "Code" + 0x000004
+
+** String table:
+
+000004: ImpSym
+00000b: Code
+000010: $a
+000013: $d

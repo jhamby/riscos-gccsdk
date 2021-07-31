@@ -1,0 +1,1 @@
+if "<alias$@RunType_FAF>" <> "" then filer_run <obey$dir>.docs.index/html else Error "You need a browser to view the documentation"

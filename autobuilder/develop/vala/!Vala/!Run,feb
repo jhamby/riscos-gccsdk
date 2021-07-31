@@ -1,0 +1,6 @@
+Set Vala$Dir <Obey$Dir>
+Set Vala$Path <Vala$Dir>.
+Set ValaVapi$Path Vala:vapi.
+Set Valac$Heap 1
+Set Alias$valac Run Vala:bin.valac %*0
+

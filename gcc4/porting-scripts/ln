@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Because we disable 'rm' during package creation, an 'rm' done just before
+# 'ln' gives troubles at 'ln' time.  So we take sure source of 'ln' is always
+# removed.
+
+if [ -z "$RO_PKG" ] ; then
+  /bin/ln $@
+elif echo "$@" | grep -q GCCSDK_ENV ; then
+  GCCSDK_ENV/ro-install ln $@  
+else
+# Some links are install by using cd to the directory first
+  curr_dir=$(pwd)
+  if [[ "$curr_dir" == "GCCSDK_ENV/lib" ]]; then
+     echo "RISC OS Cross ln: $@"
+     cd $AB_DIR/package/lib     
+     /bin/ln -f $@
+     cd $curr_dir
+  else
+    /bin/ln -f $@
+  fi
+fi
+

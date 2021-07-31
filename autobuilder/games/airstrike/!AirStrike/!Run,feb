@@ -1,0 +1,4 @@
+WIMPSLOT
+
+Set AirStrike$Dir <Obey$Dir>
+Run <AirStrike$Dir>.airstrike >null: 2>null:

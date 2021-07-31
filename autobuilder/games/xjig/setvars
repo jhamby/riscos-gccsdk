@@ -1,0 +1,18 @@
+# Copy hand built makefile and remove Imakefile
+cp $H/Makefile.riscos .
+mv Imakefile Imakefile.orig
+
+ab_make() {
+  echo "Using Makefile.riscos"
+  $AB_MAKE -f Makefile.riscos xjig$AB_EXEEXT
+}
+
+ab_package() {
+  ab_create_app XJig Apps/Games
+  ab_makerun $S/xjig$AB_EXEEXT
+
+  cp -av $S/tina.gif $A/
+  rman -f HTML $S/xjig.man > $A/\!Help,faf
+
+  $AB_HOME/add-riscpkg -unixlib -depends Tinct
+}

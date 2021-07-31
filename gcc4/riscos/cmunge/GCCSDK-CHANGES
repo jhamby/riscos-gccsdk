@@ -1,0 +1,34 @@
+The official CMunge v0.76 contains nearly all the changes needed for usage
+in the GCCSDK 3.4 project.  For GCCSDK 4 we had to made additional changes
+for ELF, instead of AOF, object format support only affecting the operation
+of the -tgcc option.  Two new features have been added : printer driver
+handler and no-SCL support.
+
+More detailed overview of the changes made so far:
+
+  - GCCSDK specific build structure changes.
+  - Hiding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
+  - Added to Module_FullVersionAndDate of VersionNum the substring
+    "[with GCCSDK 4 changes including r" followed by the Subversion revision
+    number of the code base used to make the cmunge binary.
+    This will be visible in the startup message and generated files will be
+    similary marked as well.
+  - -tgcc option supports ELF object format and no longer AOF object format.
+  - Added 'pdriver-handler' keyword for those wanting to create printer driver
+    module code. Added an example for this new feature.
+    Added explanation on 'pdriver-handler' in manual.
+  - Added the posibility to create modules without using the Shared C Library
+    runtime (option -znoscl) + manual update.
+  - Several manual typo fixes.
+  - Source improvements:
+    - strduptok/strfindpair/strstring : use memcpy() instead of strncpy() for
+      more clearness.
+    - constify a lot of pointers where it made sense.
+
+The GCCSDK-DIFF file contains those changes in diff format and are submitted
+back to the CMunge authors for possible inclusion in future versions.  It is
+generated using:
+
+  $ svn diff svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge svn://svn.riscos.info/gccsdk/trunk/gcc4/riscos/cmunge
+
+-EOF-

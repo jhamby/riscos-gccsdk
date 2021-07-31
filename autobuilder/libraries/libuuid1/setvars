@@ -1,0 +1,10 @@
+AB_INSTALL=yes
+
+AB_CONFLAGS="--disable-tls"
+
+ab_make() {
+ cd libuuid/src/
+ $AB_MAKE
+}
+
+export scanf_cv_type_modifier=no

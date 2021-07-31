@@ -1,0 +1,60 @@
+
+#ifndef OSName
+#define OSName			RISC OS
+#endif
+#ifndef OSMajorVersion
+#define OSMajorVersion		3/4/5/6
+#endif
+#ifndef OSMinorVersion
+#define OSMinorVersion          0
+#endif
+#ifndef OSTeenyVersion
+#define OSTeenyVersion          0
+#endif
+XCOMM operating system:  OSName
+
+#ifndef OSVendor
+#define	OSVendor		Castle Technology/ROL
+#endif
+
+#define ProjectRoot GCCSDK_INSTALL_ENV
+#define DriverSDKDir ProjectRoot
+
+#undef CrossCompiling
+#define CrossCompiling YES
+
+#define CcCmd arm-unknown-riscos-gcc
+#define AsCmd arm-unknown-riscos-gcc
+
+#define InstallCmd GCCSDK_INSTALL_ENV/ro-install
+
+#undef ThreadedX
+#define ThreadedX    NO
+
+#define HasPosixThreads YES
+
+#define HasFreeType2 NO
+#define SharedLibFreeType2 NO
+
+#define HasCThreads NO
+#define HasSnprintf YES
+#define HasPutenv   YES
+#define HasZlib     YES
+
+#define OptimizedCDebugFlags -O2
+
+#define StandardDefines -D_POSIX_C_SOURCE=199309L \
+		        -D_POSIX_SOURCE -D_XOPEN_SOURCE \
+		        -D_BSD_SOURCE -D_SVID_SOURCE
+
+#define StdIncDir GCCSDK_INSTALL_ENV/include
+
+#define SystemUsrIncDir GCCSDK_INSTALL_ENV/include
+#define SystemUsrLibDir GCCSDK_INSTALL_ENV/lib
+
+#define StandardIncludes -I GCCSDK_INSTALL_ENV/include
+#define ExtraLoadFlags -L GCCSDK_INSTALL_ENV/lib
+
+#include <cross.rules>
+#include <xorg.cf>
+

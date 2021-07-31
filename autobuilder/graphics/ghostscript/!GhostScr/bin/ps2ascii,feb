@@ -1,0 +1,15 @@
+| Extract ASCII text from a PostScript file.  Usage:
+|	ps2ascii [infile.ps [outfile.txt]]
+| If outfile is omitted, output goes to stdout.
+| If both infile and outfile are omitted, ps2ascii acts as a filter,
+| reading from stdin and writing on stdout.
+
+| I'm sure there is a way of getting the number of args passed on the CLI - a problem for later
+wimpslot -min 15124K
+if "%0" = "" then set GS$ARGS 0 else if "%1" = "" then set GS$ARGS 1 else set GS$ARGS 2
+
+if "<GS$ARGS>" = "0" then gs -q -dNODISPLAY -dNOBIND -dWRITESYSTEMDICT -dSIMPLE -c save -f ps2ascii.ps - -c quit
+if "<GS$ARGS>" = "1" then gs -q -dNODISPLAY -dNOBIND -dWRITESYSTEMDICT -dSIMPLE -c save -f ps2ascii.ps %0 -c quit
+if "<GS$ARGS>" = "2" then gs -q -dNODISPLAY -dNOBIND -dWRITESYSTEMDICT -dSIMPLE -c save -f ps2ascii.ps %0 -c quit > %1
+
+unset GS$ARGS

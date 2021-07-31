@@ -1,0 +1,5 @@
+| !Boot file for RetroArch
+
+Set RetroArch$Dir <Obey$Dir>
+Iconsprites <RetroArch$Dir>.!Sprites
+

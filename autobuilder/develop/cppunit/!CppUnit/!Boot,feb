@@ -1,0 +1,2 @@
+If "<CppUnit$Dir>"="" Then Set CppUnit$Dir <Obey$Dir>
+If "<CppUnit$Dir>"="<Obey$Dir>" AND "<CppUnit$Path>"="" Then Set CppUnit$Path <Obey$Dir>.

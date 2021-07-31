@@ -1,0 +1,98 @@
+AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
+# See <URL:http://developer.mozilla.org/en/docs/CVS_Tags> for CVS branch/tag info.
+AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_20_RELEASE
+AB_CVS_MODULE=mozilla/client.mk
+AB_ZIPNAME=firefox-riscpc
+AB_PVERSION=2.0.0.20
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
+AB_LICENCE="Mozilla Public License"
+AB_ROVERSION=2
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
+AB_LICENCE="Mozilla Public License"
+AB_ROVERSION=2
+
+#export RO_SHAREDLIBS=yes
+
+# 'Official' build:
+# We don't have permission for this
+#export MOZILLA_OFFICIAL=1
+#export BUILD_OFFICIAL=1
+
+# Disable any Autobuilder configure/make.  We drive it all ourselves.
+AB_PRECONF=:
+
+AB_MAKE=:
+
+# Avoid using glib 1.2
+export GLIB_CONFIG=/bin/true
+
+# For Debian/Ubuntu users: make sure you have liborbit-dev, libglib2.0-dev
+# and libidl-dev installed.  Other distributions will need to have similar
+# named packages installed.
+
+ab_make () {
+  # Download source:
+  $GCCSDK_INSTALL_ENV/ro-make -f client.mk checkout MOZ_CO_PROJECT=browser
+
+  # Patch downloaded source:
+  mozilla_patch
+
+  # Run autoconf (because configure.in got changed).
+  # Note this needs to be autconf 2.13 and no other version.
+  autoconf2.13
+  ( cd nsprpub ; autoconf2.13; $GCCSDK_INSTALL_ENV/ro-config)
+
+  # Massage our configure script and run it:
+  $GCCSDK_INSTALL_ENV/ro-config
+
+  # Start the offical build procedure:
+  #We can't call the offical build target because that will rerun configure without all
+  #all clever hacks & tricks in $GCCSDK_INSTALL_ENV/ro-config.
+  $GCCSDK_INSTALL_ENV/ro-make 
+}
+
+mozilla_patch () {
+  # Apply patches:
+  for AB_PATCH in $(find $AB_HOME/$AB_PACKAGEDIR -wholename '*.patch' ) ; do
+    echo "Applying RISC OS patch: $AB_PATCH"
+    patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
+  done
+
+  cp $H/mozconfig $S/.mozconfig
+
+  cp $H/RISCOS.mk $S/security/coreconf/
+
+  cp $H/xptcstubs_arm_riscos.cpp $S/xpcom/reflect/xptcall/src/md/unix/
+
+  cp $H/nsNativeAppSupportRISCOS.cpp $S/toolkit/xre/
+
+  cp -av $H/widget $S/widget/src/riscos || [ "$AB_DEBUG" == "yes" ]
+  cp -av $H/gfx $S/gfx/src/riscos || [ "$AB_DEBUG" == "yes" ]
+
+  # For static builds, then apply this
+  if [ "$RO_SHAREDLIBS" != "yes" ] ; then
+    # Applying static build patch
+    patch -p0 < $AB_HOME/$AB_PACKAGEDIR/static-build.diff || [ "$AB_DEBUG" == "yes" ]
+  fi
+}
+
+ab_package () {
+  ab_create_app Firefox Apps/Network
+
+  for f in \
+      browserconfig.properties \
+      LICENSE README.txt chrome components defaults extensions \
+      greprefs res searchplugins \
+    ; do
+    cp -prL $S/dist/bin/$f $A
+  done
+  cp -prL $S/dist/bin/firefox-bin$AB_EXEEXT $A
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    cp -prL $S/dist/bin/*.so $A
+  fi
+
+  mv $A/extensions/inspector@mozilla.org/ $A/extensions/inspector_mozilla.org/
+
+  $AB_HOME/add-riscpkg -unixlib
+}

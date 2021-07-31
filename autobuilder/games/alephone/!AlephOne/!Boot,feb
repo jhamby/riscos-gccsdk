@@ -1,0 +1,5 @@
+| Boot file for AlephOne
+IconSprites <Obey$Dir>.!Sprites
+
+Set AlephOne$Dir <Obey$Dir>
+Set AlephOne$Path <AlephOne$Dir>.

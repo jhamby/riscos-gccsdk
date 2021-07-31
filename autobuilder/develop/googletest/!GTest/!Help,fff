@@ -1,0 +1,65 @@
+Google C++ Testing Framework
+============================
+
+http://code.google.com/p/googletest/
+
+Overview
+--------
+
+Google's framework for writing C++ tests on a variety of platforms
+(Linux, Mac OS X, Windows, Windows CE, Symbian, etc).  Based on the
+xUnit architecture.  Supports automatic test discovery, a rich set of
+assertions, user-defined assertions, death tests, fatal and non-fatal
+failures, various options for running the tests, and XML test report
+generation.
+
+Please see the project page above for more information as well as the
+mailing list for questions, discussions, and development.  There is
+also an IRC channel on OFTC (irc.oftc.net) #gtest available.  Please
+join us!
+
+Requirements for End Users
+--------------------------
+
+Google Test is designed to have fairly minimal requirements to build
+and use with your projects, but there are some.  Currently, we support
+Linux, Windows, Mac OS X, and Cygwin.  We will also make our best
+effort to support other platforms (e.g. Solaris, AIX, and z/OS).
+However, since core members of the Google Test project have no access
+to these platforms, Google Test may have outstanding issues there.  If
+you notice any problems on your platform, please notify
+googletestframework@googlegroups.com.  Patches for fixing them are
+even more welcome!
+
+
+RISC OS Notes
+-------------
+
+The original documents (including the README where the first paragraphs
+of this help file came from) are in the docs subdirectory of !GTest.
+
+Unfortunately with the current version of GCC (4.7.4) on RISC OS you
+can not build the Google test files without running out of memory.
+
+Due to this I have included pre-compiled libraries:
+libgtest.a - the library without a main function
+libgtest_main.a - the library with a main function
+
+You can then link them to your project with
+ -LGTest: -lgtest
+or
+ -LGTest: -lgtest_main
+
+to include the headers add -IGTest: to your compile line.
+
+If you are using the GCCSDK autobuilder compiler you an build
+gtest as part of your project.
+
+Building gtest with the autobuilder places the files in the
+following locations:
+
+The headers are installed in $(GCCSDK_INSTALL_ENV)/include
+and the src code is installed at $(GCCSDK_INSTALL_ENV)/src/gtest/src
+
+See the examples/make/Makefile.cross for examples of how to build it.
+

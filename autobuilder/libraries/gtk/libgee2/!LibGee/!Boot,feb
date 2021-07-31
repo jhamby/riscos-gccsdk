@@ -1,0 +1,6 @@
+| Boot file for LibGee
+|
+If "<LibGee$Dir>" = "" Then Set LibGee$Dir <Obey$Dir>
+If "<LibGee$Path>" = "" Then Set LibGee$Path <Obey$Dir>.
+
+IconSprites <LibGee$Dir>.!Sprites

@@ -1,0 +1,199 @@
+--- ./security/nss/lib/ssl/sslsock.c.orig	2008-12-29 21:41:49.000000000 -0800
++++ ./security/nss/lib/ssl/sslsock.c	2008-12-29 21:42:01.000000000 -0800
+@@ -521,7 +521,7 @@
+ static SECStatus SSL_BypassShutdown(void* appData, void* nssData)
+ {
+     /* unload freeBL shared library from memory */
+-    BL_Unload();
++    //BL_Unload();
+     setupBypassOnce = pristineCallOnce;
+     return SECSuccess;
+ }
+--- ./security/coreconf/rules.mk.orig	2008-12-29 21:14:44.000000000 -0800
++++ ./security/coreconf/rules.mk	2008-12-29 21:14:55.000000000 -0800
+@@ -356,7 +356,7 @@
+ ifdef XP_OS2_VACPP
+ 	$(MKSHLIB) $(DLLFLAGS) $(LDFLAGS) $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+ else
+-ifeq ($(OS_TARGET),riscos-static)
++ifeq ($(OS_TARGET),RISCOS)
+ 	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
+ else
+ 	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+--- ./security/manager/ssl/src/nsKeygenHandler.cpp.orig	2008-12-29 21:27:26.000000000 -0800
++++ ./security/manager/ssl/src/nsKeygenHandler.cpp	2008-12-29 21:28:17.000000000 -0800
+@@ -104,6 +106,7 @@
+     { 0, }
+ };
+ 
++#if 0
+ const SEC_ASN1Template SECKEY_PQGParamsTemplate[] = {
+     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(PQGParams) },
+     { SEC_ASN1_INTEGER, offsetof(PQGParams,prime) },
+@@ -111,6 +114,7 @@
+     { SEC_ASN1_INTEGER, offsetof(PQGParams,base) },
+     { 0, }
+ };
++#endif
+ 
+ 
+ static NS_DEFINE_IID(kIDOMHTMLSelectElementIID, NS_IDOMHTMLSELECTELEMENT_IID);
+--- ./xpcom/glue/standalone/Makefile.in.orig	2008-12-28 20:14:53.000000000 -0800
++++ ./xpcom/glue/standalone/Makefile.in	2008-12-28 20:15:07.000000000 -0800
+@@ -59,7 +59,7 @@
+ ifeq (WINNT,$(OS_ARCH))
+ LINKSRC = nsGlueLinkingWin.cpp
+ endif
+-ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS RISCOS,$(OS_ARCH)))
++ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS,$(OS_ARCH)))
+ LINKSRC = nsGlueLinkingDlopen.cpp
+ endif
+ ifeq (OS2,$(OS_ARCH))
+--- ./widget/src/riscos/nsMenuBar.cpp.orig	2008-12-29 21:26:30.000000000 -0800
++++ ./widget/src/riscos/nsMenuBar.cpp	2008-12-29 21:26:47.000000000 -0800
+@@ -73,7 +73,7 @@
+ NS_IMPL_ISUPPORTS5(nsMenuBar, nsIMenuBar, nsIMenuListener, nsIDocumentObserver,
+                     nsIChangeManager, /*nsIMenuCommandDispatcher,*/ nsISupportsWeakReference)
+ 
+-/*extern*/ menu_ptr gCurrentROMenu;  
++extern menu_ptr gCurrentROMenu;  
+ 
+ //
+ // nsMenuBar constructor
+Index: config/rules.mk
+===================================================================
+RCS file: /cvsroot/mozilla/config/rules.mk,v
+retrieving revision 3.487.2.9
+diff -u -r3.487.2.9 rules.mk
+--- config/rules.mk	18 Dec 2007 21:33:08 -0000	3.487.2.9
++++ config/rules.mk	30 Dec 2008 05:59:34 -0000
+@@ -1018,7 +1018,11 @@
+ 	@for lib in $(SHARED_LIBRARY_LIBS); do $(AR_EXTRACT) $${lib}; $(CLEANUP2); done
+ endif # SHARED_LIBRARY_LIBS
+ endif # NO_LD_ARCHIVE_FLAGS
++ifeq ($(OS_ARCH),RISCOS)
++	$(MKSHLIB) $(SHLIB_LDSTARTFILE) $(OBJS) $(LOBJS) $(SUB_SHLOBJS) $(RESFILE) $(EXTRA_LIBS) $(DEF_FILE) $(SHLIB_LDENDFILE)
++else
+ 	$(MKSHLIB) $(SHLIB_LDSTARTFILE) $(OBJS) $(LOBJS) $(SUB_SHLOBJS) $(RESFILE) $(LDFLAGS) $(EXTRA_DSO_LDOPTS) $(OS_LIBS) $(EXTRA_LIBS) $(DEF_FILE) $(SHLIB_LDENDFILE)
++endif
+ 	@rm -f foodummyfilefoo $(SUB_SHLOBJS) $(DELETE_AFTER_LINK)
+ else # os2 vacpp
+ 	$(MKSHLIB) -O:$@ -DLL -INC:_dllentry $(LDFLAGS) $(OBJS) $(LOBJS) $(EXTRA_DSO_LDOPTS) $(OS_LIBS) $(EXTRA_LIBS) $(DEF_FILE)
+--- nsprpub/pr/include/md/_riscos.h.orig	2008-12-29 22:06:37.000000000 -0800
++++ nsprpub/pr/include/md/_riscos.h	2008-12-29 22:06:56.000000000 -0800
+@@ -44,7 +44,7 @@
+ #define PR_LINKER_ARCH		"riscos"
+ #define _PR_SI_SYSNAME		"RISCOS"
+ #define _PR_SI_ARCHITECTURE	"arm"
+-#define PR_DLL_SUFFIX		".so"
++#define PR_DLL_SUFFIX		".a"
+ 
+ #define _PR_POLL_AVAILABLE
+ #define _PR_USE_POLL
+@@ -60,8 +60,8 @@
+ 
+ 
+ #undef  HAVE_STACK_GROWING_UP
+-#define HAVE_DLL
+-#define USE_DLFCN
++//#define HAVE_DLL
++//#define USE_DLFCN
+ #define NEED_STRFTIME_LOCK
+ #define NEED_TIME_R
+ #define PT_NO_SIGTIMEDWAIT
+--- nsprpub/configure.in.orig	2008-12-29 22:02:31.000000000 -0800
++++ nsprpub/configure.in	2008-12-29 22:03:06.000000000 -0800
+@@ -1815,11 +1815,11 @@
+     USE_PTHREADS=1
+     MDCPUCFG_H=_riscos.cfg
+     PR_MD_CSRCS=riscos.c
+-    DSO_CFLAGS=-fPIC
+-    DSO_LDOPTS='-shared -Wl,-soname -Wl,$(notdir $@)'
+-    #DLL_SUFFIX=a
+-    MKSHLIB='$(CC) $(DSO_LDOPTS) -o $@'
+-    #MKSHLIB='$(AR) rc $@'
++    #DSO_CFLAGS=-fPIC
++    #DSO_LDOPTS='-shared -Wl,-soname -Wl,$(notdir $@)'
++    DLL_SUFFIX=a
++    #MKSHLIB='$(CC) $(DSO_LDOPTS) -o $@'
++    MKSHLIB='$(AR) rc $@'
+     ;;
+ 
+ *-*-sco*)
+--- configure.in.orig	2009-08-18 14:04:47.000000000 -0700
++++ configure.in	2009-08-18 15:39:23.000000000 -0700
+@@ -2303,6 +2303,15 @@
+     HOST_NSPR_MDCPUCFG='\"md/_os2.cfg\"'
+     ;;
+ 
++*-riscos*)
++    DSO_PIC_CFLAGS=
++    DLL_SUFFIX=.a
++    MKSHLIB="$AR rc \$@"
++    MKCSHLIB="$AR rc \$@"
++    MKSHLIB_FORCE_ALL=''
++    MKSHLIB_UNFORCE_ALL=''
++    ;;
++
+ esac
+ 
+ dnl Only one oddball right now (QNX), but this gives us flexibility
+--- .mozconfig.orig	2009-08-18 13:56:09.000000000 -0700
++++ .mozconfig	2009-08-18 15:35:45.000000000 -0700
+@@ -61,3 +61,6 @@
+ 
+ ac_add_options --disable-updater
+ ac_add_options --disable-plugins
++
++# enable static build
++ac_add_options --enable-static
+--- security/coreconf/RISCOS.mk.orig	2009-09-03 12:03:00.000000000 -0700
++++ security/coreconf/RISCOS.mk	2009-09-03 13:01:08.000000000 -0700
+@@ -39,16 +39,17 @@
+ include $(CORE_DEPTH)/coreconf/UNIX.mk
+ 
+ LIB_SUFFIX  = a        
+-DLL_SUFFIX  = so
++DLL_SUFFIX  = a
+ AR          = ar cr $@ 
+ LDOPTS     += -L$(SOURCE_LIB_DIR)
+-MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
++MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
++#MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+ 
+ OS_RELEASE =
+ OS_TARGET  = RISCOS
+ OS_CFLAGS  = $(DSO_CFLAGS)
+ 
+-DSO_CFLAGS              = -fPIC
++#DSO_CFLAGS              = -fPIC
+ DSO_LDOPTS              = -shared 
+ DSO_LDFLAGS             =         
+ 
+Index: security/nss/lib/softoken/pkcs11.c
+===================================================================
+RCS file: /cvsroot/mozilla/security/nss/lib/softoken/pkcs11.c,v
+retrieving revision 1.165.2.1
+diff -u -r1.165.2.1 pkcs11.c
+--- security/nss/lib/softoken/pkcs11.c	27 Jul 2009 23:34:17 -0000	1.165.2.1
++++ security/nss/lib/softoken/pkcs11.c	8 Dec 2009 20:41:34 -0000
+@@ -2744,7 +2744,7 @@
+     
+     /* unload freeBL shared library from memory. This may only decrement the
+      * OS refcount if it's been loaded multiple times, eg. by libssl */
+-    BL_Unload();
++    //BL_Unload();
+ 
+     /* clean up the default OID table */
+     SECOID_Shutdown();
+--- configure.in.orig   2009-08-18 14:04:47.000000000 -0700
++++ configure.in        2009-08-18 15:39:23.000000000 -0700
+@@ -5585,6 +5615,8 @@
+ 
+ if test -z "$GNU_CC" && test "$OS_ARCH" = "WINNT" -o "$OS_ARCH" = "WINCE" -o "$OS_ARCH" = "OS2"; then
+     SQLITE_LIBS='$(DIST)/lib/$(LIB_PREFIX)sqlite3.$(IMPORT_LIB_SUFFIX)'
++elif test "$OS_ARCH" = "RISCOS"; then
++    SQLITE_LIBS='$(DIST)/lib/$(LIB_PREFIX)sqlite3.$(LIB_SUFFIX)'
+ else
+     SQLITE_LIBS='-L$(LIBS_DIR)'" -lsqlite3"
+ fi

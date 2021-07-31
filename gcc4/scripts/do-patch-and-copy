@@ -1,0 +1,55 @@
+#!/bin/bash -e
+# Patches a subtree, copies extra files in there and optionally run one or
+# more scripts.  The sub-tree is the working directory when run.
+#   ./do-patch-and-copy <reciperoot dir>
+# This is supposed to be run from Makefile, not by hand.
+
+DSTDIR=`pwd`
+SUBTREE=`basename $DSTDIR`
+RECIPEDIR=`readlink -e $1`
+PATCHESDIR=$RECIPEDIR/patches/$SUBTREE
+FILESDIR=$RECIPEDIR/files/$SUBTREE
+SCRIPTSDIR=$RECIPEDIR/scripts/$SUBTREE
+
+# Patching:
+if [ ! -d "$PATCHESDIR" ] ; then
+  echo "Directory \"$PATCHESDIR\" does not exist, no patching is done."
+else
+  echo "GCCSDK: Applying patches at $PATCHESDIR"
+  for p in `ls $PATCHESDIR/*.p` ; do
+    patch -p0 < $p || true
+  done
+fi
+
+# File copying:
+if [ ! -d "$FILESDIR" ] ; then
+  echo "Directory \"$FILESDIR\" does not exist, no file copying is done."
+else
+  echo "GCCSDK: Symlinking $DSTDIR to $FILESDIR"
+  if [ -z "`which lndir`" ] ; then
+    echo "GCCSDK: lndir not available, using a slower method to create symlink tree"
+    pushd $FILESDIR > /dev/null
+    for dir in `find . -type d | grep -v "\.svn" ` ; do mkdir -p $DSTDIR/$dir ; done
+    for file in `find . -type f -o -type l | grep -v "\.svn" ` ; do ln -f -s $FILESDIR/$file $DSTDIR/$file ; done
+    popd > /dev/null
+  else
+    # lndir has the advantage to be way more quicker and it is also very easy
+    # to create relative symbolic links which is nicer when we create a source
+    # snapshot for publication.
+    FILESRELTODSTDIR=`python -c "import os.path; print os.path.relpath('${FILESDIR}','${DSTDIR}')"`
+    pushd $DSTDIR/.. > /dev/null
+    lndir -silent $FILESRELTODSTDIR $DSTDIR
+    popd > /dev/null
+  fi
+fi
+
+# Run scripts:
+if [ ! -d "$SCRIPTSDIR" ] ; then
+  echo "Directory \"$SCRIPTSDIR\" does not exist, nothing can be run."
+else
+  for s in `ls $SCRIPTSDIR` ; do
+    echo "GCCSDK: Running script $SCRIPTSDIR/$s"
+    $SCRIPTSDIR/$s
+  done
+fi
+

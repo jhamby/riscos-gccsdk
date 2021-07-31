@@ -1,0 +1,25 @@
+AB_MAKE=
+AB_LICENCE=Free
+AB_COPYSOURCE=no
+AB_ROVERSION=2
+
+AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#ttf-bitstream-vera-## -e "s/[^-]*-//")
+
+ab_package()
+{
+  ab_create_app UnixFont Apps/Fonts
+  rm -f $A/!Boot,feb
+
+   mkdir -p $A/truetype/ttf-bitstream-vera
+   cp *.ttf $A/truetype/ttf-bitstream-vera
+   mkdir -p $A/doc/ttf-bitstream-vera
+   cp *.TXT $A/doc/ttf-bitstream-vera
+
+   AB_COMPONENTS=""
+   $AB_HOME/add-riscpkg -name TTF-Bitstream-Vera -depends UnixFont
+   
+   # Add triggers for updating the font cache
+   mkdir -p $D/ttf-bitstream-vera/RiscPkg/Triggers
+   cp $H/Triggers/* $D/ttf-bitstream-vera/RiscPkg/Triggers
+}
+

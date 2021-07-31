@@ -1,0 +1,912 @@
+Noteworthy changes to the RISC OS GCCSDK releases made.
+
+For more details on all UnixLib changes, see !GCC.docs.libunixlib.ChangeLog.
+
+GCCSDK GCC 4.7.4 Release 2 (released 13 September 2015)
+==========================
+  - Unixlib: Add support for __cxa_atexit (r6754,r6778,r6916).
+  - Unixlib: Add support for clang/llvm (r6755).
+  - Unixlib: When the size of an mmapped file is not a multiple of the page size,
+    zero the remainder (r6772).
+  - Unixlib: Add VFP support (r6795,r6867).
+  - Unixlib: Add support for naming pthreads.
+  - Unixlib: select() fix; only report a file descriptor as bad if it was given
+    in one of the sets (r6862).
+  - GCC: VFP fixes (r6869).
+  - GCC: Make -mno-unaligned-access the default (r6796).
+  - GCC: Fix handling of section anchors in module code (r6866,r6871).
+  - GCC: Fix potential stack frame corruption (r6897)
+  - Dynamic Linker: Fix handling of ':' in path variables (r6870).
+  - Dynamic Linker: Add VFP support (r6797).
+  - SharedUnixLib: VFP support (v1.13, r6795)
+  - SharedUnixLib: fix memory leak (v1.14, r6905)
+
+
+GCCSDK GCC 4.7.4 Release 1 (released 2 December 2014)
+==========================
+
+Major changes:
+  - Upgraded to GCC 4.7.4.
+  - Upgraded to Binutils 2.24.
+
+Bug fixes and other improvements:
+
+GCCSDK GCC 4.1.2 Release 2 (released 1 October 2012)
+==========================
+
+Bug fixes and other improvements:
+  - UnixLib: strftime fix (r5755, bug #226)
+  - UnixLib: getcwd fix (r5758, bug #227)
+  - UnixLib: glob fix (r5766, r5776, bug #229, bug #231)
+  - UnixLib: readdir inode fix (r5767)
+  - UnixLib: support for alias-disabling prefix (r5775, bug #232)
+  - UnixLib: sendto return value fix (r5780, bug #233)
+  - UnixLib: avoid closing RISC OS input/output stream (r5785, bug #236)
+  - UnixLib: support tmpnam/tmpnam_r and __RISCOSIFY_NO_PROCESS combination
+    (r5823, bug #238)
+  - UnixLib: Avoid reading from NULL when SWI DDEUtils_ReadPrefix is not
+    defined, nor Prefix$Dir is set (r5902, bug #241).
+  - GCC: Disable tail call optimisations when stack checking is enabled to
+    prevent stack corruption (bug #230, #243).
+
+GCCSDK GCC 4.1.2 Release 1 (released 21 April 2012)
+==========================
+
+Major changes:
+  - Upgraded to GCC 4.1.2 (r4684).
+  - Upgraded to Binutils 2.21 (r4911).
+  - Improved profiling support (r4502, r4503).
+  - Merged UnixLib and SharedCLibrary stub code (r4624), resulting in:
+    - Support for C++ when using SharedCLibrary (including module code).
+    - SharedCLibrary stubs have now network support.
+    Note that SharedCLibrary stub code remains (L)GPL free (r4991).
+  - asasm: significant set of fixes to improve ObjAsm compatibility.  Now
+    able to be used to build ROOL RISC OS 5 IOMD and IYONIX branches.
+  - Introduction of abi based versioning of shared libraries.
+
+Bug fixes and other improvements:
+  - GCC: avoid code generation resulting in stack corruption (r4656).
+  - GCC: support weak symbols in module code (r5059).
+  - GCC: wrong code generation when using C++ (r4682, bug #208).
+  - UnixLib: pthread stability fixes, especially when shared library is used
+    (r4396, r4424, r5470).
+  - UnixLib: Make __write_backtrace public (r4418, r4419).
+  - UnixLib: Fix return value getpwnam_r (r4425).
+  - UnixLib: (line) buffered stream fix (r4398, r4459, r4786).
+  - UnixLib: shared library improvements and fixes.
+  - UnixLib: improved mmap() support (r4902).
+  - UnixLib: opening a directory should result in EISDIR error (r4784).
+  - UnixLib: alloca() related corruption fix (r4623, bug #205).
+  - UnixLib: significant internal cleanups (r4431, r4435, r4443, r4647, r4652,
+    r4730, r4761, r5100, r5102, r5115, r5116).
+  - UnixLib: updated third party code (r4431, r4824, r5089).
+  - UnixLib: add support for ARMv7 CPU detection (r5062).
+  - UnixLib: initial and experimental VFP and no-chunked stack support
+    (r4811, r4813, r4824, r4827, r4828).
+  - UnixLib/SharedUnixLibrary: improved reliability of forking other binaries
+    including I/O redirection handling (r5025).  Latest SharedUnixLibrary
+    version is now v1.12.
+  - UnixLib: fix open() return value (r5166).
+  - UnixLib: upgrade glob implementation (r5204, bug #220).
+  - UnixLib: fix getcwd memory corruption (r5286).
+  - UnixLib: fix fread EOF bit setting (r5296).
+  - UnixLib: support for double quoted redirection filenames (r5302, bug #221).
+  - UnixLib: stdtime: add missing buffer specification (r5331, bug #223).
+  - UnixLib: prevent stack extension trampling signal handler's stack chunk.
+    (r5394).
+  - UnixLib: merge SCL stubs into UnixLib project (r5465).
+  - UnixLib: getcwd: fix buffer overflow (r5408).
+  - UnixLib/SCL: support SCL's __USE_FILE_OFFSET64 and __USE_LARGEFILE64 API
+    (r5405, r5489, r5588).
+  - UnixLib: support writing symlink files (r5578).
+  - Shared Object Manager: Reliability fixes (r4437, r5704 bug #224).  SOManager
+    module version is now 2.03.
+  - elf2aif: ELF flags test fix (r4436)
+  - CMunge: protection against bogus help-string entries.
+  - Examples: Fix linker error (r4394)
+  - GDBServer:
+    - client socket handle fix (r4777).
+    - use libscl network code instead of its own implementation (r4780).
+    - stability fixes and cleanups (r4781, r4783, r4790, r4791, r4806).
+  - DRenderer: Source converted to AsAsm/ObjAsm syntax and upgraded to v0.55
+    (contributed by Christopher Martin).
+
+Cross compile related changes and bug fixes:
+  - Porting Tools improvements (r4416, r4450, r4454, r4455, r4479, r4482,
+    r5456).
+  - Makefile driven build (instead of script file) which improves partial
+    rebuilding (r4467).
+    - Source fetch and build of the correct Autoconf/Automake versions
+      needed.
+    - Separating GCC and Binutils build (again for improved partial rebuild).
+  - Add gdbserver and syslogd to the cross-compile build.
+  - Experimental EABI target and newlib build support.
+
+GCCSDK GCC 4.1.1 Release 2 (released 27 December 2009)
+==========================
+
+Major changes:
+  - Test release where the shared library code generation is enabled
+    and which also contains !SharedLibs.
+  - Added 'asasm', the 'simple assembler' supporting the Acorn ARM assembler
+    and ObjAsm syntax with AOF or ELF output. This was originally written by
+    Niklas Röjemo and formally known as 'as' and also part of the !AS
+    application.
+    This was also the ARM assembler backend in the pre-GCCSDK 4 kits and now
+    part of GCCSDK 4 to support legacy Acorn ARM assembler and ObjAsm files
+    and this after many compatibility fixes.
+    More information can be found in !GCC.docs.asasm.
+  - Possibility to create RISC OS modules without having to use
+    SharedCLibrary.
+  - Limited profile support (gcc option -pg).
+
+Bug fixes:
+  - Shareble library fixes (SOModule and code generation).
+  - Several C++ exception fixes.
+  - UnixLib:
+    - Better leafname determination of program name.  Fixes Bug #169
+      <URL:http://www.riscos.info/bugzilla3/show_bug.cgi?id=169> (reported by
+      John Kortink).
+    - Better canonicalisation behaviour of program name when Run$Path was
+      used reverting the work arounds in previous Release 1b and 1a
+      (Alias$gcc/Alias$g++).
+    - Fixed memory leak.
+    - Improved symbolic link support.  Fixes item 1 of Bug #162
+      <URL:http://www.riscos.info/bugzilla3/show_bug.cgi?id=162> (reported by
+      Duncan Moore).
+    - Fix for recursive signal calling.
+    - Constify some of the function parameters in kernel.h.  Likewise for
+      SCL kernel.h header.
+  - Module generation:
+    - Image__RO_Base variable is now located in .rodata section instead of
+      .data.
+    - Avoid relocation code being copied in RMA workspace.
+    - Global variables holding non const function pointers or being const but
+      requiring relocation where not always handled correctly.
+  - CMunge documentation change.
+
+Cross compile related changes and bug fixes:
+  - elf2aif: improved behaviour when used on non-RISC OS platforms.
+  - Fix for:
+      $ arm-unknown-riscos-strip -s libfoo.a
+      arm-unknown-riscos-strip: cannot mkdir stAVQDap for archive copying (error: File exists)
+  - Fix for linking a module binary on a 64-bit host triggering an assert.
+  - gdbserver: development start of remote, gdb based, RISC OS debugger for
+    ELF binaries.
+  - Porting tools: several bug fixes and improvements.
+
+GCCSDK GCC 4.1.1 Release 1b (released 06 January 2009)
+===========================
+
+Another small but important bug fix release for release 1a as its
+workaround for the canonicalisation for argv[0] resulted in ignoring
+the first parameter given to gcc/g++.
+
+GCCSDK GCC 4.1.1 Release 1a (released 03 January 2009)
+===========================
+
+This is the same as GCCSDK GCC 4.1.1 release 1 but with the following
+fixes:
+  - Workaround for a problem in RISC OS 5 where UnixLib is not able
+    to determine the full path for argv[0] when the binary is run via
+    Run$Path.  This fixes the "File 'cc1' not found" error when compiling
+    on RISC OS 5.
+  - The new UnixLib 5 qsort code could sometimes fail resulting in an
+    "internal compiler error" during compilation on RISC OS.
+  - Avoid having index/html and Index/html in !GCC.docs.binutils.
+
+GCCSDK GCC 4.1.1 Pre-release 2 (released 26 December 2008)
+==============================
+ 
+Test release where the shared library code generation is enabled
+and containing !SharedLibs.
+
+GCCSDK GCC 4.1.1 Release 1 (released 23 December 2008)
+==========================
+
+First stable release of GCC 4.1.1 + Binutils 2.17 port featuring:
+
+  - GNU C/C++ compilers based on GCC 4.1.1.
+  - Object file format is now ELF based and no longer AOF/AIF (although that
+    Absolute AIF files can be created from static built ELF programs).
+    Currently only static ELF binaries are supported in this release but
+    the shared library development is already finished and undergoing
+    testing.
+  - UnixLib as runtime library also means a soft-float floating point
+    implementation resulting significant speed increases for floating point
+    intensive code.
+  - UnixLib: many enhancements and bugfixes done.
+  - RISC OS module support for C programs.
+
+Further documentation can be found in !GCC's help file.
+
+GCCSDK GCC 4.1.1 Pre-release 1 (released 17 November 2007)
+==============================
+
+The first test release of GCC 4.1.1 + Binutils 2.17 port featuring:
+
+  - GNU C/C++ compilers based on GCC 4.1.1.
+  - Object file format is now ELF based and no longer AOF/AIF (although that
+    Absolute AIF files can be created from static built ELF programs).
+  - Shared library support with default set of shared libraries for UnixLib,
+    libgcc, C++ support library and dynamic loader.
+  - UnixLib as runtime library also means a soft-float floating point
+    implementation resulting significant speed increases for floating point
+    intensive code.
+  - RISC OS module support for C programs.
+
+Further documentation can be found in !GCC's help file.
+
+VERY IMPORTANT: we encourage every RISC OS developer to try out this release
+and gives us feedback on your experience with this release.  There is a known
+list of problems mentioned in !GCC's help file which we foresee to be fixed in
+the first release.
+
+Note that we like to reserve the freedom to make some incompatible changes to
+the shared UnixLib API before the first release and this based on developer
+feedback and the already known need to do some API bugfixes or cleanups.
+
+So therefore please do *not* distribute your programs built with *shared*
+UnixLib runtime library found in this pre-release but feel free to do so with
+the *static* UnixLib version instead (i.e. using -static option when linking)
+so that users still can run your programs when we do the first release
+containing the first supported shared UnixLib version.
+
+GCCSDK GCC 3.4.6 Release 3 (released 17 July 2007)
+==========================
+
+This is only a summery of the most important changes made.
+
+* GCC compiler fixes:
+
+  - The dependency paths were never converted to RISC OS filepaths when
+    option -mamu was specified.  Bug #151
+    <URL:http://www.riscos.info/bugzilla3/show_bug.cgi?id=151>.
+  - Fixed incorrect stack size checking in -O3 compiled binaries. Bug #148
+    <URL:http://www.riscos.info/bugzilla3/show_bug.cgi?id=148> and Bug #156
+    <URL:http://www.riscos.info/bugzilla3/show_bug.cgi?id=156>.
+
+* Assembler fixes:
+
+  - Removed the built-in limit of 40 include directories.
+
+* UnixLib fixes:
+
+  - mktime: Fix corruption of its input structure.  Bug #152
+    <URL:http://www.riscos.info/bugzilla3/show_bug.cgi?id=152>.
+  - regex.h: Made it usable for C++ programs.
+  - Fixed incorrect program name determination for programs run as
+    "*Run MyLibrary:myprog".
+  - fsync: Don't error on files open with O_RDWR.
+  - strnicmp: Compare lowercased versions of strings rather than uppercase.
+  - Change EAGAIN value to the same as EWOULDBLOCK, to match TCPIPLibs and
+    Linux. Change EDEADLK value for TCPIPLibs compatibility and add ENOTSUP.
+  - uname: changed utsname.sysname from "riscos" into "RISC OS" and
+    utsname.machine from "arm-acorn" into "armvxl" with 'x' the major ARM
+    architecture digit.
+  - Fixed memory access problem when using redirection.
+  - pthreads can now be used in binaries run under TaskWindow or in Wimp
+    applications without special support code needed.
+
+* SharedCLibrary stub fixes:
+
+  - vfscanf, vscanf and vsscanf: made it available.
+  - fdopen: implemented.
+  - fileno: fixed which allows C++ fstreams to work.
+
+* Librarian fixes:
+
+  - Fixed spurious problem when creating a new library and when run on
+    RISC OS.
+
+GCCSDK cross-compilation improvements:
+
+* Provided -mthrowback option instructing the cross-compiler to sends its
+  warnings and errors via syslog messages to a given RISC OS host.  A
+  RISC OS syslogd implementation will then generated normal throwback
+  messages.
+
+GCCSDK GCC 3.4.6 Release 2 (released 17 September 2006)
+==========================
+
+This is only a summery of the most important changes made.
+
+* GCC compilers fixes:
+
+  - Correction of Release 1 filename handling regression with GCC.
+  - Enabling of throwback for C preprocessor.
+  - Pass gcc include paths through to 'as' assembler.  There are known
+    limitations on the current assembler include path support concerning
+    Unix and RISC OS style pathname syntax so we recommend using path
+    variables when you want to specify assembler include directories.
+    E.g.: gcc -IOSLib: -c source.s -o source.o
+
+* Assembler fixes:
+
+  - Allow suffix swapping in its include filenames and adding hdr/Hdr
+    suffixes to its default suffix swap list.  This allows RISC OS and
+    cross compilation of same assembler sources which include OSLib headers.
+  - No longer supporting GCC @ comments.  This is no logner needed for the
+    GCCSDK build procedure and allows the @ as built-in variable by default
+    i.e. without having to resort to the -objasm option.
+  - Assembler now supports all ARMv5E (XScale) instructions (i.e. not
+    including the Thumb instructions).
+  - Fixed several miss-assemblings or unsupported corner cases: LFMFD,
+    LDC/STC, PLD, LDR/STR(H,SH,SB), etc.
+  - Added testcases for future regression tests.
+
+* UnixLib fixes:
+
+  - Improvement of backtrace and error handling: showing info on all current
+    threads and demangled C++ function names.
+  - readdir: fix in its suffix swapping code and improved POSIX behaviour.
+  - unixify: fix memory leak and return value.
+  - riscosify: avoid using hard-wired "/home/riscos/env/" path.
+  - Stability fix when <Alt><Break> is used.
+  - Conditional support for XScale compilation.
+
+* Librarian fixes:
+
+  - Replacing AOF object in ALF file didn't work.
+  - Several code fixes improving its stability.
+
+* Linker fixes:
+
+  - 'hide' edit command did not always work.
+
+* Fix for C++ using SharedCLibrary.  Examples Makefile updated
+  to build hello world examples in different ways.
+
+* Various documentation updates.
+
+GCCSDK cross-compilation improvements:
+
+* Improved memory debugging support, allowing use of dmalloc instead of
+  Fortify.
+
+* Allow building of processor specific toolchains using the --with-arch,
+  --with-tune and --with-float configure options.  In particular,
+  allow building of GCC and UnixLib which, apart from ARMv3, also target
+  ARMv3M (like ARM7), ARMv4 (like StrongARM) and ARMv5TE (like XScale)
+  architectures by default.
+
+* Improvements of the "porting scripts" used are also used by the
+  GCCSDK Autobuilder:
+
+  - Autobuilder now uses separate X libraries instead of relying
+    on monolithic X tree.  Many other autobuilder packages updated.
+    Non-Debian source fetcher improved.  Many dependencies added so
+    that many packages can be built with just one command.
+  - Faster --ro-recursive implementation.
+  - Parallel build support.
+  - Created pkg-config wrapper to make sure only cross-compiled pkg-config
+    files are found.
+
+
+GCCSDK GCC 3.4.6 Release 1 (released 12 June 2006)
+==========================
+
+* Update to full GCC 3.4.6 release.  See
+  <URL:http://gcc.gnu.org/gcc-3.4/changes.html#3.4.6> for more
+  information about this release.
+
+* cmunge: Upgraded to v0.76 which has fixes for the carry-capable veneer
+  return problem and a workaround for the broken handling of the system
+  call in Pace SCL seen on IYONIX pc.  All details in !gcc.docs.CMunge.History.
+
+* Provided two new GCC options -mlibrary-static-data-offset and
+  -mclient-static-data-offset (latter being default) which when compiling
+  module code to be able to use the library static data offset (at
+  sl-540) instead of the client static data offset (sl-536).
+  Graham Shaw <gdshaw@sagitta.demon.co.uk>
+
+* Added resgen, a tool to create an AOF file encapsulating one or more
+  files ready for (de)registering with ResourceFS.
+
+* Several bug fixes and enhancements were done:
+  - as : solved bug #149; support for offset parameter in ALIGN; support
+    for ALIGN AREA attribute; alignment happens with zero bytes instead of
+    random bytes; support for rotated constants.
+  - decaof : made it more robust.
+  - drlink : new option -strict to treat warnings as errors.  The linker
+    invoked by gcc will add the option -strict when environment variable
+    TLINK_STRICT has been defined (value unimportant).
+  - gcc : better -mapcs-26 vs -mapcs-32 behaviour but note that -mapcs-26
+    support is deprecated.
+  - gcc/as/drlink : RISC OS binaries have support for reading/writing
+    "program/c" RISC OS files in addition to "c.program" files (but the
+    command line argument still specifies them as "program.c").
+  - libfile : increased compatibility with Acorn/Castle libfile version.
+  - UnixLib : bug fix details in separate !gcc.docs.UnixLib.Changes file.
+  - SharedUnixLibrary (v1.10) : support for RISC OS versions where the
+    module private word is in USR read-only memory.
+
+* Various Autobuiler and porting-tool enhancements.
+
+* GCCSDK build enhancements:
+  - Move CVS to SVN changes.
+  - GCC ARM backend/drlink : support for 64-bit platforms (x86_64).
+  - Solaris 8 SPARC support
+
+
+GCCSDK GCC 3.4.5 Release 1 (released 15 February 2006)
+==========================
+
+* Update to full GCC 3.4.5 release.  See
+  <URL:http://gcc.gnu.org/gcc-3.4/changes.html#3.4.5> for more
+  information about this release.
+
+* decaof: On 14 July 2005, the original author of decaof, Andy Duplain,
+  relicensed decaof under GPL.
+
+* nm: Explictly marked as GPL.
+
+* cmunge: Upgraded to v0.72 which now contains GCCSDK support and several
+  bugs fixes and enhancements.  All details in !gcc.docs.CMunge.History.
+  Many thanks to Justin Fletcher for his full support.
+
+* as: Under some circumstances, reserved AOF symbol attributes were set
+  and this could be triggered too by GCC usage of 'as'.
+  drlink: A warning is given when unsupported/reserved AOF symbol
+  attributes are detected.
+
+* RISC OS modules can now be created in C++ too.
+
+* UnixLib's regex implementation is now derived from the PostgreSQL codebase
+  resulting in significantly faster timings.
+
+* Longstanding Fortran COMMON bug is fixed.
+
+* Calling SharedCLibrary functions (-mlibscl option) having one or more
+  float arguments resulted in wrong behaviour.  This is now fixed.
+
+* Removed the old (26 bit only) rink version.  Use the latest 26/32 bit
+  neutral version at <URL:http://www.compton.nu/rink.html>.
+
+* Porting tools are now using the environment variables GCCSDK_INSTALL_ENV
+  and GCCSDK_INSTALL_CROSSBIN to locate their files.  This allows easy
+  switching between multiple cross-compiler versions or installation at
+  non-default directories.
+
+* Included Andreas Dehmel's DRenderer v0.52 source & binary which recently
+  became GPL licensed.  Any future development of DRenderer can happen in
+  the GCCSDK project.
+
+
+GCCSDK GCC 3.4.4 Release 3 (released 8 July 2005)
+==========================
+
+* Update to full GCC 3.4.4 release.  See
+  <URL:http://gcc.gnu.org/gcc-3.4/changes.html#3.4.4> for more
+  information about this release.
+
+* UnixLib: Unterminated buffer fixes (__unixify and vnsprintf)
+
+* libscl: Much improved compatibility with Castle C/C++ headers
+  and TCPIPLibs.
+
+* GCC 'gcov' profiling support is now possible.  See the GCC manual
+  for more details.
+
+* Now with full RISC OS module support.  See !gcc.docs.Intro for details.
+
+* Included CMunge written by Justin Fletcher & Robin Watts.
+
+* Autobuilder: Minor fixes and many improvements.  Many packages added.
+
+* drlink: Explictly marked as GPL (permission granted for this in 2001)
+
+* 'as', 'drlink' and 'decaof' have improved support for previously unhandled
+  AOF attributes.
+
+* Improved support for GCCSDK under Cygwin, OpenBSD and big-endian
+  platforms like Mac OS X.
+
+* Additions for soft-float support.
+
+* argv[0] is now a Unix-format filename under UnixLib.
+
+* !Clib is no longer distributed with GCC.  It is not used by anything,
+  and the compilers which can target the SharedCLibrary using its sources
+  (GCC and LCC) contain their own copies. 
+
+* Runaway optimisation fixed (bug #131)
+
+
+GCCSDK GCC 3.4.4 Release 2 (released 6 May 2005)
+==========================
+
+* drlink is much faster when handling very large numbers of symbols.
+
+* UnixLib no longer contains any GPL code.  UnixLib in its entirety
+  is govenered by the LGPL, which may make it suitable for some commercial
+  projects (subject to LPGL requirements).  Specific files in UnixLib
+  may be subject to different licenses.
+
+* The SharedCLibrary compatibility headers and stubs, libscl, are
+  now distributed under a BSD-style free-software license.
+
+* The 'as' assembler is now GPL, permission thanks to Niklas Röjemo.
+  Also has considerable tidying and some minor bug fixes, and GCC will
+  cause it to use throwback if the compiler is doing so.
+
+* More code moved to SharedUnixLibrary (now 1.06).  This allows
+  more flexible and reliable handling of some low-level operations.
+
+* Substantial pthread improvements.
+
+* GCCSDK now contains porting scripts and autobuilder packaging scripts
+  to signficantly simplify porting and rebuilding of Unix applications
+  for RISC OS.
+
+* Linker will dynamically link to ChoX11 and DeskLib if the system
+  variable TLINK_CX11 is set and -lX11 is specified on the command line.
+
+* Better handling of fork() and related functions.
+
+* System variables under UnixLib without a $ in them are now specific
+  to the process.
+
+* Rationalisation of escape handling in UnixLib.
+
+* Overflows and other exceptional floating point behaviour now do
+  not generate a signal, consistent with Unix behaviour.
+
+* More safety in UnixLib signal handling; improved backtraces.
+
+* Faster memcpy/memset/strcpy/strlen implementations from Adrian Lees.
+
+* Addition of fake /dev/custom device in UnixLib allows overriding
+  of specific file descriptor behaviour.
+
+* Fix for needing to specify -I. sometimes with includes relative to
+  a path in GCC.
+
+* Update to latest GCC 3.4.4 snapshot.
+
+* Rationalisation of UnixLib sources in preparation for ELF and GCC 4.
+
+* When cross compiling, setting the system variable TLINK_MEMCHECK to
+  a value will, at link time, redirect calls to malloc/calloc/realloc/free
+  via the 'fortify' memory check library.  This allows checking for
+  block overwrites, use of free memory and other memory indiscretions.
+
+* UnixLib contains an amalgamation of Sun Microsystems' 'fdlibm' and
+  the IBM MathLib libraries to provide precise IEEE single and double
+  floating point arithmetic accurate to the last decimal place.  The
+  library additionally provides all C99 math functions.
+
+* UnixLib: incorporated David Gay's libgdtoa library to provide
+  accurate representation of floating point numbers as strings.
+
+* UnixLib: updates to 'printf' family of functions provides better
+  floating-point accuracy and fixes many formatting problems.
+
+* UnixLib: headers incorporate GCC's 'nonnull' and 'warn_unused_result'
+  attributes to generate additional warnings that may aid in tracking down
+  bugs at compile time.
+
+* GCC/GCCSDK now includes the 'decaof' tool for examining AOF object
+  files.
+
+
+GCCSDK GCC 3.4.4 Release 1 (released 25 December 2004)
+==========================
+
+* Modernisation of assert() handling and ensure compability with StubsG.
+
+* Improved Co-processor register support in 'as'
+
+
+GCCSDK GCC 3.4.4 Pre-release 4 (released 20 December 2004)
+==============================
+
+* Extensive improvement of filename handling in AOF tools and GCC.  They
+  now all use UnixLib's riscosify/unixify functions and can handle
+  and disambiguate a much larger range of filenames.
+
+* drlink: Ensure that partially linked AOF files work correctly.
+
+* drlink: Improve behaviour of GNU LINKONCE areas, which previously prevented
+  some C++ programs from linking.
+
+* libscl: Minor tidying, add stdint.h Castle C/C++ compatibility header.
+  Make riscosify work properly with libscl.
+
+* as: Now linked with SCL instead of UnixLib, so it is smaller.
+
+
+GCCSDK GCC 3.4.4 Pre-release 3 (released 10 December 2004)
+==============================
+
+* gcc: Updated to version 3.4.4 (pre-release of 03 Dec 2004)
+
+* gcc: No longer prefix register names with '__' in assembler output.
+
+* drlink: Fix reporting of size mismatches.
+
+* ld: Use demangler API for C++ v3 symbols.
+
+* gcc: Correct output of some floating point code that could result
+  in stack mismatches.
+
+
+GCCSDK GCC 3.4.4 Pre-release 2 (released 29 November 2004)
+==============================
+
+* gcc: Minor bug fixes.
+
+* zip: Be more intelligent when setting RISC OS filetype.
+
+
+GCCSDK GCC 3.4.4 Pre-release 1 (released 26 November 2004)
+==============================
+
+* gcc: Updated to version 3.4.4 (pre-release of 13 Nov 2004)
+
+
+GCCSDK GCC 3.4.1 Release 1 (released 05 October 2004)
+==========================
+
+* gcc: Updated to version 3.4.1 to make the distribution current and
+  bring in speed improvements and better optimisation.  The 3.3 release
+  branch was abandoned in favour of this.
+
+* gcc: Default is now to tune for XScale - this will improve performance
+  on StrongARM and XScale processors - the most common ARM processors running
+  RISC OS.
+
+* Many substantial changes and improvements - see docs.ULChanges for the
+  complete list.  Highlights include:
+
+  - Integrated iconv support via an external module.
+  - Much improved handling of child processes, avoiding previous
+    potential aborts.
+  - Miscellaneous pthreads improvements including addition of semaphore
+    support.
+  - Complete set of 64-bit maths functions.
+  - Considerably improved compatibility with glibc headers, easing
+    porting of many programs.
+  - Improved terminal handling.
+  - /dev/dsp support meaning some Unix programs using sound will work
+    without modification.
+  - Further improvements to filename translation.
+  - General improvements to source formatting and comments.
+
+
+GCCSDK GCC 3.3.3 Pre-release 2 (released 18 April 2004)
+==============================
+
+* diffutils: Upgrade to version 2.8.1.  Add documentation.
+
+* flex: Upgrade to version 2.5.31.  Add documentation.
+
+* grep: Upgrade to version 2.5.  Add documentation.
+
+* gperf: Add documentation.
+
+* make: Upgrade to version 3.80.  Add documentation.
+
+* patch: Upgrade to version 2.5.4.
+
+* sed: Upgrade to version 4.0.9.  Add documentation.
+
+* gcc: Fix accidental commit that prevented error messages for compiled
+  files from being displayed.
+
+* unixlib: Preserve DDEUtils Prefix upon parent process exit.  This fixes
+  an interaction bug between AMU and gcc causing files to be stored in
+  the wrong place.
+
+* drlink: Fix handling of RISC OS filenames.
+
+
+GCCSDK GCC 3.3.3 Pre-release 1 (released 20 March 2004)
+==============================
+
+* unixlib: Path <Unix$Path> has been replaced by <UnixLib$Path>.  All
+  makefiles that previously used the path Unix: will have to be updated
+  to use UnixLib: instead.
+
+* gcc: updated to release 3.3.3 20040214.  The Standard C++ Library
+  has undergone a re-write, meaning any applications compiled with this
+  C++ compiler are not compatible with previous GCC releases.
+
+* unixlib: POSIX thread (pthread) support
+
+* gcc, unixlib, libscl: Default build is now APCS-32.  APCS-26 builds are
+  deprecated and will be removed from a future version.
+
+* gcc: C++ and Fortran applications can now be compiled to use the
+  SharedCLibrary (libscl) as an alternative to UnixLib.  UnixLib
+  remains the default target C run-time library.
+
+* unixlib: Stack model changed from UNIX-style linear stacks
+  to RISC OS SharedCLibrary style chunked stacks.  This allows
+  for automatic WimpSlot extension.
+
+* unixlib: Emulation of /dev/random and /dev/zero.
+
+* unixlib: New resolver libraries, taken from glibc 2.2.5.
+
+* unixlib: Improve compatibility with the C99 standard.
+
+* unixlib: New crypt implementation, taken from glibc 2.2.5.
+
+* as: Big-endian processor support.  Required for cross-compiling on
+* processors such as the MIPS.
+
+* as: Fixes for common area symbol handling
+
+* as: Support for ELF object format.
+
+* as: Improve filename handling and search paths for GET.
+
+* ar: Closer emulate UNIX's 'ar' implementation.
+
+* sed: Upgrade to version 4.0.7.
+
+
+GCCSDK GCC 2.95.4 Release 3 (released 05 January 2003)
+===========================
+
+* as: Fix pre/post indexed addressing assembler error.
+
+* gccsdk: Support NetBSD.
+
+* unixlib: Fix #include typo in inttypes.h.
+
+* libscl: Preserve flags on 26-bit systems.
+
+
+GCCSDK GCC 2.95.4 Release 2 (released 13 November 2002)
+===========================
+
+* ar: This is an ALF implementation of the Unix archiver.  This is
+  simply a front end onto libfile but takes compatible arguments.
+
+* nm: Based on decaof, this program is an AOF version of the Unix
+  program to list symbols in object files.
+
+* as: Fix broken co-processor mnemonic support.
+
+* drlink: Upgrade from 0.3.4 to 0.3.9.
+
+* unixlib: Fix a command line argument bug when using file-descriptor
+  based re-direction.
+
+* unixlib: Logic for isprint was wrong.
+
+* unixlib: usleep gets 1/100th sec resolution.
+
+* gcc: Support hh and icc filename extensions.
+
+* gcc: [BUG48] Tail call optimisation and chunked stacks.
+
+* gcc: [BUG88] Prevent STR code generation where the source and base
+  register are the same.
+
+* bison: [BUG26] Pack bison files in the distribution.
+
+* libscl: Support APCS-32.
+
+
+GCCSDK GCC 2.95.4 Release 1 (released 20 December 2001)
+===========================
+
+* unixlib: Allow for program independent sfix settings.
+
+* unixlib: Remove restriction on the maximum length of a command line.
+
+* unixlib: Add wchar.h, inttypes.h, stdint.h and supporting functions.
+
+* unixlib: Support `,xyz' RISC OS file type extensions.
+
+* unixlib: Fix longstanding bug that causes programs to hard-lock a
+  computer whilst using the network stack.
+
+* unixlib: Support for DoggySoft's Syslog module.
+
+* unixlib: Header file re-arrangements so that UnixLib can be used
+  as a drop-in compile time replacement for the SharedCLibrary.
+
+* gcc: Remove weak symbol use that was enabled in pre-release 3.
+
+* gcc: Changed compiler executable directory from arm-riscos to
+  arm-acorn-riscos.
+
+* gcc: Minor code generation optimisation for small C++ functions.
+
+* gcc: Bug fix in Unix filename translation.  Pathnames starting with
+  `../../something' would be translated to '../../'.
+
+* gcc: By default the libraries and headers for UnixLib and SharedCLib
+  are integrated into the distribution.  GCC therefore no longer relies
+  on the Unix$Path and C$Path variables.  During the link stage, it is
+  recommended that the GCC command is used, rather than calling drlink
+  directly.
+
+* gcc: The option specifying that source code should be built and linked
+  against the SharedCLibrary rather than UnixLib has changed from the
+  rather uninformative -mstubs to -mlibscl.
+
+* as: Better support for local labels.
+
+* gcc: Upgraded to version 2.95.4.
+
+
+GCCSDK GCC Pre-release 3a  (released 23 November 1999)
+=========================
+
+* Integer division will now raise a SIGFPE upon division
+  by zero
+
+* Front-end programs g77 and g++ had not been built since the
+  upgrade to 2.95.2 and were looking for the compilers in
+  directory 2_95_1.
+  
+* The !run file incorrectly set the pathname for the /tmp
+  directory.
+
+
+GCCSDK GCC Pre-release 3  (released 19 November 1999)
+========================
+
+These are the user visible changes since pre-release 2.
+
+* Updated to GCC 2.95.2
+
+* C++: The Standard Template Library headers have been moved from
+  their own sub-directory (stl) to their parent directory.
+
+* Fix errors in the conversion of float/double and long doubles
+  to 64-bit integers. These functions have been re-coded to not
+  use floating-point instructions.
+
+* as: The assembler incorrectly compiled a post-indexed LDR/STR
+  as a pre-indexed LDR/STR.
+
+* as: Incorrect filename translation was causing AOF files
+  named o.s_temp to be written out as o.o_temp
+
+* unixlib: Bug fixes in UnixLib's strsep and strtoul functions.
+  Implemented C9X headers, fenv.h and complex.h. Added many new
+  math functions.
+
+
+GCCSDK GCC Pre-release 2  (released 23 September 1999)
+========================
+
+This file details the user visible changes since pre-release 1.
+
+* Separate libgcc runtime library for targetting the SharedCLibrary
+called libgcc_sh.
+
+* Exception handling bug fix.
+
+* Transparent suffix swapping performed by UnixLib is now private
+to the GCC compilers and utilities (set by UnixFS$<progname>$sfix)
+
+* Directory structure has been reorganised. Binaries and
+supporting libraries are now in version specific directories so
+it will be possible to have multiple gcc installations and select
+an appropriate compiler by its version number (see `gcc -V').
+
+* C++ support libraries libio and libstdc++ are now integrated
+into the main !gcc tree, rather than being separate directories.
+Hence it is no longer a requirement to add -Ilibio: and -Ilibstdc:
+to the gcc command line, likewise with -Llibio: and -Llibstdc:
+on the linker command line, however you still will need to add
+-lstdc++ and -liostream.
+
+* The C++ libraries should now be compatible with the long
+file name feature of RISC OS 4. This shouldn't affect users of
+filing systems that support only 10 characters i.e. ADFS, IDEFS
+and SCSIFS on RISC OS 3.
+
+* The example programs originally located in !gcc.files have been
+moved out of the !gcc directory. Running !gcc will no longer
+change the currently selected directory.
+
+* Documentation update to reflect directory structure changes.
+Added a clear note regarding the memory usage of gcc.

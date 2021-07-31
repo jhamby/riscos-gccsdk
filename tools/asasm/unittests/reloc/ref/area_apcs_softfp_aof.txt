@@ -1,0 +1,44 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+10 symbols
+
+** Area (0x000102) "Code", aligned at 4 bytes, [code] [32bit] 
+   Size 16 bytes, 4 relocations
+
+000000: ebfffffe ebfffffd ebfffffc ebfffffb
+
+** Relocations:
+
+At 0x000000 (flags 0x8f000006): Unlimited number of instructions PC-relative to symbol "ImpWithSOFTFP" (type-2 reloc)
+At 0x000004 (flags 0x8f000007): Unlimited number of instructions PC-relative to symbol "ImpWithSOFTFP_WEAK" (type-2 reloc)
+At 0x000008 (flags 0x8f000004): Unlimited number of instructions PC-relative to symbol "ImpWithHARDFP" (type-2 reloc)
+At 0x00000c (flags 0x8f000005): Unlimited number of instructions PC-relative to symbol "ImpWithHARDFP_WEAK" (type-2 reloc)
+
+** Symbol table:
+
+ExpWithHARDFP    (03) global at "Code" + 0x000000
+ExpWithoutHARDFP (2003) global, softfp at "Code" + 0x000000
+ExpWithoutSOFTFP (2003) global, softfp at "Code" + 0x000000
+ExpWithSOFTFP    (2003) global, softfp at "Code" + 0x000000
+ImpWithHARDFP    (02) extern
+ImpWithHARDFP_WEAK (12) extern, weak
+ImpWithSOFTFP    (2002) extern, softfp
+ImpWithSOFTFP_WEAK (2012) extern, weak, softfp
+Code             (01) local at "Code" + 0x000000
+$a               (01) local at "Code" + 0x000000
+
+** String table:
+
+000004: ExpWithHARDFP
+000012: ExpWithoutHARDFP
+000023: ExpWithoutSOFTFP
+000034: ExpWithSOFTFP
+000042: ImpWithHARDFP
+000050: ImpWithHARDFP_WEAK
+000063: ImpWithSOFTFP
+000071: ImpWithSOFTFP_WEAK
+000084: Code
+000089: $a

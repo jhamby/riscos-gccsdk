@@ -1,0 +1,31 @@
+|
+| !Mono.!Run
+| Written By Lee Noar
+|
+
+Set Mono$Dir <Obey$Dir>
+
+If "<Mono$Path>" = "" Then Set Run$Path <Run$Path>,Mono:bin.
+
+Set Mono$Path <Mono$Dir>.
+
+Set Mono$Debug explicit-null-checks
+
+| Mono$CPUArch
+| Set version of CPU architecture targeted by the JIT.
+| Options are armv5, armv6 and armv7, if not set, then armv4 is assumed.
+| Unset for use on Risc PC, rpcemu or any system that does not support
+| half word load/store instructions.
+| Set Mono$CPUArch armv5
+
+| Mono$EnvOptions
+| If set, used as a source of command line arguments that
+| are passed to Mono before the command line arguments
+| specified in the command line.
+|
+| Set Mono$EnvOptions --verbose
+
+IconSprites <Mono$Dir>.!Sprites22
+
+Set File$Type_A7D CILImage
+Set Alias$@RunType_A7D Mono-SGen %%*0

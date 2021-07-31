@@ -1,0 +1,48 @@
+AB_URL=https://download.imagemagick.org/ImageMagick/download/ImageMagick-6.9.12-0.tar.xz
+
+AB_INSTALL=yes
+AB_MANPAGE=utilities/ImageMagick.1
+
+# AB_CONFLAGS needs updating if building with RO_SHAREDLIBES=yes
+AB_CONFLAGS="--with-perl=no --disable-largefile --disable-shared --with-rsvg=no --with-gslib=no --with-lcms --with-pic=no --without-x --without-dmalloc"
+
+autoreconf -fi
+
+ab_package() {
+
+  ab_create_command_app ImageMagick Apps/Graphics
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_add_commands $S/utilities/.libs/*$AB_EXEEXT
+  else
+    ab_add_commands $S/utilities/*$AB_EXEEXT
+  fi
+
+  cp -av $H/\!ImageMagick/\!Boot,feb $A
+  cp -av $S/README.txt $A/
+  cp -av $S/AUTHORS.txt $S/LICENSE $S/NEWS.txt $A/
+  cp -av config $A/
+  mv $D/*,faf $A/\!Help,faf
+
+# no need to package these as the gui stuff doesn't currently work
+  rm -f $A/animate$AB_EXEEXT
+  rm -f $A/display$AB_EXEEXT
+  rm -f $A/import$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -unixlib -package imagemagick -name ImageMagick -copyrightfile $S/LICENSE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libimagemagick
+
+    ab_add_sharedlib $S/wand/.libs libMagickWand-6.Q16.so.6
+    ab_add_sharedlib $S/magick/.libs libMagickCore-6.Q16.so.6
+    ab_add_sharedlib $S/Magick++/lib/.libs libMagick++-6.Q16.so.8
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package libimagemagick -name LibImageMagick \
+	-depends SharedLibs -section Library
+  fi
+
+}
+
+export LIBS='-llzma'

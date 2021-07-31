@@ -1,0 +1,73 @@
+AB_INSTALL=yes
+AB_MESON=yes
+
+if [ "x$RO_USE_CLANG" == "xyes" ] || [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+  # abi-2.0 is the default, so we only have to set this option when not using the default.
+  ABI_DIR_OPTION="-Driscos_abi=armeabihf"
+  ABI_DIR=armeabihf
+else
+  ABI_DIR=abi-2.0
+fi
+
+AB_MESON_FLAGS="$AB_MESON_FLAGS -Dx11=false -Dgir=false -Dgio_sniffing=false -Dc_link_args=-lgcc_s $ABI_DIR_OPTION"
+
+ln -Tsf $H/loaders.cache $S/gdk-pixbuf/loaders.cache
+
+ab_package() {
+  ab_create_command_app GdkPixbuf2 Apps/Library gdk-pixbuf2-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/gdk-pixbuf-2.0/gdk-pixbuf gdk-pixbuf
+  rm -rf include
+
+  mv lib/*.a .
+  
+  rm -rf lib
+  rm -rf doc
+
+  cp $H/!ReadMe .
+
+  cd $HERE
+
+  ab_docs COPYING NEWS
+
+  for file in gdk-pixbuf-query-loaders gdk-pixbuf-csource
+    do
+      cp -T $S/$AB_MESON_BUILD_DIR/gdk-pixbuf/$file $A/$file$AB_EXEEXT
+    done
+
+  $AB_HOME/add-riscpkg -unixlib -name GdkPixbuf2-Dev -copyrightfile COPYING
+  
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton gdk-pixbuf2
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/$AB_MESON_BUILD_DIR/gdk-pixbuf libgdk_pixbuf-2.0.so.0
+
+    loaders_version_dir=`ls $GCCSDK_INSTALL_ENV/lib/gdk-pixbuf-2.0`
+    loaders_dir=$A/lib/$ABI_DIR/gdk-pixbuf-2.0/$loaders_version_dir/loaders
+    mkdir -p $loaders_dir
+    for file in $GCCSDK_INSTALL_ENV/lib/gdk-pixbuf-2.0/$loaders_version_dir/loaders/*.so*
+      do
+	# These are dlopen libraries and don't require any symlinks.
+        if [ ! -L $file ]; then
+          cp -T $file $loaders_dir/${file##*/}$AB_EXEEXT
+	fi
+      done
+
+    if [ "x$RO_USE_CLANG" == "xyes" ] || [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+      sed 's/abi-2.0/armeabihf/' $H/loaders.cache > $loaders_dir/../loaders.cache
+    else
+      cp $H/loaders.cache $loaders_dir/..
+    fi
+
+    $AB_HOME/add-riscpkg -package gdk-pixbuf2 -name GdkPixbuf2 \
+	-depends SharedLibs-C2 -depends LibGLib2 -depends LibJPEG8 -depends LibPNG16-16 \
+	-depends LibPcre3 -depends LibGetText
+  fi
+}

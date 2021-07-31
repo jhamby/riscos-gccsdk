@@ -1,0 +1,13 @@
+AB_MAKE=":"
+
+ab_package()
+{
+  ab_create_app UnixFont Apps/Fonts
+
+  mkdir -p $A/truetype/ttf-sil-andika
+  cp $S/*.ttf $A/truetype/ttf-sil-andika
+  mkdir -p $A/doc/ttf-sil-andika
+  cp $S/*.txt $A/doc/ttf-sil-andika
+
+  $AB_HOME/add-riscpkg -depends UnixFont
+}

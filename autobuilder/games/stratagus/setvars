@@ -1,0 +1,17 @@
+AB_URL=https://sourceforge.net/projects/stratagus/files/stratagus/2.2.4/stratagus-2.2.4-src.tar.gz
+
+AB_CONFLAGS="--without-x --with-extra-includes=$GCCSDK_INSTALL_ENV/include/lua50"
+AB_ROVERSION=2
+
+AB_MAKE="$AB_MAKE -j1"
+
+ab_package() {
+  ab_create_app Stratagus Apps/Games
+
+  cp -av $S/doc $A/
+  cp -av $S/stratagus $A/stratagus$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound \
+     -unixhome -copyrightfile $S/COPYING
+}
+

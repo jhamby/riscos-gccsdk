@@ -1,0 +1,5 @@
+export ac_cv_have_plugins=no
+
+autoconf
+
+AB_CONFLAGS="--disable-postproc --disable-a52 --disable-glx --disable-qt4 --disable-skins2"

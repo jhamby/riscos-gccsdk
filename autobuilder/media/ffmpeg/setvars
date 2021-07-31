@@ -1,0 +1,74 @@
+AB_URL=http://ffmpeg.org/releases/ffmpeg-4.3.1.tar.xz
+
+AB_INSTALL=env
+
+AB_PRECONF=:
+
+# Source actually contains ARMV5 instuctions, so can't select ARMV4
+  ./configure \
+		--extra-cflags="-I$GCCSDK_INSTALL_ENV/include" \
+		--extra-ldflags="-static -L$GCCSDK_INSTALL_ENV/lib -lpng -lz -lbz2 -lintl -logg" \
+		--enable-cross-compile --prefix=$GCCSDK_INSTALL_ENV \
+		--disable-shared \
+		--enable-static \
+		--pkg-config-flags=--static \
+		--pkg-config=ro-pkg-config \
+		--disable-pic \
+		--arch=arm \
+		--target-os=linux \
+		--enable-muxers \
+		--disable-gnutls \
+		--disable-linux-perf \
+		--enable-encoders \
+		--disable-devices \
+		--disable-ffprobe \
+		--disable-ffplay \
+		--disable-sdl2 \
+		--enable-network \
+		--disable-libzvbi \
+		--disable-libx264 \
+		--enable-libwavpack \
+		--enable-libvorbis \
+		--enable-libtwolame \
+		--enable-libopus \
+		--disable-libwebp \
+		--disable-libxml2 \
+		--disable-libfreetype \
+		--disable-libfontconfig \
+		--enable-libmp3lame \
+		--disable-libxvid \
+		--enable-ffmpeg \
+		--disable-libass \
+		--disable-doc \
+		--enable-postproc \
+		--enable-gpl \
+		--enable-protocol=http,https \
+		--enable-pthreads \
+		--disable-runtime-cpudetect \
+		--enable-armv5te \
+                --cpu=armv4 \
+		--disable-vfp \
+		--disable-armv6 \
+		--disable-armv6t2 \
+		--disable-vfpv3 \
+		--disable-neon \
+		--disable-thumb \
+		--disable-hardcoded-tables \
+		--disable-debug \
+		--pkg-config=$GCCSDK_INSTALL_ENV/ro-pkg-config \
+		--cross-prefix=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-
+
+ab_package () {
+  ab_create_command_app FFmpeg Apps/Audio
+  ab_add_commands $S/ffmpeg
+
+  mkdir $A/doc
+
+  cp -av $S/doc/*.txt $A/doc
+  cp -av $S/Changelog $S/CONTRIBUTING.md $S/CREDITS $S/LICENSE.md $S/MAINTAINERS $A/doc
+  cp -av $S/doc/APIchanges $A/doc
+
+
+  $AB_HOME/add-riscpkg -unixlib -name FFmpeg -copyrightfile $S/COPYING.GPLv3
+}
+

@@ -1,0 +1,25 @@
+| !Run file for OpenTTD
+| December 2009
+
+Set OpenTTD$Dir <Obey$Dir>
+Set OpenTTD$Path <OpenTTD$Dir>.
+Set OpenTTDChoices$Dir <Choices$Write>.OpenTTD
+Set OpenTTDChoices$Path <OpenTTDChoices$Dir>.
+
+| This check is for the non-free game data which is no longer required,
+| so we just run the game directly now.
+
+| Check that the game data has been installed correctly
+Set OpenTTD$Inst "TRUE"
+IfThere <OpenTTD$Dir>.data.sample/cat Then Else Set OpenTTD$Inst "FALSE"
+IfThere <OpenTTD$Dir>.data.trg1r/grf Then Else IfThere <OpenTTD$Dir>.data.trg1/grf Then Else Set OpenTTD$Inst "FALSE"
+IfThere <OpenTTD$Dir>.data.trgcr/grf Then Else IfThere <OpenTTD$Dir>.data.trgc/grf Then Else Set OpenTTD$Inst "FALSE"
+IfThere <OpenTTD$Dir>.data.trghr/grf Then Else IfThere <OpenTTD$Dir>.data.trgh/grf Then Else Set OpenTTD$Inst "FALSE"
+IfThere <OpenTTD$Dir>.data.trgir/grf Then Else IfThere <OpenTTD$Dir>.data.trgi/grf Then Else Set OpenTTD$Inst "FALSE"
+IfThere <OpenTTD$Dir>.data.trgtr/grf Then Else IfThere <OpenTTD$Dir>.data.trgt/grf Then Else Set OpenTTD$Inst "FALSE"
+
+|If "<OpenTTD$Inst>"="FALSE" Then Filer_Run <OpenTTD$Dir>.Resources.Installer.!Run Else Filer_Run <OpenTTD$Dir>.Resources.RunGame
+
+<OpenTTD$Dir>.Resources.RunGame
+
+Unset OpenTTD$Inst

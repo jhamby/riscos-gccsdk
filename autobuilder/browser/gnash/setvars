@@ -1,0 +1,18 @@
+AB_CATEGORY=Browser/Plugin
+
+AB_URL=ftp://ftp.gnu.org/pub/gnu/gnash/0.7.2/gnash-0.7.2.tar.bz2
+
+AB_CONFLAGS="--enable-gui=RISCOS --enable-renderer=Agg --disable-sound --disable-plugin --disable-glext --with-agg-incl=$GCCSDK_INSTALL_ENV/include/agg2 --without-mad --without-gst --with-boost-incl=$GCCSDK_INSTALL_ENV/include/boost-1_34_1/"
+
+# We've patched parts of the build system, so recreate it
+aclocal -I macros
+autoconf
+automake
+
+# Copy RISC OS frontend code into source tree
+cp -R $H/gui $S
+
+# Packaging routine
+ab_package() {
+ cp -av $S/gui/gnash$AB_EXEEXT README COPYING $D
+}

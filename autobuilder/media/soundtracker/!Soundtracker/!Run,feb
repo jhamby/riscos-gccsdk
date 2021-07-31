@@ -1,0 +1,5 @@
+Wimpslot -min 3600k
+
+Set Soundtracker$Dir <Obey$Dir>
+
+Run <Soundtracker$Dir>.soundtracker ><Soundtracker$Dir>.stdout 2><Soundtracker$Dir>.stderr

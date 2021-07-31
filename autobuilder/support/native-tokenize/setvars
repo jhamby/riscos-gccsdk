@@ -1,0 +1,19 @@
+# Steve Fryatt's BBC BASIC tokeniser
+# from http://www.stevefryatt.org.uk/software/build/
+# a native copy is built to aid in managing BASIC programs in version
+# control systems and release management
+
+# note spelling of 'tokenise' and 'tokenize' is somewhat haphazard.  The
+# author's webpage refers to it as 'tokenize' so that is what is used.
+
+AB_SVN=svn://svn.riscos.info/tokenize/trunk/
+AB_PACKAGES=tokenize
+
+AB_PRECONF=:
+
+make obj buildlinux/tokenize  
+
+mkdir -p $GCCSDK_INSTALL_ENV/bin
+cp buildlinux/tokenize $GCCSDK_INSTALL_ENV/bin/
+
+echo "all:" > Makefile

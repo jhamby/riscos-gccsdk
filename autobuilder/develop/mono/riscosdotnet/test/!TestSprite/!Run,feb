@@ -1,0 +1,3 @@
+Wimpslot 5000k
+Set MonoTestSprite$Dir <Obey$Dir>
+Run <MonoTestSprite$Dir>.test-sprite/exe

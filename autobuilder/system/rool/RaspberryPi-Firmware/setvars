@@ -1,0 +1,89 @@
+# autobuilder supports checkout of the whole git repo, but it's huge
+# so don't do that
+#AB_GIT=git://github.com/raspberrypi/firmware.git
+# instead, say we'll fetch things manually
+AB_NOREMOTE=yes
+
+AB_PACKAGE=RaspberryPi-Firmware
+AB_MAINTAINER="RISC OS Open Ltd <packages@riscosopen.org>"
+AB_LICENCE="Non-free"
+
+# version information and git fetching is in the 'preprocess' file
+
+GIT_LOCAL_TREE=/home/tmarkettos/raspberrypi
+
+# Command in front of invocation of RISC OS GNU configure wrapper.  If you do
+# not want this to be called, you could set this var to ":"
+AB_PRECONF=":"
+
+# Continue on, even if the program or library fails to fully compile
+# (e.g. example/test apps)
+AB_COMPILEFAIL=yes
+
+# Run "make install" (in fact: make $AB_INSTALLTARGET) after build
+AB_INSTALL=no
+
+# RISC OS configuration script
+AB_CONFIG=
+
+# RISC OS make wrapper.  This can be set to just "make" if setting the
+# path causes problems - e.g., the native compiler is required too
+AB_MAKE=
+
+# Zip name; alternate name for package to be zipped as.  No extension is
+# needed. Useful if tools from a library, etc.
+#AB_ZIPNAME=
+
+AB_LICENCE=Non-free
+
+# Make function
+#
+# Define this if you want special actions for make
+#
+ab_make () {
+  :
+}
+
+# Package function
+#
+# You will need to define this to do your packaging for RiscPkg. 
+# There are several variables to use here:
+# $S build directory
+# $D top level of destination package directory
+# $H autobuilder directory for package
+# $A RISC OS application (after calling ab_create_app, etc)
+#
+
+AB_CATEGORY=System
+
+# packages and subpackages are a bit of a mess currently - we only want to
+# make one package, but currently have to put everything in two levels of
+# directory autobuilder/AB_PACKAGE/AB_PACKAGES/
+# also define AB_SUBPACKAGE later on to make it clear to put the
+# Riscpkg/Control file in that place not the top level
+AB_PACKAGES=$AB_PACKAGE
+
+ab_package () {
+
+#    git update and version number fetch done by preprocess script
+
+#    wget $GIT_DOWNLOAD_URL/bootcode.bin
+#    wget $GIT_DOWNLOAD_URL/loader.bin
+#    wget $GIT_DOWNLOAD_URL/start.elf
+#    wget $GIT_DOWNLOAD_URL/LICENCE.broadcom
+
+    mkdir -p $D/$AB_PACKAGE/Bootloader
+    cp $GIT_LOCAL_TREE/firmware/boot/start.elf $D/$AB_PACKAGE/Bootloader/START.ELF
+#    cp $GIT_LOCAL_TREE/firmware/boot/start_cd.elf $D/$AB_PACKAGE/Bootloader/START_CD.ELF
+    cp $GIT_LOCAL_TREE/firmware/boot/bootcode.bin $D/$AB_PACKAGE/Bootloader/BOOTCODE.BIN
+    cp $GIT_LOCAL_TREE/firmware/boot/fixup.dat $D/$AB_PACKAGE/Bootloader/FIXUP.DAT
+#    cp $GIT_LOCAL_TREE/firmware/boot/fixup_cd.dat $D/$AB_PACKAGE/Bootloader/FIXUP_CD.DAT
+    mkdir -p $D/$AB_PACKAGE/RiscPkg
+    cp $GIT_LOCAL_TREE/firmware/boot/LICENCE.broadcom $D/$AB_PACKAGE/RiscPkg/Copyright
+
+    AB_SUBPACKAGE=$AB_PACKAGE $AB_HOME/add-riscpkg -section System \
+	-name RaspberryPi-Firmware -depends RaspberryPi-FirmwareConfig        # Make a package
+
+}
+
+AB_COPYSOURCE=no

@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+cmd=$0
+
+if [ "$cmd" == "GCCSDK_ENV/cc" ] ; then
+  cmd=GCCSDK_ENV/gcc
+elif [ "$cmd" == "GCCSDK_ENV/c++" ] ; then
+  cmd=GCCSDK_ENV/g++
+fi
+
+if grep -q arm-unknown- <<< $cmd; then
+  cmd=$(sed s#GCCSDK_ENV#GCCSDK_BIN# <<< $cmd)
+else
+  cmd=$(sed s#GCCSDK_ENV/#GCCSDK_BIN/arm-unknown-riscos-# <<< $cmd)
+fi
+
+if $(grep -q -- -cpp <<< $cmd) ; then
+  libs=""
+else
+  libs="-Wl,-rpath-link,GCCSDK_ENV/lib"
+
+  for param in "$@"; do
+    if [ "$param" == "-c" ] ; then
+      libs=""
+      break
+    fi
+  done
+
+  if grep -q mfpu=vfp <<< $*; then
+    libs="$libs -LGCCSDK_ENV/vfp/lib"
+  fi
+
+  libs="$libs -LGCCSDK_ENV/lib -LGCCSDK_BIN/../arm-unknown-riscos/lib/`$cmd $@ -print-multi-directory`"
+fi
+
+includes="-isystem GCCSDK_ENV/include"
+if grep -q mfpu=vfp <<< $*; then
+  includes="-isystem GCCSDK_ENV/vfp/include $includes"
+fi
+
+exec $cmd "$@" $includes $libs

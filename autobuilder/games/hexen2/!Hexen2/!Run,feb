@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set Hexen2$Dir <Obey$Dir>
+
+Run <Hexen2$Dir>.hexen2 -basedir /<Hexen2$Dir>  -width 640 -height 480 -sndspeed 44100 1><Obey$Dir>.stdout 2><Obey$Dir>.stderr

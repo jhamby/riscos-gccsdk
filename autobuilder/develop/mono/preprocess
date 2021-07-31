@@ -1,0 +1,14 @@
+# Build a native version before the source is patched for RISC OS.
+
+echo "Checking for native Mono installation..."
+if [ -e native-env/bin/mcs ]; then
+  echo "Native Mono already built, skipping..."
+else
+  echo "Building Mono natively..."
+  mkdir -p native-build native-env
+  cd native-build
+  CC=/usr/bin/gcc CXX=/usr/bin/g++ ../configure --prefix=$PWD/../native-env
+  make -j2
+  make install
+  cd ..
+fi

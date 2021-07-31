@@ -1,0 +1,19 @@
+AB_URL=http://ftp.debian.org/debian/pool/main/o/openssh/openssh_6.7p1.orig.tar.gz
+
+AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp --with-maildir=~/Mail --disable-utmpx --disable-wtmpx"
+
+# FIXME: Following man pages doesn't give great HTML output.
+#AB_MANPAGE="scp.1 sftp.1 ssh.1 ssh-keygen.1 ssh-keyscan.1"
+
+ab_package () {
+  ab_create_command_app SSH Apps/Network
+  
+  # for command in ssh ssh-add ssh-agent scp sftp ssh-keygen ssh-keyscan ssh-pkcs11-helper ; do
+  for command in ssh ssh-keygen ssh-keyscan ; do
+     ab_add_commands $S/$command$AB_EXEEXT
+  done
+
+  cp -av $S/LICENCE $A
+
+  $AB_HOME/add-riscpkg -unixlib -depends CryptRandom
+}

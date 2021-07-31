@@ -1,0 +1,26 @@
+Flobopuyo - A clone of the Japanese PuyoPuyo game
+---------
+
+The goal of flobopuyo is to make groups of four or more Puyos (coloured
+bubbles) to make them explode and send bad ghost Puyos to your oponent.
+You  win the game if your oponent reaches the top of the board. You can
+play against computer or another human.
+The game has nice graphics and animations as well as  music  and  sound
+effects.
+
+You will need a filing system with long file name support to play this game.
+
+Keys
+----
+
+Move Right		Right
+Move Left		Left
+Rotate			Up
+Move Down		Down
+
+This version created by the GCCSDK Autobuilder for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+It also requires that the SharedUnixLibrary which is available from:
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip

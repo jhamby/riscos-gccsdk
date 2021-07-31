@@ -1,0 +1,292 @@
+#!/bin/bash -e
+function zip_tidy ()
+{
+# unzip -F when enabled preserves RISC OS filetypes.  However, it sometimes preserves too many.
+# Here we throw away filetypes that are awkward for us like Makefile,fff
+#  rename 's/,fff//' *  # 'rename isn't in all unix distros
+	find . -name '*,fff' -exec sh -c 'mv "$0" "${0%,fff}"' {} \;
+}
+AB_WGET="wget -nv"
+if [ "$AB_VERBOSE" == "yes" ] ; then
+  AB_WGET="wget"
+fi
+AB_CVS_ROOT=$(grep ^AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_CVS_MODULE=$(grep ^AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_CVS_TAGORBRANCH=$(grep ^AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+if [ "$AB_ELFBUILD" == "yes" ] ; then
+  AB_SVN=$(grep ^AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | grep -v AOF | cut -d = -f 2-)
+else
+  # AB_SVN_AOF support is only temporary.
+  AB_SVN=$(grep ^AB_SVN_AOF $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2-)
+  if [ -z "$AB_SVN" ] ; then
+    AB_SVN=$(grep ^AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2-)
+  fi
+fi
+AB_GIT=$(grep ^AB_GIT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_GIT_TAGORBRANCH=$(grep ^AB_GIT_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_URL=$(grep ^AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_HG=$(grep ^AB_HG $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_HG_BRANCH=$(grep ^AB_HG_BRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_NOREMOTE=$(grep ^AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+
+if [ "$AB_CVS_ROOT" != "" ] ; then
+  if [ "$AB_CVS_MODULE" == "" ] ; then
+    echo "Autobuilder: No CVS module specified"
+    exit 1
+  else
+    if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
+      AB_CVS_TAGORBRANCH="-r $AB_CVS_TAGORBRANCH"
+    fi
+    # -z9 seems to be sf.net unfriendly.
+    cvs -z3 -d $AB_CVS_ROOT co -P $AB_CVS_TAGORBRANCH $AB_CVS_MODULE
+  fi
+
+elif [ "$AB_SVN" != "" ] ; then
+  svn co -q $AB_SVN
+
+elif [ "$AB_GIT" != "" ] ; then
+   AB_GITTMP=(${AB_GIT//[\'\"]/})
+   AB_GITTMP[1]=`basename ${AB_GITTMP[0]%.git}`
+   if [ -e "${AB_GITTMP[1]}/.git" ] ; then
+    cd ${AB_GITTMP[1]}
+    echo "doing git checkout -- ."
+    git checkout -- .
+    cd ..
+   else
+    if [ ! -z "$AB_GIT_TAGORBRANCH" ] ; then
+      AB_GIT_TAGORBRANCH="-b $AB_GIT_TAGORBRANCH"
+    fi
+    echo "doing git clone $AB_GIT $AB_GIT_TAGORBRANCH"
+    git clone $AB_GIT $AB_GIT_TAGORBRANCH
+   fi
+
+elif [ "$AB_HG" != "" ] ; then
+   AB_HGTMP=(${AB_HG//[\'\"]/})
+   if [ -e "${AB_HGTMP[1]}/.hg" ] ; then
+    cd ${AB_HGTMP[1]}
+    echo "doing hg pull ${AB_HGTMP[0]}"
+    hg pull ${AB_HGTMP[0]}
+    echo "doing hg update -C "
+    hg update -C
+    cd ..
+   else
+    if [ ! -z "$AB_HG_BRANCH" ] ; then
+      AB_HG_BRANCH="-r $AB_HG_BRANCH"
+    fi
+    echo "doing hg clone $AB_HG $AB_HG_BRANCH"
+    hg clone $AB_HG $AB_HG_BRANCH
+   fi
+
+elif [ "$AB_URL" != "" ] ; then
+  wget -U "GCCSDK Autobuilder for RISC OS" -nv $AB_URL
+  base=$(basename $AB_URL)
+  if echo $base | grep -q -E "\.gz$|\.tgz$" ; then
+    tar xfz $base
+  elif echo $base | grep -q "\.bz2$" ; then
+    tar xfj $base
+  elif echo $base | grep -q "\.xz$" ; then
+    tar xfJ $base
+  # zip archives might not always end in .zip
+  elif file $base | grep -q "Zip archive" ; then
+  # the system unzip may or may not support the -F argument for unpacking
+  # sources with RISC OS filetypes.  We build our own, but must allow fallback
+  # to the system unzip if necessary (what if the sources for 'unzip' come in a
+  # zip archive?)
+    if [ -e $GCCSDK_INSTALL_ENV/bin/unzip ] ; then
+      $GCCSDK_INSTALL_ENV/bin/unzip -F $base
+      zip_tidy
+    else
+      echo "Autobuilder warning: using system unzip to unpack sources.  RISC OS filetypes may be lost"
+      unzip $base
+    fi
+  else
+    echo "Autobuilder: Unknown compression method"
+    exit 1
+  fi
+
+elif [ "$AB_NOREMOTE" == "yes" ] ; then
+  mkdir -p $AB_PACKAGE
+
+else
+  if [ "$AB_USEAPT" == "yes" ] && [ -x /usr/bin/apt-get ] ; then
+    apt-get source $AB_PACKAGE
+  else
+    # Slower method.  Fetch packages file ourself and parse it.
+    debarchive=http://ftp.uk.debian.org/debian
+    #distros="testing stable"
+    distros="stable oldstable"
+    #debarchive=http://mirrors.kernel.org/debian
+    #debarchive=http://gb.archive.ubuntu.com/ubuntu/
+    #distros="precise"
+    #source_ext="bz2"
+    source_ext="gz"
+
+    # Old file
+    rm -f ../Sources.$source_ext
+
+    # Use and keep existing Sources.bz2/gz if it exists and is less
+    # than a day old
+
+    rm -f files
+
+    for dist in ${distros}; do
+      for section in main contrib; do
+        Sources=../Sources-${dist}-${section}.$source_ext
+
+        if ! [ -s $Sources ] ||
+             [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
+
+          echo "Autobuilder: Fetching new Sources.$source_ext (${dist}/${section})"
+
+          rm -f $Sources
+
+          $AB_WGET $debarchive/dists/${dist}/${section}/source/Sources.$source_ext -O $Sources
+          touch $Sources
+
+        else
+          echo "Autobuilder: Using existing Sources.$source_ext (${dist}/${section})"
+        fi
+      done
+    done
+
+    for dist in ${distros}; do
+      for section in main contrib; do
+        Sources=../Sources-${dist}-${section}.$source_ext
+
+        dist_format=""
+        echo "Autobuilder: Searching for $AB_PACKAGE in $Sources..."
+        $AB_HOME/dpkg_get_packageentry.pl "$AB_PACKAGE" "$Sources" > files
+
+        if [ -s files ] ; then break; fi
+      done
+
+      if [ -s files ] ; then break; fi
+    done
+
+    if ! [ -s files ] ; then
+      echo "AutoBuilder: Package not found"
+      rm -r $(pwd)
+      exit 1
+    fi
+
+    if [ "$dist_format" = "stable" ] ; then
+      sed --in-place "/^Checksum/,$"d files
+    else
+      sed --in-place -e '/^Checksum/,/^Directory/ {/^Directory/b;d}' files
+    fi
+    debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
+
+    orig=$(grep \.orig\.tar\.bz2$ files | cut -d ' ' -f 4)
+    if [ -n "$orig" ] ; then
+      archtype=bz2
+    fi
+    if [ -z "$orig" ] ; then
+      orig=$(grep \.orig\.tar\.gz$ files | cut -d ' ' -f 4)
+      if [ -n "$orig" ] ; then
+        archtype=gz
+      fi
+    fi
+    if [ -z "$orig" ] ; then
+      orig=$((grep \.orig\.tar\.xz$ files || grep \.tar\.xz$ files) | cut -d ' ' -f 4)
+      if [ -n "$orig" ] ; then
+        archtype=xz
+      fi
+    fi
+    if [ -n "$orig" ] ; then
+      $AB_WGET $debdir/$orig
+
+      deb=$(grep \.debian\.tar\.gz files | cut -d ' ' -f 4)
+      if [ -n "$deb" ] ; then
+        debarchtype=gz
+      fi
+      if [ -z "$deb" ] ; then
+        deb=$(grep \.debian\.tar\.bz2 files | cut -d ' ' -f 4)
+        if [ -n "$deb" ] ; then
+          debarchtype=bz2
+        fi
+        if [ -z "$deb" ] ; then
+          deb=$(grep \.debian\.tar\.xz files | cut -d ' ' -f 4)
+          if [ -n "$deb" ] ; then
+            debarchtype=xz
+          fi
+        fi
+        if [ -z "$deb" ] ; then
+          echo "Autobuilder: could not find Debian additional files to download" 1>&2
+          #exit 1
+        fi
+      fi
+      if [ ! -z "$deb" ] ; then
+        $AB_WGET $debdir/$deb
+      fi
+
+      if [ $archtype = "bz2" ] ; then
+        tar xfj $orig
+      elif [ $archtype = "gz" ] ; then
+        tar xfz $orig
+      elif [ $archtype = "xz" ] ; then
+        tar xfJ $orig
+      fi
+      subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
+      if [ ! -z "$deb" ] ; then
+        if [ $debarchtype = "gz" ] ; then
+          tar xfz $deb -C $subdir
+        elif [ $debarchtype = "bz2" ] ; then
+          tar xfj $deb -C $subdir
+        elif [ $debarchtype = "xz" ] ; then
+          tar xfJ $deb -C $subdir
+        fi
+      fi
+
+      debdiff=$(grep \.diff\.gz files | cut -d ' ' -f 4)
+      if [ ! -z "$debdiff" ] ; then
+        $AB_WGET $debdir/$debdiff
+        zcat *.diff.gz | patch -d $subdir -p1 || true
+      fi
+
+    else
+      orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
+      if [ -z "$orig" ] ; then
+        orig=$(grep \.orig\.tar\.xz files | cut -d ' ' -f 4)
+        if [ -z "$orig" ] ; then
+          file=$(grep \.tar\.gz files | cut -d ' ' -f 4)
+          if [ -n "$file" ] ; then
+            archtype="gz"
+            orig=$(sed s#\.tar\.gz#\.orig\.tar\.gz# <<< $file)
+          else
+            archtype="bz2"
+            file=$(grep \.tar\.bz2 files | cut -d ' ' -f 4)
+            orig=$(sed s#\.tar\.bz2#\.orig\.tar\.bz2# <<< $file)
+          fi
+        else
+          archtype="xz"
+        fi
+        $AB_WGET $debdir/$file -O $orig
+      else
+        archtype="gz"
+        $AB_WGET $debdir/$orig
+        $AB_WGET $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
+      fi
+
+      if [ $archtype = "gz" ] ; then
+        tar xfz *.orig.tar.gz
+        targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+      elif [ $archtype = "bz2" ] ; then
+        tar xfj *.orig.tar.bz2
+        targetname=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+      else
+        tar xfJ *.orig.tar.xz || tar xfJ *.tar.xz
+        targetname=$((grep \.orig\.tar\.xz files || grep \.tar\.xz files) | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+      fi
+      origname=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut -b 3-)
+
+      # Have to check that targetname is not already a directory
+      # to stop problems on case insensitive systems like cygwin.
+      if [ "$targetname" != "$origname" ] && ! [ -d $targetname ] ; then
+        mv $origname $targetname
+      fi
+
+      zcat *.diff.gz | patch -p0 || true
+    fi
+  fi
+fi
+

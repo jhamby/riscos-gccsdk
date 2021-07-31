@@ -1,0 +1,6 @@
+| Boot file for LibXML2
+|
+Set LibXML2$Dir <Obey$Dir>
+Set LibXML2$Path <Obey$Dir>.
+
+IconSprites <LibXML2$Dir>.!Sprites

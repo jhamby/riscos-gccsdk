@@ -1,0 +1,3 @@
+wget http://deb.debian.org/debian/pool/main/l/leveldb/leveldb_1.18-5.debian.tar.xz
+tar -xvJf leveldb_1.18-5.debian.tar.xz
+

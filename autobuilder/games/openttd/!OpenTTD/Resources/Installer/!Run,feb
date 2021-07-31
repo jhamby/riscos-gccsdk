@@ -1,0 +1,5 @@
+| !Run file for OpenTTD Installer
+| 1.00 (17 Oct 2005)
+
+WimpSlot -min 268k -max 268k
+<OpenTTD$Dir>.Resources.Installer.!RunImage

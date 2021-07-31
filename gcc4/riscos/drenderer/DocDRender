@@ -1,0 +1,855 @@
+THE DIGITAL RENDERER MODULE, V0.56
+==================================
+
+
+
+NOTE ON VERSION 0.54 (20 Apr 2011)
+==================================
+
+This version by Christopher Martin contains substantial bugfixes, work-arounds
+and optimisations for newer systems based on ARMv5 and later architectures
+(eg. Iyonix and BeagleBoard). The primary fault in 0.52 addressed by this
+version could cause some systems to play audio files at the wrong speed.
+
+This version is also the first translation of the build sources from BASIC to
+ObjAsm assembly language. This will allow the DRenderer module to be
+automatically built by the GCCSDK autobuilder via the ASASM assembler. Since
+DigitalRenderer is distributed as a component of the SharedUnixLibrary, future
+development should be performed using the ObjAsm-format file <DRenderer.s> and
+C-format file <makelogtable.c> as the primary sources. The original BASIC file
+<DigiRendV> is now deprecated.
+
+
+NOTE ON VERSION 0.52 (15 Jan 2006)
+==================================
+
+There are no new features here, I only updated the documentation slightly.
+This version of the module is released under the GPL.
+
+
+NOTE ON MINI-BUGFIX VERSION 0.51 (17 Jun 2003)
+**********************************************
+
+This version merely fixes a tiny bug that has been in the module for ages
+and only caused problems on IYONIX pc computers with Aemulor loaded -- the SWI
+chunk base in the module header accidentally had the X-bit set. Because it's
+such a small fix I chose not to change the version number.
+
+
+IMPORTANT NOTES FOR VERSION 0.51 (9 Feb 2003)
+*********************************************
+
+It's 32bit compatible and my email address changed. End of message.
+
+
+IMPORTANT NOTES FOR VERSION 0.50:
+*********************************
+
+There's a new call to activate the DigitalRenderer using the 16bit sound
+system where available: DigitalRenderer_Activate16. Normally you'll want
+to use this in preference over DigitalRenderer_Activate (unless you want
+more than 2 channels because the 16bit sound system doesn't support more);
+in case the call fails, use the old one.
+16bit sound automatically expands mono samples to stereo and scales them
+according to the currently active volume, so you don't have to take care
+of any of these things.
+
+The parameters to the SWI DigitalRenderer_SetDefaults (&4f70e) have changed
+slightly, i.e. r5 was added. I don't know of anyone (except for myself) using
+the features of 0.40 yet, so I hope this won't pose problems to anyone. But
+the addition of 16bit sound required a new parameter and I didn't want to
+define a new SWI just for the default frequency, although it'd have been
+the cleanest solution.
+
+
+
+IMPORTANT NOTES FOR VERSION 0.40:
+*********************************
+
+Since version 0.40 Digital Renderer uses voice generators; see the short
+paragraph at the end of this section for what this means. Another addition
+in this version is the filing system DRender: which allows Unix-like writing
+of samples to a pseudo-device for playback. See below.
+
+This module provides a polling-, call-back or streaming interface between
+applications and the sound system. It should be used if you wish to play back a
+sample of unknown length like when emulating another computer's sound system
+and/or control playback from applications which might be mapped out during WIMP
+polls. Otherwise you better use voice generators. It has been extended and
+modified a lot since its first version which provided just the single-buffer
+polling interface used for my port of Frodo. With Doom It Yourself came the
+addition of the call back handler (but newer versions of DIY have moved to
+voice handlers), the Vice port required support for 16bit samples (which are
+internally converted to 8bit ulaw ATM, though) and since Vice1.5 there's
+also been a streaming interface. Maybe I'll add a filing system one day so
+you can dump samples directly to a streaming device a la Unix; that should
+simplify some ports, but ATM I don't see a big need for this.
+
+Prior to activating it you can choose whether you want to use a streaming
+approach by configuring the number of buffers to a value larger than 0. In
+this case you can stream in numbuffers * buffersize samples, but you have to
+take care that you don't write more samples to avoid wraparound because the
+streaming calls are non-blocking (use DigitalRenderer_StreamStatistics to
+read the number of filled buffers and only fill the free ones). I hate blocking
+calls.
+
+You tell it the number of channels, sample period and buffer size (as needed for
+SWI Sound_Configure) when activating it. The module will then claim buffer(s) of
+the specified size, depending on the mode you're running in:
+
+1) Call-back interface: no buffer will be needed.
+2) Normal, single-buffer interface (numbuffers = 0): one buffer will be needed.
+3) Streaming interface: numbuffers buffers are claimed.
+
+(where numbuffers is the value passed to DigitalRenderer_NumBuffers)
+
+Your job as a client is either polling with DigitalRenderer_ReadState (single)
+or DigitalRenderer_StreamStatistics (streaming) and providing new samples when
+needed using DigitalRenderer_New[16Bit]Sample (single) or
+DigitalRenderer_Stream[16Bit]Samples (streaming), or providing a buffer fill
+handler that'll be called by the module when the sample buffer has to be filled
+and therefore must reside in non-mappable memory.
+
+DigitalRenderer only supports 8 bit logarithmic sound ATM since I have absolutely
+no documentation about 16 bit linear sound (and the PRMs are pretty useless as
+far as DMA- and Channel-Handlers are concerned). If any of you provided me with
+the necessary docs I might update it.
+
+Voice Generators:
+The old versions of the Digital Renderer module replaced the channel handler
+which is not something one should normally do, but it worked well enough. Now
+I finally got around to changing that behaviour to use the much more standardized
+voice generators and thereby reduce compatibility issues in the future. The
+change is not entirely transparent, though. A channel handler sees the start
+of the sound buffer whereas a voice generator gets a pointer at a certain offset
+into the buffer and an incrementor. In order not to break old software what I
+do is always claim exactly as many channels as specified and fill all channels
+in the voice handler for the first channel, ignoring the others, so everything
+should look exactly like it used to to the outside world. Vice for instance handles
+it fine, but I can't guarantee that there aren't apps that can't stomach the change
+and need adapting. It was a change worth doing, though, since the old channel
+handler approach was always a bit of a pain in the neck. While I was at it I also
+ironed out a very tricky bug (hopefully) that may have caused very rare crashes.
+
+Filing System DRender:
+There is now a filing system "DRender:". What for, you ask? Well, this allows
+using samples like on Unix by writing them to a pseudo-device (/dev/dsp). All
+you have to do is first configure the defaults (see SWI DigitalRenderer_SetDefaults
+or the command DRenderDefaults), open the file and pipe the data in. If you're
+running in a TaskWindow you don't even have to take care you don't write too much
+data because the module will automatically sleep using UpCall 6 when the buffer
+is full (that's the same UpCall the TaskWindow uses to yield control to other
+tasks and means that the computer doesn't freeze for the duration). If you're
+using this interface from an application, you should check the number of free
+buffers using SWI DigitalRenderer_StreamStatistics, however.
+The filing system uses the streaming interface. Only one file can be opened
+on this filing system. When it's opened, the default values are activated
+(number of channels, number of buffers, sample period, ...) and the data is
+streamed into the buffers (and the music starts). This might come in very
+handy if you're porting applications from Unix. Bear in mind, however, that
+the file opened on DRender: should not be buffered, otherwise you might get
+strange dropout effects.
+NOTE: there is a problem with the *copy command which doesn't work with the
+DRender: filing system (at least not in a TaskWindow). I don't know exactly
+why that is, maybe copy can't stomach the UpCall or stops interrupts, I just
+advise you not to use that command but rather OS_Find / OS_GBPB combinations.
+
+
+
+The DigitalRenderer uses SWI chunk &4f700 and filing system number 167 (both
+officially registered). It provides the following SWI calls:
+
+
+
+
+
+
+
+DigitalRenderer_Activate		SWI &4F700
+========================
+
+
+On Entry:
+---------
+
+R0	bits 0-7: number of channels, will get rounded up to (1,2,4,8).
+	bit 31: clear ==> use polling, otherwise call back buffer fill code.
+R1	Sample length (bytes per channel, must be a multiple of 16 bytes)
+R2	Sample period (microseconds between reading two consecutive sample bytes)
+R3	pointer to buffer fill code if R0 bit 31 set.
+
+
+On Exit:
+--------
+
+---
+
+
+Usage:
+------
+
+Your application must call this SWI to take over the sound system. For typical
+values of sample length and sample period see PRM 4. Once (successfully)
+activated things like the system beep won't work any more.
+This call activates the old 8bit system. Use DigitalRenderer_Activate16 to try
+using 16bit sound.
+
+
+Sample length:
+--------------
+
+As documented in the PRMs, this denotes the number of bytes per channel to use
+as DMA buffer. Note that at least newer machines (RO3.7, probably due to 16bit
+sound) seem to have trouble extending this beyond 512 bytes even in 1 channel
+mode! The buffer size may affect your playback code if it relies getting the
+buffer size you specify to this call. You can read the actual buffer size using
+SWI "Sound_Configure" with r0-r5 = 0 which will return the buffer size actually
+available in r1.
+You're subject to the DMA buffer size in case you're providing your own buffer
+fill code or you're using the buffer-oriented calls DigitalRenderer_NewSample
+and DigitalRenderer_New16BitSample. The streaming interface works even if the
+DMA buffer size differs from the configured size: the requested buffer size
+will be the granularity of the ring buffer which could have any size; since
+only buffers that are entirely filled can be played back it's still not
+advisable to make the buffers too big, however.
+
+
+Buffer Fill Code:
+-----------------
+
+The buffer fill code has the following entry/exit conditions:
+
+On Entry:
+---------
+R0	*buffer (in DMA space)
+R1	*LinToLog (8kB lookup table)
+R2	buffer length
+
+Processor is in IRQ mode with IRQs enabled. Therefore do not use r14_irq under
+any circumstances!
+
+On Exit:
+--------
+Except for r13_irq no registers have to be preserved. The routine must
+return using "LDMIA sp!,{pc}" (the return address is pushed to the stack
+_before_ the routine is called).
+
+
+The buffer fill code has to fill the buffer in the format the VIDC needs, i.e.
+all channels interleaved, each channel in 8bit u-law.
+
+
+
+Errors:
+-------
+
+	- already active
+	- can't claim memory for buffer / handler
+	- bad buffer size (not a multiple of 16)
+
+
+
+
+
+DigitalRenderer_Deactivate		SWI &4F701
+==========================
+
+
+On Entry:
+---------
+
+---
+
+
+On Exit:
+--------
+
+---
+
+
+Usage:
+------
+
+If your application doesn't need sound any more it must return control to the
+old handlers by issuing this SWI.
+
+
+Errors:
+-------
+
+	- not active
+
+
+
+
+
+DigitalRenderer_Pause			SWI &4F702
+=====================
+
+
+On Entry:
+---------
+
+---
+
+
+On Exit:
+--------
+
+---
+
+
+Usage:
+------
+
+This SWI suspends sound playback (disabling DMA on sample buffers and so on).
+In contrast to deactivating DR this will not install the old handlers but merely
+mute the entire sound system.
+
+
+Errors:
+-------
+
+	- not active
+
+
+
+
+
+DigitalRenderer_Resume			SWI &4F703
+======================
+
+
+On Entry:
+---------
+
+---
+
+
+On Exit:
+--------
+
+---
+
+
+Usage:
+------
+
+Call this to resume playback after it was paused.
+
+
+Errors:
+-------
+
+	- not active
+
+
+
+
+
+DigitalRenderer_GetTables		SWI &4F704
+=========================
+
+
+On Entry:
+---------
+
+---
+
+
+On Exit:
+--------
+
+For 8bit sound only, otherwise undefined:
+
+R0	pointer to 8k LinToLog table for translating 13 bit signed integers
+	to 8 bit logarithmic samples as required by the VIDC, scaled to the
+	currently selected volume (--> SWI Sound_Volume)
+
+R1	Pointer to 256 byte LogScale table for scaling 8 bit logarithmic
+	samples according to the currently selected volume.
+
+
+Errors:
+-------
+
+	- not active
+
+
+
+
+
+DigitalRenderer_ReadState		SWI &4F705
+=========================
+
+
+On Entry:
+---------
+
+---
+
+
+On Exit:
+--------
+
+R0	Digital Renderer State. Bits and their meaning when set:
+
+	0:	DigitalRenderer active
+	1:	New sample data required
+	2:	Buffer overflow occurred
+	4:	Playback is paused
+	5:	16bit sound hardware used
+
+
+Usage:
+------
+
+Call this SWI to poll DigitalRenderer in single-buffer mode. If Bit 1 is set you
+have to provide a new sample buffer by calling DigitalRenderer_NewSample. Bit 2
+lets you check for buffer overflows (i.e. your application took too long to provide
+the next sample).
+If you're using the call-back method or the streaming interface, bits 1 and 2 are
+undefined. For streaming interface, use SWI DigitalRenderer_StreamStatistics.
+
+
+
+
+
+
+DigitalRenderer_NewSample		SWI &4F706
+=========================
+
+
+On Entry:
+---------
+
+R0	Pointer to buffer holding new samples (8bit ulaw)
+
+
+On Exit:
+--------
+
+---
+
+
+Usage:
+------
+
+Don't call this SWI if you're using the call-back method or the streaming interface,
+this is for single-buffer polling only. Call this when DigitalRenderer_ReadState
+returned with Bit 1 set. The buffer must have the correct size (number of channels
+times Sample length) and contain data that can be sent directly to the VIDC, i.e. 8
+bit logarithmic data, interleaved for multiple channels.
+
+
+Errors:
+-------
+
+	- not active
+
+
+
+
+
+DigitalRenderer_New16BitSample		SWI &4F707
+==============================
+
+On Entry:
+---------
+
+R0	Pointer to buffer holding new samples (16bit linear)
+
+On Exit:
+--------
+
+---
+
+
+Usage:
+------
+
+Same as DigitalRenderer_NewSample, but the source buffer holds 16bit linear samples
+(and hence has to be twice the size of the one used by DigitalRenderer_NewSample).
+
+
+
+
+
+
+DigitalRenderer_BufferStatistics	SWI &4F708
+================================
+
+On Entry:
+---------
+
+---
+
+On Exit:
+--------
+
+R0	Buffers played
+R1	Buffers provided by application
+
+
+Usage:
+------
+
+A simple method to get statistical information about the playback history in
+single-buffer polling mode. Both counters will be reset to zero when the
+DigitalRenderer is activated.
+
+
+
+
+
+DigitalRenderer_NumBuffers		SWI &4F709
+==========================
+
+On Entry:
+---------
+
+R0	new number of buffers to use in streaming interface, or -1 to read.
+
+On Exit:
+--------
+
+R0	number of buffers currently allocated.
+
+
+Usage:
+------
+
+This call must be issued before DigitalRenderer_Activate and initializes
+the streaming interface (if R0 > 0). In this mode you can pipe samples into
+a ring buffer containing r0 buffers using the DigitalRenderer_Stream*Samples
+SWIs. Each buffer is as large as the one specified when activating the
+DigitalRenderer (which ideally is the size of the sound hardware's). This
+system basically allows caching a large number of samples. You can switch
+off the streaming interface when the DigitalRenderer is inactive calling with
+R0 = 0.
+
+
+
+
+DigitalRenderer_StreamSamples		SWI &4F70A
+=============================
+
+On Entry:
+---------
+
+R0	Pointer to buffer holding 8bit ulaw samples
+R1	Number of samples
+
+On Exit:
+--------
+
+---
+
+
+Usage:
+------
+
+Provide 8bit ulaw samples to the ring buffer in streaming mode. The format is
+as required for the sound hardware (see PRM4). The number of samples can be
+any size, but should normally not be larger than the ring buffer size or the
+call will either block or samples will be truncated, depending on the stream
+flags (DigitalRenderer_StreamFlags). Note that the number of samples for all
+channels combined and not for an individual channel.
+
+
+
+
+DigitalRenderer_Stream16BitSamples	SWI &4F70B
+==================================
+
+On Entry:
+---------
+
+R0	Pointer to buffer holding 16bit signed linear samples
+R1	Number of samples (not bytes!)
+
+On Exit:
+--------
+
+---
+
+
+Usage:
+------
+
+Same as DigitalRenderer_StreamSamples, but the samples are in 16bit signed linear
+rather than 8bit ulaw. As in StreamSamples, the number of samples is for all
+channels combined.
+
+
+
+
+
+
+DigitalRenderer_StreamStatistics	SWI &4F70C
+================================
+
+On Entry:
+---------
+
+---
+
+On Exit:
+--------
+
+R0	Number of buffers filled and waiting to be played.
+
+
+
+
+
+DigitalRenderer_StreamFlags		SWI &4F70D
+===========================
+
+On Entry:
+---------
+
+R0	EOR mask
+R1	AND mask (applied first)
+
+On Exit:
+--------
+
+R0	old stream flags
+
+
+Usage:
+------
+
+Use this to read and change the stream flags. ATM the following flags are defined,
+with the following meaning when set:
+
+	1:	fill buffers with 0 on overruns, otherwise repeat last buffer
+	2:	use UpCall6 if more data is written to DRender: than fits the buffer.
+		That means the task sleeps, otherwise it has to do busy waiting.
+	4:	block if more samples are streamed than fit into the buffer
+
+Use R0 = 0, R1 = -1 to read.
+
+
+
+
+
+DigitalRenderer_SetDefaults		SWI &4F70E
+===========================
+
+On Entry:
+---------
+
+R0	number of channels or 0 to read
+R1	format (1: 8bit ulaw;
+	        2: 16bit signed linear little-endian right-left;
+	        3: 16bit signed linear little-endian left-right)
+	or 0 to read
+R2	sample period or 0 to read
+R3	buffer size per channel or 0 to read
+R4	number of buffers for streaming interface
+R5	sample frequency; positive values mean: use 16bit RISC OS sound in preference
+
+On Exit:
+--------
+
+R0-R5	currently active values
+
+
+Usage:
+------
+
+IMPORTANT NOTE:
+Between version 0.40 and 0.50, R5 was added. In case you were using this call
+in version 0.40, you'll have to change your code. See the preamble to this
+document for more.
+
+Use this SWI to specify the format and the total buffer size of the file you
+want to write to the DRender: filing system. The defaults are for 1 channel,
+22kHz, 1 second buffering. In case the default frequency is positive, 16bit
+sound is tried first, falling back to 8bit if 16bit failed (like on older
+hardware), otherwise 8bit is used from the start.
+
+
+
+
+
+DigitalRenderer_Activate16		SWI &4F70F
+==========================
+
+On Entry:
+---------
+
+R0	number of channels, must be 1 or 2 (this is a limitation of 16bit RISC OS sound)
+R1	buffer size per channel (in samples, not bytes)
+R2	frequency
+R3	flags
+	bit 0:	restore previous handler on exit
+
+On Exit:
+--------
+
+all registers preserved.
+
+
+Usage:
+------
+
+Use this SWI to activate the DigitalRenderer using the new 16bit RISC OS sound
+rather than the old 8bit system. All other SWIs automatically adapt to the system
+chosen without needing to worry about internal details. The call will return with
+an error in case no 16bit sound is available.
+In stereo mode, the samples are by default assumed to be in the correct right-left
+channel order for Acorn's 16-bit sound system. If this is not the case, you'll have
+to call the new SWI DigitalRenderer_SampleFormat with format 3 (left-right).
+
+
+
+
+
+DigitalRenderer_GetFrequency		SWI &4F710
+============================
+
+On Entry:
+---------
+
+---
+
+
+On Exit:
+--------
+
+R0	sample frequency used, or 0 in case the DigitalRenderer is off.
+
+
+Usage:
+------
+
+Use this call to read the sample frequency in use (may deviate from the one you
+specified to DigitalRenderer_Activate[16]).
+
+
+
+
+
+
+DigitalRenderer_ActivateAuto		SWI &4F711
+============================
+
+On Entry:
+---------
+
+R0	number of channels
+R1	buffer size per channel
+R2	frequency
+
+
+On Exit:
+--------
+
+all registers preserved
+
+
+Usage:
+------
+
+The call for the impatient. This call first tries DigitalRenderer_Activate16 with
+R3 = 1 (i.e. restore the previous handler). If that call fails, it converts the
+frequency to the nearest sample period available and calls DigitalRenderer_Activate.
+Only if that call fails does it return with an error.
+
+
+
+
+
+DigitalRenderer_SampleFormat		SWI &4F712
+============================
+
+On Entry:
+---------
+
+R0	new format (see DigitalRenderer_SetDefaults) or 0 to read
+
+
+On Exit:
+--------
+
+R0	format currently used
+
+
+Usage:
+------
+
+This call allows you to change the sample format from the default. The most
+important application of this call is to swap left and right channel in 16bit
+stereo mode. Changing the format in 8bit mode doesn't have an effect. The call
+can be issued at arbitrary times even when the stream is open.
+
+
+
+
+
+
+
+
+
+
+COMMANDS:
+=========
+
+
+DRenderOff
+	Switch off the digital renderer module and close the DRender: filing
+	system if it was opened.
+
+
+DRenderDefaults [-c # -f # -p # -s # -n #]
+	If no parameters given, print the current defaults, otherwise set
+	them. The defaults are used to specify the sample format of data
+	you want to write to the DRender: filing system (see also SWI
+	DigitalRenderer_SetDefaults). Parameters are
+	-c #: set number of channels (1,2,4,8)
+	-f #: set sample format,
+	      1 for 8 bit ulaw
+	      2 for 16 bit signed linear little-endian right-left
+	      3 for 16 bit signed linear little-endian left-right
+	-p #: set sample period in usecs, i.e. 1e6 / frequency
+	-q #: set sample frequency in Hz. Specifying a positive value automatically
+	      tries 16bit sound first, otherwise the old 8bit sound is used.
+	-s #: set buffer size per channel (keep it small)
+	-n #: set number of buffers to use in streaming interface. You should
+	      make this large enough to buffer enough data to keep playback
+	      stable (default is 43).
+
+
+DRenderStatus
+	Show a summary of the digital renderer status. In case of 8bit sound,
+	the sample period is shown, whereas for 16bit sound the frequency is
+	printed.
+
+
+
+
+
+
+
+
+LEGAL STUFF:
+============
+
+
+The DigitalRenderer module is Freeware. You may use it for your own programs as
+long as this file is included unchanged. I won't be held responsible for any kind
+of damage resulting from the use of this module, use it entirely at your own risk.
+
+
+
+
+
+CONTACT:
+========
+
+Andreas Dehmel
+Homepage:	http://www.zarquon.homepage.t-online.de
+email:		zarquon@t-online.de

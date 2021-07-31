@@ -1,0 +1,7 @@
+| Run file for Fillets-ng
+
+WIMPSLOT
+
+Set Fillets-ng$Dir <Obey$Dir>
+
+Run <Fillets-ng$Dir>.fillets systemdir=/<Fillets-ng$Dir> >null: 2><Obey$Dir>.stderr

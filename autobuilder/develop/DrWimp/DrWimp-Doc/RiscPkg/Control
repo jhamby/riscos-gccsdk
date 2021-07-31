@@ -1,0 +1,10 @@
+Description: An application framework for RISC OS programs written in BBC BASIC
+ The Doctor Wimp package comprises a set of utilities and a function library
+ designed to make multi-tasking desktop (Wimp) programming very easy for
+ anyone reasonably familiar with BBC Basic.
+ .
+ As an example, to get an application to put an icon on the iconbar, open a
+ window when clicked on and provide an iconbar menu takes roughly 16k of
+ Basic user-coding by normal methods.  Using DrWimp, the same thing can be
+ done easily and reliably with just a few lines of user-code - still using
+ Basic i.e. no need to learn another language.

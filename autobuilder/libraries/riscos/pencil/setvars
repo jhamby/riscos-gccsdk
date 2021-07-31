@@ -1,0 +1,7 @@
+#AB_SVN=svn://semichrome.net/trunk/pencil
+AB_GIT=git://git.netsurf-browser.org/libpencil.git
+AB_PVERSION=svn-$(date +%Y%m%d)
+
+AB_INSTALL=yes
+
+export PREFIX=$GCCSDK_INSTALL_ENV

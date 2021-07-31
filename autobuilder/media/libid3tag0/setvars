@@ -1,0 +1,7 @@
+
+AB_INSTALL=yes
+
+if ! type gperf 2>/dev/null ; then
+  echo "libid3tag requires gperf to be installed"
+  exit 1
+fi

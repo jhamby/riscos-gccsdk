@@ -1,0 +1,38 @@
+AB_INSTALL=yes
+AB_PVERSION=`echo "$AB_PVERSION" | sed -e "s/error-//"`
+
+cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h \
+   src/syscfg/lock-obj-pub.riscos.h
+
+ab_package() {
+  ab_create_app LibGPGError Apps/Library libgpg-error-dev
+
+  HERE=`pwd`
+
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -name LibGPG-Error-Dev -unixlib -copyrightfile $S/COPYING
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libgpg-error
+    ab_add_sharedlib $S/src/.libs libgpg-error.so.0
+
+    $AB_HOME/add-riscpkg -package libgpg-error -name LibGPG-Error -section Library \
+       -copyrightfile $S/COPYING
+  fi
+}

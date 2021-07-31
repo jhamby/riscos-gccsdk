@@ -1,0 +1,117 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+33 symbols
+
+** Area (0x000102) "Code", aligned at 4 bytes, [code] [32bit] 
+   Size 116 bytes, 29 relocations
+
+000000: ebfffffe ebfffffd ebfffffc ebfffffb ebfffffa ebfffff9 ebfffff8 ebfffff7
+000020: ebfffff6 ebfffff5 ebfffff4 ebfffff3 ebfffff2 ebfffff1 ebfffff0 ebffffef
+000040: ebffffee ebffffed ebffffec ebffffeb ebffffea ebffffe9 ebffffe8 e5990000
+000060: 00000000 ebffffe5 ebffffe4 ebffffe3 ebffffe2
+
+** Relocations:
+
+At 0x000000 (flags 0x8f00000c): Unlimited number of instructions PC-relative to symbol "ImpWithFPREGARGS" (type-2 reloc)
+At 0x000004 (flags 0x8f00000d): Unlimited number of instructions PC-relative to symbol "ImpWithFPREGARGS_WEAK" (type-2 reloc)
+At 0x000008 (flags 0x8f000012): Unlimited number of instructions PC-relative to symbol "ImpWithNOFPREGARGS" (type-2 reloc)
+At 0x00000c (flags 0x8f000013): Unlimited number of instructions PC-relative to symbol "ImpWithNOFPREGARGS_WEAK" (type-2 reloc)
+At 0x000010 (flags 0x8f000019): Unlimited number of instructions PC-relative to symbol "ImpWithSOFTFP" (type-2 reloc)
+At 0x000014 (flags 0x8f00001a): Unlimited number of instructions PC-relative to symbol "ImpWithSOFTFP_WEAK" (type-2 reloc)
+At 0x000018 (flags 0x8f00000e): Unlimited number of instructions PC-relative to symbol "ImpWithHARDFP" (type-2 reloc)
+At 0x00001c (flags 0x8f00000f): Unlimited number of instructions PC-relative to symbol "ImpWithHARDFP_WEAK" (type-2 reloc)
+At 0x000020 (flags 0x8f00000a): Unlimited number of instructions PC-relative to symbol "ImpWithDATA" (type-2 reloc)
+At 0x000024 (flags 0x8f00000b): Unlimited number of instructions PC-relative to symbol "ImpWithDATA_WEAK" (type-2 reloc)
+At 0x000028 (flags 0x8f000008): Unlimited number of instructions PC-relative to symbol "ImpWithCODE" (type-2 reloc)
+At 0x00002c (flags 0x8f000009): Unlimited number of instructions PC-relative to symbol "ImpWithCODE_WEAK" (type-2 reloc)
+At 0x000030 (flags 0x8f00001b): Unlimited number of instructions PC-relative to symbol "ImpWithWEAK" (type-2 reloc)
+At 0x000034 (flags 0x8f00001c): Unlimited number of instructions PC-relative to symbol "ImpWithWEAK_WEAK" (type-2 reloc)
+At 0x000038 (flags 0x8f000014): Unlimited number of instructions PC-relative to symbol "ImpWithNOWEAK" (type-2 reloc)
+At 0x00003c (flags 0x8f000015): Unlimited number of instructions PC-relative to symbol "ImpWithREADONLY" (type-2 reloc)
+At 0x000040 (flags 0x8f000016): Unlimited number of instructions PC-relative to symbol "ImpWithREADONLY_WEAK" (type-2 reloc)
+At 0x000044 (flags 0x8f000017): Unlimited number of instructions PC-relative to symbol "ImpWithREADWRITE" (type-2 reloc)
+At 0x000048 (flags 0x8f000018): Unlimited number of instructions PC-relative to symbol "ImpWithREADWRITE_WEAK" (type-2 reloc)
+At 0x00004c (flags 0x8f000010): Unlimited number of instructions PC-relative to symbol "ImpWithNOCASE" (type-2 reloc)
+At 0x000050 (flags 0x8f000011): Unlimited number of instructions PC-relative to symbol "ImpWithNOCASE_WEAK" (type-2 reloc)
+At 0x000054 (flags 0x8f000006): Unlimited number of instructions PC-relative to symbol "ImpWithCASE" (type-2 reloc)
+At 0x000058 (flags 0x8f000007): Unlimited number of instructions PC-relative to symbol "ImpWithCASE_WEAK" (type-2 reloc)
+At 0x00005c (flags 0x9b000000): Unlimited number of instructions base-relative to symbol "ImpBASED" (type-2 reloc)
+At 0x000060 (flags 0x8a000001): Word displaced by symbol "ImpCOMMON" (type-2 reloc)
+At 0x000064 (flags 0x8f000002): Unlimited number of instructions PC-relative to symbol "ImpEmptyList" (type-2 reloc)
+At 0x000068 (flags 0x8f000003): Unlimited number of instructions PC-relative to symbol "ImpNoListFPREGARGS" (type-2 reloc)
+At 0x00006c (flags 0x8f000004): Unlimited number of instructions PC-relative to symbol "ImpNoListFPREGARGS_WEAK" (type-2 reloc)
+At 0x000070 (flags 0x8f000005): Unlimited number of instructions PC-relative to symbol "ImpNoListWEAK" (type-2 reloc)
+
+** Symbol table:
+
+ImpBASED         (02) extern
+ImpCOMMON        (42) extern, common = 0x0000000c
+ImpEmptyList     (02) extern
+ImpNoListFPREGARGS (202) extern, fpregargs
+ImpNoListFPREGARGS_WEAK (212) extern, weak, fpregargs
+ImpNoListWEAK    (12) extern, weak
+ImpWithCASE      (02) extern
+ImpWithCASE_WEAK (12) extern, weak
+ImpWithCODE      (02) extern
+ImpWithCODE_WEAK (12) extern, weak
+ImpWithDATA      (102) extern, cadatum
+ImpWithDATA_WEAK (112) extern, weak, cadatum
+ImpWithFPREGARGS (202) extern, fpregargs
+ImpWithFPREGARGS_WEAK (212) extern, weak, fpregargs
+ImpWithHARDFP    (02) extern
+ImpWithHARDFP_WEAK (12) extern, weak
+ImpWithNOCASE    (0a) extern, case-insensitive
+ImpWithNOCASE_WEAK (1a) extern, case-insensitive, weak
+ImpWithNOFPREGARGS (02) extern
+ImpWithNOFPREGARGS_WEAK (12) extern, weak
+ImpWithNOWEAK    (02) extern
+ImpWithREADONLY  (02) extern
+ImpWithREADONLY_WEAK (12) extern, weak
+ImpWithREADWRITE (02) extern
+ImpWithREADWRITE_WEAK (12) extern, weak
+ImpWithSOFTFP    (2002) extern, softfp
+ImpWithSOFTFP_WEAK (2012) extern, weak, softfp
+ImpWithWEAK      (12) extern, weak
+ImpWithWEAK_WEAK (12) extern, weak
+Code             (01) local at "Code" + 0x000000
+$a               (01) local at "Code" + 0x000000
+$d               (101) local, cadatum at "Code" + 0x000060
+$a               (01) local at "Code" + 0x000064
+
+** String table:
+
+000004: ImpBASED
+00000d: ImpCOMMON
+000017: ImpEmptyList
+000024: ImpNoListFPREGARGS
+000037: ImpNoListFPREGARGS_WEAK
+00004f: ImpNoListWEAK
+00005d: ImpWithCASE
+000069: ImpWithCASE_WEAK
+00007a: ImpWithCODE
+000086: ImpWithCODE_WEAK
+000097: ImpWithDATA
+0000a3: ImpWithDATA_WEAK
+0000b4: ImpWithFPREGARGS
+0000c5: ImpWithFPREGARGS_WEAK
+0000db: ImpWithHARDFP
+0000e9: ImpWithHARDFP_WEAK
+0000fc: ImpWithNOCASE
+00010a: ImpWithNOCASE_WEAK
+00011d: ImpWithNOFPREGARGS
+000130: ImpWithNOFPREGARGS_WEAK
+000148: ImpWithNOWEAK
+000156: ImpWithREADONLY
+000166: ImpWithREADONLY_WEAK
+00017b: ImpWithREADWRITE
+00018c: ImpWithREADWRITE_WEAK
+0001a2: ImpWithSOFTFP
+0001b0: ImpWithSOFTFP_WEAK
+0001c3: ImpWithWEAK
+0001cf: ImpWithWEAK_WEAK
+0001e0: Code
+0001e5: $a
+0001e8: $d

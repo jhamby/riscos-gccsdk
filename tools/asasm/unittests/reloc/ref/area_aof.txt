@@ -1,0 +1,192 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+30 areas
+30 symbols
+
+** Area (0x000102) "Code01_DefaultAttribute", aligned at 4 bytes, [code] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000103) "Code02_ABS", aligned at 4 bytes, [code] [abs] [32bit] 
+   Base address 0x0
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000102) "Code03_REL", aligned at 4 bytes, [code] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000142) "Code04_PIC", aligned at 4 bytes, [code] [pic] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000122) "Code05_READONLY", aligned at 4 bytes, [code] [readonly] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000102) "Code06_READWRITE", aligned at 4 bytes, [code] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000106) "Code07_COMDEF", aligned at 4 bytes, [code] [commdef] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x00010a) "Code08_COMMON", aligned at 4 bytes, [code] [commref] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000112) "Code09_NOINIT", aligned at 4 bytes, [code] [noinit] [32bit] 
+   Size 0 bytes, 0 relocations
+
+** Area (0x000102) "Code10_ALIGN5", aligned at 32 bytes, [code] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x800102) "Code11_VFP", aligned at 4 bytes, [code] [32bit] [vfp] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000302) "Code12_REENTRANT", aligned at 4 bytes, [code] [32bit] [reentrant] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x004102) "Code13_INTERWORK", aligned at 4 bytes, [code] [32bit] [interwork] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x002102) "Code14_HALFWORD", aligned at 4 bytes, [code] [32bit] [halfword] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000902) "Code15_NOSWSTACKCHECK", aligned at 4 bytes, [code] [32bit] [noswstackcheck] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000102) "Code16_CODEALIGN", aligned at 4 bytes, [code] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000000) "Data01_DefaultAttribute", aligned at 4 bytes, [data] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000000) "Data02_DATA", aligned at 4 bytes, [data] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000001) "Data03_ABS", aligned at 4 bytes, [data] [abs] 
+   Base address 0x0
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000000) "Data04_REL", aligned at 4 bytes, [data] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000040) "Data05_PIC", aligned at 4 bytes, [data] [pic] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000020) "Data06_READONLY", aligned at 4 bytes, [data] [readonly] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000000) "Data07_READWRITE", aligned at 4 bytes, [data] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000004) "Data08_COMDEF", aligned at 4 bytes, [data] [commdef] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000008) "Data09_COMMON", aligned at 4 bytes, [data] [commref] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000010) "Data10_NOINIT", aligned at 4 bytes, [data] [noinit] 
+   Size 0 bytes, 0 relocations
+
+** Area (0x000000) "Data11_ALIGN7", aligned at 128 bytes, [data] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x800000) "Data12_VFP", aligned at 4 bytes, [data] [vfp] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x000080) "Data13_DEBUG", aligned at 4 bytes, [debug] 
+   Size 0 bytes, 0 relocations
+
+
+** Area (0x071000) "Data14_BASEDR7", aligned at 4 bytes, [data] [based r7] 
+   Size 0 bytes, 0 relocations
+
+
+** Symbol table:
+
+Code01_DefaultAttribute (01) local at "Code01_DefaultAttribute" + 0x000000
+Code02_ABS       (05) local, absolute = 0x00000000
+Code03_REL       (01) local at "Code03_REL" + 0x000000
+Code04_PIC       (01) local at "Code04_PIC" + 0x000000
+Code05_READONLY  (01) local at "Code05_READONLY" + 0x000000
+Code06_READWRITE (01) local at "Code06_READWRITE" + 0x000000
+Code07_COMDEF    (01) local at "Code07_COMDEF" + 0x000000
+Code08_COMMON    (01) local at "Code08_COMMON" + 0x000000
+Code09_NOINIT    (01) local at "Code09_NOINIT" + 0x000000
+Code10_ALIGN5    (01) local at "Code10_ALIGN5" + 0x000000
+Code11_VFP       (01) local at "Code11_VFP" + 0x000000
+Code12_REENTRANT (01) local at "Code12_REENTRANT" + 0x000000
+Code13_INTERWORK (01) local at "Code13_INTERWORK" + 0x000000
+Code14_HALFWORD  (01) local at "Code14_HALFWORD" + 0x000000
+Code15_NOSWSTACKCHECK (01) local at "Code15_NOSWSTACKCHECK" + 0x000000
+Code16_CODEALIGN (01) local at "Code16_CODEALIGN" + 0x000000
+Data01_DefaultAttribute (01) local at "Data01_DefaultAttribute" + 0x000000
+Data02_DATA      (01) local at "Data02_DATA" + 0x000000
+Data03_ABS       (05) local, absolute = 0x00000000
+Data04_REL       (01) local at "Data04_REL" + 0x000000
+Data05_PIC       (01) local at "Data05_PIC" + 0x000000
+Data06_READONLY  (01) local at "Data06_READONLY" + 0x000000
+Data07_READWRITE (01) local at "Data07_READWRITE" + 0x000000
+Data08_COMDEF    (01) local at "Data08_COMDEF" + 0x000000
+Data09_COMMON    (01) local at "Data09_COMMON" + 0x000000
+Data10_NOINIT    (01) local at "Data10_NOINIT" + 0x000000
+Data11_ALIGN7    (01) local at "Data11_ALIGN7" + 0x000000
+Data12_VFP       (01) local at "Data12_VFP" + 0x000000
+Data13_DEBUG     (01) local at "Data13_DEBUG" + 0x000000
+Data14_BASEDR7   (01) local at "Data14_BASEDR7" + 0x000000
+
+** String table:
+
+000004: Code01_DefaultAttribute
+00001c: Code02_ABS
+000027: Code03_REL
+000032: Code04_PIC
+00003d: Code05_READONLY
+00004d: Code06_READWRITE
+00005e: Code07_COMDEF
+00006c: Code08_COMMON
+00007a: Code09_NOINIT
+000088: Code10_ALIGN5
+000096: Code11_VFP
+0000a1: Code12_REENTRANT
+0000b2: Code13_INTERWORK
+0000c3: Code14_HALFWORD
+0000d3: Code15_NOSWSTACKCHECK
+0000e9: Code16_CODEALIGN
+0000fa: Data01_DefaultAttribute
+000112: Data02_DATA
+00011e: Data03_ABS
+000129: Data04_REL
+000134: Data05_PIC
+00013f: Data06_READONLY
+00014f: Data07_READWRITE
+000160: Data08_COMDEF
+00016e: Data09_COMMON
+00017c: Data10_NOINIT
+00018a: Data11_ALIGN7
+000198: Data12_VFP
+0001a3: Data13_DEBUG
+0001b0: Data14_BASEDR7

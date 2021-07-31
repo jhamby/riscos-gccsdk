@@ -1,0 +1,18 @@
+| This file is part of !RiscPkg.
+| Copyright © 2003-2005 Graham Shaw.            
+| Distribution and use are subject to the GNU General Public License,
+| a copy of which may be found in the file !RiscPkg.Copyright.
+
+Set RiscPkg$Dir <Obey$Dir>
+Set RiscPkg$Help <RiscPkg$Dir>.doc.index/html
+Set RiscPkg$Version 0.3.1
+Set RiscPkg$Web http://www.riscpkg.org/
+Set RiscPkg$Title RiscPkg
+Set RiscPkg$Publisher The RISC OS Packaging Project
+Set RiscPkg$Description A package manager for RISC OS
+IconSprites <RiscPkg$Dir>.!Sprites
+If "<Packages$Dir>"="" Then IconSprites <RiscPkg$Dir>.Resources.!Packages.!Sprites
+RMEnsure SharedUnixLibrary 1.02 RMLoad System:Modules.SharedULib
+RMEnsure SharedUnixLibrary 1.02 RMLoad <RiscPkg$Dir>.Resources.SharedULib
+WimpSlot -min 2824K -max 2824K
+Run "<RiscPkg$Dir>.!RunImage" %*0

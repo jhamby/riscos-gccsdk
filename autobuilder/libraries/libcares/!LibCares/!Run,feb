@@ -1,0 +1,6 @@
+| Run file for LibCares
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibCares$Dir <Obey$Dir>
+Set LibCares$Path <Obey$Dir>.

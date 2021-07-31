@@ -1,0 +1,6 @@
+| !Boot file for Firefox
+
+Set Firefox$Dir <Obey$Dir>
+Set Firefox$Path <Firefox$Dir>.
+Iconsprites <Firefox$Dir>.!Sprites
+

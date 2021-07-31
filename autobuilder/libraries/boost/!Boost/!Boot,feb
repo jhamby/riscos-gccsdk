@@ -1,0 +1,5 @@
+| Obey file for boost libraries
+IconSprites <Obey$Dir>.!Sprites
+Set Boost$Dir <Obey$Dir>
+Set Boost$Path <Obey$Dir>.
+

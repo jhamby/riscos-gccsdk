@@ -1,0 +1,3 @@
+AB_INSTALL=yes
+
+AB_CONFLAGS='--disable-zemberek'

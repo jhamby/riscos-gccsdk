@@ -1,0 +1,69 @@
+GDBServer -- a RISC OS remote debug server for the GNU debugger (gdb)
+=====================================================================
+
+Overview
+--------
+
+  GDBServer is a remote debug server for the GNU debugger. It is designed
+  to permit the simultaneous debugging of multiple applications by a
+  remote GDB instance.
+
+Requirements
+------------
+
+  For compilation, GDBServer requires the following tools:
+
+    + GCCSDK GCC 4.1.1 or later.
+    + GNU make or compatible
+
+  In use, GDBServer requires the following tools:
+
+    + A build of GDB on the remote host targetted for arm-elf
+      (i.e. configured with --target=arm-elf)
+
+Compilation
+-----------
+
+  This project uses autotools:
+
+	$ cd <gdbserver source dir>
+	$ autoreconf --install
+	$ cd <builddir>
+	$ <gdbserver source dir>/configure --prefix=<installation dir> --host=arm-unknown-riscos
+	$ make
+	$ make install
+
+Usage
+-----
+
+  Important: the application you are debugging must have been built with
+  a compiler that produces ELF binaries. This means GCCSDK 4.1.1 or later.
+  The RISC OS binary may be stripped. The copy on the remote machine must
+  not be stripped.
+
+  GDBServer is designed to be as transparent as possible. To debug an
+  application, simply prefix its invocation with *GDB. For example,
+  if your application's !Run file contains
+
+		/<MyApp$Dir>.!RunImage %*0
+
+  a debug !Run file would contain
+
+		GDB <MyApp$Dir>.!RunImage %*0
+
+  Once started, you have 10 seconds to connect the remote GDB instance
+  to the session. Currently, TCP/IP connections are the only ones supported.
+  In future, GDBServer may well support connection over a UART.
+
+  To connect the remote GDB instance, do:
+
+		$ gdb /path/to/non-stripped-binary
+		(gdb) target remote <host>:<port>
+
+  where <host> is the hostname or IP address of the RISC OS machine
+        <port> is the port number to connect to. 
+
+  GDBServer issues port numbers starting at 4900.
+
+  If you fail to connect in time, the application will run as per normal.
+  You just won't be able to debug it :)

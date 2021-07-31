@@ -1,0 +1,82 @@
+#!/bin/bash -e
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2006-2011 GCCSDK Developers
+
+# Arguments:
+#  $1: file to patch (relative to $GCCSDK_ROOT/srcdir)
+
+WD=`pwd`
+pushd `dirname $0` > /dev/null
+GCCSDK_ROOT=`pwd`
+popd > /dev/null
+##source $GCCSDK_ROOT/setup-gccsdk-params
+GCCSDK_SUBTREE=`basename $WD`
+GCCSDK_SRCDIR=$GCCSDK_ROOT/srcdir/$GCCSDK_SUBTREE
+GCCSDK_RECIPE_PATCHES=$GCCSDK_ROOT/recipe/patches/$GCCSDK_SUBTREE
+GCCSDK_RECIPE_FILES=$GCCSDK_ROOT/recipe/files/$GCCSDK_SUBTREE
+
+if [ "x"$1 == "x" ] ; then
+  echo "Syntax: create-patch <file-in-gccsdk-dir-to-create-patch-from>"
+  exit 1
+fi
+GCCSDK_PATCHFORFILE_REL=$1
+GCCSDK_PATCHFORFILE_ABS=$GCCSDK_SRCDIR/$GCCSDK_PATCHFORFILE_REL
+
+if [ ! -f $GCCSDK_PATCHFORFILE_ABS ] ; then
+  echo "File $GCCSDK_PATCHFORFILE_ABS does not exist"
+  exit 1
+fi
+
+# Check if the original files are coming from Subversion, or from a release
+# tar ball.
+GCCSDK_ORG_SUBTREE=`find $GCCSDK_ROOT/srcdir.orig -maxdepth 1 -type d -name "$GCCSDK_SUBTREE-*" 2>/dev/null || true`
+if [ ! -d "$GCCSDK_ORG_SUBTREE" ] ; then
+  echo "Can not find original source tree (was looking for '$GCCSDK_ORG_SUBTREE')."
+  exit 1
+fi
+if [ -d "$GCCSDK_SRCDIR/.svn" ] ; then
+  # Case: sources come from Subversion
+  if [ -f "$GCCSDK_ORG_SUBTREE/$GCCSDK_PATCHFORFILE_REL" ] ; then
+    GCCSDK_PATCHFILENAME=$GCCSDK_RECIPE_PATCHES/`echo $GCCSDK_PATCHFORFILE_REL | tr "/" "."`.p
+    if [ ! -f $GCCSDK_PATCHFILENAME ] ; then
+      echo "Creating new patch $GCCSDK_PATCHFILENAME"
+    fi
+    ( cd $GCCSDK_SRCDIR && svn diff $GCCSDK_PATCHFORFILE_REL > $GCCSDK_PATCHFILENAME )
+    echo "Patch $GCCSDK_PATCHFILENAME is (re)made."
+    exit 0
+  fi
+else
+  # Case: sources come from a release tar ball
+  # If we don't find the .orig version of the file of which we want to create
+  # a patch from, we search for the original file in the unchanged gcc / binutils
+  # distributions.
+  if [ ! -f $GCCSDK_PATCHFORFILE_ABS.orig ] ; then
+    # Originial file does not exist, find it.  FIXME: the wildcard is a bit dodgy.
+    CANDIDATE=`ls $GCCSDK_ROOT/srcdir.orig/$GCCSDK_SUBTREE-*/$GCCSDK_PATCHFORFILE_REL 2>/dev/null || true`
+    if [ -f "$CANDIDATE" ] ; then
+      cp $CANDIDATE $GCCSDK_PATCHFORFILE_ABS.orig
+    fi
+  fi
+
+  # If we find the original file in the gcc / binutils distribution, we make a patch.
+  if [ -f $GCCSDK_PATCHFORFILE_ABS.orig ] ; then
+    GCCSDK_PATCHFILENAME=$GCCSDK_RECIPE_PATCHES/`echo $GCCSDK_PATCHFORFILE_REL | tr "/" "."`.p
+    if [ ! -f $GCCSDK_PATCHFILENAME ] ; then
+      echo "Creating new patch $GCCSDK_PATCHFILENAME"
+    fi
+    ( cd $GCCSDK_SRCDIR && diff -up $GCCSDK_PATCHFORFILE_REL.orig $GCCSDK_PATCHFORFILE_REL > $GCCSDK_PATCHFILENAME )
+    echo "Patch $GCCSDK_PATCHFILENAME is (re)made."
+    exit 0
+  fi
+fi
+
+# Need to make a full copy in recipe/files directory ?
+# We only do that we there is a previous version available.
+if [ -f $GCCSDK_RECIPE_FILES/$GCCSDK_PATCHFORFILE_REL ] ; then
+  cp $GCCSDK_PATCHFORFILE_ABS $GCCSDK_RECIPE_FILES/$GCCSDK_PATCHFORFILE_REL
+  echo "Full copy $GCCSDK_RECIPE_FILES/$GCCSDK_PATCHFORFILE_REL made."
+  exit 0
+fi
+
+echo Can\'t find original file $GCCSDK_PATCHFORFILE_REL to patch against it.
+exit 1

@@ -1,0 +1,21 @@
+| Run file for Battle of Wesnoth
+
+Set Wesnoth$Dir <Obey$Dir>
+Set Wesnoth$Path WesnothUser:wesnoth.,<Wesnoth$Dir>.
+Set WesnothData$Path Wesnoth:
+
+If "<WesnothUser$Dir>"="" Then Filer_Run <Wesnoth$Dir>.!MyWesnoth.!Help
+If "<WesnothUser$Dir>"="" Then Obey
+
+
+Set SDL$wesnoth$Backbuffer 2
+Set SDL$wesnoth$TaskName Wesnoth
+
+| Use Dynamic area on Machines before the Iyonix
+RMEnsure UtilityModule 5.00 Set wesnoth$Heap ""
+RMEnsure UtilityModule 5.00 SetEval wesnoth$HeapMax 64
+
+WIMPSLOT
+
+Run <Wesnoth$Dir>.wesnoth ><Wesnoth$Dir>.stdout 2><Wesnoth$Dir>.stderr
+

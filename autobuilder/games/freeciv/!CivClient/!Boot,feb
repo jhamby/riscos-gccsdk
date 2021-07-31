@@ -1,0 +1,6 @@
+
+Set FreeCiv$Dir  <Obey$Dir>
+Set FreeCiv$Path <Obey$Dir>.
+Set FREECIV_PATH /FreeCiv:data/
+
+IconSprites <Obey$Dir>.!Sprites

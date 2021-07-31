@@ -1,0 +1,2 @@
+wget http://security.debian.org/debian-security/pool/updates/main/m/milkytracker/milkytracker_0.90.86+dfsg-2+deb9u1.debian.tar.xz
+tar -xvJf milkytracker_0.90.86+dfsg-2+deb9u1.debian.tar.xz | patch -p1 || true

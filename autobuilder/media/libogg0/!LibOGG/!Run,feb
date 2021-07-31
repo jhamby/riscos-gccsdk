@@ -1,0 +1,6 @@
+| Run file for LibOGG
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibOGG$Dir <Obey$Dir>
+Set LibOGG$Path <Obey$Dir>.

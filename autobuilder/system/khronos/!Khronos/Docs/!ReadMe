@@ -1,0 +1,113 @@
+Khronos 1.03
+------------
+
+Khronos consists of the RaspberryPi Userland source code from here:
+
+<https://github.com/raspberrypi/userland>
+
+compiled into a module. Several sections of the API are exported via
+a SWI interface to give access to the OpenGL hardware of the GPU.
+Additionally, there are libraries (currently libbcm_host, libEGL,
+libGLESv2 and libOpenVG) in both shared library and static archive
+form to allow the SWIs to be called via their original C API.
+
+The version of OpenGL supported by the RaspberryPi GPU is OpenGL ES 2.
+This is considered to be a "modern" OpenGL and as such does not
+support the glBegin/glEnd construct.
+
+The GPU will require more memory than you may normally have allocated
+to it. I think at least 64MB. On my 512MB RaspberryPi I have allocated
+128MB in CONFIG.TXT.
+
+A very small number of OpenGL operations, i.e. those that need to
+transfer large amounts of data from the GPU, e.g. glReadPixels, require
+a version of RISC OS with at least V0.09 of the VCHIQ module installed.
+
+As you can imagine, this is a very new area for RISC OS to be dipping
+its toes into and the low level nature of this project means it's
+not always going to be plain sailing.
+
+RISC OS is totally oblivious to the graphics that are produced by
+OpenGL; you can't move a window around to erase an OpenGL graphic.
+What's more, the OpenGL graphic is always on top of and obscures
+RISC OS (unless transparency is used) with the exception of the pointer.
+This, of course, makes using an OpenGL surface as a RISC OS window
+difficult.
+If a program fails to clean up after its self then the graphic it
+created is likely to be a permanent feature on the screen until
+the next reset.
+Obviously, this is most likely to happen if an error occurs so it's
+very important to free any resources, eg, contexts and surfaces,
+when finished with them.
+
+Examples
+--------
+A number of examples are included, the hello examples are taken
+from the userland source code. I have made some simple changes to
+improve their use on RISC OS:
+
+Hello_triangle (!Triangle) shows the use of OpenGL ES 1.
+This shows a spinning textured cube.
+Added test for key press to exit, otherwise infinite loop. Made
+background transparent. It's possible to run this from a taskwindow
+and see RISC OS still working below.
+
+Hello_triangle2 (!Triangle2) shows the use of OpenGL ES 2.
+This shows a mandlebrot/julia set rendered in real time using vertex
+and fragment shaders.
+Added RISC OS mouse handling, use the mouse to scroll around.
+Press middle button to exit.
+
+Hello_tiger (!HelloTiger) shows the use of OpenVG.
+This shows a rotating 2D vector graphic.
+Added test for key press to exit, otherwise infinite loop.
+This example is not as stable as the other two and may fail with
+just a white screen. So far I've been unable to trace the cause
+although there is some zero pain.
+
+WimpOpenGL is something I quickly wrote in an attempt to see how a
+WIMP task would work with an OpenGL surface as its work area. As
+mentioned above, the main problem is that the surface is always
+on top.
+
+
+Compiling and linking in RISC OS
+--------------------------------
+Most of the OpenGL related functions are declared in two or three
+header files depending on what part of the API you are interested in.
+These can be referenced via the Khronos path variable. However, it's
+usually necessary for these headers to refer to platform dependant
+headers which makes the compiler options a little more complex.
+For example to compile the hello_triangle2 example above would require:
+
+gcc triangle2.c -c -O3 -o triangle2.o -I/Khronos: -I/Khronos:interface/vmcs_host/linux
+
+to link this example you would then use:
+
+gcc triangle2.o -o triangle2 -lbcm_host -lEGL -lGLESv2
+
+This links against three extra libraries:
+
+* libbcm_host contains the VideoCore specific routines for creating and
+              manipulating elements (a kind of hardware defined window that an OpenGL
+              surface can be bound to).
+
+* libEGL      contains routines that are not specified by the OpenGL standard,
+              but which are needed for creating contexts and surfaces, etc.
+
+* libGLESv2   contains the actual OpenGL ES2 API.
+
+If the supplied shared libraries have been installed in !SharedLibs, then
+the result will be dynamically linked. There are static archives supplied
+within !Khronos if static linked is preferred. A -L/Khronos: will probably
+be required at link time so that gcc can find them.
+
+
+Known problems
+--------------
+All OpenGL output is always on top of RISC OS output. I don't think this
+will ever change; more likely it will have to be worked around, for example,
+using multiple desktops (eg, !WorkSpace), keep an OpenGL application in its
+own space rather than mixing it with other applications.
+
+Lee Noar.

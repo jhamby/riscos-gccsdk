@@ -1,0 +1,6 @@
+| Boot file for LibCares
+|
+If "<LibCares$Dir>" = "" Then Set LibCares$Dir <Obey$Dir>
+If "<LibCares$Path>" = "" Then Set LibCares$Path <Obey$Dir>.
+
+IconSprites <LibCares$Dir>.!Sprites

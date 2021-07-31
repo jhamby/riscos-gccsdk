@@ -1,0 +1,8 @@
+| Run file for Flobopuyo
+
+WIMPSLOT
+
+Set Flobopuyo$Dir <Obey$Dir>
+
+| Note -win option runs in a window on the desktop
+Run <Flobopuyo$Dir>.flobopuyo -win >null: 2>null:

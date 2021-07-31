@@ -1,0 +1,10 @@
+
+
+AB_CONFLAGS="--disable-database --with-hashed-db=no --with-fallbacks=vt102,vt220,xterm-vt220 --without-ada --without-progs CPPFLAGS= --includedir=$GCCSDK_INSTALL_ENV/include"
+AB_INSTALL=yes
+
+
+AB_MAKE="TERM=xterm-colour make -C ncurses fallback.c; $AB_MAKE"
+
+chmod a+w configure
+

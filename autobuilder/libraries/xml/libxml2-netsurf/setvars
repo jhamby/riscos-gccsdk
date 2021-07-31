@@ -1,0 +1,10 @@
+
+#AB_INSTALL=yes
+
+AB_CONFLAGS="--without-ftp --without-http --without-reader
+--without-writer --without-catalog --without-docbook
+--without-xptr --without-c14n --without-xinclude --without-schemas
+--without-regexps --with-iconv --with-iso8859x --with-python=no"
+
+# These once worked, but do not now
+# --without-pattern --without-xpath

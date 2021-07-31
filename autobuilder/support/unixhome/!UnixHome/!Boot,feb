@@ -1,0 +1,10 @@
+| !Boot for !UnixHome
+|
+| By Peter Naulls
+| peter@chocky.org
+
+IconSprites <Obey$Dir>.!Sprites
+<Obey$Dir>.SetHome Obey$Dir
+
+<Obey$Dir>.home.!HomeRC
+

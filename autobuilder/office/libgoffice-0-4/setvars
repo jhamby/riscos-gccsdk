@@ -1,0 +1,5 @@
+AB_INSTALL=yes
+
+export ac_cv_func_gtk_dialog_get_response_for_widget=yes
+export ac_cv_func_gdk_cairo_set_source_pixbuf=yes
+

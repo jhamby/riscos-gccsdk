@@ -1,0 +1,171 @@
+Sun Aug  2 20:00:01 BST 2020  Lee Noar  <lee.noar@sky.com>
+
+	* meson-arm-unknown-riscos.txt: Add cross file for meson build
+	system suitable for arm-unknown-riscos. The newer GCC in the
+	autobuilder will add its own version straight to
+	GCCSDK_INSTALL_ENV.
+
+Sun Feb  7 20:41:28 PST 2010  Peter Naulls  <peter@chocky.org>
+
+	* ro-install: Improve last change.
+
+Sun Feb  7 19:13:30 PST 2010  Peter Naulls  <peter@chocky.org>
+
+	* ro-install: Remove and remove man3 symlinks only when required.
+
+Fri Jan 15 12:03:00 PST 2010  Peter Naulls  <peter@chocky.org>
+
+	* arm-unknown-riscos-gcc, gcc, g++, cpp, cc, c++: Install additional
+          symlinks to ensure use of the wrappers, and avoid more patches.
+
+Fri Jan 15 09:46:14 PST 2010  Peter Naulls  <peter@chocky.org>
+
+        * ro-config, ro-path, arm-unknown-riscos-{cpp,gcc,g++}: Relegate
+          the problem of adding linker and include paths to wrapper
+          scripts instead of adding them during configuration, which
+          in any case isn't always possible.  This ensures correct order,
+          and also allows us to ditch a load of patches.
+
+Mon Jan  4 16:58:27 PST 2010  Peter Naulls  <peter@chocky.org>
+
+	* ro-install, mv: Override the 'mv' command when creating
+          library packages or installing as we do for 'cp'.
+
+Mon Nov 16 10:27:23 PST 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Add possible --prefix-dir alternative.  This is 
+          for the benefit of OpenTTD.
+
+Mon Aug 24 10:43:10 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Remove old SDL vs vorbis hack.  This made sense once,
+          but now makes matters worse.
+
+Thu Aug 13 08:21:22 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-ar: Use bash. Ensure destination directory exists.
+
+Mon Aug 10 10:06:11 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Remove old application-specific autoconf values.
+          If these are still valid, then they should be added to the
+          relevant setvars script.  Add RO_APPSHARED variable, so
+          let the application set the precise shared vs static
+          flags, since we can't guess correctly 100% of the time.
+        * ro-install: Add an additional PIC check for extra static
+          libtool archives we create.
+
+Wed Aug  5 18:36:29 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-ar, ro-config, ro-install:  Work around for problems where
+          libtool puts PIC objects in subdirectory archives and they end
+          up in the final static libraries.  We do this by wrapping up
+          'ar' and generating additional libraries that are static only.
+
+Tue Aug  4 14:36:18 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-install: Fail attempt to install static archive if it
+          contains PIC objects.
+
+Sun Aug  2 07:40:38 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Set CFLAGS to -O3, which ensures optimization in
+          most places.  
+
+Fri Jul 31 14:18:41 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-install: Simply skip -m and -g flags.  Permissions aren't
+          very interesting to us, sometimes cause problems when deleting
+          and can confuse the script later.
+
+Tue Jul 28 12:15:51 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Include -rpath-link as a linker flag, to help locating
+          shared library dependencies.  Simplify processing by using sed -i.
+	* ro-pkg-config: No longer pass -static.
+	* ro-path: Remove old comment about -static.
+
+Wed May 27 21:44:59 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-path: Also export ASASM to asasm path.
+
+Fri Dec  5 22:05:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ro-config: Don't have RO_SHAREDLIBS hardwired to 'yes' (partially
+	reverting r3498).
+
+Wed Dec  3 02:33:14 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ro-install: when called in 'install' mode, make sure the destination
+	parent directory is always existing before calling install'.
+
+Sun Nov 30 16:38:49 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ro-config: Define archive_cmds_need_lc to no to prevent configure
+	generating a libtool script which adds -lc to our linker lines.
+
+Mon Aug 18 21:14:29 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Improve static vs dynamic configuration.  
+	Set ac_cv_va_copy for popt.
+
+Sun Jul  6 17:19:12 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Always build dynamic and static libraries by default.
+	Pass ld for linker instead of GCC, since configure expects this
+	for dymamic linking - previously we didn't since under AOF we
+	never referred directly to drlink.
+
+Sat Jun  7 13:32:13 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Additional library path for shared library linking,
+	  do have statfs.h.
+
+Thu Mar 20 21:11:19 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ChangeLog: reformat.
+	* ro-config: changed RO_NOSTATIC into RO_SHAREDLIBS; add -static to
+	CFLAGS when doing static builds; go for consistent two space
+	indentation; lowercased internal variables; renamed DISTCC to
+	ro_distcc; likewise for HOST/ro_host, BUILD/ro_build, TARGET/ro_target,
+	PREFIX/ro_prefix, WITHLIBS/ro_withlibs, X/ro_x, SHARED/ro_shared,
+	STATIC/ro_static, TCLTK/ro_tcltk, THREADS/ro_threads, NATIVE/ro_native
+	ARCHITECTURE/ro_architecture, SSL/ro_ssl, NLS/ro_nls,
+	CPARAMS/ro_cparams; renamed RO_NOSTATIC to RO_SHAREDLIBS; removed
+	exeext and extension handling for !RunImage binary; use RO_SHAREDLIBS
+	test for the --{enable,disable}-{shared,static} massaging.
+	* ro-make: contents test for RO_DIST is lowercase 'yes' i.s.o. 'YES'.
+	* PortingTools.html: actualised, documented the public RO_ prefixed
+	parameters.
+
+Wed Feb 27 19:23:33 PST 2008  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Add CPP, RAWCPP variables, set sys/vfs.h available.
+	* uname: Add more flags.
+
+Thu Jan 17 16:24:54 PST 2008  Peter Naulls  <peter@chocky.org>
+
+	* ro-pkg-config: Additional path for pkgconfig.
+	* ro-config: Make values of CC/CXX easier to grab from here.
+	* ro-make, ro-path: Make values of CC/CXX more generally available.
+	* ro-install: Revert earlier parameter handling change; otherwise
+	options are not handled - improve the issue this was meant to solve
+	in a different way in future.
+
+Sat Jan 12 19:43:48 PST 2008  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: autoconf 2.12 handling. Replace -lX11 with -lCX11 -lDesk.
+	Ensure binaries really are static - force variables and libtool
+	values.
+	* mkdir: Addition of mkdir for package creation handling
+	* ro-install: Mostly remove need for mkdir in setvars.
+
+Mon Dec 24 20:28:18 UTC 2007  Peter Naulls  <peter@chocky.org>
+
+	* Reinstate ,e1f addition.
+
+Mon Dec 24 18:31:42 UTC 2007  Peter Naulls  <peter@chocky.org>
+
+	* ChangeLog started for Porting Scripts
+	* ro-ar: Removed.  This is an anachronism from AOF tools - should use
+	the version from binutils.

@@ -1,0 +1,148 @@
+#!/bin/bash -e
+
+# Install wrapper for RISC OS, to handle ",e1f" extensions
+
+installparams=
+dest=
+
+if [ "$1" == "cp" ] ; then
+  command=/bin/cp
+  shift
+elif [ "$1" == "mv" ] ; then
+  command=/bin/mv
+  shift
+elif [ "$1" == "ln" ] ; then
+  command=/bin/ln
+  shift
+else
+  command=/usr/bin/install
+fi
+
+skip=false
+
+for param in $@ ; do
+  installparams="$installparams $dest"
+
+  if $skip; then
+    skip=false
+    continue
+  fi
+
+  if [ "$param" == "-g" -o "$param" == "-m" ] ; then
+    skip=true
+    continue
+  fi
+
+  if [ "$(echo "$param" | cut -c 1)" != "-" ] ; then
+    if ! [ -e "$param" ] ; then
+      # Add ,e1f if the source doesn't exist but it's there with ,e1f
+      if [ -e "$param,e1f" ] ; then
+        param="$param,e1f"
+      fi
+    fi
+  fi
+  dest=$param
+
+  if [ -n "$RO_PKG" ] && [ "$command" == "/bin/mv" ] ; then
+    dest=$(sed s#GCCSDK_ENV/#$AB_DIR/package/# <<< $dest)
+  fi
+done
+
+dest=$(sed -e s#//#/#g -e s#/\$## -e s#/usr/share/#GCCSDK_ENV/share/# <<< $dest)
+
+if [ "$command" == "/usr/bin/install" ] ; then
+  # If we're installing when one of the $installparams are directories, we need to expand
+  # those.  This happens when this scripts gets used as 'cp' but not called as 'cp'.
+  # FIXME: this loses options!
+  installparams_exp=
+  for param in $installparams ; do
+    if [ -d $param ] ; then
+      for fileinparam in $(find $param -mindepth 1 -maxdepth 1) ; do
+        /bin/mkdir -p $dest/$param
+        GCCSDK_ENV/ro-install $fileinparam $dest/$param
+      done
+    else
+      # libtool hackery
+      if [ -e "${param}-static" ] ; then
+        param=${param}-static
+      fi
+
+      installparams_exp="$installparams_exp $param"
+    fi
+
+    # Check that static libraries really do contain static objects
+    if grep -q "\.a\$" <<< $param || grep -q "\.a-static" <<< $param ; then
+      if GCCSDK_BIN/arm-unknown-riscos-objdump -p $param | grep -q "position independent"; then
+        echo "RISC OS Cross installer: static archive $param contains position independent code" 1>&2
+        exit 1
+      fi
+    fi
+
+  done
+  installparams=$installparams_exp
+fi
+
+
+# Check for ending up with no parameters
+if [ -z "$installparams" ] ; then
+  exit 0
+fi
+
+
+if [ -z "$RO_PKG" ] ; then
+  # Regular Unix style install for cross environment
+  /bin/mkdir -p `dirname $dest`
+  exec $command $installparams $dest
+else
+  # Install for RISC OS headers, libraries and man pages
+
+  if echo "$dest" | grep -q -E "GCCSDK_ENV/lib|GCCSDK_ENV/include|GCCSDK_ENV/bin" ; then
+    dest=$(echo $dest | sed s#GCCSDK_ENV/#$AB_DIR/package/#)
+    echo "RISC OS Cross installer: $installparams $dest"
+    /bin/mkdir -p $(dirname $dest)
+    $command $installparams $dest
+  fi
+
+  if echo "$dest" | grep -q -E "GCCSDK_ENV/share/man|GCCSDK_ENV/man" ; then
+    dest=$(echo $dest | sed -e "s#GCCSDK_ENV/share/#$AB_DIR/package/#" -e "s#GCCSDK_ENV/#$AB_DIR/package/#" -e "s#/man[0-9]##")
+    # Skip option '-m'
+    if [ "$(echo $installparams | cut -c -2)" == "-m" ] ; then
+      installparams=$(echo $installparams | cut -f 3- -d ' ')
+    fi
+
+    # If there is only one source file and that equals the basename of destination, make
+    # of the destination its dirname.
+    if ! expr index "$installparams" ' ' ; then
+      # Only one source, so dest is a filename.  We rather trust the destination basename
+      # as a good representative one as basis for our HTML output filename.
+      destbasename=$(basename $dest)
+      # Make sure $dest is now a directory:
+      dest=$(dirname $dest)
+    else
+      # More than one source file, the dest basename needs to be derived from the sources.
+      destbasename=""
+    fi
+    # $dest is a directory, make sure it exists.
+    /bin/mkdir -p $dest
+
+    # Convert man pages to HTML:
+    for manpage in $installparams ; do
+      if [ -z "$destbasename" ] ; then
+        # Derive destination basename from source (the source should be one file)
+        manoutputname=$(basename $manpage)
+        manoutputname_nogz=$(basename $manpage .gz)
+      else
+        # Destination basename is given.
+        manoutputname=$(basename $destbasename)
+        manoutputname_nogz=$(basename $destbasename .gz)
+      fi
+      if [ "$manoutputname" == "$manoutputname_nogz" ] ; then
+        # Man page without compression
+        rman -f HTML $manpage > $dest/$manoutputname,faf
+      else
+        # Man page with compression
+        zcat $manpage | rman -f HTML > $dest/$manoutputname_nogz,faf
+      fi
+    done
+  fi
+fi

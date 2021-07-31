@@ -1,0 +1,7 @@
+| Run file for Noiz2sa
+
+WIMPSLOT
+
+Set Noiz2sa$Dir <Obey$Dir>
+
+Run <Noiz2sa$Dir>.noiz2sa -window >null: 2>null:

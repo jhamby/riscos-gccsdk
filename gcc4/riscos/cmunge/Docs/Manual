@@ -1,0 +1,884 @@
+                  CMunge: A free alternative to CMHG
+                  ----------------------------------
+
+[IMPORTANT: Please read the Copyright and Warranty files!]
+
+What is CMunge? And what is CMHG?
+---------------------------------
+
+This is software for RISC OS. If you don't have a RISC OS machine, or you
+aren't developing software for one, then don't bother reading any further.
+
+OK. The base functionality of a RISC OS machine can be extended by loading
+new software components called 'relocatable modules'. These are loosely
+equivalent to DLLs on Windows etc. If you don't know what a relocatable
+module is, then you are out of your depth. Go read the PRMs or something.
+
+Modules have traditionally been written in assembler for speed and
+compactness, but there are cases where it is necessary or desirable to
+write them in C.
+
+Acorn developed a tool called 'CMHG' (the C Module Header Generator) that
+generates a suitable veneer to allow modules to be developed in C. This was
+supplied with the Desktop Development Environment (and probably earlier
+versions of the C compiler too).
+
+CMunge has been developed as free alternative to CMHG. It reads the same
+input files, and (coupled with an assembler) performs the same task as
+CMHG.
+
+
+Differences between CMunge and CMHG:
+------------------------------------
+
+CMHG takes a textual input file, optionally preprocesses it, and produces an
+AOF or ELF output file.
+
+CMunge takes the same textual input file, again optionally preprocesses it,
+but produces a textual output file suitable for feeding to an assembler. The
+process can stop here, or CMunge can go ahead and invoke the assembler on this
+file to produce a functionally identical output file.
+
+The command line flags aren't identical, but should be close enough to merely
+change the command name.
+
+See the section on 'CMunge only features', later for more details of
+differences.
+
+
+Command Line Syntax/Flags/Options:
+----------------------------------
+
+Usage: cmunge [options] infile
+
+Options:
+
+-h              Output help about the command.
+-o <file>       Name the output AOF or ELF file.
+-s <file>       Name the output assembler file.
+-d <file>       Name a C header file that CMunge will generate.
+-x<type> <file> Name an export file to place SWI numbers in. Types can be :
+                  hdr   assembler header
+                  h     C header
+-p              Pre-process the file with the C pre-processor before parsing.
+                In this mode, all content within the included files will be
+                ignored (only the pre-processor directives will be obeyed).
+-px             Pre-process the file with the C pre-processor before parsing
+                in extended mode. In this mode, all content within the
+                included files will be processed by CMunge.
+-I<path>        Include <path> on the #include search path.
+-D<symbol>=<value>
+-D<symbol>      Define <symbol> on entry to the preprocessor.
+-depend <file>  Name a dependency file for AMU
+-U<symbol>      Undefine <symbol> on entry to the preprocessor.
+-throwback      Use throwback for error processing.
+-zbase          Define symbol Image__RO_Base in generated header.
+-zerrors        Define errors and veneers only (for use in applications).
+-zoslib         Use 'os_error *' instead of '_kernel_oserror *' to prototype
+                a pointer to a RISC OS error block. Use 'os_register_block'
+                instead of '_kernel_swi_regs' to represent a set of ARM
+                registers. Use '#include "oslib/os.h"' (OSLib) instead of
+                '#include "kernel.h"' (Shared C Library) in generated C header
+                file.
+-znoscl         Don't interface with Shared C Library, i.e. don't have
+                runtime support.
+-blank          Generate an empty CMunge file instead of reading one.
+                When in 'CMHG' mode this will generate a warning but will
+                generate a header containing only CMHG-based features.
+-cmhg           Give warnings about CMHG incompatibilities.
+-tgcc           Use GCC tool chain to generate ELF output.
+-tlcc           Use LCC tool chain to generate AOF output.
+-tnorcroft      Use Norcroft tool chain to generate AOF output (default).
+-32bit          Generate 32bit code.
+-26bit          Generate 26bit code (default).
+-apcs 3/<flags> Specify APCS variant to use - see below for more details.
+
+
+
+Using CMunge:
+-------------
+
+From here it gets technical. If you are to the stage of generating modules
+then you should be competent enough to understand the following.
+
+Input to CMunge is given in the form of a text file. This text file is
+relatively free form, but the following (insane) set of rules was laid
+down by Acorn.
+
+  * The file consists of a sequence of logical lines.
+
+  * Comments begin with ';' (a semicolon) and extend to the end of the
+    physical line they start on. All comments are removed from the lines
+    before the following rules are considered.
+    
+  * If a physical line ends with ',' (a comma) then the logical line is
+    considered to extend onto the next physical line.
+  
+  * Adjacent quoted strings (even separated by whitespace/newlines) are
+    concatenated before being considered.
+
+  * Numbers are assumed to be unsigned decimal unless preceded with '&'
+    (ampersand) or '0x' in which case they are taken as hexadecimal (but
+    see the section on 'Evaluation of integer elements')
+  
+  * Keywords are a series of alphabetic characters and minus signs terminated
+    by ':' (a colon). They may be followed by zero or more arguments.
+
+  * Lists of arguments may be separated by ',' (commas) or spaces; commas are
+    required when splitting lists across lines.
+    
+The simplest way to get a quick reminder of the parameters that CMunge can
+take on each of its keyword lines in the input file is to use the command :
+
+  CMunge -blank blank
+
+which will create an example CMunge file. This example file is commented and
+can be used to construct a new header file for your module.
+
+An example input file therefore might look like this:
+
+---START--->8----8<---START---
+; CMunge example input file
+
+module-is-runnable:
+
+initialisation-code: initialise
+
+finalisation-code: finalise
+
+service-call-handler: service 1 2 3,
+                      &80500, 0x9999
+
+title-string: CMungeExample
+
+help-string: CMungeExample 0.01 Copyright (C) 2000 Robin Watts
+
+command-keyword-table: command
+
+       CMungeExOne(min_args: 0, max-args: 1,
+                   gstrans-map: 0 fs-command: status:,
+                   configure:, help:,
+                   invalid-syntax: "Syntax: CMungeExOne <arg>",
+                   help-text: "CMungeExOne has no purpose. It's only for "
+                              "example purposes.\n" "So there\n")
+
+swi-chunk-base-number: 0x12340
+
+swi-handler-code: swi_handler
+
+swi-decoding-table: CMungeEx, One Two Three Four,
+                              Five Six Seven
+
+swi-decoding-code: swi_decoder
+
+irq-handlers: irq1, irq2/irq2_thingy
+
+event-handler: event/event_thiny 1 2 3 4
+
+vector-handlers: tickerv, palettev
+
+library-initialisation: lib_init
+
+generic-veneers: fs_entry/fs_handler
+---END----->8----8<-----END---
+
+Broadly each entry in that file, sets up some way of the module being
+called. The exceptions to this are the title and help strings which simply
+define how the module declares itself to the operating system.
+
+Each possible keyword is explained below, along with the C interfaces
+the generated header will have. If the -zoslib flag is used, then every
+occurrence of _kernel_swi_regs below is replaced by os_register_block, and
+every occurrence of _kernel_oserror is replaced by os_error.
+
+  * module-is-runnable:
+
+    When the module is run, the C main function will be called in user mode
+    as below:
+    
+    int main(int argc, char *argv[]);
+
+    Normal C functions such as malloc can be called. Without this keyword
+    the main function will never be called.
+ 
+  * module-is-c-plus-plus:
+
+    If a module includes C++ code it will be necessary to perform certain
+    operations to set up the environment for the language correctly. When
+    this keyword is specified, these actions take place.
+    
+    When the module is first loaded, after the C environment is initialised,
+    but before the initialisation-code entry (if any) is called, it is
+    necessary to ensure that global constructors are called. The function
+    ______main will be called to perform this task. This function is
+    provided within the C++ library supplied with Norcroft C (often called
+    C:o.c++lib).
+    
+    This directive can be emulated by placing a call to ______main() at the
+    very start of the initialisation-code entry, should you wish to do so
+    for CMHG compatibility.
+
+  * initialisation-code: <C-function-name>
+  
+    When the module is first loaded or reinitialised a function of the
+    specified name is called. For instance, with the name 'init' this would
+    be as follows.
+    
+    _kernel_oserror *init(const char *tail, int podule_base, void *pw);
+    
+    This function should do any initialisation required (claiming memory etc).
+    'tail' points to the string of arguments (if any) that the module was
+    invoked with. podule_base is the base address of the podule from which
+    the module was invoked, or 0 if not loaded from a podule.
+    
+    pw is the private word for the module. This should never be used, except
+    where it is required in calls to the operating system (for instance to
+    setup calls to veneers generated by CMunge using OS_Claim etc).
+    
+    Return NULL for a successful initialisation, or a pointer to an error
+    block otherwise.
+    
+  * finalisation-code: <C-function-name>
+  
+    Called when the module is killed (just before the C library is killed). For
+    instance, with the name 'final' this would be as follows:
+    
+    _kernel_oserror *final(int fatal, int podule, void *pw);
+    
+    'fatal' is the value of R10 on entry to the finalisation code. 'podule'
+    and 'pw' are as above.
+    
+    Return NULL to die, or an error pointer to refuse to die.
+  
+  * service-call-handler: <C-function-name> [<number> <number> ...]
+  
+    Called when a service call matching one of the given numbers is passed
+    around. The generated header filters out calls for service calls that
+    have not been declared to it. For C-function-name service, this gives:
+
+    void service(int number, _kernel_swi_regs *r, void *pw);
+    
+    If no service calls are specified, then all service calls are passed in.
+    This is *not* recommended.
+    
+    When dealing with service calls it may be useful to have access to a
+    pointer to the base of the module in memory. A suitable section of
+    assembly code can be generated by CMunge to provide such a variable; to
+    enable this, use the -zbase command line option. Use of this option will
+    define the following in the header:
+    
+    extern int Image__RO_Base;
+
+  * title-string: ModuleName
+
+    This defines the module name.  Note that you must register the module
+    name before you distribute it.
+
+  * help-string: <module-name> <version-number> <comment>
+  
+    This defines the help string in the module header. The name of the module
+    should ideally be less than 16 characters, and should ideally match the
+    name given in the title-string entry.
+    
+    The version-number field should be in the form d.dd where d is a decimal
+    digit.
+
+  * date-string: <DD MMM YYYY>
+
+    The date-string is optional and should only be included if you feel that a
+    date is a different reference to the version number. Certain ports from
+    other platforms may wish to indicate their source base date using this
+    field.
+
+    You will probably never need this field.
+
+  * command-keyword-table: <C-function-name> <command-description>+
+
+    At least one command-description must be given.
+  
+    This generates the *command and help table for the module. Calls to the
+    module are passed the the given C function as follows:
+    
+    _kernel_oserror *command(const char *arg_string, int argc, int number,
+                             void *pw);
+    
+    'number' denotes which command was called (numbering from 0).
+    
+    If it is a *Help entry, then arg_string points to a buffer to write into;
+    you will need to cast the 'const' away). Fill this with the zero terminated
+    string to output, and return a pointer to it (i.e. the initial value of
+    arg_string) to print. The created header file defines a special value
+    'help_PRINT_BUFFER' to be an appropriate cast of arg_string. Be careful
+    when using this; it relies on the value of arg_string not changing during
+    the function. Otherwise return NULL to print nothing, or a pointer to an
+    error block.
+    
+    If it is an actual command to be run, then arg_string is the command
+    string to be executed and argc is the argument count. Return NULL on
+    success or an error pointer. Note that arg_string is not NUL terminated
+    string but control terminated.
+
+    If its a *Configure option, and arg_string is set to arg_CONFIGURE_SYNTAX
+    (as defined in the generated header file to be a cast of 0) then print the
+    syntax string. Return NULL.
+    
+    If its a *Configure option, and arg_string is set to arg_STATUS (as defined
+    in the generated header file to be a cast of 1) then print the current
+    status. Return NULL.
+
+    Otherwise, if its a *configure option, use arg_string and argc to set
+    the configure option. Return NULL on success, an error pointer, or
+    configure_BAD_OPTION (defined in the header file to be a cast of -1),
+    configure_NUMBER_NEEDED (defined to be a cast of 1), configure_TOO_LARGE
+    (2) or configure_TOO_MANY_PARAMS (3).
+
+    Command descriptions are given in the following form:
+    
+      command-name ( min-args:       <integer>,         ; (0 to 255, default 0)
+                     max-args:       <integer>,         ; (0 to 255, default 0)
+                     gstrans-map:    <integer>,         ; (default 0)
+                     fs-command:,                       ; (flag)
+                     status:,                           ; (flag)
+                     configure:,                        ; (flag)
+                     help:,                             ; (flag)
+                     international:,                    ; (flag)
+                     add-syntax:,                       ; (flag)
+                     invalid-syntax: <string>,          ; (default empty string)
+                     help-text:      <string>,          ; (default empty string)
+                     handler:        <C-function-name>, ; (explicit handler)
+                     no-handler:                        ; (flag)
+                   )
+
+    Each sub-argument (min-args:, max-args: etc) is optional.
+    
+    The flags set bits in the flag word for that entry in the command table,
+    except for add-syntax (which adds the invalid syntax message to the end of
+    the help information).
+    
+    The handler specification allows dispatch of command to specific
+    routines without a higher-level switching function. Commands without
+    an explicit handler name will be dispatched to base function named
+    at the start of the parameters. The base function may be specified as
+    '-' to indicate that no such function exists. If this is the case,
+    all the handlers must be specified within the commands, or the
+    no-handler flag set.
+    
+    The no-handler flag indicates that there is no code handler for the
+    command. Such command declarations are useful for providing help-only
+    commands definitions.
+    
+    The help flag is not supported by this version of CMunge.
+  
+  * error-chunk-base-number: <number>
+    
+    This sets the error base number for the module. This is merely exported
+    as ERROR_BASE in the C header. Error blocks are allocated in blocks of
+    256, but CMunge will accept any alignment so that you can re-use areas
+    of the blocks. You should inform the allocations service of any use of
+    'sub-blocks'.
+
+  * error-base: <number>
+
+    An alias for error-chunk-base-number.
+  
+  * error-identifiers: <error description> ...
+    
+    This sets up error identifiers which will be embedded in the module
+    header. Descriptions are of the form :
+
+      identifiers ( [<number>,] <string> )
+    
+    You can specify each of these individually. Each of the errors will be
+    allocated a unique number, starting at error-chunk-base-number. Each of
+    the errors is defined in the header as being a _kernel_oserror *. If a
+    number is given this will be used instead of the next error number in
+    the chunk.
+    [Note: The header defines these through a macro so that errors are not
+     copied to the workspace]
+  
+  * pdriver-handler: <entry point> [,<C-function-name>][,<C-function-name>] ...
+  
+    This is only to be used to define an interface for registering a printer
+    driver using SWI PDriver_DeclareDriver.  The first parameter is defining
+    a symbol whose value needs to be R0 of SWI PDriver_DeclareDriver. The
+    rest of the parameters specify the names of C routines one per reason
+    code from 0 onwards.  So, for
+    "pdriver-handler: pdentry,getinfo_handler,setinfo_handler" you get the
+    symbol:
+
+    extern int pdentry(void);
+    
+    defined (which is NOT a C function), and you need to provide the following
+    C functions:
+    
+    _kernel_oserror *getinfo_handler(int number, kernel_swi_regs *r, void *pw);
+    _kernel_oserror *setinfo_handler(int number, kernel_swi_regs *r, void *pw);    
+
+  * swi-chunk-base-number: <number>
+    
+    This sets the SWI base number for the module. Do not specify the X-bit
+    in your SWI base.
+
+  * swi-handler-code: <C-function>
+  
+    Calls to the SWIs in the SWI block are passed through here; for instance
+    the name 'swi_handler' would result in:
+    
+    _kernel_oserror *swi_handler(int number, kernel_swi_regs *r, void *pw);
+    
+    'number' is the swi number offset within the block (i.e. 0 to 63).
+    
+    'r' are the registers on input. Alter them (r0-r9) to change the return
+    values.
+    
+  * swi-decoding-table: <SWI-base-name> <swiname>[/<C-function-name>]
+                         <swiname>[/<C-function-name>] ...
+    
+    This defines the names put into the SWI decoding block. zero or more
+    SWI names may be given. Where C function names are gives, these functions
+    are called instead of the base SWI handler, with the same arguments.
+    
+  * swi-decoding-code: <C-function-name>[/<C-function-name>]
+  
+    This command works in 2 different ways, according to how many function
+    names are supplied. The original definition in CMHG was to give just
+    one name, which captured all the functionality. The latest versions of
+    CMHG provide an improved interface using 2 C functions, one for each
+    direction.
+
+    Operation with 1 function:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This code can be called to translate SWI numbers<->names. For instance for
+    a name 'decoder':
+    
+    void decoder(int r[4], void *pw);
+    
+    If r[0] < 0 then:
+      r[1] points to a *control* terminated string to convert to a number.
+      If you recognise the name, set r[0] to the offset within the block. If
+      not, set r[0] < 0.
+    otherwise:
+      r[0] is the offset within the SWI block
+      r[1] is a pointer to an output buffer
+      r[2] is the offset within the buffer to start filling from
+      r[3] is the pointer to the byte beyond the end of the buffer.
+      Either fill the buffer from the required point (updating r[2], *without*
+      a terminator), and return NULL or return an error pointer.
+
+    Operation with 2 functions:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    The first function handles name->number conversions, and the second
+    handles number->name ones. For example 'name2number' and 'number2name':
+
+    int name2number(const char *string, void *pw);
+    int number2name(int number, char *buffer, int offset, int end, void *pw);
+
+    name2number should convert the control (NOT zero) terminated string to
+    a number, and return the number of the SWI within the SWI chunk (0 to 63).
+    If unrecognised return <0.
+
+    number2name should write the (unterminated) name of the SWI corresponding
+    to the number of the SWI within the SWI chunk into buffer starting at
+    offset, and return offset updated by the length of the name written. If
+    there is no name for the SWI, just return offset, unaltered.
+
+  * vector-handlers: <C-function-name>[/<C-function-name>][(<params>)] ...
+ 
+    Several pairs of function names can be given here; each corresponds to an
+    entry point into the module (to be used for OS_Claim or similar) and
+    the name of the C function that that entry point calls. If you omit the
+    '/' and the second half of the pair, than that name is constructed by
+    adding '_handler' on to the end of the first name. Where parameters are
+    supplied, the following parameters are supported :
+    
+      error-capable:
+         The return parameter may be specified as 'VENEER_ERROR(error)',
+         rather than an error block. This will cause the vector to be
+         claimed and for an error to be returned in R0 with the V flag set.
+         All other registers will be as returned in the parameter block.
+
+    So, for 'vector-handlers: wrch' the following function is expected:
+    
+    int wrch_handler(_kernel_swi_regs *r, void *pw);
+
+    and a symbol is setup to point to an entrypoint (NOT a C function):
+
+    extern void wrch(void);
+    
+    You must provide wrch_handler; the CMunge generated header creates wrch
+    for you. *Never* call wrch directly, just use its address in vector
+    claims. All such vector claims must be done in SVC mode, such as from
+    initialisation code or in a SWI handler.
+    
+    When wrch_handler is called, r->r[0]-r[9] are the values on entry. These
+    can be updated to change the values on return. Consult the relevant
+    vector documentation to be sure that you comply with its interfaces.
+
+    Return VECTOR_CLAIM if you handled the interrupt, or VECTOR_PASSON to
+    pass it on to the handlers deeper down the stack of handlers.
+    Alternatively, if the error-capable veneer is in use, the
+    VECTOR_ERROR(error) macro should be used to return the error pointer to
+    the caller. If the 'error' parameter is NULL, the return will be
+    equivilent to a VECTOR_CLAIM.
+  
+  * irq-handlers: <C-function-name>[/<C-function-name>] ...
+  
+    Several pairs of function names can be given here, generating entry points
+    that call handler functions under the same entry/exit conditions as above.
+    
+    The irq-handlers declaration is the obsolete name for vector-handlers.
+    Clients should use vector-handlers where possible.
+ 
+  * event-handler: <C-function-name>[/<C-function-name>] [<number> <number>...]
+  
+    Only one pair of names can be given per use of this handler, but they
+    generate an entry point that calls a handler function under the same
+    entry/exit conditions as above. If multiple event-handler entries are
+    required, using the token again allows this. Multiple event-handlers
+    are accepted in CMHG mode, but only the last is processed fully in
+    order to follow CMHG's behaviour.
+    
+    Fast accept/reject code is generated for the given event numbers. The
+    numbers are optional, but strongly recommended.
+
+  * generic-veneers: <C-function-name>[/<C-function-name>][(<params>)] ...
+  
+    Several pairs of function names can be given here, generating entry
+    points that call handler functions under the same entry/exit conditions
+    as above. Where parameters are supplied, the following parameters
+    are supported :
+    
+      private-word: <register>
+         The register in which the private word value will be passed on
+         entry to he generic-veneer. This defaults to r12. Normally r12
+         is not preserved by a generic-veneer unless a private-word register
+         is provided. To force it to be preserved, use r12 as the register
+         name.
+      
+      carry-capable:
+         The return parameter may be specified as 'VENEER_SETCARRY', rather
+         than an error block. This will cause the carry flag to be set on
+         return from the handler function. All registers will be as
+         returned in the parameter block.
+
+  * vector-traps: <C-function-name>[/<C-function-name>] ...
+  
+    Several pairs of function names can be given here, generating entry points
+    that call handler functions under the similar entry/exit conditions as
+    above. The entry point for vector traps is slightly different :
+
+    _kernel_oserror *handler(_kernel_swi_regs *r,void *pw,
+                             vectortrap_f trap,void *trappw);
+    
+    The register block passed in is that which the vector was called with.
+    The trap function can be called to call the remainder of the vector
+    chain :
+
+    _kernel_oserror *trap(_kernel_swi_regs *r2,void *trappw);
+    
+    The register block passed to the trap routine will be used to call the
+    remainder of the chain and updated with the values returned by the
+    call. If may be the same as the input register block, or a different
+    block. If the vector chain returns an error, you can process this and
+    return it to your caller, or perform any other operation.
+    
+    If you return an error from the routine, this will claim the vector
+    and return the error.
+    If you return NULL from the routine, this will merely claim the vector.
+    If you return VECTORTRAP_PASSON, the remainder of the vector chain will
+    be called, as if you had used 'return trap(r,trappw);'. The advantage
+    of this is that it reduces stack usage quite considerably and allows
+    you to reject vectors calls which are of no interest to you.
+
+  * library-initialisation-code: <symbol-name>
+  
+    Without this supplied, the veneer calls _clib_initialisemodule. In some
+    circumstances you may wish to do some work before calling this function,
+    however, so this call can be redirected to any symbol-name you wish.
+    
+    This routine will be called without a proper C environment having been
+    setup, so will need to be written in assembler. For proper operation of
+    the C library, it is essential that your routine call 
+    _clib_initialisemodule before it returns.
+
+  * library-enter-code: <symbol-name>
+
+    Is an alias for library-initialisation-code.
+
+  * international-help-file: <pathname>
+
+    This option allows a literal pathname to be embedded in the header of the
+    module such that any help messages tagged as 'international' returned from
+    the module will be looked up in this file, if the OS version supports it.
+
+
+Makefile:
+---------
+
+If you want to use CMunge in a Makefile, and have it generate the header
+file each time then you will need to define two static dependency lines.
+The following example can help you :
+
+h.modheader:	o.modheader
+o.modheader:	cmhg.modheader
+	cmunge -throwback -zoslib -zbase -o o.modheader \
+	       -d h.modheader cmhg.modheader
+o32.modheader:	cmhg.modheader
+	cmunge -32bit -throwback -zoslib -zbase -o o.modheader \
+	       -d h.modheader cmhg.modheader
+
+For non-OSLib development you would probably want :
+
+h.modheader:	o.modheader
+o.modheader:	cmhg.modheader
+	cmunge -throwback -o o.modheader \
+	       -d h.modheader cmhg.modheader
+o32.modheader:	cmhg.modheader
+	cmunge -32bit -throwback -o o32.modheader \
+	       -d h.modheader cmhg.modheader
+
+With a rule based makefile you might use :
+
+.SUFFIXES:		.c .o .o32 .cmhg
+.cmhg.o .cmhg.h:;	cmunge -throwback -o o.$* -d h.$* $<
+.cmhg.o32 .cmhg.h:;	cmunge -32bit -throwback -o o32.$* -d h.$* $<
+
+
+CMunge only features:
+---------------------
+
+Because CMunge and CMHG are different, it is important to know where the
+differences lie in case you have to change back to a CMHG only environment
+(though why that might be when the source is available for bug fixing, and
+CMunge is bug free anyhow, I don't know :-) ).
+
+CMunge will parse CMHG files. If you find a CMHG file that will not work with
+CMunge, or generates the wrong code, then it is NOT a feature of CMunge; it
+is a bug. CMunge also adds to the file format :
+
+  * Error base handling (error-chunk-base-number)
+  * Error identifiers (error-identifiers)
+  * SWI specific handlers (<swi>/<handler> in swi-decoding-table)
+  * Vector trap handlers (vector-traps)
+  * Generic veneers can now have parameters (private-word, and carry-capable)
+  * Vector handlers can now claim with errors (error-capable)
+  * Simple additive evaluation of integers (see below)
+  * Simpler C++ module creation (module-is-c-plus-plus)
+  * Command keyword handlers (handler) and handler omission (no-handler)
+  * Printer driver handler (pdriver-handler)
+
+The command line differs from CMHG in the following ways :
+  * Exported header types (-x switch)
+  * Extended pre-processing operation (-px switch)
+  * Optional build specification using the -z switch (OSLib-specific,
+    error block generation only, Image__RO_Base definition)
+  * Blank template file generation (-blank switch)
+  * Multiple toolchain suport (-t switch)
+  * Explicit APCS variant selection (-apcs switch)
+  * Backwards compatibility with CMHG (-cmhg switch)
+  * Possibility to not use the Shared C Library runtime (-znoscl switch)
+
+Within the header produced, there are a couple of deviances :
+
+  * CMUNGE_VERSION is defined to the version of CMunge that produced the
+    file.
+    CMHG_VERSION is defined to be 531 which is the closest equivalent
+    version of CMHG to the current version of CMunge.
+    CMHG defines CMHG_VERSION to its version but does not define
+    CMUNGE_VERSION.
+  * Module_VersionString is defined to the /full/ version string in CMunge,
+    but just the version number in CMHG.
+
+If these cause a problem, please let us know.
+
+
+Not using Shared C Library (option -znoscl)
+--------------------------
+
+This is one of the CMunge only features and allows you to build C based
+modules which are not using the Shared C Library runtime.  Apart from its
+lack of the Shared C Library dependency it also offers a smaller footprint.
+
+Note that apart from a run-time stack (the SVC one), you're on your own for
+memory management, I/O, etc and you can only rely on what RISC OS or third
+party modules provide, e.g. via their SWIs.
+
+It might be that the generated output of the C compiler contains calls to
+memcmp, memset, memcpy and memmove which you are required to provide yourself.
+
+Currently this feature has the following limitations : only GCC compiler is
+supported and it can not be combined with module-is-runnable nor
+module-is-c-plus-plus keywords.
+
+
+Evaluation of integer elements
+------------------------------
+
+Standard CMHG supports integers which can be specified in a couple of
+standard forms :
+
+  * Prefixed by & for RISC OS-style hexadecimal notation.
+  * Prefixed by 0x for C-style hexadecimal notation.
+  * Unprefixed for decimal notation.
+
+CMHG will strip any surrounding parentheses from the integer value in order
+to allow values to be used from C-style header files through #include
+directives.
+
+CMunge also supports very simple additive operations on integer values.
+This means that expressions such as '(&800 + 1)' are acceptable within the
+context of an integer value in a CMHG file parsed by CMunge. No other
+arithmetic operations are supported by CMunge. This change allows the 'base'
+values to be defined within a header and offsets to be specified, for
+example defining a service base and then adding on offsets for particular
+reasons.
+
+
+32bit header generation:
+------------------------
+
+In order to support generic compilation, CMunge has been updated to generate
+32bit header veneers. These veneers should function identically on 26bit and
+32bit, so far as the operation of the module is involved. 32bit code has been
+tested in both 32bit and 26bit environments with a large number of components
+and been found to be reliable.
+
+The header generation is as close to that of CMHG as possible without
+introducing any faults; this may result in slightly different code sequences
+(over and above those required for 32bit) to those which might be expected
+of a pure 26bit to 32bit conversion.
+
+For 32bit builds, all that should be necessary is to provide the APCS
+variant specifier as :
+   -apcs 3/32bit/fpe2/swstackcheck/fp/nofpregargs
+For brevity (and because the defaults are suitable, this can be abbreviated
+to :
+   -apcs 3/32
+
+
+Explicit APCS specification:
+----------------------------
+
+In line with the compiler and assembler (for ARM and consequently Norcroft
+tools), the CMunge tool may take an explicit specification of the APCS
+variant which should be used. CMunge does not support the full range of
+APCS variants, but this option allows makefiles to be created which use
+APCS specifications to describe the type of compilation required. It is
+recommended that the build tools use the full APCS specifier as this then
+means that the same specifier can be supplied to all tools (cc, c++, objasm,
+cmunge) regardless of the version of the tool. All version 5 Norcroft
+tools accept the -apcs switch.
+
+The full syntax for the APCS declaration can be obtained through the
+command :
+
+  *CMunge -help
+
+
+GCC, LCC and Norcroft Toolchains:
+---------------------------------
+
+Because CMunge is intended to be a free replacement for CMHG, it can be used
+with the freely available GCC toolchain as well as the commercial Norcroft
+toolchain.
+
+The '-tnorcroft' option on the command line will ensure that the Norcroft
+toolchain is used. This is the default and all testing of the CMunge tool
+has been performed using the Norcroft toolchain rather than the other two.
+
+The '-tgcc' option on the command line will ensure that the GCC toolchain is
+used. John Tytgat has contributed significantly to ensure that the GCC
+toolchain is able to be used with CMunge.
+
+The '-tlcc' option on the command line will ensure that the LCC toolchain is
+used. LCC does not support generation of relocatable modules.
+Filenames given to the LCC version of cpp must be in unix-form for the input
+and path names. CMunge deals only in native filenames so it is recommended
+that the LCC toolchain not be used with CMunge. As such, the lcc toolchain
+should be considered unusable with CMunge.
+
+Norcroft building:
+  cc     - Pre-processes the input if -p used
+  objasm - Assembles the generated code
+  
+GCC building:
+  gcc    - Pre-processes the input if -p used (-xc mode)
+           Note that there is no dependency support.
+  gcc    - Assembles the generated code (-xassembler mode)
+  
+LCC building:
+  cpp    - Pre-processes the input if -p used
+           Note that there is no dependency or throwback support with the
+           LCC version of cpp.
+  as     - Assembles the generated code
+
+
+Possible Future Enhancements:
+-----------------------------
+
+'Short' or 'Fast' veneers; don't set up the C stack entrails, just do the
+bare minimum necessary to get C functions to work. Handler functions called
+in this way will not be able to access static data or call Shared C library
+functions. Is this worth the effort? Probably not; if its that speed
+critical, ARM code it!
+
+Generate modules capable of benefitting from the RISC OS 4 (Ursula) service
+call entry table with bit 0 set (so the number passed in is not the service
+call, but really the number of the service within our enumeration).
+
+Should we have a facility to output C veneers for the SWIs exported ? No, I
+think we leave that function to DefMod - it can do it more type-safely than
+we can.
+
+The C header generation at present exports only the SWI numbers. This
+results in lots of modules having two files - one for the SWIs and one for
+the definitions of the module (constants, services, etc). A way of providing
+a template would help here. This has been addressed locally by the perl
+'MergeModeSWIs script'.
+
+Events, Vectors, etc with their own handler routines for particular cases.
+These would remove the requirement for the switch statement in a central
+handling module. The impact on SWI decoding was four instructions (the same
+as it would be for a switch) when I added that, so it should not be too
+important.
+
+I (Justin) don't like the name 'codesupplied' in the source. It should really
+be 'somehandlerssupplied' but that's a bit long. It was 'special', but that's
+even more vague. Similarly, I dislike the 'errors_special' I've used for the
+flagging of error blocks that have no base as they all have their numbers
+allocated. It also doesn't work properly. I think I need a set of flags for
+that.
+
+Add some extra types to the -x generation rule :
+  -xasm : Assembler SWI number header
+  -xc   : C SWI veneers (needs more 'knowledge' of the format)
+  -xbas : Basic SWI numbers (it's easy, so why not?)
+
+It might be nice to have a 'reformat cmhg file' option, which read in the
+file and wrote it out again 'neatly'. I'm not sure it'd be such a great idea,
+but it's worth a little thought.
+
+It would be nice to have a private value passed to generic-veneer functions.
+At present, the call is global to the module and the module must itself
+decide who it is dispatching for. In the case of callbacks (the most common
+use), this isn't really a problem because all callback activities can take
+place at once, but where multiple private callbacks are vectored through the
+same handler this may now be possible. Using a parameter block containing the
+private parameters to pass to the routine would be handy. I've written veneers
+for this by hand, but it would be better to do this in a more generic manner.
+
+Reformat this manual to be more readable.
+
+
+Possible faults:
+----------------
+
+The cost of a private-word is taken by *all* generic veneers in that an
+extra register must be preserved for all entry points. Any definitions using
+a private word will also gain an extra instruction in their entry sequence
+to relocate the private-word. I (Justin) don't feel this is a serious
+problem.
+
+The cost of a error-capable vector handler is taken by all vector handlers,
+although it should only be a few instructions (the code sequences vary quite
+a bit between 26bit and 32bit versions).

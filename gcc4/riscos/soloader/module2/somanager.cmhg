@@ -1,0 +1,82 @@
+; This file is part of SOManager.
+;
+; Copyright (C) 2006-2019 GCCSDK Developers
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License along
+; with this program; if not, write to the Free Software Foundation, Inc.,
+; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+title-string: SOManager
+
+help-string: Shared Object Manager PACKAGE_VERSION (c) GCCSDK Developers
+
+initialisation-code: module_initialise
+
+finalisation-code: module_finalisation
+
+;service-call-handler: module_service
+
+command-keyword-table: module_command
+  SOMStatus(min-args: 0, max-args: 1,
+            invalid-syntax: "Syntax: *SOMStatus [clients] | [libraries]",
+            help-text: "*SOMStatus [clients] | [c] displays information about all clients registered.\n*SOMStatus [libraries] | [l] displays information about all libraries registered.\n*SOMStatus with no parameter displays both libraries and clients.\n"),
+  SOMAddress(min-args: 1, max-args: 1,
+             invalid-syntax: "Syntax: *SOMAddress <addr|reg>",
+             help-text: "*SOMAddress reports the shared library that contains the given address and also the offset from the start of the library file where the address lies.\nIt is useful for debugging purposes.\n"),
+  SOMExpire(min-args: 0, max-args: 2,
+            invalid-syntax: "Syntax: *SOMExpire [<n>h] [<n>m]",
+            help-text: "*SOMExpire allows the expiry time of any libraries used in the future to be set. Specifiying no parameter returns the current setting.\n"),
+  SOMAllowQuit(min-args: 0, max-args: 0,
+               invalid-syntax: "Syntax: *SOMAllowQuit",
+               help-text: "*SOMAllowQuit allows the module to be killed even if there are still clients registered. It is used for developing the dynamic loader and should generally be avoided.\n"),
+  SOMRun(min-args: 1, max-args: 255,
+         invalid-syntax: "Syntax: *SOMRun <ELF file>",
+         help-text: "*SOMRun examines the given ELF executable to determine whether it is dynamically or statically linked, and runs it accordingly.\n"),
+  SOMHistory(min-args: 0, max-args: 0,
+	     invalid-syntax: "Syntax: *SOMHistory",
+	     help-text: "*SOMHistory lists some details about the last five clients as an aid to debugging them.\n")
+
+swi-chunk-base-number: 0x58580
+
+swi-handler-code: module_swihandler
+
+swi-decoding-table: SOM, Alloc, Free, AllocLib, RegisterObject,
+  DeregisterClient, DeregisterSharedObject, QueryObject,
+  IterateObjects, GOTFromAddr, HandleFromAddr, HandleFromName,
+  ResolveSymlinks, GenerateRuntimeArray, Reloc, ELFFile,
+  Location
+
+error-chunk-base-number: 0x81DC00
+
+error-identifiers: somerr_client_not_found("Unable to register shared object, client not found"),
+  somerr_unknown_client("Client not registered"),
+  somerr_object_not_found("Object not found"),
+  somerr_no_memory("Shared Object Manager failed to allocate memory"),
+  somerr_in_use("There are still clients using SOManager."),
+  somerr_bad_param("Bad parameter"),
+  somerr_file_error("Error during file operation in Shared Object Manager"),
+  somerr_invalid_elf("Not a valid ELF file for this platform"),
+  somerr_wimpslot_too_small("Wimpslot not big enough to run ELF program."),
+  somerr_no_got_loader("Unable to locate GOT of dynamic loader."),
+  somerr_no_got_client("Unable to locate GOT of client."),
+  somerr_symlink_bad_ID("Symlink typed file does not contain correct ID."),
+  somerr_symlink_overflow("Shared Object Manager symlink overflow."),
+  somerr_no_exec("ELF file is not an executable."),
+  somerr_no_seg_client("Unable to locate required segment in client."),
+  somerr_no_seg_loader("Unable to locate required segment in dynamic loader."),
+  somerr_srelpic_unknown("Unable to read SRELPIC section."),
+  somerr_srelpic_overflow("Relocation overflow in SRELPIC section. Too many libraries."),
+  somerr_abi_fail("Unable to read ABI identifier."),
+  somerr_abi_mismatch("Attempt to load objects with mismatched ABIs.")
+
+generic-veneers: som_call_every som_callback

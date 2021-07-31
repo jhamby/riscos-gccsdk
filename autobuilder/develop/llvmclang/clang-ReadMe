@@ -1,0 +1,57 @@
+				LLVM/CLANG 3.5.1
+
+This is a cross compiler only version of clang that targets RISC OS,
+there are no compiler binaries for RISC OS as yet.
+Although as a cross compiler, it doesn't use the RISC OS GCC compiler
+directly, it does obviously require the GCCSDK Autobuilder and
+requires a GCCSDK 4.7 installation in order to use it.
+
+Clang is designed to be a drop in replacement for GCC and supports a
+similar set of command line options. This version supports the following
+RISC OS GCC options:
+
+-mpoke-function-name
+Embed function name before each function to aid debugging.
+This is on by default (use -mno-poke-function-name to disable).
+
+-mapcs-stack-check
+Generate code in function to check and extend the stack as required.
+This is on by default (use -mno-apcs-stack-check to disable).
+
+Runtime libraries
+-----------------
+Clang uses the include files from GCCSDK (there are some additional
+ones installed at $GCCSDK_INSTALL_CROSSBIN/../lib/clang/3.5.0/include).
+Clang uses libunixlib, libstdc++ and libgcc (from the GCCSDK installation,
+and therefore not compiled by clang) as its runtime libraries and
+does not currently support libscl or module code generation. Only
+soft float is supported (float operations are provided in software by
+libgcc).
+
+Compiler names
+--------------
+The name of the C compiler is arm-unknown-riscos-clang. The C++ compiler
+can be invoked with arm-unknown-riscos-clang++ although this is merely
+a symlink to the C compiler which is used for both C and C++. The file
+extension is used to determine whether to compile in C or C++ mode.
+
+Shared libraries
+----------------
+Shared libraries are supported and are compatible with GCC 4.7.
+
+TODO?
+-----
+Support SharedCLibrary (link against libscl).
+Biggest problem is support for floating point. Float arguments are passed
+in floating point registers. I don't think FPA is supported at all.
+It's unlikely that FPA support will be possible, but perhaps soft float
+can be used with arguments somehow moved to float registers as required.
+
+Module code.
+See above. I should be able to copy module code generation from GCC.
+
+Support NEON/VFP
+Need to investigate how float registers are stacked on function entry/exit.
+
+Lee Noar
+<leenoar@sky.com>

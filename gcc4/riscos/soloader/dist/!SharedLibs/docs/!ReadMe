@@ -1,0 +1,337 @@
+RISC OS Dynamic Linking and Shared Libraries
+--------------------------------------------
+
+A User's View
+-------------
+
+The soloader package contains all of the components required to use dynamically
+linked C programs under RISC OS. These are:
+
+Dynamic loader/linker (ld-riscos/so/1)
+---------------------
+This is currently based on V1.9.9 of the Linux dynamic loader (the version, I
+believe, before it was merged into GLIBC). This version was chosen over the
+latest, due to its relative simplicity.
+
+SOManager (Shared Object Manager)
+---------
+This is a RISC OS module which provides object and memory management for the
+dynamic loader. Although the dynamic loader does manage objects itself, this
+is only on a per client basis as it has no knowledge of other clients using
+the same libraries. It therefore relies on SOManager for information
+regarding the state of any libraries in the system.
+
+*SOMStatus gives the state of the system, showing any clients and
+libraries currently registered. It is normal for libraries to remain present
+after clients have deregistered. Libraries are allowed to remain idle (i.e.
+unused by any client) for a set period of time before being removed. This
+improves system performance when, for example, command line tools that use
+the same libraries are run in quick succession.
+
+Runtime libraries
+-----------------
+These consist of libunixlib, libgcc and libm which are the basic libraries
+required to run C programs.
+
+Additionally, C++ is supported by the use of libstdc++ which is available
+separately.
+
+Building shared libraries
+-------------------------
+Some effort has been made in to making the building of shared libraries under
+RISC OS as close to that of Linux as possible, so that documentation that was
+written for Linux may also apply to RISC OS.
+
+Compiling code for shared libraries
+-----------------------------------
+When compiling code for a shared library, it is necessary to inform GCC that
+global data must be treated differently. Although the code for a library may be
+shared by several programs at once, this is not true for its global data. It is
+important that each program that uses the library be given its own copy of that
+library's data. This requires that the -fPIC command line switch be passed to
+GCC so that it can generate special code to handle the access of this data. Note
+that -fpic is not the same as -fPIC.
+
+Linking generally
+-----------------
+GCC automatically searches for dependant libraries within any directories defined
+by the RISC OS path GCCSOLib:. When !SharedLibs is first run it adds its own library
+directory (i.e. SharedLibs:lib) to this path so that GCC can find any libraries
+it holds. This includes the shared versions of the runtime libraries.
+It is important to use the correct compiler driver to perform the linking, ie, gcc
+for code written in C and g++ for code written in C++. This ensures that the
+correct options and dependant libraries are added to the linker command line.
+If a project mixes C and C++, then g++ must be used to perform the link.
+
+Linking code for shared libraries
+---------------------------------
+As for Linux, when linking a shared library, it is necessary to specify the
+-shared flag to indicate that this is intended to be a shared library.
+In addition to a filename, a library can also have an internal name embedded
+within it. This is called its soname. It is advisable when linking a shared
+library to give it a soname using the linker flag:
+
+ -soname=lib<name>.so.<major version>
+
+or
+
+ -Wl,-soname=lib<name>.so.<major version>
+
+if using gcc to perform the linking. The major version number is optional. You
+should use the Unix naming convention e.g. libname.so.1 for the soname as the
+dynamic loader will translate it to RISC OS format when searching for dependant
+libraries.
+
+Shared library naming
+---------------------
+In linux there is a scheme which most libraries adhere to when it comes to
+naming (although it is not essential). This scheme is also used under RISC OS in
+an effort to keep the same flexibility and to allow future support for multiple
+versions of the same library. In order to implement the Linux naming convention
+a simple symbolic linking system is employed in a similar manner to Linux. This
+allows the same file to be referenced by more than one name without duplicating
+it and is achieved by using a special link file which is given the filetype &1C8
+(Symlink).
+
+In this scheme, every shared library has three references, the shared library
+itself, the runtime link and the compiler link:
+
+The shared library:		lib<name>/so/X/Y/Z
+
+The runtime link:		lib<name>/so/X
+				(a symlink to lib<name>/so/X/Y/Z)
+
+The compiler link:		lib<name>/so
+				(a symlink to lib<name>/so/X/Y/Z)
+
+The dynamic loader uses the soname, given to a library at build time by
+the static linker, to find the library - this is the runtime link.
+When the static linker (ld) is given a library on its command line,
+e.g. -lUnixLib, it uses the compiler link to find the library.
+
+The symlinks are not an OS wide solution, but merely extra functionality
+added to Unixlib and the static/dynamic loaders. A utility to create these
+symlinks is supplied.
+
+Note that it is not mandatory to use the naming convention described above,
+libraries can simply be called lib<name>/so and placed in !SharedLibs.lib,
+however, this is not very flexible as it doesn't allow multiple versions
+of the same library.
+
+Compiling code for dynamically linked executable
+------------------------------------------------
+Compiling code for an executable that is to be dynamically linked does not
+require any special flags. In fact it is important that -fPIC is never used for
+such code. This is different from the Linux case where using -fPIC for
+executable code is possible, although with a minor performance cost. However,
+under RISC OS, -fPIC compiled code used in this manner will fail to run
+correctly.
+
+Linking code for dynamically linked executable
+----------------------------------------------
+Whether GCC generates dynamically or statically linked executables depends on
+what type of libraries it finds at link time. If a shared version of any
+required library is found then GCC will default to dynamic linking. On the other
+hand, if only archive (static) libraries are available, then GCC will default to
+static linking. If static linking is required regardless of what libraries are
+available, then this can be forced using the -static option.
+
+C++ code
+--------
+Compiling C++ code for dynamic linking is as above, although it is important
+to use the g++ compiler driver for linking as this adds the necessary options
+for linking against libstdc++. Global object construction/destruction is
+implemented and the order of execution is:
+
+1) UnixLib initialisation
+
+2) Shared library global object initialisation
+
+3) Executable global object initialisation
+
+4) main() called
+
+5) Executable global object destruction
+
+6) Shared library global object destruction
+
+UnixLib is initialised before global objects which means that UnixLib
+resources can be used in their constructors.
+
+Running ELF executables
+-----------------------
+ELF executables have the filetype &E1F. When such a binary is run, RISC OS uses
+this filetype to determine that SOMRun, a Shared Object Manager command should
+be called to deal with it. SOMRun examines the ELF binary to see if it is
+statically or dynamically linked. If the former, then it can pass control
+directly to the ELF binary. If on the other hand it is dynamically linked, then
+control passes to the dynamic loader which ensures that any libraries that are
+required are present. It then performs the dynamic linking before finally
+passing control to the binary.
+
+The environment of the dynamic loader can be set on a per client basis by
+setting a RISC OS system variable with a name based on that of the executable:
+
+<program name>$LD$Env
+
+If the program name is !RunImage or ends in -bin (ignoring case), then the
+program is assumed to be an application and the application name, minus the '!'
+character is used instead.
+If a system variable based on the program name is found not to exist, then
+LD$Env is used instead. This allows a common environment to be shared by many
+clients, whilst at the same time, allowing specific clients their own.
+
+In either case, the environment contains a space separated list of variables
+that the dynamic loader will use, e.g.,
+
+set Firefox$LD$Env "LD_WARN=1 LD_LIBRARY_PATH=/Firefox:"
+
+set LD$Env "LD_WARN=1"
+
+If neither type of variable is defined, then the environment is assumed to be
+empty and ignored.
+
+The following variables are recognised:
+
+LD_WARN
+	Not for general use - used by ldd (which is not yet supported).
+
+LD_LIBRARY_PATH
+	A comma separated list of paths for finding shared libraries
+	other than the standard place (which must be in RISC OS format).
+
+LD_BIND_NOW
+	Forces the dynamic loader to resolve *all* dynamic links before
+	running the binary. This is the opposite of lazy binding where
+	only the functions used are resolved.
+
+LD_TRACE_LOADED_OBJECTS
+	Forces the dynamic loader to display the dependencies of the
+	binary rather than run it. Also used by ldd.
+
+The support module SOManager provides five useful commands:
+
+SOMStatus [clients | libraries]
+	If libraries (or the letter l) is given as the parameter, then list
+	all libraries registered with the Shared Object Manager.
+	If clients (or the letter c) is given as the parameter, then list all
+	clients registered.
+	Omitting the parameter lists all libraries and clients.
+
+SOMAddress <Address in hexadecimal or decimal>
+	Given an address, report the library that contains it and also
+	the offset from the start of the library file where the address
+	lies. If the given address is preceded by 0x, then it will be treated
+	as hexadecimal otherwise it is assumed to be decimal.
+
+SOMRun <filename>
+	Examines the given ELF executable to determine whether it is dynamically
+	or statically linked, and runs it accordingly.
+
+SOMExpire [<n>h] [<n>m]
+	Allows the expiry time of any libraries used in the future to be set. If
+	no parameter is given, then it returns the current setting.
+
+SOMHistory
+	Display some basic details about the last five clients to deregister.
+
+Text relocations
+----------------
+Text relocations must not exist within shared libraries. Such relocations
+usually take the form of an absolute pointer embedded in the code of a library
+that points to a specific location. The dynamic loader cannot resolve a text
+relocation and will reject it causing the program to fail with an error similar
+to:
+
+<program name>: Text relocation of data symbol 'xyz' found:
+ SharedLibs:lib.xyz/so/1 (offset 0x63C0)
+
+The error tells you which library contained the offending relocation and the
+offset from the start of the library file to where the relocation occurs. This
+makes it much easier to find the containing file and function to determine what
+went wrong. It's not unusual for the symbol name, as shown above, to be blank.
+This indicates a relocation for a compiler generated symbol.
+
+There are a number of reasons why a text relocation may occur, for example:
+
+a) -fPIC was not used to compile the code.
+
+b) A static library was linked in.
+
+c) Hand written assembler was not written with a shared library in mind.
+
+It's possible to determine whether a library contains text relocations without
+requiring it to be run through the dynamic loader first. By using:
+
+  readelf -d <library file>
+
+the contents of the dynamic segment can be listed. If a TEXTREL entry is shown
+(even with a value of 0x0), then the library contains text relocations and will
+fail at runtime.
+Further information on relocations in the library can be obtained using:
+
+  readelf -r <library file>
+
+although which are text relocations is not often clear cut, as confusingly, they
+are often shown as R_ARM_RELATIVE. By using the offset field, it is usually
+possible to work out which relocations lie within the text segment of the
+library.
+
+Known problems
+--------------
+ldconfig is supplied in the bin directory. This is a utility used in Linux to
+generate the cache used by the dynamic loader and to generate library symlinks.
+Under RISC OS it can be used to generate the cache, but it does not yet generate
+the symlinks. A ready built cache is supplied, but it is still uncertain whether
+RISC OS benefits from the cache and ldconfig.
+ldconfig may be improved in the future to make it more useful, but for now
+it is supplied for interest only.
+
+Dynamic linking to the SharedCLibrary is not supported due to technical
+difficulties, however, static linking does work.
+
+
+Glossary
+--------
+ELF - Executable and Linking Format
+
+Client - Program or application that is dynamically linked and registered
+with the Shared Object Manager.
+
+Shared library - A collection of routines and associated data that is shared
+between several clients and registered with the Shared Object Manager.
+
+Static linker - The program used to perform the last stage (usually) of
+generating an executable or library at build time. Under RISC OS, it is
+called ld and is part of GCC.
+
+Dynamic loader - A special shared library that can dynamically link itself
+before doing the same to the client and the libraries the client requires.
+
+Dynamic linking - The process by which symbols in a library are connected
+to another library or executable at runtime.
+
+Object - A client or shared library.
+
+Public R/W segment - The global data used by a library. It is part of the
+library, but partitioned off into a separate section. This data is never used
+directly by an object. Instead it is used to initialise a client's own
+private copy when ever required.
+
+Private R/W segment - A section of memory created at runtime which is copied
+from a library's public R/W segment. Each client has its own copy of the
+global data for every library it uses.
+
+PLT (Procedure Linkage Table) - A table of code entries, one for each
+dynamically linked function used by an object. The first entry always calls
+the dynamic resolver.
+
+GOT (Global Offset Table) - A table of values that allow shared code to
+access global data.
+
+Dynamic Resolver - A routine contained within the dynamic loader that is
+responsible for dynamically linking functions at runtime when they are
+first called.
+
+
+Lee Noar

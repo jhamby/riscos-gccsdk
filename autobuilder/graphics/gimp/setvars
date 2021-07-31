@@ -1,0 +1,9 @@
+
+AB_CATEGORY=Graphics
+
+AB_CONFLAGS="--disable-perl --disable-print --disable-python"
+
+cp -a $AB_HOME/$AB_PACKAGEDIR/!UnixHome .
+
+AB_FILESPATH="gimp1.2$AB_EXEEXT !UnixHome COPYING"
+ 

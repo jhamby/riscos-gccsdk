@@ -1,0 +1,11 @@
+help-string:  TestGCCModule 0.00
+
+title-string: TestGCCModule
+
+module-is-runnable:
+
+module-is-c-plus-plus:
+
+initialisation-code:    gccmodule_init
+finalisation-code:    gccmodule_final
+

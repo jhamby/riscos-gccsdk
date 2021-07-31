@@ -1,0 +1,103 @@
+====================================================================
+SysLogD Documentation
+--------------------------------------------------------------------
+Version: v0.05
+Authors: John Tytgat / BASS
+         Alex Waugh
+
+What ?
+------
+
+SysLogD is a small RISC OS module which listens to the UDP 514 port
+and logs incoming syslog messages using DoggySoft's !Syslog
+application or using RISC OS Select's built in Syslog module.
+Additionally it can produce throwback from messages created by the
+gccsdk cross compiler.
+
+It should work with RISC OS 3.1 up to RISC OS 6.  It has only been
+tested with the Acorn Internet 5 stack.
+
+Install
+-------
+
+Copy SysLogD into the Boot:Choices.Boot.PreDesk directory and for
+RISC OS 3, RISC OS 4 and RISC OS 5 users make sure that the
+DoggySoft's !SysLog application gets Filer_Run'ed (the log file is
+written at <SysLog$LogDir>.SysLogD).  RISC OS Select or RISC OS 6
+users should not use DoggySoft's !SysLog but use the standard built
+in Syslog module.
+
+From version 0.03 onwards, pre RISC OS 5 users should install
+the 32 bit versions of system resources (especially the
+SharedCLibrary).  You can find this at
+<URL:http://www.iyonix.com/32bit/system.shtml>.
+
+Throwback
+---------
+
+To use SysLogD with the gccsdk cross compiler to produce throwback
+for error and warning messages, you need to:
+ - Set up the cross compiler as described in the gccsdk
+   documentation.
+ - Ensure that the files being compiled on the remote machine are
+   also accessible on the local machine, typically via a network
+   filing system.
+ - Create a mappings file so that SysLogD can map pathnames on the
+   remote machine to the local RISC OS path.
+ - Load the SysLogD module (the mappings file is only read once
+   when the module initialises).
+
+The mappings file should be created as a plain text file in the
+Boot:Choices.syslogd directory. Each line specifies one mapping,
+and consists of the unix path, a space, then the corresponding
+RISC OS path. For example:
+/home/alex Sunfish::alex.$
+
+This will match any path starting with /home/alex, remove it and
+replace it with Sunfish::alex.$ and then translate the rest of the
+path by substituting dots for slashes and vice-versa. Note that if
+the pathname contains any unusual characters that the filing system
+has to do some other translation on then this mapping will not
+work.
+
+History
+-------
+
+v0.01 :
+  - First version released only to a couple of people.
+v0.02 (16 Oct 1999) :
+  - Using CMunge instead of Acorn's CMHG (generates cooler code
+    for RISC OS 4) + cleaned up code a bit.
+v0.03 (22 Jan 2003) :
+  - Compiling for APCS-32 so resulting module should be 32-bit /
+    26-bit compatible.
+  - Used Acorn's CMHG again as CMunge is not yet 32-bit compatible.
+v0.04 (16 Jul 2007) :
+  - Added throwback support for use with the gccsdk.
+v0.05 (21 Apr 2010) :
+  - GCCSDK 4 build changes
+
+Recompiling
+-----------
+
+C source code is provided for those who are interested in it.  Please
+report any problems and bugfixes to the source code to the author
+<URL:mailto:John.Tytgat@aaug.net>.
+
+You need the following for its recompilation :
+
+- GCCSDK GCC 4.1.2 Release 1 <http://gccsdk.riscos.info/>
+
+Copyright
+---------
+
+You are free to use any part of the provided SysLogD binary and/or
+source code in your own software distribution (freeware or commercial) 
+on the condition you acknowledge this act in its user documentation.
+
+!SysLog application is written by Jon Ribbens <jon@doggysoft.co.uk>
+and its use & distribution should be according to the rules
+mentioned in its !SysLog.!Help file.
+
+John Tytgat / BASS
+Jan 2003

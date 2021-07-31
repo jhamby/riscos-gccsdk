@@ -1,0 +1,11 @@
+	MACRO
+	DoExport $qualifier
+	AREA	Code, CODE
+
+	EXPORT	ExpWith$qualifier [$qualifier]
+	EXPORT	ExpWithout$qualifier
+ExpWith$qualifier
+ExpWithout$qualifier
+	MEND
+
+	END

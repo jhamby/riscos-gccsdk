@@ -1,0 +1,3 @@
+Place customized controller *.cfg files here.
+See respective controllers' websites for Mame 
+controller \ctrlr\*.cfg files.

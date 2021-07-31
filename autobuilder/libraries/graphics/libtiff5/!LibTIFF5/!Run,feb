@@ -1,0 +1,6 @@
+| Run file for LibTIFF5
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibTIFF5$Dir <Obey$Dir>
+Set LibTIFF5$Path <Obey$Dir>.

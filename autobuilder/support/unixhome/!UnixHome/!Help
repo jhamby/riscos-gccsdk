@@ -1,0 +1,39 @@
+
+Peter Naulls
+peter@chocky.org
+16th May 2005
+
+
+!UnixHome 1.03
+==============
+
+This is a helper application to provide a place to store preference files, and
+set variables required for Unix ports in RISC OS.
+
+
+Why?
+----
+
+Typically, if you don't have variables like HOME set, you will get files dumped
+by Unix ports in either the top level of your directory tree, or your CSD -
+often not the most handy place.
+
+In addition, some Unix applications require variables to be set before they
+will run properly, or to set alternative paths for configuration files would
+which otherwise be in inconvenient places in RISC OS (e.g. /etc).
+
+
+Installation
+------------
+
+Copy the application to somewhere where it will be seen by the filer before you
+run any Unix apps which will use it.  Double-clicking will open the "Home"
+directory, where files will be stored.  This also contains an Obey file
+"!HomeRC".  You may customise this if you like, but it is suggested you follow
+the instructions in this file and make your own.
+
+
+Free for use and modification for all purposes as long attribution to the
+original author remains.
+
+

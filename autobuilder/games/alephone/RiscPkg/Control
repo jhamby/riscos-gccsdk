@@ -1,0 +1,10 @@
+Licence: Free
+Description: Aleph One is an Open Source 3D first-person shooter game engine.
+ It is based on the game Marathon 2 by Bungie Software. The RISC OS version is compiled
+ from the cross-platform version based on the Simple DirectMedia Layer (SDL) library.
+ Except for a few minor things, the port is complete and playable. 
+ .
+ The games themselves will need to be downloaded from the internet.
+ .
+ A RISC OS command line utility is included to make it easier to create an
+ application directory wrapper for the downloaded games.

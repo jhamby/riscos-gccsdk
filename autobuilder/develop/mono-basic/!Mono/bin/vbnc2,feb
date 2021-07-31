@@ -1,0 +1,1 @@
+<Mono$Dir>.bin.Mono-SGen /Mono:/lib/mono/4.0/vbnc.exe /sdkpath:/Mono:/lib/mono/2.0/ %*0

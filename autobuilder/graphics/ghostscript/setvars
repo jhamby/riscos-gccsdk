@@ -1,0 +1,31 @@
+AB_URL=http://downloads.ghostscript.com/public/old-gs-releases/ghostscript-8.71.tar.xz
+
+AB_ROVERSION=2
+# Copy src code sprite and gdi device:
+cp $H/gdevspr.c contrib
+cp $H/gdevgdi.c contrib
+
+# Generate makefiles (including Makefile.in)
+rm -f configure.ac Makefile.in
+ln -s base/configure.ac .
+ln -s base/Makefile.in .
+autoconf
+
+mkdir -p src/library/source
+
+AB_CONFLAGS='--without-jasper --without-omni --disable-cups --disable-fontconfig --with-drivers=APPLE,BMP,CANON,EPSON,FAX,JPEG,PNG,TIFF,PCLXL,PCX,PBM,SPRITE,HP,LEXMARK,BROTHER,OKI,IBM,JAPAN,PS,WTS,ETS --disable-gtk
+'
+
+ab_package () {
+  ab_create_app GhostScr Apps/Graphics
+  ab_makerun $S/bin/gs$AB_EXEEXT
+
+  cp $S/LICENSE $A
+
+  mkdir -p $A/8_71
+  cp -r $S/doc $A/8_71
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/COPYING
+}
+
+export LIBS='-lz -llzma'

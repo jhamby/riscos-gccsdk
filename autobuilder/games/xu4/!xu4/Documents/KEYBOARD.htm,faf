@@ -1,0 +1,218 @@
+<html>
+<head>
+<title>Keyboard Reference</title>
+<head>
+<body>
+
+<H1 ALIGN="CENTER">Keyboard Reference</H1>
+    
+<TABLE BORDER="1">
+
+<TR>
+<B>
+<TD>Key</TD>
+<TD>Action</TD>
+<TD>Description</TD>
+</B>
+</TR>                          
+
+<TR><TD>
+A
+</TD><TD>
+	Attack
+</TD><TD>
+Attempt to engage thy foe with the weapon thou hast readied (Ready Weapon command); must be followed by the direction of thy foe.
+</TD></TR>
+<TR><TD>
+B
+</TD><TD>
+	Board
+</TD><TD>
+Board a vessel or mount a horse.
+</TD></TR>
+<TR><TD>
+C
+</TD><TD>
+	Cast
+</TD><TD>
+Cast a magical spell; must be followed by the number of the player who wishes to cast it (not needed in combat or in dungeon rooms), and then the first letter of the desired spell.
+<P><I>  Note: All spells must have reagents mixed in advance of casting. </I></P>
+</TD></TR>
+<TR><TD>
+D
+</TD><TD>
+	Descend
+</TD><TD>
+Climb down ladder to next level of dungeon or building.
+</TD></TR>
+<TR><TD>
+E
+</TD><TD>
+	Enter
+</TD><TD>
+Go into such places as villages, townes, castles, dungeons and shrines.
+</TD></TR>
+<TR><TD>
+F
+</TD><TD>
+	Fire
+</TD><TD>
+Fire a ship's cannons (once thou hast Boarded); must be followed by a direction.
+<P><I>  Note: Broadsides only!</I></P>
+</TD></TR>
+<TR><TD>
+G
+</TD><TD>
+	Get Chest
+</TD><TD>
+Attempt to open (and disarm, if trapped) chest; must be followed by the number of the player who wishes to open the chest, except during combat and in dungeon rooms.  
+<P><I>Note: 'Tis wisest to use the player with the highest Dexterity when examining potentially dangerous chests as this lessens the chances of setting off any traps.</I></P>
+</TD></TR>
+<TR><TD>
+H
+</TD><TD>
+	Hole up and camp
+</TD><TD>
+Set up camp to rest and recover from thy wounds.
+<P><I>Note:	This command may only be used successfully with limited frequency.</I></P>
+</TD></TR>
+<TR><TD>
+I
+</TD><TD>
+		Ignite a torch
+</TD><TD>
+Light a torch for illumination in dungeons.  Requires a special item.
+</TD></TR>
+<TR><TD>
+J
+</TD><TD>
+	Jimmy lock
+</TD><TD>
+Use a magical key to unlock a sealed door.  Must be followed by the direction of the door that thou dost wish to unlock.
+</TD></TR>
+<TR><TD>
+K
+</TD><TD>
+	Klimb
+</TD><TD>
+Climb up a ladder to the next level of a building or dungeon, or to reach the surface from the topmost level of a dungeon.
+</TD></TR>
+<TR><TD>
+L
+</TD><TD>
+	Locate Position
+</TD><TD>
+Requires a special item.
+</TD></TR>
+<TR><TD>
+M
+</TD><TD>
+	Mix Reagents
+</TD><TD>
+Prepare material components of spells for later use.
+<P><I>
+	Note:	Thou must have reagents mixed ahead of time in order to cast any spells.  When asked "Reagent:". 	type the letter corresponding to the reagents desired and then type [Return] when thou wishes to mix them
+</I></P>
+</TD></TR>
+<TR><TD>
+  	N
+</TD><TD>
+ New order
+</TD><TD>
+ Exchanges the position of two players indicated within thy	party, except for player #l, for thou must lead the party.  
+</TD></TR>
+<TR><TD>
+0
+</TD><TD>
+Open door
+</TD><TD>
+Open a door in the direction indicated.
+</TD></TR>
+<TR><TD>
+P
+</TD><TD>
+	Peer at gem
+</TD><TD>
+Requires a special item.
+</TD></TR>
+<TR><TD>
+Q
+</TD><TD>
+	Quit & Save
+</TD><TD>
+Saves the current game status to disk; thou may continue after this command or power down thy computer.
+</TD></TR>
+<TR><TD>
+R
+</TD><TD>
+	Ready a weapon
+</TD><TD>
+Equip a player with the weapon of thy choice (if owned) for use in combat.
+</TD></TR>
+<TR><TD>
+S
+</TD><TD>
+	Search
+</TD><TD>
+Search thy exact current location for unusual items.
+</TD></TR>
+<TR><TD>
+T
+</TD><TD>
+	Talk
+</TD><TD>
+Allows a player to converse with merchants or townesfolk in the direction indicated. 
+</TD></TR>
+<TR><TD>
+U
+</TD><TD>
+	Use
+</TD><TD>
+Use an item thou hast found during play by means of the "Search" command.
+</TD></TR>
+<TR><TD>
+V
+</TD><TD>
+	Volume
+</TD><TD>
+Toggles sound effects on or off.
+</TD></TR>
+<TR><TD>
+W
+</TD><TD>
+  	Wear armour
+</TD><TD>
+Outfits a player with the armour of thy choice if owned for defense in combat.
+</TD></TR>
+<TR><TD>
+X
+</TD><TD>
+  	Xit
+</TD><TD>
+That's (e)xit thy current form of transportation and continue on foot.
+</TD></TR>
+<TR><TD>
+Y
+</TD><TD>
+  	Yell
+</TD><TD>
+Yell "giddyup" or "whoa" to speed up or slow down thy horse.
+</TD></TR>
+<TR><TD>
+Z
+</TD><TD>
+  	Ztats
+</TD><TD>
+Displays the status and attributes of a selected player; if 0 is pressed instead of a player number, this 	command will display the lists of weapons, armour, items, reagents and mixtures.  The left and right arrow 	keys will scroll through these lists, while pressing any other key will return thee to game play.
+</TD></TR>
+<TR><TD>
+   ARROW KEYS
+</TD><TD>
+ 	Control movement.
+</TD><TD>
+ North/South/East/West
+</TD></TR>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,49 @@
+Wed Feb 12 02:12:43 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
+Mon Oct 15 20:08:45 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ln.c (exists_as_dir): fixed wrong test for RISC OS build.
+
+Mon Oct 15 01:01:40 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ln.c: changed test on CROSS_COMPILE to __riscos; added OS_File
+	equivalent code for stat() so that SCL can be used as runtime
+	library for RISC OS binary.
+	* README: moved content from DSO-libs docs folder.
+
+Sun Aug 19 13:20:02 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac, Makefile.am, README, AUTHORS: new, used for GNU
+	autotools building.
+	* ln.c (VERSION): version 1.03
+
+Sat Aug 11 11:16:26 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ln.c: support of creating link in a given directory; fixed stripping
+	of basename from dirname and current directory specification on
+	non-RISC OS host; support big-endian hosts.
+	Version 1.02.
+
+Tue Aug  7 22:06:56 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ln.c: indent according GNU style; output error messages via stderr
+	instead of stdout.
+
+Fri Jul 13 21:10:00 CEST 2007  Lee Noar  <leenoar@sky.com>
+
+	* ln.c: Small utility to create the symlink files used by the dynamic
+	linking system. Built for host and RISC OS as the build system
+	needs it to create symlink files.
+
+Lee Noar  <leenoar@sky.com>
+
+	* ln.c: Fixed bug where by creating a link over an existing link would
+	follow the old link and write over the target instead.
+	Version 1.01.
+
+Lee Noar  <leenoar@sky.com>
+
+	* ln.c: First release
+	Version 1.00.

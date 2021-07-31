@@ -1,0 +1,16 @@
+AB_URL=https://downloads.sourceforge.net/project/gerb2tiff/gerb2tiff-1.2.tar.gz
+
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_command_app Gerb2Tiff Apps/Graphics
+  ab_add_commands $S/src/gerb2tiff$AB_EXEEXT
+
+  cp $S/ChangeLog $S/AUTHORS $S/COPYING $S/NEWS $S/README $A
+  cp $S/html/index.html $A/\!Help,faf
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+
+}
+
+export LIBS='-ltiff -lz -ljpeg -lwebp -llzma'

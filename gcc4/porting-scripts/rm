@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Avoid removing files during library package creation
+if ! [ -z "$RO_PKG" ] ; then
+  params=
+
+  if echo $PWD | grep -q GCCSDK_ENV ; then
+    echo "$0: Not removing files during library package creation: $@"
+  else
+    for param in $@ ; do
+      if echo $param | grep -q GCCSDK_ENV ; then
+        echo "$0: Not removing files during library package creation: $param"
+      else
+        params="$params $param"
+      fi
+    done
+  fi
+
+  if [ "$params" != "" ] ; then
+    /bin/rm $params
+  fi
+else
+  /bin/rm $@
+fi

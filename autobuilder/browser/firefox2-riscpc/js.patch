@@ -1,0 +1,37 @@
+? js/src/host_jskwgen
+? js/src/jsautokw.h
+? js/src/xpconnect/shell/xpcshell,e1f
+Index: js/src/jscpucfg.c
+===================================================================
+RCS file: /cvsroot/mozilla/js/src/jscpucfg.c,v
+retrieving revision 3.25.2.1
+diff -u -r3.25.2.1 jscpucfg.c
+--- js/src/jscpucfg.c	29 Jun 2007 20:30:27 -0000	3.25.2.1
++++ js/src/jscpucfg.c	21 Feb 2008 03:21:37 -0000
+@@ -44,6 +44,8 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
++#define CROSS_COMPILE 1
++
+ #ifdef CROSS_COMPILE
+ #include <prtypes.h>
+ #define INT64 PRInt64
+Index: js/src/jsosdep.h
+===================================================================
+RCS file: /cvsroot/mozilla/js/src/Attic/jsosdep.h,v
+retrieving revision 3.20.4.1
+diff -u -r3.20.4.1 jsosdep.h
+--- js/src/jsosdep.h	7 Jul 2006 02:12:02 -0000	3.20.4.1
++++ js/src/jsosdep.h	21 Feb 2008 03:21:37 -0000
+@@ -92,6 +92,9 @@
+ #elif defined(FREEBSD)
+ #define JS_HAVE_LONG_LONG
+ 
++#elif defined(__riscos__)
++#define JS_HAVE_LONG_LONG
++
+ #elif defined(SUNOS4)
+ #undef JS_HAVE_LONG_LONG
+ 
+ 

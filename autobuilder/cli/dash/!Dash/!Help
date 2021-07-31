@@ -1,0 +1,95 @@
+Useage of Debian ash in RISC OS   - Please read the WARNING text before using.
+
+  Major diffs to linux useage:
+dash has been compiled with JOBS=0 so bg, fg and job control tokens are disabled.
+
+No linux libedit, but dash uses RISC OS ReadLine32 for input, so benefits from
+the Olly Betts LineEditor module when installed. (editing and arrow key history)
+
+Only inbuilt commands will take part in piping and command substitution, but
+sometimes stdin stdout can be relayed by using dash inbuilts, such as the cat cmd.
+
+  General useage:
+ENV needs to be set to path of the dash_init file if it required (see !Dash.!Boot)
+Only of use in the same (interactive) instance of dash  
+
+In command mode the arguments following dash -c must be quoted, otherwise only the first argument is read.
+*dash -c 'cmd cmdargs...'
+ 
+Bash scripts may need editing for dash (search bashisms) and pipes will need redirecting to /tmp/file instead.
+$ command1 > /tmp/dtemp && command2 /tmp/dtemp && rm /tmp/dtemp
+The unixlib /tmp  = RISC OS WimpScrap$Dir
+Note: A pipe will work if it follows an inbuilt cmd. Try out the builtin cat or ls for an example.
+Command substitution also only works with inbuilt cmds. A tmp file can be used, then cat for the substitution.
+$ HOST_FS=$(uname > /tmp/t1 && cat /tmp/t1)
+A very simple inbuilt ls cmd is now available so filenames from a directory can be directly used
+$ VAR=$(ls [dir]) 
+would load VAR with a space separated list, the default being the current directory.
+Using ls -l [dir] outputs a newline separated list, similar to RISC OS Enumdir but with unix dot extensions.  
+
+If Gnu make/Makefile calls dash to run a script and if SHELL=/bin/sh or no SHELL is specified, then a fd error
+is reported after an external binary such as rm or mv has closed the file. (unixlib /bin/sh = RISCOS CLI)
+One way to stop this FD error is to wrap the (file closing) cmd in brackets causing it to run in a subshell.
+(rm somefile) || exit 1
+Basic versions of builtins for mv and rm have been added and should help reduce this occurrence and overheads
+while using makefiles and scripts but builtins will also run in a subshell if needed.
+Another cure is if SHELL=dash is specified in the Makefile, but then any external cmds in the makefile 
+will need to be in PATH as opposed to the (make default) RISC OS CLI accessing system variables.
+Many utilities at riscos.info (dash also), are packaged with an alias in their !Boot file, and the
+RISC OS CLI will find the binary as long as their app directories have been seen (filer booted).
+The default Gnu make/Makefile uses the RISC OS CLI by way of unixlib being asked for /bin/sh, so can find
+those system alias's.
+The makefile variable SHELL=/bin/bash can be changed to the path to an alternative such as dash, which would
+help with makefiles that use shell scripts.
+
+in either SHELL, some form of subshell may be required to avoid the 'window manager is in use' error
+dash ./script.sh 
+or if SHELL=dash or using interactive dash 
+. ./script.sh 
+
+Paths for PATH are separated with semicolons instead of colons to allow RISC OS filesystem double colons. 
+Without this full drive/path description, if the CSD (PWD) changes FS, PATH would then search the new FS.
+System directory variables can be used but require special escaping or delaying depending on if PATH is
+being set by RISC OS or dash export (see examples in !Dash.!Boot and dash_init files.
+See (and edit) the PATH and ENV examples to suit your locations in the !Dash.!Boot file.
+setting PATH manually may be helpful initially, as it is tricky knowing if !Boot has re-run properly.
+$ export
+displays environment variables.
+The dash builtin 'type' is useful to observe the actual path used for any given cmd, or if it is a builtin.
+$ type <cmd>
+Included is a simple obey file <Dash$Dir>.bin.sc that better exposes the usual RISC OS star commands
+As long as sc is in the PATH, it can be used thus:
+$ sc <starcommand>
+
+Command names containing a slash are simply executed without performing any searches of PATH or builtins.
+$ \<Dash\$Dir\>/bin/sc show PATH
+
+A <cmd>%builtin PATH item added as in the form
+/ADFS::4.$/home/bin/CoreUtils;cat%builtin
+will cause the cat cmd from CoreUtils to be used /instead/ of the builtin cat cmd.
+
+Similar to the way PATH is specified, CD_PATH allows the cd cmd to jump to any of the listed directories.
+
+cat, ls mv and rm cmd builtins are added, The autobuilder dash patches/extra builtin files should help
+as a guide to add or change builtins.
+Adding many builtins would increase the startup wimpslot but perhaps reduce/eliminate the fork/exec wimpslot
+doubling when running external cmds.
+One issue with not running in a subshell, is that variables used can be reused by dash and following cmds.
+The optind variable from getopt() by nature doesn't initialise to zero, so this must be done after use.
+
+The current mv builtin is only capable of renaming objects within the same FS.
+For moving across different FS's the usual mv cmd would call on external cp and rm cmds.
+The current rm builtin has no recurse option, so directories must be emptied before they will delete.
+The wildcard could help if a variable list of the directory files is not at hand.
+$ rm some/subdir/* && rm some/subdir
+or use a script method with the input to a variable from ls, offering more selectivity.
+listfiles=$(ls [dir])
+
+rm is always is in force mode (normally -f) to avoid the peculiarity of it not deleting at all without -f.
+The ls builtin lists plain filenames only, either space separated or with the -l option, newline separated.
+
+The start up wimpslot is currently 384K but running an external cmd and this will double because of fork/exec.
+Still, this is a lot smaller than Bash that starts with over a MB and also doubles when running external cmds
+or subshells.
+
+End

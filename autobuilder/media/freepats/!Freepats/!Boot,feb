@@ -1,0 +1,9 @@
+| Set location of free patches
+
+Iconsprites <Obey$Dir>.!Sprites
+
+Set FreePats$Dir <Obey$Dir>
+Set FreePats$Path <Obey$Dir>.
+
+| Register here as location of Timidity config
+Set TimidityConfig$Path <FreePats$Dir>.

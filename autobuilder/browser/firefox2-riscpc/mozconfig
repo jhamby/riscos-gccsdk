@@ -1,0 +1,63 @@
+mk_add_options MOZ_CO_PROJECT=browser
+
+PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
+CROSS_COMPILE=1
+LIBIDL_CONFIG=$GCCSDK_INSTALL_ENV/bin/libIDL-config-2
+HOST_LIBIDL_CONFIG=/usr/bin/libIDL-config-2
+
+ac_add_options --prefix=$GCCSDK_INSTALL_ENV
+ac_add_options --target=arm-riscos
+ac_add_options --x-includes=$GCCSDK_INSTALL_ENV/include
+ac_add_options --x-libraries=$GCCSDK_INSTALL_ENV/lib
+
+# use GTK+-2 widget set with XFT font rendering
+ac_add_options --enable-default-toolkit=riscos
+ac_add_options --disable-freetype2
+ac_add_options --disable-canvas
+
+# enable minimal profile support
+ac_add_options --disable-profilesharing
+ac_add_options --disable-profilelocking
+ac_add_options --enable-single-profile
+
+# disable features and skip various build steps
+#ac_add_options --disable-extensions
+ac_add_options --disable-accessibility
+ac_add_options --disable-composer
+ac_add_options --enable-plaintext-editor-only
+ac_add_options --disable-mailnews
+#ac_add_options --disable-ldap
+ac_add_options --enable-postscript
+ac_add_options --enable-mathml
+ac_add_options --disable-installer
+ac_add_options --disable-oji
+
+# disable debug logging and tests
+ac_add_options --disable-dtd-debug
+#ac_add_options --enable-logging
+ac_add_options --disable-logging
+ac_add_options --disable-tests
+ac_add_options --disable-gtktest
+
+# build crypto module (PSM + NSS)
+ac_add_options --enable-crypto
+
+# code generation options (optimize for size)
+#ac_add_options --enable-optimize="-O2 -mcpu=strongarm"
+ac_add_options --enable-optimize="-O2 -march=armv3m -mtune=strongarm"
+#ac_add_options --enable-strip
+#ac_add_options --disable-reorder
+#ac_add_options --enable-elf-dynstr-gc
+
+ac_add_options --enable-application=browser
+ac_add_options --disable-timeline
+#ac_add_options --enable-debug
+#ac_add_options --disable-svg
+ac_add_options --disable-debug
+
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-zlib
+ac_add_options --with-system-png
+
+ac_add_options --disable-updater
+ac_add_options --disable-plugins

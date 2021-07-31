@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set SDL$scummvm$Backbuffer 2
+
+Run <Obey$Dir>.scummvm ><Obey$Dir>.stdout 2><Obey$Dir>.stderr --output-rate=44100

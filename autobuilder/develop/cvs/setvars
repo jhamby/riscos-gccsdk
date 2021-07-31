@@ -1,0 +1,38 @@
+##AB_CATEGORY=Command
+
+AB_URL=http://ftp.gnu.org/non-gnu/cvs/source/feature/1.12.13/cvs-1.12.13.tar.bz2
+
+AB_ROVERSION=027
+
+AB_LICENCE=GPLv1
+
+AB_CONFLAGS="--with-external-zlib"
+
+cp -av $H/riscos $S/riscos || [ "$AB_DEBUG" == "yes" ]
+
+ab_make() {
+  CFLAGS+=" -DSTART_SERVER=riscos_start_server -DSHUTDOWN_SERVER=riscos_shutdown_server -DSYSTEM_GETCALLER=ro_getlogin -Dgetenv=ro_getenv"
+  $GCCSDK_INSTALL_ENV/ro-make
+}
+
+ab_package() {
+  ab_create_command_app CVSCmd Apps/Utilities
+  ab_add_commands $S/src/cvs$AB_EXEEXT
+
+  mkdir $A/docs/
+  cp -av $S/doc/cvs.pdf $A/docs/cvs.pdf,adf
+  rman -f HTML doc/cvs.1 > $A/docs/cvs.html
+
+  echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
+
+  $AB_HOME/add-riscpkg -unixlib -package CVS -copyrightfile $S/COPYING
+}
+
+export cvs_cv_func_printf_ptr=yes
+export jm_cv_func_nanosleep_works=yes
+export ac_cv_have_decl_putc_unlocked=no
+# Setting gl_cv_func_getcwd_null and gl_cv_func_getcwd_path_max to yes is
+# important as we really want to use UnixLib getcwd().
+export gl_cv_func_getcwd_null=yes
+export gl_cv_func_getcwd_path_max=yes
+

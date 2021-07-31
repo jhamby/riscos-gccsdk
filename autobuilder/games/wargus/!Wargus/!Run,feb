@@ -1,0 +1,9 @@
+| Run Wargus
+
+If "<Stratagus$Dir>" = "" Then Error Stratagus Game engine must have been seen by the filer
+
+Set Wargus$Dir <obey$dir>
+Set Wargus$Path <Wargus$Dir>.
+
+| Start the stratagus engine up with our data
+Run <Stratagus$Dir>.RunStrat -d /Wargus:data -D 16

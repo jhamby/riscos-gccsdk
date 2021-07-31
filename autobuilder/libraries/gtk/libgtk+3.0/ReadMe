@@ -1,0 +1,32 @@
+This is GTK 3.8.6.
+
+Notes
+-----
+* The current screen mode is used to determine the ordering of the red
+and blue pixel components. GDK then ensures via Cairo that the sprite
+surfaces created use the same ordering. This behaviour can be overridden
+using the --swap-redblue=[yes,1,no,0] command line option.
+
+* The toolbox can be used by calling gdk_riscos_enable_toolbox before opening
+the display. The windows created by GDK are still WIMP only though, and are not
+toolbox objects.
+
+* Use SELECT shift drag to resize windows.
+
+* GTK+3 is customisable by creating the file:
+
+!Boot.Choices.config.gtk-3/0.gtk/css
+
+and uses a subset of the CSS3 standard.
+
+* Uses the RISC OS Sprite Surface in Cairo as a backing store
+which is then rendered into a window.
+
+
+Known problems/things to fix (not a complete list)
+----------------------------
+* Clicking a spin button causes an infinite update loop.
+* Text entry - sometimes, key presses are interpreted as if a modifier
+key was pressed, eg, pressing Q will cause the program to quit
+as if ctrl-Q was pressed instead of inserting the Q character
+at the cursor.

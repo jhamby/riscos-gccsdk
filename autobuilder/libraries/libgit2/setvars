@@ -1,0 +1,17 @@
+AB_URL=https://github.com/libgit2/libgit2/archive/v0.27.7.tar.gz
+
+AB_INSTALL=yes
+
+ab_make() {
+  cmake -DCMAKE_TOOLCHAIN_FILE=$H/toolchain-riscos.cmake \
+        -DRISCOS=1 \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DTHREADSAFE=OFF \
+        -DBUILD_CLAR=OFF \
+        -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV \
+        .
+  $AB_MAKE
+  mkdir -p $D/lib
+  cp -av $S/libgit2.a $D/lib
+  cp -av $S/include $D
+}

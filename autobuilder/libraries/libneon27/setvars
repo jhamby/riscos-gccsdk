@@ -1,0 +1,7 @@
+AB_CONFLAGS="--with-pic=no --with-libs=$GCCSDK_INSTALL_ENV --with-force-zlib --with-gnutls"
+
+AB_INSTALL=yes
+
+# The AI_ADDRCONFIG flag for getaddrinfo() is not working in UnixLib
+# (at least, that's what I think)
+export ne_cv_gai_addrconfig=no

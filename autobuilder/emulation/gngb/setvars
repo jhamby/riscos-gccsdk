@@ -1,0 +1,10 @@
+
+AB_CATEGORY=Emulation
+
+AB_MANPAGE=gngb.1
+
+ab_package() {
+  cp -av $S/src/gngb$AB_EXEEXT $D
+  cp -av $S/README $D
+}
+

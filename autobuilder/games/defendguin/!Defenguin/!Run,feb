@@ -1,0 +1,7 @@
+| Run file for Defendguin
+
+WIMPSLOT
+
+Set Defenguin$Dir <Obey$Dir>
+Run <Defenguin$Dir>.!RunImage >null: 2>null:
+

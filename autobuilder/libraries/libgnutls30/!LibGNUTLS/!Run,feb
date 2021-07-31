@@ -1,0 +1,6 @@
+| Run file for LibGNUTLS
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibGNUTLS$Dir <Obey$Dir>
+Set LibGNUTLS$Path <Obey$Dir>.

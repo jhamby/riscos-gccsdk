@@ -1,0 +1,50 @@
+
+
+tool_details_start
+   name          "RDesktop";
+   command_is    "Wimptask <RDesktop$Dir>.Launch";
+   version       "VERSION";
+   has_extended_cmdline;
+tool_details_end
+
+
+dbox_start
+   icons_start
+      icn 3  maps_to string;
+      icn 4  maps_to "-u " string;
+      icn 5  maps_to "-p " string;
+      icn 7  maps_to "-g 640x480";
+      icn 8  maps_to "-g 800x600";
+      icn 9  maps_to "-g 1024x768";
+      icn 10 maps_to "-g 1280x1024";
+      icn 11 maps_to "-g 1600x1200";
+      icn 12 maps_to "-f";
+   icons_end
+
+   defaults
+      icn 3 "",
+      icn 4 "",
+      icn 5 "",
+      icn 7 on,
+      icn 8 off,
+      icn 9 off,
+      icn 10 off,
+      icn 11 off,
+      icn 12 off;
+
+dbox_end
+
+deselections_start
+      icn 7  deselects icn 8, icn 9, icn 10, icn 11;
+      icn 8  deselects icn 7, icn 9, icn 10, icn 11;
+      icn 9  deselects icn 7, icn 8, icn 10, icn 11;
+      icn 10 deselects icn 7, icn 8, icn  9, icn 11;
+      icn 11 deselects icn 7, icn 8, icn  9, icn 10;
+deselections_end
+
+
+exclusions_start
+      icn 12 excludes icn 7, icn 8, icn 9, icn 10, icn 11;
+exclusions_end
+
+

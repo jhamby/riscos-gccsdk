@@ -1,0 +1,5 @@
+| Boot file for SDL library
+
+IconSprites <Obey$Dir>.!Sprites
+If "<SDL$Dir>" = "" Then Set SDL$Dir <Obey$Dir>
+If "<SDL$Path>" = "" Then Set SDL$Path <Obey$Dir>.,<Obey$Dir>.SDL.

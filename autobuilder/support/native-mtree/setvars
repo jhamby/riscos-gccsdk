@@ -1,0 +1,16 @@
+#AB_SVN=http://mtree-port.googlecode.com/svn/trunk/
+# Replacement for SVN as Google Code is going away soon
+AB_GIT=https://github.com/cobracmder/mtree-port.git
+AB_PRECONF=:
+
+# Only build a native version of mtree here
+# (we could also cross compile one, but that isn't the point)
+
+ab_make() {
+	./autogen.sh
+	CC=gcc ./configure
+	make
+	mkdir -p $GCCSDK_INSTALL_ENV/bin
+	cp mtree $GCCSDK_INSTALL_ENV/bin/
+	cp $H/mtree-diff $GCCSDK_INSTALL_ENV/bin/
+}

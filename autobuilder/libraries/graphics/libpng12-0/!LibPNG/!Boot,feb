@@ -1,0 +1,6 @@
+| Boot file for LibPNG
+|
+If "<LibPNG$Dir>" = "" Then Set LibPNG$Dir <Obey$Dir>
+If "<LibPNG$Path>" = "" Then Set LibPNG$Path <Obey$Dir>.,<Obey$Dir>.libpng12.
+
+IconSprites <LibPNG$Dir>.!Sprites

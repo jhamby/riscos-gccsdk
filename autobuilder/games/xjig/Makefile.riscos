@@ -1,0 +1,35 @@
+# Simple makefile for RISC OS
+#
+
+LD=$(CC)
+CFLAGS = -O2 -I$GCCSDK_INSTAL_ENV/include 
+CXXFLAGS=$(CFLAGS)
+LIBS = -L$GCCSDK_INSTAL_ENV/lib -ljpeg -lXext -lCX11 -lDesk -lstdc++ -static
+
+JIG_DEFAULT = \"/\<XJig\$$Dir\>/tina.gif\"
+
+
+OBJS = xjig.o \
+       objects.o \
+       stack.o \
+       imgbuff.o \
+       puzzle.o \
+       real.o \
+       vec2.o \
+       vec2list.o \
+       mat2.o \
+       color_mapper.o \
+       base_image.o \
+       gif_image.o \
+       jpeg_image.o \
+       ximage.o
+
+xjig$(AB_EXEEXT): $(OBJS)
+	$(LD) $(OBJS) $(LIBS) -oxjig$(AB_EXEEXT)
+
+xjig.o:	xjig.C
+	$(CXX) $(CXXFLAGS) -DJIG_DEFAULT=$(JIG_DEFAULT) -c xjig.C -o $@
+
+clean:
+	rm -f $(OBJS)
+

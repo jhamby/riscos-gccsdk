@@ -1,0 +1,10 @@
+bin_PROGRAMS = brandelf
+brandelf_SOURCES = brandelf.c
+brandelf_CFLAGS = -I${top_srcdir}/common \
+		  -I${top_srcdir}/libelftc \
+		  -I${top_srcdir}/libelf
+brandelf_LDADD = ../libelftc/libelftc.la \
+	../libelf/libelf.la
+
+dist_man1_MANS = brandelf.1
+

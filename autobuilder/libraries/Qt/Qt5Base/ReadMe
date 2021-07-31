@@ -1,0 +1,146 @@
+This is a RISC OS port of the base libraries of Qt5.
+
+Installation
+------------
+Due to the number and size of shared libraries used by Qt5, anything based
+on it will only run on a 32 bit OS (eg, RISC OS 5).
+
+Library dependencies:
+
+libz
+libpng16
+icu (libicui18n, libicuuc, libicudata)
+libfontconfig
+libfreetype
+libexpat
+libssl
+libpcre16 (part of libpcre3 package)
+
+Font dependencies (supplied with Qt):
+
+ttf-vera
+ttf-dejavu
+
+These are supplied in a form that can be dragged over !UnixFont to install
+them. Loading speeds may be improved by issuing the command fc-cache at
+the command line (!UnixFC must also have been seen by the filer).
+Note, fc-cache appears to be quite slow on a RaspberryPi so be patient
+(although this could be specific to the sdcard that I'm using).
+
+
+Usage notes
+-----------
+Use Select drag with shift held down to resize windows.
+
+The default behaviour when rendering graphics in Qt is to swap the red
+and blue components of colours so that they display correctly in RISC OS.
+On newer hardware, for example IGEPv5, RISC OS may already make allowances
+for swapping the red and blue. In such cases, the swapping that Qt does
+will not be required and can be switched off by issuing the following
+command at the command line.
+
+*set Qt$NoRedBlueSwap 1
+
+This will take effect in any program that is subsequently run, but will not
+affect those already running.
+
+
+Porting notes
+-------------
+The QChar class consists of a single short int, meaning that sizeof(QChar)
+is expected to be 2. This is important when QChar is used in an array;
+obviously, this is common when dealing with strings.
+In RISC OS QChar is padded to 4 bytes (ie, sizeof (QChar) == 4). To fix
+this we use the packed attribute to force the compiler to remove the
+padding, but this creates a new problem in the form of a compile time error:
+
+error: cannot bind packed field '((QChar*)this)->QChar::ucs' to 'short unsigned int&'
+
+because the class contains at least one member function that returns a
+reference to the enclosed short int:
+
+inline ushort &unicode() { return ucs; }
+
+where ucs is the short int data member.
+The solution is to change this to:
+
+inline ushort &unicode() { ushort *ptr = &ucs; return *ptr; }
+
+
+
+The main RISC OS specific code is located at src/plugins/platforms/riscos
+as a plugin loaded by dlopen (in line with the other platforms).
+
+Backing stores work by creating a RISC OS 32bit sprite the same size as
+the window. A QImage is then created but without allocating any memory to
+represent its pixel data. Instead the QImage is created using the RISC OS
+sprite's pixel data as the QImage pixel data. A QImage is a painting
+surface in Qt and the Qt API (QRiscosBackingStore::paintDevice) is used to
+pass the QImage back to the rendering system. Now anything rendered to this
+QImage is rendered into the sprite. Finally, the sprite is rendered in the
+WIMP redraw loop of the window using either osspriteop_put_sprite_user_coords
+when rendering to a 32bit mode or xosspriteop_put_sprite_scaled when
+translation is required to a mode of a different depth.
+
+SSL support depends on the OpenSSL include headers being seen by the
+configure tests (specifically, it looks for openssl/opensslv.h).
+libssl1.0.2 is listed as a dependency for Qt5Base, so these tests
+should always succeed.
+At runtime the SSL libraries are loaded via dlopen so they should only
+be loaded when actually needed.
+
+
+Additional RISC OS specfic interfaces
+-------------------------------------
+class QDynamicArea;
+
+This is a class that provides memory allocation from a dynamic area. Its
+main use is for allocating large amounts of memory or when a specific
+memory alignment is required.
+The libqriscos plugin backend uses this to allocate memory for the
+window backing store sprites.
+To use it, you must tell the compiler where to find the QtCore header
+files if it doesn't already know:
+
+-I$GCCSDK_INSTALL_ENV/QtCore
+
+and then include the header in your source file:
+
+#include <QDynamicArea>
+
+A dynamic area can them be create and used like so:
+
+{
+  QDynamicArea *da;
+  da = new QDynamicArea("My dynamic area", // Name of DA (max 31 characters)
+			50 * 1024 * 1024,  // Maximum size of DA
+			4 * 1024);	   // Initial size of DA (min. 4KB)
+  da->create();				   // Actually create the DA
+  void *ptr;
+  ptr = da->alloc(0x1000);		   // Allocate 0x1000 bytes
+  
+  // Do something with ptr.
+
+  da->free(ptr, 0x1000);		   // Free block
+}
+
+It's possible to free only part of a block as long as what you
+free is wholly contained within an allocated block.
+This is useful in some packages that require a page aligned
+block of memory. They do this by allocating twice as much as
+they need, identifying the position of the page aligned block
+and then freeing the surplus at each end.
+
+
+Known problems/ToDo
+-------------------
+* The text caret isn't always visible.
+* Make mouse pointer context sensitive
+
+
+Examples known not to work correctly:
+widgets/animation/stickman - doesn't respond to key presses
+
+
+Lee Noar
+<leenoar@sky.com>

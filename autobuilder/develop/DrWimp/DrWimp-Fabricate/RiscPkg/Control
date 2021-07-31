@@ -1,0 +1,8 @@
+Description: A tool for rapid application development using DrWimp
+ The purpose of this tool is to partially automate the early stages of
+ writing a new application program using DrWimp. It is able to
+ generate code for several of the more common user interface components,
+ such as an icon and menu for the icon bar and a program information
+ dialogue box. An application directory is created to hold the generated
+ files.
+

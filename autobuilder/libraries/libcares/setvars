@@ -1,0 +1,43 @@
+# c-ares (libcares) is a forked branch of libarea library and part of curl CVS
+# project.  However, it is not part of curl build process so it is built
+# separately.
+
+AB_GIT=git://github.com/bagder/c-ares.git
+AB_PVERSION=git-$(date +%Y%m%d)
+
+AB_INSTALL=yes
+
+# cd c-ares
+if [ ! -d man3 ] ; then
+  ln -s . man3
+fi
+
+./buildconf
+
+ab_package() {
+  ab_create_app LibCares Apps/Library libcares-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  # Need to retype the converted manual files
+  MANFILES=$(find man -type f)
+  for FILE in $MANFILES ; do
+     mv $FILE $FILE,faf
+  done
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibCares-Dev -copyrightfile COPYING
+}

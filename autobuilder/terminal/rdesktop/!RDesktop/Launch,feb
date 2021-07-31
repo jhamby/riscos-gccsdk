@@ -1,0 +1,5 @@
+Set rdesktop$Title Remote Desktop Client
+
+Wimpslot -min 4000K -max 4000K
+
+/<RDesktop$Dir>.rdesktop %*0 ><RDesktop$Dir>.stdout 2><RDesktop$Dir>.stderr

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Look for 'cp' trying to do the job of 'install'
+if echo "$@" | grep -q GCCSDK_ENV ; then
+  GCCSDK_ENV/ro-install cp $@
+else
+  /bin/cp $@
+fi

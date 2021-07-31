@@ -1,0 +1,22 @@
+The easiest way to use these examples is to set their containing
+directory as the current directory and then call them directly
+from a taskwindow.
+
+The three programs in the examples directory all take a single
+argument that gives a filename to write the result to, for
+example:
+
+*cairosimple /ram:$/simple-image.png
+*cairoshape /ram:$/shape-image.png
+*cairotwisted /ram:$/twisted-image.png
+
+The pango-view program is a bit more complex:
+
+*pango-view --no-display --output=/ram:$/image.png HELLO.txt
+
+where HELLO.txt is one of the supplied text files.
+The result will likely depend on which Truetype fonts are installed
+in !UnixFont.
+
+In all cases, the result is a PNG file that can be viewed in,
+for example, !Netsurf.

@@ -1,0 +1,7 @@
+| !Boot file for Fuse
+
+Set Fuse$Dir <Obey$Dir>
+Iconsprites <Fuse$Dir>.!Sprites
+if "<File$Type_BA0>" = "" then Set File$Type_BA0 "Z80Em"
+Set Alias$@RunType_BA0 Run <Obey$Dir>.!Run %%*0
+

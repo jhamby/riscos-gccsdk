@@ -1,0 +1,14 @@
+#
+export gl_cv_sys_struct_timeval=yes 
+export gl_cv_func_gettimeofday_clobber=no
+export ac_cv_func_getgroups_works=yes
+
+ab_package() {
+ ab_create_command_app Tar Apps/Utilities
+ ab_add_commands $S/src/*$AB_EXEEXT
+ cp $H/!Help $A
+ cp -av $S/COPYING $A
+
+ $AB_HOME/add-riscpkg -unixlib
+}
+

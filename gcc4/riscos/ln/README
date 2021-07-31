@@ -1,0 +1,55 @@
+ln
+by Lee Noar
+
+Purpose
+-------
+To create symlink files for use with the dynamic linking ELF GCC,
+although they can be used else where.
+
+Use
+---
+ln is based on the Unix utility of the same name and shares a similar
+syntax:
+
+  ln [OPTION]... TARGET [LINK_NAME]
+
+It will create a link to the specified TARGET with the optional LINK_NAME.
+If LINK_NAME is omitted, a link with the same basename as the TARGET is
+created in the current directory.
+Note that the TARGET must be a RISC OS name, no filename translation
+occurs, however, LINK_NAME is translated.
+
+The TARGET should be either an absolute filename, ie:
+
+ADFS::IDEDisc1:$.!SharedLibs.lib.system.libUnixLib/so/4/1/0
+
+or a relative filename, ie:
+
+system.libUnixLib/so/4/1/0
+
+In the former case, the filename is used as is, where in the latter case,
+the filename is added to the current path of the symlink.
+
+The following options are supported:
+
+	-f, --force	Force the overwriting of existing files by LINK_NAME
+
+	-s, --symbolic	Create the link even if TARGET doesn't exist
+
+	-v, --verbose	Print name of each file before linking
+
+	    --help	Display help and exit
+
+	    --version	Outout version information and exit
+
+Symlink files have the official filetype of &1C8 (Symlink) and support for
+them is included in the ELF loader module SOManager (inside of !SharedLibs) and
+support is also present in UnixLib 5. This means that any code that links to
+UnixLib as supplied with the dynamic linking GCC can use symlinks.
+
+Note that ln is statically linked so that a cyclic dependency does not occur
+between itself and the ELF loaders. In other words, the loaders may be
+required to build ln, but ln is required to generate the links to make the
+loaders work.
+
+Lee Noar.

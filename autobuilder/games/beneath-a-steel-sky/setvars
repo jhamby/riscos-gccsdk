@@ -1,0 +1,20 @@
+AB_CATEGORY=Games
+AB_LICENCE=Free
+
+ab_make() {
+  echo "Data only - no make required"
+}
+
+cp -av $H/Makefile $S
+
+ab_package() {
+
+   mkdir -p $D/beneath-a-steel-sky/Apps/Games/BeneathASteelSky
+   cp $S/sky.cpt $D/beneath-a-steel-sky/Apps/Games/BeneathASteelSky/sky.cpt,ffd
+   cp $S/sky.dnr $D/beneath-a-steel-sky/Apps/Games/BeneathASteelSky/sky.dnr,ffd
+   cp $S/sky.dsk $D/beneath-a-steel-sky/Apps/Games/BeneathASteelSky/sky.dsk,ffd
+   cp $S/readme.txt $D/beneath-a-steel-sky/Apps/Games/BeneathASteelSky
+   AB_COMPONENTS="Apps.Games.BeneathASteelSky (Movable)"
+   $AB_HOME/add-riscpkg -package beneath-a-steel-sky -name BeneathASteelSky \
+       -depends ScummVM
+}

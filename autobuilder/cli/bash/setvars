@@ -1,0 +1,22 @@
+AB_URL=http://deb.debian.org/debian/pool/main/b/bash/bash_4.4.orig.tar.xz
+
+AB_ROVERSION=2
+AB_CONFLAGS="--disable-nls --without-bash-malloc --disable-process-substitution --with-installed-readline=yes --enable-readline --with-curses=yes"
+
+ln -s mksignames$AB_EXEEXT mksignames
+ln -s mksyntax$AB_EXEEXT mksyntax
+
+AB_MANPAGE=doc/bash.1
+
+touch configure.in aclocal.m4 stamp-h.in Makefile.in config.status
+
+ab_package () {
+  ab_create_command_app Bash Apps/Utilities
+  ab_add_commands $S/bash$AB_EXEEXT
+
+  cp $S/ABOUT-NLS $S/AUTHORS $S/CHANGES $S/COMPAT $S/COPYING $S/NEWS $S/NOTES $S/README $A
+  mkdir -p $A/doc
+  cp $S/doc/bash.html $S/doc/bash.pdf $S/doc/bash.ps $A/doc
+
+  $AB_HOME/add-riscpkg -name Bash -unixlib
+ }

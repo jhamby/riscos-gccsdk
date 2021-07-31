@@ -1,0 +1,757 @@
+Thu May 27 20:30:27 BST 2021  Lee Noar  <lee.noar@sky.com>
+
+	* som_runcom.c: Add support for running statically linked binaries
+	that contain PIC. This is primarily for the benefit of libstdc++
+	which is deliberately built using PIC objects for both shared library
+	and static archive. As Linux supports the use of PIC in static binaries,
+	it's not an issue there. Trying to alter the build system of libstdc++
+	to produce the correct objects for each library is problematic and
+	error prone, so instead we match the behaviour of Linux.
+	The performance hit should be negligible and no worse than for dynamic
+	linking.
+	* configure.ac: Bump version number for PIC in static binary support.
+
+Thu Mar 25 21:28:26 GMT 2021  Lee Noar  <lee.noar@sky.com>
+
+	* som_register.c(process_relpic): Add support for relocations in Thumb
+	code. Note that the compiler doesn't actually generate these, but the
+	handwritten JIT stubs in Webkit require it.
+	* configure.ac: Bump version number for Thumb support.
+
+Fri Oct 23 14:39:25 BST 2020  Lee Noar  <lee.noar@sky.com>
+
+	* configure.ac: Bump version number to mark improved library loading speed.
+
+Fri Oct 23 14:16:24 BST 2020  Lee Noar  <lee.noar@sky.com>
+
+	* som_elf.c(elffile_open): Improve library loading speed by increasing
+	the file buffer size. Credit to Stuart Swales for pointing this out on
+	the RISC OS Open forums.
+
+Wed Dec 11 11:31:23 GMT 2019  Lee Noar  <lee.noar@sky.com>
+
+	* som_swihandler.c(SWI "ELFFile",reason_code_SOM_ELFFILE_OPEN): Fix
+	memory leak; if an error occurs when trying to open a file, e.g.
+	file not found, free the now unused memory block.
+	* som_register.c(som_register_sharedobject): Fix freeing of wrong pointer
+	if somarray_add_object() fails.
+	* som_history.c(som_history_add_client): Fix freeing of wrong pointer if
+	som_alloc() fails.
+	* som_alloc.c: Optional debugging aid (disabled by default) to mark the
+	beginning of an allocated heap block.
+	* configure.ac: Bump version number because of memory leak fix.
+
+Sat Oct 12 18:27:59 BST 2019  Lee Noar  <lee.noar@sky.com>
+
+	* configure.ac: Bump version number to 3.00.
+	* somanager.cmhg: *SOMAddress can now take a register instead of an address.
+	Add ELFFile and Location to SWI table.
+	Add errors abi_mismatch and abi_fail.
+	* som_utilswis.{h/c}(som_location): New function; given an address, return
+	the library that contains it and the offset within it. Can be used by Unixlib
+	in backtraces.
+	* som_utils.{h/c}(copy_arg_string): New function.
+	* som_types.h(type som_PTR): make unsigned.
+	* som_swihandler.c: Handle SWI SOM_ELFFile and SWI SOM_Location.
+	* som_runcom.c: Terminology change; loader->linker.
+	Some structure member name changes.
+	(struct runcom_state): Add flag to record whether the program
+	is ARMEABI.
+	(runcom_init_state): Set flag based on system variable indicating
+	whether text segments should be writable (normally they should not be).
+	(register_dynamic_linker): elffile_open() now responsible for gathering
+	information about an ELF image.
+	Check for ARMEABI.
+	som_register_sharedobject() now responsible for copying the data segment.
+	(load_dynamic_linker): Check for abi mismatch between client and linker.
+	Use elffile_alloc_segments() for memory allocation.
+	(setup_aux_array): Add AT_HWCAP as new entry and use it to record
+	whether client is ARMEABI (passed to the dynamic linker, so that it
+	knows too).
+	(command_run): Check abi version of client for ARMEABI and record result.
+	Install the ARMEABISupport module abort handler for stack management.
+	* som_register.c: Some struture member name changes.
+	(som_register_sharedobject): If the client is ARMEABI, write protect the library's
+	text and data segments (in this case, the data segment is for initialisation of
+	new clients only and should never be written to).
+	* som_os_swis.h: Add symbols and inline SWI calls for ARMEABISupport and other
+	SWIs.
+	* som_map.{h/c}: Files not currently used.
+	* som_main.c: Some struture member name changes.
+	* som_history.c: Likewise.
+	* som_array.c: Likewise.
+	* som_init.c(module_initialise): Shared library dynamic area now created on
+	first allocation.
+	* som_handlers.s: Abort handler code for mapped libraries. Not currently used.
+	* som_final.c(module_finalisation): Free each library individually so that the
+	memory pages are unmapped and released.
+	Some struture member name changes.
+	* som_elf.{h/c}: Extend elffile so that it stores more information about an
+	ELF image and can be used by the dynamic linker via a SWI.
+	* som_command.c: Some struture member name changes.
+	(command_address): Remove requirement that address start with 0x inline with
+	*memory. Allow a register to be specified instead of an address, this can be
+	pc or lr.
+	* som_alloc.{c/h}: Use ARMEABISupport for memory allocation.
+	* som.h: Some type changes and structure member name changes.
+	
+Sun Jul  6 16:32:01 BST 2014  Lee Noar  <leenoar@sky.com>
+
+	* som.h: Increase maximum size of library dynamic area from
+	128MB to 256MB.
+
+Sat May 24 12:13:15 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Check availability of cmunge.
+	* src/Makefile.am: Use cmunge found during configure stage.
+
+Wed Feb 12 02:16:03 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
+Fri Feb 07 19:52:51 UTC 2014  Lee Noar  <leenoar@sky.com>
+
+	* som_register(deregister_shared_object): Don't free the client R/W
+	segment as we didn't allocate it in the first place. It will be
+	either a block set aside in application space during initialisaton
+	which will simply disappear when the client exits, or it will have
+	been malloc'd by dlopen() in which case dlclose() should take care
+	of it.
+
+Sun May 12 17:42:11 BST 2013  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c (som_deregister_client): Fix memory leak;
+	free the gott_base array when the client exits.
+	* som_array.c (som_generate_runtime_array): Fix memory leak;
+	free the old gott_base array before allocating a new one.
+
+Tue Aug 07 00:17:36 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac (AC_PREREQ): Quote parameter.
+
+Mon Apr 30 19:46:47 BST 2012  Lee Noar  <leenoar@sky.com>
+
+	* som_runcom.c(register_dynamic_loader): When copying the R/W
+	segment, don't include the .bss section.
+
+Mon Apr 30 19:24:23 BST 2012  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(init_object): The end address shouldn't include
+	the .bss section as it only exists in the client copy.
+
+Tue Apr 10 01:59:38 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_os_swis.h (ddeutils_get_cl_size): Change return type into size_t.
+	* som_runcom.c (command_run): Minor optimisation concerning dde
+	handling.  Call OS_FSControl,2 before loading ELF data in
+	application memory and introduce a point of no return for error
+	reporting.  Solves bug #224.
+
+Sun Apr  8 19:01:47 BST 2012  Lee Noar  <leenoar@sky.com>
+
+	* som_runcom.c(register_client): Fix uninitialised member
+	of som_objinfo structure.
+
+Sat Apr  7 20:01:05 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (CMUNGEFLAGS): Add PACKAGE_VERSION define.
+	* somanager.cmhg (help-string): Use PACKAGE_VERSION for
+	version number (which get defined from configure.ac).
+
+Sat Apr  7 19:22:52 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Change version number to 2.10.
+	* somanager.cmhg: Update copyright year list.
+
+Fri Mar 23 20:16:46 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* som_command.c(command_status_libraries): When
+	printing the size of the R/W segment, don't include
+	the bss section. The bss section is only created in
+	the client's copy of the R/W segment.
+
+Mon Mar 12 17:57:14 2012  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(som_register_client): Add support for
+	clients built with GCC 4.1.*.
+	(som_register_sharedobject): Add support for libraries
+	built with GCC 4.1.*.
+	* som.h: Define symbols specific to GCC 4.1.*.
+	* som_runcom.c(setup_aux_array): Pass ELF header flags
+	to dynamic linker in auxillary array (this is where the
+	type of floating point system is defined).
+	* som_workspace.h: Define a symbol to give the address
+	of the runtime array.
+	* som_history.h: Fix comment.
+	* somanager.cmhg: Change module version to 2.10 due to
+	added support for older libraries and change to auxillary
+	array (also gives SOManager in 4.1.2 room to grow if
+	necessary).
+	* dist/!SharedLibs/SOM1stRun,feb: Need version 2.10 of
+	SOManager.
+
+Wed Aug 10 16:15:45 2011  Lee Noar  <leenoar@sky.com>
+
+	Better object management and memory usage.
+	struct som_object tries to fit into two lists; the
+	global list and the client list, but ends up containing
+	members that are not appropriate for one or the other.
+
+	* som.h(struct som_object): Move client/global specific
+	members to new structures som_library_object and
+	som_client_object. som_object is no longer directly a
+	link in a list, but is instead contained within
+	som_library_object. som_client_object in the client list
+	then points to a som_library_object in the global list.
+	Also instead of allocating separate memory for object
+	names, store at the end of the object and allocate as
+	part of the object.
+	* som_utilswis.c: Use new structure layout.
+	* som_register.c: Likewise.
+	* som_final.c: Likewise.
+	* som_command.c: Likewise.
+	* som_main.c: Likewise.
+	* som_array.c: Likewise.
+	* som_register.h(som_register_sharedobject): Remove
+	redundant argument.
+	* som_types: Forward declare new structure types.
+	* som_runcom.c(register_dynamic_loader): Remove redundant
+	argument to som_register_sharedobject.
+	* somanager.cmhg: Bump version number to 2.05 because of
+	significant internal changes.
+	* somhistory.(c,h)(som_history_add_client): Instead of
+	allocating all names individually, allocate one block to
+	store them all.
+	* dist/!SharedLibs/SOM1stRun,feb: Need at least V2.04.
+
+Sun Aug 07 11:54:12 2011  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(som_register_client): Store the object
+	index in the object workspace instead of the GOT.
+	Initialise gott_base.
+	(process_relpic): New function to process ".riscos.pic"
+	section.
+	(som_register_sharedobject): Call process_relpic for all
+	newly loaded libraries.
+	* som.h(SOM_OBJECT_INDEX_OFFSET,SOM_RUNTIME_ARRAY_OFFSET):
+	Remove, the extra GOT space is not used anymore, the
+	runtime workspace after the ELF header will be used for the
+	object index instead.
+	(struct som_client): Add gott_base array.
+	* somanager.cmhg: Now on version 2.04. Add new errors.
+	* som_os_swis.h(os_synchronise_code_area): New function
+	for SWI call.
+	* som_workspace.h: The object index is now stored in the
+	runtime workspace of all objects instead of their GOTs
+	(previously the workspace was unused in libraries).
+	Reorganise use of workspace in client. Rewrite workspace
+	access functions to work on any object and not just client.
+	* som_array.c(somarray_add_object): Store object index in
+	runtime workspace.
+	(som_generate_runtime_array): Initialise gott_base. As the
+	arrays are zero'd when initialised, don't bother clearing
+	unused entries in the runtime array.
+
+Sun Aug 07 11:01:23 2011  Lee Noar  <leenoar@sky.com>
+
+	* som_array.h: Fix comment.
+	* som_alloc.c(som_extend): Extending a NULL block causes
+	an allocation.
+	* som_history.c(som_history_add_client): Fix memory leak,
+	object names should be freed as well. Fix freeing of wrong
+	pointer.
+	* som_runcom.c(register_dynamic_loader,register_client):
+	Use proper data type when searching through dynamic segment.
+	
+Sun Sep 19 12:11:03 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_runcom.c(command_run): Update comments.
+
+Sat Sep 10 18:46:57 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Require autoconf 2.64 at least.
+
+Sun Jan 10 17:06:20 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* somanager.cmhg: Increase version number to 2.03 as
+	changes were made since GCCSDK GCC 4.1.1 Release 2.
+
+Sun Jan 10 13:36:01 2010  Lee Noar  <leenoar@sky.com>
+
+	* som_history.c(som_history_add_client): Remove
+	unused variable.
+	* somanager.cmhg: Remove unused errors.
+	Rename somerr_dl_no_got to somerr_no_got_loader.
+	Add somerr_no_got_client, somerr_no_seg_client,
+	somerr_no_seg_loader.
+	* som_runcom.c(register_dynamic_loader, register_client):
+	The dynamic segment always seems to follow the R/W
+	segment, however don't rely on it. Use two independent
+	loops to find the required segments in the right order.
+	Small improvements to error checking.
+
+Sun Nov 22 16:06:14 2009  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(deregister_shared_object): Don't
+	bother finding the client when the only caller already
+	knows it.
+	(som_deregister_client): If an error occurs when
+	deregistering a library, continue to deregister the
+	client rather than aborting the process.
+
+	* dist/!SharedLibs/docs/!ReadMe: Update docs.
+
+Wed Oct 21 19:55:01 2009  Lee Noar  <leenoar@sky.com>
+
+	* som_final.c(module_finalisation): If things really
+	go wrong and we end up with a negative client count,
+	then we still want to be able to quit.
+
+Tue Oct 13 19:35:23 2009  Lee Noar  <leenoar@sky.com>
+
+	* som_runcom.c(read_ld_env): Looks like my logic
+	got a bit mixed up here. Only worked for !runimage
+	and *-bin. Simplify and fix.
+
+Sun Oct 11 14:10:45 2009  Lee Noar  <leenoar@sky.com>
+
+	New feature addition. Record basic details of last
+	five clients to deregister. *SOMHistory displays
+	the list. Useful for debugging when you need to know
+	where an address lies within the client. If the
+	client exits normally, then *SOMStatus will not show
+	it. Saves having to keep commenting out
+	SWI "SOM_DeregisterClient" in UnixLib to retain client
+	data.
+
+	* somanager.cmhg: Add *SOMHistory to command table.
+	Bump module version number to V2.02.
+	* som_command.c(module_command): Handle new command.
+	* som_history.c, som_history.h: Implementation of new
+	command.
+	* som_register.c(som_deregister_client): Record details
+	of deregistering clients.
+	* som.h(som_globals): Add history list.
+	* som_command.h: Make global strings more widely available.
+	* Makefile.am: Add som_history.c to source files.
+
+Fri Jul 04 20:04:09 2009  Lee Noar  <leenoar@sky.com>
+
+	* somanager.cmhg: Add new SWI (SOM_Reloc) to SWI table,
+	and remove redundant SWI (SOM_AddrToOffset).
+	Bump module version number to V2.01 because of new SWI.
+	* som_swihandler.c(module_swihandler): Add handler code
+	for SWI "SOM_Reloc" and remove handler code for
+	SWI "SOM_AddrToOffset".
+	* som_utilswis.c, som_utilswis.h: Add code to implement
+	SWI "SOM_Reloc" and remove code for SWI "SOM_AddrToOffset".
+	* dist/!SharedLibs/SOM1stRun,feb: Require V2.01 of module.
+
+	SWI "SOM_Reloc" allows a client to relocate an address
+	that the dynamic loader has no knowledge of during
+	initialisation. For example, some dwarf expressions, when
+	evaluated, can yield an address that lies within a
+	library's public data segment. This will have to be
+	relocated manually by the client into its own private
+	data segment. This can occur within call frame exception
+	handling.
+
+Tue Jan 06 18:42:23 2009  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(deregister_shared_object): If an object is
+	linked to a client, then mark for expiry as before. However,
+	if the object is not used by any client then remove
+	immediately. Allows the dynamic loader to remove rogue
+	libraries if something goes wrong during initialisation.
+
+Fri Sep 19 19:24:56 2008  Lee Noar  <leenoar@sky.com>
+
+	Add support for per client dynamic loader environment:
+
+	* som_runcom.c(read_ld_env): New function to find the
+	environment of the dynamic loader for the current client.
+	(setup_env_array): Use read_ld_env().
+	* som_utils.c, som_utils.h: New files for miscellaneous utility
+	functions (wildcmp).
+	* Makefile.am: Add som_utils.c.
+	* riscos/soloader/dist/!SharedLibs/docs/!ReadMe: Update docs.
+	* riscos/dist/!GCC/docs/SharedLibs/!ReadMe: Likewise.
+
+Mon Aug 25 19:23:22 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* som_init.c: Better name for dynamic area. 
+
+Sun Aug 10 19:48:45 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_command.c(command_status): Produce a more compact and easier
+	to read output for *SOMStatus command. Also allow libraries and
+	clients to be listed separately.
+	* somanager.cmhg: Update *SOMStatus syntax.
+	* riscos/soloader/dist/!SharedLibs/docs/!ReadMe: Update docs.
+	* riscos/dist/!GCC/docs/SharedLibs/!ReadMe: Likewise.
+
+Sat Aug 09 13:32:29 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_elf.c(elffile_open): It's possible for the text segment not
+	to be a multiple of 4 in size which can create a 'hole' between
+	segments due to realignment by the static linker. This can cause
+	two problems; 1) The memory size calculation doesn't take the hole
+	into account meaning the segments overflow and 2) The free memory
+	pointer is not word aligned.
+	Rather than adding memory size of segments together, track upper
+	limit of memory segments as an offset from the start of the object.
+
+	* som_runcom.c(command_run): To be on the safe side, make sure we
+	start with a word aligned free memory pointer.
+
+Wed Jul 09 21:55:34 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_utilswis.c(som_iterate_objects): When the last/first object
+	has been returned, make sure r1 (internal handle) is set to 0 on
+	exit.
+
+Mon Mar 10 17:17:26 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_runcom.c: Change occurrence of DSOLib: to SharedLibs: as part
+	of the process to rename !DSO-libs as !SharedLibs.
+
+Fri Feb  1 00:39:19 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_alloc.c(DA_extend): Wrong pointer passed to heap_block_size().
+
+Fri Jan  4 18:24:23 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_workspace.h: Move runtime workspace to immediately after ELF
+	header. Use a new function, rt_workspace_find(), to calculate
+	address of runtime workspace using ELF header.
+	* som_register.c: Use new function to find workspace.
+	* som_array.c: Likewise.
+
+	The following changes were also made to parts of GCCSDK:
+
+	* bfd/elf32-arm.c: Add extra 20 bytes to size of ELF header to use
+	as runtime workspace.
+	* ld/scripttempl/elf.sc: Remove runtime workspace allocation from
+	linker scripts.
+
+	Note that the runtime workspace has been reduced in size to five 4
+	byte words rather than ten. The current implementation uses the first
+	two leaving the other three unused.
+
+	There are several advantages to moving the workspace:
+
+	1) The new position is consistent for both static and dynamic binaries
+	(something I require for a project).
+	2) If the number of program headers change, the workspace position
+	will not change.
+	3) If a non standard linker script is used, the workspace will not
+	disappear.
+	4) Hopefully future proof against extensions to the ELF header.
+
+	The only minor disadvantage is that shared libraries also acquire the
+	workspace 'hole' immediately after the ELF header, however, it is only
+	an extra 20 bytes and it may even be useful in the future.
+
+Tue Jan  1 16:42:05 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c: Use RT_WORKSPACE_START instead of magic number.
+	* som_array.c: Likewise.
+	* som_workspace.h: Define RT_WORKSPACE_START as an address rather
+	than an offset.
+
+Tue Nov 27 07:11:25 CET 2007  Peter Naulls  <peter@chocky.org>
+
+	* som_runcom.c: Fix problem when no arguments were given.
+
+Wed Oct  3 19:11:01 2007  Lee Noar  <leenoar@sky.com>
+
+	* Makefile.am: Make sure -mmodule is passed to the linker.
+
+Tue Oct  2 22:33:43 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_runcom.h: Added missing header file.
+
+Sat Sep 29 17:02:28 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_utilswis.c(som_query_object): added FIND_CLIENT () return value
+	check.
+	* som_register.c(deregister_shared_object): Likewise.
+	(som_deregister_client): Likewise.
+	* som_array.c(som_generate_runtime_array): Likewise.
+	* som_utilswis.c(som_got_from_addr): changed while loop into a for one
+	resulting in more clear source code and also better optimized binary
+	code.
+	(som_handle_from_addr): Likewise.
+	(som_handle_from_name): Likewise.
+	(som_addr_to_offset): Likewise.
+	* som_register.c(som_add_sharedobject): Likewise.
+	(som_register_sharedobject): Likewise.
+	(deregister_shared_object): Likewise.
+	* som_command.c(command_status): Likewise.
+	(command_address): Likewise.
+	* som_runcom.c(register_dynamic_loader): Likewise.
+	(register_client): Likewise.
+	* som_main.c(som_find_client): Likewise.
+	* som_array.c(somarray_add_object): Likewise.
+	(som_generate_runtime_array): Likewise.
+	* memory-layout: Elf -> ELF
+	* som_final.c(module_finalisation): check on return value
+	som_stop_call_every.
+	* som_command.c: added include som_runcom.h.
+	* som_os_swis.h(os_get_env): return RISC OS error if any.
+	(os_read_var_val): Likewise.
+	* som_swihandler.c(module_swihandler): no need to preset allocation
+	variable used in som_alloc and som_alloc_lib.
+	* som_runcom.c(command_run): Likewise.
+	* som_init.c(is_host_32bit): made it pro-forma also working for USR
+	mode.
+	(module_initialise): explicit initialise global struct to 0; check on
+	return value som_start_call_every.
+	* som_startapp.h(som_start_app): add noreturn attribute.
+	* som_runcom.c(runcom_init_state): explicit initialise runcom_state
+	to 0.
+	(setup_env_array): check on return value of os_read_var_val.
+	(os_get_env): check on return value of os_get_env.
+	* som_elf.c(elffile_init): use memset.
+	(elffile_memory_size): deleted
+	* som_elf.h(elffile_memory_size): deleted prototype.
+	* Makefile.am(SOManager_CFLAGS,SOManager_CCASFLAGS): added
+	-Wall -std=gnu99
+	* som_startapp.s(som_start_app): check on error of OS_ReadSysInfo
+	and call OS_Exit.
+	* link_list.h: have static inline iso extern inline.
+	* som_array.h,som_utilswis.c,som_register.c,som.h,som_utilswis.h,
+	som_register.h,som_main.c,som_os_swis.c,som_alloc.c,som_os_swis.h,
+	som_swihandler.c,som_init.c,som_runcom.c,som_elf.c,som_symlinks.c,
+	link_list.c,som_elf.h,som_array.c,som_symlinks.h,link_list.h:
+	White-space and some other cosmetic changes.
+
+Thu Aug 30 01:45:19 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_os_swis.h: cleaned up the reidentation mess of the inline
+	assembler code.
+
+Fri Aug 24 23:53:23 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_startapp.s(som_start_app): make use of OS_TaskControl when
+	available to flatten the SVC stack.
+
+Tue Aug 21 02:24:37 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* link_list.c, link_list.h, som_alloc.c, som_alloc.h, som_array.c,
+	som_array.h, som_command.c, som_elf.c, som_elf.h, som_final.c,
+	som.h, som_init.c, som_main.c, som_os_swis.c, som_os_swis.h,
+	som_register.c, som_register.h, som_runcom.c, som_startapp.h,
+	som_swihandler.c, som_symlinks.c, som_symlinks.h, som_types.h,
+	som_utilswis.c, som_utilswis.h, som_workspace.h: GNU indentation.
+
+Sun Aug 19 12:20:02 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	Using autotools to do the building.
+	* configure.ac, Makefile.am: new.
+	* Makefile: removed.
+
+Fri Aug 17 23:08:28 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_register.c(som_deregister_client): set client's
+	rt_workspace_CLIENT_STRUCT_PTR to 0 to indicate succesful
+	deregistration.
+
+Wed Aug 15 20:45:46 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_runcom.c(command_run): we can't return from this routine with an
+	error after having called os_start_app() as otherwise the error "Not a
+	heap block: FileSwitch FreeArea" is given instead (on RO 6.06).
+
+Mon Aug 06 20:40:59 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_array.c(somarray_add_object(): Recycle object array elements
+	that were previously used by an object that has since expired.
+
+Mon Aug 06 19:35:48 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(som_deregister_client): Fix memory leak.
+
+Sun Aug 05 13:48:40 2007  Lee Noar  <leenoar@sky.com>
+
+	* somanager.cmhg, som_runcom.c: Exit gracefully if a shared library is
+	run.
+
+Tue Jul 17 19:44:48 2007  Lee Noar  <leenoar@sky.com>
+
+	* elf_file.c, elf_file.h (elffile_load): Make bss zeroing optional.
+	(elffile_from_memory): New function - fill in an elf_file structure
+	from an ELF image already in memory.
+	* som_runcom.c: Make dynamic loader file info more available (within
+	this file) and generally simplify code.
+
+Sat Jul 14 19:44:35 2007  Lee Noar  <leenoar@sky.com>
+
+	* elf_file.c, elf_file.h(elffile_open): Work out and store the total
+	amount of memory used by the ELF object and the lowest address used as
+	stored in the file (although in practice this will be either 0x8000
+	for an executable or 0 for a library).
+	(elffile_load): Simplify by removing the stack tests and free memory
+	tracking. These things don't really belong here as we may wish to load
+	an object to somewhere other than application memory. To that end, use
+	the supplied argument (which can be NULL for an executable) to
+	determine the final load address.
+	* som_runcom.c(command_run): Do stack check, etc, here instead.
+
+Fri Jul 06 2007 17:48:19 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_swihandler.c: Incorrect comparison.
+
+Fri Jul 06 2007 17:17:54 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_swihandler.c: Wrong register used for parameter and result.
+
+Fri Jul 06 2007 14:43:21 2007  Lee Noar  <leenoar@sky.com>
+
+	* som.h, somanager.cmhg, som_array.c, som_array.h, som_init.c,
+	som_register.c, som_runcom.c, som_swihandler.c, som_workspace.h:
+	Rename GOT pointer array to runtime array and extend it to include
+	data about the R/W segment of each library. The dynamic loader will be
+	able to use this data to do relocations without having to call SWI
+	"SOM_QueryObject". This should improve program start up times.
+
+Fri Jul 06 2007 12:29:42 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_utilswis.c: som_query_object(): If the user supplied buffer is
+	NULL, don't return an error unless the object is not found. This
+	allows the existence of an object in the system to be tested without
+	having to supply a buffer.
+
+Sun Jun 17 2007 19:43:39 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c: Remove references to unused runtime workspace
+	entries and global data members.
+	* som.h: Remove unused global data members and som_prologue/
+	som_resolver declarations.
+	* somanager.cmhg: Remove Prologue and Resolver SWIs.
+	* som_main.c: Remove references to unused global data members.
+	Remove definitions of som_prologue and som_resolver.
+	* som_swihandler.c: Remove handler code for som_prologue and
+	som_resolver.
+	* som_runcom.c: Remove references to unused runtime workspace entries.
+	* som_workspace.h: Remove unused workspace entries.
+
+Sun Jun 17 2007 18:28:24 2007  Lee Noar  <leenoar@sky.com>
+
+	* Makefile: Use the build directory for object files and generally
+	expand into a fuller makefile.
+
+Sat Jun 09 2007 22:43:09 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_elf.c: Don't attempt to load a data segment of zero size. Such a
+	segment could occur if all data was in the .bss section.
+
+Fri Jun 08 2007 22:28:06 2007  Lee Noar  <leenoar@sky.com>
+
+	* som.h: Move basic types to separate header file som_types.h to avoid
+	cyclic dependencies. Add new member to client structure to record GOT
+	ptrs of all libraries used by client. Add new member to object
+	structure to record position of object in object/GOT ptr array. Add
+	new member to global structure to record object ptrs of all libraries
+	known to the system.
+	(FIND_CLIENT): Instead of storing an ID in the workspace area of the
+	client and searching for it here, just store the client structure
+	pointer instead and return that.
+	* som_array.c, som_array.h: Implementation of a simple array type that
+	is used to manage the object/GOT ptrs at runtime.
+	* som_register.c(init_object): Initialise new object index member.
+	(copy_object): Likewise.
+	(som_register_client): Set workspace client ptr. Initialise the client
+	GOT with object index and GOT array location (this requires the
+	extended GOT header).
+	(som_register_sharedobject): Add the object to the global object
+	array.
+	* som_final.c: Free the global object array.
+	* som_init.c: Initialise the global object array.
+	* somanager.cmhg: Add SWI "GenerateGOTArray" to the list.
+	* som_command.c(command_status): Output the object index to aid
+	debugging.
+	* Makefile: Add new file to build.
+	* som_main.c(som_callback_handler): When an object expires, clear its
+	entry in the global object array (these could be reused in the
+	future).
+	* som_swihandler.c: Handle SWI "GenerateGOTArray".
+	* som_runcom.c(register_client): When you've found the GOT, you don't
+	keep looking.
+	(command_run): When the Dynamic Loader has registered, generate the
+	client's GOT array, so that the DL can function correctly.
+	* som_workspace.h: Add 2 new workspace entries at the beginning of the
+	list; first is the client's GOT pointer array which will be accessed
+	by the PIC code. Its position as the first entry in the workspace is
+	important. Second is the client structure pointer which will replace
+	the client ID. Other entries in this list will probably become
+	obsolete and be removed in the future.
+	* som_startapp.s: Typo.
+
+Thu Jun 07 2007 23:13:46 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_os_swis.h: Add heap_extend_block() and heap_block_size() to
+	inlined heap SWIs.
+	* som_alloc.c, som_alloc.h: Add som_extend() to allow a memory
+	allocation to be resized.
+	* som_elf.c, som_elf.h, som_startapp.h, som_register.h,
+	som_utilswis.h, som_utilswis.c: Add author info.
+
+Sat May 19 2007 14:18:25 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_elf.c: Make sure that if there's an error, the same memory isn't
+	freed twice.
+
+Fri May 18 2007 22:26:11 2007  Lee Noar  <leenoar@sky.com>
+
+	Rewrite static loader, in C, as a Shared Object Manager command.
+	* memory-layout, som_elf.c, som_elf.h, som_runcom.c, som_startapp.h
+	som_startapp.s, som_symlinks.c, som_symlinks.h: new.
+	* Makefile, somanager.cmhg, som_command.c, som_final.c, som_os_swis.h
+	som_register.c, som_register.h, som_swihandler.c, som_utilswis.c,
+	som_utilswis.h: updated.
+
+Fri May 18 2007 22:03:14 2007  Lee Noar  <leenoar@sky.com>
+
+	* som.h: Remove unnecessary inclusion guards. Add query flag values.
+	Add word_align function.
+
+Wed May 02 03:06:44 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile: Removed 2nd -mmodule option.
+	* som_register.c: Go for strict aliasing and proper type punning.
+	* som_alloc.h: Removed libscl header #define checks around its header
+	include lines.
+	* som_os_swis.h: Likewise.
+	* som_register.h: Likewise.
+	* som_utilswis.h: Likewise.
+
+Sun Apr 29 16:39:53 2007  Lee Noar  <leenoar@sky.com>
+
+	* Makefile: Use gcc option for module generation rather than direct
+	linker option. Remove unnecessary -s option.
+
+Sun Apr 29 16:36:42 2007  Lee Noar  <leenoar@sky.com>
+
+	* link_list.h: Remove reference to __STDDEF_H.
+
+Sat Apr 28 22:03:31 2007  Lee Noar  <leenoar@sky.com>
+
+	* som_alloc.c: Fix mistake made in som_free().
+
+Sat Apr 28 21:48:56 2007  Lee Noar  <leenoar@sky.com>
+
+	Rewrite Shared Object Manager in C.
+	* link_list.c, linklist.h, som.h, som_alloc.h, som_alloc.c,
+	som_main.c, som_os_swis.c, som_os_swis.h, som_register.c,
+	som_register.h, som_utilswis.c, som_utilswis.h, som_workspace: new.
+	* Makefile, somanager.cmhg, som_command.c, som_final.c, som_init.c,
+	som_swihandler.c: updated.
+
+Sat Mar 24 18:01:09 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Made it buildable with GCCSDK 4.
+
+Tue Nov 28 04:00:37 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Start C based SOManager code v2

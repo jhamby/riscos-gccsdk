@@ -1,0 +1,11 @@
+AB_CATEGORY=Browser
+
+ab_package() {
+  cp -av $H/\!Chimera2 $D
+  cp $S/chimera/chimera$AB_EXEEXT $D/\!Chimera2
+  cp $S/chimera/chimera.1.html $D
+  cp $S/doc/COPYING $D/\!Chimera2
+  cp $S/doc/COPYRIGHT $D/\!Chimera2
+  cp $S/doc/LCOPYING $D/\!Chimera2
+  cp $S/doc/LICENSE $D/\!Chimera2
+}

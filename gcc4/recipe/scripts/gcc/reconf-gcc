@@ -1,0 +1,6 @@
+#!/bin/bash
+# Auto-generate 'gcc' as we've patched it.
+# Copyright (c) 2009-2010 GCCSDK Developers
+
+( autogen Makefile.def )
+( autoconf )

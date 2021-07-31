@@ -1,0 +1,35 @@
+GDB server protocol
+===================
+
+Protocol documentation may be found in the GDB manual:
+
+  http://sourceware.org/gdb/download/onlinedocs/gdb/Remote-Protocol.html
+
+The receive state machine implemented in gdb.c looks like this:
+
+	+------>WAITING_FOR_PACKET<-+
+	|		|	|   |	Interrupt application.
+	|		|    ^C +---+
+	|	      $ |
+	|		|
+	|		v
+	|	READ_PACKET_DATA
+	|		|	Accumulate data into buffer.
+	|		|	Compute packet checksum as we go.
+	|	      # |
+	|		|
+	|		v
+	|	READ_CHECKSUM1
+	|		|	Save nibble.
+	|		|
+	|   [0-9a-fA-F] |
+	|		|
+	|		v
+	|	READ_CHECKSUM2
+	|		|	Generate reference checksum.
+	|		|	Compare with calculated checksum.
+	+---------------+	If they match, ack the packet and process it.
+				If they don't match, send a nack.
+
+Packet processing simply implements the spec, so consult that for reference.
+

@@ -1,0 +1,232 @@
+#
+#
+# Template for setvars file for autobuilder package
+#
+# The file can set a number of variables, all of which have defaults
+# to perform various actions during the build.  Copy this file to
+# a new package directory and delete uneeded parts.
+
+
+# Where to fetch the souces ?
+#  1. Either via CVS:
+#AB_CVS_ROOT=
+#AB_CVS_MODULE=
+#AB_CVS_TAGORBRANCH=
+#     Note: consider defining "AB_PVERSION=cvs-$(date +%Y%m%d)" as well.
+#
+#  2. Either via SVN:
+#     For both AOF or ELF based builds:
+#AB_SVN=
+#     For AOF builds needing another branch (if this is not defined AB_SVN is
+#     used instead):
+#AB_SVN_AOF=
+#     Note: consider defining "AB_ZIPNAME=xxx-svn-$(date +%Y%m%d)" as well.
+#
+#  3. Either via git:
+#AB_GIT=
+#
+#  4. Either via Mercurial:
+#AB_HG=
+#
+#  5. Either via an URL:
+#AB_URL=
+#
+#  6. Either somewhere on a filing system:
+#AB_NOREMOTE=yes
+#     Note: consider defining "AB_ZIPNAME=xxx-local-$(date +%Y%m%d)" as well.
+#
+#  And when non of the above is defined, we'll fetch it via apt-get (if
+#  available), or via ftp from one of the Debian FTP servers.
+
+# List of man page files, to be processed by rman to make an HTML helpfile
+# The produced HTML files will automatically be added to the package.
+#AB_MANPAGE=
+
+# RISC OS Version of the package
+#AB_ROVERSION=1
+
+# Command in front of invocation of RISC OS GNU configure wrapper.  If you do
+# not want this to be called, you could set this var to ":"
+#AB_PRECONF=
+
+# Flags to pass to configure in addition to those added by the configure
+# wrapper.
+#AB_CONFLAGS=
+
+# Continue on, even if the program or library fails to fully compile
+# (e.g. example/test apps)
+#AB_COMPILEFAIL=no
+
+# Run "make install" (in fact: make $AB_INSTALLTARGET) after build
+#AB_INSTALL=no
+#   Do not run "ro-make $AB_INSTALLTARGET"
+#AB_INSTALL=env
+#   Only run "ro-make $AB_INSTALLTARGET" placing results in
+#   $GCCSDK_INSTALL_ENV
+#AB_INSTALL=yes
+#   Run "ro-make $AB_INSTALLTARGET" placing results in $GCCSDK_INSTALL_ENV
+#   and do a 2nd "ro-make $AB_INSTALLTARGET" packaging results in a zip/tgz
+#   file.
+
+# Use this target as make target to install after build
+#AB_INSTALLTARGET=install
+
+# RISC OS configuration script
+#AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
+
+# Directory where 'configure' should be looked for (when the build
+# is 'configure' based)
+#RO_CPATH=.
+
+# RISC OS make wrapper.  This can be set to just "make" if setting the
+# path causes problems - e.g., the native compiler is required too
+#AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
+
+# Zip name; alternate name for package to be zipped as.  No extension is
+# needed. Useful if tools from a library, etc.
+#AB_ZIPNAME=
+
+# Multiple packages. This specifies the name of the packages
+# to create if multiple packages are to be produced.
+# Each package should be created in a separate subdirectory
+# of the package directory (the $D variable in the package function)
+# with the same name as the package name specified in the variable.
+# If you have separate packaging files for them (for example, RiscPkg package
+# descriptions), provide them in a subdirectory of the autobuilder tree
+# named after the subpackage
+# eg autobuilder/libraries/libsomething/setvars
+# and autobuilder/libraries/libsomething/libsomething-debug/RiscPkg/Control
+#AB_PACKAGES=
+
+# Set the components for the package. This specifies the components
+# and thier flags for the package file.
+# It will need to be set before each call to add-riscpkg if multiple
+# packages are created.
+# If not set the ab_create_app etc will try to set it appropriately.
+# It can also be overriden by the Components field if set when a
+# partial RiscPkg/Control file is provided in the autobuilder
+# for this item.
+# The format is <logical_path> '(' 'Movable' | 'Movable LookAt' ')'
+# Use 'Movable' to allow the user to place the component anywhere on
+# their disc when installing.
+# Use 'Movable LookAt' if the component should be booted when installed
+# and when RISC OS is restarted. This combination should normally only
+# be used for command line utilities and applications that view or edit
+# a file when the file is run from the filer.
+#AB_COMPONENTS=
+
+# If you have multiple packages you can have different versions for them
+# using variables named after the subpackages, with illegal characters
+# replaced by underscores.  For example:
+# libsomething_debug
+#AB_PVERSION_libsomething_debug = 2.0.1
+# libart-2.0-2
+#AB_ROVERSION_libart_2_0_2 = 9
+# If you do this, don't forget to specify the versions as -pversion and
+# -roversion flags to add-riscpkg
+
+# Copy sources into library packages or produce a source zip
+# file for other packages "yes" or "no"
+# If left blank it will copy the sources if the file COPYING exists
+#AB_COPYSOURCE=
+
+# Command to clean the distribution before packaging up the source
+# If left blank it defaults to "$AB_MAKE distclean"
+#AB_DISTCLEAN=
+
+# List of documents to copy into the library. Files that do not
+# exist are ignored
+#AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
+
+# When set to yes, use meson to configure the package (and ninja to
+# build it). The package must support building by meson (contains
+# a 'meson.build' file). Note that ab_make() will not be called.
+#AB_MESON=no
+
+# This is added before the meson configuration command to allow any
+# environment variables to be set.
+#AB_PREMESON=
+
+# When configuring using meson, this gives the full path to a cross
+# file suitable for the target compiler. You will not normally have to
+# change this as the autobuilder will set it as required.
+#AB_MESON_CROSS_FILE=$GCCSDK_INSTALL_ENV/meson-arm-unknown-riscos.txt
+
+# These are the flags that are passed to meson. By default, a release
+# build is created and both shared and static libraries are built.
+# These flags can be replaced by setting a new value to the variable,
+# or added to.
+#AB_MESON_FLAGS="-Dbuildtype=release -Ddefault_library=both"
+
+# This is the name of the directory where the built files will be placed.
+# You will not normally have to change this.
+#AB_MESON_BUILD_DIR=build-meson-cross
+
+# When set to yes, use cmake to configure the package. The package
+# must support building by cmake (contains a 'CMakeLists.txt' file).
+# Note that ab_make() will not be called.
+#AB_CMAKE=no
+
+# This is added before the cmake configuration command to allow any
+# environment variables to be set.
+#AB_PRECMAKE=
+
+# When configuring using cmake, this gives the full path to a toolchain
+# file suitable for the target compiler. You will not normally have to
+# change this as the autobuilder will set it as required.
+#AB_CMAKE_TOOLCHAIN_FILE=$GCCSDK_INSTALL_ENV/toolchain-riscos.cmake
+
+# These are the flags that are passed to cmake. By default, a release
+# build is created. These flags can be replaced by setting a new value
+# to the variable, or added to.
+#AB_CMAKE_FLAGS=-DCMAKE_BUILD_TYPE=Release
+
+# This is the name of the directory where the built files will be placed.
+# You will not normally have to change this.
+#AB_CMAKE_BUILD_DIR=build-cmake-cross
+
+# When 
+# Make function
+#
+# Define this if you want special actions for make
+#
+# ab_make () {
+#   :
+# }
+
+# Package function
+#
+# You will need to define this to do your packaging for RiscPkg. 
+# There are several variables to use here:
+# $S build directory
+# $D top level of destination package directory
+# $H autobuilder directory for package
+# $A RISC OS application (after calling ab_create_app, etc)
+#
+# ab_package () {
+#   ab_create_app MyApp Apps/Graphics     # !MyApp will be copied from $H, and the package section will be Graphics
+#   ab_create_command_app MyApp Apps/Graphics # As ab_create_app, but !MyApp will be set up for commands
+#   ab_add_commands $S/myapp${AB_EXEEXT}  # For applications containing command line utilities, this adds aliases to !Boot 
+#   ab_create_sharedlib_skeleton libname  # Set up package to add shared libs
+#   ab_add_sharedlib $S/.libs libname.so.1 # Use libname.so.1 to find the shared library and add it and create RISC OS links in the sharedlib skeleton
+#
+#
+#   $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
+# }
+
+# Source package function
+#
+# By default, the function will be called to package the source.
+# See AB_COPYSOURCE=no to disable
+#
+# Override it if this is not sufficient for a package
+#
+# ab_package_source() {
+#   (see build-program script for default)
+# )
+
+
+# Finally, as this file is executed as a bash script, you can place other
+# commands in here.  These will be executed after unpack of the source
+# and application of any patches, but before any configuration or build.
+

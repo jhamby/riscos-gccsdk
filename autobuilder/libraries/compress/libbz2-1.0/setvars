@@ -1,0 +1,66 @@
+AB_INSTALL=yes
+AB_PRECONF=:
+AB_ROVERSION=4
+
+ab_package() {
+  cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
+  ab_create_command_app bzip2 Apps/Utilities bzip2
+  ab_add_commands $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT $S/bzip2recover$AB_EXEEXT
+
+  mkdir -p $A/docs
+  cp -av $S/*.html $A/\!Help,faf
+  cp -av $S/README $S/LICENSE $A/docs/
+
+  $AB_HOME/add-riscpkg -package bzip2 -unixlib -section Utilities
+
+  AB_COMPONENTS=""
+  
+  # Package libraries
+  ab_create_app LibBZ2 Apps/Library libbz2-dev
+
+  HERE=`pwd`
+  cd $A
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  # Add some documentation
+  cp $S/manual.html $A/\!Help,faf
+
+  $AB_HOME/add-riscpkg -package libbz2-dev -name LibBZ2-Dev -section Library -unixlib -copyrightfile $S/LICENSE
+
+  mkdir -p $D/libbz2-dev/RiscPkg
+  echo "Description: high-quality block-sorting file compressor library - development" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " Static libraries and include files for the bzip2 compressor library." >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " bzip2 is a freely available, patent free, high-quality data compressor." >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " It typically compresses files to within 10% to 15% of the best available" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " techniques, whilst being around twice as fast at compression and six" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " times faster at decompression." >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " bzip2 compresses files using the Burrows-Wheeler block-sorting text" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " compression algorithm, and Huffman coding.  Compression is generally" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " considerably better than that achieved by more conventional" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " LZ77/LZ78-based compressors, and approaches the performance of the PPM" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " family of statistical compressors." >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " ." >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " The archive file format of bzip2 (.bz2) is incompatible with that of its" >> $D/libbz2-dev/RiscPkg/Control,fff
+  echo " predecessor, bzip (.bz)." >> $D/libbz2-dev/RiscPkg/Control,fff
+
+  cd $HERE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libbz2-1.0
+    ab_add_sharedlib $S libbz2.so.1.0
+
+    $AB_HOME/add-riscpkg -package libbz2-1.0 -name LibBZ2-1.0 -section Library -depends SharedLibs-C2 -copyrightfile $S/LICENSE
+  fi
+
+}

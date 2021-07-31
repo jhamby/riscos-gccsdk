@@ -1,0 +1,16 @@
+
+AB_MANPAGE=patch.man
+
+#  for "previous declaration of 'rpl_gettimeofday' was here" error
+export gl_cv_func_gettimeofday_clobber=no
+export ac_cv_func_strnlen_working=yes
+export gl_cv_func_getgroups_works=no
+
+ab_package() {
+  ab_create_command_app Patch Apps/Development
+  ab_add_commands $S/src/patch$AB_EXEEXT
+
+  cp $S/COPYING $S/AUTHORS $S/ChangeLog $S/NEWS $S/README $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}

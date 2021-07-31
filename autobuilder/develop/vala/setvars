@@ -1,0 +1,56 @@
+AB_CATEGORY="Development"
+AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
+AB_LICENCE="Free"
+AB_ROVERSION=0
+
+if [ -e $GCCSDK_INSTALL_ENV/bin/valac ] ; then
+  BINVERSION=`$GCCSDK_INSTALL_ENV/bin/valac --version | sed 's/[\n\r]*Vala //'`
+  if [ "$AB_PVERSION" != "$BINVERSION" ] ; then
+    echo "Native valac is of version $BINVERSION, we need $AB_PVERSION - native build needed."
+    rm $GCCSDK_INSTALL_ENV/bin/valac
+  else
+    echo "Native valac is correct version - native build not needed."
+  fi
+fi
+
+if [ ! -e $GCCSDK_INSTALL_ENV/bin/valac ] ; then
+  echo "Building native valac"
+
+  PATCHEDFILES='vala/valasourcefile.vala vala/valacodecontext.vala'
+
+  # otherwise the patches have the same datestamp as the .c files
+  sleep 1
+
+  # Build vala compiler natively:
+  for FILE in $PATCHEDFILES ; do
+    echo $FILE | sed 's/\.vala$/\.c/' | xargs touch
+    echo $FILE | sed 's/\.vala$/\.c/' | xargs echo
+  done
+  touch vala/vala.vala.stamp
+
+  CC=$HOST_CC ./configure $AB_CONFLAGS --disable-shared --enable-static
+  make
+  cp compiler/valac $GCCSDK_INSTALL_ENV/bin
+
+  find .. -name '*.o' -print0 | xargs -0 rm
+  find .. -name '*.a' -print0 | xargs -0 rm -fr
+  find .. -name '*.la' -print0 | xargs -0 rm
+  find .. -name '*.lo' -print0 | xargs -0 rm
+
+  for FILE in $PATCHEDFILES ; do
+    touch $FILE
+  done
+fi
+
+ab_package() {
+  ab_create_app Vala Apps/Development
+
+  cp $S/compiler/valac,e1f $A/bin/
+  cp $S/doc/vala/*.html $S/doc/vala/*.css $A/doc/vala
+  cp $S/AUTHORS $S/ChangeLog* $S/COPYING $S/INSTALL $S/MAINTAINERS $S/NEWS $S/README $S/THANKS $A/doc
+  cp $S/vapi/*.vapi $S/vapi/*.deps $A/vapi
+
+  $AB_HOME/add-riscpkg -package "Vala" \
+    -unixlib -copyrightfile COPYING
+}
+

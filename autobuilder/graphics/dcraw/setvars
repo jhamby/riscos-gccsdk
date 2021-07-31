@@ -1,0 +1,18 @@
+
+AB_PVERSION=9.28
+
+rm $S/dcraw.c
+wget https://sources.debian.org/data/main/d/dcraw/9.28-2/dcraw.c
+rm $S/parse.c
+wget https://sources.debian.org/data/main/d/dcraw/9.28-2/parse.c
+
+ab_package() {
+  ab_create_command_app Dcraw Apps/Graphics
+  ab_add_commands $S/*$AB_EXEEXT
+
+  ab_docs -h $H/ReadMe dcparse.1 dcraw.1
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+
+

@@ -1,0 +1,4 @@
+cp $H/flex.c GuiLib/GuiFlex/flex.c
+cp $H/flex.h GuiLib/GuiFlex/flex.h
+cp $H/opts.h GuiLib/GuiFlex/opts.h
+cp $H/swiextra.h GuiLib/GuiFlex/swiextra.h

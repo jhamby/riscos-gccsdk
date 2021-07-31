@@ -1,0 +1,427 @@
+                                   UnixLib
+                                   =======
+
+The library name UnixLib
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Don't confuse this library with the UnixLib library provided by RISCOS Ltd.
+RISCOS Ltd.'s UnixLib is part of the TCPIPLibs and also provides a
+lot of Unix function calls like this library does but it is not a
+Run Time library.
+
+
+UnixLib Purpose
+~~~~~~~~~~~~~~~
+
+The intent of UnixLib is to provide, as much as possible, a fully
+POSIX-compatible Run Time library for RISC OS in order to compile and run
+most (but not all) POSIX-compatible code that avoids OS specific code.
+
+This is true of much open source code.  It also includes some Linux and
+GLIBC compatible interfaces.  Some POSIX features are impractical on
+RISC OS or simply have not been implemented.  In the latter case, we'd
+appreciate a bug report.  Non-advertised deviation from POSIX behaviour will
+generally also be a bug.
+
+UnixLib is part of the GCCSDK deliverables which can be found at
+<URL:http://gccsdk.riscos.info/> and is no longer individually distributed.
+
+
+Run-time features
+~~~~~~~~~~~~~~~~~
+
+Certain features of UnixLib can be enabled/disabled by defining environment
+variables. These can be applied to all UnixLib based applications running
+on the system, or to specific programs.
+
+To set globally use:
+  *Set UnixEnv$<features>
+
+To set per-program use:
+  *Set UnixEnv$<program name>$<features>
+
+The <program name> is specified by the __program_name variable when
+defined (this is a WEAK symbol) or by the leaf name of argv[0] otherwise.
+
+The list of recognised features are:
+
+1. nonametrans
+
+   If set, all file paths and filenames will be used verbatim i.e. without
+   the usual Unix to RISC OS conversions.  Its value is not important.
+
+     *Set UnixEnv$my_program$nonametrans ""
+
+   This corresponds with having the __RISCOSIFY_NO_PROCESS bit in
+   __riscosify_flags set of the __riscosify() routine or having that bit
+   in the WEAK symbol __riscosify_control specified.  See <unixlib/local.h>
+   include file for more information.
+
+2. sfix
+
+   Default: a:c:cc:f:h:i:ii:l:o:p:s:y
+   This defines the list of suffixes which will be used to perform suffix
+   swapping when suffix swapping is enabled.  Suffix swapping is enabled
+   by default and can be disabled by having the __RISCOSIFY_NO_SUFFIX
+   bit specified in __riscosify_flags of the __riscosify() routine or
+   having that bit specified in the WEAK symbol __riscosify_control.
+   See the <unixlib/local.h> include file for more information.
+
+   Suffix swapping can also be disabled by defining the
+   UnixEnv$<program name>$sfix environment variable as an empty string :
+
+     *Set UnixEnv$my_program$sfix ""
+
+   Note that doing :
+
+     *UnSet UnixEnv$my_program$sfix
+
+   will *enable* suffix swapping with the default suffix list
+   mentioned above unless __RISCOSIFY_NO_SUFFIX is specified in the
+   __riscosify_flags variable or __riscosify()'s flags parameter.
+
+3. uid
+
+   Default: 1
+   If set, then its value is used to set the UNIX uid and euid values.
+
+4. coredump
+
+   Default: No coredump done (empty string)
+   If set to a non empty string, then this value will be used to write a
+   coredump file of the application workspace and dynamic areas in use when
+   there is an uncatched signal or when the __unixlib_write_coredump routine
+   is called.
+
+Another important runtime feature is the environment variable UnixFS$/
+followed by a non-zero length string.  This non-zero length string is
+an Unix subdirectory name in the root directory or an Unix
+subdirectory name in /usr or /var directories which you would like to
+map to specific RISC OS directories.
+
+The Unix subdirectory in /usr and /var directories mapping has higher
+priority than the Unix subdirectory in the root directory mapping.
+
+Note that defining UnixFS$/ does not have any effect.
+
+E.g. :
+  *Set UnixFS$/home ADFS::4.$.MyHome
+
+    Maps Unix file or directories names like /home/a_file and
+    /home/a_dir/another_dir to ADFS::4.$.MyHome.a_file and
+    ADFS::4.$.MyHome.a_dir.another_dir respectively.
+
+  *Set UnixFS$/mail ADFS::4.$.Mail
+
+    Maps the Unix filenames /usr/mail or /var/mail directory
+    to filenames inside ADFS::4.$.Mail directory.
+
+Currently, up to 16 UnixFS$/ definitions can be made.  By default, the
+following two are defined :
+
+  *Set UnixFS$/tmp <Wimp$ScrapDir>
+  *Set UnixFS$/pipe <Wimp$ScrapDir>
+
+
+<program name>$Heap
+Causes the heap to be placed in a dynamic area instead of the Wimpslot. Does
+not have to have any specific value. Can be overridden by the __dynamic_no_da
+weak variable. A maximum of 32 characters are taken for <program name>.
+
+E.g. :
+  *Set my_program$Heap ""
+
+<program name>$HeapMax
+Integer variable specifying the maximum size (in MB) to use when creating a
+dynamic area for the heap. When not defined, it defaults to 32MB or the value
+specified by the __dynamic_da_max_size weak variable when this is defined in
+the executable. A maximum of 32 characters are taken for <program name>.
+
+E.g. :
+  *SetEval my_program$HeapMax 64
+
+UnixLib$env / UnixLib$pcnt
+These are environment variables used by UnixLib internally and should
+not be used, nor relied on, by clients of UnixLib.
+
+
+Link-time features
+~~~~~~~~~~~~~~~~~~
+
+There are 'WEAK'ly defined symbols which can be used to control
+certain UnixLib features too.  i.e. those symbols can, but not have to,
+be *defined* outside UnixLib and when they are defined, they will be
+used by the relevant UnixLib functions.  When they are not defined,
+they have an implicit value 0.
+
+Its intended use is to provoke as less as possible changes in ported
+Unix programs by simply defining an extra RISC OS specific source file
+containing just something like e.g. :
+
+---8<---
+#include <features.h>
+
+int __feature_imagefs_is_file = 1;
+---8<---
+
+The list of current 'WEAK'ly defined symbols :
+
+1. __riscosify_control
+
+Header file: <unixlib/local.h>, default value 0.
+
+This symbol controls how riscosify_std() processes filenames and
+that routine is used by UnixLib to convert (nearly) all Unix filenames
+to RISC OS filenames before those filenames are passed on to RISC OS
+itself.
+
+2. __program_name
+
+Header file: <features.h>.
+
+extern const char * const __program_name __attribute__ ((__weak__));
+
+When defined, specifies the <program name> part of the UnixLib OS
+variables.  Otherwise, the leaf filename part of main()'s argv[0] is used.
+
+2. __feature_imagefs_is_file
+
+Header file: <features.h>.
+
+extern int __feature_imagefs_is_file __attribute__ ((__weak__));
+
+When not defined or defined and being non zero, files with filetypes
+recognized by an active ImageFS will be considered as regular files and not
+as directories.
+
+3. __dynamic_no_da
+
+Header file: <features.h>.
+
+extern int __dynamic_no_da __attribute__ ((__weak__));
+
+When defined (value is unimportant), no dynamic area will be created
+for the memory pool, even on RISC OS versions supporting dynamic areas.
+
+4. __dynamic_da_name
+
+Header file: <features.h>.
+
+extern const char * const __dynamic_da_name __attribute__ ((__weak__));
+
+Specifies the dynamic area name when there is one created for keeping
+the memory pool.  When __dynamic_da_name is not defined, the dynamic
+area name will be <program name> + "$Heap".
+
+5. __dynamic_da_max_size
+
+Header file: <features.h>.
+
+extern int __dynamic_da_max_size __attribute__ ((__weak__));
+
+Specifies the maximum size to use in bytes when creating a dynamic area for
+the heap. When not defined, it defaults to 32MB. Can always be overridden by
+the <program name>$HeapMax integer variable (in MB).
+
+6. __stack_size
+
+Header file: <features.h>.
+
+extern int __stack_size __attribute__ ((__weak__));
+
+When defined, specifies the size in bytes of the initial stack chunk. In
+effect, this emulates a flat stack (assuming the given size is big enough
+for the program's needs).
+When not defined, an initial stack chunk size of 4096 bytes is used as
+normal.
+This is an experimental feature for a small number of programs that don't
+work well with a chunked stack.
+
+
+Compile-time features
+~~~~~~~~~~~~~~~~~~~~~
+
+We try to restrict the number of compile-time features so that one binary
+release of UnixLib can satisfy most programmers.  These features, together
+with a short explanation, are defined in
+libunixlib/include/unixlib/buildoptions.h.
+
+
+Stub functions
+~~~~~~~~~~~~~~
+
+A few functions are stub functions.  They are provided in UnixLib
+as either placeholders for functions that await implementation or those
+that simply cannot be; possibly because they are not relevant to RISC OS.
+For a complete list, see the autogenerated file
+libunixlib/include/unixlib/stubs.h
+
+
+Stack and heap
+~~~~~~~~~~~~~~
+
+The way the stack and heap are organised has changed from previous
+UnixLib versions. Previously, the stack started at the top of the
+wimpslot, and grew downwards in a contiguous manner until it ran out of
+space. The new system extends the stack in chunks, in a similar way
+that the Shared C Library does. This change should be unnoticable to
+user programs.  However, as a consequence of this change, it is now possible
+for the wimpslot to be extended automatically if more stack or heap space is
+needed.
+
+There are a couple of caveats:
+Firstly, if a vfork() and exec() call is made (or system() which uses
+vfork and exec internally) then, if the child program is greater than
+200k, there must be sufficient free space already inside the wimpslot
+to start the child program. If the child program is less than 200k then
+the wimpslot can be extended to accomodate it. The 200k limit is a bit
+arbitrary, but it is not trivial to determine the size of the child
+program before it is loaded, and setting a larger limit could waste
+lots of memory when the child is small.
+Secondly, while vfork() will work when the heap is in the wimpslot or
+in a dynamic area, fork() will only work when the heap is in the
+wimpslot. If it is called when the heap is in a dynamic area then it
+will just return an error.
+
+
+This raises the question of whether a program should use dynamic areas
+for the heap or not. If it uses only a few megabytes of memory and never
+calls vfork/system then the wimpslot is the best place. If the program
+calls fork() then it has to use the wimpslot. If the program calls
+vfork/system a lot then using a dynamic area may be best, although in
+some cases where the child program uses lots of memory but the parent
+doesn't (as is the case for gcc) then the wimpslot may be equally good.
+If the program requires large amounts of memory, in particular greater
+than 28MB, then it depends on the OS. For RISC OS 3, 4 and 6 the wimpslot
+is limited to 28MB and so if you need more then you must use dynamic
+areas, but on RISC OS 5 the wimpslot can be a lot larger, whereas
+dynamic area space may be limited.
+
+
+pthreads
+~~~~~~~~
+
+UnixLib provides support for threading, using the POSIX pthreads
+interface as defined in IEEE Std 1003.1 2003
+<URL:http://www.opengroup.org/onlinepubs/007904975/>.
+
+The threading code has been tested in a variety of applications, and
+although probably a few bugs remain, it is stable. The details of how to use
+threads are far too complex to describe here, but there are many books and
+tutorials available on the web which should be suitable.
+
+Thread contexts are pre-emptivly switched, however there are certain
+times when threads cannot be switched, in particular during SWI calls.
+Therefore if a thread calls, for example, OS_ReadLine (either directly,
+or via a UnixLib function) then none of the other threads will get a
+chance to run until OS_ReadLine returns.
+
+Thread safety
+
+IEEE 1003.1 defines which functions within UnixLib should be thread safe
+and which may not be. You must ensure that any third party libraries you
+use are also thread safe. Calling SWIs is generally safe, as the SWI
+will not be preempted, however if the SWI returns a pointer to internal
+storage that might change the next time the SWI is called then it would
+not be thread safe unless you ensure only one thread will ever access
+it, or protect it with a mutex.
+
+Multitasking
+
+Running a threaded program in a taskwindow is possible without any extra
+code.  Likewise for threaded Wimp programs but this on condition that its
+Wimp_Initialise SWI call gets done before its first thread creation.
+
+When you call Wimp_StartTask in your threaded program, you need to temporary
+disable threading before the Wimp_StartTask call and re-enable it afterwards:
+
+__pthread_stop_ticker();
+/* Call Wimp_StartTask here */
+__pthread_start_ticker();
+
+Note that for those two kinds of multitasking programs, context switching may
+not occur very often.  Therefore for threaded Wimp programs you may find it
+beneficial to put a pthread_yield() call somewhere inside the Wimp_Poll loop,
+to ensure other threads get a better chance of running.
+
+In addition, you may find it appropriate to disable threads during Wimp
+redraw loops.
+
+
+Sound support
+~~~~~~~~~~~~~
+
+UnixLib implements the OSS sound interface via the /dev/dsp device.  It
+makes use of the DRenderer module which is now part of GCCSDK SVN tree.
+DRenderer was writen by Andreas Dehmel and licensed in Jan 2006 under GPL.
+Its previous homepage was:
+
+  <URL:http://www.zarquon.homepage.t-online.de/Software.html>
+
+At the time of writing, the latest version is 0.52.
+
+
+iconv support
+~~~~~~~~~~~~~
+
+Previously, use of iconv in programs required linking in of the stand alone
+iconv library, which adds around 1MB to UnixLib programs - mainly because
+of the lack of a shared library system on RISC OS.  In this version,
+iconv support is in an external module, and UnixLib provides a C interface
+to call this.  It should act much like the inbuilt iconv support in GLIBC.
+
+The latest version of the iconv module is currently available from:
+
+  <URL:http://www.netsurf-browser.org/projects/iconv/iconv_latest.zip>
+
+At the time of writing, the latest version is 0.11.
+
+
+/dev/(u)random support
+~~~~~~~~~~~~~~~~~~~~~~
+
+UnixLib implements the /dev/random and /dev/urandom devices using the
+CryptRandom RISC OS module.  This CryptRandom module is currently available
+from:
+
+  <URL:http://www.markettos.org.uk/riscos/crypto/>
+
+At the time of writing, the latest version is 0.12.
+
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+Unix systems have an environment that is private to each process, and
+changing an environment for one process will only that process and
+possibly its children. However RISC OS system variables are global and
+if one process changes a variable then that change is seen by all other
+processes.
+
+To cater for both ported programs and native programs, UnixLib changes
+the behaviour of the getenv and setenv functions depending on the name
+of the variable. If the variable has a $ in the name, then it is
+assumed to be a RISC OS system variable and it is fetched/written to
+the global environment. However, if the name does not contain a $ then
+it is assumed to be a Unix style environment variable and is
+fetched/written to the process' private environment.
+When a program is run, the environ array will be populated with all
+RISC OS system variables that exist at the time that either have no $
+in their name, or are prefixed with UnixEnv$.
+
+
+Name registration
+~~~~~~~~~~~~~~~~~
+
+On behalf of the "GCCSDK Developers", the following names have been
+registered for use in and by UnixLib :
+
+- OS system variables : UnixEnv$* and UnixFS$*
+- Application names : UnixLib and GCC
+  [ Which also means that the UnixLib$* and GCC$* OS system variables
+    are registered too. ]
+- Module name: SharedUnixLibrary with SWI base &55c80 and error base &81a400
+
+The previous usage of the OS system variables Unix$* has been discontinued.
+
+-EOF-

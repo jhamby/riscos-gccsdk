@@ -1,0 +1,41 @@
+AB_INSTALL=yes
+AB_CONFLAGS="--enable-ipv6=no --with-python=no"
+
+ab_package()
+{
+  ab_create_app LibXML2 Apps/Library libxml2-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/libxml2 .
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cp README ../\!Help,feb
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibXMl2-Dev -copyrightfile copyright
+  
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libxml2
+    ab_add_sharedlib $S/.libs libxml2.so.2
+
+    $AB_HOME/add-riscpkg -package "lixml2" -name LibXML2 \
+        -depends SharedLibs-C2
+  fi
+  
+}
+
+
+

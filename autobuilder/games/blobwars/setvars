@@ -1,0 +1,23 @@
+AB_URL=http://sourceforge.net/projects/blobwars/files/blobwars-1.19.tar.gz
+
+AB_ROVERSION=2
+
+$HOST_CXX -O2 src/pak.cpp src/CFileData.cpp -o pak `sdl-config --libs` -lSDL_mixer -lSDL_image -lSDL_ttf -lSDL_net -lz
+touch pak.o
+touch CFileData.o
+touch pak
+make buildpak
+rm CFileData.o
+
+ab_package() {
+  ab_create_app Blobwars Apps/Games
+  ab_makerun $S/blobwars
+
+  mkdir -p $A/data/
+  cp -av $S/blobwars.pak $A/data
+
+  mkdir $A/doc
+  cp -av $S/doc/* $A/doc/
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/license
+}

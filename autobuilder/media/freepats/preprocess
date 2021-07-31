@@ -1,0 +1,5 @@
+# Unpack from bz2 file
+for tarball in $(find ./upstream/ | grep bz2) ; do
+  tar xfj $tarball
+done
+

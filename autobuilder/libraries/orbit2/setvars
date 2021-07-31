@@ -1,0 +1,31 @@
+AB_INSTALL=yes
+
+AB_CONFLAGS="--disable-nls --disable-maintainer-mode --with-idl-compiler=$GCCSDK_INSTALL_ENV/bin/orbit-idl-2"
+
+if ! [ -e /usr/bin/glib-genmarshal ] || ! [ -e /usr/include/popt.h ] ; then
+  echo "Please install native libglib2.0-dev, libidl-dev and libpopt-dev packages"
+  exit 1
+fi
+
+# Build orbit-idl-compiler natively:
+CC=$HOST_CC ./configure $AB_CONFLAGS --disable-shared --enable-static
+make -C src/idl-compiler
+cp src/idl-compiler/orbit-idl-2 $GCCSDK_INSTALL_ENV/bin
+
+make clean
+
+export ac_cv_alignof_CORBA_char=1                                                                                     
+export ac_cv_alignof_CORBA_boolean=1                                                                                  
+export ac_cv_alignof_CORBA_octet=1                                                                                    
+export ac_cv_alignof_CORBA_short=2                                                                                    
+export ac_cv_alignof_CORBA_long=4                                                                                     
+export ac_cv_alignof_CORBA_unsigned_short=2                                                                           
+export ac_cv_alignof_CORBA_unsigned_long=4                                                                            
+export ac_cv_alignof_CORBA_float=4                                                                                    
+export ac_cv_alignof_CORBA_double=4                                                                                   
+export ac_cv_alignof_CORBA_long_double=4                                                                              
+export ac_cv_alignof_CORBA_wchar=2                                                                                    
+export ac_cv_alignof_CORBA_long_long=4                                                                                
+export ac_cv_alignof_CORBA_unsigned_long_long=4                                                                       
+export ac_cv_alignof_CORBA_struct=4                                                                                   
+export ac_cv_alignof_CORBA_pointer=4 

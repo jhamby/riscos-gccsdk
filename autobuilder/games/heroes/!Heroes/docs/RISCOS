@@ -1,0 +1,25 @@
+
+Heroes
+------
+
+By default, this game runs fullscreen.  For other options, see the HTML
+help and !Run file.  For Iyonix, use "-F -2" for a nice size single tasking,
+or change to windowed.  On a RiscPC, you can run windowed, but you will
+have to stay small to run at a sensible speed.
+
+This program requires:
+
+SharedUnixLibrary module available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
+
+This RISC OS port for the autobuilder by Alan Buckley
+
+8th August 2007
+
+An earlier version was ported to RISC OS by Peter Naulls.
+
+The recipe to build this game is in the autobuilder.
+See: http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+Contact: alan_baa@hotmail.com or the GCCSDK list.

@@ -1,0 +1,10 @@
+cd unix
+
+AB_CONFLAGS="--disable-load --includedir=$GCCSDK_INSTALL_ENV/include/tcl8.4"
+
+AB_INSTALL=yes
+
+AB_INSTALLTARGET="install install-private-headers"
+
+mkdir -p $D/lib/tcl8.4/http1.0/
+

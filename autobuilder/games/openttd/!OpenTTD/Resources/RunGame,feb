@@ -1,0 +1,23 @@
+| Run OpenTTD game
+| 17 Oct 2005
+
+| If you don't want the banner to pop up every time, comment out or remove
+| the lines indicated directly below.
+| ---------------------------------------
+|Filer_Run <OpenTTD$Dir>.Resources.Banner
+WimpSlot -min 4k -max 4k
+<OpenTTD$Dir>.Resources.Poll 3
+<OpenTTD$Dir>.Resources.Banner
+| ---------------------------------------
+
+| Try to load the sound
+| If the load fails the game should continue with no sound
+| UnixLib does this itself
+|RMEnsure DigitalRenderer 0.51 RMLoad <OpenTTD$Dir>.Resources.DRenderer
+
+| Set up the sample rate for the game
+Wimpslot -min 16K -max 16K
+<OpenTTD$Dir>.Resources.SampleSet
+
+Wimpslot -min 16384K -max 16384K
+<OpenTTD$Dir>.!RunImage -v sdl -s sdl -m null

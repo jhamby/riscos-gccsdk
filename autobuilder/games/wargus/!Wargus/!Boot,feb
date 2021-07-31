@@ -1,0 +1,4 @@
+| Boot file for Wargus
+
+IconSprites <Obey$Dir>.!Sprites22
+Set Wargus$Dir <Obey$Dir>

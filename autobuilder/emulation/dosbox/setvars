@@ -1,0 +1,18 @@
+AB_ROVERSION=3
+# AB_MANPAGE=docs/dosbox.1
+AB_CONFLAGS="--disable-opengl"
+AB_LICENSE=Free
+AB_PVERSION=`echo ${PWD##*/} | sed -e's/dosbox-//'`
+
+
+ab_package() {
+  ab_create_app DosBox Apps/Emulation
+  ab_makerun $S/src/dosbox$AB_EXEEXT
+
+  cp -av $S/AUTHORS $S/COPYING $S/INSTALL $S/NEWS $S/THANKS $A
+  cp -av $S/README $A/\!Help
+
+  AB_COMPONENTS="Apps.Emulation.!DosBox (Movable LookAt)"
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name DosBox \
+     -copyrightfile COPYING
+}

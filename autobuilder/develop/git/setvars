@@ -1,0 +1,52 @@
+AB_LICENCE=Free
+
+echo "WARNING: **** AUTOBUILDER WARNING *****" 1>&2
+echo "WARNING: This port of git is currently broken due to filename issues" 1>&2
+echo "WARNING: some patches and a start at packaging are now included" 1>&2
+echo "WARNING: but it has odd errors when run on HostFS and basic" 1>&2
+echo "WARNING: functionality like git clone of a local repository are broken" 1>&2
+#exit
+# Make function
+#
+# Define this if you want special actions for make
+#
+ab_make () {
+
+	# need to patch configure.ac, autoconf2.59, configure before make
+#	patch -p1 < $H/configure.ac.patch 
+#	autoconf2.59	
+#	$GCCSDK_INSTALL_ENV/ro-config
+
+	# RISC OS doesn't support nanosecond timestamps
+	$GCCSDK_INSTALL_ENV/ro-make NO_NSEC=YesPlease NO_PREAD=Yes LDFLAGS=-ldl X=${AB_EXEEXT}
+}
+
+ab_package () {
+   ab_create_command_app Git Apps/Development
+   ab_add_commands $S/git*${AB_EXEEXT}
+   
+   cp $S/README $A
+   mkdir -p $A/Documentation
+   cp -f $S/Documentation/*.txt $A/Documentation
+   mkdir -p $A/Documentation/RelNotes
+   cp -f $S/Documentation/RelNotes/* $A/Documentation/RelNotes
+   mkdir -p $A/templates
+   cp $S/templates/this--description $A/templates/description
+   mkdir -p $A/templates/info
+   cp $S/templates/info--exclude $A/templates/info/exclude
+   mkdir -p $A/templates/hooks
+
+   files=$S/templates/hooks--*.*
+   for file in $files; do
+     nfile=$(basename $file | sed s/hooks--//)
+     mv -f $file $A/templates/hooks/$nfile
+   done   
+   
+   # Add GIT variables to !Boot
+   echo "Set Git$Path <Git\$Dir>." >> $A/!Boot,feb
+   echo "Set GIT_EXEC_PATH Git:" >> $A/!Boot,feb
+   echo "Set GIT_TEMPLATE_DIR Git:templates" >> $A/!Boot,feb
+      
+   $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
+}
+

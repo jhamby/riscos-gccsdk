@@ -1,0 +1,37 @@
+Fuse - the Free Unix Spectrum Emulator (v1.0.0.1)
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+See the "doc" subdirectory for more documentation or the official fuse
+website at http://fuse-emulator.sourceforge.net/
+
+Getting Started
+---------------
+
+I've set up the !Run file with some sensible defaults. 
+
+Run <Fuse$Dir>.fuse -g 2x --sound --speed 100 --machine 48 --tape %*0 ><Fuse$Dir>.stdout 2><Fuse$Dir>.stderr
+
+These are 2x scaling of the screen, sound is on, speed is throttled to 100%, machine
+it set to emulate a 48K spectrum and loading of 'tzx' tape files. I've set up the arbirary 
+filetype of &BA0 - "Z80Em". So if you set the filetype to "Z80Em" of any roms you have
+they should automatically load !Fuse and run the rom when double-clicked on.
+
+Alternatively press 'F1' in fuse to access the built-in UI.
+
+History
+-------
+RISC OS Version 1.00 (28-Mar-12)
+- this is the initial version of fuse built for RISC OS.
+
+Issues
+------
+
+There's no RISC OS integration. Fuse uses it's own UI. Press 'F1' to bring up the
+menu. You can also set default options in the !Run file.
+
+I've only tested running a few games. Many of the emulator features are untested.
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net

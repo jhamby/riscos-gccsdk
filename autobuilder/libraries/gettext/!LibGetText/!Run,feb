@@ -1,0 +1,6 @@
+| Run file for LibGetText
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibGetText$Dir <Obey$Dir>
+Set LibGetText$Path <Obey$Dir>.

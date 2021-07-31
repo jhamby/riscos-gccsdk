@@ -1,0 +1,51 @@
+Cairo V1.16.0
+--------------
+
+This version of Cairo does not include an XLib surface. It has deliberately been
+disabled in an attempt to create a RISC OS specific solution.
+
+--
+
+This version of Cairo includes a RISC OS Sprite Surface. Based on the standard
+Cairo Image surface, anything that can be rendered to an Image surface
+can be rendered to a RISC OS Sprite Surface.
+
+To use, simply replace a call to cairo_image_surface_create with a call to
+cairo_riscos_sprite_surface_create. The arguments and return type are
+identical, eg:
+
+    cairo_surface_t *surface =
+	cairo_riscos_sprite_surface_create (CAIRO_FORMAT_ARGB32, 256, 256);
+
+This will create a sprite 256 pixels wide by 256 pixels high. All cairo operations
+that act on the surface are then used in the same way.
+
+To save the surface as a sprite file, use a call like:
+
+    cairo_riscos_sprite_surface_write_to_file (surface, "ram:$.sprite-file");
+
+It can also be saved as a PNG file:
+
+    cairo_surface_write_to_png (surface, "ram:$.png-file");
+
+Normally, Cairo creates an image with the format ABGR, however, this is not
+correct for all platforms. From V1.16.0, a new function has been added:
+
+void cairo_riscos_swap_red_blue(cairo_bool_t swap);
+
+This allows the caller to control whether the red and blue components should
+be swapped when creating an image to be used as a sprite surface. For example:
+
+  cairo_riscos_swap_red_blue(TRUE);
+
+will cause future calls to cairo_riscos_sprite_surface_create to create an
+image with format ARGB, which is correct for platforms such as the Titanium
+and the ARMBook.
+Note that this does not change the format of the sprite itself, but instead
+tells the pixman library to write its pixels in a different way.
+
+--
+
+Although there is some code in the library to render RISC OS Fonts, it's not
+adequate for serious use. Instead, freetype/fontconfig is known to give
+good results using TrueType fonts.

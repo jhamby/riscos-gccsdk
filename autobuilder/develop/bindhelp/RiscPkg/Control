@@ -1,0 +1,5 @@
+Description: Create a StrongHelp file from a folder of files
+ BindHelp is a command line utility to create a StrongHelp file
+ for a folder containing the files to include. These are mainly
+ text pages using the StrongHelp syntax.
+Recommends: StrongHelp

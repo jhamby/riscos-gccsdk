@@ -1,0 +1,21 @@
+RockDodger for RISC OS
+======================
+
+Orignally ported by Neil White (n.white@moose.co.uk)
+ and Peter Naulls (peter@chocky.org)
+
+This port for the Autobuilder Alan Buckley (alan_baa@hotmail.com)
+August 2007.
+
+Please note
+-----------
+
+This program is 32-bit compatible, and is suitable for all RISC OS
+ARM6, ARM7, StrongARM and XScale machines.  It may not be suitable for
+earlier machines.
+
+Playing
+-------
+
+Arrow keys to move.  S for shield, and D for laser.  Avoid
+the asteroids.

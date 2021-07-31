@@ -1,0 +1,12 @@
+License: Free
+Description: Role Playing.
+ Openglad is an SDL port of an old DOS game called Gladiator, which
+ was developed by FSGames in the mid 90's. FSGames donated the
+ original source (made for DOS, of course) under the GPL when one
+ of them found our earlier project (now abandoned in favor of this
+ one) to make a full Gladiator clone. 
+
+ Gladiator is a top-down gauntlet-style RPG. In it, you hire team
+ mates, go on missions, and improve your team with the spoils you
+ reap. It can be played by up to 4 players (using split-screen),
+ and includes many distinct classes and a scenario editor.

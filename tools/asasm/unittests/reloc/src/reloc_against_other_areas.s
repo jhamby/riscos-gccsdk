@@ -1,0 +1,29 @@
+	AREA	Code1, CODE, READONLY
+
+	MOV	r1, #1
+	MOV	r2, #2
+Code1L1	MOV	r3, #3
+	MOV	r4, #4
+
+	AREA	Code2, CODE, READONLY
+
+	MOV	r5, #5
+	MOV	r6, #6
+Code2L1	MOV	r7, #7
+	MOV	r8, #8
+
+	DCD	Code1
+	DCD	Code1L1
+	DCD	Code2
+	DCD	Code2L1
+	DCD	Code3
+	DCD	Code3L1
+
+	AREA	Code3, CODE, READONLY
+
+	MOV	r9, #9
+	MOV	r10, #10
+Code3L1	MOV	r11, #11
+	MOV	r12, #12
+
+	END

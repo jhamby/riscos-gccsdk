@@ -1,0 +1,4 @@
+| Boot file for ICU
+
+Set ICU$Dir <Obey$Dir>
+Set ICU$Path <ICU$Dir>.

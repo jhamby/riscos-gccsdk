@@ -1,0 +1,13 @@
+| Run file for Circus Linux
+
+WIMPSLOT
+
+Set CircusLinux$Dir <Obey$Dir>
+Set SDL$CircusLinux$TaskName "Circus Linux!"
+
+| Force use of back buffer to stop flickering
+Set SDL$CircusLinux$BackBuffer 2
+
+| Remove the --fullscreen to run in a window
+| See the !Help file for a list of other options
+Run <CircusLinux$Dir>.circuslinux >null: 2>null:

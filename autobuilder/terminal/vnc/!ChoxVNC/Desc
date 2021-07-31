@@ -1,0 +1,41 @@
+
+
+tool_details_start
+   name          "ChoxVNC";
+   command_is    "Wimptask <ChoxVNC$Dir>.Launch";
+   version       "3.3.7";
+   has_extended_cmdline;
+tool_details_end
+
+
+dbox_start
+   icons_start
+      icn 3  maps_to "" string;
+      icn 4  maps_to "-passwd " string;
+      icn 6  maps_to "-depth 8";
+      icn 7  maps_to "-depth 16";
+      icn 8  maps_to "-depth 32";
+      icn 9 maps_to "-fullscreen";
+   icons_end
+
+   defaults
+      icn 3 "",
+      icn 4 "",
+      icn 7 on,
+      icn 8 off,
+      icn 9 off;
+
+dbox_end
+
+deselections_start
+      icn 6  deselects icn 7, icn 8, icn 9;
+      icn 7  deselects icn 6, icn 8, icn 9;
+      icn 8  deselects icn 7, icn 8, icn 9;
+deselections_end
+
+
+exclusions_start
+      icn 9 excludes icn 6, icn 7, icn 8;
+exclusions_end
+
+

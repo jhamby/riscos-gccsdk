@@ -1,0 +1,62 @@
+                             elf2aif
+             A static ELF binary to AIF program convertor
+
+Purpose
+=======
+
+This program converts a static ELF binary into an AIF binary allowing
+to be executed on RISC OS without the need for an ELF loader.
+
+Use:
+
+  $ elf2aif [options] <ELF input file> [ <AIF output file> ]
+
+Options:
+  -v, --verbose prints informational messages during processing
+      --help    display this help and exit
+      --version output version information and exit
+
+When <AIF output file> is not specified, the <ELF input file> gets overwritten
+by the produced AIF output file.
+
+Building
+========
+
+elf2aif is part of GCCSDK 4 and gets built in that infrastructure.  Its build
+is based on GNU's autoconf and automake so if you want to build elf2aif
+yourself, basically you can do:
+
+  $ cd <elf2aif project dir>
+  $ autoreconf --install
+  $ cd <temporary build directory>
+  $ <project dir>/configure --prefix=$GCCSDK_INSTALL_CROSSBIN/..
+  $ make
+  $ make install
+
+To cross-compile: you can reuse the same 'configure' script made by
+'autoreconf --install' mentioned above and make sure your PATH environment
+variable contains $GCCSDK_INSTALL_CROSSBIN while doing:
+
+  $ cd <temporary cross build directory>
+  $ <project dir>/configure --prefix=<result cross build dir> \
+     CFLAGS='-O3 -mlibscl' \
+     --host=arm-unknown-riscos --target=arm-unknown-riscos
+  $ make
+  $ make install
+
+License
+=======
+
+GNU GENERAL PUBLIC LICENSE, version 2.
+See COPYING file.
+
+Copyright
+=========
+
+Copyright (c) 2006, 2007 GCCSDK Developers
+Written by John Tytgat
+
+The files elf/common.h and elf/external.h come from binutils 2.17
+distribution.
+
+http://gccsdk.riscos.info/

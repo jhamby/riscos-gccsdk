@@ -1,0 +1,33 @@
+# Require host package qt4-linguist-tools for lrelease-qt4 command.
+
+AB_URL=http://http.debian.net/debian/pool/main/a/arora/arora_0.11.0+qt5+git2014-04-06.orig.tar.xz
+
+AB_INSTALL=no
+
+PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
+
+PREFIX=$GCCSDK_INSTALL_ENV
+
+if [ -z "$(which lrelease-qt4)" ] ; then
+  echo "RISC OS Arora build requires native qt4-linguist-tools package installed on host" 1>&2
+  exit 1
+fi
+
+AB_DISTCLEAN="$AB_MAKE -C build distclean"
+
+ab_make() {
+  mkdir -p build
+  cd build
+  qmake -r ../arora.pro
+  $AB_MAKE -j4
+  cd ..
+}
+
+ab_package() {
+  ab_create_app Arora Apps/Network arora
+
+  cp -T $S/build/arora $A/arora$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -package arora -name Arora \
+    -depends Qt5Webkit
+}

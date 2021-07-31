@@ -1,0 +1,2 @@
+| Default for this release is to  to PDF 1.2
+ps2pdf12 %*0

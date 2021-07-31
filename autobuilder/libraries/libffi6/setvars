@@ -1,0 +1,50 @@
+AB_INSTALL=yes
+
+AB_ROVERSION=2
+
+ab_package() {
+
+  # Developer package
+  ab_create_app LibFFI6 Apps/Library libffi6-dev
+
+  HERE=`pwd`
+  cd $A
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  # Need to retype the converted manual files
+  MANFILES=$(find man/ffi* -type f)
+  for FILE in $MANFILES ; do
+     mv $FILE $FILE,faf
+  done
+
+  # Move headers libs and docs up one directory
+  mv include/* .
+  rm -rf include
+
+  # Copy static libs to dev package
+  mv lib/*.a .
+  rm -rf lib
+  
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
+
+  cd $HERE
+
+  AB_DEBNAME=libffi-dev
+ 
+  $AB_HOME/add-riscpkg -package libffi6-dev -name LibFFI6-dev -section Library -unixlib -copyrightfile $S/COPYING 
+  
+  AB_DEBNAME=
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+  
+     foldername=`find . -name "*.so*"|head -n 1|awk -F'/' '{ print $2 }'`
+     ab_create_sharedlib_skeleton libffi6
+     ab_add_sharedlib $S/$foldername/.libs libffi.so.6
+
+     $AB_HOME/add-riscpkg -package libffi6 -name LibFFI6 -depends SharedLibs-C2 -section Library -copyrightfile $S/COPYING
+
+  fi
+
+}
+

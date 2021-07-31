@@ -1,0 +1,232 @@
+Sat May 24 11:30:55 UTC 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Check availability of cmunge.
+	* src/Makefile.am: Use cmunge found during configure stage.
+
+Wed Feb 12 02:11:58 CET 2014  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Add support for AM_SILENT_RULES (default enabled).
+
+Fri Aug  3 04:03:16 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/session.c (session_tcp_process_input): Use __get_ro_socket as
+	required for GCCSDK 4.1.2 and later builds.
+	(session_tcp_find_by_socket): Likewise.
+
+Sun Sep 19 23:46:56 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* TODO: Add item about AddCallBack use during debugee startup.
+	* src/gdb.h (gdb_got_killed): Constify parameter.
+	* src/session_asm.s (SESSION_CTX_OFFSET_*): Define and use them. Call
+	session_dabort/session_prefetch/session_undef instead of
+	session_handle_break.  Add some SWI 0x100 debug output.
+	* src/regs.h: Update comments.
+	* src/session.c: Add STATIC_ASSERT. Add "_cb" suffix for the gdb
+	backend callback routines.
+	(session_ctx_create): Initialize r15 to 0x8000.
+	(session_ctx_destroy): Invalidate current session at start iso end.
+	(post_abort_handler): Merge into session_handle_break.
+	(session_wait_for_continue): Add check on gdb 'k' command.  Add check
+	whether session is still connected and if not, call OS_Exit.
+	(session_restore_environment): Temporary unset current session.
+	(changeenv_vector_handler): Added (prevents debugee changing the
+	environment.
+	(internet_event_handler): Added (from src/module.c).
+	(session_tcp_process_input): Made static. Remove the gdb_got_killed
+	check (now done at session_wait_for_continue).
+	(session_tcp_notify_closed): Drop socket parameter.  Now always called
+	to close client socket.
+	(session_tcp_finalise): Reset server and client socket to -1.
+	* src/header.cmhg (changeenv_vector,session_dabort,session_prefetch,
+	session_undef): Added.
+	(internet): Renamed to internet_event.
+	(post_abort): Removed.
+	* src/module.c (module_initialise,module_finalize): Added.
+	(mod_init,mod_fini): Use module_initialise,module_finalize.
+	(internet_handler): Moved to src/session.c.
+	* src/session.h (session_handle_break,session_find_by_socket,
+	session_tcp_process_input,session_tcp_notify_closed): Removed
+	prototypes.
+	* src/gdb.c: Added "_fnc" postfix for gdb backend callbacks.
+
+Sun Sep 12 22:51:20 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/step.c: Follow previous cpu_registers (regs.h) changes.
+	* src/session.c: Likewise.
+
+Sun Sep 12 18:59:20 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/regs.h (cpu_registers): Add FPA registers. Make union with 'raw'
+	access.
+	* src/session.c (session_tcp_process_input): Check if gdb has killed our
+	process.
+	* src/module.c (internet_handler): Don't eat OOB and unknown internet
+	event codes.
+	* src/socket.c (socket_open_server): Set SO_REUSEADDR.
+	* src/gdb.c (gdb_ctx): Remove last_packet, last_packet_len.  Add
+	got_killed.
+	(gdb_got_killed): Add.
+	(process_packet): Increase buf to 512 bytes. Simplify 'g'/'G'
+	processing. Support 'k'. Make 'm' more bulletproof. More 'q' support.
+	(send_packet): Avoid temporary buffer (at expense of call multiple
+	times the send routine).
+	* src/gdb.h (gdb_got_killed): Added.
+
+Wed Sep  8 19:11:00 BST  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/gdb.c (process_packet): Fix parsing of qC packet.
+
+Tue Sep  7 02:29:40 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/session.c (session_ctx_create): assign session_ctx::type.
+	(post_abort_handler): use session_tcp_send_for_gdb().
+	(session_is_connected): constify parameter.
+	(session_restore_environment): Reset previous environment values after
+	restore.
+	* src/header.cmhg (error-chunk-base-number,error-identifiers): Define.
+	* src/constants.h: Added.
+	* src/module.c (command_handler): Check for multiple gdb session
+	connects.  Only destroy init_session when it hasn't been done before.
+	(post_run_handler): With timeout, restore environment and destroy
+	session (as you don't have a garantee the exit handler will be called
+	as RISC OS can still bail out with an error before that.
+	* src/gdb.c (gdb_process_input): Implement query thread ID.
+	(send_packet): Simplify.
+	Various minor cleanups and debug related changes.
+
+Sun Sep  5 23:22:38 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/socket.c: Use SCL socket code.
+	* src/debug.c: Add Reporter debug code interface.
+	* src/debug.h: Rename debug() to dprintf().  Allow to switch between
+	stdio and Reporter debug code.
+	* src/Makefile.am: Select stdio debug code.
+
+Sun Sep  5 20:44:13 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/asmutils.h, src/debug.h, src/gdb.c, src/gdb.h, src/module.c,
+	src/regs.h, src/session.c, src/session.h, src/socket.c,
+	src/socket.h, src/step.c, src/step.h: Use GNU style source
+	formatting. Replase UNUSED() by __attribute__ ((unused)).
+	* src/utils.h: Remove.
+	* README: Update the build instructions.
+
+Sun Sep  5 19:18:53 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* docs/Protocol: Update remote protocol URL.
+	* docs/Architecture: Add gdb debug suggestion.
+
+Sun Sep  5 17:55:25 CET 2010  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/session.c (session_is_connected): client socket handle may be
+	zero.
+
+Sat Sep  4 16:55:56 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	Switch to autoconf/automake buildsystem.
+	* build, Makefile, src/Makefile, src/header.h: Remove.
+	* configure.ac, Makefile.am, src/Makefile.am: Added.
+
+Tue May 25 23:40:12 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/socket.h: Add include unistd.h for ssize_t type.
+
+2009-04-02 23:54  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/header.h, src/module.c, src/session.c, src/socket.c: More
+	debug, as ^C is still failing to get through.
+	Ensure that accept()ed sockets are flagged as non-blocking,
+	asynchronous, and trigger Upcall 6 in TaskWindows.
+
+2009-03-30 23:53  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/session.c: We also clobber r14 (thanks joty)
+
+2009-03-30 23:50  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/gdb.c, src/session.c: Drain client socket of data on
+	accept().
+	It would appear that any data written to the client socket before
+	accept() is called is never reported through the Internet Event.
+	Thus, we have to drain the socket manually, else we'll miss
+	client input.
+	Remove previous hack around this issue.
+
+2009-03-30 23:47  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/socket.c: More debug
+
+2009-03-30 12:45  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/gdb.c, src/header.cmhg, src/header.h, src/module.c,
+	src/session.c, src/session.h, src/session_asm.s: Improve
+	detection of Wimp task handle. Using a pre-filter is no good, as
+	the debuggee may call Wimp_StartTask prior to calling Wimp_Poll.
+	In that case, we picked up the secondary task's task handle and
+	not the debuggee's. Now we just intercept Wimp_Initialise and add
+	a callback to handle the task handle on exit from the OS.
+
+2009-03-29 18:30  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/session_asm.s: Don't trap FPA instructions.
+
+2009-03-28 13:13  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ., build: Ignore build generated files and directories.
+
+2009-03-28 02:42  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/session.c: Small micro optimisation avoiding an extra fetch
+	indirection.
+
+2009-03-21 15:44  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* TODO: Module name is allocated.
+
+2009-03-21 03:46  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* TODO: More things to fix
+
+2009-03-21 03:24  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* README: Fix documentation bugs
+
+2009-03-21 03:13  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* TODO, src/header.cmhg, src/header.h, src/module.c, src/session.c,
+	src/session.h: Support for debugging Wimp applications.
+
+2009-03-20 18:23  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/debug.h, src/gdb.c, src/module.c, src/session.c: Silence
+	debug
+
+2009-03-20 18:02  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/asmutils.h, src/asmutils.s, src/gdb.c: Hack around 26bit PSR
+	flags nonsense
+
+2009-03-20 17:50  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* TODO, src/Makefile, src/gdb.c, src/gdb.h, src/header.h,
+	src/session.c, src/step.c, src/step.h: Implement single stepping.
+	Lose some debug output.
+
+2009-03-19 20:54  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/gdb.c, src/gdb.h, src/regs.h, src/session.c: More typesafe
+	register save buffer definition.
+
+2009-03-19 02:22  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* docs, docs/Architecture, docs/Protocol: Add some documentation
+
+2009-03-19 01:32  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* ., COPYING, Makefile, README, TODO, build, build/Makefile.common,
+	build/Makefile.config, src, src/Makefile, src/asmutils.h,
+	src/asmutils.s, src/gdb.c, src/gdb.h, src/header.cmhg,
+	src/header.h, src/module.c, src/session.c, src/session.h,
+	src/session_asm.s, src/socket.c, src/socket.h, src/utils.h:
+	Import about 80% of a GDB remote debug client.
+

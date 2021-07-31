@@ -1,0 +1,8 @@
+| Run file for Flobopuyo
+
+WIMPSLOT
+
+Set Blackbox$Dir <Obey$Dir>
+
+| Note --nofullscreen option runs in a window on the desktop
+Run <Blackbox$Dir>.blackbox --nofullscreen >null: 2>null:

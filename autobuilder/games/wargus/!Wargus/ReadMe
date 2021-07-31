@@ -1,0 +1,38 @@
+The files provided in this folder are to help setup the Wargus game that
+uses the Stratagus engine on RISC OS.
+
+You need to own a legal copy of the Warcraft2 CD ROM.
+(original DOS Version).
+
+See http://wargus.sourceforge.net for details.
+
+You also need a copy of the Stratagus engine for RISC OS. A precompiled
+version to go with the !Run obey file provided here is available from
+the GCCSDK Autobuilder website (address below).
+
+Instructions
+------------
+
+1. Go into the !wargus directory (This is the same location as this ReadMe)
+
+2. Ensure the ARCHIVE and WTARCHIVE variables in the BuildRO obey file
+are correct for your CDROM drive.
+
+3. Run BuildRO (You should be able to double click on it to run it).
+If you have any problems try starting a TaskWindow and running it
+in there.
+
+4. Wait for the Obey file to finish.
+
+5. Ensure !Stratagus has been seen by the filer and
+then run !wargus to play.
+
+Notes
+-----
+
+The tool to extract the files from the CD (wartool) was built by
+the GCCSDK Autobuilder.
+(see http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder) 
+
+Version 2.1 Ported by Alan Buckley 7th January 2005.
+Version 2.2 Ported by Alan Buckley 3rd Sept 2007

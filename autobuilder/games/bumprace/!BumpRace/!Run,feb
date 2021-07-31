@@ -1,0 +1,7 @@
+| Run file for BumpRace
+
+WIMPSLOT
+
+Set BumpRace$Dir <Obey$Dir>
+
+Run <BumpRace$Dir>.bumprace -w >null: 2>null:

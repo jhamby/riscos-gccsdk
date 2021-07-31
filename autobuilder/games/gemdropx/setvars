@@ -1,0 +1,16 @@
+AB_ROVERSION=3
+
+ab_package() {
+  ab_create_app GemDropX Apps/Games
+
+  ab_makerun gemdropx 
+  cat README.txt $H/RISCOSNotes >$A/\!Help
+
+  cp -av AUTHORS.txt CHANGES.txt COPYING.txt ICON.txt $A
+
+  mkdir -p $A/data
+  cp -r data/images $A/data
+  cp -r data/sounds $A/data
+
+  $AB_HOME/add-riscpkg -unixsound -name GemDropX
+}

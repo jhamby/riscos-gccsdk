@@ -1,0 +1,13 @@
+AB_ROVERSION=2
+AB_INSTALL=env
+
+ab_package () {
+  ab_create_command_app Lame Apps/Audio
+  ab_add_commands $S/frontend/lame$AB_EXEEXT
+  
+  cp -av $S/ChangeLog $S/COPYING $S/LICENSE $S/README $S/TODO $S/USAGE $A
+
+  ab_docs doc/html
+    
+  $AB_HOME/add-riscpkg -unixlib
+}

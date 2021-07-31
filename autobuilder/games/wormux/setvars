@@ -1,0 +1,20 @@
+
+export ac_cv_prog_cxx_present=yes
+
+ab_package() {
+  ab_create_app Wormux Apps/Games
+  ab_makerun $S/src/wormux$AB_EXEEXT
+
+  mkdir -p $A/data/
+  cp -av $S/data $A
+
+  mkdir $A/doc
+  cp -av $S/doc/howto_play $S/doc/howto_play_online $S/doc/license $A/doc/
+  cp -av AUTHORS ChangeLog COPYING README TODO $A
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+
+export LIBS="-lintl -lcurl -lvorbisidec -ljpeg -lcares"
+
+AB_CONFLAGS=\''--datadir=/\<Wormux\$$Dir\>/data --with-datadir-name=/\<Wormux\$$Dir\>/data'\'

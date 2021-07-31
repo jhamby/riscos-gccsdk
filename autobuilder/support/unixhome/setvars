@@ -1,0 +1,19 @@
+AB_NOREMOTE=yes
+AB_PVERSION=1.03
+AB_ROVERSION=2
+AB_LICENCE=Free
+AB_COMPONENTS="Apps.Support.!UnixHome (Movable LookAt)"
+AB_COPYSOURCE=no
+
+cp $H/!UnixHome/c/SetHome $S/SetHome.c
+
+AB_MAKE="$CC SetHome.c -O2 -o SetHome$AB_EXEEXT -static"
+AB_DISTCLEAN=":"
+
+ab_package() {
+  ab_create_app UnixHome Apps/Support
+
+  cp -av $S/SetHome$AB_EXEEXT $A
+
+  $AB_HOME/add-riscpkg -package UnixHome -unixlib
+}

@@ -1,0 +1,53 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+2 areas
+12 symbols
+
+** Area (0x800102) "CodeVFP", aligned at 4 bytes, [code] [32bit] [vfp] 
+   Size 8 bytes, 0 relocations
+
+000000: 54000000 419d6f34
+
+** Area (0x800102) "Code", aligned at 4 bytes, [code] [32bit] [vfp] 
+   Size 16 bytes, 4 relocations
+
+000000: ebfffffe ebfffffd ebfffffc ebfffffb
+
+** Relocations:
+
+At 0x000000 (flags 0x8f000004): Unlimited number of instructions PC-relative to symbol "ImpWithFPREGARGS" (type-2 reloc)
+At 0x000004 (flags 0x8f000005): Unlimited number of instructions PC-relative to symbol "ImpWithFPREGARGS_WEAK" (type-2 reloc)
+At 0x000008 (flags 0x8f000006): Unlimited number of instructions PC-relative to symbol "ImpWithNOFPREGARGS" (type-2 reloc)
+At 0x00000c (flags 0x8f000007): Unlimited number of instructions PC-relative to symbol "ImpWithNOFPREGARGS_WEAK" (type-2 reloc)
+
+** Symbol table:
+
+ExpWithFPREGARGS (203) global, fpregargs at "Code" + 0x000000
+ExpWithNOFPREGARGS (03) global at "Code" + 0x000000
+ExpWithoutFPREGARGS (203) global, fpregargs at "Code" + 0x000000
+ExpWithoutNOFPREGARGS (203) global, fpregargs at "Code" + 0x000000
+ImpWithFPREGARGS (202) extern, fpregargs
+ImpWithFPREGARGS_WEAK (212) extern, weak, fpregargs
+ImpWithNOFPREGARGS (02) extern
+ImpWithNOFPREGARGS_WEAK (12) extern, weak
+Code             (01) local at "Code" + 0x000000
+CodeVFP          (01) local at "CodeVFP" + 0x000000
+$a               (01) local at "Code" + 0x000000
+$d               (101) local, cadatum at "CodeVFP" + 0x000000
+
+** String table:
+
+000004: ExpWithFPREGARGS
+000015: ExpWithNOFPREGARGS
+000028: ExpWithoutFPREGARGS
+00003c: ExpWithoutNOFPREGARGS
+000052: ImpWithFPREGARGS
+000063: ImpWithFPREGARGS_WEAK
+000079: ImpWithNOFPREGARGS
+00008c: ImpWithNOFPREGARGS_WEAK
+0000a4: Code
+0000a9: CodeVFP
+0000b1: $a
+0000b4: $d

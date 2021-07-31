@@ -1,0 +1,6 @@
+for file in $(find | grep "\.c\$"); do dos2unix $file; done
+for file in $(find | grep "\.h\$"); do dos2unix $file; done
+for file in $(find | grep "\.cc\$"); do dos2unix $file; done
+
+
+

@@ -1,0 +1,3 @@
+Set SVN$Dir <Obey$Dir>
+
+Run <SVN$Dir>.!Boot

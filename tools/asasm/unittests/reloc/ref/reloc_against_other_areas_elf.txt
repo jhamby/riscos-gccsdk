@@ -1,0 +1,102 @@
+ELF Header:
+  Magic:   7f 45 4c 46 01 01 01 61 00 00 00 00 00 00 00 00 
+  Class:                             ELF32
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            ARM
+  ABI Version:                       0
+  Type:                              REL (Relocatable file)
+  Machine:                           ARM
+  Version:                           0x1
+  Entry point address:               0x0
+  Start of program headers:          0 (bytes into file)
+  Start of section headers:          364 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               52 (bytes)
+  Size of program headers:           0 (bytes)
+  Number of program headers:         0
+  Size of section headers:           40 (bytes)
+  Number of section headers:         8
+  Section header string table index: 7
+
+Section Headers:
+  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+  [ 1] .symtab           SYMTAB          00000000 000034 000080 10      2   8  4
+  [ 2] .strtab           STRTAB          00000000 0000b4 000007 00      0   0  1
+  [ 3] Code1             PROGBITS        00000000 0000bc 000010 00  AX  0   0  4
+  [ 4] Code2             PROGBITS        00000000 0000cc 000028 00  AX  0   0  4
+  [ 5] .rel.Code2        REL             00000000 0000f4 000030 08      1   4  4
+  [ 6] Code3             PROGBITS        00000000 000124 000010 00  AX  0   0  4
+  [ 7] .shstrtab         STRTAB          00000000 000134 000038 00      0   0  1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings)
+  I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
+  O (extra OS processing required) o (OS specific), p (processor specific)
+
+There are no section groups in this file.
+
+There are no program headers in this file.
+
+Relocation section '.rel.Code2' at offset 0xf4 contains 6 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+00000010  00000502 R_ARM_ABS32       00000000   Code1
+00000014  00000502 R_ARM_ABS32       00000000   Code1
+00000018  00000602 R_ARM_ABS32       00000000   Code2
+0000001c  00000602 R_ARM_ABS32       00000000   Code2
+00000020  00000702 R_ARM_ABS32       00000000   Code3
+00000024  00000702 R_ARM_ABS32       00000000   Code3
+
+There are no unwind sections in this file.
+
+Symbol table '.symtab' contains 8 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 00000000     0 NOTYPE  LOCAL  DEFAULT    3 $a
+     2: 00000000     0 NOTYPE  LOCAL  DEFAULT    4 $a
+     3: 00000000     0 NOTYPE  LOCAL  DEFAULT    6 $a
+     4: 00000010     0 NOTYPE  LOCAL  DEFAULT    4 $d
+     5: 00000000     0 SECTION LOCAL  DEFAULT    3 
+     6: 00000000     0 SECTION LOCAL  DEFAULT    4 
+     7: 00000000     0 SECTION LOCAL  DEFAULT    6 
+
+No version information found in this file.
+
+out/reloc_against_other_areas_elf.o:     file format elf32-littlearm
+
+
+Disassembly of section Code1:
+
+00000000 <Code1>:
+   0:	e3a01001 	mov	r1, #1
+   4:	e3a02002 	mov	r2, #2
+   8:	e3a03003 	mov	r3, #3
+   c:	e3a04004 	mov	r4, #4
+
+Disassembly of section Code2:
+
+00000000 <Code2>:
+   0:	e3a05005 	mov	r5, #5
+   4:	e3a06006 	mov	r6, #6
+   8:	e3a07007 	mov	r7, #7
+   c:	e3a08008 	mov	r8, #8
+  10:	00000000 	.word	0x00000000
+			10: R_ARM_ABS32	Code1
+  14:	00000008 	.word	0x00000008
+			14: R_ARM_ABS32	Code1
+  18:	00000000 	.word	0x00000000
+			18: R_ARM_ABS32	Code2
+  1c:	00000008 	.word	0x00000008
+			1c: R_ARM_ABS32	Code2
+  20:	00000000 	.word	0x00000000
+			20: R_ARM_ABS32	Code3
+  24:	00000008 	.word	0x00000008
+			24: R_ARM_ABS32	Code3
+
+Disassembly of section Code3:
+
+00000000 <Code3>:
+   0:	e3a09009 	mov	r9, #9
+   4:	e3a0a00a 	mov	sl, #10
+   8:	e3a0b00b 	mov	fp, #11
+   c:	e3a0c00c 	mov	ip, #12

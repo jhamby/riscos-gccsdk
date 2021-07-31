@@ -1,0 +1,6 @@
+| Run file for ZLib1g
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set ZLib1g$Dir <Obey$Dir>
+Set ZLib1g$Path <Obey$Dir>.

@@ -1,0 +1,6 @@
+
+AB_CATEGORY=Terminal
+
+AB_FILESNOPATH="less$AB_EXEEXT COPYING"
+
+chmod a+w configure

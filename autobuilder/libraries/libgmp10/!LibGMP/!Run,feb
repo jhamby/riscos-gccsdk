@@ -1,0 +1,6 @@
+| Run file for LibGMP
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibGMP$Dir <Obey$Dir>
+Set LibGMP$Path <Obey$Dir>.
