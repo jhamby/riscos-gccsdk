@@ -2,6 +2,9 @@ AB_GIT=https://github.com/unicode-org/icu
 
 ICU_VERSION=52
 
+# Always build shared libraries (static icu needs dlopen()).
+RO_SHAREDLIBS=yes
+
 # We call the install target ourselves in ab_make() below.
 AB_INSTALL=no
 
