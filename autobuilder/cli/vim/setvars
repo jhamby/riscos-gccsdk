@@ -18,5 +18,14 @@ ab_package() {
   cp -av $S/README.txt $A
   cp -av $S/runtime $A
 
+  # NOTE: filenames containing '@' aren't allowed in RISC OS.
+  # If we don't remove this file, the package will fail to
+  # install with a SWI error attempting to create it.
+  #
+  # Perhaps a future update to PackMan could display the
+  # failed filename for this error, to simplify debugging.
+
+  rm -v "$A/runtime/spell/sr/sr_RS@latin.diff"
+
   $AB_HOME/add-riscpkg -unixlib -name Vim
 }
