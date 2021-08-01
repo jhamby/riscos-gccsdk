@@ -1,2 +1,2 @@
-wget  http://ftp.debian.org/debian/pool/main/c/curl/curl_7.74.0-1.debian.tar.xz
-tar -xvJf curl_7.74.0-1.debian.tar.xz| patch -p1 || true
+wget http://ftp.debian.org/debian/pool/main/c/curl/curl_7.74.0-1.3.debian.tar.xz
+tar -xvJf curl_7.74.0-1.3.debian.tar.xz| patch -p1 || true
