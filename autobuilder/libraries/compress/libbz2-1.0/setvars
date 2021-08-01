@@ -1,6 +1,17 @@
 AB_INSTALL=yes
 AB_PRECONF=:
-AB_ROVERSION=4
+AB_ROVERSION=5
+
+# NOTE: building this as a shared lib causes Qt 5 to fail to load
+# its RISC OS plugin due to libbz2 not loading, as a dependency
+# of libfontconfig. Building libbz2 as a static library, using
+# "-fPIC" so that we can link it into shared libs that need it,
+# is a good workaround for now.
+#
+# I'm unsure if the SOManager's failure to load libbz2 as a
+# shared library from fontconfig is due to the dependencies
+# being nested too many layers deep, or for some other reason.
+RO_SHAREDLIBS=no
 
 ab_package() {
   cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
@@ -60,7 +71,7 @@ ab_package() {
     ab_create_sharedlib_skeleton libbz2-1.0
     ab_add_sharedlib $S libbz2.so.1.0
 
-    $AB_HOME/add-riscpkg -package libbz2-1.0 -name LibBZ2-1.0 -section Library -depends SharedLibs-C2 -copyrightfile $S/LICENSE
+    $AB_HOME/add-riscpkg -package libbz2-1.0 -name LibBZ2-1.0 -section Library -depends SharedLibs -copyrightfile $S/LICENSE
   fi
 
 }
