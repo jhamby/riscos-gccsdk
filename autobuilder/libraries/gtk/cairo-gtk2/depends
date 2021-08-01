@@ -1,5 +1,5 @@
 libfreetype6
-libfontconfig1
+libfontconfig
 zlib1g
 libxrender1
 libpng16-16
