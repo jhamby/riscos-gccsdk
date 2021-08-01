@@ -1,5 +1,12 @@
 AB_INSTALL=yes
 
+# Note: Building with NEON causes an internal compiler error
+# with GCC 10.2.0. Set the FPU to VFPv3 as a workaround.
+# Also, "ro-ar" expects to see "ar cru", not "ar cr".
+# This fixes a mysterious linker error with libtool.
+
+AB_PRECONF="CFLAGS=\"-mfpu=vfpv3\" AR_FLAGS=\"cru\""
+
 ./autogen.sh
 
 ab_package() {
