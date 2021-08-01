@@ -8,4 +8,42 @@ ab_make()
    mkdir -p $AB_DIR/package/include/readline
 }
 
+ab_package() {
+  ab_create_app LibReadline7 Apps/Library libreadline7-dev
 
+  cp README $A\!Help
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/* .
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  cp -r examples $A/doc
+
+  $AB_HOME/add-riscpkg -package libreadline7-dev -name LibReadline7-Dev -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libreadline7
+
+     ln -sfT libhistory.so.7.0 $S/shlib/libhistory.so
+     ln -sfT libhistory.so.7.0 $S/shlib/libhistory.so.7
+
+     ln -sfT libreadline.so.7.0 $S/shlib/libreadline.so
+     ln -sfT libreadline.so.7.0 $S/shlib/libreadline.so.7
+
+     ab_add_sharedlib $S/shlib libhistory.so.7
+     ab_add_sharedlib $S/shlib libreadline.so.7
+
+     $AB_HOME/add-riscpkg -package libreadline7 -name LibReadline7 -depends SharedLibs
+  fi
+}

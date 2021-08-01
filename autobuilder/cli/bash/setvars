@@ -18,5 +18,5 @@ ab_package () {
   mkdir -p $A/doc
   cp $S/doc/bash.html $S/doc/bash.pdf $S/doc/bash.ps $A/doc
 
-  $AB_HOME/add-riscpkg -name Bash -unixlib
+  $AB_HOME/add-riscpkg -name Bash -unixlib -depends SharedLibs -depends LibReadline7
  }
