@@ -17,3 +17,7 @@ gcc4/gccsdk-params
 gcc4/release-area/
 gcc4/srcdir/
 gcc4/srcdir.orig/
+
+# directories used to rerun autoconf/automake.
+autom4te.cache/
+build-aux/

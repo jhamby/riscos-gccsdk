@@ -17,10 +17,9 @@ GDBServer_CCASFLAGS=-O3 -mmodule $(OURWARNFLAGS) -std=gnu99
 GDBServer_LDFLAGS=-mmodule
 
 # CMunge invocation:
-am__v_CMUNGE_V = am__v_CMUNGE_$(V)
-AM_V_CMUNGE = $(am__v_CMUNGE_V)
-am__v_CMUNGE_AMDV = am__v_CMUNGE_$(AM_DEFAULT_VERBOSITY)
-am__v_CMUNGE_ = $(am__v_CMUNGE_AMDV)
+#AM_V_CMUNGE = $(am__v_CMUNGE_$(V))
+#am__v_CMUNGE_ = $(am__v_CMUNGE_$(AM_DEFAULT_VERBOSITY))
+am__v_CMUNGE_ = $(am__v_CMUNGE_0)
 am__v_CMUNGE_0 = @echo "  CMUNGE" $@;
 SUFFIXES=.cmhg
 CMUNGEFLAGS = -p -tgcc -32bit -apcs 3/32/nonreent/fpe2/noswst/nofpr/nofp
