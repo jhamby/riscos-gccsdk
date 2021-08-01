@@ -1,0 +1,6 @@
+Wimpslot -min 3200k -max 3200k
+
+Set FractGen$Dir <Obey$Dir>
+unset Qt$NoRedBlueSwap
+<FractGen$Dir>.redblueswap
+Run <FractGen$Dir>.fractgen ><FractGen$Dir>.debug 2>&1
