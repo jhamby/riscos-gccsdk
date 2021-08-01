@@ -130,6 +130,7 @@ typedef struct {
   int           no_scl;         /* module does not need SCL */
   int           reentrant;	/* module-is-not-reentrant */
   int           cplusplus;      /* module-is-c-plus-plus */
+  int           gnueabihf;      /* module is gnueabihf */
   const char   *service;	/* service-call-handler */
   int_list      services;	/* service-call-handler */
   char         *title;		/* title-string */

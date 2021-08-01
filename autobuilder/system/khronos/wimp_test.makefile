@@ -18,6 +18,6 @@ INCLUDES += \
 	-I$(USERLAND_DIR) \
 	-I$(GCCSDK_INSTALL_ENV)/vfp/include -I$(GCCSDK_INSTALL_ENV)/include
 
-SYSTEM_BIN_LIBS += -L../ -lbcm_host -lEGL -lGLESv2
+SYSTEM_BIN_LIBS += -L../ -Wl,-Bstatic -lbcm_host -lEGL -lGLESv2 -Wl,-Bdynamic
 
 include $(DEPTH)/rules.mk

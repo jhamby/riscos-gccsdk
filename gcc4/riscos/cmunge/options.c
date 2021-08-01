@@ -27,6 +27,7 @@ void Options_Init(void) {
   opt.no_scl      = 0;
   opt.reentrant   = 1;
   opt.cplusplus   = 0;
+  opt.gnueabihf   = 0;
   opt.service     = NULL;
   opt.services    = NULL;
   opt.title       = NULL;
@@ -316,6 +317,8 @@ void Options_CL(int argc, char *argv[]) {
       } else {
         ErrorFatal("No APCS type supplied!");
       }
+    } else if (strcmp("-gnueabihf", argv[i])==0) { /* case sensitive */
+      opt.gnueabihf = 1;
     } else {
       if (opt.infile) {
         ErrorFatal("Unknown flag/Only specify one input file: %s", argv[i]);

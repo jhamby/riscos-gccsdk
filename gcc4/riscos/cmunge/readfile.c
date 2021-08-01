@@ -1634,10 +1634,16 @@ void ReadFile(void) {
            cmhg extension. */
 #ifdef __riscos
 #  define GCC_BINARY_NAME "gcc"
-#else
-#  define GCC_BINARY_NAME "arm-unknown-riscos-gcc"
-#endif
         bufend = buf+sprintf(buf, GCC_BINARY_NAME " -E -nostdinc -xc");
+#else
+#  define GCC_BINARY_NAME_EABIHF "arm-riscos-gnueabihf-gcc"
+#  define GCC_BINARY_NAME "arm-unknown-riscos-gcc"
+	if (opt.gnueabihf) {
+          bufend = buf+sprintf(buf, GCC_BINARY_NAME_EABIHF " -E -nostdinc -xc");
+	} else {
+          bufend = buf+sprintf(buf, GCC_BINARY_NAME " -E -nostdinc -xc");
+	}
+#endif
         break;
       case tc_norcroft:
 #ifdef __riscos

@@ -28,6 +28,7 @@ void AssembleFile(void) {
 #else
     throwback = 0;
 #  define GCC_BINARY_NAME "arm-unknown-riscos-gcc"
+#  define GCC_BINARY_NAME_EABIHF "arm-riscos-gnueabihf-gcc"
 #endif
 
     switch (opt.toolchain)
@@ -46,9 +47,20 @@ void AssembleFile(void) {
         break;
       case tc_gcc:
       case tc_lcc:
-        sprintf(buf, GCC_BINARY_NAME " -xassembler -mmodule %s -c %s -o %s",
+#ifndef __riscos
+	if (opt.gnueabihf) {
+          sprintf(buf, GCC_BINARY_NAME_EABIHF
+			  " -xassembler -mmodule %s -c %s -o %s",
                           throwback ? "-mthrowback" : "",
                           opt.sfile, opt.ofile);
+	}
+	else
+#endif
+	{
+          sprintf(buf, GCC_BINARY_NAME " -xassembler -mmodule %s -c %s -o %s",
+                          throwback ? "-mthrowback" : "",
+                          opt.sfile, opt.ofile);
+	}
         break;
     }
 
