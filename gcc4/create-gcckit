@@ -99,7 +99,8 @@ create_examples_tree() {
   create_empty_dir $GCCSDK_UNPACKED/Examples
 
   # Copy Examples:
-  svn export -q --force $GCCSDK_RISCOS/dist/Examples $GCCSDK_UNPACKED/Examples
+  #svn export -q --force $GCCSDK_RISCOS/dist/Examples $GCCSDK_UNPACKED/Examples
+  cp -pRTv $GCCSDK_RISCOS/dist/Examples $GCCSDK_UNPACKED/Examples
 
   do_suffix_swapping $GCCSDK_UNPACKED/Examples
 }
@@ -206,7 +207,8 @@ create_gcc_tree() {
   done
 
   # Copy !GCC skeleton:
-  svn export -q --force $GCCSDK_RISCOS/dist/\!GCC $GCCSDK_UNPACKED/\!GCC
+  #svn export -q --force $GCCSDK_RISCOS/dist/\!GCC $GCCSDK_UNPACKED/\!GCC
+  cp -pRTv $GCCSDK_RISCOS/dist/\!GCC $GCCSDK_UNPACKED/\!GCC
 
   # GCC & binutils documentation: we remove the info & man pages as they are not
   # really useful on RISC OS but create and use those HTML versions instead.
@@ -245,7 +247,8 @@ create_gcc_tree() {
   cp $GCCSDK_RISCOS/asasm/docs/{AIF-1989,AIF-1993,ALF-1989,ALF-1993,AOF-1989,AOF-2002,APCS,ASDTF} $GCCSDK_UNPACKED/\!GCC/docs/asasm
   # Copy CMunge documentation:
   remove_if_there $GCCSDK_UNPACKED/\!GCC/docs/cmunge
-  svn export -q --force $GCCSDK_RISCOS/cmunge/Docs $GCCSDK_UNPACKED/\!GCC/docs/cmunge
+  #svn export -q --force $GCCSDK_RISCOS/cmunge/Docs $GCCSDK_UNPACKED/\!GCC/docs/cmunge
+  cp -pRTv $GCCSDK_RISCOS/cmunge/Docs $GCCSDK_UNPACKED/\!GCC/docs/cmunge
   cp $GCCSDK_RISCOS/cmunge/GCCSDK-CHANGES $GCCSDK_UNPACKED/\!GCC/docs/cmunge
   # Copy drenderer documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/drenderer
@@ -258,7 +261,8 @@ create_gcc_tree() {
   cp $GCCSDK_RISCOS/ln/{ChangeLog,AUTHORS,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/ln
   # Copy mkresfs documentation:
   remove_if_there $GCCSDK_UNPACKED/\!GCC/docs/mkresfs
-  svn export -q --force $GCCSDK_RISCOS/mkresfs/doc $GCCSDK_UNPACKED/\!GCC/docs/mkresfs
+  #svn export -q --force $GCCSDK_RISCOS/mkresfs/doc $GCCSDK_UNPACKED/\!GCC/docs/mkresfs
+  cp -pRTv $GCCSDK_RISCOS/mkresfs/doc $GCCSDK_UNPACKED/\!GCC/docs/mkresfs
   cp $GCCSDK_RISCOS/mkresfs/{ChangeLog,AUTHORS,COPYING} $GCCSDK_UNPACKED/\!GCC/docs/mkresfs
   # Copy UnixLib documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
@@ -337,9 +341,10 @@ if $GCCSDK_DO_PKG ; then
 
   # CMunge source kit:
   remove_if_there $SKIT_CMUNGE_NAME
-  svn export -q --force $GCCSDK_RISCOS/cmunge $SKIT_CMUNGE_NAME
+  #svn export -q --force $GCCSDK_RISCOS/cmunge $SKIT_CMUNGE_NAME
+  cp -pRTv $GCCSDK_RISCOS/cmunge $SKIT_CMUNGE_NAME
   # Add GCCSDK patch file:
-  svn diff svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge svn://svn.riscos.info/gccsdk/trunk/gcc4/riscos/cmunge > $SKIT_CMUNGE_NAME/GCCSDK-DIFF
+  #svn diff svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge svn://svn.riscos.info/gccsdk/trunk/gcc4/riscos/cmunge > $SKIT_CMUNGE_NAME/GCCSDK-DIFF
 
   # riscos tools source kit (everything without cmunge source):
   create_empty_dir $SKIT_RISCOS_NAME
@@ -351,7 +356,7 @@ if $GCCSDK_DO_PKG ; then
         # $SKIT_CMUNGE_NAME. Skip also the .svn directory.
         ;;
       *)
-        svn export -q --force $obj $GCCSDK_KITS/$SKIT_RISCOS_NAME/$obj
+        # svn export -q --force $obj $GCCSDK_KITS/$SKIT_RISCOS_NAME/$obj
         ;;
     esac
   done

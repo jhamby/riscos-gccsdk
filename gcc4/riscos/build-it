@@ -270,7 +270,8 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
     fi
 
     # Copy !SharedLibs skeleton + shared library files in the gcc build result:
-    svn export -q --force $GCCSDK_RISCOS/soloader/dist/\!SharedLibs $GCCSDK_RISCOS_DSOPREFIX
+    #svn export -q --force $GCCSDK_RISCOS/soloader/dist/\!SharedLibs $GCCSDK_RISCOS_DSOPREFIX
+    cp -pRTv $GCCSDK_RISCOS/soloader/dist/\!SharedLibs $GCCSDK_RISCOS_DSOPREFIX
     mkdir -p $GCCSDK_RISCOS_DSOPREFIX/lib/$GCCSDK_RISCOS_ABI_VERSION
 
     install_shared_libraries "" ""
@@ -282,7 +283,9 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/400/Modules
 
   # *** Copy !System skeleton:
-  svn export -q --force $GCCSDK_RISCOS/dist/\!System $GCCSDK_RISCOS_SYSTEMPREFIX/\!System
+  #svn export -q --force $GCCSDK_RISCOS/dist/\!System $GCCSDK_RISCOS_SYSTEMPREFIX/\!System
+  cp -pRTv $GCCSDK_RISCOS/dist/\!System $GCCSDK_RISCOS_SYSTEMPREFIX\!System
+  find $GCCSDK_RISCOS_SYSTEMPREFIX -name .gitkeep -exec rm -v {} \;
 
   # *** ARMEABISupport module:
   #   1. Copy ARMEABISupport module from to !System:

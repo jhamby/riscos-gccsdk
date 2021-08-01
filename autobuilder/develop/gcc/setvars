@@ -13,7 +13,7 @@ AB_ROVERSION=1
 AB_MAKE=
 AB_PRECONF=":"
 AB_CONFIG=
-AB_DISTCLEAN="$AB_MAKE do-distclean || $AB_MAKE do-clean"
+#AB_DISTCLEAN="$AB_MAKE do-distclean || $AB_MAKE do-clean"
 
 export GCCSDK_RISCOS_ABI_VERSION=armeabihf
 
@@ -72,7 +72,7 @@ build_cross_binutils() {
 
   CC=/usr/bin/gcc CXX=/usr/bin/g++ \
   ../configure --prefix=$GCCSDK_INSTALL_ENV --target=arm-riscos-gnueabihf --disable-nls --disable-werror
-  make -j4 && make install
+  make -j6 && make install
 
   popd > /dev/null
 
@@ -97,7 +97,7 @@ build_native_binutils() {
   ../configure --prefix=$(realpath ../native-install) --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf \
 		--with-stage1-ldflags="$S/cross-build/ld-riscos/d-link/libdl/libdl.2.0.0.so" \
 		--disable-nls --disable-werror --with-system-zlib=no
-  make -j4 && make install
+  make -j6 && make install
   popd > /dev/null
 
   popd > /dev/null
@@ -183,10 +183,10 @@ build_cross_compiler() {
 	       --with-bugurl=http://gccsdk.riscos.info/ \
 	       --with-abi=aapcs-linux \
 	       --with-float=hard \
-	       --with-fpu=vfpv3 \
-	       --with-arch=armv7-a
+	       --with-fpu=neon \
+	       --with-cpu=cortex-a53
 
-  make -j4 && make install
+  make -j6 && make install
 
   popd >/dev/null
 }
@@ -216,12 +216,12 @@ build_native_compiler() {
 	       --with-bugurl=http://gccsdk.riscos.info/ \
 	       --with-abi=aapcs-linux \
 	       --with-float=hard \
-	       --with-fpu=vfpv3 \
-	       --with-arch=armv7-a \
+	       --with-fpu=neon \
+	       --with-cpu=cortex-a53 \
 	       --with-stage1-ldflags="" \
 	       --with-diagnostics-color=never
 
-  make -j4 && make install
+  make -j6 && make install
 
   popd >/dev/null
 }
@@ -233,7 +233,7 @@ build_dynamic_linker() {
   pushd cross-build/ld-riscos >/dev/null
 
   CC=$GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-gcc ../../ld-riscos/configure --prefix=$GCCSDK_INSTALL_ENV --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf
-  make -j4 && make install
+  make -j6 && make install
 
   popd >/dev/null
 }
@@ -435,5 +435,5 @@ ab_package() {
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s ^.^.^.^.bin.nm $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/nm,1C8
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s ^.^.^.^.bin.strip $A/libexec/gcc/arm-riscos-gnueabihf/$GCC_VERSION/strip,1C8
 
-  $AB_HOME/add-riscpkg -package gcc -depends SharedLibs-$GCCSDK_RISCOS_ABI_VERSION
+  $AB_HOME/add-riscpkg -package gcc -depends SharedLibs-C-$GCCSDK_RISCOS_ABI_VERSION -depends SharedLibs-C++-$GCCSDK_RISCOS_ABI_VERSION
 }

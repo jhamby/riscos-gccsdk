@@ -30,7 +30,7 @@ along with GCC; see the file COPYING3.  If not see
 #undef  TARGET_DEFAULT_FLOAT_ABI
 #define TARGET_DEFAULT_FLOAT_ABI ARM_FLOAT_ABI_SOFT
 
-#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6
+/* #define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6 */
 
 /* RISC OS FPE always understands FPA instructions.  */
 #if 0
