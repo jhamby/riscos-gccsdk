@@ -26,3 +26,7 @@ build-aux/
 autobuilder/autobuilder_libraries/
 autobuilder/autobuilder_packages/
 autobuilder/last-zips
+
+# compiled object files in autobuilder/toolsrc/libpkg.
+*.o
+*.a
