@@ -1,10 +1,38 @@
-
-
 AB_CONFLAGS="--disable-database --with-hashed-db=no --with-fallbacks=vt102,vt220,xterm-vt220 --without-ada --without-progs CPPFLAGS= --includedir=$GCCSDK_INSTALL_ENV/include"
 AB_INSTALL=yes
-
 
 AB_MAKE="TERM=xterm-colour make -C ncurses fallback.c; $AB_MAKE"
 
 chmod a+w configure
 
+ab_package() {
+  ab_create_app LibNCurses5 Apps/Library libncurses5-dev
+
+  cp README $A\!Help
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/* .
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package libncurses5-dev -name LibNCurses5-Dev -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libncurses5
+
+     ln -sfT libncurses.so.5.2 $S/shlib/libncurses.so
+     ln -sfT libncurses.so.5.2 $S/shlib/libncurses.so.5
+
+     ab_add_sharedlib $S/shlib libncurses.so.5
+
+     $AB_HOME/add-riscpkg -package libncurses5 -name LibNCurses5 -depends SharedLibs
+  fi
+}
