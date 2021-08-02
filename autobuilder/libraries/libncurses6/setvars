@@ -1,0 +1,39 @@
+AB_CONFLAGS="--disable-database --with-hashed-db=no --with-fallbacks=vt102,vt220,xterm-vt220 --without-ada --without-progs CPPFLAGS= --includedir=$GCCSDK_INSTALL_ENV/include --with-shared --with-cxx-shared"
+AB_INSTALL=yes
+
+AB_MAKE="TERM=xterm-colour make -C ncurses fallback.c; $AB_MAKE"
+
+chmod a+w configure
+
+ab_package() {
+  ab_create_app LibNCurses6 Apps/Library libncurses6-dev
+
+  cp README $A\!Help
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/* .
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package libncurses6-dev -name LibNCurses6-Dev -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libncurses6
+
+     ab_add_sharedlib $S/lib libform.so.6
+     ab_add_sharedlib $S/lib libmenu.so.6
+     ab_add_sharedlib $S/lib libncurses.so.6
+     ab_add_sharedlib $S/lib libncurses++.so.6
+     ab_add_sharedlib $S/lib libpanel.so.6
+
+     $AB_HOME/add-riscpkg -package libncurses6 -name LibNCurses6 -depends SharedLibs
+  fi
+}
