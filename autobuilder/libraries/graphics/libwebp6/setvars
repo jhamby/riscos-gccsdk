@@ -1,5 +1,15 @@
 AB_INSTALL=yes
 
+# Note: Building with NEON causes an internal compiler eror
+# with GCC 10.2.0. Disable 'peephole2' as a workaround.
+# Also, "ro-ar" expects to see "ar cru", not "ar cr".
+# This fixes a mysterious linker error with libtool.
+if [ "$RO_USE_ARMEABIHF" == "yes" ] ; then
+   AB_PRECONF="CFLAGS=\"-fno-peephole2\" AR_FLAGS=\"cru\""
+else
+   AB_PRECONF="AR_FLAGS=\"cru\""
+fi
+
 ./autogen.sh
 
 ab_package() {
