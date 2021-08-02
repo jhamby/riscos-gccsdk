@@ -1,8 +1,12 @@
 AB_INSTALL=yes
 AB_PVERSION=`echo "$AB_PVERSION" | sed -e "s/error-//"`
+AB_PRECONF="AWK=\"gawk --traditional\""
 
 cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h \
    src/syscfg/lock-obj-pub.riscos.h
+
+cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h \
+   src/syscfg/lock-obj-pub.gnueabihf.h
 
 ab_package() {
   ab_create_app LibGPGError Apps/Library libgpg-error-dev
