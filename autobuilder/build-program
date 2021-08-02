@@ -208,7 +208,7 @@ ab_create_command_app() {
 ab_add_commands() {
   local program
   for program in $@; do
-    if [ "$AB_ELFBUILD" == yes ] && file -b $program | grep -q -e "ELF.*statically" ; then
+    if [ "$AB_ELFBUILD" == yes ] && file -b $program | grep -q -e "ELF.*statically" && [ "x$RO_USE_ARMEABIHF" != "xyes" ]; then
       # Call elf2aif only for statically linked ELF binaries.  In that case,
       # change ,e1f extension (if any) to ,ff8.
       local abs_program
@@ -496,7 +496,14 @@ ab_makerun() {
     aif=$aif,ff8
   fi
 
-  $GCCSDK_INSTALL_ENV/ro-path elf2aif $app $A/$aif
+  if [ "x$RO_USE_ARMEABIHF" == "xyes" ]; then
+    elf=$(basename $dest)
+    /bin/cp -av $dest $A/$elf
+    dest=$A/$elf
+  else
+    $GCCSDK_INSTALL_ENV/ro-path elf2aif $app $A/$aif
+    dest=$A/$aif
+  fi
 
   if [ -e $run,feb ] ; then
     mv $run,feb $run
@@ -504,10 +511,10 @@ ab_makerun() {
     # Create standard !Run
     echo -e "WIMPSLOT\n" > $run
     echo -e "Set $AA\$Dir <Obey\$Dir>\n" >> $run
-    echo "Run <$AA\$Dir>.$(basename $(sed "s#,ff8##" <<< $dest)) >null: 2><Obey\$Dir>.stderr" >> $run
+    echo "Run <$AA\$Dir>.$(basename $(sed "s#,ff8##" <<< $aif)) >null: 2><Obey\$Dir>.stderr" >> $run
   fi
 
-  $GCCSDK_INSTALL_ENV/bin/makerun $A/$aif $run $run,feb
+  $GCCSDK_INSTALL_ENV/bin/makerun $dest $run $run,feb
   rm -f $run
 }
 
@@ -869,7 +876,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
   echo "Autobuilder: Packaging files"
 
   cd $D
-  if [ "$AB_ELFBUILD" == "yes" ] ; then
+  if [ "$AB_ELFBUILD" == "yes" ] && [ "x$RO_USE_ARMEABIHF" != "xyes" ]; then
     # strip and convert binaries and libraries where possible
     binaries=$(find . -type f -wholename "*,e1f")
     for binary in $binaries; do
