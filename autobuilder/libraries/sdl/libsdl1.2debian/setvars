@@ -3,6 +3,7 @@ AB_HG_BRANCH=SDL-1.2
 AB_PVERSION=1.2.16
 AB_ROVERSION=1
 AB_LICENCE=Free
+AB_CONFLAGS="--enable-video-x11=no --enable-arm-simd=yes --enable-arm-neon=yes"
 
 AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
 AB_SHORTDESC="Allows programs portable low level access to a video, audio, mouse, and keyboard"
@@ -12,7 +13,11 @@ AB_DISTCLEAN="rm -rf build build-vfp"
 
 # Build normal and VFP versions by default.
 BUILD_NORMAL=yes
+if [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+BUILD_VFP=no
+else
 BUILD_VFP=yes
+fi
 
 if [ "$RO_SHAREDLIBS" == "yes" ] ; then
 AB_PACKAGES="libsdl1.2-dev libsdl1.2"
@@ -24,12 +29,12 @@ fi
 
 if [ "$BUILD_NORMAL" == "yes" ]; then
   mkdir -p $S/build
-  ( cd $S/build; ENABLE_VFP=no $AB_CONFIG)
+  ( cd $S/build; ENABLE_VFP=no $AB_CONFIG $AB_CONFLAGS )
 fi
 
 if [ "$BUILD_VFP" == "yes" ]; then
   mkdir -p $S/build-vfp
-  ( cd $S/build-vfp; CFLAGS="-mfpu=vfp -O3" $AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp )
+  ( cd $S/build-vfp; CFLAGS="-mfpu=vfp -O3" $AB_CONFIG --prefix=$GCCSDK_INSTALL_ENV/vfp $AB_CONFLAGS )
   # Patch libtool to specify -mfpu=vfp when linking, so that the correct GCC multilib configuration is used
   # (We can't do the official hack of specifying CC when running configure, because $AB_CONFIG overwrites it)
   sed -i "s/    new_inherited_linker_flags=\$/    new_inherited_linker_flags=\"-mfpu=vfp\"/" $S/build-vfp/libtool 
@@ -38,8 +43,10 @@ fi
 ab_make() {
   $AB_MAKE -C build $@
   $AB_MAKE -C build install
+if [ "$BUILD_VFP" == "yes" ] ; then
   $AB_MAKE -C build-vfp $@
   $AB_MAKE -C build-vfp install
+fi
 }
 
 ab_package() {
@@ -85,8 +92,10 @@ ab_package() {
       ab_create_sharedlib_skeleton libsdl1.2
       ab_add_sharedlib $S/build/build/.libs libSDL-1.2.so.0
 
-      $AB_HOME/add-riscpkg -package libsdl1.2 -name LibSDL1.2 -depends SharedLibs-C2 \
-		 -unixsound -section Library -copyrightfile $H/Copyright
+      $AB_HOME/add-riscpkg -package libsdl1.2 -name LibSDL1.2 -depends SharedLibs \
+		 -unixsound -section Library -copyrightfile $H/Copyright \
+		 -depends ZLib1g -depends LibJPEG8 -depends LibWebp6 \
+		 -depends LibTIFF5 -depends LibPNG16-16
 
       echo "Description: Simple DirectMedia Layer shared library files (arm)" >> $D/libsdl1.2/RiscPkg/Control,fff
       echo " SDL is a library that allows programs portable low level access to a video" >> $D/libsdl1.2/RiscPkg/Control,fff
@@ -100,8 +109,11 @@ ab_package() {
       ab_create_sharedlib_skeleton libsdl1.2-vfp
       ab_add_sharedlib $S/build-vfp/build/.libs libSDL-1.2.so.0
 
-      $AB_HOME/add-riscpkg -package libsdl-vfp -name LibSDL-VFP -depends SharedLibs-C2 \
-		 -unixsound -section Library -copyrightfile $H/Copyright -env vfp
+      $AB_HOME/add-riscpkg -package libsdl-vfp -name LibSDL-VFP -depends SharedLibs \
+		 -unixsound -section Library -copyrightfile $H/Copyright -env vfp \
+		 -depends ZLib1g -depends LibJPEG8 -depends LibWebp6 \
+		 -depends LibTIFF5 -depends LibPNG16-16
+
       echo "Description: Simple DirectMedia Layer shared library files (vfp)" >> $D/libsdl1.2-vfp/RiscPkg/Control,fff
       echo " SDL is a library that allows programs portable low level access to a video" >> $D/libsdl1.2-vfp/RiscPkg/Control,fff
       echo " framebuffer, audio output, mouse, and keyboard." >> $D/libsdl1.2-vfp/RiscPkg/Control,fff
