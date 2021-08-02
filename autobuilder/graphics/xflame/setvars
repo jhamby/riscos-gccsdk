@@ -8,5 +8,5 @@ ab_package() {
   cp -av $H/!Run,feb $A
   ab_makerun $S/xflame$AB_EXEEXT
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -depends LibSDL1.2
 }
