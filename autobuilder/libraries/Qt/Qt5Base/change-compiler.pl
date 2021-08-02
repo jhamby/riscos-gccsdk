@@ -22,11 +22,11 @@ open(my $out, ">",  $file) or die "Can't open $file: $!";
 while (<$in>)
   {
     my $line = $_;
-    if ($line =~ /CC +=.+arm-unknown-riscos-gcc$/)
+    if ($line =~ /CC +=.+arm-riscos-gnueabihf-gcc$/)
       {
 	print $out "CC            = /usr/bin/cc\n";
       }
-    elsif ($line =~ /CXX +=.+arm-unknown-riscos-g\+\+$/)
+    elsif ($line =~ /CXX +=.+arm-riscos-gnueabihf-g\+\+$/)
       {
 	print $out "CXX           = /usr/bin/c++\n";
       }

@@ -1,5 +1,5 @@
---- configure.orig	2015-06-29 21:03:05.000000000 +0100
-+++ configure	2015-07-15 18:35:48.026744813 +0100
+--- configure.orig	2015-10-12 21:35:07.000000000 -0700
++++ configure	2021-07-31 00:53:44.380214925 -0700
 @@ -671,6 +671,7 @@
  # Set when the -arch or -host-arch arguments are used
  OPT_OBSOLETE_HOST_ARG=no
@@ -8,7 +8,7 @@
  CFG_USE_GNUMAKE=no
  CFG_XINPUT2=auto
  CFG_XINPUT=runtime
-@@ -1824,6 +1825,13 @@
+@@ -1827,6 +1828,13 @@
              UNKNOWN_OPT=yes
          fi
          ;;
@@ -22,7 +22,7 @@
      linuxfb)
          if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ]; then
              CFG_LINUXFB="$VAL"
-@@ -5211,6 +5219,10 @@
+@@ -5224,6 +5232,10 @@
      if [ -n "$PKG_CONFIG" ] && $PKG_CONFIG --exists fontconfig --exists freetype2 2>/dev/null; then
          QT_CFLAGS_FONTCONFIG=`$PKG_CONFIG --cflags fontconfig --cflags freetype2 2>/dev/null`
          QT_LIBS_FONTCONFIG=`$PKG_CONFIG --libs fontconfig --libs freetype2 2>/dev/null`
@@ -33,7 +33,7 @@
      else
          QT_CFLAGS_FONTCONFIG=
          QT_LIBS_FONTCONFIG="-lfreetype -lfontconfig"
-@@ -5225,6 +5237,13 @@
+@@ -5238,6 +5250,13 @@
          CFG_FONTCONFIG=no
      fi
  
@@ -47,7 +47,7 @@
  fi
  
  # Save these for a check later
-@@ -5687,7 +5706,7 @@
+@@ -5700,7 +5719,7 @@
  fi
  
  if [ "$XPLATFORM_MAC" = "no" ] && [ "$XPLATFORM_MINGW" = "no" ] && [ "$XPLATFORM_QNX" = "no" ] && [ "$XPLATFORM_ANDROID" = "no" ] && [ "$XPLATFORM_HAIKU" = "no" ]; then
@@ -56,7 +56,7 @@
          if [ "$QPA_PLATFORM_GUARD" = "yes" ] &&
              ( [ "$ORIG_CFG_XCB" = "auto" ] || [ "$ORIG_CFG_EGLFS" = "auto" ] || [ "$ORIG_CFG_DIRECTFB" = "auto" ] || [ "$ORIG_CFG_LINUXFB" = "auto" ] || [ "$ORIG_CFG_KMS" = "auto" ] ); then
          echo "No QPA platform plugin enabled!"
-@@ -7096,6 +7115,7 @@
+@@ -7109,6 +7128,7 @@
  report_support "      EGLFS X11 .........." "$CFG_EGL_X"
  report_support "    LinuxFB .............." "$CFG_LINUXFB"
  report_support "    XCB .................." "$CFG_XCB" system "system library" qt "bundled copy"

@@ -7,10 +7,10 @@
 + 
 +#ifdef Q_OS_RISCOS
 +    if (platformPluginPath.isEmpty()) {
-+#if (defined(__VFP_FP__) && !defined(__SOFTFP__))
-+	platformPluginPath = QLatin1String("/SharedLibs:lib/abi-2.0/vfp/Qt/plugins/platforms");
++#if (defined(__VFP_FP__) && !defined(__SOFTFP__)) && 0
++	platformPluginPath = QLatin1String("/SharedLibs:lib/armeabihf/vfp/Qt/plugins/platforms");
 +#else
-+	platformPluginPath = QLatin1String("/SharedLibs:lib/abi-2.0/Qt/plugins/platforms");
++	platformPluginPath = QLatin1String("/SharedLibs:lib/armeabihf/Qt/plugins/platforms");
 +#endif
 +    }
 +#endif

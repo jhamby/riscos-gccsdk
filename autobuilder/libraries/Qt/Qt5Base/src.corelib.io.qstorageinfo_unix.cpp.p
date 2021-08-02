@@ -1,5 +1,5 @@
---- src/corelib/io/qstorageinfo_unix.cpp.orig	2015-06-29 21:05:01.000000000 +0100
-+++ src/corelib/io/qstorageinfo_unix.cpp	2015-07-15 19:49:03.790801776 +0100
+--- src/corelib/io/qstorageinfo_unix.cpp.orig	2021-07-31 01:13:01.616653016 -0700
++++ src/corelib/io/qstorageinfo_unix.cpp	2021-07-31 01:14:13.360979919 -0700
 @@ -62,6 +62,8 @@
  #  include <VolumeRoster.h>
  #  include <fs_info.h>
@@ -28,17 +28,20 @@
      QT_STATFSBUF *stat_buf;
      int entryCount;
      int currentIndex;
-@@ -509,6 +514,9 @@
-         bytesTotal = statfs_buf.f_blocks * statfs_buf.f_bsize;
-         bytesFree = statfs_buf.f_bfree * statfs_buf.f_bsize;
-         bytesAvailable = statfs_buf.f_bavail * statfs_buf.f_bsize;
+@@ -506,6 +511,12 @@
+         valid = true;
+         ready = true;
+ 
 +#ifdef Q_OS_RISCOS
++        bytesTotal = statfs_buf.f_blocks * statfs_buf.f_bsize;
++        bytesFree = statfs_buf.f_bfree * statfs_buf.f_bsize;
++        bytesAvailable = statfs_buf.f_bavail * statfs_buf.f_bsize;
 +	readOnly = false;
 +#else
- #if defined(Q_OS_ANDROID) || defined (Q_OS_BSD4)
- #if defined(_STATFS_F_FLAGS)
-         readOnly = (statfs_buf.f_flags & ST_RDONLY) != 0;
-@@ -516,6 +524,7 @@
+         bytesTotal = statfs_buf.f_blocks * statfs_buf.f_frsize;
+         bytesFree = statfs_buf.f_bfree * statfs_buf.f_frsize;
+         bytesAvailable = statfs_buf.f_bavail * statfs_buf.f_frsize;
+@@ -516,6 +527,7 @@
  #else
          readOnly = (statfs_buf.f_flag & ST_RDONLY) != 0;
  #endif

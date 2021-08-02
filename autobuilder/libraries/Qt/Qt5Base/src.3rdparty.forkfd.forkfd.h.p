@@ -1,11 +1,11 @@
---- src/3rdparty/forkfd/forkfd.h.orig	2015-06-29 21:04:35.000000000 +0100
-+++ src/3rdparty/forkfd/forkfd.h	2015-07-19 14:14:32.637153321 +0100
-@@ -28,10 +28,29 @@
- #include <fcntl.h>
+--- src/3rdparty/forkfd/forkfd.h.orig	2021-07-29 17:54:02.458209817 -0700
++++ src/3rdparty/forkfd/forkfd.h	2021-07-29 18:40:07.802965073 -0700
+@@ -29,10 +29,29 @@
+ #include <stdint.h>
  #include <unistd.h> // to get the POSIX flags
  
--#ifdef _POSIX_SPAWN
-+#if defined(_POSIX_SPAWN) && !defined(__riscos__)
+-#if _POSIX_SPAWN > 0
++#if _POSIX_SPAWN > 0 && !defined(__riscos__)
  #  include <spawn.h>
  #endif
  
@@ -31,12 +31,12 @@
  #ifdef __cplusplus
  extern "C" {
  #endif
-@@ -43,7 +62,7 @@
+@@ -51,7 +70,7 @@
+ int forkfd_wait(int ffd, forkfd_info *info, struct rusage *rusage);
+ int forkfd_close(int ffd);
  
- int forkfd(int flags, pid_t *ppid);
- 
--#ifdef _POSIX_SPAWN
-+#if defined(_POSIX_SPAWN) && !defined(__riscos__)
+-#if _POSIX_SPAWN > 0
++#if _POSIX_SPAWN > 0 && !defined(__riscos__)
  /* only for spawnfd: */
  #  define FFD_SPAWN_SEARCH_PATH   O_RDWR
  
