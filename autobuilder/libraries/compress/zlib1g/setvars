@@ -42,6 +42,6 @@ ab_package() {
      ab_create_sharedlib_skeleton zlib1g
      ab_add_sharedlib $S libz.so.1     
      
-     $AB_HOME/add-riscpkg -package zlib1g -name ZLib1g -depends SharedLibs-C2
+     $AB_HOME/add-riscpkg -package zlib1g -name ZLib1g -depends SharedLibs
   fi  
 }
