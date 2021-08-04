@@ -1,5 +1,9 @@
 AB_INSTALL=yes
 
-AB_URL=http://ftp.de.debian.org/debian/pool/main/libx/libxrender/libxrender_0.9.7.orig.tar.gz
+# Please note: the "preprocess" file must be updated to the corresponding
+# Debian patch set whenever this URL is updated to a new upstream version.
+AB_URL=http://ftp.de.debian.org/debian/pool/main/libx/libxrender/libxrender_0.9.8.orig.tar.gz
+
+AB_PVERSION=0.9.8
 
 AB_CONFLAGS="--enable-malloc0returnsnull"
