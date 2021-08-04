@@ -1,0 +1,22 @@
+AB_INSTALL=no
+
+AB_URL=https://www.uni-due.de/~be0001/fractalgenerator/download/fractgen-2.1.3.tar.gz
+
+AB_DISTCLEAN="$AB_MAKE -C build clean && $AB_MAKE -C build distclean"
+
+ab_make() {
+ mkdir -p build && cd build
+  $GCCSDK_INSTALL_ENV/bin/qmake -r ../fractgen.pro
+  $AB_MAKE
+  cd ..
+ }
+
+ab_package() {
+  ab_create_app FractGen Apps/Graphics fractgen
+
+  cp -T $S/build/src/fractgen $A/fractgen$AB_EXEEXT
+
+  cp -av $S/ChangeLog $S/NEWS $S/README $S/BUGS $S/COPYING $A/
+
+  $AB_HOME/add-riscpkg -unixlib -package fractgen -name FractGen -copyrightfile COPYING -depends Qt5Base -depends SharedLibs-C++2
+}

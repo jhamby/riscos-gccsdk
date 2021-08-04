@@ -1,0 +1,6 @@
+Wimpslot -min 3200k -max 3200k
+
+Set GPXSee$Dir <Obey$Dir>
+unset Qt$NoRedBlueSwap
+<GPXSee$Dir>.redblueswap
+Run <GPXSee$Dir>.gpxsee ><GPXSee$Dir>.debug 2>&1

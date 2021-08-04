@@ -1,11 +1,14 @@
 AB_INSTALL=yes
 
-# Note: Building with NEON causes an internal compiler error
-# with GCC 10.2.0. Set the FPU to VFPv3 as a workaround.
+# Note: Building with NEON causes an internal compiler eror
+# with GCC 10.2.0. Disable 'peephole2' as a workaround.
 # Also, "ro-ar" expects to see "ar cru", not "ar cr".
 # This fixes a mysterious linker error with libtool.
-
-AB_PRECONF="CFLAGS=\"-mfpu=vfpv3\" AR_FLAGS=\"cru\""
+if [ "$RO_USE_ARMEABIHF" == "yes" ] ; then
+   AB_PRECONF="CFLAGS=\"-fno-peephole2\" AR_FLAGS=\"cru\""
+else
+   AB_PRECONF="AR_FLAGS=\"cru\""
+fi
 
 ./autogen.sh
 

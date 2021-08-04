@@ -1,0 +1,23 @@
+AB_INSTALL=no
+
+AB_GIT=https://github.com/tumic0/GPXSee.git
+AB_PVERSION=7.38
+
+AB_DISTCLEAN="$AB_MAKE -C build clean && $AB_MAKE -C build distclean"
+
+ab_make() {
+ mkdir -p build && cd build
+  $GCCSDK_INSTALL_ENV/bin/qmake -r ../gpxsee.pro
+  $AB_MAKE
+  cd ..
+ }
+
+ab_package() {
+  ab_create_app GPXSee Apps/Graphics gpxsee
+
+  cp -T $S/build/gpxsee $A/gpxsee$AB_EXEEXT
+
+  cp -av $S/licence.txt $S/CONTRIBUTING.md $S/README.md $A/
+
+  $AB_HOME/add-riscpkg -unixlib -package gpxsee -name GPXSee -copyrightfile licence.txt -depends Qt5Base -depends SharedLibs-C++2
+}

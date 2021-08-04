@@ -1,0 +1,8 @@
+Licence: Free
+Description: FractGen - An extensible Fractal Generator software.
+ .
+ FractalGenerator is a Qt-based program to generate fractal images
+ (e.g. Mandelbrot set). The size of the calculated images is only limited by
+ the computer's virtual memory. That is, images may use the full printer
+ resolution!
+Homepage: https://www.gpxsee.orghttps://www.uni-due.de/~be0001/fractalgenerator/index.html
