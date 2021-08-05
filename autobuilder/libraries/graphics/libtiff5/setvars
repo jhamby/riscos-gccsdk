@@ -1,6 +1,8 @@
 AB_INSTALL=yes
 AB_INSTALLTARGET="-C libtiff install"
 
+AB_PRECONF="AR_FLAGS=\"cru\""
+
 ./autogen.sh
 
 ab_package() {
@@ -35,7 +37,8 @@ ab_package() {
 
     AB_COMPONENTS=""
     $AB_HOME/add-riscpkg -package libtiff5 -name LibTIFF5 \
-	-depends SharedLibs -section Library
+	-depends SharedLibs -section Library -depends LibLZMA5 \
+	-depends ZLib1g -depends LibJPEG8 -depends LibWebp6
   fi
 
 }
