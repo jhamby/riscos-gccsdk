@@ -10,7 +10,9 @@ ab_package() {
   # Package programs
   ab_create_command_app JPEGProgs Apps/Graphics libjpeg-progs
   ab_add_commands $S/*$AB_EXEEXT
+ if [ "$RO_SHAREDLIBS" == "yes" ] ; then
   ab_add_commands $S/.libs/*$AB_EXEEXT
+ fi
 
   cp $S/usage.txt $A/\!Help
   cp $S/usage.txt $S/wizard.txt $A/
