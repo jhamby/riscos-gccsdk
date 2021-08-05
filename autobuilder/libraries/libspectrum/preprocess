@@ -1,0 +1,2 @@
+wget https://deb.debian.org/debian/pool/main/libs/libspectrum/libspectrum_1.5.0-1.debian.tar.xz
+tar -xvJf libspectrum_1.5.0-1.debian.tar.xz | patch -p1 || true
