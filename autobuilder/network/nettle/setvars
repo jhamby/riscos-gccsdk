@@ -36,6 +36,7 @@ ab_package () {
    AB_PVERSION=`grep -m 1 "RelVer" !Release,fd7 | cut -f 3 -d' '`
    mkdir -p $D/Nettle/Apps/Network
    cp -r $S/!Nettle $D/Nettle/Apps/Network
+   rm -f $D/Nettle/Apps/Network/!Nettle/.cvsignore
    AB_COMPONENTS="Apps.Network.!Nettle (Movable)"
    $AB_HOME/add-riscpkg -package Nettle -unixlib -copyrightfile $S/License \
        -depends SocketWatch -depends CryptRandom
