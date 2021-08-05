@@ -1,4 +1,4 @@
-
+AB_URL=http://deb.debian.org/debian/pool/main/f/fuse-emulator/fuse-emulator_1.6.0+dfsg1.orig.tar.xz
 AB_CONFLAGS='--with-sdl --without-gtk --without-glib'
 
 AB_MANPAGE=man/fuse.1

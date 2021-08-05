@@ -1,3 +1,5 @@
+wget http://deb.debian.org/debian/pool/main/f/fuse-emulator/fuse-emulator_1.6.0+dfsg1-1.debian.tar.xz
+tar -xvJf fuse-emulator_1.6.0+dfsg1-1.debian.tar.xz | patch -p1 || true
 wget --progress=bar:force  http://ftp.de.debian.org/debian/pool/non-free/s/spectrum-roms/spectrum-roms_20081224.orig.tar.gz -O spectrum-roms.tar.gz
 tar -zxvf spectrum-roms.tar.gz
 mv spectrum-roms roms
