@@ -15,6 +15,10 @@ AB_PRECONF=":"
 AB_CONFIG=
 #AB_DISTCLEAN="$AB_MAKE do-distclean || $AB_MAKE do-clean"
 
+if [ "x$RO_GCC_CONFIG_FLAGS" == "x" ]; then
+  RO_GCC_CONFIG_FLAGS="--with-fpu=vfpv3 --with-arch=armv7-a"
+fi
+
 export GCCSDK_RISCOS_ABI_VERSION=armeabihf
 
 export ac_cv_func_shl_load=no
@@ -183,8 +187,7 @@ build_cross_compiler() {
 	       --with-bugurl=http://gccsdk.riscos.info/ \
 	       --with-abi=aapcs-linux \
 	       --with-float=hard \
-	       --with-fpu=neon \
-	       --with-cpu=cortex-a53
+	       $RO_GCC_CONFIG_FLAGS
 
   make -j6 && make install
 
@@ -216,10 +219,9 @@ build_native_compiler() {
 	       --with-bugurl=http://gccsdk.riscos.info/ \
 	       --with-abi=aapcs-linux \
 	       --with-float=hard \
-	       --with-fpu=neon \
-	       --with-cpu=cortex-a53 \
 	       --with-stage1-ldflags="" \
-	       --with-diagnostics-color=never
+	       --with-diagnostics-color=never \
+	       $RO_GCC_CONFIG_FLAGS
 
   make -j6 && make install
 
