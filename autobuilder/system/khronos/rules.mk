@@ -32,28 +32,28 @@ $(C_OBJS): %.o: %.c
 ifeq ($(MODULE_CMHG),)
 	$(CC) $(LIB_CFLAGS) -o $@ $<
 else
-	$(CC) $(MOD_CFLAGS) -o $@ $<
+	$(MOD_CC) $(MOD_CFLAGS) -o $@ $<
 endif
 
 $(C_SHOBJS): %.os: %.c
 ifeq ($(MODULE_CMHG),)
 	$(CC) $(SHLIB_CFLAGS) -o $@ $<
 else
-	$(CC) $(MOD_CFLAGS) -o $@ $<
+	$(MOD_CC) $(MOD_CFLAGS) -o $@ $<
 endif
 
 $(ASM_OBJS): %.o: %.s
 ifeq ($(MODULE_CMHG),)
 	$(ASM) $(LIB_ASMFLAGS) -o $@ $<
 else
-	$(ASM) $(MOD_ASMFLAGS) -o $@ $<
+	$(MOD_ASM) $(MOD_ASMFLAGS) -o $@ $<
 endif
 
 $(ASM_SHOBJS): %.os: %.s
 ifeq ($(MODULE_CMHG),)
 	$(ASM) $(SHLIB_ASMFLAGS) -o $@ $<
 else
-	$(ASM) $(MOD_ASMFLAGS) -o $@ $<
+	$(MOD_ASM) $(MOD_ASMFLAGS) -o $@ $<
 endif
 
 $(MODULE_INCLUDE): $(MODULE_CMHG)
@@ -75,7 +75,7 @@ $(TARGET).a: $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
 else
 $(TARGET): $(DIRS) $(EXTRA_TARGET_DEPS) $(OBJS) $(LIBS)
 	@echo Generating module $(TARGET)
-	$(LINK) -mmodule -o $(TARGET) $(OBJS) $(LIBS) $(SYSTEM_LIBS)
+	$(MOD_LINK) -mmodule -o $(TARGET) $(OBJS) $(LIBS) $(SYSTEM_LIBS)
 endif
 
 $(BIN_TARGET): $(OBJS) $(LIBS)

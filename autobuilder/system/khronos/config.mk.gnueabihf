@@ -6,6 +6,10 @@ ASM		= arm-riscos-gnueabihf-gcc
 CC		= arm-riscos-gnueabihf-gcc
 AR		= arm-riscos-gnueabihf-ar
 
+MOD_LINK	= arm-unknown-riscos-gcc
+MOD_ASM		= arm-unknown-riscos-gcc
+MOD_CC		= arm-unknown-riscos-gcc
+
 OS_MOD_ASMFLAGS	= -c -mmodule -mlibscl -x assembler-with-cpp -D__ASSEMBLY__
 OS_SHLIB_ASMFLAGS = -c -x assembler-with-cpp -D__ASSEMBLY__
 OS_LIB_ASMFLAGS	= -c -x assembler-with-cpp -D__ASSEMBLY__
@@ -15,7 +19,7 @@ OS_LIB_CFLAGS	= -c -Wall -std=c99 -fgnu89-inline
 
 INCLUDES	=
 
-OPTIMISE	= -O3
+OPTIMISE	= -O3 -fno-strict-aliasing
 
 INSTALL_DIR	= $(GCCSDK_INSTALL_ENV)/vfp
 
@@ -35,6 +39,6 @@ CPPFLAGS	+= $(OS_CPPFLAGS) $(DEFINES) $(INCLUDES) $(OPTIMISE)
 MOD_ASMFLAGS	+= $(OS_MOD_ASMFLAGS) $(ASM_DEFINES) $(ASM_INCLUDES)
 SHLIB_ASMFLAGS	+= $(OS_SHLIB_ASMFLAGS) $(ASM_DEFINES) $(ASM_INCLUDES)
 LIB_ASMFLAGS	+= $(OS_LIB_ASMFLAGS) $(ASM_DEFINES) $(ASM_INCLUDES)
-CMUNGEFLAGS	= -tgcc -32bit -p -gnueabihf
+CMUNGEFLAGS	= -tgcc -32bit -p
 
 TEMP_DIR	=
