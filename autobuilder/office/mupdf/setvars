@@ -1,10 +1,14 @@
 
-AB_URL=https://mupdf.com/downloads/archive/mupdf-1.17.0-source.tar.xz
+AB_URL=https://mupdf.com/downloads/archive/mupdf-1.18.0-source.tar.xz
 
-AB_PVERSION=1.17
+AB_PVERSION=1.18
 
 ab_make() {
+if [ "$RO_USE_ARMEABIHF" == "yes" ] ; then
+  $AB_MAKE HAVE_X11=no HAVE_GLUT=no USE_SYSTEM_LIBS=no prefix=$GCCSDK_INSTALL_ENV install
+else
   $AB_MAKE HAVE_X11=no HAVE_GLUT=no USE_SYSTEM_LIBS=no prefix=$GCCSDK_INSTALL_ENV USE_SYSTEM_HARFBUZZ=yes install
+fi
 }
 
 ab_package() {
