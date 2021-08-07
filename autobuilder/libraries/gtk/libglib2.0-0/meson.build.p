@@ -1,5 +1,17 @@
---- meson.build.orig	2019-01-21 13:38:50.000000000 +0000
-+++ meson.build	2020-08-01 21:29:10.742092322 +0100
+--- meson.build.orig	2021-08-01 21:49:58.469838905 -0700
++++ meson.build	2021-08-01 21:50:36.766051353 -0700
+@@ -354,9 +354,9 @@
+     '-Wno-bad-function-cast',
+     '-Werror=declaration-after-statement',
+     '-Werror=format=2',
+-    '-Werror=implicit-function-declaration',
++    # '-Werror=implicit-function-declaration',
+     '-Werror=init-self',
+-    '-Werror=missing-include-dirs',
++    # '-Werror=missing-include-dirs',
+     '-Werror=missing-prototypes',
+     '-Werror=pointer-arith',
+   ]
 @@ -1257,7 +1257,11 @@
    glibconfig_conf.set_quoted('g_pid_format', 'i')
    glibconfig_conf.set_quoted('g_pollfd_format', '%d')
