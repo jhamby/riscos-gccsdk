@@ -1,0 +1,18 @@
+AB_URL=https://github.com/angband/angband/archive/refs/tags/v3.3.2.tar.gz
+
+AB_CONFLAGS=\''--without-x --disable-curses --enable-sdl --enable-sdl-mixer --with-libpath=/<Angband\$Dir>/lib --with-varpath=/<Angband\$Dir>/lib --with-configpath=/<Angband\$Dir>/lib'\'
+
+autoreconf -fi
+
+export LIBS='-lpng -lz -lSDL -ljpeg -lwebp -lfreetype -lbz2 -lFLAC -lmikmod -lvorbis -lvorbisidec -logg'
+
+ab_package() {
+  ab_create_app Angband Apps/Games
+  ab_makerun $S/src/angband
+
+  cp -av $S/doc $S/lib $A
+
+  cp -av $S/changes.txt $S/copying.txt $S/faq.txt $S/readme.txt $S/thanks.txt $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/copying.txt -package angband -name Angband
+}

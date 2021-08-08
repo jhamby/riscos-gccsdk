@@ -1,0 +1,16 @@
+Description: Single-player, text-based, dungeon simulation game
+ Angband is a single-player, text-based, dungeon simulation derived
+ from the game Moria, which was in turn based on Rogue. It is
+ often described as a "roguelike" game because the look and feel of
+ the game is still quite similar to Rogue (though there are now graphical
+ tiles available if you dislike ASCII gaming). Angband has been in more or
+ less continuous development since the early 1990s.
+ .
+ The ultimate goal of the game is to develop a character strong enough
+ to defeat Morgoth, who resides on dungeon level 100. Upon doing so,
+ you will receive the exalted status of "winner" and your character may
+ retire. To achieve this you will need to explore numerous dungeon levels,
+ defeat many foes and sift through a great deal of treasure.
+ .
+ Angband is a reference to Morgoth's "prison of iron" in the world of
+ Middle-Earth, created by J.R.R. Tolkein.

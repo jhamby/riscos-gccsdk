@@ -1,0 +1,26 @@
+Angband - Single-player, text-based, dungeon simulation game (3.3.2)
+
+This RISC OS version was created using the GCCSDK Autobuilder
+
+See the "doc" subdirectory for more documentation or the official mplayer
+website at https://rephial.org
+
+Getting Started
+---------------
+If downloaded manually just copy the !Angband folder to a suitable location.
+Double-click the !Angband icon to run. By default Angband opens a window
+with a reolution of 800x600.
+Settings, scores and saved game files are stored in Boot:Choices.Angband.
+
+History
+-------
+RISC OS Version 1.00 (08-Aug-21)
+- this is the initial version of Angband 3.3.2 built for RISC OS.
+
+Issues
+------
+It uses SDL for the display so there is no RISC OS icon bar icon.
+
+Contact
+-------
+Chris Gransden - chrisg@riscosports.co.uk
