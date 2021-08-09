@@ -39,10 +39,10 @@ BUILDING_TOOLS=yes)
 AM_CONDITIONAL([BUILDING_TOOLS], [test x"${BUILDING_TOOLS}" = "xyes"])
 
 # Check for libarchive (only when ELF toolchain tools are built).
-AS_IF([test x"${BUILDING_TOOLS}" = "xyes"],
-      [PKG_CHECK_MODULES(LIBARCHIVE, [libarchive >= $REQ_LIBARCHIVE_VERSION])
-       AC_SUBST(LIBARCHIVE_CFLAGS)
-       AC_SUBST(LIBARCHIVE_LIBS)])
+#AS_IF([test x"${BUILDING_TOOLS}" = "xyes"],
+#      [PKG_CHECK_MODULES(LIBARCHIVE, [libarchive >= $REQ_LIBARCHIVE_VERSION])
+#       AC_SUBST(LIBARCHIVE_CFLAGS)
+#       AC_SUBST(LIBARCHIVE_LIBS)])
 
 # Determine LIBELF_ARCH, LIBELF_BYTEORDER and LIBELF_CLASS for native cross
 # ($build == $host != $target) and canadian cross ($build != $host != $target)
