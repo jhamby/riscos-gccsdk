@@ -1,5 +1,5 @@
---- libstdc++-v3/acinclude.m4.orig	2020-07-23 07:35:19.164404603 +0100
-+++ libstdc++-v3/acinclude.m4	2020-07-24 17:16:30.825914620 +0100
+--- libstdc++-v3/acinclude.m4.orig	2021-04-08 04:56:30.269767244 -0700
++++ libstdc++-v3/acinclude.m4	2021-08-08 17:55:15.991483426 -0700
 @@ -1859,111 +1859,181 @@
  		  typedef float_t   my_float_t;
  		  acosh(0.0);
@@ -182,12 +182,3 @@
  		 ],[glibcxx_cv_c99_math_tr1=yes], [glibcxx_cv_c99_math_tr1=no])
    ])
    AC_MSG_RESULT($glibcxx_cv_c99_math_tr1)
-@@ -2349,7 +2419,7 @@
- 
- m4_pushdef([n_syserr], [1])dnl
- m4_foreach([syserr], [EOWNERDEAD, ENOTRECOVERABLE, ENOLINK, EPROTO, ENODATA,
--		      ENOSR, ENOSTR, ETIME, EBADMSG, ECANCELED,
-+		      ENOMSG, ENOSR, ENOSTR, ETIME, EBADMSG, ECANCELED,
- 		      EOVERFLOW, ENOTSUP, EIDRM, ETXTBSY,
- 		      ECHILD, ENOSPC, EPERM,
- 		      ETIMEDOUT, EWOULDBLOCK],

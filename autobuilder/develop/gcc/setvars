@@ -5,7 +5,7 @@ AB_INSTALL=no
 AB_ROVERSION=1
 
 GCC_VERSION=10.3.0
-BINUTILS_VERSION=2.30
+BINUTILS_VERSION=2.31.1
 
 AB_CATEGORY="Development"
 
@@ -47,15 +47,15 @@ fi
 
 download_binutils() {
   pushd .. > /dev/null
-  wget https://ftp.gnu.org/gnu/binutils/binutils-2.30.tar.xz
-  tar xfJ binutils-2.30.tar.xz
-  ln -sTf $H/ld.emulparams.armelf_riscos_eabi.sh $S/../binutils-2.30/ld/emulparams/armelf_riscos_eabi.sh
-  ln -sTf $H/gas.config.te-riscos.h $S/../binutils-2.30/gas/config/te-riscos.h
+  wget https://ftp.gnu.org/gnu/binutils/binutils-2.31.1.tar.xz
+  tar xfJ binutils-2.31.1.tar.xz
+  ln -sTf $H/ld.emulparams.armelf_riscos_eabi.sh $S/../binutils-2.31.1/ld/emulparams/armelf_riscos_eabi.sh
+  ln -sTf $H/gas.config.te-riscos.h $S/../binutils-2.31.1/gas/config/te-riscos.h
   popd > /dev/null
 }
 
 patch_binutils() {
-  pushd ../binutils-2.30 > /dev/null
+  pushd ../binutils-2.31.1 > /dev/null
 
   echo Patching binutils...
   patch_ok=true
@@ -75,12 +75,17 @@ patch_binutils() {
 }
 
 build_cross_binutils() {
-  pushd ../binutils-2.30 > /dev/null
+  pushd ../binutils-2.31.1 > /dev/null
 
-  HOST_4_7_4_GCC=$(realpath $GCCSDK_INSTALL_CROSSBIN/../../gcc4)
-  AUTOTOOLS_BUILD=$HOST_4_7_4_GCC/builddir/installed-buildtools-for-gcc/bin
+  # NOTE: binutils-2.31 and newer need autoconf-2.69.
+  # Comment out the use of GCC 4 binutils and use /usr/bin for now.
 
-  ( cd ld; PATH="$AUTOTOOLS_BUILD:$PATH" $AUTOTOOLS_BUILD/autoreconf )
+  # HOST_4_7_4_GCC=$(realpath $GCCSDK_INSTALL_CROSSBIN/../../gcc4)
+  # AUTOTOOLS_BUILD=$HOST_4_7_4_GCC/builddir/installed-buildtools-for-gcc/bin
+  # ( cd ld; PATH="$AUTOTOOLS_BUILD:$PATH" $AUTOTOOLS_BUILD/autoreconf )
+
+  # Hopefully the system autoconf is the correct version.
+  ( cd ld; autoreconf )
 
   mkdir -p cross-build
   cd cross-build
@@ -104,7 +109,7 @@ build_cross_binutils() {
 }
 
 build_native_binutils() {
-  pushd ../binutils-2.30
+  pushd ../binutils-2.31.1
 
   mkdir -p native-build native-install
   pushd native-build > /dev/null
@@ -268,7 +273,7 @@ install_cross_compiler_to_env() {
   ln -sf $GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-g++ $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-g++
 }
 
-if [ ! -e binutils-2.30.tar.xz ]; then
+if [ ! -e binutils-2.31.1.tar.xz ]; then
   download_binutils
   patch_binutils
   build_cross_binutils

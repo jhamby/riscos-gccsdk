@@ -1,6 +1,6 @@
---- bfd/elf32-arm.c.orig	2018-01-13 13:31:15.000000000 +0000
-+++ bfd/elf32-arm.c	2020-05-14 21:27:18.795372467 +0100
-@@ -2140,6 +2140,11 @@
+--- bfd/elf32-arm.c.orig	2018-07-10 00:12:05.000000000 -0700
++++ bfd/elf32-arm.c	2021-08-08 17:58:59.628607797 -0700
+@@ -2258,6 +2258,11 @@
  
  #define CMSE_PREFIX "__acle_se_"
  
@@ -12,7 +12,7 @@
  /* The name of the dynamic interpreter.  This is put in the .interp
     section.  */
  #define ELF_DYNAMIC_INTERPRETER     "/usr/lib/ld.so.1"
-@@ -2340,6 +2345,88 @@
+@@ -2493,6 +2498,88 @@
    0xea000000,		/* b	.Lplt_tail			*/
  };
  
@@ -101,10 +101,11 @@
  #define ARM_MAX_FWD_BRANCH_OFFSET  ((((1 << 23) - 1) << 2) + 8)
  #define ARM_MAX_BWD_BRANCH_OFFSET  ((-((1 << 23) << 2)) + 8)
  #define THM_MAX_FWD_BRANCH_OFFSET  ((1 << 22) -2 + 4)
-@@ -3220,6 +3307,27 @@
-   unsigned int bfd_count;
-   unsigned int top_index;
-   asection **input_list;
+@@ -3404,6 +3491,28 @@
+ 
+   /* Fixup section. Used for FDPIC.  */
+   asection *srofixup;
++
 +#ifdef __RISCOS_TARGET__
 +  /* For RISC OS module __RelocCode & __RelocData support.  */
 +  bfd * bfd_ro_module_owner;
@@ -128,8 +129,8 @@
 +#endif
  };
  
- static inline int
-@@ -3620,6 +3728,70 @@
+ /* Add an FDPIC read-only fixup.  */
+@@ -3889,6 +3998,70 @@
  	  || arch >= TAG_CPU_ARCH_V7);
  }
  
@@ -200,7 +201,7 @@
  /* Create .plt, .rel(a).plt, .got, .got.plt, .rel(a).got, .dynbss, and
     .rel(a).bss sections in DYNOBJ, and set up shortcuts to them in our
     hash table.  */
-@@ -3639,6 +3811,23 @@
+@@ -3908,6 +4081,23 @@
    if (!_bfd_elf_create_dynamic_sections (dynobj, info))
      return FALSE;
  
@@ -224,9 +225,9 @@
    if (htab->vxworks_p)
      {
        if (!elf_vxworks_create_dynamic_sections (dynobj, info, &htab->srelplt2))
-@@ -3678,6 +3867,22 @@
-       htab->obfd = saved_obfd;
-     }
+@@ -3955,6 +4145,22 @@
+       htab->plt_entry_size = 4 * ARRAY_SIZE(elf32_arm_fdpic_plt_entry);
+   }
  
 +#ifdef __RISCOS_TARGET__
 +  if (info->flag_pic == 2)
@@ -247,7 +248,7 @@
    if (!htab->root.splt
        || !htab->root.srelplt
        || !htab->root.sdynbss
-@@ -3807,9 +4012,212 @@
+@@ -4090,9 +4296,212 @@
      }
    ret->root.root.hash_table_free = elf32_arm_link_hash_table_free;
  
@@ -460,7 +461,7 @@
  /* Determine what kind of NOPs are available.  */
  
  static bfd_boolean
-@@ -9504,6 +9912,60 @@
+@@ -9848,6 +10257,60 @@
  			      elf32_arm_plt_thumb_stub[1], ptr - 2);
  	    }
  
@@ -521,7 +522,7 @@
  	  if (!elf32_arm_use_long_plt_entry)
  	    {
  	      BFD_ASSERT ((got_displacement & 0xf0000000) == 0);
-@@ -9948,6 +10410,75 @@
+@@ -10335,6 +10798,75 @@
    else
      addend = signed_addend = rel->r_addend;
  
@@ -597,7 +598,7 @@
    /* ST_BRANCH_TO_ARM is nonsense to thumb-only targets when we
       are resolving a function call relocation.  */
    if (using_thumb_only (globals)
-@@ -11024,6 +11555,9 @@
+@@ -11421,6 +11953,9 @@
  	 define _GLOBAL_OFFSET_TABLE in a different way, as is
  	 permitted by the ABI, we might have to change this
  	 calculation.  */
@@ -607,7 +608,7 @@
        value -= sgot->output_section->vma;
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
-@@ -12876,10 +13410,93 @@
+@@ -13577,10 +14112,93 @@
  {
    struct elf32_arm_link_hash_table *globals = elf32_arm_hash_table (info);
    asection *sec, *osec;
@@ -701,7 +702,7 @@
    /* Invoke the regular ELF backend linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
      return FALSE;
-@@ -12930,6 +13547,64 @@
+@@ -13631,6 +14249,64 @@
  					   ARM_BX_GLUE_SECTION_NAME))
  	return FALSE;
      }
@@ -766,7 +767,7 @@
  
    return TRUE;
  }
-@@ -14392,6 +15067,24 @@
+@@ -15099,6 +15775,24 @@
  	}
  
        eh = (struct elf32_arm_link_hash_entry *) h;
@@ -791,7 +792,7 @@
  
        call_reloc_p = FALSE;
        may_become_dynamic_p = FALSE;
-@@ -15300,6 +15993,10 @@
+@@ -16073,6 +16767,10 @@
  	{
  	  elf32_arm_allocate_plt_entry (info, eh->is_iplt, &h->plt, &eh->plt);
  
@@ -802,7 +803,7 @@
  	  /* If this symbol is not defined in a regular file, and we are
  	     not generating a shared library, then set the symbol to this
  	     location in the .plt.  This is required to make function
-@@ -15688,6 +16385,15 @@
+@@ -16569,6 +17267,15 @@
  	}
      }
  
@@ -818,7 +819,7 @@
    /* Set up .got offsets for local syms, and space for local dynamic
       relocs.  */
    for (ibfd = info->input_bfds; ibfd != NULL; ibfd = ibfd->link.next)
-@@ -15992,7 +16698,23 @@
+@@ -16924,7 +17631,23 @@
  #define add_dynamic_entry(TAG, VAL) \
    _bfd_elf_add_dynamic_entry (info, TAG, VAL)
  
@@ -843,7 +844,7 @@
  	{
  	  if (!add_dynamic_entry (DT_DEBUG, 0))
  	    return FALSE;
-@@ -16305,6 +17027,14 @@
+@@ -17246,6 +17969,14 @@
  	      name = ".gnu.version_r";
  	      goto get_vma_if_bpabi;
  
@@ -858,7 +859,7 @@
  	    case DT_PLTGOT:
  	      name = htab->symbian_p ? ".got" : ".got.plt";
  	      goto get_vma;
-@@ -16471,7 +17201,44 @@
+@@ -17412,7 +18143,44 @@
  	  else
  	    {
  	      got_displacement = got_address - (plt_address + 16);
@@ -903,7 +904,7 @@
  	      plt0_entry = elf32_arm_plt0_entry;
  	      put_arm_insn (htab, output_bfd, plt0_entry[0],
  			    splt->contents + 0);
-@@ -16489,6 +17256,7 @@
+@@ -17430,6 +18198,7 @@
  #else
  	      bfd_put_32 (output_bfd, got_displacement, splt->contents + 16);
  #endif
@@ -911,7 +912,7 @@
  	    }
  	}
  
-@@ -18800,13 +19568,35 @@
+@@ -19772,13 +20541,35 @@
  				       flagsp, secp, valp))
      return FALSE;
  
@@ -947,7 +948,7 @@
    sizeof (Elf32_External_Phdr),
    sizeof (Elf32_External_Shdr),
    sizeof (Elf32_External_Rel),
-@@ -19195,6 +19985,8 @@
+@@ -20167,6 +20958,8 @@
  #define ELF_MACHINE_CODE		EM_ARM
  #ifdef __QNXTARGET__
  #define ELF_MAXPAGESIZE			0x1000
