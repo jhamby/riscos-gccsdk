@@ -30,3 +30,6 @@ autobuilder/last-zips
 # compiled object files in autobuilder/toolsrc/libpkg.
 *.o
 *.a
+
+# backup files
+*~
