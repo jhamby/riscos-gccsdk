@@ -15,8 +15,19 @@ AB_PRECONF=":"
 AB_CONFIG=
 #AB_DISTCLEAN="$AB_MAKE do-distclean || $AB_MAKE do-clean"
 
+# Set RO_GCC_CONFIG_FLAGS to change the defaults of ARMv7-A and VFPv3.
 if [ "x$RO_GCC_CONFIG_FLAGS" == "x" ]; then
   RO_GCC_CONFIG_FLAGS="--with-fpu=vfpv3 --with-arch=armv7-a"
+fi
+
+# The standard enabled languages and shared libraries.
+RO_GCC_ENABLE_LANGUAGES="c,c++,fortran"
+RO_GCC_ENABLE_SHARED="libunixlib,libgcc,libstdc++,libgfortran,libbacktrace"
+
+# Set RO_GCC_ADD_LANGUAGES to "ada" to add Ada to the languages to build.
+if [ "x$RO_GCC_ADD_LANGUAGES" == "xada" ]; then
+  RO_GCC_ENABLE_LANGUAGES="$RO_GCC_ENABLE_LANGUAGES,ada"
+  RO_GCC_ENABLE_SHARED="$RO_GCC_ENABLE_SHARED,libgnat"
 fi
 
 export GCCSDK_RISCOS_ABI_VERSION=armeabihf
@@ -167,8 +178,8 @@ build_cross_compiler() {
   #CC=$HOME/ProgDev/toolchains/bin/gcc CXX=$HOME/ProgDev/toolchains/bin/g++ \
   CC=/usr/bin/gcc CXX=/usr/bin/g++ \
   ../configure --prefix=$GCCSDK_INSTALL_ENV --target=arm-riscos-gnueabihf \
-	       --enable-shared=libunixlib,libgcc,libstdc++,libgfortran,libbacktrace \
-	       --enable-languages=c,c++,fortran \
+	       --enable-shared=$RO_GCC_ENABLE_SHARED \
+	       --enable-languages=$RO_GCC_ENABLE_LANGUAGES \
 	       --enable-threads=posix \
 	       --enable-sjlj-exceptions=no \
 	       --enable-__cxa_atexit \
@@ -200,8 +211,8 @@ build_native_compiler() {
 # --with-stage1-ldflags="" is used to remove the --static-libstdc++ flag.
   CC=arm-riscos-gnueabihf-gcc CXX=arm-riscos-gnueabihf-g++ \
   ../configure --prefix=$(realpath ../native-install) --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf \
-	       --enable-shared=libunixlib,libgcc,libstdc++,libgfortran,libbacktrace \
-	       --enable-languages=c,c++,fortran \
+	       --enable-shared=$RO_GCC_ENABLE_SHARED \
+	       --enable-languages=$RO_GCC_ENABLE_LANGUAGES \
 	       --enable-threads=posix \
 	       --enable-sjlj-exceptions=no \
 	       --enable-__cxa_atexit \
