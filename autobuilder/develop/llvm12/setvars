@@ -1,0 +1,66 @@
+# Build LLVM libraries for armv7a-unknown-riscos-gnueabihf.
+# Clang is a separate package.
+
+AB_CATEGORY="Development"
+
+LLVM_VERSION=12.0.1
+
+AB_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/llvm-12.0.1.src.tar.xz
+AB_MAKE=
+AB_PRECONF=":"
+AB_CONFIG=
+
+# We need shared libraries because the binaries are otherwise too large
+# to link.
+RO_SHAREDLIBS=yes
+
+mkdir -p native-build
+
+# Use the CMake we've built.
+PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
+
+pushd . >/dev/null
+cd native-build
+
+# Build Release cross-compiler for ARMv7-A.
+
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$GCCSDK_INSTALL_ENV" -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS" -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_CROSSCOMPILING=ON -DLLVM_TARGET_ARCH=ARM -DLLVM_TARGETS_TO_BUILD=ARM -DLLVM_DEFAULT_TARGET_TRIPLE=armv7a-unknown-riscos-gnueabihf -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_INSTALL_UTILS=ON ..
+
+cmake --build .
+
+# run unit tests and ignore any failures
+cmake --build . --target check-all || true
+
+cmake --build . --target install
+
+popd >/dev/null
+
+# Native compiler commented out: it won't work until we add std::wstring to libstdc++.
+
+#mkdir -p riscos-build riscos-env
+
+#pushd . >/dev/null
+#cd riscos-build
+
+#cmake -DCMAKE_INSTALL_PREFIX="$PWD/../riscos-env" -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS" -DCMAKE_C_COMPILER="$GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc" -DCMAKE_CXX_COMPILER="$GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-g++" -DLLVM_TARGET_ARCH=ARM -DLLVM_TARGETS_TO_BUILD=ARM -DLLVM_DEFAULT_TARGET_TRIPLE=armv7a-unknown-riscos-gnueabihf -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_TOOLS_BINARY_DIR="$GCCSDK_INSTALL_ENV" ..
+
+#cmake --build .
+#cmake --build . --target install
+
+#popd >/dev/null
+
+ab_make () {
+  :
+}
+
+# LLVM shared lib package commented out until we can build a native Clang.
+#ab_package() {
+#  ab_create_app LLVM Apps/Development
+#
+#  ab_create_sharedlib_skeleton libLLVM
+#  ab_add_sharedlib $S/riscos-env/lib libLLVM-12.0.1.so
+#
+#  AB_COMPONENTS=""
+#  $AB_HOME/add-riscpkg -package "libLLVM" -name LibLLVM \
+#	-section Library -depends SharedLibs
+#}

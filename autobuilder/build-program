@@ -73,8 +73,8 @@ rm -f $AB_HOME/last-zips
 #eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
 #eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
 if [ "$RO_USE_CLANG" == yes ] ; then
-  export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang -mno-apcs-stack-check"
-  export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-unknown-riscos-clang++ -mno-apcs-stack-check"
+  export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/bin/clang"
+  export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/bin/clang++"
 elif [ "$RO_USE_ARMEABIHF" == yes ] ; then
   export CC="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-gcc"
   export CXX="${ro_distcc}$GCCSDK_INSTALL_ENV/arm-riscos-gnueabihf-g++"

@@ -1,0 +1,11 @@
+# Build CMake to build Clang with.
+
+AB_CATEGORY="Development"
+AB_PRECONF=:
+
+# Build for cross-development only (for now).
+CC=/usr/bin/gcc CXX=/usr/bin/g++ ./configure --prefix=$GCCSDK_INSTALL_ENV
+
+# Note: we can't set AB_INSTALL=yes since ro-libpack will fail.
+make -j6
+make install
