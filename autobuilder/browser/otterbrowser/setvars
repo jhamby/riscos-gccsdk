@@ -9,11 +9,11 @@ ab_make() {
 
 if [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
    cmake -DCMAKE_TOOLCHAIN_FILE=../../../../env/toolchain-gcc-riscos-gnueabihf.cmake \
-         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lWebKit1 -lWebCore -lWTF -lJavaScriptCore -lleveldb -lmemenv -ljpeg -lpng -lQt5Sql -lsqlite3 -licui18n -licuuc -licudata -lssl -lcrypto -lz -lpcre16 -lwebp' \
+         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lleveldb -lmemenv -ljpeg -lpng -lQt5Sql -lsqlite3 -licui18n -licuuc -licudata -lssl -lcrypto -lz -lpcre16 -lwebp' \
          ..
 else
    cmake -DCMAKE_TOOLCHAIN_FILE=../../../../env/toolchain-riscos.cmake \
-         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lWebKit1 -lWebCore -lWTF -lJavaScriptCore -lleveldb -lmemenv -ljpeg -lpng -lQt5Sql -lsqlite3 -licui18n -licuuc -licudata -lssl -lcrypto -lz -lpcre16 -lwebp' \
+         -DCMAKE_EXE_LINKER_FLAGS='-L../../../../env/lib -lleveldb -lmemenv -ljpeg -lpng -lQt5Sql -lsqlite3 -licui18n -licuuc -licudata -lssl -lcrypto -lz -lpcre16 -lwebp' \
          ..
 fi
 
