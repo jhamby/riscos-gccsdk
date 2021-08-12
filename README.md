@@ -13,7 +13,7 @@ your `build-setvars` file.
 ```
 RO_USE_ARMEABIHF=yes
 RO_SHAREDLIBS=yes
-RO_GCC_CONFIG_FLAGS="--with-cpu=cortex-a72 --with-fpu=neon-vfpv4"
+RO_GCC_CONFIG_FLAGS="--with-cpu=cortex-a72 --with-fpu=vfpv4"
 ```
 
 I originally patched GCC 10's `setvars` file to optimize for Cortex-A53,
@@ -30,18 +30,16 @@ all the autobuilder scripts to add `-mcpu=` and `-mfpu=` flags to them.
 Instead, I build GCC 10 to default to the CPU and FPU to optimize for,
 and then build all the packages using that toolchain.
 
-If you don't set a CPU in `RO_GCC_CONFIG_FLAGS` in `build-setvars`, the
-default target for GCC 10 is ARMv7-A and VFPv3, as it was before I added
-the ability to customize the CPU type. Please note that when you select
-the CPU type yourself, you must also select the FPU type, or else you'll
-get an assembler error in `libunixlib/sys/_jmp.s` telling you the selected
-processor doesn't support vstmia/vldmia in ARM mode, even though it does.
-Perhaps that `.s` file should be explicitly enabling VFP instructions?
+Please be aware that packages built with an FPU setting that includes
+"neon" (ARM SIMD instructions) can be unreliable and crash with SIGEMT.
+Until this is resolved, I've changed my FPU setting to "vfpv4" so that
+the compiler won't generate any NEON instructions.
 
-Specifying the FPU along with the CPU when configuring GCC causes it to
-add `-mfpu=` to the assembler flags, which prevents this error. There may
-be new bugs introduced by changing binutils versions, so I'm not going to
-spend any more time trying to upgrade binutils in the hope that a newer
-version will automatically recognize Cortex-A CPUs as supporting VFPv4.
-I tested binutils 2.32 and it behaves the same as 2.30, 2.31, and 2.31.1,
-so I'm going to stay with binutils 2.31.1, as it looks fairly stable.
+Note also that when you select the CPU type yourself, you must also
+specify the FPU type, or else you'll get an assembler error in
+`libunixlib/sys/_jmp.s` telling you the selected processor doesn't
+support vstmia/vldmia in ARM mode, because VFP support isn't enabled.
+This could probably be fixed by adding a directive to the .s file.
+
+If you don't set a CPU with `RO_GCC_CONFIG_FLAGS`, the default CPU
+target for GCC 10 is ARMv7-A and VFPv3, as it was before my changes.
