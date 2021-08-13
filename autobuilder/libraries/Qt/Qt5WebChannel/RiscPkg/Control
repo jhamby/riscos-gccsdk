@@ -1,0 +1,6 @@
+Description: QtWebChannel libraries
+  Qt WebChannel enables peer-to-peer communication
+  between a server (QML/C++ application) and a client
+  (HTML/JavaScript or QML application).
+  .
+  This package contains the QtWebChannel library.

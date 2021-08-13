@@ -5,10 +5,10 @@
  #define QPLATFORMDEFS_H
  
 +#ifdef __riscos__
-+// Hack: Despite using the "-xplatform arm-riscos-g++" option during configure,
-+// it still includes linux-g++/qplatformdefs.h instead of arm-riscos-g++/
++// Hack: Despite using the "-xplatform riscos-g++" option during configure,
++// it still includes linux-g++/qplatformdefs.h instead of riscos-g++/
 +// qplatformdefs.h.
-+#include "../arm-riscos-g++/qplatformdefs.h"
++#include "../riscos-g++/qplatformdefs.h"
 +#else // __riscos__
 +
  // Get Qt defines/settings

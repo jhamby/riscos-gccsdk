@@ -1,0 +1,53 @@
+# Qt WebChannel
+AB_URL=http://download.qt-project.org/new_archive/qt/5.5/5.5.1/submodules/qtwebchannel-opensource-src-5.5.1.tar.xz
+
+# We'll do make install ourselves.
+AB_INSTALL=no
+AB_ROVERSION=1
+AB_PVERSION=5.5.1
+
+# "make -C WebChannelBuild/Release distclean" gets stuck in an infinite loop so disable
+# packaging of source for now.
+AB_COPYSOURCE=no
+
+export RO_SHAREDLIBS=yes
+
+export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
+export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
+export PKG_CONFIG_SYSROOT_DIR=$GCCSDK_INSTALL_ENV
+export PATH=$GCCSDK_INSTALL_CROSSBIN:$GCCSDK_INSTALL_ENV/bin:$PATH
+
+# $1 = base library name
+# $2 = "vfp/" or ""
+install_lib() {
+  cp -f lib/$1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so.1.0
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so.1
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so
+}
+
+ab_make() {
+  $GCCSDK_INSTALL_ENV/bin/qmake qtwebchannel.pro
+  $AB_MAKE && $AB_MAKE install
+}
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton Qt5WebChannel
+
+    ab_add_sharedlib $S/lib libQt5WebChannel.so.5
+
+    mkdir -p $AA/Qt/qml/QtWebChannel
+
+    cp -T $S/qml/QtWebChannel/libdeclarative_webchannel.so \
+      $AA/Qt/qml/QtWebChannel/libdeclarative_webchannel.so,E1F
+    cp -T $S/src/imports/webchannel/qmldir \
+            $AA/Qt/qml/QtWebChannel/qmldir
+    cp -T $S/src/imports/webchannel/plugins.qmltypes \
+            $AA/Qt/qml/QtWebChannel/plugins.qmltypes
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package Qt5WebChannel -name Qt5WebChannel \
+	-depends SharedLibs -depends Qt5Base -depends Qt5Qml
+  fi
+}

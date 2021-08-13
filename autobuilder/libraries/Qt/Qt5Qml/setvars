@@ -1,0 +1,71 @@
+# Qt Declarative (QML)
+AB_URL=http://download.qt-project.org/new_archive/qt/5.5/5.5.1/submodules/qtdeclarative-opensource-src-5.5.1.tar.xz
+
+# TODO: replace VFP with NEON or something more appropriate for EABI
+BUILD_NORMAL=yes
+BUILD_VFP=no
+
+# We'll do make install ourselves.
+AB_INSTALL=no
+AB_ROVERSION=1
+AB_PVERSION=5.5.1
+
+# "make -C DeclarativeBuild/Release distclean" gets stuck in an infinite loop so disable
+# packaging of source for now.
+AB_COPYSOURCE=no
+
+export RO_SHAREDLIBS=yes
+
+export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
+export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
+export PKG_CONFIG_SYSROOT_DIR=$GCCSDK_INSTALL_ENV
+export PATH=$GCCSDK_INSTALL_CROSSBIN:$GCCSDK_INSTALL_ENV/bin:$PATH
+
+# $1 = base library name
+# $2 = "vfp/" or ""
+install_lib() {
+  cp -f lib/$1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so.1.0
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so.1
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so
+}
+
+# There are parts of the source that need to be built natively, eg, tools used in
+# the build. If we configure and build outside of the autobuilder, this works correctly.
+# However, in the autobuilder, things don't go according to plan and the cross compiler is
+# always used causing the build to fail.
+# Currently, I don't know how to correct this, so instead I use a perl script to alter the
+# relevant makefiles to use the correct compiler. There's an extra complication in the fact
+# that we need to create the makefiles first using qmake.
+# If we want to cross compile these tools as well in future, then this will have to be
+# revisited.
+
+ab_make() {
+  $GCCSDK_INSTALL_ENV/bin/qmake -r qtdeclarative.pro
+  $AB_MAKE && $AB_MAKE install
+}
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton Qt5Qml
+
+    if [ "$BUILD_NORMAL" == "yes" ]; then
+      ab_add_sharedlib $S/lib libQt5Qml.so.5
+      ab_add_sharedlib $S/lib libQt5Quick.so.5
+      ab_add_sharedlib $S/lib libQt5QuickParticles.so.5
+      ab_add_sharedlib $S/lib libQt5QuickTest.so.5
+      ab_add_sharedlib $S/lib libQt5QuickWidgets.so.5
+
+      mkdir -p $AA/Qt/plugins/qmltooling
+
+      cp -T $S/plugins/qmltooling/libqmldbg_qtquick2.so \
+        $AA/Qt/plugins/qmltooling/libqmldbg_qtquick2.so,E1F
+      cp -T $S/plugins/qmltooling/libqmldbg_tcp.so \
+        $AA/Qt/plugins/qmltooling/libqmldbg_tcp.so,E1F
+    fi
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package Qt5Qml -name Qt5Qml \
+	-depends SharedLibs -depends Qt5Base
+  fi
+}

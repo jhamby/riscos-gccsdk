@@ -16,6 +16,14 @@ ab_package() {
   ab_add_sharedlib $S/lib libQt5Multimedia.so.5
   ab_add_sharedlib $S/lib libQt5MultimediaWidgets.so.5
 
+  mkdir -p $AA/Qt/plugins/mediaservice
+  mkdir -p $AA/Qt/plugins/playlistformats
+
+  cp -T $S/plugins/mediaservice/libqtmedia_audioengine.so \
+    $AA/Qt/plugins/mediaservice/libqtmedia_audioengine.so,E1F
+  cp -T $S/plugins/playlistformats/libqtmultimedia_m3u.so \
+    $AA/Qt/plugins/playlistformats/libqtmultimedia_m3u.so,E1F
+
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package Qt5Multimedia -name Qt5Multimedia \
 	-depends SharedLibs -depends Qt5Base

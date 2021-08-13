@@ -67,7 +67,7 @@ $(TARGET): $(TARGET).so $(TARGET).a $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJ
 
 $(TARGET).so: $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
 	@echo Generating shared library $(TARGET).so
-	$(LINK) -o $(TARGET).so $(SHOBJS) $(LIBS) $(SYSTEM_LIBS) $(SONAME_OPT) -shared -Wl,--no-undefined -mfpu=vfp
+	$(LINK) -o $(TARGET).so $(SHOBJS) $(LIBS) $(SYSTEM_LIBS) $(SONAME_OPT) -shared -Wl,--no-undefined
 
 $(TARGET).a: $(DIRS) $(EXTRA_TARGET_DEPS) $(SHOBJS) $(OBJS) $(LIBS)
 	@echo Generating archive library $(TARGET).a
@@ -80,7 +80,7 @@ endif
 
 $(BIN_TARGET): $(OBJS) $(LIBS)
 	@echo Generating binary $(BIN_TARGET)
-	$(LINK) -o $(BIN_TARGET) $(OBJS) $(LIBS) $(SYSTEM_BIN_LIBS) -mfpu=vfp
+	$(LINK) -o $(BIN_TARGET) $(OBJS) $(LIBS) $(SYSTEM_BIN_LIBS)
 
 $(DIRS)::
 	@echo Executing command $(MAKECMDGOALS) for directory $@

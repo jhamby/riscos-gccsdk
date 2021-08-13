@@ -3,15 +3,15 @@
 @@ -1,22 +1,25 @@
  
 -CFLAGS+=-DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -Wall -g -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -ftree-vectorize -pipe -DUSE_EXTERNAL_OMX -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi
-+CFLAGS+=-DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -Wall -g -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -ftree-vectorize -pipe -DUSE_EXTERNAL_OMX -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi -mfpu=vfp
++CFLAGS+=-DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -Wall -g -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -ftree-vectorize -pipe -DUSE_EXTERNAL_OMX -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi
  
 -LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lbrcmGLESv2 -lbrcmEGL -lopenmaxil -lbcm_host -lvcos -lvchiq_arm -lpthread -lrt -lm -L$(SDKSTAGE)/opt/vc/src/hello_pi/libs/ilclient -L$(SDKSTAGE)/opt/vc/src/hello_pi/libs/vgfont -L$(SDKSTAGE)/opt/vc/src/hello_pi/libs/revision
-+LDFLAGS+=-L$(GCCSDK_INSTALL_ENV)/vfp/lib -Wl,-Bstatic -lGLESv2 -lEGL -lbcm_host -Wl,-Bdynamic -L../libs/revision
++LDFLAGS+=-L$(GCCSDK_INSTALL_ENV)/lib -lGLESv2 -lEGL -lbcm_host -L../libs/revision
  
 -INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I$(SDKSTAGE)/opt/vc/include/interface/vmcs_host/linux -I./ -I$(SDKSTAGE)/opt/vc/src/hello_pi/libs/ilclient -I$(SDKSTAGE)/opt/vc/src/hello_pi/libs/vgfont -I$(SDKSTAGE)/opt/vc/src/hello_pi/libs/revision
-+INCLUDES+=-I$(GCCSDK_INSTALL_ENV)/vfp/include \
-+	  -I$(GCCSDK_INSTALL_ENV)/vfp/include/interface/vcos/riscos \
-+	  -I$(GCCSDK_INSTALL_ENV)/vfp/include/interface/vmcs_host/linux \
++INCLUDES+=-I$(GCCSDK_INSTALL_ENV)/include \
++	  -I$(GCCSDK_INSTALL_ENV)/include/interface/vcos/riscos \
++	  -I$(GCCSDK_INSTALL_ENV)/include/interface/vmcs_host/linux \
 +	  -I../libs/revision
  
  all: $(BIN) $(LIB)
@@ -29,7 +29,7 @@
 -%.bin: $(OBJS)
 -	$(CC) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) -Wl,--no-whole-archive -rdynamic
 +%,e1f: $(OBJS)
-+	$(CC) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) -Wl,--no-whole-archive -mfpu=vfp
++	$(CC) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) -Wl,--no-whole-archive
  
  %.a: $(OBJS)
  	$(AR) r $@ $^

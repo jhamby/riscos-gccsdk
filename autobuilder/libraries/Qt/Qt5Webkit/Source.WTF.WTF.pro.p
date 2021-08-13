@@ -5,7 +5,7 @@
      QMAKE_CXXFLAGS -= -std=c++0x -std=gnu++0x -std=c++11 -std=gnu++11
  }
 + 
-+arm*-riscos*-* {
++riscos*-* {
 +    SOURCES -= OSAllocatorPosix.cpp
 +    SOURCES += ./OSAllocatorRiscos.cpp ./RiscosBrkpntHandler.cpp
 +}

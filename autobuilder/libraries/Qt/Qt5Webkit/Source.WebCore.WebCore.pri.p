@@ -4,10 +4,10 @@
  unix:!mac:*-g++*:QMAKE_LFLAGS += -Wl,--gc-sections
  linux*-g++*:QMAKE_LFLAGS += $$QMAKE_LFLAGS_NOUNDEF
  
-+#arm-riscos*-g++*:QMAKE_CXXFLAGS += -mno-poke-function-name
++#riscos*-g++*:QMAKE_CXXFLAGS += -mno-poke-function-name
 +# --gc-sections causes linker error "error: required section '.riscos.abi.version' not found in the linker script"
-+arm*-riscos*-*:QMAKE_LFLAGS -= -Wl,--gc-sections
-+arm*-riscos*-*:QMAKE_LFLAGS += -Wl,--no-undefined
++riscos*-*:QMAKE_LFLAGS -= -Wl,--gc-sections
++riscos*-*:QMAKE_LFLAGS += -Wl,--no-undefined
 +
  enable_fast_mobile_scrolling: DEFINES += ENABLE_FAST_MOBILE_SCROLLING=1
  

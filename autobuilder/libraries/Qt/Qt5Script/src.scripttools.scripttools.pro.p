@@ -5,7 +5,7 @@
  
  include(debugging/debugging.pri)
 +
-+arm-riscos-vfp-g++ {
++riscos-vfp-g++ {
 +# Start the path with a '/' to ensure QMake knows it's a rooted path.
 +    target.path = /$(GCCSDK_INSTALL_ENV)/vfp/lib
 +}

@@ -1,0 +1,4 @@
+Description: QtDeclarative libraries
+  QtDeclarative provides the QML engine.
+  .
+  This package contains the QtDeclarative libraries.

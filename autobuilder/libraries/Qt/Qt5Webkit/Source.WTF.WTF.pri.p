@@ -4,7 +4,7 @@
      else: LIBS += -licui18n -licuuc -licudata
  }
  
-+arm-riscos*-g++*:LIBS += -licui18n -licuuc -licudata
++riscos*-g++*:LIBS += -licui18n -licuuc -licudata
 +
  use?(GLIB) {
      PKGCONFIG *= glib-2.0 gio-2.0

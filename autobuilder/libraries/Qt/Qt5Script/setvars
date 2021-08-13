@@ -17,11 +17,11 @@ AB_PRECONF=:
 
 if [ "$BUILD_NORMAL" == "yes" ]; then
   mkdir -p build
-  ( cd build; qmake -spec arm-riscos-g++ ../qtscript.pro )
+  ( cd build; qmake -spec riscos-g++ ../qtscript.pro )
 fi
 if [ "$BUILD_VFP" == "yes" ]; then
   mkdir -p build-vfp
-  ( cd build-vfp; qmake -spec arm-riscos-vfp-g++ ../qtscript.pro )
+  ( cd build-vfp; qmake -spec riscos-vfp-g++ ../qtscript.pro )
 fi
 
 ab_make() {

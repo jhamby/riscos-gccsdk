@@ -49,31 +49,21 @@ ln -T -s -f $H/include.qdynamicarea.h $S/include/QtCore/qdynamicarea.h
 ln -T -s -f $H/src.corelib.tools.qdynamicarea.h $S/src/corelib/tools/qdynamicarea.h
 ln -T -s -f $H/src.corelib.tools.qdynamicarea.cpp $S/src/corelib/tools/qdynamicarea.cpp
 
-mkdir -p $S/mkspecs/arm-riscos-g++ $S/mkspecs/arm-riscos-vfp-g++
-ln -T -s -f $H/mkspecs.arm-riscos-g++.qmake.conf $S/mkspecs/arm-riscos-g++/qmake.conf
-ln -T -s -f $H/mkspecs.arm-riscos-g++.qplatformdefs.h $S/mkspecs/arm-riscos-g++/qplatformdefs.h
-ln -T -s -f $H/mkspecs.arm-riscos-vfp-g++.qmake.conf $S/mkspecs/arm-riscos-vfp-g++/qmake.conf
-# Use the same qplatformdefs.h for both arm-riscos-g++ and arm-riscos-vfp-g++.
-ln -T -s -f $H/mkspecs.arm-riscos-g++.qplatformdefs.h $S/mkspecs/arm-riscos-vfp-g++/qplatformdefs.h
+mkdir -p $S/mkspecs/riscos-g++
+ln -T -s -f $H/mkspecs.riscos-g++.qmake.conf $S/mkspecs/riscos-g++/qmake.conf
+ln -T -s -f $H/mkspecs.riscos-g++.qplatformdefs.h $S/mkspecs/riscos-g++/qplatformdefs.h
 
 # Insert qdynamicarea.h into the build system.
 $S/bin/syncqt.pl
 
 if [ "$BUILD_NORMAL" == "yes" ]; then
   mkdir -p build
-  ( cd build; ../configure -prefix $GCCSDK_INSTALL_ENV -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
-  -confirm-license -no-reduce-relocations -xplatform arm-riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
-  -fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -no-harfbuzz -force-asserts \
-  -riscos -qpa riscos -v )
+  ( cd build; ../configure -prefix "/SharedLibs:lib/armeabihf/Qt" -extprefix $GCCSDK_INSTALL_ENV \
+  -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
+  -confirm-license -no-reduce-relocations -xplatform riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
+  -fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -opengl -no-glib -no-harfbuzz -force-asserts \
+  -riscos -qpa riscos -openvg -v )
 fi
-if [ "$BUILD_VFP" == "yes" ]; then
-  mkdir -p build-vfp
-  ( cd build-vfp; ../configure -prefix $GCCSDK_INSTALL_ENV/vfp -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
-  -confirm-license -no-reduce-relocations -xplatform arm-riscos-vfp-g++ -no-nis -no-cups -no-iconv -system-freetype \
-  -fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -no-opengl -no-glib -no-harfbuzz -force-asserts \
-  -riscos -qpa riscos -v )
-fi
-
 
 # There are parts of the source that need to be built natively, eg, tools used in
 # the build. If we configure and build outside of the autobuilder, this works correctly.
@@ -122,8 +112,9 @@ create_test_app() {
   echo "Set $1\$Dir <Obey\$Dir>" >> "$A/$4/!$1/!Run,feb"
   echo "Run <$1\$Dir>.$3 > <$1\$Dir>.debug 2>&1" >> "$A/$4/!$1/!Run,feb"
 
-  echo "[Paths]" >> "$A/$4/!$1/qt.conf"
-  echo "Prefix=/<$1\$Dir>/" >> "$A/$4/!$1/qt.conf"
+# Note: don't override the Prefix, or we'll search the wrong plugin path.
+#  echo "[Paths]" >> "$A/$4/!$1/qt.conf"
+#  echo "Prefix=/<$1\$Dir>/" >> "$A/$4/!$1/qt.conf"
 
   cp $2/$3 "$A/$4/!$1/$3$AB_EXEEXT"
 }
@@ -156,43 +147,28 @@ ab_package() {
     ab_add_sharedlib $S/build/lib libQt5Xml.so.5
     ab_add_sharedlib $S/build/lib libQt5Concurrent.so.5
     ab_add_sharedlib $S/build/lib libQt5PrintSupport.so.5
+    ab_add_sharedlib $S/build/lib libQt5EglDeviceIntegration.so.5
+    ab_add_sharedlib $S/build/lib libQt5OpenGL.so.5
+    ab_add_sharedlib $S/build/lib libQt5Test.so.5
 
     # This is a dlopen library.
-    mkdir -p $AA/Qt/plugins/platforms/imageformats
-    mkdir -p $AA/Qt/plugins/platforms/bearer
-    mkdir -p $AA/Qt/plugins/platforms/sqldrivers
+    mkdir -p $AA/Qt/plugins/bearer
+    mkdir -p $AA/Qt/plugins/generic
+    mkdir -p $AA/Qt/plugins/platforms
+    mkdir -p $AA/Qt/plugins/imageformats
+    mkdir -p $AA/Qt/plugins/sqldrivers
+
+    cp -T $S/build/plugins/bearer/libqgenericbearer.so $AA/Qt/plugins/bearer/libqgenericbearer.so,E1F
+    cp -T $S/build/plugins/generic/libqtuiotouchplugin.so    $AA/Qt/plugins/generic/libqtuiotouchplugin.so,E1F
     cp -T $S/build/plugins/platforms/libqriscos.so     $AA/Qt/plugins/platforms/libqriscos.so,E1F
     cp -T $S/build/plugins/platforms/libqminimal.so    $AA/Qt/plugins/platforms/libqminimal.so,E1F
     cp -T $S/build/plugins/platforms/libqoffscreen.so  $AA/Qt/plugins/platforms/libqoffscreen.so,E1F
-    cp -T $S/build/plugins/bearer/libqgenericbearer.so $AA/Qt/plugins/platforms/bearer/libqgenericbearer.so,E1F
-    cp -T $S/build/plugins/imageformats/libqgif.so     $AA/Qt/plugins/platforms/imageformats/libqgif.so,E1F
-    cp -T $S/build/plugins/imageformats/libqico.so     $AA/Qt/plugins/platforms/imageformats/libqico.so,E1F
-    cp -T $S/build/plugins/imageformats/libqjpeg.so    $AA/Qt/plugins/platforms/imageformats/libqjpeg.so,E1F
-    cp -T $S/build/plugins/sqldrivers/libqsqlite.so    $AA/Qt/plugins/platforms/sqldrivers/libqsqlite.so,E1F
-  fi
-
-  if [ "$BUILD_VFP" == "yes" ]; then
-    ab_add_sharedlib $S/build-vfp/lib libQt5Core.so.5
-    ab_add_sharedlib $S/build-vfp/lib libQt5Gui.so.5
-    ab_add_sharedlib $S/build-vfp/lib libQt5Network.so.5
-    ab_add_sharedlib $S/build-vfp/lib libQt5Widgets.so.5
-    ab_add_sharedlib $S/build-vfp/lib libQt5Sql.so.5
-    ab_add_sharedlib $S/build-vfp/lib libQt5Xml.so.5
-    ab_add_sharedlib $S/build-vfp/lib libQt5Concurrent.so.5
-    ab_add_sharedlib $S/build-vfp/lib libQt5PrintSupport.so.5
-
-    # This is a dlopen library.
-    mkdir -p $AA/vfp/Qt/plugins/platforms/imageformats
-    mkdir -p $AA/vfp/Qt/plugins/platforms/bearer
-    mkdir -p $AA/vfp/Qt/plugins/platforms/sqldrivers
-    cp -T $S/build-vfp/plugins/platforms/libqriscos.so     $AA/vfp/Qt/plugins/platforms/libqriscos.so,E1F
-    cp -T $S/build-vfp/plugins/platforms/libqminimal.so    $AA/vfp/Qt/plugins/platforms/libqminimal.so,E1F
-    cp -T $S/build-vfp/plugins/platforms/libqoffscreen.so  $AA/vfp/Qt/plugins/platforms/libqoffscreen.so,E1F
-    cp -T $S/build-vfp/plugins/bearer/libqgenericbearer.so $AA/vfp/Qt/plugins/platforms/bearer/libqgenericbearer.so,E1F
-    cp -T $S/build-vfp/plugins/imageformats/libqgif.so     $AA/vfp/Qt/plugins/platforms/imageformats/libqgif.so,E1F
-    cp -T $S/build-vfp/plugins/imageformats/libqico.so     $AA/vfp/Qt/plugins/platforms/imageformats/libqico.so,E1F
-    cp -T $S/build-vfp/plugins/imageformats/libqjpeg.so    $AA/vfp/Qt/plugins/platforms/imageformats/libqjpeg.so,E1F
-    cp -T $S/build-vfp/plugins/sqldrivers/libqsqlite.so    $AA/vfp/Qt/plugins/platforms/sqldrivers/libqsqlite.so,E1F
+    cp -T $S/build/plugins/platforms/libqeglfs.so  $AA/Qt/plugins/platforms/libqeglfs.so,E1F
+    cp -T $S/build/plugins/platforms/libqminimalegl.so  $AA/Qt/plugins/platforms/libqminimalegl.so,E1F
+    cp -T $S/build/plugins/imageformats/libqgif.so     $AA/Qt/plugins/imageformats/libqgif.so,E1F
+    cp -T $S/build/plugins/imageformats/libqico.so     $AA/Qt/plugins/imageformats/libqico.so,E1F
+    cp -T $S/build/plugins/imageformats/libqjpeg.so    $AA/Qt/plugins/imageformats/libqjpeg.so,E1F
+    cp -T $S/build/plugins/sqldrivers/libqsqlite.so    $AA/Qt/plugins/sqldrivers/libqsqlite.so,E1F
   fi
 
   AB_COMPONENTS=""
@@ -202,7 +178,7 @@ ab_package() {
 	-depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
 	-depends LibICU52 -depends LibSSL \
 	-depends TTF-DejaVu-Core -depends TTF-DejaVu-Extra \
-        -depends TTF-Bitstream-Vera \
+        -depends TTF-Bitstream-Vera -depends Khronos-Lib \
 	-section Library
 
   # Use standard font packages - rather than copying from here

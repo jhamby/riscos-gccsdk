@@ -64,9 +64,24 @@ ab_package() {
       ab_add_sharedlib $S/build-vfp/Release/lib libQt5WebKitWidgets.so.5
     fi
 
+    mkdir -p $AA/Qt/qml/QtWebKit
+    mkdir -p $AA/Qt/qml/QtWebKit/experimental
+
+    cp -T $S/WebKitBuild/Release/imports/QtWebKit/libqmlwebkitplugin.so \
+                              $AA/Qt/qml/QtWebKit/libqmlwebkitplugin.so,E1F
+    cp -T $S/WebKitBuild/Release/imports/QtWebKit/qmldir \
+                              $AA/Qt/qml/QtWebKit/qmldir
+    cp -T $S/Source/WebKit/qt/declarative/plugins.qmltypes \
+                      $AA/Qt/qml/QtWebKit/plugins.qmltypes
+    cp -T $S/WebKitBuild/Release/imports/QtWebKit/experimental/libqmlwebkitexperimentalplugin.so \
+                              $AA/Qt/qml/QtWebKit/experimental/libqmlwebkitexperimentalplugin.so,E1F
+    cp -T $S/WebKitBuild/Release/imports/QtWebKit/experimental/qmldir \
+                              $AA/Qt/qml/QtWebKit/experimental/qmldir
+
     AB_COMPONENTS=""
     $AB_HOME/add-riscpkg -package Qt5Webkit -name Qt5Webkit \
-	-depends SharedLibs -depends Qt5Base
+	-depends SharedLibs -depends Qt5Base -depends Qt5Multimedia \
+	-depends Qt5Qml -depends Qt5WebChannel
   fi
 
   if [ "$BUILD_NORMAL" == "yes" ]; then

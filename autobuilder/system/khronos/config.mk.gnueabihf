@@ -21,7 +21,7 @@ INCLUDES	=
 
 OPTIMISE	= -O3 -fno-strict-aliasing
 
-INSTALL_DIR	= $(GCCSDK_INSTALL_ENV)/vfp
+INSTALL_DIR	= $(GCCSDK_INSTALL_ENV)
 
 # The module is not VFP.
 SYSTEM_MOD_LIBS	= -L$(GCCSDK_INSTALL_ENV)/lib -lOSLib32 -mlibscl

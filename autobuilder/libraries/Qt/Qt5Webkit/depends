@@ -1,4 +1,6 @@
 leveldb
 Qt5Base
 Qt5Multimedia
+Qt5Qml
+Qt5WebChannel
 libwebp6

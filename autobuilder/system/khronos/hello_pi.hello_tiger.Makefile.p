@@ -6,7 +6,7 @@
 +BIN=hello_tiger,e1f
  
 -LDFLAGS+= -lrevision
-+LDFLAGS+= -Wl,-Bstatic -lOpenVG -L../lib/revision -lrevision -Wl,-Bdynamic
++LDFLAGS+= -lOpenVG -L../lib/revision -lrevision
  CFLAGS+=-D__RASPBERRYPI__
  
  include ../Makefile.include
