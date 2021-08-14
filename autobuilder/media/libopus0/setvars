@@ -2,7 +2,7 @@
 AB_ROVERSION=2
 AB_INSTALL=yes
 
-AB_CONFLAGS='--disable-rtcd --disable-asm --enable-fixed-point --disable-intrinsics'
+AB_CONFLAGS='--disable-rtcd --disable-asm --enable-fixed-point --disable-intrinsics --disable-doc --disable-extra-programs'
 autoreconf -fi
 
 ab_package() {

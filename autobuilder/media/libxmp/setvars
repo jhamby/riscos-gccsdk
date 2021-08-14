@@ -1,1 +1,3 @@
 AB_INSTALL=yes
+AB_PRECONF="CFLAGS=\"-O2 -fno-strict-aliasing\""
+AB_CONFLAGS='--disable-shared'
