@@ -26,5 +26,5 @@ ab_package() {
 
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package Qt5Multimedia -name Qt5Multimedia \
-	-depends SharedLibs -depends Qt5Base
+	-depends SharedLibs -depends Qt5Base -depends Qt5Qml
 }
