@@ -80,6 +80,10 @@ public:
 	if (isNull())
 	    return nullptr;
 
+#if 1
+	/* Use Paint Sprite Scaled to get colorspace conversion. */
+	return render (x, y, nullptr, nullptr);
+#else
 #if (defined(__VFP_FP__) && !defined(__SOFTFP__))
 	return (os_error *)_swix(OS_SpriteOp, _INR(0,5),
 				 osspriteop_PTR | OSSpriteOp_PutSpriteUserCoords,
@@ -95,6 +99,7 @@ public:
 						   x,
 						   y,
 						   os_ACTION_OVERWRITE);
+#endif
 #endif
     }
 

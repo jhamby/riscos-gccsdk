@@ -95,9 +95,14 @@ public:
 
     static os_mode spriteType (QImage::Format format);
 
+    static bool requireRedBlueSwap();
+
 private:
     QSprite m_sprite;
     QImage m_image;
+
+    static bool NewSpriteModeWordTested;
+    static bool RequireRedBlueSwap;
 };
 
 QT_END_NAMESPACE

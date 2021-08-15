@@ -145,6 +145,13 @@ QRiscosBackingStore::spriteType(QImage::Format format)
     case QImage::Format_ARGB32_Premultiplied:
     case QImage::Format_Invalid:
     default:
+	if (!requireRedBlueSwap()) {
+	    /* use RISC OS 5 sprite mode word to specify TRGB order */
+	    type = 0x78000001 | (1 << 4) | (1 << 6) | (1 << 14)
+                | (osspriteop_TYPE32BPP << 20);
+
+	    return (os_mode)type;
+	}
 	type |= (osspriteop_TYPE32BPP << osspriteop_TYPE_SHIFT);
 	break;
     }
@@ -155,6 +162,38 @@ QRiscosBackingStore::spriteType(QImage::Format format)
     type |= (90 << osspriteop_YRES_SHIFT);
 
     return (os_mode)type;
+}
+
+bool QRiscosBackingStore::NewSpriteModeWordTested = false;
+bool QRiscosBackingStore::RequireRedBlueSwap;
+
+bool
+QRiscosBackingStore::requireRedBlueSwap()
+{
+    if (!NewSpriteModeWordTested) {
+	/* Test if RISC OS 5 sprite mode words are recognized. */
+	int mode_flags = (1 << 14);	// TRGB (vs. TBGR)
+	osspriteop_mode_word type = 0x78000001
+		| (1 << 4) | (1 << 6)
+		| mode_flags
+		| (osspriteop_TYPE32BPP << 20);
+
+	int returned_mode_flags;
+        _swix(OS_ReadModeVariable, _INR(0,1)|_OUT(2),
+	      type,
+	      os_VDUVAR_MODE_FLAGS,
+	      &returned_mode_flags);
+
+	RequireRedBlueSwap = ((returned_mode_flags & 0xc000) != mode_flags);
+#if 0
+	/* Original test for whether to swap red and blue. */
+	QByteArray sysvar = qgetenv("Qt$NoRedBlueSwap");
+	RequireRedBlueSwap = sysvar.isEmpty();
+#endif
+	NewSpriteModeWordTested = true;
+    }
+
+    return RequireRedBlueSwap;
 }
 
 QT_END_NAMESPACE

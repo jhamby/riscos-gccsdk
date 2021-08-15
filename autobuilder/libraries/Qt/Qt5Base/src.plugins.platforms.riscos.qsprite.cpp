@@ -48,6 +48,7 @@
 #include <qdynamicarea.h>
 #include "swis.h"
 #include "oslib/osspriteop.h"
+#include "qriscosbackingstore.h"
 
 #include <QtGui/QImage>
 
@@ -164,7 +165,7 @@ QSprite::asQImage() const
     return QImage (static_cast<uchar*>(m_spriteData),
 		   m_width,
 		   m_height,
-		   QSysInfo::requireRedBlueSwap() ?
+		   QRiscosBackingStore::requireRedBlueSwap() ?
 			QImage::Format_RGBX8888 :
 			QImage::Format_RGB32);
 }

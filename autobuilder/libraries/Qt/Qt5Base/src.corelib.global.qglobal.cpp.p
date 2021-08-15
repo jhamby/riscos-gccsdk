@@ -1,29 +1,6 @@
---- src/corelib/global/qglobal.cpp.orig	2021-07-31 02:14:34.798323992 -0700
-+++ src/corelib/global/qglobal.cpp	2021-07-31 02:14:50.590452580 -0700
-@@ -2774,6 +2774,22 @@
-     return unknownText();
- }
- 
-+#ifdef Q_OS_RISCOS
-+bool QSysInfo::RedBlueSwapVarRead = false;
-+bool QSysInfo::RequireRedBlueSwap;
-+
-+bool QSysInfo::requireRedBlueSwap()
-+{
-+    if (!RedBlueSwapVarRead) {
-+	QByteArray sysvar = qgetenv("Qt$NoRedBlueSwap");
-+	RequireRedBlueSwap = sysvar.isEmpty();
-+	RedBlueSwapVarRead = true;
-+    }
-+
-+    return RequireRedBlueSwap;
-+}
-+#endif
-+
- /*!
-     \macro void Q_ASSERT(bool test)
-     \relates <QtGlobal>
-@@ -3340,7 +3356,8 @@
+--- src/corelib/global/qglobal.cpp.orig	2021-08-14 18:15:57.599582670 -0700
++++ src/corelib/global/qglobal.cpp	2021-08-14 18:16:41.027790774 -0700
+@@ -3340,7 +3340,8 @@
  */
  void qsrand(uint seed)
  {
@@ -33,7 +10,7 @@
      SeedStorage *seedStorage = randTLS();
      if (seedStorage) {
          SeedStorageType *pseed = seedStorage->localData();
-@@ -3394,7 +3411,8 @@
+@@ -3394,7 +3395,8 @@
  */
  int qrand()
  {
