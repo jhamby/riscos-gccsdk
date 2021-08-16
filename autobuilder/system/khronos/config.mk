@@ -6,6 +6,10 @@ ASM		= arm-unknown-riscos-gcc
 CC		= arm-unknown-riscos-gcc
 AR		= arm-unknown-riscos-ar
 
+MOD_LINK	= arm-unknown-riscos-gcc
+MOD_ASM		= arm-unknown-riscos-gcc
+MOD_CC		= arm-unknown-riscos-gcc
+
 OS_MOD_ASMFLAGS	= -c -mmodule -mlibscl -x assembler-with-cpp -D__ASSEMBLY__
 OS_SHLIB_ASMFLAGS = -c -x assembler-with-cpp -D__ASSEMBLY__ -mfpu=vfp
 OS_LIB_ASMFLAGS	= -c -x assembler-with-cpp -D__ASSEMBLY__ -mfpu=vfp
@@ -17,7 +21,7 @@ INCLUDES	=
 
 OPTIMISE	= -O3
 
-INSTALL_DIR	= $(GCCSDK_INSTALL_ENV)/vfp
+INSTALL_DIR	= $(GCCSDK_INSTALL_ENV)
 
 # The module is not VFP.
 SYSTEM_MOD_LIBS	= -L$(GCCSDK_INSTALL_ENV)/lib -lOSLib32 -mlibscl

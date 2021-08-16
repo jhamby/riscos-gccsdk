@@ -21,8 +21,10 @@ mkdir -p $S/../bcm_host \
 
 if [ "x$RO_USE_ARMEABIHF" == "xyes" ]; then
     ln -Tsf $H/config.mk.gnueabihf $S/../config.mk
+    ABI_DIR=armeabihf
 else
     ln -Tsf $H/config.mk $S/../config.mk
+    ABI_DIR=abi-2.0
 fi
 ln -Tsf $H/EGL.api-asm.s $S/../EGL/api-asm.s
 ln -Tsf $H/EGL.makefile $S/../EGL/makefile
@@ -93,10 +95,10 @@ ab_package() {
     ab_create_sharedlib_skeleton khronos-lib
 
     # There are no symlinks, so use cp rather than ab_add_sharedlib.
-    cp -T $S/libbcm_host.so "$A/lib/armeabihf/libbcm_host.so,e1f"
-    cp -T $S/libEGL.so "$A/lib/armeabihf/libEGL.so,e1f"
-    cp -T $S/libGLESv2.so "$A/lib/armeabihf/libGLESv2.so,e1f"
-    cp -T $S/libOpenVG.so "$A/lib/armeabihf/libOpenVG.so,e1f"
+    cp -T $S/libbcm_host.so "$A/lib/$ABI_DIR/libbcm_host.so,e1f"
+    cp -T $S/libEGL.so "$A/lib/$ABI_DIR/libEGL.so,e1f"
+    cp -T $S/libGLESv2.so "$A/lib/$ABI_DIR/libGLESv2.so,e1f"
+    cp -T $S/libOpenVG.so "$A/lib/$ABI_DIR/libOpenVG.so,e1f"
 
     AB_COMPONENTS=""
     $AB_HOME/add-riscpkg -name Khronos-Lib -section Library -package khronos-lib \
