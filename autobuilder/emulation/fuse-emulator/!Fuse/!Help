@@ -1,4 +1,4 @@
-Fuse - the Free Unix Spectrum Emulator (v1.0.0.1)
+Fuse - the Free Unix Spectrum Emulator (v1.6.0)
 
 This RISC OS version was created by the GCCSDK Autobuilder
 
@@ -23,6 +23,10 @@ History
 -------
 RISC OS Version 1.00 (28-Mar-12)
 - this is the initial version of fuse built for RISC OS.
+RISC OS Version 1.01 (07-Dec-20)
+- build latest version 1.5.7
+RISC OS Version 1.02 (05-Aug-21)
+- build latest version 1.6.0
 
 Issues
 ------
