@@ -45,5 +45,5 @@ ab_package() {
     -depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
     -depends LibICU52 -depends LibSSL -depver 1.0.2d-2 -depends LibLevelDB \
     -depends FontConfig -depends CaCertificates -depends Qt5Multimedia -depends LibWebp6 \
-    -depends LibHunspell -depends Hunspell
+    -depends LibHunspell -depends Hunspell -depends Qt5Sensors
 }
