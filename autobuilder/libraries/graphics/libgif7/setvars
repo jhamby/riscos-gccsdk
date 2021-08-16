@@ -24,9 +24,9 @@ ab_package()
 
     AB_COMPONENTS=""
 
-    ab_add_sharedlib $S/lib/.libs libgif.so.7
+    ab_add_sharedlib $GCCSDK_INSTALL_ENV/lib libgif.so.7
 
     $AB_HOME/add-riscpkg -package "libgif7" -name "LibGIF7" \
-	-depends SharedLibs-C2
+	-depends SharedLibs
   fi
 }
