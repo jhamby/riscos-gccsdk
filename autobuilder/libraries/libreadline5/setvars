@@ -35,14 +35,17 @@ ab_package() {
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
      ab_create_sharedlib_skeleton libreadline5
 
-     ln -sfT libhistory.so.5.2 $S/shlib/libhistory.so
-     ln -sfT libhistory.so.5.2 $S/shlib/libhistory.so.5
+     if [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+       ln -sfT libhistory.so.5.2 $S/shlib/libhistory.so
+       ln -sfT libreadline.so.5.2 $S/shlib/libreadline.so
+     else
+       ln -sfT libhistory.so.5 $S/shlib/libhistory.so
+       ln -sfT libreadline.so.5 $S/shlib/libreadline.so
+     fi
 
-     ln -sfT libreadline.so.5.2 $S/shlib/libreadline.so
-     ln -sfT libreadline.so.5.2 $S/shlib/libreadline.so.5
-
-     ab_add_sharedlib $S/shlib libhistory.so.5
-     ab_add_sharedlib $S/shlib libreadline.so.5
+     # Note: the second arg to ab_add_sharedlib MUST be a symlink.
+     ab_add_sharedlib $S/shlib libhistory.so
+     ab_add_sharedlib $S/shlib libreadline.so
 
      $AB_HOME/add-riscpkg -package libreadline5 -name LibReadline5 -depends SharedLibs
   fi
