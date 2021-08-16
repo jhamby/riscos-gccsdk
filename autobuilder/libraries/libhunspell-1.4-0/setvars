@@ -1,3 +1,4 @@
+AB_URL=http://deb.debian.org/debian/pool/main/h/hunspell/hunspell_1.4.1.orig.tar.gz
 
 AB_INSTALL=env
 AB_ROVERSION=2
