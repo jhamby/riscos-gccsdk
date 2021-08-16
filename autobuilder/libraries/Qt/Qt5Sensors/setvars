@@ -1,0 +1,63 @@
+# Qt Sensors
+AB_URL=http://download.qt-project.org/new_archive/qt/5.6/5.6.3/submodules/qtsensors-opensource-src-5.6.3.tar.xz
+
+# We'll do make install ourselves.
+AB_INSTALL=no
+AB_ROVERSION=1
+AB_PVERSION=5.6.3
+
+AB_COPYSOURCE=no
+
+export RO_SHAREDLIBS=yes
+
+export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
+export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
+export PKG_CONFIG_SYSROOT_DIR=$GCCSDK_INSTALL_ENV
+export PATH=$GCCSDK_INSTALL_CROSSBIN:$GCCSDK_INSTALL_ENV/bin:$PATH
+
+# $1 = base library name
+# $2 = "vfp/" or ""
+install_lib() {
+  cp -f lib/$1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so.1.0
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so.1
+  ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so
+}
+
+ab_make() {
+  $GCCSDK_INSTALL_ENV/bin/qmake qtsensors.pro
+  $AB_MAKE && $AB_MAKE install
+}
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton Qt5Sensors
+
+    ab_add_sharedlib $S/lib libQt5Sensors.so.5
+
+    mkdir -p $AA/Qt/qml/QtSensors
+
+    cp -T $S/qml/QtSensors/libdeclarative_sensors.so \
+      $AA/Qt/qml/QtSensors/libdeclarative_sensors.so,E1F
+    cp -T $S/src/imports/sensors/qmldir \
+            $AA/Qt/qml/QtSensors/qmldir
+    cp -T $S/src/imports/sensors/plugins.qmltypes \
+            $AA/Qt/qml/QtSensors/plugins.qmltypes
+
+    mkdir -p $AA/Qt/plugins/sensorgestures
+    mkdir -p $AA/Qt/plugins/sensors
+
+    cp -T $S/plugins/sensorgestures/libqtsensorgestures_counterplugin.so \
+      $AA/Qt/plugins/sensorgestures/libqtsensorgestures_counterplugin.so,E1F
+    cp -T $S/plugins/sensorgestures/libqtsensorgestures_plugin.so \
+      $AA/Qt/plugins/sensorgestures/libqtsensorgestures_plugin.so,E1F
+    cp -T $S/plugins/sensorgestures/libqtsensorgestures_shakeplugin.so \
+      $AA/Qt/plugins/sensorgestures/libqtsensorgestures_shakeplugin.so,E1F
+    cp -T $S/plugins/sensors/libqtsensors_generic.so \
+      $AA/Qt/plugins/sensors/libqtsensors_generic.so,E1F
+
+    AB_COMPONENTS=""
+    $AB_HOME/add-riscpkg -package Qt5Sensors -name Qt5Sensors \
+	-depends SharedLibs -depends Qt5Base -depends Qt5Qml
+  fi
+}

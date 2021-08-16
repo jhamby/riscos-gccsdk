@@ -3,16 +3,16 @@
 BUILD_NORMAL=yes
 BUILD_VFP=no
 
-AB_URL=http://download.qt-project.org/new_archive/qt/5.5/5.5.1/submodules/qtbase-opensource-src-5.5.1.tar.xz
+AB_URL=http://download.qt-project.org/new_archive/qt/5.6/5.6.3/submodules/qtbase-opensource-src-5.6.3.tar.xz
 
 # We'll call "make install" ourselves.
 AB_INSTALL=no
-AB_PVERSION=5.5.1
+AB_PVERSION=5.6.3
 AB_ROVERSION=3
 
 AB_DISTCLEAN="rm -rf build ; rm -rf build-vfp"
 
-QTBASE_VERSION=5.5.1
+QTBASE_VERSION=5.6.3
 
 export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
 export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
@@ -50,17 +50,23 @@ ln -T -s -f $H/src.corelib.tools.qdynamicarea.h $S/src/corelib/tools/qdynamicare
 ln -T -s -f $H/src.corelib.tools.qdynamicarea.cpp $S/src/corelib/tools/qdynamicarea.cpp
 
 mkdir -p $S/mkspecs/riscos-g++
-ln -T -s -f $H/mkspecs.riscos-g++.qmake.conf $S/mkspecs/riscos-g++/qmake.conf
+if [ "x$RO_USE_ARMEABIHF" == "xyes" ]; then
+    ln -T -s -f $H/mkspecs.riscos-g++.qmake.conf $S/mkspecs/riscos-g++/qmake.conf
+    ABI_DIR=armeabihf
+else
+    ln -T -s -f $H/mkspecs.riscos-g++4.qmake.conf $S/mkspecs/riscos-g++/qmake.conf
+    ABI_DIR=abi-2.0
+fi
 ln -T -s -f $H/mkspecs.riscos-g++.qplatformdefs.h $S/mkspecs/riscos-g++/qplatformdefs.h
 
 # Insert qdynamicarea.h into the build system.
-$S/bin/syncqt.pl
+$S/bin/syncqt.pl -version $AB_PVERSION
 
 if [ "$BUILD_NORMAL" == "yes" ]; then
   mkdir -p build
-  ( cd build; ../configure -prefix "/SharedLibs:lib/armeabihf/Qt" -extprefix $GCCSDK_INSTALL_ENV \
+  ( cd build; ../configure -prefix "/SharedLibs:lib/$ABI_DIR/Qt" -extprefix $GCCSDK_INSTALL_ENV \
   -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
-  -confirm-license -no-reduce-relocations -xplatform riscos-g++ -no-nis -no-cups -no-iconv -system-freetype \
+  -confirm-license -no-reduce-relocations -xplatform riscos-g++ -no-cups -no-iconv -system-freetype \
   -fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -opengl -no-glib -no-harfbuzz -force-asserts \
   -riscos -qpa riscos -openvg -v )
 fi
@@ -77,14 +83,22 @@ fi
 
 if [ "$BUILD_NORMAL" == "yes" ]; then
   ( cd build; ./bin/qmake -r ../qtbase.pro )
-  for f in bootstrap moc qdoc qlalr rcc uic; do
-    ( cd build/src/tools/$f/; $H/change-compiler.pl Makefile )
+  for f in bootstrap moc qlalr rcc uic; do
+    if [ "x$RO_USE_ARMEABIHF" == "xyes" ]; then
+      ( cd build/src/tools/$f/; $H/change-compiler.pl Makefile )
+    else
+      ( cd build/src/tools/$f/; $H/change-compiler-gcc4.pl Makefile )
+    fi
   done
 fi
 if [ "$BUILD_VFP" == "yes" ]; then
   ( cd build-vfp; ./bin/qmake -r ../qtbase.pro )
-  for f in bootstrap moc qdoc qlalr rcc uic; do
-    ( cd build-vfp/src/tools/$f/; $H/change-compiler.pl Makefile )
+  for f in bootstrap moc qlalr rcc uic; do
+    if [ "x$RO_USE_ARMEABIHF" == "xyes" ]; then
+      ( cd build-vfp/src/tools/$f/; $H/change-compiler.pl Makefile )
+    else
+      ( cd build-vfp/src/tools/$f/; $H/change-compiler-gcc4.pl Makefile )
+    fi
   done
 fi
 

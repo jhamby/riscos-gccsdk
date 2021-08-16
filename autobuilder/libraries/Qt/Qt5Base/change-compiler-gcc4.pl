@@ -22,21 +22,20 @@ open(my $out, ">",  $file) or die "Can't open $file: $!";
 while (<$in>)
   {
     my $line = $_;
-    if ($line =~ /CC +=.+arm-riscos-gnueabihf-gcc$/)
+    if ($line =~ /CC +=.+arm-unknown-riscos-gcc$/)
       {
 	print $out "CC            = /usr/bin/cc\n";
       }
-    elsif ($line =~ /CXX +=.+arm-riscos-gnueabihf-g\+\+$/)
+    elsif ($line =~ /CXX +=.+arm-unknown-riscos-g\+\+$/)
       {
 	print $out "CXX           = /usr/bin/c++\n";
       }
-    elsif ($line =~ /LINK +=.+arm-riscos-gnueabihf-g\+\+/)
+    elsif ($line =~ /LINK += g\+\+/)
       {
         print $out "LINK          = /usr/bin/c++\n";
       }
     else
       {
-	$line =~ s/\-lOSLib32/\-L\/usr\/local\/Qt-5.5.1\/lib/;
 	print $out $line;
       }
   }

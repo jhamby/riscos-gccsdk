@@ -1,12 +1,12 @@
---- src/corelib/plugin/qpluginloader.cpp.orig	2015-10-31 11:21:28.970967185 +0000
-+++ src/corelib/plugin/qpluginloader.cpp	2015-10-31 11:22:17.342966112 +0000
-@@ -286,7 +286,9 @@
-     const bool debug = qt_debug_component();
- 
-     QStringList paths = QCoreApplication::libraryPaths();
+--- src/corelib/plugin/qpluginloader.cpp.orig	2021-08-14 22:19:58.456129266 -0700
++++ src/corelib/plugin/qpluginloader.cpp	2021-08-14 22:31:45.122348982 -0700
+@@ -298,7 +298,9 @@
+         paths.append(fileName.left(slash)); // don't include the '/'
+     } else {
+         paths = QCoreApplication::libraryPaths();
 +#ifndef __riscos__
-     paths.prepend(QStringLiteral("./")); // search in current dir first
+         paths.prepend(QStringLiteral(".")); // search in current dir first
 +#endif
+     }
+ 
      foreach (const QString &path, paths) {
-         foreach (const QString &prefix, prefixes) {
-             foreach (const QString &suffix, suffixes) {

@@ -4,7 +4,7 @@
  #ifndef WTF_Platform_h
  #define WTF_Platform_h
  
-+#if defined(__riscos__)
++#if defined(__riscos__) && (defined(__ARM_ARCH_3__) || defined(__ARM_ARCH_8A__))
 +/* GCC defines __ARM_ARCH_3__ which is technically too old, so we'll fudge
 + * it a bit.  */
 +#define __ARM_ARCH_7A__

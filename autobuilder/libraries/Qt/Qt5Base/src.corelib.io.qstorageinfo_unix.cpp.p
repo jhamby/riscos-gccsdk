@@ -1,5 +1,5 @@
---- src/corelib/io/qstorageinfo_unix.cpp.orig	2021-07-31 01:13:01.616653016 -0700
-+++ src/corelib/io/qstorageinfo_unix.cpp	2021-07-31 01:14:13.360979919 -0700
+--- ./src/corelib/io/qstorageinfo_unix.cpp.orig	2017-09-06 05:13:54.000000000 -0700
++++ ./src/corelib/io/qstorageinfo_unix.cpp	2021-08-14 22:41:03.763073402 -0700
 @@ -62,6 +62,8 @@
  #  include <VolumeRoster.h>
  #  include <fs_info.h>
@@ -19,7 +19,7 @@
  #else
  #  if defined(QT_LARGEFILE_SUPPORT)
  #    define QT_STATFSBUF struct statvfs64
-@@ -133,7 +138,7 @@
+@@ -114,7 +119,7 @@
      inline QByteArray fileSystemType() const;
      inline QByteArray device() const;
  private:
@@ -28,20 +28,26 @@
      QT_STATFSBUF *stat_buf;
      int entryCount;
      int currentIndex;
-@@ -506,6 +511,12 @@
+@@ -522,7 +527,7 @@
          valid = true;
          ready = true;
  
-+#ifdef Q_OS_RISCOS
-+        bytesTotal = statfs_buf.f_blocks * statfs_buf.f_bsize;
-+        bytesFree = statfs_buf.f_bfree * statfs_buf.f_bsize;
-+        bytesAvailable = statfs_buf.f_bavail * statfs_buf.f_bsize;
-+	readOnly = false;
-+#else
-         bytesTotal = statfs_buf.f_blocks * statfs_buf.f_frsize;
-         bytesFree = statfs_buf.f_bfree * statfs_buf.f_frsize;
+-#if defined(Q_OS_BSD4) && !defined(Q_OS_NETBSD)
++#if (defined(Q_OS_BSD4) && !defined(Q_OS_NETBSD)) || defined(Q_OS_RISCOS)
+         bytesTotal = statfs_buf.f_blocks * statfs_buf.f_bsize;
+         bytesFree = statfs_buf.f_bfree * statfs_buf.f_bsize;
+         bytesAvailable = statfs_buf.f_bavail * statfs_buf.f_bsize;
+@@ -532,6 +537,9 @@
          bytesAvailable = statfs_buf.f_bavail * statfs_buf.f_frsize;
-@@ -516,6 +527,7 @@
+ #endif
+         blockSize = statfs_buf.f_bsize;
++#ifdef Q_OS_RISCOS
++        readOnly = false;
++#else
+ #if defined(Q_OS_ANDROID) || defined (Q_OS_BSD4)
+ #if defined(_STATFS_F_FLAGS)
+         readOnly = (statfs_buf.f_flags & ST_RDONLY) != 0;
+@@ -539,6 +547,7 @@
  #else
          readOnly = (statfs_buf.f_flag & ST_RDONLY) != 0;
  #endif

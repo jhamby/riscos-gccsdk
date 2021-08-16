@@ -1,5 +1,5 @@
 # Qt Declarative (QML)
-AB_URL=http://download.qt-project.org/new_archive/qt/5.5/5.5.1/submodules/qtdeclarative-opensource-src-5.5.1.tar.xz
+AB_URL=http://download.qt-project.org/new_archive/qt/5.6/5.6.3/submodules/qtdeclarative-opensource-src-5.6.3.tar.xz
 
 # TODO: replace VFP with NEON or something more appropriate for EABI
 BUILD_NORMAL=yes
@@ -8,7 +8,7 @@ BUILD_VFP=no
 # We'll do make install ourselves.
 AB_INSTALL=no
 AB_ROVERSION=1
-AB_PVERSION=5.5.1
+AB_PVERSION=5.6.3
 
 # "make -C DeclarativeBuild/Release distclean" gets stuck in an infinite loop so disable
 # packaging of source for now.
@@ -30,16 +30,6 @@ install_lib() {
   ln -sf $1.so.1.0.0 $GCCSDK_INSTALL_ENV/$2lib/$1.so
 }
 
-# There are parts of the source that need to be built natively, eg, tools used in
-# the build. If we configure and build outside of the autobuilder, this works correctly.
-# However, in the autobuilder, things don't go according to plan and the cross compiler is
-# always used causing the build to fail.
-# Currently, I don't know how to correct this, so instead I use a perl script to alter the
-# relevant makefiles to use the correct compiler. There's an extra complication in the fact
-# that we need to create the makefiles first using qmake.
-# If we want to cross compile these tools as well in future, then this will have to be
-# revisited.
-
 ab_make() {
   $GCCSDK_INSTALL_ENV/bin/qmake -r qtdeclarative.pro
   $AB_MAKE && $AB_MAKE install
@@ -58,10 +48,20 @@ ab_package() {
 
       mkdir -p $AA/Qt/plugins/qmltooling
 
-      cp -T $S/plugins/qmltooling/libqmldbg_qtquick2.so \
-        $AA/Qt/plugins/qmltooling/libqmldbg_qtquick2.so,E1F
+      cp -T $S/plugins/qmltooling/libqmldbg_native.so \
+        $AA/Qt/plugins/qmltooling/libqmldbg_native.so,E1F
       cp -T $S/plugins/qmltooling/libqmldbg_tcp.so \
         $AA/Qt/plugins/qmltooling/libqmldbg_tcp.so,E1F
+      cp -T $S/plugins/qmltooling/libqmldbg_server.so \
+        $AA/Qt/plugins/qmltooling/libqmldbg_server.so,E1F
+      cp -T $S/plugins/qmltooling/libqmldbg_inspector.so \
+        $AA/Qt/plugins/qmltooling/libqmldbg_inspector.so,E1F
+      cp -T $S/plugins/qmltooling/libqmldbg_local.so \
+        $AA/Qt/plugins/qmltooling/libqmldbg_local.so,E1F
+      cp -T $S/plugins/qmltooling/libqmldbg_profiler.so \
+        $AA/Qt/plugins/qmltooling/libqmldbg_profiler.so,E1F
+      cp -T $S/plugins/qmltooling/libqmldbg_debugger.so \
+        $AA/Qt/plugins/qmltooling/libqmldbg_debugger.so,E1F
     fi
 
     AB_COMPONENTS=""

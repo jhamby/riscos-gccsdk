@@ -1,0 +1,4 @@
+Description: QtSensors libraries
+  Qt Sensors handles various device sensors.
+  .
+  This package contains the QtSensors library and QML plugins.
