@@ -1,13 +1,10 @@
 libpng16-16
 oslib
 libjpeg8
-libsqlite3-0
-libpcre3
 libfreetype6
 fontconfig
 libexpat1
 icu
-libssl1.0.2
+libssl1.1.1
 fonts-dejavu
 ttf-bitstream-vera
-khronos

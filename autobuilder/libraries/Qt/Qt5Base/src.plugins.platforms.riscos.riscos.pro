@@ -4,7 +4,9 @@ PLUGIN_TYPE = platforms
 PLUGIN_CLASS_NAME = QRiscosIntegrationPlugin
 load(qt_plugin)
 
-QT += core-private gui-private platformsupport-private
+QT += \
+    core-private gui-private \
+    fontdatabase_support-private theme_support-private
 
 INCLUDEPATH += $(GCCSDK_INSTALL_ENV)/include
 

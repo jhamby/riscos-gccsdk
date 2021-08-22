@@ -44,7 +44,7 @@
 **
 ****************************************************************************/
 
-#include <QtPlatformSupport/private/qfontconfigdatabase_p.h>
+#include <QtFontDatabaseSupport/private/qfontconfigdatabase_p.h>
 #include <QtGui/private/qguiapplication_p.h>
 #include "qcoreapplication.h"
 #include "qfileinfo.h"

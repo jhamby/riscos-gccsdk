@@ -64,6 +64,8 @@ QRiscosCursor::QRiscosCursor(QRiscosScreen *screen) :
 void
 QRiscosCursor::changeCursor(QCursor *cursorIn, QWindow *window)
 {
+    Q_UNUSED(window);
+
     /* Might as well use the default WIMP pointer. */
     if (!cursorIn || cursorIn->shape() == Qt::ArrowCursor) {
         _swix(Wimp_SpriteOp, _IN(0)|_INR(2,7), WimpSpriteOp_SetPointerShape,

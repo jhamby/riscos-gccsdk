@@ -1,33 +1,32 @@
---- ./src/corelib/thread/qthread_unix.cpp.orig	2017-09-06 05:13:54.000000000 -0700
-+++ ./src/corelib/thread/qthread_unix.cpp	2021-08-14 22:42:38.635869364 -0700
-@@ -299,7 +299,7 @@
+--- src/corelib/thread/qthread_unix.cpp.orig	2021-05-17 23:43:52.000000000 -0700
++++ src/corelib/thread/qthread_unix.cpp	2021-08-16 14:00:56.713592018 -0700
+@@ -297,14 +297,14 @@
  
- #ifndef QT_NO_THREAD
+ #if QT_CONFIG(thread)
  
 -#if (defined(Q_OS_LINUX) || defined(Q_OS_MAC) || defined(Q_OS_QNX))
 +#if (defined(Q_OS_LINUX) || defined(Q_OS_MAC) || defined(Q_OS_QNX) || defined(Q_OS_RISCOS))
- static void setCurrentThreadName(pthread_t threadId, const char *name)
+ static void setCurrentThreadName(const char *name)
  {
  #  if defined(Q_OS_LINUX) && !defined(QT_LINUXBASE)
-@@ -308,7 +308,7 @@
+     prctl(PR_SET_NAME, (unsigned long)name, 0, 0, 0);
  #  elif defined(Q_OS_MAC)
-     Q_UNUSED(threadId);
      pthread_setname_np(name);
 -#  elif defined(Q_OS_QNX)
 +#  elif defined(Q_OS_QNX) || defined(Q_OS_RISCOS)
-     pthread_setname_np(threadId, name);
+     pthread_setname_np(pthread_self(), name);
  #  endif
  }
-@@ -344,7 +344,7 @@
-     else
-         createEventDispatcher(data);
+@@ -341,7 +341,7 @@
+ 
+         data->ensureEventDispatcher();
  
 -#if (defined(Q_OS_LINUX) || defined(Q_OS_MAC) || defined(Q_OS_QNX))
 +#if (defined(Q_OS_LINUX) || defined(Q_OS_MAC) || defined(Q_OS_QNX) || defined(Q_OS_RISCOS))
-     {
-         // sets the name of the current thread.
-         QString objectName = thr->objectName();
-@@ -471,6 +471,8 @@
+         {
+             // Sets the name of the current thread. We can only do this
+             // when the thread is starting, as we don't have a cross
+@@ -499,6 +499,8 @@
      // as of aug 2008 VxWorks < 6.6 only supports one single core CPU
      cores = 1;
  #  endif

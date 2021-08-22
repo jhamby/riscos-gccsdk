@@ -1,6 +1,6 @@
---- src/plugins/platforms/platforms.pro.orig	2014-05-15 18:12:18.000000000 +0100
-+++ src/plugins/platforms/platforms.pro	2014-05-27 19:55:16.342522841 +0100
-@@ -26,6 +26,10 @@
+--- src/plugins/platforms/platforms.pro.orig	2021-08-16 13:20:34.221132899 -0700
++++ src/plugins/platforms/platforms.pro	2021-08-16 13:23:36.401751261 -0700
+@@ -25,6 +25,10 @@
      SUBDIRS += qnx
  }
  
@@ -8,6 +8,6 @@
 +    SUBDIRS += riscos
 +}
 +
- contains(QT_CONFIG, eglfs) {
+ qtConfig(eglfs) {
      SUBDIRS += eglfs
      SUBDIRS += minimalegl

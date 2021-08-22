@@ -3,16 +3,23 @@
 BUILD_NORMAL=yes
 BUILD_VFP=no
 
-AB_URL=http://download.qt-project.org/new_archive/qt/5.6/5.6.3/submodules/qtbase-opensource-src-5.6.3.tar.xz
+# Building with OpenGL requires working GLES/EGL libraries.
+if [ "x$RO_BUILD_OPENGL" == "xyes" ]; then
+  CONFIG_OPENGL="-opengl -openvg"
+else
+  CONFIG_OPENGL="-no-opengl -no-openvg -no-egl"
+fi
+
+AB_URL=https://download.qt.io/archive/qt/5.12/5.12.11/submodules/qtbase-everywhere-src-5.12.11.tar.xz
 
 # We'll call "make install" ourselves.
 AB_INSTALL=no
-AB_PVERSION=5.6.3
-AB_ROVERSION=3
+AB_PVERSION=5.12.11
+AB_ROVERSION=1
 
 AB_DISTCLEAN="rm -rf build ; rm -rf build-vfp"
 
-QTBASE_VERSION=5.6.3
+QTBASE_VERSION=5.12.11
 
 export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
 export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
@@ -65,49 +72,19 @@ $S/bin/syncqt.pl -version $AB_PVERSION
 if [ "$BUILD_NORMAL" == "yes" ]; then
   mkdir -p build
   ( cd build; ../configure -prefix "/SharedLibs:lib/$ABI_DIR/Qt" -extprefix $GCCSDK_INSTALL_ENV \
-  -opensource -no-largefile -system-sqlite -system-zlib -no-audio-backend \
-  -confirm-license -no-reduce-relocations -xplatform riscos-g++ -no-cups -no-iconv -system-freetype \
-  -fontconfig -system-pcre -no-pch -icu -no-dbus -no-xcb -no-kms -opengl -no-glib -no-harfbuzz -force-asserts \
-  -riscos -qpa riscos -openvg -v )
-fi
-
-# There are parts of the source that need to be built natively, eg, tools used in
-# the build. If we configure and build outside of the autobuilder, this works correctly.
-# However, in the autobuilder, things don't go according to plan and the cross compiler is
-# always used causing the build to fail.
-# Currently, I don't know how to correct this, so instead I use a perl script to alter the
-# relevant makefiles to use the correct compiler. There's an extra complication in the fact
-# that we need to create the makefiles first using qmake.
-# If we want to cross compile these tools as well in future, then this will have to be
-# revisited.
-
-if [ "$BUILD_NORMAL" == "yes" ]; then
-  ( cd build; ./bin/qmake -r ../qtbase.pro )
-  for f in bootstrap moc qlalr rcc uic; do
-    if [ "x$RO_USE_ARMEABIHF" == "xyes" ]; then
-      ( cd build/src/tools/$f/; $H/change-compiler.pl Makefile )
-    else
-      ( cd build/src/tools/$f/; $H/change-compiler-gcc4.pl Makefile )
-    fi
-  done
-fi
-if [ "$BUILD_VFP" == "yes" ]; then
-  ( cd build-vfp; ./bin/qmake -r ../qtbase.pro )
-  for f in bootstrap moc qlalr rcc uic; do
-    if [ "x$RO_USE_ARMEABIHF" == "xyes" ]; then
-      ( cd build-vfp/src/tools/$f/; $H/change-compiler.pl Makefile )
-    else
-      ( cd build-vfp/src/tools/$f/; $H/change-compiler-gcc4.pl Makefile )
-    fi
-  done
+  -hostprefix $GCCSDK_INSTALL_ENV -opensource -system-zlib \
+  -confirm-license -no-reduce-relocations -xplatform riscos-g++ \
+  -no-cups -no-iconv -system-freetype $CONFIG_OPENGL \
+  -fontconfig -no-pch -icu -no-dbus -no-xcb -no-kms -no-glib -no-harfbuzz -force-asserts \
+  -qpa riscos -v )
 fi
 
 ab_make() {
   if [ "$BUILD_NORMAL" == "yes" ]; then
-    ( cd build; $AB_MAKE && $AB_MAKE install )
+    ( cd build; make -j6 && make install )
   fi
   if [ "$BUILD_VFP" == "yes" ]; then
-    ( cd build-vfp; $AB_MAKE && $AB_MAKE install )
+    ( cd build-vfp; make -j6 && make install )
   fi
 #  make install
 #  make html_docs
@@ -161,12 +138,15 @@ ab_package() {
     ab_add_sharedlib $S/build/lib libQt5Xml.so.5
     ab_add_sharedlib $S/build/lib libQt5Concurrent.so.5
     ab_add_sharedlib $S/build/lib libQt5PrintSupport.so.5
-    ab_add_sharedlib $S/build/lib libQt5EglDeviceIntegration.so.5
-    ab_add_sharedlib $S/build/lib libQt5OpenGL.so.5
+    if [ "x$RO_BUILD_OPENGL" == "xyes" ]; then
+      ab_add_sharedlib $S/build/lib libQt5EglFSDeviceIntegration.so.5
+      ab_add_sharedlib $S/build/lib libQt5OpenGL.so.5
+    fi
     ab_add_sharedlib $S/build/lib libQt5Test.so.5
 
     # This is a dlopen library.
     mkdir -p $AA/Qt/plugins/bearer
+    mkdir -p $AA/Qt/plugins/egldeviceintegrations
     mkdir -p $AA/Qt/plugins/generic
     mkdir -p $AA/Qt/plugins/platforms
     mkdir -p $AA/Qt/plugins/imageformats
@@ -177,8 +157,13 @@ ab_package() {
     cp -T $S/build/plugins/platforms/libqriscos.so     $AA/Qt/plugins/platforms/libqriscos.so,E1F
     cp -T $S/build/plugins/platforms/libqminimal.so    $AA/Qt/plugins/platforms/libqminimal.so,E1F
     cp -T $S/build/plugins/platforms/libqoffscreen.so  $AA/Qt/plugins/platforms/libqoffscreen.so,E1F
-    cp -T $S/build/plugins/platforms/libqeglfs.so  $AA/Qt/plugins/platforms/libqeglfs.so,E1F
-    cp -T $S/build/plugins/platforms/libqminimalegl.so  $AA/Qt/plugins/platforms/libqminimalegl.so,E1F
+    if [ "x$RO_BUILD_OPENGL" == "xyes" ]; then
+      cp -T $S/build/plugins/egldeviceintegrations/libqeglfs-emu-integration.so  \
+              $AA/Qt/plugins/egldeviceintegrations/libqeglfs-emu-integration.so,E1F
+      cp -T $S/build/plugins/platforms/libqeglfs.so      $AA/Qt/plugins/platforms/libqeglfs.so,E1F
+      cp -T $S/build/plugins/platforms/libqminimalegl.so $AA/Qt/plugins/platforms/libqminimalegl.so,E1F
+    fi
+    cp -T $S/build/plugins/platforms/libqvnc.so        $AA/Qt/plugins/platforms/libqvnc.so,E1F
     cp -T $S/build/plugins/imageformats/libqgif.so     $AA/Qt/plugins/imageformats/libqgif.so,E1F
     cp -T $S/build/plugins/imageformats/libqico.so     $AA/Qt/plugins/imageformats/libqico.so,E1F
     cp -T $S/build/plugins/imageformats/libqjpeg.so    $AA/Qt/plugins/imageformats/libqjpeg.so,E1F
@@ -188,11 +173,11 @@ ab_package() {
   AB_COMPONENTS=""
   $AB_HOME/add-riscpkg -package qt5base -name Qt5Base \
 	-depends SharedLibs -depends LibPNG16-16 -depends ZLib1g \
-	-depends LibJPEG8 -depends LibSQLite3 -depends LibPcre3 \
+	-depends LibJPEG8 -depends LibPcre3 \
 	-depends LibFontConfig1 -depends LibFreeType6 -depends LibExpat1 \
 	-depends LibICU52 -depends LibSSL \
 	-depends TTF-DejaVu-Core -depends TTF-DejaVu-Extra \
-        -depends TTF-Bitstream-Vera -depends Khronos-Lib \
+        -depends TTF-Bitstream-Vera \
 	-section Library
 
   # Use standard font packages - rather than copying from here
@@ -210,27 +195,54 @@ ab_package() {
   # qt5base-tests
   ab_create_app Qt5BaseTests Apps/Library qt5base-tests
 
-  create_example AnalogClock   gui/analogclock                   analogclock
   create_example AnimatedTiles widgets/animation/animatedtiles   animatedtiles
+  create_example Easing        widgets/animation/easing          easing
   create_example MoveBlocks    widgets/animation/moveblocks      moveblocks
-  create_example AppChooser    widgets/animation/appchooser      appchooser
+  create_example States        widgets/animation/states          states
+  create_example Sub-Attaq     widgets/animation/sub-attaq       sub-attaq
   create_example PathStroke    widgets/painting/pathstroke       pathstroke
   create_example Transforms    widgets/painting/transformations  transformations
   create_example ImageComp     widgets/painting/imagecomposition imagecomposition
   create_example PainterPaths  widgets/painting/painterpaths     painterpaths
   create_example Deform        widgets/painting/deform           deform
   create_example Affine        widgets/painting/affine           affine
+  create_example BasicDrawing  widgets/painting/basicdrawing     basicdrawing
+  create_example Composition   widgets/painting/composition      composition
+  create_example ConcCircles   widgets/painting/concentriccircles  concentriccircles
+  create_example FontSampler   widgets/painting/fontsampler      fontsampler
   create_example Gradients     widgets/painting/gradients        gradients
-  create_example Lighting      widgets/effects/lighting          lighting
   create_example BlurPicker    widgets/effects/blurpicker        blurpicker
+  create_example FadeMessage   widgets/effects/fademessage       fademessage
   create_example i18n          widgets/tools/i18n                i18n
   create_example RegExp        widgets/tools/regexp              regexp
+  create_example AnalogClock   widgets/widgets/analogclock       analogclock
   create_example Wiggly        widgets/widgets/wiggly            wiggly
   create_example Movie         widgets/widgets/movie             movie
   create_example ToolTips      widgets/widgets/tooltips          tooltips
-  create_example Mandelbrot    corelib/threads/mandelbrot        mandelbrot
+  create_example Calculator    widgets/widgets/calculator        calculator
+  create_example CalendarWidget  widgets/widgets/calendarwidget  calendarwidget
+  create_example CharacterMap  widgets/widgets/charactermap      charactermap
+  create_example CodeEditor    widgets/widgets/codeeditor        codeeditor
+  create_example DigitalClock  widgets/widgets/digitalclock      digitalclock
+  create_example ElidedLabel   widgets/widgets/elidedlabel       elidedlabel
+  create_example GroupBox      widgets/widgets/groupbox          groupbox
+  create_example Icons         widgets/widgets/icons             icons
+  create_example ImageViewer   widgets/widgets/imageviewer       imageviewer
+  create_example LineEdits     widgets/widgets/lineedits         lineedits
+  create_example MouseButtons  widgets/widgets/mousebuttons      mousebuttons
+  create_example Scribble      widgets/widgets/scribble          scribble
+  create_example ShapedClock   widgets/widgets/shapedclock       shapedclock
+  create_example Sliders       widgets/widgets/sliders           sliders
+  create_example Spinboxes     widgets/widgets/spinboxes         spinboxes
+  create_example Styles        widgets/widgets/styles            styles
+  create_example StyleSheet    widgets/widgets/stylesheet        stylesheet
+  create_example Tablet        widgets/widgets/tablet            qttablet
+  create_example Tetrix        widgets/widgets/tetrix            tetrix
+  create_example Validators    widgets/widgets/validators        validators
+  create_example WindowFlags   widgets/widgets/windowflags       windowflags
+#  create_example Mandelbrot    corelib/threads/mandelbrot        mandelbrot
 # This one doesn't work - doesn't respond to key presses
-#  create_example StickMan     widgets/animation/stickman        stickman
+  create_example StickMan     widgets/animation/stickman        stickman
 
   $AB_HOME/add-riscpkg -package qt5base-tests -name Qt5Base-Tests -depends Qt5Base \
 	-depends SharedLibs

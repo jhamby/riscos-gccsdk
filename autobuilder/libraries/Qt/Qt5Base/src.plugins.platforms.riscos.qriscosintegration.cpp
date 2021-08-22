@@ -44,7 +44,7 @@
 **
 ****************************************************************************/
 
-#include <QtPlatformSupport/private/qfontconfigdatabase_p.h>
+#include <QtFontDatabaseSupport/private/qfontconfigdatabase_p.h>
 #include <QtGui/private/qguiapplication_p.h>
 #include "qcoreapplication.h"
 #include "qfileinfo.h"
@@ -67,7 +67,7 @@ QRiscosIntegration::QRiscosIntegration ()
 
     m_riscosPlatformNativeInterface = new QRiscosPlatformNativeInterface();
 
-    screenAdded (mPrimaryScreen);
+    QWindowSystemInterface::handleScreenAdded (mPrimaryScreen);
 
     QString app_name = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
     QByteArray appNameByteArray = app_name.toUtf8();

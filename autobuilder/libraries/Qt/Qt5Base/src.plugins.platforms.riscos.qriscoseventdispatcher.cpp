@@ -561,7 +561,7 @@ QRiscosEventDispatcherPrivate::handleNullEvent()
 #ifndef USE_QEventDispatcherUNIX_BASE
     handleTimers();
 #else
-    q->activateTimers();
+    activateTimers();
 #endif
 
     QRiscosWindow *rwindow = screen->windowFromId (mouse.w);
