@@ -60,9 +60,9 @@ class QRiscosCursor : public QPlatformCursor
 public:
     QRiscosCursor(QRiscosScreen *screen);
 
-    void changeCursor(QCursor * widgetCursor, QWindow * widget) Q_DECL_OVERRIDE;
-    QPoint pos() const Q_DECL_OVERRIDE;
-//    void setPos(const QPoint &pos) Q_DECL_OVERRIDE;
+    void changeCursor(QCursor * widgetCursor, QWindow * widget) override;
+    QPoint pos() const override;
+//    void setPos(const QPoint &pos) override;
 
 private:
     struct riscos_pointer {

@@ -58,6 +58,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <assert.h>
+#include <iterator>
 #include "oslib/os.h"
 #include "qdynamicarea.h"
 
@@ -75,13 +76,13 @@ static QDynamicArea qt_mmap_da("Qt mmap", 20 * 1024 * 1024); // 20MB
 void 
 QDynamicArea::dump (const char *title)
 {
-    QLinkedList<memory_node>::iterator iterator;
+    std::list<memory_node>::iterator iterator;
 
     if (title)
 	printf ("%s: (DA '%s': %p -> %p)\n", title, m_name, m_baseAddr, m_baseAddr + m_size);
     else
 	printf ("Free list: (DA '%s': %p -> %p)\n", m_name, m_baseAddr, m_baseAddr + m_size);
-    if (m_freeList.count())
+    if (!m_freeList.empty())
     {
 	for (iterator = m_freeList.begin();
 	     iterator != m_freeList.end();
@@ -168,8 +169,7 @@ QDynamicArea::create ()
     }
 
     // Create a free block for the initial DA allocation.
-    memory_node *free_block = new memory_node (m_baseAddr, m_size);
-    m_freeList.append (*free_block);
+    m_freeList.emplace_back (m_baseAddr, m_size);
 
 #ifdef DEBUG_MEMORY
     printf ("[%s] - Created dynamic area '%s' with handle %d and base address %p\n",
@@ -189,7 +189,7 @@ QDynamicArea::create ()
 void *
 QDynamicArea::alloc (size_t size)
 {
-    QLinkedList<memory_node>::iterator iterator;
+    std::list<memory_node>::iterator iterator;
     void *ptr = nullptr;
 
 #ifdef DEBUG_MEMORY
@@ -211,7 +211,6 @@ QDynamicArea::alloc (size_t size)
 #endif
 	ptr = iterator->addr();
 	m_freeList.erase(iterator);
-	// NOTE: QLinkedList::erase calls delete for this node.
     }
     else
     {
@@ -243,9 +242,9 @@ QDynamicArea::alloc (size_t size)
 #endif
 	size_t da_inc;
 
-	if (!m_freeList.isEmpty() && m_freeList.last().endAddr() == m_baseAddr + m_size)
+	if (!m_freeList.empty() && m_freeList.back().endAddr() == m_baseAddr + m_size)
 	{
-	    memory_node &last = m_freeList.last();
+	    memory_node &last = m_freeList.back();
 
 	    // There's a free block at the end of the DA, but it's not big enough.
 	    // Extend the DA so the block becomes big enough.
@@ -260,7 +259,7 @@ QDynamicArea::alloc (size_t size)
 #ifdef VERBOSE_MEMORY
 	        printf("[%s:%d:%s] - RISC OS Error: %s\n",
 		       __func__, __LINE__, __FILE__, err->errmess);
-		printf("  handle (%d), size (%ld), da_inc (%ld)\n", m_handle, size, da_inc);
+		printf("  handle (%d), size (%zu), da_inc (%zu)\n", m_handle, size, da_inc);
 #endif
 		return nullptr;
 	    }
@@ -278,8 +277,7 @@ QDynamicArea::alloc (size_t size)
 	    {
 		// This allocation consumed the whole of the last free block; remove it
 		// from the list.
-		m_freeList.removeLast();
-		// NOTE: QLinkedList::removeLast also calls delete for this node.
+		m_freeList.pop_back();
 	    }
 	    else
 	    {
@@ -302,7 +300,7 @@ QDynamicArea::alloc (size_t size)
 #ifdef VERBOSE_MEMORY
 	        printf("[%s:%d:%s] - RISC OS Error: %s\n",
 		       __func__, __LINE__, __FILE__, err->errmess);
-		printf("  handle (%d), size (%ld), da_inc (%ld), m_size (%ld)\n",
+		printf("  handle (%d), size (%zu), da_inc (%zu), m_size (%zu)\n",
 		       m_handle, size, da_inc, m_size);
 #endif
 		return nullptr;
@@ -317,8 +315,7 @@ QDynamicArea::alloc (size_t size)
 	    ptr = m_baseAddr + old_da_size;
 	    if (da_inc - size > 0)
 	    {
-		memory_node *mn = new memory_node (static_cast<char *>(ptr) + size, da_inc - size);
-		m_freeList.append (*mn);
+		m_freeList.emplace_back (static_cast<char *>(ptr) + size, da_inc - size);
 #ifdef DEBUG_MEMORY
 		printf ("  Allocate block at end of (extended) DA, create free block for remainder (%p -> %p, %lX)\n",
 			mn->addr(), mn->endAddr(), mn->size());
@@ -348,7 +345,7 @@ QDynamicArea::alloc (size_t size)
 // block as long as an allocated block fully contains it.
 void QDynamicArea::free (void *addr, size_t len)
 {
-    QLinkedList<memory_node>::iterator iterator;
+    std::list<memory_node>::iterator iterator;
 
     if (addr == nullptr)
     {
@@ -418,18 +415,17 @@ void QDynamicArea::free (void *addr, size_t len)
 	// Either the list is empty in which case we create the first node, or the end of the
 	// list was reached which means that this block has a higher address than all others.
 	// Either way add it to the end of the list.
-	memory_node *mn;
-
-	mn = new memory_node (addr, len);
-	m_freeList.append (*mn);
+	const auto mn = m_freeList.emplace_back (addr, len);
 #ifdef DEBUG_MEMORY
 	printf ("  Could not merge; Add free node to end (%p -> %p, %lX)\n",
 		mn->addr(), mn->endAddr(), mn->size());
+#else
+	Q_UNUSED(mn);
 #endif
     }
     else
     {
-	QLinkedList<memory_node>::iterator prev_iter(iterator-1);
+	std::list<memory_node>::iterator prev_iter = std::prev (iterator);
 	int merge_count = 0;
 
 	if (static_cast<char *>(addr) + len == iterator->addr())
@@ -465,13 +461,12 @@ void QDynamicArea::free (void *addr, size_t len)
 	{
 	    // Block was not merged into either previous or next block, so insert a new
 	    // free list node at the correct place.
-	    memory_node *mn;
-
-	    mn = new memory_node (addr, len);
-	    m_freeList.insert (iterator, *mn);
+	    const auto mn = m_freeList.emplace (iterator, addr, len);
 #ifdef DEBUG_MEMORY
 	    printf ("  Could not merge; Insert free node (%p -> %p, %lX)\n",
 		    mn->addr(), mn->endAddr(), mn->size());
+#else
+	    Q_UNUSED(mn);
 #endif
 	}
 	else if (merge_count == 2)
@@ -483,16 +478,15 @@ void QDynamicArea::free (void *addr, size_t len)
 #endif
 	    prev_iter->adjustSize(iterator->size() - len);
 	    m_freeList.erase (iterator);
-	    // NOTE: QLinkedList::erase calls delete for this node.
 	}
     }
 
     // Try to reclaim any unused pages of memory at the end of the dynamic area.
-    if (!m_freeList.isEmpty() && m_freeList.last().endAddr() == m_baseAddr + m_size)
+    if (!m_freeList.empty() && m_freeList.back().endAddr() == m_baseAddr + m_size)
     {
 	// There's a free block at the end of the dynamic area.
-        unsigned char *start_addr = static_cast<unsigned char *>(m_freeList.last().addr());
-	unsigned char *end_addr = static_cast<unsigned char *>(m_freeList.last().endAddr());
+        unsigned char *start_addr = static_cast<unsigned char *>(m_freeList.back().addr());
+	unsigned char *end_addr = static_cast<unsigned char *>(m_freeList.back().endAddr());
 
 	if (((end_addr - start_addr) >> m_pageShift) != 0)
 	{
@@ -529,18 +523,17 @@ void QDynamicArea::free (void *addr, size_t len)
 		{
 		    m_size -= reduce_by;
 		    if (((end_addr - start_addr) & (m_pageSize - 1)) == 0 &&
-			  start_addr != m_freeList.first().addr())
+			  start_addr != m_freeList.front().addr())
 		    {
 			// We have a whole number of pages with no remainder; just
 			// remove the last free block.
-			// NOTE: QLinkedList::removeLast also calls delete for this node.
-			m_freeList.removeLast();
+			m_freeList.pop_back();
 		    }
 		    else
 		    {
 			// There's part of a page left over; adjust the last free block
 			// to describe it.
-			m_freeList.last().adjustSize(-reduce_by);
+			m_freeList.back().adjustSize(-reduce_by);
 		    }
 #ifdef DEBUG_MEMORY
 		    printf ("* [%s] Shrunk DA by %ld pages\n", m_name, reduce_by / m_pageSize);

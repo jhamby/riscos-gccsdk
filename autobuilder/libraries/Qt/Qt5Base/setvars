@@ -10,16 +10,16 @@ else
   CONFIG_OPENGL="-no-opengl -no-openvg -no-egl"
 fi
 
-AB_URL=https://download.qt.io/archive/qt/5.12/5.12.11/submodules/qtbase-everywhere-src-5.12.11.tar.xz
+AB_URL=https://download.qt.io/archive/qt/5.15/5.15.2/submodules/qtbase-everywhere-src-5.15.2.tar.xz
 
 # We'll call "make install" ourselves.
 AB_INSTALL=no
-AB_PVERSION=5.12.11
+AB_PVERSION=5.15.2
 AB_ROVERSION=1
 
 AB_DISTCLEAN="rm -rf build ; rm -rf build-vfp"
 
-QTBASE_VERSION=5.12.11
+QTBASE_VERSION=5.15.2
 
 export PKG_CONFIG=$GCCSDK_INSTALL_ENV/ro-pkg-config
 export PKG_CONFIG_LIBDIR=$GCCSDK_INSTALL_ENV/lib/pkgconfig:$GCCSDK_INSTALL_ENV/share/pkgconfig
@@ -73,9 +73,9 @@ if [ "$BUILD_NORMAL" == "yes" ]; then
   mkdir -p build
   ( cd build; ../configure -prefix "/SharedLibs:lib/$ABI_DIR/Qt" -extprefix $GCCSDK_INSTALL_ENV \
   -hostprefix $GCCSDK_INSTALL_ENV -opensource -system-zlib \
-  -confirm-license -no-reduce-relocations -xplatform riscos-g++ \
+  -confirm-license -xplatform riscos-g++ \
   -no-cups -no-iconv -system-freetype $CONFIG_OPENGL \
-  -fontconfig -no-pch -icu -no-dbus -no-xcb -no-kms -no-glib -no-harfbuzz -force-asserts \
+  -fontconfig -no-pch -icu -no-dbus -no-xcb -no-kms -no-glib -force-asserts \
   -qpa riscos -v )
 fi
 
@@ -195,30 +195,29 @@ ab_package() {
   # qt5base-tests
   ab_create_app Qt5BaseTests Apps/Library qt5base-tests
 
+  create_example Mandelbrot    corelib/threads/mandelbrot        mandelbrot
   create_example AnimatedTiles widgets/animation/animatedtiles   animatedtiles
   create_example Easing        widgets/animation/easing          easing
   create_example MoveBlocks    widgets/animation/moveblocks      moveblocks
   create_example States        widgets/animation/states          states
+  create_example StickMan      widgets/animation/stickman        stickman
   create_example Sub-Attaq     widgets/animation/sub-attaq       sub-attaq
-  create_example PathStroke    widgets/painting/pathstroke       pathstroke
-  create_example Transforms    widgets/painting/transformations  transformations
-  create_example ImageComp     widgets/painting/imagecomposition imagecomposition
-  create_example PainterPaths  widgets/painting/painterpaths     painterpaths
-  create_example Deform        widgets/painting/deform           deform
   create_example Affine        widgets/painting/affine           affine
   create_example BasicDrawing  widgets/painting/basicdrawing     basicdrawing
   create_example Composition   widgets/painting/composition      composition
   create_example ConcCircles   widgets/painting/concentriccircles  concentriccircles
+  create_example Deform        widgets/painting/deform           deform
   create_example FontSampler   widgets/painting/fontsampler      fontsampler
   create_example Gradients     widgets/painting/gradients        gradients
+  create_example ImageComp     widgets/painting/imagecomposition imagecomposition
+  create_example PainterPaths  widgets/painting/painterpaths     painterpaths
+  create_example PathStroke    widgets/painting/pathstroke       pathstroke
+  create_example Transforms    widgets/painting/transformations  transformations
   create_example BlurPicker    widgets/effects/blurpicker        blurpicker
   create_example FadeMessage   widgets/effects/fademessage       fademessage
   create_example i18n          widgets/tools/i18n                i18n
   create_example RegExp        widgets/tools/regexp              regexp
   create_example AnalogClock   widgets/widgets/analogclock       analogclock
-  create_example Wiggly        widgets/widgets/wiggly            wiggly
-  create_example Movie         widgets/widgets/movie             movie
-  create_example ToolTips      widgets/widgets/tooltips          tooltips
   create_example Calculator    widgets/widgets/calculator        calculator
   create_example CalendarWidget  widgets/widgets/calendarwidget  calendarwidget
   create_example CharacterMap  widgets/widgets/charactermap      charactermap
@@ -230,6 +229,7 @@ ab_package() {
   create_example ImageViewer   widgets/widgets/imageviewer       imageviewer
   create_example LineEdits     widgets/widgets/lineedits         lineedits
   create_example MouseButtons  widgets/widgets/mousebuttons      mousebuttons
+  create_example Movie         widgets/widgets/movie             movie
   create_example Scribble      widgets/widgets/scribble          scribble
   create_example ShapedClock   widgets/widgets/shapedclock       shapedclock
   create_example Sliders       widgets/widgets/sliders           sliders
@@ -238,11 +238,10 @@ ab_package() {
   create_example StyleSheet    widgets/widgets/stylesheet        stylesheet
   create_example Tablet        widgets/widgets/tablet            qttablet
   create_example Tetrix        widgets/widgets/tetrix            tetrix
+  create_example ToolTips      widgets/widgets/tooltips          tooltips
   create_example Validators    widgets/widgets/validators        validators
+  create_example Wiggly        widgets/widgets/wiggly            wiggly
   create_example WindowFlags   widgets/widgets/windowflags       windowflags
-#  create_example Mandelbrot    corelib/threads/mandelbrot        mandelbrot
-# This one doesn't work - doesn't respond to key presses
-  create_example StickMan     widgets/animation/stickman        stickman
 
   $AB_HOME/add-riscpkg -package qt5base-tests -name Qt5Base-Tests -depends Qt5Base \
 	-depends SharedLibs

@@ -49,7 +49,8 @@
 #ifndef QDYNAMICAREA_H
 #define QDYNAMICAREA_H
 
-#include <QLinkedList>
+#include <list>
+#include <QtCore/qglobal.h>
 #include "oslib/os.h"
 
 //#define DEBUG_MEMORY
@@ -119,7 +120,7 @@ private:
     size_t m_maxSize;
     const size_t m_pageSize;
     size_t m_pageShift;
-    QLinkedList<memory_node> m_freeList;
+    std::list<memory_node> m_freeList;
 
     char m_name[32];
 };

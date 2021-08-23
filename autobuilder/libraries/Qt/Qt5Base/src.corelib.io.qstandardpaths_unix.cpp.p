@@ -1,6 +1,6 @@
---- src/corelib/io/qstandardpaths_unix.cpp.orig	2015-06-29 21:05:01.000000000 +0100
-+++ src/corelib/io/qstandardpaths_unix.cpp	2015-07-15 18:48:02.690754333 +0100
-@@ -75,9 +75,9 @@
+--- src/corelib/io/qstandardpaths_unix.cpp.orig	2021-08-22 20:41:04.976076179 -0700
++++ src/corelib/io/qstandardpaths_unix.cpp	2021-08-22 20:43:57.161322171 -0700
+@@ -212,9 +212,9 @@
          // http://standards.freedesktop.org/basedir-spec/basedir-spec-0.6.html
          QString xdgCacheHome = QFile::decodeName(qgetenv("XDG_CACHE_HOME"));
          if (isTestModeEnabled())
@@ -12,7 +12,7 @@
          if (type == QStandardPaths::CacheLocation)
              appendOrganizationAndApp(xdgCacheHome);
          return xdgCacheHome;
-@@ -88,9 +88,9 @@
+@@ -225,9 +225,9 @@
      {
          QString xdgDataHome = QFile::decodeName(qgetenv("XDG_DATA_HOME"));
          if (isTestModeEnabled())
@@ -24,7 +24,7 @@
          if (type == AppDataLocation || type == AppLocalDataLocation)
              appendOrganizationAndApp(xdgDataHome);
          return xdgDataHome;
-@@ -102,9 +102,9 @@
+@@ -239,9 +239,9 @@
          // http://standards.freedesktop.org/basedir-spec/latest/
          QString xdgConfigHome = QFile::decodeName(qgetenv("XDG_CONFIG_HOME"));
          if (isTestModeEnabled())
@@ -36,16 +36,16 @@
          if (type == AppConfigLocation)
              appendOrganizationAndApp(xdgConfigHome);
          return xdgConfigHome;
-@@ -153,7 +153,7 @@
+@@ -276,7 +276,7 @@
      // http://www.freedesktop.org/wiki/Software/xdg-user-dirs
      QString xdgConfigHome = QFile::decodeName(qgetenv("XDG_CONFIG_HOME"));
      if (xdgConfigHome.isEmpty())
 -        xdgConfigHome = QDir::homePath() + QLatin1String("/.config");
 +        xdgConfigHome = QLatin1String("/<Choices$Write>/Qt5/config");
      QFile file(xdgConfigHome + QLatin1String("/user-dirs.dirs"));
-     if (!isTestModeEnabled() && file.open(QIODevice::ReadOnly)) {
-         QHash<QString, QString> lines;
-@@ -255,8 +255,8 @@
+     const QLatin1String key = xdg_key_name(type);
+     if (!key.isEmpty() && !isTestModeEnabled() && file.open(QIODevice::ReadOnly)) {
+@@ -350,10 +350,10 @@
      // http://standards.freedesktop.org/basedir-spec/latest/
      QString xdgDataDirsEnv = QFile::decodeName(qgetenv("XDG_DATA_DIRS"));
      if (xdgDataDirsEnv.isEmpty()) {
@@ -54,14 +54,20 @@
 +        dirs.append(QString::fromLatin1("/<Choices$Write>/Qt5/local/share"));
 +        dirs.append(QString::fromLatin1("/<Choices$Write>/Qt5/share"));
      } else {
-         dirs = xdgDataDirsEnv.split(QLatin1Char(':'), QString::SkipEmptyParts);
+-        const auto parts = xdgDataDirsEnv.splitRef(QLatin1Char(':'), Qt::SkipEmptyParts);
++        const auto parts = xdgDataDirsEnv.splitRef(QDir::listSeparator(), Qt::SkipEmptyParts);
  
-@@ -287,7 +287,7 @@
+         // Normalize paths, skip relative paths
+         for (const QStringRef &dir : parts) {
+@@ -378,9 +378,9 @@
      // http://standards.freedesktop.org/basedir-spec/latest/
      const QString xdgConfigDirs = QFile::decodeName(qgetenv("XDG_CONFIG_DIRS"));
      if (xdgConfigDirs.isEmpty())
 -        dirs.append(QString::fromLatin1("/etc/xdg"));
 +            dirs.append(QString::fromLatin1("/<Choices$Write>/Qt5/etc/xdg"));
      else
-         dirs = xdgConfigDirs.split(QLatin1Char(':'));
+-        dirs = xdgConfigDirs.split(QLatin1Char(':'));
++        dirs = xdgConfigDirs.split(QDir::listSeparator());
      return dirs;
+ }
+ 

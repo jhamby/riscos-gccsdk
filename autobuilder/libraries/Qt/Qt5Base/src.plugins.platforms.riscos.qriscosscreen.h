@@ -86,12 +86,12 @@ public:
     }
 
     // Overridden from base class
-    QRect geometry() const Q_DECL_OVERRIDE { return mGeometry; }
+    QRect geometry() const override { return mGeometry; }
     QSize size() const { return QSize(mGeometry.width(), mGeometry.height()); }
-    int depth() const Q_DECL_OVERRIDE { return mDepth; }
-    QImage::Format format() const Q_DECL_OVERRIDE { return mFormat; }
+    int depth() const override { return mDepth; }
+    QImage::Format format() const override { return mFormat; }
 
-    QPlatformCursor *cursor() const Q_DECL_OVERRIDE;
+    QPlatformCursor *cursor() const override;
 
     int xPixelToOS(int x) const {
 	return x << mXEigenFactor;

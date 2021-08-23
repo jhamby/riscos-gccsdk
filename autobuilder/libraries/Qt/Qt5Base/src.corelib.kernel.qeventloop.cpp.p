@@ -1,15 +1,15 @@
---- src/corelib/kernel/qeventloop.cpp.orig	2015-02-17 04:56:50.000000000 +0000
-+++ src/corelib/kernel/qeventloop.cpp	2015-04-12 19:57:16.965299576 +0100
-@@ -125,7 +125,13 @@
-     Q_D(QEventLoop);
-     if (!d->threadData->eventDispatcher.load())
+--- ./src/corelib/kernel/qeventloop.cpp.orig	2021-08-22 12:02:10.625631527 -0700
++++ ./src/corelib/kernel/qeventloop.cpp	2021-08-22 14:48:25.387140660 -0700
+@@ -136,7 +136,13 @@
+     auto threadData = d->threadData.loadRelaxed();
+     if (!threadData->hasEventDispatcher())
          return false;
 +#ifdef __riscos__
-+    bool result = d->threadData->eventDispatcher.load()->processEvents(flags);
++    bool result = threadData->eventDispatcher.loadRelaxed()->processEvents(flags);
 +    pthread_yield();
 +    return result;
 +#else
-     return d->threadData->eventDispatcher.load()->processEvents(flags);
+     return threadData->eventDispatcher.loadRelaxed()->processEvents(flags);
 +#endif
  }
  

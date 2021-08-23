@@ -64,7 +64,3 @@
 #ifndef QT_NO_SHAREDMEMORY
 #  define QT_NO_SHAREDMEMORY
 #endif
-
-#ifndef QT_NO_SYSTEMSEMAPHORE
-#  define QT_NO_SYSTEMSEMAPHORE
-#endif

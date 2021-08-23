@@ -1,5 +1,5 @@
---- src/corelib/kernel/qtimerinfo_unix.cpp.orig	2021-05-17 23:43:52.000000000 -0700
-+++ src/corelib/kernel/qtimerinfo_unix.cpp	2021-08-21 20:34:39.686651054 -0700
+--- ./src/corelib/kernel/qtimerinfo_unix.cpp.orig	2020-10-27 01:02:11.000000000 -0700
++++ ./src/corelib/kernel/qtimerinfo_unix.cpp	2021-08-22 14:45:27.425912561 -0700
 @@ -212,10 +212,10 @@
  }
  
@@ -8,8 +8,8 @@
 +QDebug operator<<(QDebug s, timespec tv)
  {
      QDebugStateSaver saver(s);
--    s.nospace() << tv.tv_sec << "." << qSetFieldWidth(6) << qSetPadChar(QChar(48)) << tv.tv_usec << reset;
-+    s.nospace() << tv.tv_sec << "." << qSetFieldWidth(9) << qSetPadChar(QChar(48)) << tv.tv_nsec << reset;
+-    s.nospace() << tv.tv_sec << "." << qSetFieldWidth(6) << qSetPadChar(QChar(48)) << tv.tv_usec << Qt::reset;
++    s.nospace() << tv.tv_sec << "." << qSetFieldWidth(9) << qSetPadChar(QChar(48)) << tv.tv_nsec << Qt::reset;
      return s;
  }
  QDebug operator<<(QDebug s, Qt::TimerType t)

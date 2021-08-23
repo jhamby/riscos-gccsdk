@@ -68,25 +68,25 @@ public:
     ~QRiscosWindow();
 
     // Virtual functions that have been overridden.
-    bool isActive() const Q_DECL_OVERRIDE;
+    bool isActive() const override;
 
-    void setVisible(bool visible) Q_DECL_OVERRIDE;
+    void setVisible(bool visible) override;
     
-    void setGeometry(const QRect &rect) Q_DECL_OVERRIDE;
+    void setGeometry(const QRect &rect) override;
     
-    void setWindowTitle(const QString &title) Q_DECL_OVERRIDE;
+    void setWindowTitle(const QString &title) override;
 
-    WId winId() const Q_DECL_OVERRIDE {
+    WId winId() const override {
 	return WId(m_window);
     }
 
-    void raise() Q_DECL_OVERRIDE;
+    void raise() override;
 
-    void propagateSizeHints() Q_DECL_OVERRIDE;
+    void propagateSizeHints() override;
 
     // This is overridden from the base class, so we must assume that the
     // input and output are both pixels.
-    QPoint mapFromGlobal(const QPoint& point) const Q_DECL_OVERRIDE;
+    QPoint mapFromGlobal(const QPoint& point) const override;
 
     // Functions specific to RISC OS and therefore not virtual.
     int os_x() const {

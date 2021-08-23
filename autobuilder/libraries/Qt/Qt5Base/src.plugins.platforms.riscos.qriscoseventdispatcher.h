@@ -95,8 +95,8 @@ public QEventDispatcherUNIX
     Q_DECLARE_PRIVATE(QRiscosEventDispatcher)
 
 public:
-    QRiscosEventDispatcher(QRiscosEventDispatcherPrivate &priv, QObject *parent = 0);
-    explicit QRiscosEventDispatcher(QObject *parent = 0);
+    QRiscosEventDispatcher(QRiscosEventDispatcherPrivate &priv, QObject *parent = nullptr);
+    explicit QRiscosEventDispatcher(QObject *parent = nullptr);
     ~QRiscosEventDispatcher();
 
     bool processEvents(QEventLoop::ProcessEventsFlags flags);

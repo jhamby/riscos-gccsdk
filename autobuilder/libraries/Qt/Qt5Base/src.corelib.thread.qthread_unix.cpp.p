@@ -1,6 +1,6 @@
---- src/corelib/thread/qthread_unix.cpp.orig	2021-05-17 23:43:52.000000000 -0700
-+++ src/corelib/thread/qthread_unix.cpp	2021-08-16 14:00:56.713592018 -0700
-@@ -297,14 +297,14 @@
+--- ./src/corelib/thread/qthread_unix.cpp.orig	2020-10-27 01:02:11.000000000 -0700
++++ ./src/corelib/thread/qthread_unix.cpp	2021-08-22 15:01:15.151934776 -0700
+@@ -265,14 +265,14 @@
  
  #if QT_CONFIG(thread)
  
@@ -17,7 +17,7 @@
      pthread_setname_np(pthread_self(), name);
  #  endif
  }
-@@ -341,7 +341,7 @@
+@@ -309,7 +309,7 @@
  
          data->ensureEventDispatcher();
  
@@ -26,10 +26,10 @@
          {
              // Sets the name of the current thread. We can only do this
              // when the thread is starting, as we don't have a cross
-@@ -499,6 +499,8 @@
-     // as of aug 2008 VxWorks < 6.6 only supports one single core CPU
-     cores = 1;
+@@ -473,6 +473,8 @@
  #  endif
+ #elif defined(Q_OS_WASM)
+     cores = QThreadPrivate::idealThreadCount;
 +#elif defined(Q_OS_RISCOS)
 +    cores = 1;
  #else

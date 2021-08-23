@@ -63,7 +63,7 @@ QPlatformIntegration *QRiscosIntegrationPlugin::create(const QString& system, co
     if (system.toLower() == "riscos")
         return new QRiscosIntegration;
 
-    return 0;
+    return nullptr;
 }
 
 QT_END_NAMESPACE
