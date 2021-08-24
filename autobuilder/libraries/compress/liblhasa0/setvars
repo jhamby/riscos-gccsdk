@@ -3,3 +3,11 @@ AB_INSTALL=yes
 
 autoreconf -fi
 
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton liblhasa
+     ab_add_sharedlib $S/lib/.libs liblhasa.so.0
+
+     $AB_HOME/add-riscpkg -package liblhasa -name LibLhasa -depends SharedLibs
+  fi
+}
