@@ -1,2 +1,14 @@
 
 AB_INSTALL=yes
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton zziplib
+     ab_add_sharedlib $S/.d/zzip/.libs libzzip-0.so.13
+     ab_add_sharedlib $S/.d/zzip/.libs libzzipfseeko-0.so.13
+     ab_add_sharedlib $S/.d/zzip/.libs libzzipmmapped-0.so.13
+     ab_add_sharedlib $S/.d/zzipwrap/.libs libzzipwrap-0.so.13
+
+     $AB_HOME/add-riscpkg -package zziplib -name Zziplib -depends SharedLibs
+  fi
+}

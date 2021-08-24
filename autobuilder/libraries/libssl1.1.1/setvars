@@ -6,7 +6,7 @@
 # and shared-build.
 # Set Options AB_ROARCH and AB_PKGTESTS (aof building capability unknown)
 
-AB_URL=http://deb.debian.org/debian/pool/main/o/openssl/openssl_1.1.1g.orig.tar.gz
+AB_URL=http://deb.debian.org/debian/pool/main/o/openssl/openssl_1.1.1k.orig.tar.gz
 
 # v4 for Strongarm and later
 # choose (arm) architecture  [ v3 | v4 | v6zk ]
@@ -34,7 +34,13 @@ ln -s apps/openssl.pod doc/openssl.pod
 AB_CONFIG='make depend'
 export RO_SHAREDLIBS=yes
 export OPENSSL_SOURCE=$S
+
+if [ "x$RO_USE_ARMEABIHF" == "xyes" ] ; then
+   cp $H/15-riscos-gnueabihf.conf $S/Configurations
+else
    cp $H/15-riscos.conf $S/Configurations
+fi
+
 #
 # Create directory for static build.
 #
