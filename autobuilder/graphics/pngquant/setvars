@@ -1,0 +1,16 @@
+
+AB_INSTALL=env
+
+AB_CONFLAGS='--disable-sse'
+
+ab_package() {
+  ab_create_command_app PNGQuant Apps/Graphics
+  ab_add_commands $S/pngquant
+  
+  ab_docs pngquant.1
+  
+  cp -av $S/README.md $S/COPYRIGHT $S/CONTRIBUTING.md $S/CODE_OF_CONDUCT.md $S/CHANGELOG $A
+
+  $AB_HOME/add-riscpkg -unixlib -package pngquant -name PNGQuant -copyrightfile COPYRIGHT
+}
+
