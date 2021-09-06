@@ -1,4 +1,4 @@
-AB_URL=https://download.imagemagick.org/ImageMagick/download/ImageMagick-6.9.12-0.tar.xz
+AB_URL=https://download.imagemagick.org/ImageMagick/download/ImageMagick-6.9.12-21.tar.xz
 
 AB_INSTALL=yes
 AB_MANPAGE=utilities/ImageMagick.1
@@ -13,9 +13,23 @@ ab_package() {
   ab_create_command_app ImageMagick Apps/Graphics
 
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    ab_add_commands $S/utilities/.libs/*$AB_EXEEXT
+    ab_add_commands $S/utilities/.libs/compare$AB_EXEEXT
+    ab_add_commands $S/utilities/.libs/composite$AB_EXEEXT
+    ab_add_commands $S/utilities/.libs/conjure$AB_EXEEXT
+    ab_add_commands $S/utilities/.libs/convert$AB_EXEEXT
+    ab_add_commands $S/utilities/.libs/identify$AB_EXEEXT
+    ab_add_commands $S/utilities/.libs/mogrify$AB_EXEEXT
+    ab_add_commands $S/utilities/.libs/montage$AB_EXEEXT
+    ab_add_commands $S/utilities/.libs/stream$AB_EXEEXT
   else
-    ab_add_commands $S/utilities/*$AB_EXEEXT
+    ab_add_commands $S/utilities/compare$AB_EXEEXT
+    ab_add_commands $S/utilities/composite$AB_EXEEXT
+    ab_add_commands $S/utilities/conjure$AB_EXEEXT
+    ab_add_commands $S/utilities/convert$AB_EXEEXT
+    ab_add_commands $S/utilities/identify$AB_EXEEXT
+    ab_add_commands $S/utilities/mogrify$AB_EXEEXT
+    ab_add_commands $S/utilities/montage$AB_EXEEXT
+    ab_add_commands $S/utilities/stream$AB_EXEEXT
   fi
 
   cp -av $H/\!ImageMagick/\!Boot,feb $A
