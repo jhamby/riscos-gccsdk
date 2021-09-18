@@ -10,7 +10,7 @@ ab_package()
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
-  mv include/libxml2 .
+  mv include/libxml2/libxml .
   rm -rf include
 
   mv lib/*.a .
@@ -35,7 +35,15 @@ ab_package()
         -depends SharedLibs-C2
   fi
   
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libxml2
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/.libs libxml2.so.2
+
+    $AB_HOME/add-riscpkg -package "libxml2" -name "LibXML2" \
+	-depends SharedLibs-C2
+  fi
 }
-
-
-
