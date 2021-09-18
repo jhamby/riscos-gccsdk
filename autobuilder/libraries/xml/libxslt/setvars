@@ -2,3 +2,42 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--with-python=no"
 
+ab_package()
+{
+  ab_create_app LibXSLT Apps/Library libxslt-dev
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/libexslt .
+  mv include/libxslt .
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cp README ../\!Help,feb
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libxslt
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/libxslt/.libs libxslt.so.1
+    ab_add_sharedlib $S/libexslt/.libs libexslt.so.0
+
+    $AB_HOME/add-riscpkg -package "libxslt" -name "LibXSLT" \
+	-depends SharedLibs-C2
+  fi
+}
