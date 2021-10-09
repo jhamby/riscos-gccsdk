@@ -32,6 +32,16 @@ extern void __sfixinit (const char *list);
 
 extern int __riscosify_control; /* Note: this is a weak symbol.  */
 
+/* Gets the __riscosify_control value which can be defined by
+   the global variable __riscosify_control in the user program.
+   Returns a copy of __riscosify_control_internal (with a default
+   value of 0) when __riscosify_control is not defined.  */
+extern int __get_riscosify_control (void);
+
+/* Sets the __riscosify_control value when it's defined.
+   Otherwise __riscosify_control_internal gets written.  */
+extern void __set_riscosify_control (int __riscosify_flags);
+
 /* Bits 1 - 5 (incl), 7 and 15 - 31 (incl) of __riscosify_control are not
    allocated.  */
 
