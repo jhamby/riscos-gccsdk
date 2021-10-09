@@ -1,20 +1,21 @@
 
+AB_ROVERSION=2
+
 ab_make() {
   $AB_MAKE mogs
 }
-
 
 ab_package() {
   ab_create_app MazeOfGalious Apps/Games
   ab_makerun $S/mogs
 
-  mkdir -p $A/data/graphics
-  mkdir -p $A/data/sound
+  cp -av $S/rooms $A
+  cp -aLv $S/graphics $A
+  cp -av $S/graphics/original/start.pcx $A/graphics/original/konami.pcx
+  cp -aLv $S/sound $A
+  cp -av $S/LICENSE $A
+  cp -aLv $S/doc $A
 
-  cp -av $S/rooms $A/data
-  cp -aLv $S/graphics/original $A/data/graphics/
-  cp -aLv $S/sound/original $A/data/sound/
-
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile LICENSE
 }
 

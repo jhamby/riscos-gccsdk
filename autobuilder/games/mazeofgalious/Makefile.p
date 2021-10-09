@@ -5,7 +5,7 @@
  
  %.o: %.cpp
 -	c++ -c -g3 -O0 $< -o $@ `sdl-config --cflags` -I/usr/local/include/SDL
-+	c++ -c -O3 $< -o $@ `sdl-config --cflags` -I/usr/local/include/SDL
++	gcc -c -O3 $< -o $@ -I${GCCSDK_INSTALL_ENV}/include/SDL
  
  # dynamically linked binary:
  mog: $(OBJS)
@@ -14,7 +14,7 @@
  # static binary:
  mogs: $(OBJS)
 -	c++ -static $^ -o $@ -lSDL_image -lSDL_mixer -lSDL_sound -lpng -ljpeg -lz `sdl-config --static-libs`
-+	c++ -static $^ -o $@ -lSDL_image -lSDL_mixer -lSDL_sound -lpng -ljpeg -lz `sdl-config --static-libs` -logg -lvorbis -lvorbisfile -lmikmod -lFLAC
++	gcc -static $^ -o $@ -lSDL_image -lpng -ljpeg -lz `sdl-config --static-libs` -logg -lvorbis -lvorbisfile -lmikmod -lFLAC -lspeex -lstdc++ -ltiff -lwebp -llzma -lSDL_sound -lSDL_mixer
  
  clean:
  	rm -f mog mogs

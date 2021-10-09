@@ -1,17 +1,31 @@
---- main.cpp.orig	2009-12-02 20:03:01.000000000 -0800
-+++ main.cpp	2009-12-02 20:03:37.000000000 -0800
-@@ -52,9 +52,9 @@
- char **s_paths=0;
- int n_s_paths=0,act_s_path=0;
- char *s_path=0;
--
--char *confdir;
--char *datadir="/usr/share/games/mazeofgalious/";
-+
-+char *confdir;
-+char *datadir="/<MazeOfGalious$Dir>/data/";
+--- main.cpp.orig	2021-03-06 17:21:37.151008541 +0000
++++ main.cpp	2021-03-06 17:25:53.324720586 +0000
+@@ -40,8 +40,8 @@
+ int init_time=0;
  
- extern int music_volume,sfx_volume;
- extern int fighting_demon;
- 
- 
+ /* Paths: */ 
+-char *default_g_path="graphics/original/";
+-char *default_s_path="sound/original/";
++char *default_g_path="/<MazeOfGalious$Dir>/graphics/original/";
++char *default_s_path="/<MazeOfGalious$Dir>/sound/original/";
+ char **g_paths=0;
+ int n_g_paths=0,act_g_path=0;
+ char *g_path=0;
+@@ -165,7 +165,7 @@
+ 						g_path=g_paths[act_g_path];
+ 						ReleaseGraphics();
+ 						ReloadGraphics(SCREEN_X,SCREEN_Y);
+-						guardar_configuracion("MoG.cfg");
++						guardar_configuracion("/<MazeOfGalious$Dir>/MoG.cfg");
+ 						if (fighting_demon!=0) redo_demonintro(fighting_demon,0,SCREEN_X,SCREEN_Y);
+ 					} /* if */ 
+ 					if (event.key.keysym.sym==SDLK_F11) {
+@@ -176,7 +176,7 @@
+ 						ReleaseSound(false);
+ 						ReloadSound();
+ 						music_recovery();
+-						guardar_configuracion("MoG.cfg");
++						guardar_configuracion("<MazeOfGalious$Dir>/MoG.cfg");
+ 						Mix_VolumeMusic(music_volume);
+ 						SetSFXVolume(sfx_volume);
+ 					} /* if */ 
