@@ -28,6 +28,7 @@ AB_URL=$(grep ^AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 
 AB_HG=$(grep ^AB_HG $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_HG_BRANCH=$(grep ^AB_HG_BRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_NOREMOTE=$(grep ^AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_DISTRO=$(grep ^AB_DISTRO $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 
 if [ "$AB_CVS_ROOT" != "" ] ; then
   if [ "$AB_CVS_MODULE" == "" ] ; then
@@ -120,6 +121,10 @@ else
     #distros="precise"
     #source_ext="bz2"
     source_ext="gz"
+
+if [ "$AB_DISTRO" != "" ] ; then
+    distros="$AB_DISTRO"
+fi
 
     # Old file
     rm -f ../Sources.$source_ext

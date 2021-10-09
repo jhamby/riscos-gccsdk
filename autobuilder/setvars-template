@@ -125,6 +125,12 @@
 # If you do this, don't forget to specify the versions as -pversion and
 # -roversion flags to add-riscpkg
 
+# Override the the debian distribution from which to download.
+# e.g. from one of testing stable oldstable oldoldstable jessie
+# see https://deb.debian.org/debian/dists for valid names
+# if not present or blank uses the distros value in fetch-program
+#AB_DISTRO
+
 # Copy sources into library packages or produce a source zip
 # file for other packages "yes" or "no"
 # If left blank it will copy the sources if the file COPYING exists
