@@ -10,7 +10,7 @@ AB_URL=http://deb.debian.org/debian/pool/main/o/openssl/openssl_1.1.1l.orig.tar.
 
 # v4 for Strongarm and later
 # choose (arm) architecture  [ v3 | v4 | v6zk ]
-AB_ROARCHV=v6zk
+AB_ROARCHV=v3
 AB_ROVERSION=$AB_ROARCHV"-1"
 AB_RISCOS_CONF_STATIC="perl Configure --prefix="$GCCSDK_INSTALL_ENV" riscos-arm"$AB_ROARCHV"-static"
 AB_RISCOS_CONF_SHARED="perl Configure --prefix="$GCCSDK_INSTALL_ENV" riscos-arm"$AB_ROARCHV"-shared"
@@ -162,7 +162,7 @@ add_headers()
 }
 
 ab_package() {
-  ab_create_command_app LibSSL Apps/Library libssl-dev
+  ab_create_command_app LibSSL1.1 Apps/Library libssl1.1-dev
 
   add_headers $GCCSDK_INSTALL_ENV/include/openssl $A
   cp $S/static-build/*.a $A
@@ -184,17 +184,17 @@ ab_package() {
   fi
 
   
-  $AB_HOME/add-riscpkg -unixlib -name LibSSL-Dev -copyrightfile LICENSE
+  $AB_HOME/add-riscpkg -unixlib -name LibSSL1.1-Dev -copyrightfile LICENSE
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
-    ab_create_sharedlib_skeleton libssl
+    ab_create_sharedlib_skeleton libssl1.1
 
     AB_COMPONENTS=""
 
     ab_add_sharedlib $S/shared-build libcrypto.so
     ab_add_sharedlib $S/shared-build libssl.so
 
-    $AB_HOME/add-riscpkg -package libssl -name LibSSL \
+    $AB_HOME/add-riscpkg -package libssl1.1 -name LibSSL1.1 \
 	-depends SharedLibs -copyrightfile LICENSE  
   fi
 }
