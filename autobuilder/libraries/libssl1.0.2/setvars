@@ -9,6 +9,8 @@ AB_ROVERSION=3
 
 AB_INSTALL=no
 
+AB_DISTRO=stretch
+
 ln -s ssl/ssl.pod doc/ssl.pod
 ln -s crypto/crypto.pod doc/crypto.pod
 ln -s apps/openssl.pod doc/openssl.pod
@@ -112,6 +114,12 @@ ab_package() {
 
     ab_add_sharedlib $S/shared-build libcrypto.so
     ab_add_sharedlib $S/shared-build libssl.so
+    
+    # Work around so libssl1.0.2 can co-exist with libssl1.1.1
+    rm -f $AA/libssl.so,1C8
+    rm -f $AA/libssl,1C8
+    rm -f $AA/libcrypto.so,1C8
+    rm -f $AA/libcrypto,1C8
 
     $AB_HOME/add-riscpkg -package libssl -name LibSSL \
 	-depends SharedLibs -copyrightfile LICENSE
