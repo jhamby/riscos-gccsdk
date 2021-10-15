@@ -1,11 +1,11 @@
---- Makefile.orig	2010-01-15 11:35:01.000000000 -0800
-+++ Makefile	2010-01-15 11:36:56.000000000 -0800
+--- Makefile.orig	2021-10-15 09:59:39.677679216 +0100
++++ Makefile	2021-10-15 10:03:44.284963425 +0100
 @@ -7,7 +7,7 @@
  all: mog
  
  %.o: %.cpp
--	c++ -c -g3 -O0 $< -o $@ `sdl-config --cflags` -I/usr/local/include/SDL
-+	gcc -c -O3 $< -o $@ -I${GCCSDK_INSTALL_ENV}/include/SDL
+-	c++ -c $(CFLAGS) $(CPPFLAGS) $< -o $@ `sdl-config --cflags`
++	g++ -c $(CFLAGS) $(CPPFLAGS) $< -o $@ `sdl-config --cflags`
  
  # dynamically linked binary:
  mog: $(OBJS)
