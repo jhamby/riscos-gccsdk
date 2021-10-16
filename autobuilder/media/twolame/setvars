@@ -1,12 +1,23 @@
 AB_INSTALL=yes
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 ab_package() {
   ab_create_command_app TwoLame Apps/Audio
 
   ab_add_commands $S/simplefrontend/stwolame$AB_EXEEXT
+  ab_add_commands $S/frontend/twolame$AB_EXEEXT
+  
   ab_docs $S/COPYING $S/README
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+  
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libtwolame
+     ab_add_sharedlib $S/libtwolame/.libs libtwolame.so.0
+     
+     $AB_HOME/add-riscpkg -package libtwolame -name LibTwolame -depends SharedLibs \
+		-section Library -copyrightfile $S/COPYING
+  fi
+
 }
 
