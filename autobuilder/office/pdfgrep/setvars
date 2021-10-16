@@ -1,0 +1,21 @@
+AB_INSTALL=yes
+
+./autogen.sh
+
+export CXXFLAGS='-fpermissive -D_GLIBCXX_USE_C99'
+
+export LIBS='-lgcrypt -lgpg-error -lpoppler -lfontconfig -lglib-2.0 -lintl -lharfbuzz -lexpat -lfreetype -lz -lbz2 -lpng -lopenjp2 -llcms2 -ljpeg'
+
+ab_package() {
+  # Package programs
+  ab_create_command_app PDFGrep Apps/Document pdfgrep
+
+  ab_add_commands $S/src/pdfgrep$AB_EXEEXT
+
+  cp $S/AUTHORS $S/CONTRIBUTING.md $S/COPYING $S/NEWS.md $S/README.md $A/
+
+  ab_docs $S/doc/*.1
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -package pdfgrep -name PDFGrep -section Document
+
+ }
