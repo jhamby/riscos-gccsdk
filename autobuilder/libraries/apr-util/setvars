@@ -1,5 +1,7 @@
 AB_INSTALL=yes
 
+AB_DISTRO=jessie
+
 AB_CONFLAGS="--with-apr=$GCCSDK_INSTALL_ENV --disable-util-dso --with-dbm=db47 \
              --without-openssl --with-berkeley-db --without-gdbm --without-sqlite2"
 
