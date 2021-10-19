@@ -122,9 +122,12 @@ else
     #source_ext="bz2"
     source_ext="gz"
 
-if [ "$AB_DISTRO" != "" ] ; then
-    distros="$AB_DISTRO"
-fi
+    if [ "$AB_DISTRO" != "" ] ; then
+      distros="$AB_DISTRO"
+      if [ "$AB_DISTRO" == "jessie" ] || [ "$AB_DISTRO" == "squeeze" ] || [ "$AB_DISTRO" == "wheezy" ]; then
+        debarchive=http://archive.debian.org/debian
+      fi
+    fi
 
     # Old file
     rm -f ../Sources.$source_ext
