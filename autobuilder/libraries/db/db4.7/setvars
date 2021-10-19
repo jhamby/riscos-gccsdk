@@ -1,3 +1,5 @@
+AB_URL=http://archive.debian.org/debian-security/pool/updates/main/d/db4.7/db4.7_4.7.25.orig.tar.gz
+
 AB_INSTALL=yes
 AB_CONFLAGS="--enable-compat185"
 
