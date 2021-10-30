@@ -1,10 +1,23 @@
-AB_INSTALL=yes
 
-AB_CONFLAGS="--disable-tls"
+AB_INSTALL=env
+
+AB_CONFLAGS="--disable-tls --disable-all-programs --enable-libuuid=yes"
 
 ab_make() {
- cd libuuid/src/
  $AB_MAKE
 }
 
 export scanf_cv_type_modifier=no
+
+ab_package() {
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libuuid
+
+    AB_COMPONENTS=""
+    ab_add_sharedlib $S/.libs libuuid.so.1
+
+    $AB_HOME/add-riscpkg -package "libuuid" -name LibUUID  \
+	-depends SharedLibs-C2
+  fi
+}
