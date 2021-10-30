@@ -5,6 +5,8 @@ export gl_cv_func_gettimeofday_clobber=no
 
 AB_CONFLAGS="--prefix=$GCCSDK_INSTALL_ENV --disable-tools --disable-nls --enable-local-libopts --disable-guile --without-p11-kit --with-included-unistring"
 
+AB_PRECONF="AR_FLAGS=\"cru\""
+
 ab_package() {
   ab_create_app LibGNUTLS Apps/Library libgnutls-dev
 
