@@ -4,6 +4,8 @@ cd gettext-runtime
 
 AB_INSTALL=yes
 
+AB_DISTRO=buster
+
 if [ ! -d man/man3 ] ; then
   ln -s ../man man/man3
 fi
