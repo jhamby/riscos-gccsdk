@@ -1,7 +1,5 @@
-#AB_URL=http://deb.debian.org/debian/pool/main/f/fontconfig/fontconfig_2.11.0.orig.tar.xz
-
 AB_CATEGORY=Fonts
-AB_ROVERSION=5
+AB_ROVERSION=1
 
 if [ "$RO_SHAREDLIBS" == "yes" ]; then
   AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
@@ -138,6 +136,6 @@ ab_package() {
 
     $AB_HOME/add-riscpkg -package libfontconfig1 -name LibFontConfig1 \
 	-section Library -depends "FontConfig-Config" -depends LibExpat1 -depends LibFreeType6 \
-	-depends Libuuid
+	-depends LibUUID
   fi
 }
