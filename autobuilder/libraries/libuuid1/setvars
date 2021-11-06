@@ -1,5 +1,6 @@
 
 AB_INSTALL=env
+AB_PVERSION=2.36.1
 
 AB_CONFLAGS="--disable-tls --disable-all-programs --enable-libuuid=yes"
 
@@ -14,8 +15,9 @@ ab_package() {
   if [ "$RO_SHAREDLIBS" == "yes" ]; then
     ab_create_sharedlib_skeleton libuuid
 
-    AB_COMPONENTS=""
     ab_add_sharedlib $S/.libs libuuid.so.1
+
+    AB_DEBNAME=libuuid1
 
     $AB_HOME/add-riscpkg -package "libuuid" -name LibUUID  \
 	-depends SharedLibs-C2
