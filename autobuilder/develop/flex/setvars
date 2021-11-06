@@ -63,6 +63,8 @@ ab_package() {
   cp -f $S/src/.libs/libfl.a $A
   cp -f $S/src/.libs/libfl.a $A/libl.a  
 
+  AB_DEBNAME=libfl-dev
+  
   $AB_HOME/add-riscpkg -package LibFL-Dev -section Library \
           -components "Apps.Library.!LibFL (Movable)" \
           -unixlib
