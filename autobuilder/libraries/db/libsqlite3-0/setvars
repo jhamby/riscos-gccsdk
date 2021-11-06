@@ -3,7 +3,7 @@ export config_TARGET_EXEEXT=$AB_EXEEXT
 
 AB_INSTALL=yes
 
-AB_ROVERSION=2
+AB_ROVERSION=1
 
 if [ "$RO_SHAREDLIBS" == "yes" ] ; then
   AB_CONFLAGS="--disable-tcl"
@@ -25,9 +25,6 @@ ab_package() {
   cp $GCCSDK_INSTALL_ENV/include/sqlite3.h $A/h/sqlite3
   cp $GCCSDK_INSTALL_ENV/include/sqlite3ext.h $A/h/sqlite3ext
   cp $GCCSDK_INSTALL_ENV/lib/libsqlite3.a $A
-# The sqlite3 binary causes an assertion to fail in rpcemu.
-#  cp $GCCSDK_INSTALL_ENV/bin/sqlite3$AB_EXEEXT $A
-
 
   $AB_HOME/add-riscpkg -package "libsqlite3-dev" -unixlib -name LibSQLite3-Dev
 
