@@ -8,11 +8,11 @@ AB_PVERSION=git-$(date +%Y%m%d)
 AB_INSTALL=yes
 
 # cd c-ares
-if [ ! -d man3 ] ; then
-  ln -s . man3
+if [ ! -d docs/man3 ] ; then
+  ln -s ../docs docs/man3
 fi
 
-./buildconf
+autoreconf -fi
 
 ab_package() {
   ab_create_app LibCares Apps/Library libcares-dev
