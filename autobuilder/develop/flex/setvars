@@ -65,8 +65,6 @@ ab_package() {
 
   AB_DEBNAME=libfl-dev
   
-  $AB_HOME/add-riscpkg -package LibFL-Dev -section Library \
-          -components "Apps.Library.!LibFL (Movable)" \
-          -unixlib
+  $AB_HOME/add-riscpkg -unixlib -package LibFL-Dev -section Library
 }
 
