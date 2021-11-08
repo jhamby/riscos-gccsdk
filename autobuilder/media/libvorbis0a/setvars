@@ -1,6 +1,6 @@
 # Build normal and VFP versions by default.
 BUILD_NORMAL=yes
-BUILD_VFP=yes
+BUILD_VFP=no
 
 AB_INSTALL=no
 AB_ROVERSION=4
