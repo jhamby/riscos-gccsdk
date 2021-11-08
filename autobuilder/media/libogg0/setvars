@@ -3,6 +3,8 @@ AB_ROVERSION=4
 
 AB_DISTCLEAN="rm -rf build build-vfp"
 
+AB_DISTRO=buster
+
 AB_PRECONF=:
 
 autoconf
@@ -15,7 +17,7 @@ fi
 
 # Build normal and VFP versions by default.
 BUILD_NORMAL=yes
-BUILD_VFP=yes
+BUILD_VFP=no
 
 if [ "$BUILD_NORMAL" == "yes" ]; then
   mkdir $S/build
