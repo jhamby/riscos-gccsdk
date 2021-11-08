@@ -48,6 +48,9 @@ ab_package() {
      ab_add_sharedlib $S/.libs libpng.so.3
      ab_add_sharedlib $S/.libs libpng12.so.0
 
+     # Work around so libpng12 can co-exist with libpng16   
+     rm -f $AA/libpng.so,1C8
+
      $AB_HOME/add-riscpkg -package libpng12-0 -name LibPNG12-0 -depends "ZLib1g"
   fi
 }
