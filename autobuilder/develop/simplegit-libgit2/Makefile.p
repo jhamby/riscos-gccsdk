@@ -11,7 +11,7 @@
  	echo "#define SIMPLEGIT_DATE_STRING \"$(shell date +%d.%m.%Y)\"" >>${BUILD_DIRECTORY}/sgit-version.h
  	cd "${BUILD_DIRECTORY}" && cmake "${CMAKE_DIRECTORY}" -DCMAKE_C_FLAGS="\
 -		-imacros ${BUILD_DIRECTORY}/sgit-version.h"
-+		-imacros ${BUILD_DIRECTORY}/sgit-version.h" -DCMAKE_TOOLCHAIN_FILE=../toolchain-riscos.cmake -DRISCOS=1
++		-imacros ${BUILD_DIRECTORY}/sgit-version.h" -DOPENSSL_SSL_LIBRARY=$(GCCSDK_INSTALL_ENV)/lib/libssl.a -DOPENSSL_CRYPTO_LIBRARY=$(GCCSDK_INSTALL_ENV)/lib/libcrypto.a -DCMAKE_TOOLCHAIN_FILE=../toolchain-riscos.cmake -DRISCOS=1
  
  .PHONY:${CMAKE_MAKEFILE}
  
