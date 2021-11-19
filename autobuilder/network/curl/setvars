@@ -1,13 +1,12 @@
-AB_URL=http://deb.debian.org/debian/pool/main/c/curl/curl_7.74.0.orig.tar.gz
-
-AB_ROVERSION=2
+AB_URL=http://ftp.debian.org/debian/pool/main/c/curl/curl_7.74.0.orig.tar.gz
+AB_ROVERSION=6
 
 # make distclean seems to get stuck in an infinite loop
 AB_DISTCLEAN='$AB_MAKE -C src clean'
 
-AB_CONFLAGS='--with-ssl --enable-ares --disable-ipv6 --without-gnutls --with-libssh2 --with-ca-bundle=InetDBase:CertData'
+AB_CONFLAGS='--with-ssl --enable-ares --disable-ipv6 --without-gnutls --disable-threaded-resolver --disable-pthreads --with-libssh2 --with-ca-bundle=InetDBase:CertData'
 
-./buildconf
+autoreconf -fi
 
 export RO_SHAREDLIBS=no
 

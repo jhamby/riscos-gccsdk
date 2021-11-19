@@ -1,0 +1,117 @@
+Sargasso - RSS feed reader
+http://zamez.org/sargasso
+
+Sargasso is a viewer for RSS feeds. RSS is a format for syndicating news
+and the content of news-like sites. To find out more, see
+
+  http://www.xml.com/pub/a/2002/12/18/dive-into-xml.html
+
+After starting Sargasso, the main window showing your feeds will open.
+Sargasso will fetch the feeds and show a count of items in each. Click on a
+feed to read it.
+
+Click on an item in a feed window to go to the web page associated with
+that item.
+
+To add a feed, click menu in the main window, choose "Add feed...", and enter
+the URL of the feed (these are often linked on web pages with an orange "RSS"
+icon). To remove a feed, use the menu in the main window.
+
+Choose "Update feeds" from the menu to check your feeds for new items.
+Items that are new since you last looked at the feed contents are shown in
+bold.
+
+
+Licensed under the GNU General Public License,
+               http://www.opensource.org/licenses/gpl-license
+Copyright 2006 James Bursa <james@semichrome.net>
+
+Thanks to Michael Drake for the icon, http://www.smoothartist.com/
+
+Changes
+
+2.0.3 (12 Apr 2013)
+Rebuilt to be armv7 compatible
+Improve formatting
+Quoted text in italics
+Separate paragraphs with a space
+Translate more characters
+
+2.0.3 (31 Aug 2013)
+Enable SSL and use CA bundle in the Sargasso folder
+
+2.0.3 (12 Dec 2013)
+
+2.0.4 (30 Jun 2019)
+
+2.0.4 (05 Dec 2019)
+Now uses RISC OS CA certificate bundle
+
+2.0.5 (07 Mar 2020)
+Enabled TLSv1.2 support
+
+2.0.6pre1 (08 Mar 2020)
+Added support for atom feeds
+
+2.0.6pre2 (10 Apr 2020)
+Close connection once fetch has finished.
+Increase maximum simultaneous fetches from 3 to 5.
+Linked with libcurl 7.69.1 and libssl 1.0.2u
+
+2.0.6pre3 (31 May 2020)
+Set the verify depth to 2
+
+2.0.6pre4 (31 May 2020)
+Built with latest UnixLib
+
+2.0.6pre5 (02 Jun 2020)
+Link with openssl 1.1.1g
+
+2.0.6pre6 (30 Jul 2020)
+Follow HTTP 3xx redirects
+
+2.0.6pre7 (15 Aug 2020)
+Add proxy settings to choices
+Add maximum simultaneous fetches to choices
+
+2.0.6pre8 (23 Aug 2020)
+If the Title or Decription is blank set it to NULL
+Fix for ZeroPain when using ssl
+Fix some memory double frees and frees before use.
+
+2.0.6 (31 Oct 2020)
+Increased the maximum number of feed items to 200 from 100.
+Increased width of the feed window to stop the feed description wrapping when
+there are more than 99 items in a feed.
+
+2.0.7 (01 Nov 2020)
+No longer displays html tags in the feed text.
+
+2.0.8pre1 (08 Nov 2020)
+Play Youtube videos by clicking on the feed link
+Improve formatting of Google News feed
+
+2.0.8pre2 (15 Dec 2020)
+Added 'Quality' setting for playing Youtube videos
+Link with libcurl 7.74 and libssl 1.1.1i
+
+2.0.8pre3 (22 Dec 2020)
+Add menu to allow up to 4 exclusion criteria
+
+2.0.8pre4 (02 Apr 2021)
+Fixed postion of iconbar menu
+Link with libssl 1.1.1k
+Exclusion critieria can now use regular expressions
+
+2.0.8pre5 (13 Jun 2021)
+Choices option to display the description in the main feed window (defaults to off)
+Choices option to change the font size of the main feed window (defaults to 18),
+can be reduced to avoid wrapping of the description text
+Increase maximum simultaneous fetches to 9
+
+2.0.8pre6 (21 Jun 2021)
+Fix exclude entries that don't use regular expressions
+
+2.0.8 (19 Nov 2021)
+Use yt-dlp for extracting Youtube URLs
+Link with libssl1.1.1l
