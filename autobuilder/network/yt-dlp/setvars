@@ -1,5 +1,5 @@
 AB_URL=https://files.pythonhosted.org/packages/76/de/7eda54327dae4d7e917e02a1e49c4fd343e59a7ce4ae259df96f2cc7b4ea/yt-dlp-2021.11.10.1.tar.gz
-AB_PACKAGES=YT-DLP
+AB_PACKAGES=yt-dlp
 AB_CATEGORY=System
 AB_PRECONF=:
 AB_MAKE=:
@@ -8,10 +8,20 @@ python3 setup.py build
 
 ab_package() {
 
-  mkdir -p $D/YT-DLP/Resources/!PythonSite/Python38/Site-Packages
+  mkdir -p $D/yt-dlp/Resources/!PythonSite/Python38/Site-Packages
 
-  cp -rav $S/build/lib/yt_dlp $D/YT-DLP/Resources/!PythonSite/Python38/Site-Packages
+  cp -rav $S/build/lib/yt_dlp $D/yt-dlp/Resources/!PythonSite/Python38/Site-Packages
 
   $AB_HOME/add-riscpkg -section Development -package yt-dlp -name YT-DLP -depends "Python-38" -copyrightfile LICENSE
+
+  mkdir -p $D/yt-dlp/RiscPkg
+
+cat <<EOF  >> $D/yt-dlp/RiscPkg/Control,fff
+Description: A youtube-dl fork with additional features and fixes
+ yt-dlp is a youtube-dl fork based on the now inactive youtube-dlc. The main
+ focus of this project is adding new features and patches while also keeping
+ up to date with the original project
+EOF
+
 }
 
