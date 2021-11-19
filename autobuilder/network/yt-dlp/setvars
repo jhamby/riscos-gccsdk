@@ -9,8 +9,10 @@ python3 setup.py build
 ab_package() {
 
   mkdir -p $D/yt-dlp/Resources/!PythonSite/Python38/Site-Packages
+  mkdir -p $D/yt-dlp/Resources/!PythonSite/Scripts
 
   cp -rav $S/build/lib/yt_dlp $D/yt-dlp/Resources/!PythonSite/Python38/Site-Packages
+  cp -av $H/yt-dlp,feb $D/yt-dlp/Resources/!PythonSite/Scripts
 
   $AB_HOME/add-riscpkg -section Development -package yt-dlp -name YT-DLP -depends "Python-38" -copyrightfile LICENSE
 
