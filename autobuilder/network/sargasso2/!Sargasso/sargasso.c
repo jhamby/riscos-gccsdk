@@ -506,9 +506,13 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
     {
       if (buttons == wimp_CLICK_MENU)
 	open_menu ((wimp_menu *) & iconbar_menu, x - 64, 96 + 44 * 5);
-      else if (buttons == wimp_CLICK_SELECT || buttons == wimp_CLICK_ADJUST)
+      else if (buttons == wimp_CLICK_SELECT)
 	open_window (main_window);
-
+      else if (buttons == wimp_CLICK_ADJUST)
+        {
+	  last_update = os_read_monotonic_time ();
+	  feed_update ();
+        }
     }
   else if (w == main_window || w == feed_window)
     {
@@ -1553,6 +1557,7 @@ choices_load (void)
       sscanf (s, "font_size_main: %i", &font_size_main);
       sscanf (s, "feed_description: %i", &feed_description);
       sscanf (s, "proxy: %s", http_proxy);
+      sscanf (s, "quality: %s", quality);
       sscanf (s, "font_headings: %s", font_headings);
       sscanf (s, "font_summaries: %s", font_summaries);
       sscanf (s, "font_links: %s", font_links);

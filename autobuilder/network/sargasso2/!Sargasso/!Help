@@ -115,3 +115,8 @@ Fix exclude entries that don't use regular expressions
 2.0.8 (19 Nov 2021)
 Use yt-dlp for extracting Youtube URLs
 Link with libssl1.1.1l
+
+2.0.9 (21 Nov 2021)
+Adjust click on icon bar icon updates the feeds
+Add --no-cache-dir to youtubedl obey file
+Fix so that 'Quality' setting gets loaded
