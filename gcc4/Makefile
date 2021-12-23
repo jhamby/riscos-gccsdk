@@ -1,6 +1,6 @@
 # To build GCCSDK cross-compiler and RISC OS native compiler.
 # Written by John Tytgat / BASS
-# Copyright (c) 2009-2014 GCCSDK Developers
+# Copyright (c) 2009-2021 GCCSDK Developers
 #
 # Build requirements:
 #   - apt-get install flex bison libgmp3-dev libmpfr-dev texinfo build-essential
@@ -20,8 +20,8 @@ GCC_LANGUAGES="c,c++"
 CROSS_ENABLE_SHARED=yes
 RONATIVE_ENABLE_SHARED=yes
 
-# Release ID for GCCSDK RISC OS release (eg 4.7.4 release 5)
-GCCSDK_GCC_RISCOS_RELEASE=5
+# Release ID for GCCSDK RISC OS release (eg 4.7.4 release 6)
+GCCSDK_GCC_RISCOS_RELEASE=6
 
 # *_SCM variables: when set to "yes", we'll fetch the source from source control
 # system and it will always be the latest version.
