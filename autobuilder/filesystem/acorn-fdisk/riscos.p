@@ -31,18 +31,18 @@ diff -ur ./fdisk.c /usr/src/utils/acorn-fdisk-3.0.6/fdisk.c
  		if (i != 0)
  			error = errno;
  	}
-diff -ur ./lib/blkio/Makefile /usr/src/utils/acorn-fdisk-3.0.6/lib/blkio/Makefile
---- ./lib/blkio/Makefile	2006-06-26 22:10:18.000000000 -0700
-+++ /usr/src/utils/acorn-fdisk-3.0.6/lib/blkio/Makefile	2004-11-11 03:20:45.000000000 -0800
-@@ -1,7 +1,7 @@
- AR		= ar
+diff -ur lib/blkio/Makefile.orig lib/blkio/Makefile
+--- lib/blkio/Makefile.orig	2021-12-21 17:13:03.278006712 +0000
++++ lib/blkio/Makefile	2021-12-23 17:17:18.953806431 +0000
+@@ -2,7 +2,7 @@
  CC		= cc
  ARFLAGS		= rc
--CFLAGS		= -DUNIX -O2 -Wall -I.. -g -D_FILE_OFFSET_BITS=64
-+CFLAGS		= -DRISCOS -O2 -Wall -I.. -g -D_FILE_OFFSET_BITS=64
+ CFLAGS		+= -O2 -Wall -g
+-M_CPPFLAGS	= -DUNIX -I.. -D_FILE_OFFSET_BITS=64
++M_CPPFLAGS	= -DRISCOS -I.. -g -D_FILE_OFFSET_BITS=64
+ CPPFLAGS	+=
  
  OBJS		= close.o getgeo.o open.o read.o setblocksz.o setgeo.o write.o
- LIB		= ../blkio.a
 diff -ur ./lib/blkio/blkio.h /usr/src/utils/acorn-fdisk-3.0.6/lib/blkio/blkio.h
 --- ./lib/blkio/blkio.h	2006-06-26 22:10:18.000000000 -0700
 +++ /usr/src/utils/acorn-fdisk-3.0.6/lib/blkio/blkio.h	2004-11-11 03:39:47.000000000 -0800
