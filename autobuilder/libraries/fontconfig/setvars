@@ -37,6 +37,7 @@ ab_package() {
      -e "s#@FC_FONTPATH@#<dir>/UnixFont:otf</dir>#" \
      -e "s#@FC_CACHEDIR@#/UnixFC:cache#" \
      -e "s#~/.fontconfig#\&lt;Choices\$Write\&gt;/fontconfig_cache#" \
+     -e "s#@CONFIGDIR@#conf.d#" \
      $S/fonts.conf.in > $A/fonts/fonts.conf
 
   mkdir -p $A/fonts/conf.avail
