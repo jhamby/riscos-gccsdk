@@ -5,7 +5,7 @@
  
  angband: angband.o $(MAINFILES)
 -	$(CC) -o angband angband.o $(MAINFILES) $(LDFLAGS) $(LDADD)
-+	$(CC) -o angband angband.o $(MAINFILES) $(LDFLAGS) $(LDADD) -lpng -lz -lSDL -ljpeg -lwebp -lfreetype -lbz2 -lFLAC -lmikmod -lvorbis -lvorbisidec -logg
++	$(CC) -o angband angband.o $(MAINFILES) $(LDFLAGS) $(LDADD) -lpng -lz -lSDL -ljpeg -lwebp -lfreetype -lbz2 -lFLAC -lmikmod -lvorbis -lvorbisidec -logg -ltiff -llzma
  	@printf "%10s %-20s\n" LINK $@
  
  angband.o: $(OBJECTS)

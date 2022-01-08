@@ -4,7 +4,7 @@ AB_CONFLAGS=\''--without-x --disable-curses --enable-sdl --enable-sdl-mixer --wi
 
 autoreconf -fi
 
-export LIBS='-lpng -lz -lSDL -ljpeg -lwebp -lfreetype -lbz2 -lFLAC -lmikmod -lvorbis -lvorbisidec -logg'
+export LIBS='-lpng -lz -lSDL -ljpeg -lwebp -ltiff -llzma -lfreetype -lbz2 -lFLAC -lmikmod -lvorbis -lvorbisidec -logg'
 
 ab_package() {
   ab_create_app Angband Apps/Games
