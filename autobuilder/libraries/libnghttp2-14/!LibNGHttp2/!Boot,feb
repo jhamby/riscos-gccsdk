@@ -1,0 +1,6 @@
+| Boot file for LibNGHttp2
+|
+If "<LibNGHttp2$Dir>" = "" Then Set LibNGHttp2$Dir <Obey$Dir>
+If "<LibNGHttp2$Path>" = "" Then Set LibNGHttp2$Path <Obey$Dir>.
+
+IfThere <LibNGHttp2$Dir>.!Sprites then IconSprites <LibNGHttp2$Dir>.!Sprites
