@@ -1,5 +1,5 @@
 # Using a direct download for now as we need at least version 7.64.0 for other development
-AB_URL=http://ftp.debian.org/debian/pool/main/c/curl/curl_7.74.0.orig.tar.gz
+AB_URL=http://ftp.debian.org/debian/pool/main/c/curl/curl_7.81.0.orig.tar.gz
 
 AB_INSTALL=yes
 
