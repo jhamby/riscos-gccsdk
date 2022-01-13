@@ -43,6 +43,14 @@
 #include "gdkriscosvisual.h"
 #include "gdkriscoswindow.h"
 
+#define wimp_CLAIM_CARET 1
+#define wimp_CLAIM_SELECTION 2
+
+#define KEYCODE_F12 (wimp_KEY_F12)
+#define KEYCODE_SHIFT_F12 (KEYCODE_F12 + wimp_KEY_SHIFT)
+#define KEYCODE_CTRL_F12 (KEYCODE_F12 + wimp_KEY_CONTROL)
+#define KEYCODE_CTRL_SHIFT_F12 (KEYCODE_F12 + wimp_KEY_CONTROL + wimp_KEY_CONTROL)
+
 enum _swap_redblue_t {
   swap_redblue_UNSET,
   swap_redblue_YES,
@@ -72,18 +80,21 @@ GdkAtom _gdk_riscos_display_manager_atom_intern_static_string (GdkDisplayManager
 GdkAtom _gdk_riscos_display_manager_atom_intern (GdkDisplayManager *manager,
 						   const gchar *atom_name, 
 						   gboolean     only_if_exists);
-
+void _gdk_riscos_display_generate_transtable(GdkRiscosDisplay *rdisplay);
+void _gdk_riscos_display_calculate_render_scale (GdkRiscosDisplay *rdisplay);
+void _gdk_riscos_device_manager_add_seat (GdkDeviceManager *device_manager);
 
 void     _gdk_riscos_window_register_dnd (GdkWindow      *window);
 GdkDragContext * _gdk_riscos_window_drag_begin (GdkWindow *window,
 						  GdkDevice *device,
-						  GList     *targets);
-gboolean _gdk_riscos_window_queue_antiexpose  (GdkWindow *window,
-						 cairo_region_t *area);
-void     _gdk_riscos_window_translate         (GdkWindow *window,
-						 cairo_region_t *area,
-						 gint       dx,
-						 gint       dy);
+						  GList     *targets,
+						  gint, gint);
+void _gdk_riscos_window_queue_antiexpose  (GdkWindow *window,
+					   cairo_region_t *area);
+void _gdk_riscos_window_translate         (GdkWindow *window,
+					   cairo_region_t *area,
+					   gint       dx,
+					   gint       dy);
 gboolean _gdk_riscos_window_get_property (GdkWindow   *window,
 					    GdkAtom      property,
 					    GdkAtom      type,
@@ -124,8 +135,9 @@ gboolean _gdk_keymap_key_is_modifier   (GdkKeymap       *keymap,
 
 void _gdk_riscos_initialize_locale (void);
 
-void _gdk_riscos_screen_events_init   (GdkScreen *screen);
+void _gdk_riscos_screen_events_init (GdkScreen *screen);
 void _gdk_riscos_events_init (GdkDisplay *display);
+void _gdk_riscos_screen_update (GdkScreen *screen);
 GdkVisual *_gdk_riscos_screen_get_system_visual (GdkScreen * screen);
 gint _gdk_riscos_screen_visual_get_best_depth (GdkScreen * screen);
 GdkVisualType _gdk_riscos_screen_visual_get_best_type (GdkScreen * screen);
@@ -164,10 +176,10 @@ GdkCursor*_gdk_riscos_display_get_cursor_for_type (GdkDisplay    *display,
 GdkCursor*_gdk_riscos_display_get_cursor_for_name (GdkDisplay  *display,
 						     const gchar *name);
 GdkCursor *
-_gdk_riscos_display_get_cursor_for_pixbuf (GdkDisplay      *display,
-					   GdkPixbuf  *pixbuf,
-					   gint          x,
-					   gint          y);
+_gdk_riscos_display_get_cursor_for_surface (GdkDisplay      *display,
+					    cairo_surface_t *surface,
+					    gdouble     x,
+					    gdouble     y);
 gboolean _gdk_riscos_display_supports_cursor_alpha (GdkDisplay *display);
 gboolean _gdk_riscos_display_supports_cursor_color (GdkDisplay *display);
 void _gdk_riscos_display_get_default_cursor_size (GdkDisplay *display,
@@ -268,5 +280,32 @@ gdk_riscos_window_dump_to_file (GdkWindow *window,
 #define GDK_WINDOW_SCREEN(win)	      (GDK_WINDOW_IMPL_RISCOS (((GdkWindow *)win)->impl)->screen)
 #define GDK_WINDOW_DISPLAY(win)       (GDK_RISCOS_SCREEN (GDK_WINDOW_SCREEN (win))->display)
 #define GDK_WINDOW_IS_RISCOS(win)   (GDK_IS_WINDOW_IMPL_RISCOS (((GdkWindow *)win)->impl))
+
+GDK_AVAILABLE_IN_ALL
+void reporter_printf(const char *format, ...) __attribute__ ((format (gnu_printf, 1, 2)));
+static void where(const char *func, int line, void *addr) __attribute__((unused));
+
+static void where(const char *func, int line, void *addr)
+{
+  char *file;
+  unsigned offset;
+
+  __asm volatile ("	MOV	r0, %[addr];\n"
+		  "	SWI	%[SWI_SOM_Location];\n"
+		  "	MOVVC	%[file], r0;\n"
+		  "	MOVVC	%[offset], r1;\n"
+		  "	MOVVS	%[file], #0;\n"
+		  "	MOVVS	%[offset], #0;\n"
+		  : [file] "=r" (file), [offset] "=r" (offset)
+		  : [addr] "r" (addr), [SWI_SOM_Location] "i" (0x7858F)
+		  : "r0", "r1", "cc");
+  if (!file)
+  {
+    reporter_printf("[%s:%d] - Address %p unknown to SOManager",func,line,addr);
+    return;
+  }
+  reporter_printf("[%s:%d] - Address %p : %X - %s",func,line,addr,offset,file);
+}
+#define WHERE(x) where(__PRETTY_FUNCTION__,__LINE__,x)
 
 #endif /* __GDK_PRIVATE_RISCOS_H__ */

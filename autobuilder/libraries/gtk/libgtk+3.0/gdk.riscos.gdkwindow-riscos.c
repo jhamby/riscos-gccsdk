@@ -40,6 +40,7 @@
 
 #include "gdkwindow-riscos.h"
 #include "gdkscreen-riscos.h"
+#include "gdkdevicemanager-riscos.h"
 
 #include "gdkwindow.h"
 #include "gdkwindowimpl.h"
@@ -50,6 +51,8 @@
 
 #include "oslib/colourtrans.h"
 #include "oslib/report.h"
+
+#include "gdkriscos.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -76,6 +79,9 @@ report_text(const char *s)
 		  : "a1", "r14", "cc");
 }
 #endif
+
+extern void __pthread_disable_ints(void);
+extern void __pthread_enable_ints(void);
 
 /* Forward declarations */
 static void     gdk_window_riscos_set_background     (GdkWindow      *window,
@@ -142,9 +148,10 @@ gdk_window_impl_riscos_finalize (GObject *object)
   wrapper = impl->wrapper;
 
   riscos_display = GDK_RISCOS_DISPLAY (gdk_window_get_display (wrapper));
+  GdkSeat *seat = gdk_display_get_default_seat(&riscos_display->parent_instance);
 
-  if (riscos_display->pointer_grab.window == wrapper)
-    riscos_display->pointer_grab.window = NULL;
+  gdk_seat_ungrab(seat);
+
 #if 0
   if (riscos_display->mouse_in_toplevel == GDK_WINDOW (wrapper))
     {
@@ -197,6 +204,7 @@ _gdk_riscos_screen_init_root_window (GdkScreen * screen)
   window->width = gdk_screen_get_width (screen);
   window->height = gdk_screen_get_height (screen);
   window->viewable = TRUE;
+  window->transient_for = NULL;
 
   _gdk_window_update_size (riscos_screen->root_window);
 
@@ -235,7 +243,7 @@ gdk_riscos_create_window (GdkWindow 	*gdk_window,
 
 	  if (impl->title == NULL)
 	    {
-	      g_warning ("RISCOS: Failed to allocate memory for top level window title");
+	      g_warning ("RISC OS: Failed to allocate memory for top level window title");
 	      return;
 	    }
 
@@ -244,6 +252,11 @@ gdk_riscos_create_window (GdkWindow 	*gdk_window,
 	  window_blk.flags |= wimp_WINDOW_TITLE_ICON;
 	  window_blk.flags |= wimp_WINDOW_CLOSE_ICON;
 	}
+
+      /* Assume an input only window is not meant to be visible on screen,
+       * and that the caller has positioned it off screen somewhere.  */
+      if (attributes->wclass == GDK_INPUT_ONLY)
+	window_blk.flags |= wimp_WINDOW_NO_BOUNDS;
 
       window_blk.title_fg = wimp_COLOUR_BLACK;
       window_blk.extent.x1 = gdk_riscos_screen_os_width (impl->screen);
@@ -262,7 +275,7 @@ gdk_riscos_create_window (GdkWindow 	*gdk_window,
   window_blk.scroll_outer = wimp_COLOUR_MID_LIGHT_GREY;
   window_blk.scroll_inner = wimp_COLOUR_VERY_LIGHT_GREY;
   window_blk.highlight_bg = wimp_COLOUR_CREAM;
-  window_blk.extra_flags = 0;
+  window_blk.extra_flags = wimp_WINDOW_USE_EXTENDED_SCROLL_REQUEST;
   window_blk.extent.x0 = 0;
   window_blk.extent.y1 = 0;
   window_blk.title_flags = wimp_ICON_TEXT |
@@ -347,12 +360,14 @@ _gdk_riscos_display_create_window_impl (GdkDisplay    *display,
   impl->wrapper = window;
   impl->screen = screen;
   impl->event_mask = event_mask;
-  impl->dirty = FALSE;
+  impl->user_can_resize = TRUE;
+  impl->nested = FALSE;
+  impl->transient_for = NULL;
 
   gdk_riscos_create_window (window, attributes, attributes_mask);
   g_hash_table_insert (riscos_display->id_ht, GINT_TO_POINTER(impl->id), window);
 
-#if 1
+#if 0
   if (window->window_type != GDK_WINDOW_TOPLEVEL &&
       window->window_type != GDK_WINDOW_TEMP)
     printf("Creating window type %d\n",window->window_type);
@@ -412,7 +427,9 @@ gdk_riscos_window_foreign_new_for_display (GdkDisplay      *display,
   impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
   impl->wrapper = window;
   impl->screen = _gdk_screen;
+#if 0
   impl->dirty = FALSE;
+#endif
   impl->id = wimp_handle;
   g_hash_table_insert (riscos_display->id_ht, GINT_TO_POINTER(impl->id), window);
 
@@ -428,17 +445,20 @@ gdk_riscos_window_foreign_new_for_display (GdkDisplay      *display,
   return window;
 }
 
-/*static */void
+void
 gdk_riscos_window_update (GdkWindow *gdk_window)
 {
 #ifdef DEBUG_WINDOW_UPDATE
   static unsigned int palette[] = { 0x0000ff00, 0x00ff0000, 0xff000000 };
   static int pal_index = 0;
 #endif
+  GdkRiscosDisplay *rdisplay = GDK_RISCOS_DISPLAY(gdk_window_get_display (gdk_window));
   GdkWindowImplRiscos *impl;
   wimp_draw update;
   os_coord origin;
+#ifdef DEBUG_WINDOW_UPDATE
   os_error *err = NULL;
+#endif
   osbool more;
   int os_height = gdk_riscos_window_os_height(gdk_window);
 
@@ -452,6 +472,7 @@ gdk_riscos_window_update (GdkWindow *gdk_window)
   update.box.y0 = -os_height;
   update.box.x1 = gdk_riscos_window_os_width(gdk_window);
   update.box.y1 = 0;
+  __pthread_disable_ints();
   xwimp_update_window (&update, &more);
 
   origin.x = update.box.x0 - update.xscroll;
@@ -459,12 +480,17 @@ gdk_riscos_window_update (GdkWindow *gdk_window)
 
   while (more)
     {
-      err = xosspriteop_put_sprite_user_coords (osspriteop_PTR,
-						impl->surface_sprite_area,
-						(osspriteop_id)impl->surface_sprite_pointer,
-						origin.x,
-						origin.y,
-						os_ACTION_OVERWRITE);
+#ifdef DEBUG_WINDOW_UPDATE
+      err =
+#endif
+      xosspriteop_put_sprite_scaled (osspriteop_PTR,
+				     impl->surface_sprite_area,
+				     (osspriteop_id)impl->surface_sprite_pointer,
+				     origin.x,
+				     origin.y,
+				     os_ACTION_OVERWRITE | osspriteop_USE_PALETTE,
+				     NULL,//rdisplay->render_scale_ptr, /* NULL means no scaling.  */
+				     rdisplay->trans_table);
 #ifdef DEBUG_WINDOW_UPDATE
       colourtrans_set_gcol (palette[pal_index], 0, 0, NULL);
 
@@ -481,6 +507,8 @@ gdk_riscos_window_update (GdkWindow *gdk_window)
       xwimp_get_rectangle (&update, &more);
     }
 
+  __pthread_enable_ints();
+
 #ifdef DEBUG_WINDOW_UPDATE
   if (pal_index >= 2)
     pal_index = 0;
@@ -488,8 +516,10 @@ gdk_riscos_window_update (GdkWindow *gdk_window)
     pal_index++;
 #endif
 
+#ifdef DEBUG_WINDOW_UPDATE
   if (err)
     g_warning ("RISC OS: Failed to update Cairo surface; %s", err->errmess);
+#endif
 }
 
 void
@@ -514,36 +544,14 @@ _gdk_riscos_window_resize_surface (GdkWindow *window)
 
   if (impl->surface)
     {
-#if 0
-      cairo_surface_finish (impl->surface);
-      cairo_surface_destroy (impl->surface);
-      impl->surface = cairo_riscos_sprite_surface_create (CAIRO_FORMAT_RGB24,
-						  gdk_window_get_width (impl->wrapper),
-						  gdk_window_get_height (impl->wrapper));
-#endif
-
-/*      cairo_surface_destroy (impl->surface);
-
-      impl->surface = cairo_riscos_sprite_surface_create (CAIRO_FORMAT_RGB24,
-						  gdk_window_get_width (impl->wrapper),
-						  gdk_window_get_height (impl->wrapper));*/
-#if 1
       cairo_riscos_sprite_surface_set_size (impl->surface,
 					    gdk_window_get_width (impl->wrapper),//window->width,
 					    gdk_window_get_height (impl->wrapper));//window->height);
-#endif
       cairo_riscos_sprite_surface_get_info (impl->surface,
 					    (void **)&impl->surface_sprite_area,
 					    (void **)&impl->surface_sprite_pointer);
     }
-#if 0
-  if (impl->ref_surface)
-    {
-      cairo_surface_set_user_data (impl->ref_surface, &gdk_riscos_cairo_key,
-				   NULL, NULL);
-      impl->ref_surface = NULL;
-    }
-#endif
+
 #ifdef DEBUG_WINDOW_SIZE_CHANGED
     {
       char buffer[100];
@@ -586,7 +594,7 @@ gdk_window_riscos_ref_cairo_surface (GdkWindow *window)
   if (!impl->surface)
     {
       impl->surface = cairo_riscos_sprite_surface_create (CAIRO_FORMAT_RGB24, w, h);
-      
+
       cairo_riscos_sprite_surface_get_info (impl->surface,
 					    (void **)&impl->surface_sprite_area,
 					    (void **)&impl->surface_sprite_pointer);
@@ -594,22 +602,7 @@ gdk_window_riscos_ref_cairo_surface (GdkWindow *window)
 				   impl, surface_destroyed);
     }
 
-    cairo_surface_reference (impl->surface);
-#if 0
-  /* Create a destroyable surface referencing the real one */
-  if (!impl->ref_surface)
-    {
-      impl->ref_surface =
-	cairo_surface_create_for_rectangle (impl->surface,
-					    0, 0,
-					    w, h);
-      if (impl->ref_surface)
-	cairo_surface_set_user_data (impl->ref_surface, &gdk_riscos_cairo_key,
-				     impl, ref_surface_destroyed);
-    }
-//  else
-    cairo_surface_reference (impl->surface);
-#endif
+  cairo_surface_reference (impl->surface);
 
   return impl->surface;
 
@@ -633,8 +626,8 @@ _gdk_riscos_window_destroy (GdkWindow *window,
   _gdk_riscos_selection_window_destroyed (window);
 #endif
 
-  if (riscos_display->pointer_grab.window == window)
-    riscos_display->pointer_grab.window = NULL;
+  GdkSeat *seat = gdk_display_get_default_seat (&riscos_display->parent_instance);
+  gdk_seat_ungrab (seat);
 
   g_list_free (impl->sorted_children);
   impl->sorted_children = NULL;
@@ -647,14 +640,7 @@ _gdk_riscos_window_destroy (GdkWindow *window,
       parent_impl->sorted_children = g_list_remove (parent_impl->sorted_children,
 						     window);
     }
-#if 0
-  if (impl->ref_surface)
-    {
-      cairo_surface_finish (impl->ref_surface);
-      cairo_surface_set_user_data (impl->ref_surface, &gdk_riscos_cairo_key,
-				   NULL, NULL);
-    }
-#endif
+
   if (impl->surface)
     {
       cairo_surface_set_user_data (impl->surface, &gdk_riscos_cairo_key,
@@ -676,21 +662,6 @@ _gdk_riscos_window_destroy (GdkWindow *window,
       xwimp_delete_window (impl->id);
       impl->id = 0;
     }
-}
-
-static cairo_surface_t *
-gdk_window_riscos_resize_cairo_surface (GdkWindow       *window,
-					cairo_surface_t *surface,
-					gint             width,
-					gint             height)
-{
-/*printf ("[%s:%d:%s] - window (%p), resize to (%d, %d)\n",
-	__func__, __LINE__, __FILE__,window,width,height);*/
-
-  /* Image surfaces cannot be resized */
-//  cairo_surface_destroy (surface);
-
-  return NULL;
 }
 
 static void
@@ -725,8 +696,8 @@ gdk_riscos_open_window (GdkWindow *gdk_window, GdkWindowImplRiscos *impl)
   pos.x = gdk_window->x;
   pos.y = gdk_window->y;
   gdk_riscos_screen_point_from_pixel (impl->screen, &pos, &pos);  
-  
-  /* Place the lop left corner of the WIMP window at the position
+
+  /* Place the top left corner of the WIMP window at the position
      stored in the gdk_window.  */
   open.w = impl->id;
   open.visible.x0 = pos.x;
@@ -772,14 +743,6 @@ gdk_window_riscos_show (GdkWindow *window, gboolean already_mapped)
       if (window->parent && window->parent->event_mask & GDK_SUBSTRUCTURE_MASK)
 	_gdk_make_event (GDK_WINDOW (window), GDK_MAP, NULL, FALSE);
     }
-#if 0
-  riscos_display = GDK_RISCOS_DISPLAY (gdk_window_get_display (window));
-  if (riscos_display->output)
-    {
-      riscos_output_show_surface (riscos_display->output, impl->id);
-      queue_dirty_flush (riscos_display);
-    }
-#endif
 }
 
 static void
@@ -797,20 +760,7 @@ gdk_window_riscos_hide (GdkWindow *window)
     _gdk_make_event (GDK_WINDOW (window), GDK_UNMAP, NULL, FALSE);
 
   xwimp_close_window (impl->id);
-#if 0
-  riscos_display = GDK_RISCOS_DISPLAY (gdk_window_get_display (window));
-  if (riscos_display->output)
-    {
-      riscos_output_hide_surface (riscos_display->output, impl->id);
-      queue_dirty_flush (riscos_display);
-    }
 
-  if (riscos_display->mouse_in_toplevel == window)
-    {
-      /* TODO: Send leave + enter event, update cursors, etc */
-      riscos_display->mouse_in_toplevel = NULL;
-    }
-#endif
   _gdk_window_clear_update_area (window);
 }
 
@@ -829,11 +779,8 @@ gdk_window_riscos_move_resize (GdkWindow *window,
 			       gint       height)
 {
   GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
-//  GdkRiscosScreen * = GDK_RISCOS_SCREEN (impl->screen);
   GdkRiscosDisplay *riscos_display;
   gboolean changed, size_changed;
-//  gboolean with_resize;
-
   size_changed = changed = FALSE;
 
   riscos_display = GDK_RISCOS_DISPLAY (gdk_window_get_display (window));
@@ -844,10 +791,8 @@ gdk_window_riscos_move_resize (GdkWindow *window,
       window->y = y;
     }
 
-//  with_resize = FALSE;
   if (width > 0 || height > 0)
     {
-//      with_resize = TRUE;
       if (width < 1)
 	width = 1;
 
@@ -859,11 +804,7 @@ gdk_window_riscos_move_resize (GdkWindow *window,
 	{
 	  changed = TRUE;
 	  size_changed = TRUE;
-#if 0
-	  /* Resize clears the content */
-	  impl->dirty = TRUE;
-	  impl->last_synced = FALSE;
-#endif
+
 	  window->width = width;
 	  window->height = height;
 	  _gdk_riscos_window_resize_surface (window);
@@ -889,7 +830,12 @@ gdk_window_riscos_move_resize (GdkWindow *window,
 	  window->resize_count++;
 	}
 
-      gdk_riscos_open_window (window, impl);
+      /* If the GDK window is being nested inside another window, then we probably
+       * want the WIMP or the caller to control the opening, otherwise we risk messing
+       * up the nesting position.
+       */
+      if (!impl->nested)
+	gdk_riscos_open_window (window, impl);
 
       event = gdk_event_new (GDK_CONFIGURE);
       event->configure.window = g_object_ref (window);
@@ -898,21 +844,12 @@ gdk_window_riscos_move_resize (GdkWindow *window,
       event->configure.width = window->width;
       event->configure.height = window->height;
 
-      gdk_event_set_device (event, GDK_DISPLAY_OBJECT (riscos_display)->core_pointer);
+      GdkSeat *seat = gdk_display_get_default_seat(&riscos_display->parent_instance);
+      gdk_event_set_device (event, gdk_seat_get_pointer (seat));
 
       node = _gdk_event_queue_append (GDK_DISPLAY_OBJECT (riscos_display), event);
       _gdk_windowing_got_event (GDK_DISPLAY_OBJECT (riscos_display), node, event,
 				_gdk_display_get_next_serial (GDK_DISPLAY (riscos_display)) - 1);
-/*    {
-      char buffer[150];
-      
-      sprintf (buffer, "configure: window (%p), old_pos [%d, %d] old_size [%d, %d]",
-	    gwindow,old_pos.x,old_pos.y,old_size.x,old_size.y);
-      report_text0 (buffer);
-      sprintf (buffer, "configure: window (%p), new_pos [%d, %d] new_size [%d, %d]",
-	    gwindow,new_pos.x,new_pos.y,new_size.x,new_size.y);
-      report_text0 (buffer);
-    }*/
     }
 }
 
@@ -1052,27 +989,44 @@ gdk_riscos_window_set_startup_id (GdkWindow   *window,
 
 static void
 gdk_riscos_window_set_transient_for (GdkWindow *window,
-				       GdkWindow *parent)
+				     GdkWindow *parent)
 {
-//  GdkRiscosDisplay *display;
-  GdkWindowImplRiscos *impl;
-  wimp_w parent_id;
+  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
+  impl->transient_for = parent;
+}
 
-  impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
-
-  parent_id = 0;
-  if (parent)
-    parent_id = GDK_WINDOW_IMPL_RISCOS (parent->impl)->id;
-
-  impl->transient_for = parent_id;
-#if 0
-  display = GDK_RISCOS_DISPLAY (gdk_window_get_display (impl->wrapper));
-  if (display->output)
+static void
+gdk_window_riscos_move_to_rect (GdkWindow          *window,
+				const GdkRectangle *rect,
+				GdkGravity          rect_anchor,
+				GdkGravity          window_anchor,
+				GdkAnchorHints      anchor_hints,
+				gint                rect_anchor_dx,
+				gint                rect_anchor_dy)
+{
+  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
+  if (!impl->nested)
     {
-      riscos_output_set_transient_for (display->output, impl->id, impl->transient_for);
-      gdk_display_flush (GDK_DISPLAY (display));
+      gint x = 0, y = 0;
+
+      if (impl->transient_for)
+      {
+	GdkWindowImplRiscos *trans_impl = GDK_WINDOW_IMPL_RISCOS (impl->transient_for->impl);
+	wimp_window_state state = { .w = trans_impl->id };
+	xwimp_get_window_state (&state);
+
+	GdkPoint pos = { .x = state.visible.x0, .y = state.visible.y1 };
+	gdk_riscos_screen_point_to_pixel (trans_impl->screen, &pos, &pos);
+
+	x = pos.x;
+	y = pos.y;
+      }
+
+      window->x = x + rect->x + rect_anchor_dx;
+      window->y = gdk_screen_get_height (impl->screen) - (y - rect->y - rect_anchor_dy + gdk_window_get_height (window));
+
+      gdk_riscos_open_window (window, impl);
     }
-#endif
 }
 
 static void
@@ -1148,7 +1102,7 @@ gdk_window_riscos_get_geometry (GdkWindow *window,
 
 }
 
-static gint
+static void
 gdk_window_riscos_get_root_coords (GdkWindow *window,
 				     gint       x,
 				     gint       y,
@@ -1166,8 +1120,6 @@ gdk_window_riscos_get_root_coords (GdkWindow *window,
     *root_x = root.x;
   if (root_y)
     *root_y = gdk_screen_get_height (gdk_window_get_screen (window)) - root.y;
-
-  return 1;
 }
 
 static void
@@ -1239,8 +1191,8 @@ gdk_riscos_window_map_to_global (GdkWindow *gwindow,
 static gboolean
 gdk_window_riscos_get_device_state (GdkWindow       *window,
 				    GdkDevice       *device,
-				    gint            *x,
-				    gint            *y,
+				    gdouble         *x,
+				    gdouble         *y,
 				    GdkModifierType *mask)
 {
   GdkWindow *child;
@@ -1249,7 +1201,6 @@ gdk_window_riscos_get_device_state (GdkWindow       *window,
 
   if (GDK_WINDOW_DESTROYED (window))
     return FALSE;
-
   GDK_DEVICE_GET_CLASS (device)->query_state (device, window,
                                               NULL, &child,
                                               NULL, NULL,
@@ -1257,7 +1208,6 @@ gdk_window_riscos_get_device_state (GdkWindow       *window,
   return child != NULL;
 }
 
-/* NOTE: This function does not appear to be called anywhere.  */
 static GdkEventMask
 gdk_window_riscos_get_events (GdkWindow *window)
 {
@@ -1970,63 +1920,22 @@ update_idle (gpointer data)
   return TRUE;
 }
 */
+
 static void
 gdk_riscos_window_process_updates_recurse (GdkWindow *window,
 					   cairo_region_t *region)
 {
-  GdkWindowImplRiscos *impl;
-
   _gdk_window_process_updates_recurse (window, region);
-
-  impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
-  impl->dirty = TRUE;
 
 //  gdk_threads_add_idle (update_idle, window);
 }
 
-gboolean
+void
 _gdk_riscos_window_queue_antiexpose (GdkWindow *window,
 				       cairo_region_t *area)
 {
-  return TRUE;
 }
 
-/* This code is taken from the offscreen target surface.  */
-void
-_gdk_riscos_window_translate (GdkWindow      *window,
-			      cairo_region_t *area,
-			      gint            dx,
-			      gint            dy)
-{
-  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
-
-  if (impl->surface)
-    {
-      cairo_t *cr;
-
-      cr = cairo_create (impl->surface);
-
-      area = cairo_region_copy (area);
-
-      gdk_cairo_region (cr, area);
-      cairo_clip (cr);
-
-      /* NB: This is a self-copy and Cairo doesn't support that yet.
-       * So we do a litle trick.
-       */
-      cairo_push_group (cr);
-
-      cairo_set_source_surface (cr, impl->surface, dx, dy);
-      cairo_paint (cr);
-
-      cairo_pop_group_to_source (cr);
-      cairo_paint (cr);
-
-      cairo_destroy (cr);
-    }
-
-  _gdk_window_add_damage (window, area);
-}
 #if 0
 guint32
 gdk_riscos_get_last_seen_time (GdkWindow  *window)
@@ -2083,6 +1992,21 @@ gdk_riscos_window_get_handle (GdkWindow *window)
   return impl->id;
 }
 
+void
+gdk_riscos_window_enable_user_resize(GdkWindow *window,
+				     gboolean enable)
+{
+  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
+  impl->user_can_resize = enable;
+}
+
+void
+gdk_riscos_window_set_nested(GdkWindow *window)
+{
+  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
+  impl->nested = TRUE;
+}
+
 static void
 gdk_window_impl_riscos_class_init (GdkWindowImplRiscosClass *klass)
 {
@@ -2102,6 +2026,7 @@ gdk_window_impl_riscos_class_init (GdkWindowImplRiscosClass *klass)
   impl_class->restack_under = gdk_window_riscos_restack_under;
   impl_class->restack_toplevel = gdk_window_riscos_restack_toplevel;
   impl_class->move_resize = gdk_window_riscos_move_resize;
+  impl_class->move_to_rect = gdk_window_riscos_move_to_rect;
   impl_class->set_background = gdk_window_riscos_set_background;
   impl_class->reparent = gdk_window_riscos_reparent;
   impl_class->set_device_cursor = gdk_window_riscos_set_device_cursor;
@@ -2110,12 +2035,9 @@ gdk_window_impl_riscos_class_init (GdkWindowImplRiscosClass *klass)
   impl_class->get_device_state = gdk_window_riscos_get_device_state;
   impl_class->shape_combine_region = gdk_window_riscos_shape_combine_region;
   impl_class->input_shape_combine_region = gdk_window_riscos_input_shape_combine_region;
-  impl_class->set_static_gravities = gdk_window_riscos_set_static_gravities;
   impl_class->queue_antiexpose = _gdk_riscos_window_queue_antiexpose;
-  impl_class->translate = _gdk_riscos_window_translate;
   impl_class->destroy = _gdk_riscos_window_destroy;
   impl_class->destroy_foreign = gdk_riscos_window_destroy_foreign;
-  impl_class->resize_cairo_surface = gdk_window_riscos_resize_cairo_surface;
   impl_class->get_shape = gdk_riscos_window_get_shape;
   impl_class->get_input_shape = gdk_riscos_window_get_input_shape;
   impl_class->beep = gdk_riscos_window_beep;
@@ -2132,7 +2054,6 @@ gdk_window_impl_riscos_class_init (GdkWindowImplRiscosClass *klass)
   impl_class->set_role = gdk_riscos_window_set_role;
   impl_class->set_startup_id = gdk_riscos_window_set_startup_id;
   impl_class->set_transient_for = gdk_riscos_window_set_transient_for;
-  impl_class->get_root_origin = gdk_riscos_window_get_root_origin;
   impl_class->get_frame_extents = gdk_riscos_window_get_frame_extents;
   impl_class->set_override_redirect = gdk_riscos_window_set_override_redirect;
   impl_class->set_accept_focus = gdk_riscos_window_set_accept_focus;
@@ -2153,7 +2074,6 @@ gdk_window_impl_riscos_class_init (GdkWindowImplRiscosClass *klass)
   impl_class->set_group = gdk_riscos_window_set_group;
   impl_class->set_decorations = gdk_riscos_window_set_decorations;
   impl_class->get_decorations = gdk_riscos_window_get_decorations;
-  impl_class->set_functions = gdk_riscos_window_set_functions;
   impl_class->set_functions = gdk_riscos_window_set_functions;
   impl_class->begin_resize_drag = gdk_riscos_window_begin_resize_drag;
   impl_class->begin_move_drag = gdk_riscos_window_begin_move_drag;

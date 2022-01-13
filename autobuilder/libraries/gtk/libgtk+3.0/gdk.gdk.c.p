@@ -1,17 +1,17 @@
---- gdk/gdk.c.orig	2013-10-17 00:28:05.000000000 +0100
-+++ gdk/gdk.c	2019-10-27 14:06:51.223287331 +0000
-@@ -28,6 +28,10 @@
- 
+--- gdk/gdk.c.orig	2020-08-26 19:45:22.000000000 +0100
++++ gdk/gdk.c	2020-08-26 19:45:40.700373825 +0100
+@@ -27,6 +27,10 @@
+ #include "gdkversionmacros.h"
  #include "gdkmain.h"
  
 +#ifdef GDK_WINDOWING_RISCOS
 +#include "riscos/gdkprivate-riscos.h"
 +#endif
 +
+ #include "gdkprofilerprivate.h"
  #include "gdkinternals.h"
  #include "gdkintl.h"
- 
-@@ -200,6 +204,19 @@
+@@ -223,6 +227,19 @@
    return TRUE;
  }
  
@@ -31,10 +31,10 @@
  static const GOptionEntry gdk_args[] = {
    { "class",        0, 0,                     G_OPTION_ARG_CALLBACK, gdk_arg_class_cb,
      /* Description of --class=CLASS in --help output */        N_("Program class as used by the window manager"),
-@@ -210,6 +227,11 @@
-   { "display",      0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING,   &_gdk_display_name,
+@@ -235,6 +252,11 @@
      /* Description of --display=DISPLAY in --help output */    N_("X display to use"),
      /* Placeholder in --display=DISPLAY in --help output */    N_("DISPLAY") },
+ #endif
 +#ifdef GDK_WINDOWING_RISCOS
 +  { "swap-redblue", 0, 0,                     G_OPTION_ARG_CALLBACK, gdk_arg_redblue_cb,
 +    /* Description of --swap-redblue=VALUE in --help output */ N_("1 if swapping of red and blue components required"),

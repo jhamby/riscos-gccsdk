@@ -33,46 +33,163 @@
 
 G_BEGIN_DECLS
 
+#define GDK_RISCOS_ANY_WIMP_EVENT ((wimp_event_no)-1)
+#define GDK_RISCOS_ANY_WIMP_MESSAGE ((unsigned)-1)
+
+typedef enum
+{
+  GDK_EVENT_HANDLER_MATCH_TYPE = 1 << 0,
+  GDK_EVENT_HANDLER_MATCH_WINDOW = 1 << 1,
+  GDK_EVENT_HANDLER_MATCH_FUNC = 1 << 2,
+  GDK_EVENT_HANDLER_MATCH_DATA = 1 << 3,
+} GDKEventHandlerMatchType;
+
+typedef enum
+{
+  GDK_MESSAGE_HANDLER_MATCH_TYPE = 1 << 0,
+  GDK_MESSAGE_HANDLER_MATCH_FUNC = 1 << 1,
+  GDK_MESSAGE_HANDLER_MATCH_DATA = 1 << 2,
+} GDKMessageHandlerMatchType;
+
 typedef gboolean (*gdk_riscos_raw_event_handler)(wimp_event_no, wimp_block *, void *);
 typedef gboolean (*gdk_riscos_message_handler)(wimp_event_no, wimp_block *, void *);
 
-void
-gdk_riscos_add_raw_event_handler (wimp_event_no type,
-				  wimp_w window_handle,
-				  gdk_riscos_raw_event_handler handler_func,
-				  void *handler_data);
-void
-gdk_riscos_remove_raw_event_handler (wimp_event_no type,
-				     wimp_w window_handle,
-				     gdk_riscos_raw_event_handler handler_func,
-				     void *handler_data);
-void
-gdk_riscos_add_message_handler (unsigned message_no,
-				gdk_riscos_message_handler handler_func,
-				void *data);
-void
-gdk_riscos_remove_message_handler (unsigned message_no,
-				   gdk_riscos_message_handler handler_func,
-				   void *data);
+/* Add a handler function to be called when a WIMP event occurs on the
+ * given window.
+ * The event type can be GDK_RISCOS_ANY_WIMP_EVENT to call the handler on all
+ * events.
+ * The window_handle can be wimp_BACKGROUND to call the handler on all windows.
+ * The handler function is called with a pointer to the event data and a
+ * user supplied pointer as arguments.
+ * The handler should return TRUE if it handled the event and does not wish
+ * GDK to handle it or FALSE if it does wish GDK to handle it.
+ */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_add_raw_event_handler (wimp_event_no type,
+				       wimp_w window_handle,
+				       gdk_riscos_raw_event_handler handler_func,
+				       void *handler_data);
 
-wimp_w
-gdk_riscos_window_get_handle (GdkWindow *gdk_window);
+/* Remove a WIMP event handler function.
+ * The arguments given must match those that were given to
+ * gdk_riscos_add_raw_event_handler in order to be successful.
+ */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_remove_raw_event_handler (wimp_event_no type,
+					  wimp_w window_handle,
+					  gdk_riscos_raw_event_handler handler_func,
+					  void *handler_data);
 
-guint
-gdk_riscos_display_get_user_time (GdkDisplay *display);
+/* Remove a WIMP event handler function that matches one or more of the
+ * given arguments as defined by the mask.
+ * Useful for removing handlers provided as lambda functions where the
+ * function address is not known (ie, remove by data only).
+ */
+GDK_AVAILABLE_IN_ALL
+int gdk_riscos_remove_raw_event_handler_matched(GDKEventHandlerMatchType mask,
+						wimp_event_no type,
+						wimp_w window_handle,
+						gdk_riscos_raw_event_handler handler_func,
+						void *handler_data);
 
-wimp_event_no
-gdk_riscos_event_poll (wimp_block *poll_block);
+/* Add a handler function to be called when a WIMP message is delivered.
+ * The message type can be GDK_RISCOS_ANY_WIMP_MESSAGE to call the handler on all
+ * messages.
+ * The handler function is called with a pointer to the message event data and a
+ * user supplied pointer as arguments.
+ * The handler should return TRUE if it handled the message and does not wish
+ * GDK to handle it or FALSE if it does wish GDK to handle it.
+ */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_add_message_handler (unsigned message_no,
+				     gdk_riscos_message_handler handler_func,
+				     void *data);
 
-void
-gdk_riscos_enable_toolbox (const char *resource_dir_name,
-			   toolbox_block *tb_block,
-			   messagetrans_control_block *tb_messages);
+/* Remove a WIMP message handler function.
+ * The arguments given must match those that were given to
+ * gdk_riscos_add_message_handler in order to be successful.
+ */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_remove_message_handler (unsigned message_no,
+					gdk_riscos_message_handler handler_func,
+					void *data);
 
-gboolean
-gdk_riscos_clipboard_is_text_available(GdkDisplay *display);
-gchar *
-gdk_riscos_clipboard_request_text(GdkDisplay *display);
+/* Remove a WIMP message handler function that matches one or more of the
+ * given arguments as defined by the mask.
+ * Useful for removing handlers provided as lambda functions where the
+ * function address is not known (ie, remove by data only).
+ */
+GDK_AVAILABLE_IN_ALL
+int gdk_riscos_remove_message_handler_matched (GDKMessageHandlerMatchType mask,
+					       unsigned message_no,
+					       gdk_riscos_message_handler handler_func,
+					       void *data);
+
+/* Return the WIMP handle of the given GDK window. */
+GDK_AVAILABLE_IN_ALL
+wimp_w gdk_riscos_window_get_handle (GdkWindow *gdk_window);
+
+GDK_AVAILABLE_IN_ALL
+guint gdk_riscos_display_get_user_time (GdkDisplay *display);
+
+/* Call SWI Wimp_Poll with the user supplied block.
+ * The handlers registered with gdk_riscos_add_raw_event_handler are
+ * called first and if appropriate, the event is converted and
+ * processed by GDK.
+ */
+GDK_AVAILABLE_IN_ALL
+wimp_event_no gdk_riscos_event_poll (wimp_block *poll_block);
+
+/* Call this before opening a display so that the SWI Toolbox_Initialise
+ * is called instead of SWI Wimp_Initialise.
+ */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_enable_toolbox (const char *resource_dir_name,
+				toolbox_block *tb_block,
+				messagetrans_control_block *tb_messages);
+
+/* Allows the caller to set whether the given window can be resized
+ * by the user via shift drag. This isn't always desirable, for example,
+ * if the window is to be nested.
+ */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_window_enable_user_resize(GdkWindow *gdk_window, gboolean enable);
+
+/* Allows the caller to declare that this window will be nested within
+ * another. This prevents GDK from reopening the window on a resize
+ * which could mess up the windows nesting position.
+ */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_window_set_nested(GdkWindow *window);
+
+GDK_AVAILABLE_IN_ALL
+gboolean gdk_riscos_clipboard_is_text_available(GdkDisplay *display);
+
+GDK_AVAILABLE_IN_ALL
+gchar *gdk_riscos_clipboard_request_text(GdkDisplay *display);
+
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_selection_claim (GdkDisplay *display,
+				 const void *data,
+				 size_t size);
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_selection_release (GdkDisplay *display);
+
+/* Place the given data on the clipboard.
+ * If data is NULL or size is 0, the current GDK selection is used instead.
+ */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_clipboard_claim(GdkDisplay *display,
+				const void *data,
+				size_t size);
+
+/* Free resources used by the clipboard.  */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_clipboard_free(GdkDisplay *display);
+
+/* Send the release entity wimp message for the clipboard.  */
+GDK_AVAILABLE_IN_ALL
+void gdk_riscos_clipboard_release(GdkDisplay *display);
 
 G_END_DECLS
 

@@ -30,13 +30,18 @@
 #include "gdkinternals.h"
 #include "gdkscreen-riscos.h"
 #include "gdkdevicemanager-riscos.h"
+#include "gdkmonitor-riscos.h"
 #include "gdkwindow-riscos.h"
 #include "gdkprivate-riscos.h"
 
 #include "cairo-riscos.h"
 
+#include "gdkriscos.h"
+
 #include "oslib/os.h"
 #include "oslib/toolbox.h"
+#define UNKNOWN 1
+#include "oslib/colourtrans.h"
 
 #include <string.h>
 
@@ -46,8 +51,6 @@
 static void   gdk_riscos_display_dispose            (GObject            *object);
 static void   gdk_riscos_display_finalize           (GObject            *object);
 
-static gboolean gdk_riscos_realloc_selection        (GdkRiscosSelection *selection, size_t);
-
 G_DEFINE_TYPE (GdkRiscosDisplay, gdk_riscos_display, GDK_TYPE_DISPLAY)
 
 
@@ -56,46 +59,51 @@ gdk_riscos_display_init (GdkRiscosDisplay *display)
 {
   _gdk_riscos_display_manager_add_display (gdk_display_manager_get (),
 					   GDK_DISPLAY_OBJECT (display));
+
+  display->monitor = g_object_new (GDK_TYPE_RISCOS_MONITOR,
+                                   "display", display,
+                                   NULL);
+
   display->id_ht = g_hash_table_new (NULL, NULL);
   display->toplevels = NULL;
-
-  display->last_mouse_move.x = -1;
-  display->last_mouse_move.y = -1;
-  display->pointer_grab.window = NULL;
-  display->keyboard_grab.window = NULL;
-
-  display->system_drag = FALSE;
-  display->last_click.w = 0;
-
-  display->key_down_list = NULL;
 
   display->raw_event_handlers = NULL;
   display->message_handlers = NULL;
 
+  display->last_mouse_move.x = -1;
+  display->last_mouse_move.y = -1;
+
+  display->last_click.w = 0;
+  display->system_drag = FALSE;
+
+  display->key_down_list = NULL;
+
   display->focus_window = NULL;
   display->selection_window = NULL;
+
   display->selection.buffer = NULL;
   display->selection.max_size = 0;
   display->selection.size = 0;
-  display->selection_xfer_progress = NULL;
+  display->selection.claimed = FALSE;
+
+  display->clipboard.buffer = NULL;
+  display->clipboard.max_size = 0;
+  display->clipboard.size = 0;
+  display->clipboard.claimed = FALSE;
+
+  display->clipboard_xfer_progress = NULL;
+
+  display->keymap = NULL;
+
+  display->trans_table = NULL;
+  display->render_scale_ptr = NULL;
 
   display->tb_block = NULL;
   display->tb_messages = NULL;
   display->resource_dir_name = NULL;
 
-  if (swap_redblue)
-    cairo_riscos_swap_red_blue(swap_redblue == swap_redblue_YES);
-  else
-    {
-      int mode_flags = 0;
-      xos_read_mode_variable(os_CURRENT_MODE,
-			     os_MODEVAR_MODE_FLAGS,
-			     &mode_flags,
-			     NULL);
-      int data_format = (mode_flags & os_MODE_FLAG_DATA_FORMAT) >> os_MODE_FLAG_DATA_FORMAT_SHIFT;
-      if (data_format == DATA_FORMAT_RGB)
-	cairo_riscos_swap_red_blue(TRUE);
-    }
+  gdk_monitor_set_manufacturer (display->monitor, "RISC OS");
+  gdk_monitor_set_model (display->monitor, "0");
 }
 
 static void
@@ -104,90 +112,10 @@ gdk_event_init (GdkDisplay *display)
   GdkRiscosDisplay *riscos_display;
 
   riscos_display = GDK_RISCOS_DISPLAY (display);
-//  riscos_display->event_source = _gdk_riscos_event_source_new (display);
   riscos_display->next_serial = 1;
   riscos_display->last_seen_time = 0;
   _gdk_riscos_events_init (display);
 }
-
-gboolean gdk_riscos_realloc_selection (GdkRiscosSelection *selection, size_t size)
-{
-  if (!selection->buffer)
-    {
-      selection->buffer = malloc(size);
-      selection->max_size = size;
-      selection->size = 0;
-    }
-  else
-    {
-      if (size > selection->max_size)
-	{
-	  void *new_buffer = realloc(selection->buffer, size);
-	  if (!new_buffer)
-	    return false;
-	  selection->buffer = new_buffer;
-	  selection->max_size = size;
-	}
-
-      selection->size = size;
-    }
-
-  return true;
-}
-
-void gdk_riscos_free_selection (GdkRiscosDisplay *riscos_display)
-{
-  if (riscos_display->selection.buffer)
-    {
-      free(riscos_display->selection.buffer);
-      riscos_display->selection.buffer = NULL;
-      riscos_display->selection.max_size = 0;
-      riscos_display->selection.size = 0;
-    }
-}
-
-void gdk_riscos_copy_selection (GdkDisplay *display, const void *data, size_t size)
-{
-  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
-
-  if (!size)
-    {
-      gdk_riscos_free_selection (riscos_display);
-      return;
-    }
-
-  if (size > riscos_display->selection.max_size)
-    if (!gdk_riscos_realloc_selection(&riscos_display->selection, size))
-      return;
-
-  riscos_display->selection.size = size;
-  memcpy(riscos_display->selection.buffer, data, size);
-}
-
-#if 0
-static os_error *
-gdk_riscos_create_iconbar_icon (GdkRiscosDisplay *display)
-{
-  wimp_icon_create bar;
-
-  bar.w = wimp_ICON_BAR_RIGHT;
-  bar.icon.extent.x0 = 0;
-  bar.icon.extent.y0 = 0;
-  bar.icon.extent.x1 = 68;
-  bar.icon.extent.y1 = 68;
-  bar.icon.flags = wimp_ICON_SPRITE |
-		   wimp_ICON_HCENTRED |
-		   wimp_ICON_VCENTRED |
-		   (wimp_BUTTON_CLICK << wimp_ICON_BUTTON_TYPE_SHIFT);
-  if (*display->task_name != '!') {
-    *bar.icon.data.sprite = '!';
-    memcpy (bar.icon.data.sprite + 1, display->task_name, 11);
-  } else
-    memcpy (bar.icon.data.sprite, display->task_name, 12);
-  
-  return xwimp_create_icon (&bar, &display->iconbar_icon_handle);
-}
-#endif
 
 static void
 gdk_riscos_wimp_init (GdkRiscosDisplay *display)
@@ -221,31 +149,12 @@ gdk_riscos_wimp_init (GdkRiscosDisplay *display)
   }
   if (err != NULL)
     g_error ("Failed to initialise task; %s", err->errmess);
-
-#if 0
-  /* An iconbar icon may not always be required. Leave to the task to decide.  */
-  err = gdk_riscos_create_iconbar_icon (display);
-  if (err != NULL)
-    g_error ("Failed to create iconbar icon");
-#endif
-/*  display->iconbar = gdk_riscos_window_foreign_new_for_display (&display->parent_instance,
-								wimp_ICON_BAR);*/
-}
-
-static void
-gdk_riscos_display_init_input (GdkDisplay *display)
-{
-  GdkRISCOSDeviceManager *device_manager;
-
-  device_manager = (GdkRISCOSDeviceManager *)gdk_display_get_device_manager (display);
-  display->core_pointer = device_manager->core_pointer;
 }
 
 GdkDisplay *
 _gdk_riscos_display_open (const gchar *display_name)
 {
   GdkRiscosDisplay *riscos_display;
-//  GError *error;
 
   _gdk_display = g_object_new (GDK_TYPE_RISCOS_DISPLAY, NULL);
   riscos_display = GDK_RISCOS_DISPLAY (_gdk_display);
@@ -255,32 +164,55 @@ _gdk_riscos_display_open (const gchar *display_name)
   riscos_display->resource_dir_name = _resource_dir_name;
 
   gdk_riscos_wimp_init (riscos_display);
-//  riscos_display->output = NULL;
 
   /* Initialize the display's screens */
   riscos_display->screens = g_new (GdkScreen *, 1);
   riscos_display->screens[0] = _gdk_riscos_screen_new (_gdk_display, 0);
 
-  /* We need to initialize events after we have the screen
-   * structures in places
-   */
-//  _gdk_riscos_screen_events_init (riscos_display->screens[0]);
-
   /*set the default screen */
   riscos_display->default_screen = riscos_display->screens[0];
-  riscos_display->keymap = NULL;
 
   _gdk_display->device_manager = _gdk_riscos_device_manager_new (_gdk_display);
 
   gdk_event_init (_gdk_display);
 
-  gdk_riscos_display_init_input (_gdk_display);
-
-#if 0
-  _gdk_riscos_display_init_dnd (_gdk_display);
-#endif
-
   _gdk_riscos_screen_setup (riscos_display->screens[0]);
+
+  _gdk_riscos_device_manager_add_seat (_gdk_display->device_manager);
+
+  if (swap_redblue)
+    cairo_riscos_swap_red_blue(swap_redblue == swap_redblue_YES);
+  else
+    {
+      int mode_flags = 0;
+      int log2bpp;
+      xos_read_mode_variable(os_CURRENT_MODE,
+			     os_MODEVAR_MODE_FLAGS,
+			     &mode_flags,
+			     NULL);
+      xos_read_mode_variable(os_CURRENT_MODE,
+			     os_VDUVAR_LOG2_BPP,
+			     &log2bpp,
+			     NULL);
+      int data_format = (mode_flags & os_MODE_FLAG_DATA_FORMAT) >> os_MODE_FLAG_DATA_FORMAT_SHIFT;
+      if ((data_format & DATA_FORMAT_RGB) && log2bpp != 4 && log2bpp != 5)
+	cairo_riscos_swap_red_blue(TRUE);
+/*      int mode_flags = 0;
+      xos_read_mode_variable(os_CURRENT_MODE,
+			     os_MODEVAR_MODE_FLAGS,
+			     &mode_flags,
+			     NULL);
+      if ((mode_flags & (3 << os_MODE_FLAG_DATA_FORMAT_SHIFT)) == 0)
+	{
+	  if (((mode_flags >> 14) & 1))
+	    cairo_riscos_swap_red_blue(TRUE);
+	}
+      else
+	cairo_riscos_swap_red_blue(TRUE);*/
+    }
+
+  _gdk_riscos_display_generate_transtable (riscos_display);
+  _gdk_riscos_display_calculate_render_scale (riscos_display);
 
   g_signal_emit_by_name (_gdk_display, "opened");
   g_signal_emit_by_name (gdk_display_manager_get (), "display-opened", _gdk_display);
@@ -294,24 +226,6 @@ gdk_riscos_display_get_name (GdkDisplay *display)
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
   return (gchar *) "RISC OS";
-}
-
-static gint
-gdk_riscos_display_get_n_screens (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), 0);
-
-  return 1;
-}
-
-static GdkScreen *
-gdk_riscos_display_get_screen (GdkDisplay *display,
-				 gint        screen_num)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-  g_return_val_if_fail (screen_num == 0, NULL);
-
-  return GDK_RISCOS_DISPLAY (display)->screens[screen_num];
 }
 
 static GdkScreen *
@@ -338,18 +252,6 @@ gdk_riscos_display_sync (GdkDisplay *display)
 static void
 gdk_riscos_display_flush (GdkDisplay *display)
 {
-//  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
-
-  g_return_if_fail (GDK_IS_DISPLAY (display));
-#if 0
-  if (riscos_display->output &&
-      !broadway_output_flush (riscos_display->output))
-    {
-      riscos_display->saved_serial = broadway_output_get_next_serial (riscos_display->output);
-      broadway_output_free (riscos_display->output);
-      riscos_display->output = NULL;
-    }
-#endif
 }
 
 static gboolean
@@ -374,17 +276,8 @@ gdk_riscos_display_dispose (GObject *object)
   _gdk_riscos_display_manager_remove_display (gdk_display_manager_get (),
 						GDK_DISPLAY_OBJECT (object));
 
-//  g_list_foreach (riscos_display->input_devices, (GFunc) g_object_run_dispose, NULL);
-
   _gdk_screen_close (riscos_display->screens[0]);
-#if 0
-  if (riscos_display->event_source)
-    {
-      g_source_destroy (riscos_display->event_source);
-      g_source_unref (riscos_display->event_source);
-      riscos_display->event_source = NULL;
-    }
-#endif
+
   G_OBJECT_CLASS (gdk_riscos_display_parent_class)->dispose (object);
 }
 
@@ -462,17 +355,6 @@ static gboolean
 gdk_riscos_display_supports_composite (GdkDisplay *display)
 {
   return FALSE;
-}
-
-static GList *
-gdk_riscos_display_list_devices (GdkDisplay *display)
-{
-  return NULL;
-#if 0
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  return GDK_RISCOS_DISPLAY (display)->input_devices;
-#endif
 }
 
 static gulong
@@ -566,6 +448,129 @@ void gdk_riscos_enable_toolbox (const char *resource_dir_name,
   _resource_dir_name = resource_dir_name;
 }
 
+void _gdk_riscos_display_generate_transtable(GdkRiscosDisplay *rdisplay)
+{
+  if (rdisplay->trans_table != NULL)
+    {
+      free(rdisplay->trans_table);
+      rdisplay->trans_table = NULL;
+    }
+
+  int size;
+  os_error *err;
+
+  /* Assume we always render to a 32bit colour sprite (at least I've
+   * never seen any other type used yet).  */
+  err = xcolourtrans_generate_table((os_mode)(1 | (6 << 27) | (90 << 1) | (90 << 14)),
+				    0,
+				    os_CURRENT_MODE,
+				    colourtrans_CURRENT_PALETTE,
+				    NULL,
+				    0,
+				    NULL,
+				    NULL,
+				    &size);
+  if (err)
+    {
+      g_warning("RISC OS: Failed to find size of pixel translation table");
+      return;
+    }
+
+  if (size == 0)
+    return;
+
+  rdisplay->trans_table = malloc(size);
+  if (!rdisplay->trans_table)
+    {
+      g_warning("RISC OS: Failed to allocate memory for pixel translation table");
+      return;
+    }
+
+  err = xcolourtrans_generate_table((os_mode)(1 | (6 << 27) | (90 << 1) | (90 << 14)),
+				    0,
+				    os_CURRENT_MODE,
+				    colourtrans_CURRENT_PALETTE,
+				    rdisplay->trans_table,
+				    0,
+				    NULL,
+				    NULL,
+				    NULL);
+  if (err)
+    {
+      g_warning("RISC OS: Failed to generate pixel translation table");
+      return;
+    }
+}
+
+void _gdk_riscos_display_calculate_render_scale (GdkRiscosDisplay *rdisplay)
+{
+#define XEIG_FACTOR 0
+#define YEIG_FACTOR 1
+
+  os_VDU_VAR_LIST(3) var_list = { { os_VDUVAR_XEIG_FACTOR,
+				  os_VDUVAR_YEIG_FACTOR,
+				  os_VDUVAR_END_LIST } };
+
+  xos_read_vdu_variables ((os_vdu_var_list *)&var_list, (int *)&var_list);
+
+  if (var_list.var[XEIG_FACTOR] == 0)
+    {
+      rdisplay->render_scale.xmul = 2;
+      rdisplay->render_scale.xdiv = 1;
+    }
+  else
+    {
+      rdisplay->render_scale.xmul = 1;
+      rdisplay->render_scale.xdiv = var_list.var[XEIG_FACTOR];
+    }
+
+  if (var_list.var[YEIG_FACTOR] == 0)
+    {
+      rdisplay->render_scale.ymul = 2;
+      rdisplay->render_scale.ydiv = 1;
+    }
+  else
+    {
+      rdisplay->render_scale.ymul = 1;
+      rdisplay->render_scale.ydiv = var_list.var[YEIG_FACTOR];
+    }
+
+  if (rdisplay->render_scale.xmul == 1 && rdisplay->render_scale.xdiv == 1 &&
+      rdisplay->render_scale.ymul == 1 && rdisplay->render_scale.ydiv == 1)
+    rdisplay->render_scale_ptr = NULL;
+  else
+    rdisplay->render_scale_ptr = &rdisplay->render_scale;
+
+#undef XEIG_FACTOR
+#undef YEIG_FACTOR
+}
+
+static int
+gdk_riscos_display_get_n_monitors (GdkDisplay *display)
+{
+  return 1;
+}
+
+static GdkMonitor *
+gdk_riscos_display_get_monitor (GdkDisplay *display,
+				int monitor_num)
+{
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+
+  if (monitor_num == 0)
+    return riscos_display->monitor;
+
+  return NULL;
+}
+
+static GdkMonitor *
+gdk_riscos_display_get_primary_monitor (GdkDisplay *display)
+{
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+
+  return riscos_display->monitor;
+}
+
 static void
 gdk_riscos_display_class_init (GdkRiscosDisplayClass * class)
 {
@@ -578,8 +583,6 @@ gdk_riscos_display_class_init (GdkRiscosDisplayClass * class)
   display_class->window_type = GDK_TYPE_RISCOS_WINDOW;
 
   display_class->get_name = gdk_riscos_display_get_name;
-  display_class->get_n_screens = gdk_riscos_display_get_n_screens;
-  display_class->get_screen = gdk_riscos_display_get_screen;
   display_class->get_default_screen = gdk_riscos_display_get_default_screen;
   display_class->beep = gdk_riscos_display_beep;
   display_class->sync = gdk_riscos_display_sync;
@@ -594,10 +597,8 @@ gdk_riscos_display_class_init (GdkRiscosDisplayClass * class)
   display_class->supports_shapes = gdk_riscos_display_supports_shapes;
   display_class->supports_input_shapes = gdk_riscos_display_supports_input_shapes;
   display_class->supports_composite = gdk_riscos_display_supports_composite;
-  display_class->list_devices = gdk_riscos_display_list_devices;
   display_class->get_cursor_for_type = _gdk_riscos_display_get_cursor_for_type;
   display_class->get_cursor_for_name = _gdk_riscos_display_get_cursor_for_name;
-  display_class->get_cursor_for_pixbuf = _gdk_riscos_display_get_cursor_for_pixbuf;
   display_class->get_default_cursor_size = _gdk_riscos_display_get_default_cursor_size;
   display_class->get_maximal_cursor_size = _gdk_riscos_display_get_maximal_cursor_size;
   display_class->supports_cursor_alpha = _gdk_riscos_display_supports_cursor_alpha;
@@ -618,4 +619,8 @@ gdk_riscos_display_class_init (GdkRiscosDisplayClass * class)
   display_class->convert_selection = _gdk_riscos_display_convert_selection;
   display_class->text_property_to_utf8_list = _gdk_riscos_display_text_property_to_utf8_list;
   display_class->utf8_to_string_target = _gdk_riscos_display_utf8_to_string_target;
+
+  display_class->get_n_monitors = gdk_riscos_display_get_n_monitors;
+  display_class->get_monitor = gdk_riscos_display_get_monitor;
+  display_class->get_primary_monitor = gdk_riscos_display_get_primary_monitor;
 }

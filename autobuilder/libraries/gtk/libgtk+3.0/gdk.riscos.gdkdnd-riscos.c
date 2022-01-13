@@ -173,7 +173,9 @@ _gdk_riscos_window_register_dnd (GdkWindow *window)
 GdkDragContext *
 _gdk_riscos_window_drag_begin (GdkWindow *window,
 			       GdkDevice *device,
-			       GList     *targets)
+			       GList     *targets,
+			       gint	 x_root,
+			       gint	 y_root)
 {
   GdkDragContext *context;
 

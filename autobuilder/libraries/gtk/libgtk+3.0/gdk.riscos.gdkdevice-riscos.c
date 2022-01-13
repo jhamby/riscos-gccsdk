@@ -21,60 +21,64 @@
 #include "config.h"
 #include <stdlib.h>
 
+#include "gdkseat-riscos.h"
 #include "gdkdevice-riscos.h"
 #include "gdkscreen-riscos.h"
 #include "gdkwindow.h"
 #include "gdkprivate-riscos.h"
+#include "gdkdevicemanagerprivate.h"
 
 #include "oslib/wimp.h"
 #include "oslib/report.h"
 
 static gboolean gdk_riscos_device_get_history (GdkDevice      *device,
-						 GdkWindow      *window,
-						 guint32         start,
-						 guint32         stop,
-						 GdkTimeCoord ***events,
-						 gint           *n_events);
+					       GdkWindow      *window,
+					       guint32         start,
+					       guint32         stop,
+					       GdkTimeCoord ***events,
+					       gint           *n_events);
 static void gdk_riscos_device_get_state (GdkDevice       *device,
-					   GdkWindow       *window,
-					   gdouble         *axes,
-					   GdkModifierType *mask);
+					 GdkWindow       *window,
+					 gdouble         *axes,
+					 GdkModifierType *mask);
 static void gdk_riscos_device_set_window_cursor (GdkDevice *device,
-						   GdkWindow *window,
-						   GdkCursor *cursor);
+						 GdkWindow *window,
+						 GdkCursor *cursor);
 static void gdk_riscos_device_warp (GdkDevice   *device,
 				    GdkScreen *screen,
-				    gint    x,
-				    gint    y);
-static void gdk_riscos_device_query_state (GdkDevice        *device,
-                                             GdkWindow        *window,
-                                             GdkWindow       **root_window,
-                                             GdkWindow       **child_window,
-                                             gint          *root_x,
-                                             gint          *root_y,
-                                             gint          *win_x,
-                                             gint          *win_y,
-                                             GdkModifierType  *mask);
+				    gdouble    x,
+				    gdouble    y);
+static void gdk_riscos_device_query_state (GdkDevice       *device,
+					   GdkWindow       *window,
+					   GdkWindow       **root_window,
+					   GdkWindow       **child_window,
+					   gdouble         *root_x,
+					   gdouble         *root_y,
+					   gdouble         *win_x,
+					   gdouble         *win_y,
+					   GdkModifierType *mask);
 static GdkGrabStatus gdk_riscos_device_grab   (GdkDevice     *device,
-						 GdkWindow     *window,
-						 gboolean       owner_events,
-						 GdkEventMask   event_mask,
-						 GdkWindow     *confine_to,
-						 GdkCursor     *cursor,
-						 guint32        time_);
+					       GdkWindow     *window,
+					       gboolean       owner_events,
+					       GdkEventMask   event_mask,
+					       GdkWindow     *confine_to,
+					       GdkCursor     *cursor,
+					       guint32        time_);
 static void          gdk_riscos_device_ungrab (GdkDevice     *device,
 						 guint32        time_);
-static GdkWindow * gdk_riscos_device_window_at_position (GdkDevice       *device,
-							   gint       *win_x,
-							   gint       *win_y,
-							   GdkModifierType *mask,
-							   gboolean         get_toplevel);
+static GdkWindow * gdk_riscos_device_window_at_position (GdkDevice     *device,
+							 gdouble       *win_x,
+							 gdouble       *win_y,
+							 GdkModifierType *mask,
+							 gboolean         get_toplevel);
 static void      gdk_riscos_device_select_window_events (GdkDevice       *device,
-							   GdkWindow       *window,
-							   GdkEventMask     event_mask);
+							 GdkWindow       *window,
+							 GdkEventMask     event_mask);
+static void gdk_riscos_seat_init (GdkRiscosSeat *seat);
 
 
 G_DEFINE_TYPE (GdkRiscosDevice, gdk_riscos_device, GDK_TYPE_DEVICE)
+
 
 static void
 gdk_riscos_device_class_init (GdkRiscosDeviceClass *klass)
@@ -116,18 +120,19 @@ gdk_riscos_device_get_history (GdkDevice      *device,
 
 static void
 gdk_riscos_device_get_state (GdkDevice       *device,
-			       GdkWindow       *window,
-			       gdouble         *axes,
-			       GdkModifierType *mask)
+			     GdkWindow       *window,
+			     gdouble         *axes,
+			     GdkModifierType *mask)
 {
   gint x_int, y_int;
+  gdk_window_get_device_position (window, device, &x_int, &y_int, mask);
 
-  gdk_window_get_pointer (window, &x_int, &y_int, mask);
+//  gdk_window_get_pointer (window, &x_int, &y_int, mask);
 
   if (axes)
     {
-      axes[0] = x_int;
-      axes[1] = y_int;
+      axes[0] = (gdouble)x_int;
+      axes[1] = (gdouble)y_int;
     }
 }
 
@@ -141,8 +146,8 @@ gdk_riscos_device_set_window_cursor (GdkDevice *device,
 static void
 gdk_riscos_device_warp (GdkDevice   *device,
 			GdkScreen   *screen,
-			gint      x,
-			gint      y)
+			gdouble      x,
+			gdouble      y)
 {
 }
 
@@ -151,10 +156,10 @@ gdk_riscos_device_query_state (GdkDevice        *device,
 				GdkWindow        *window,
 				GdkWindow       **root_window,
 				GdkWindow       **child_window,
-				gint          *root_x,
-				gint          *root_y,
-				gint          *win_x,
-				gint          *win_y,
+				gdouble          *root_x,
+				gdouble          *root_y,
+				gdouble          *win_x,
+				gdouble          *win_y,
 				GdkModifierType  *mask)
 {
   GdkWindow *toplevel;
@@ -164,7 +169,7 @@ gdk_riscos_device_query_state (GdkDevice        *device,
   GdkWindow *mouse_toplevel;
   
   wimp_pointer mouse;
-  
+
   if (gdk_device_get_source (device) != GDK_SOURCE_MOUSE)
     return;
 
@@ -187,21 +192,19 @@ gdk_riscos_device_query_state (GdkDevice        *device,
   GdkPoint mouse_pos;
   gdk_riscos_screen_point_to_pixel (impl->screen, (GdkPoint *)&mouse.pos, &mouse_pos);
 
-  /* Bitwise OR to see if either of these are non zero.  */
-  if ((guint)root_x | (guint)root_y)
+  if (root_x || root_y)
     {
       GdkPoint global_pos;
 
       gdk_riscos_screen_global_point (impl->screen, &mouse_pos, &global_pos);
 
       if (root_x)
-	*root_x = global_pos.x;
+	*root_x = (gdouble)global_pos.x;
       if (root_y)
-	*root_y = global_pos.y;
+	*root_y = (gdouble)global_pos.y;
     }
 
-  /* Bitwise OR to see if either of these are non zero.  */
-  if (((guint)win_x | (guint)win_y) && mouse_toplevel)
+  if ((win_x || win_y) && mouse_toplevel)
     {
       GdkWindowImplRiscos *mouse_toplevel_impl = GDK_WINDOW_IMPL_RISCOS (mouse_toplevel->impl);
       GdkPoint local_pos;
@@ -209,9 +212,9 @@ gdk_riscos_device_query_state (GdkDevice        *device,
       gdk_riscos_window_map_from_global (mouse_toplevel_impl->wrapper, &mouse_pos, &local_pos);
 
       if (win_x)
-	*win_x = local_pos.x;
+	*win_x = (gdouble)local_pos.x;
       if (win_y)
-	*win_y = local_pos.y;
+	*win_y = (gdouble)local_pos.y;
     }
 
   if (mask)
@@ -247,13 +250,15 @@ _gdk_riscos_window_grab_check_unmap (GdkWindow *window,
   GdkDisplay *display = gdk_window_get_display (window);
   GdkDeviceManager *device_manager;
   GList *devices, *d;
-
+  
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS;
   device_manager = gdk_display_get_device_manager (display);
 
   /* Get all devices */
   devices = gdk_device_manager_list_devices (device_manager, GDK_DEVICE_TYPE_MASTER);
   devices = g_list_concat (devices, gdk_device_manager_list_devices (device_manager, GDK_DEVICE_TYPE_SLAVE));
   devices = g_list_concat (devices, gdk_device_manager_list_devices (device_manager, GDK_DEVICE_TYPE_FLOATING));
+  G_GNUC_END_IGNORE_DEPRECATIONS;
 
   /* End all grabs on the newly hidden window */
   for (d = devices; d; d = d->next)
@@ -271,10 +276,12 @@ _gdk_riscos_window_grab_check_destroy (GdkWindow *window)
   GdkDeviceGrabInfo *grab;
   GList *devices, *d;
 
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS;
   device_manager = gdk_display_get_device_manager (display);
 
   /* Get all devices */
   devices = gdk_device_manager_list_devices (device_manager, GDK_DEVICE_TYPE_MASTER);
+  G_GNUC_END_IGNORE_DEPRECATIONS;
 
   for (d = devices; d; d = d->next)
     {
@@ -394,8 +401,8 @@ gdk_riscos_device_ungrab (GdkDevice *device,
 static void
 translate_coords_to_child_coords (GdkWindow *parent,
                                   GdkWindow *child,
-                                  gint      *x,
-                                  gint      *y)
+                                  gdouble   *x,
+                                  gdouble   *y)
 {
   GdkWindow *current = child;
 
@@ -408,8 +415,8 @@ translate_coords_to_child_coords (GdkWindow *parent,
 
       gdk_window_get_origin (current, &tmp_x, &tmp_y);
 
-      *x -= tmp_x;
-      *y -= tmp_y;
+      *x -= (gdouble)tmp_x;
+      *y -= (gdouble)tmp_y;
 
       current = gdk_window_get_effective_parent (current);
     }
@@ -417,19 +424,19 @@ translate_coords_to_child_coords (GdkWindow *parent,
 
 static GdkWindow *
 gdk_riscos_device_window_at_position (GdkDevice       *device,
-				      gint            *win_x,
-				      gint            *win_y,
+				      gdouble         *win_x,
+				      gdouble         *win_y,
 				      GdkModifierType *mask,
 				      gboolean         get_toplevel)
 {
   GdkScreen *screen;
   GdkWindow *root_window;
   GdkWindow *found_window;
-  gint x_tmp, y_tmp;
+  gdouble x_tmp, y_tmp;
   
   screen = gdk_screen_get_default ();
   root_window = gdk_screen_get_root_window (screen);
-  
+
   gdk_riscos_device_query_state (device, root_window, NULL, &found_window, NULL, NULL, &x_tmp, &y_tmp, mask);
 
   found_window = _gdk_riscos_window_find_child (found_window, x_tmp, y_tmp, get_toplevel);
@@ -439,10 +446,10 @@ gdk_riscos_device_window_at_position (GdkDevice       *device,
 				      &x_tmp, &y_tmp);
 
   if (win_x)
-    *win_x = found_window ? x_tmp : -1;
+    *win_x = found_window ? x_tmp : 0;
 
   if (win_y)
-    *win_y = found_window ? y_tmp : -1;
+    *win_y = found_window ? y_tmp : 0;
 
   return found_window;
 }
@@ -453,4 +460,52 @@ gdk_riscos_device_select_window_events (GdkDevice    *device,
 					GdkEventMask  event_mask)
 {
   /* The mask is set in the common code. */
+}
+
+void
+_gdk_riscos_device_manager_add_seat (GdkDeviceManager *device_manager)
+{
+  GdkDisplay *display;
+  GdkRiscosSeat *seat;
+
+  display = gdk_device_manager_get_display (device_manager);
+
+  seat = g_object_new (GDK_TYPE_RISCOS_SEAT,
+                       "display", display,
+                       NULL);
+  seat->pointer_grab = seat->keyboard_grab = NULL;
+  seat->display = display;
+  seat->device_manager = device_manager;
+  seat->master_keyboard = g_object_new (GDK_TYPE_RISCOS_DEVICE,
+					"name", "Core Keyboard",
+					"type", GDK_DEVICE_TYPE_MASTER,
+					"input-source", GDK_SOURCE_KEYBOARD,
+					"input-mode", GDK_MODE_SCREEN,
+					"has-cursor", FALSE,
+					"display", display,
+					"device-manager", device_manager,
+					"seat", seat,
+					NULL);
+/*  device_manager->devices = g_list_prepend (device_manager->devices, seat->master_keyboard);*/
+  _gdk_device_reset_axes (seat->master_keyboard);
+  g_signal_emit_by_name (device_manager, "device-added", seat->master_keyboard);
+
+  seat->master_pointer = g_object_new (GDK_TYPE_RISCOS_DEVICE,
+				       "name", "Core Pointer",
+				       "type", GDK_DEVICE_TYPE_MASTER,
+				       "input-source", GDK_SOURCE_MOUSE,
+				       "input-mode", GDK_MODE_SCREEN,
+				       "has-cursor", TRUE,
+				       "display", display,
+				       "device-manager", device_manager,
+				       "seat", seat,
+				       NULL);
+/*  device_manager->devices = g_list_prepend (device_manager->devices, seat->master_pointer);*/
+  g_signal_emit_by_name (device_manager, "device-added", seat->master_pointer);
+
+  /* link both */
+  _gdk_device_set_associated_device (seat->master_pointer, seat->master_keyboard);
+  _gdk_device_set_associated_device (seat->master_keyboard, seat->master_pointer);
+
+  gdk_display_add_seat (display, GDK_SEAT (seat));
 }

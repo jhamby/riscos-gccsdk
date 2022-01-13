@@ -37,23 +37,41 @@
 static void   gdk_riscos_screen_dispose     (GObject *object);
 static void   gdk_riscos_screen_finalize    (GObject *object);
 
+static void   set_screen_resolution (GdkScreen *screen, int eigen);
+
 G_DEFINE_TYPE (GdkRiscosScreen, gdk_riscos_screen, GDK_TYPE_SCREEN)
 
-static void
-gdk_riscos_screen_init (GdkRiscosScreen *screen)
+void _gdk_riscos_screen_update (GdkScreen *screen)
 {
-  os_VDU_VAR_LIST(5) var_list = { { os_VDUVAR_XEIG_FACTOR,
+#define XEIG_FACTOR 0
+#define YEIG_FACTOR 1
+#define XWIND_LIMIT 2
+#define YWIND_LIMIT 3
+  GdkRiscosScreen *rscreen = GDK_RISCOS_SCREEN (screen);
+  os_VDU_VAR_LIST(5) vdu = { { os_VDUVAR_XEIG_FACTOR,
 				  os_VDUVAR_YEIG_FACTOR,
 				  os_VDUVAR_XWIND_LIMIT,
 				  os_VDUVAR_YWIND_LIMIT,
 				  os_VDUVAR_END_LIST } };
 
-  xos_read_vdu_variables ((os_vdu_var_list *)&var_list, (int *)&var_list);
+  xos_read_vdu_variables ((os_vdu_var_list *)&vdu, (int *)&vdu);
 
-  screen->x_eigen_factor = var_list.var[0];
-  screen->y_eigen_factor = var_list.var[1];
-  screen->width = var_list.var[2] + 1;
-  screen->height = var_list.var[3] + 1;
+  rscreen->x_eigen_factor = vdu.var[XEIG_FACTOR];
+  rscreen->y_eigen_factor = vdu.var[YEIG_FACTOR];
+  rscreen->width = vdu.var[XWIND_LIMIT] + 1;
+  rscreen->height = vdu.var[YWIND_LIMIT] + 1;
+
+  set_screen_resolution (screen, rscreen->y_eigen_factor);
+#undef XEIG_FACTOR
+#undef YEIG_FACTOR
+#undef XWIND_LIMIT
+#undef YWIND_LIMIT
+}
+
+static void
+gdk_riscos_screen_init (GdkRiscosScreen *screen)
+{
+  _gdk_riscos_screen_update (&screen->parent_instance);
 }
 
 static GdkDisplay *
@@ -214,6 +232,8 @@ _gdk_riscos_screen_new (GdkDisplay *display,
   _gdk_riscos_screen_init_visuals (_gdk_screen);
   _gdk_riscos_screen_init_root_window (_gdk_screen);
 
+  set_screen_resolution (_gdk_screen, riscos_screen->y_eigen_factor);
+
   return _gdk_screen;
 }
 
@@ -237,7 +257,7 @@ gdk_riscos_screen_is_composited (GdkScreen *screen)
 static gchar *
 gdk_riscos_screen_make_display_name (GdkScreen *screen)
 {
-  return g_strdup ("browser");
+  return g_strdup ("RISCOS");
 }
 
 static GdkWindow *
@@ -264,6 +284,32 @@ gdk_riscos_screen_get_setting (GdkScreen   *screen,
 				 GValue      *value)
 {
   return FALSE;
+}
+
+/*
+ * This effects how text is rendered.
+ */
+void
+set_screen_resolution (GdkScreen *screen, int eigen)
+{
+  int dpi;
+  switch (eigen)
+    {
+    case 0:
+      dpi = 180;
+      break;
+    case 1:
+      dpi = 90;
+      break;
+    case 2:
+      dpi = 45;
+      break;
+    default:
+      dpi = 90;
+      break;
+    }
+
+  gdk_screen_set_resolution(screen, (double)dpi);
 }
 
 void

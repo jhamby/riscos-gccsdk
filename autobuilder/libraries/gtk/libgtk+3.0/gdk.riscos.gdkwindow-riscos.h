@@ -53,6 +53,9 @@ typedef struct _GdkWindowImplRiscosClass GdkWindowImplRiscosClass;
 #define GDK_IS_WINDOW_IMPL_RISCOS_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_WINDOW_IMPL_RISCOS))
 #define GDK_WINDOW_IMPL_RISCOS_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_WINDOW_IMPL_RISCOS, GdkWindowImplRiscosClass))
 
+#define SCROLL_X_DELTA 2
+#define SCROLL_Y_DELTA 2
+
 struct _GdkWindowImplRiscos
 {
   GdkWindowImpl parent_instance;
@@ -73,22 +76,17 @@ struct _GdkWindowImplRiscos
   GdkPoint min_os_size;
 
   gboolean visible;
-  wimp_w transient_for;
+  GdkWindow *transient_for;
 
   gint8 toplevel_window_type;
-
-  gboolean dirty;
 
   /* Sorted by z-order */
   GList *sorted_children;
 
   GdkEventMask event_mask;
-#if 0
-  GdkCursor *cursor;
-  GHashTable *device_cursor;
 
-  gboolean last_synced;
-#endif
+  gboolean user_can_resize;
+  gboolean nested;
 };
 
 struct _GdkWindowImplRiscosClass

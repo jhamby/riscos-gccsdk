@@ -54,8 +54,9 @@ struct _GdkRiscosCursorClass
 
 G_DEFINE_TYPE (GdkRiscosCursor, gdk_riscos_cursor, GDK_TYPE_CURSOR)
 
-static GdkPixbuf *
-gdk_riscos_cursor_get_image (GdkCursor *cursor);
+static cairo_surface_t *gdk_riscos_cursor_get_surface (GdkCursor *cursor,
+						       gdouble *x_hot,
+						       gdouble *y_hot);
 
 static void
 gdk_riscos_cursor_finalize (GObject *object)
@@ -71,7 +72,7 @@ gdk_riscos_cursor_class_init (GdkRiscosCursorClass *xcursor_class)
 
   object_class->finalize = gdk_riscos_cursor_finalize;
 
-  cursor_class->get_image = gdk_riscos_cursor_get_image;
+  cursor_class->get_surface = gdk_riscos_cursor_get_surface;
 }
 
 static void
@@ -103,11 +104,11 @@ _gdk_riscos_display_get_cursor_for_type (GdkDisplay    *display,
   return GDK_CURSOR (private);
 }
 
-static GdkPixbuf *
-gdk_riscos_cursor_get_image (GdkCursor *cursor)
+static cairo_surface_t *
+gdk_riscos_cursor_get_surface (GdkCursor *cursor,
+			       gdouble *x_hot,
+			       gdouble *y_hot)
 {
-  g_return_val_if_fail (cursor != NULL, NULL);
-
   return NULL;
 }
 
@@ -118,10 +119,10 @@ _gdk_riscos_cursor_update_theme (GdkCursor *cursor)
 }
 
 GdkCursor *
-_gdk_riscos_display_get_cursor_for_pixbuf (GdkDisplay      *display,
-					   GdkPixbuf  *pixbuf,
-					   gint          x,
-					   gint          y)
+_gdk_riscos_display_get_cursor_for_surface (GdkDisplay      *display,
+					    cairo_surface_t *surface,
+					    gdouble     x,
+					    gdouble     y)
 {
   GdkRiscosCursor *private;
   GdkCursor *cursor;

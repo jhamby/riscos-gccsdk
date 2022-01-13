@@ -26,15 +26,16 @@
 #include "gdkdisplayprivate.h"
 #include "oslib/wimp.h"
 #include "oslib/toolbox.h"
+#include "oslib/osspriteop.h"
+#include "gdkmonitorprivate.h"
 
 G_BEGIN_DECLS
 
 typedef struct _GdkRiscosDisplay GdkRiscosDisplay;
 typedef struct _GdkRiscosDisplayClass GdkRiscosDisplayClass;
 
-typedef struct _GdkRiscosGrab GdkRiscosGrab;
 typedef struct _GdkRiscosSelection GdkRiscosSelection;
-typedef struct _GdkRiscosSelectionXferProgress GdkRiscosSelectionXferProgress;
+typedef struct _GdkRiscosXferProgress GdkRiscosXferProgress;
 
 #define GDK_TYPE_RISCOS_DISPLAY              (gdk_riscos_display_get_type())
 #define GDK_RISCOS_DISPLAY(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_RISCOS_DISPLAY, GdkRiscosDisplay))
@@ -43,22 +44,20 @@ typedef struct _GdkRiscosSelectionXferProgress GdkRiscosSelectionXferProgress;
 #define GDK_IS_RISCOS_DISPLAY_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_RISCOS_DISPLAY))
 #define GDK_RISCOS_DISPLAY_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_RISCOS_DISPLAY, GdkRiscosDisplayClass))
 
-struct _GdkRiscosGrab
-{
-  GdkWindow *window;
-};
-
 struct _GdkRiscosSelection {
   void *buffer;
   size_t size;
   size_t max_size;
+  bool claimed;
 };
 
-struct _GdkRiscosSelectionXferProgress
+struct _GdkRiscosXferProgress
 {
   size_t bytes_remaining;
-  size_t bytes_sent;
+  size_t bytes_transfered;
 };
+
+typedef void (*mode_change_handler_function)(void *);
 
 struct _GdkRiscosDisplay
 {
@@ -66,8 +65,7 @@ struct _GdkRiscosDisplay
   GdkScreen *default_screen;
   GdkScreen **screens;
 
-  GdkRiscosGrab pointer_grab;
-  GdkRiscosGrab keyboard_grab;
+  GdkMonitor *monitor;
 
   GHashTable *id_ht;
   GList *toplevels;
@@ -94,9 +92,15 @@ struct _GdkRiscosDisplay
   GdkWindow *focus_window;
   GdkWindow *selection_window;
   GdkRiscosSelection selection;
-  GdkRiscosSelectionXferProgress *selection_xfer_progress;
+  GdkRiscosSelection clipboard;
+  GdkRiscosXferProgress *clipboard_xfer_progress;
 
   wimp_block poll_block;
+
+  /* Mode independence.  */
+  osspriteop_trans_tab *trans_table;
+  os_factors render_scale;
+  os_factors *render_scale_ptr;
 
   /* Toolbox tasks */
   toolbox_block *tb_block;
