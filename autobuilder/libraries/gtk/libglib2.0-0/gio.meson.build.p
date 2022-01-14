@@ -1,6 +1,6 @@
---- gio/meson.build.orig	2020-02-23 13:30:31.000000000 +0000
-+++ gio/meson.build	2020-02-23 13:32:47.871740695 +0000
-@@ -918,34 +918,34 @@
+--- gio/meson.build.orig	2021-03-18 13:47:48.296693000 +0000
++++ gio/meson.build	2022-01-14 11:46:15.220532194 +0000
+@@ -922,34 +922,34 @@
    'gio-tool-tree.c',
  ]
  
@@ -40,16 +40,16 @@
    [gconstructor_as_data_h, 'gvdb/gvdb-builder.c', 'glib-compile-resources.c'],
    install : true,
    c_args : gio_c_args,
-@@ -953,7 +953,7 @@
-   link_args : noseh_link_args,
-   dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+@@ -965,7 +965,7 @@
+   meson.override_find_program('glib-compile-resources', glib_compile_resources)
+ endif
  
 -executable('gsettings', 'gsettings-tool.c',
 +executable('gsettings,e1f', 'gsettings-tool.c',
    install : true,
    c_args : gio_c_args,
    # intl.lib is not compatible with SAFESEH
-@@ -965,7 +965,7 @@
+@@ -977,7 +977,7 @@
  install_data(['gschema.loc', 'gschema.its'],
    install_dir : join_paths(get_option('datadir'), 'gettext/its'))
  

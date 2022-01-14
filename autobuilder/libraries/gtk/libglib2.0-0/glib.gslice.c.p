@@ -1,6 +1,6 @@
---- glib/gslice.c.orig	2020-07-30 22:06:53.000000000 +0100
-+++ glib/gslice.c	2020-07-30 22:07:51.418321187 +0100
-@@ -389,6 +389,9 @@
+--- glib/gslice.c.orig	2021-03-18 13:47:48.332693300 +0000
++++ glib/gslice.c	2022-01-14 14:45:34.342379375 +0000
+@@ -434,6 +434,9 @@
        if (RUNNING_ON_VALGRIND)
          config->always_malloc = TRUE;
  #endif
@@ -8,5 +8,5 @@
 +      config->always_malloc = TRUE;
 +#endif
      }
- }
  
+   g_free (val_allocated);

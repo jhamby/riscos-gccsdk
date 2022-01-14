@@ -1,8 +1,8 @@
---- gio/giomodule.c.orig	2020-08-02 17:55:12.089956660 +0100
-+++ gio/giomodule.c	2020-08-02 17:55:12.121956360 +0100
-@@ -1098,6 +1098,12 @@
+--- gio/giomodule.c.orig	2021-03-18 13:47:48.272693200 +0000
++++ gio/giomodule.c	2022-01-14 11:46:15.228532142 +0000
+@@ -1177,6 +1177,12 @@
+                                      "lib", "gio", "modules",
                                       NULL);
- #endif
        g_free (install_dir);
 +#elif defined(__riscos__)
 +#ifdef __ARM_EABI__
