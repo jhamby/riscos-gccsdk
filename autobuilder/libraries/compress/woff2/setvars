@@ -1,0 +1,43 @@
+AB_PRECONF=:
+
+ab_make()
+{
+  mkdir -p build
+  cd build
+
+  cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE=$AB_CMAKE_TOOLCHAIN_FILE \
+	 -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV \
+	 -DCMAKE_BUILD_TYPE=Release \
+	 -DCMAKE_AR=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar \
+	 -DCANONICAL_PREFIXES=ON \
+	 ..
+
+  ninja && ninja install
+}
+
+ab_package()
+{
+  ab_create_app LibWOFF2-Dev Apps/Library libwoff2-dev
+
+  HERE=`pwd`
+  devdir=$D/libwoff2-dev/Apps/Library
+
+  ab_add_headers $S/include/woff2 $devdir/\!LibWOFF2-Dev/woff2
+
+  cp $S/README.md $A/!ReadMe
+
+  $AB_HOME/add-riscpkg -unixlib -name LibWOFF-Dev -copyrightfile LICENSE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libwoff2
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/build libwoff2common.so.1
+    ab_add_sharedlib $S/build libwoff2dec.so.1
+    ab_add_sharedlib $S/build libwoff2enc.so.1
+
+    $AB_HOME/add-riscpkg -package "libwoff2" -name "LibWOFF2" \
+        -depends SharedLibs-C2 -depends LibBrotli
+  fi
+}
