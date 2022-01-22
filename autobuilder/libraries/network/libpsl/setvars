@@ -1,0 +1,36 @@
+# Public Suffix List library
+
+AB_GIT=https://github.com/rockdaboot/libpsl.git
+AB_MESON=yes
+
+pushd list >/dev/null
+wget https://publicsuffix.org/list/public_suffix_list.dat
+popd >/dev/null
+
+AB_INSTALL=yes
+
+ab_package() {
+  ab_create_app LibPsl Apps/Library libpsl-dev
+
+  devdir=$D/libpsl-dev/Apps/Library/\!LibPsl/
+  mkdir -p $devdir
+
+  ab_add_headers $AB_MESON_BUILD_DIR/include $devdir
+  cp $S/$AB_MESON_BUILD_DIR/src/libpsl.a $A
+
+  mkdir -p $A/docs
+  cp $S/README.md NEWS version.txt AUTHORS $A/docs
+
+  $AB_HOME/add-riscpkg -package "libpsl-dev" -copyrightfile LICENSE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libpsl
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $AB_MESON_BUILD_DIR/src libpsl.so.5
+
+    $AB_HOME/add-riscpkg -package "libpsl" -name LibPsl \
+	-depends SharedLibs-C2 -depends LibICU68 -copyrightfile LICENSE
+  fi
+}
