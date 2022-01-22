@@ -67,6 +67,9 @@ gdk_riscos_display_init (GdkRiscosDisplay *display)
   display->id_ht = g_hash_table_new (NULL, NULL);
   display->toplevels = NULL;
 
+  display->gdkkey_hashtable = g_hash_table_new (NULL, NULL);
+  display->inkey_hashtable = g_hash_table_new (NULL, NULL);
+
   display->raw_event_handlers = NULL;
   display->message_handlers = NULL;
 
@@ -289,6 +292,9 @@ gdk_riscos_display_finalize (GObject *object)
   /* Keymap */
   if (riscos_display->keymap)
     g_object_unref (riscos_display->keymap);
+
+  g_object_unref (riscos_display->gdkkey_hashtable);
+  g_object_unref (riscos_display->inkey_hashtable);
 
 #if 0
   _gdk_riscos_cursor_display_finalize (GDK_DISPLAY_OBJECT(riscos_display));

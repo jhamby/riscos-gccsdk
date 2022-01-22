@@ -79,7 +79,6 @@ typedef struct _GdkEventSource
   GdkDisplay *display;
 } GdkEventSource;
 
-/* TODO: Move keyboard stuff to gdkkeys-riscos.c */
 struct keymapping
 {
     int riscos_key_code;
@@ -92,7 +91,7 @@ struct internal_mapping
   guint internal_code;
 };
 
-/* A hashmap may be better at runtime, but still needs to be initialised from
+/* We use a hashmap at runtime for speed, but it still needs to be initialised from
  * something like the following.
  * TODO: check some of these codes at runtime.
  */
@@ -205,6 +204,8 @@ static const struct keymapping function_keymap[] = {
     { wimp_KEY_HOME, GDK_KEY_Home },
     { wimp_KEY_DELETE, GDK_KEY_Delete },
     { wimp_KEY_PRINT, GDK_KEY_Print },
+    { wimp_KEY_PAGE_DOWN, GDK_KEY_Page_Down },
+    { wimp_KEY_PAGE_UP, GDK_KEY_Page_Up },
     { wimp_KEY_F1, GDK_KEY_F1 },
     { wimp_KEY_F2, GDK_KEY_F2 },
     { wimp_KEY_F3, GDK_KEY_F3 },
@@ -1220,38 +1221,27 @@ gdk_riscos_handle_leave_event (GdkRiscosDisplay *rdisplay,
 }
 
 /*
- * Need a better container for key codes, perhaps a hashmap?
  * Return -1 if there is no mapping.  */
-static int keyboard_map_wimp_to_internal (int wimp_key)
+static int keyboard_map_wimp_to_internal (GdkRiscosDisplay *riscos_display, int wimp_key)
 {
-  guint result = -1;
+  int result = GPOINTER_TO_INT(g_hash_table_lookup (riscos_display->inkey_hashtable,
+						    GINT_TO_POINTER(wimp_key)));
 
-  int i;
-  for (i = 0; i < sizeof (internal_keymap) / sizeof (struct internal_mapping); i++)
-    if (internal_keymap[i].wimp_code == wimp_key)
-      {
-	result = internal_keymap[i].internal_code;
-	break;
-      }
-
-  return result;
+  return result ? result : -1;
 }
 
 static guint
-map_keyboard_wimp_to_gdk (int key, guint modifiers)
+map_keyboard_wimp_to_gdk (GdkRiscosDisplay *riscos_display, int key, guint modifiers)
 {
-  guint result = (guint)key;
+  guint result;
 
   if (key <= 26 && (modifiers & GDK_CONTROL_MASK))
     return key + 'a' - 1;
 
-  int i;
-  for (i = 0; i < sizeof (function_keymap) / sizeof (struct keymapping); i++)
-    if (function_keymap[i].riscos_key_code == key)
-      {
-	result = function_keymap[i].gdk_key_code;
-	break;
-      }
+  result = GPOINTER_TO_INT(g_hash_table_lookup (riscos_display->gdkkey_hashtable,
+						GINT_TO_POINTER(key)));
+  if (!result)
+    result = (guint)key;
 
   return result;
 }
@@ -1286,7 +1276,7 @@ check_key_down_no_window (GdkRiscosDisplay *rdisplay)
     {
       GSList *next = iterator->next;
       int code = GPOINTER_TO_INT (iterator->data);
-      int inkey_code = keyboard_map_wimp_to_internal (code);
+      int inkey_code = keyboard_map_wimp_to_internal (rdisplay, code);
 
       if (inkey_code >= 0)
 	{
@@ -1315,7 +1305,7 @@ check_key_down (GdkRiscosDisplay *rdisplay,
     {
       GSList *next = iterator->next;
       int code = GPOINTER_TO_INT (iterator->data);
-      int inkey_code = keyboard_map_wimp_to_internal (code);
+      int inkey_code = keyboard_map_wimp_to_internal (rdisplay, code);
 
       if (inkey_code >= 0 && osbyte1 (osbyte_IN_KEY, inkey_code ^ 0xff, 0xff) == 0)
 	  {
@@ -1326,7 +1316,7 @@ check_key_down (GdkRiscosDisplay *rdisplay,
 	    event->key.send_event = FALSE;
 	    event->key.time = rdisplay->last_seen_time;
 	    event->key.state = state;
-	    event->key.keyval = map_keyboard_wimp_to_gdk (code, state);
+	    event->key.keyval = map_keyboard_wimp_to_gdk (rdisplay, code, state);
 	    event->key.length = 0;
 	    event->key.string = NULL;
 	    event->key.hardware_keycode = event->key.keyval;
@@ -1521,7 +1511,11 @@ gdk_riscos_handle_key_press (GdkRiscosDisplay *rdisplay,
   wimp_pointer mouse;
   xwimp_get_pointer_info (&mouse);
 
-  guint modifiers = gdk_riscos_read_modifiers ();
+  /* Make sure top bit set characters entered via the ALT key can get through.  */
+  guint modifiers = ((key->c & 0x80) == 0) ?
+			gdk_riscos_read_modifiers () :
+			0;
+
   guint buttons = gdk_riscos_translate_buttons (mouse.buttons);
 
   _gdk_riscos_display_set_last_seen_time (rdisplay);
@@ -1531,7 +1525,7 @@ gdk_riscos_handle_key_press (GdkRiscosDisplay *rdisplay,
   event->key.send_event = FALSE;
   event->key.time = rdisplay->last_seen_time;
   event->key.state = modifiers | buttons;
-  event->key.keyval = map_keyboard_wimp_to_gdk (key->c, modifiers);
+  event->key.keyval = map_keyboard_wimp_to_gdk (rdisplay, key->c, modifiers);
   event->key.length = 0;
   event->key.string = NULL;
   event->key.hardware_keycode = event->key.keyval;
@@ -1751,5 +1745,17 @@ gdk_riscos_event_poll (wimp_block *poll_block)
 void
 _gdk_riscos_events_init (GdkDisplay *display)
 {
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+
+  for (int i = 0; i < sizeof (function_keymap) / sizeof (struct keymapping); i++)
+    g_hash_table_insert (riscos_display->gdkkey_hashtable,
+			 GINT_TO_POINTER (function_keymap[i].riscos_key_code),
+			 GINT_TO_POINTER (function_keymap[i].gdk_key_code));
+
+  for (int i = 0; i < sizeof (internal_keymap) / sizeof (struct internal_mapping); i++)
+    g_hash_table_insert (riscos_display->inkey_hashtable,
+			 GINT_TO_POINTER (internal_keymap[i].wimp_code),
+			 GINT_TO_POINTER (internal_keymap[i].internal_code));
+
   _gdk_riscos_event_loop_init (display);
 }

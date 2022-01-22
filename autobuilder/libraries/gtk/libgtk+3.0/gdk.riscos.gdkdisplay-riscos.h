@@ -70,6 +70,9 @@ struct _GdkRiscosDisplay
   GHashTable *id_ht;
   GList *toplevels;
 
+  GHashTable *gdkkey_hashtable;
+  GHashTable *inkey_hashtable;
+
   GList *raw_event_handlers;
   GList *message_handlers;
 

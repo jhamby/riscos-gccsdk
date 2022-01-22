@@ -32,7 +32,7 @@
 +	}
 +
 +      gtk_selection_retrieval_report (info,
-+				      target,
++				      text_plain_locale_atom,
 +				      8,
 +				      (guchar *)data,
 +				      strlen(data) + 1,
