@@ -1,0 +1,31 @@
+AB_INSTALL=yes
+
+AB_MESON=yes
+AB_MESON_FLAGS="$AB_MESON_FLAGS -Dgssapi=disabled -Dgnome=false -Dintrospection=disabled -Dsysprof=disabled -Dinstalled_tests=false -Dtls_check=false -Dc_args=-D_BSD_SOURCE"
+
+ab_package() {
+  ab_create_app LibSoup2 Apps/Library libsoup-2.4-dev
+
+  devdir=$D/libsoup-2.4-dev/Apps/Library/\!LibSoup2/
+  mkdir -p $devdir
+
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/libsoup-2.4 $devdir
+  cp $S/$AB_MESON_BUILD_DIR/libsoup/libsoup-2.4.a $A
+
+  mkdir -p $A/docs
+  cp $S/README $S/NEWS $S/AUTHORS $S/COPYING $A/docs
+
+  $AB_HOME/add-riscpkg -unixlib -name LibSoup-Dev
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libsoup-2.4
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/$AB_MESON_BUILD_DIR/libsoup libsoup-2.4.so.1
+
+    $AB_HOME/add-riscpkg -package "libsoup-2.4" -name "LibSoup2" \
+	-depends SharedLibs-C2 -depends LibPsl -depends LibGNUTLS \
+	-depends LibXML2 -depends LibSQLite3
+  fi
+}
