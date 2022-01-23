@@ -1,3 +1,13 @@
+Sun Jan 23  13:45:11 GMT 2022 Lee Noar  <lee.noar@sky.com>
+
+	* incl-local/internal/swiparams.h: Add ARMEABISUPPORT_SHMOP_DUP.
+	* unix/fcntl.c: For armeabi, use ARMEABISupport module to dup()
+	the shared memory fd. This actually returns the same fd with the
+	ref count increased. The standard states that it should return the
+	lowest fd, but that's not currently possible and is really only
+	necessary for a file fd when redirecting stdout/stderr.
+	* doc/UnixLib/README: Add notes on armeabi (GCC >= 8) features.
+
 Tue Jun 15  20:55:10 BST 2021 Lee Noar  <lee.noar@sky.com>
 
 	* Makefile.am: Build armeabi specific version of sys/mman.c.
