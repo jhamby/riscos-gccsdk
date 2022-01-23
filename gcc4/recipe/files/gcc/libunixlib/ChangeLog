@@ -1,3 +1,10 @@
+Sun Jan 23  14:46:12 GMT 2022 Lee Noar  <lee.noar@sky.com>
+
+	* pthread/_ints.s(__pthread_disable_ints,__pthread_enable_ints):
+	Make these symbols protected so that they're still available
+	outside of the shared library, but when called internally, they
+	will be called directly rather than via the PLT.
+
 Sun Jan 23  13:45:11 GMT 2022 Lee Noar  <lee.noar@sky.com>
 
 	* incl-local/internal/swiparams.h: Add ARMEABISUPPORT_SHMOP_DUP.
