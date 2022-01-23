@@ -1,5 +1,5 @@
 AC_PREREQ([2.64])
-AC_INIT([ARMEABISupport],[1.03],[http://gccsdk.riscos.info/])
+AC_INIT([ARMEABISupport],[1.04],[http://gccsdk.riscos.info/])
 
 AC_PROG_CC
 AM_PROG_AS
