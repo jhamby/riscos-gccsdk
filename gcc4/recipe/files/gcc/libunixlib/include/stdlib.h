@@ -184,6 +184,7 @@ extern void *valloc (size_t __bytes) __THROW __attribute_malloc__ __wur;
 #ifndef __TARGET_SCL__
 extern void *memalign (size_t __alignment,
 		       size_t __bytes) __THROW __attribute_malloc__ __wur;
+extern int posix_memalign(void **memptr, size_t alignment, size_t size);
 extern void cfree (void *__mem) __THROW;
 extern int malloc_trim (size_t) __THROW;
 #endif

@@ -1,3 +1,8 @@
+Sun Jan 23  14:58:13 GMT 2022 Lee Noar  <lee.noar@sky.com>
+
+	* stdlib/alloc.c: Add an implementation of posix_memalign().
+	* include/stdlib.h: Add posix_memalign() declaration.
+
 Sun Jan 23  14:46:12 GMT 2022 Lee Noar  <lee.noar@sky.com>
 
 	* pthread/_ints.s(__pthread_disable_ints,__pthread_enable_ints):
