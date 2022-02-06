@@ -111,10 +111,10 @@ gdk_riscos_clipboard_is_text_available(GdkDisplay *display)
   message->your_ref = 0;
   message->action = message_DATA_REQUEST;
   message->w = transfer.w;
-  message->i = -1;
+  message->i = 0;		/* Internal handle?  */
   message->pos.x = 0;
   message->pos.y = 0;
-  message->flags = 4;
+  message->flags = wimp_DATA_REQUEST_CLIPBOARD;
   message->file_types[0] = 0xFFF;
   message->file_types[1] = -1;
   xwimp_send_message(wimp_USER_MESSAGE, &rdisplay->poll_block.message, wimp_BROADCAST);
@@ -136,6 +136,7 @@ gdk_riscos_clipboard_is_text_available(GdkDisplay *display)
   return (unsigned)transfer.result == 0xFFF;
 }
 
+/* Received in response to message_DATA_REQUEST, we reply with message_RAM_FETCH.  */
 static gboolean
 clipboard_datasave_cb(wimp_event_no event, wimp_block *block, void *data)
 {
@@ -173,6 +174,7 @@ clipboard_datasave_cb(wimp_event_no event, wimp_block *block, void *data)
   return TRUE;
 }
 
+/* Received when the sender has used xwimp_transfer_block to fill our buffer.  */
 static gboolean
 clipboard_ram_transmit_cb(wimp_event_no event, wimp_block *block, void *data)
 {
@@ -210,6 +212,7 @@ clipboard_ram_transmit_cb(wimp_event_no event, wimp_block *block, void *data)
   return TRUE;
 }
 
+/* Received when our own message_RAM_FETCH bounces.  */
 static gboolean
 clipboard_ram_fetch_cb(wimp_event_no event, wimp_block *block, void *data)
 {
@@ -318,10 +321,10 @@ gdk_riscos_clipboard_request_text(GdkDisplay *display)
   message->your_ref = 0;
   message->action = message_DATA_REQUEST;
   message->w = transfer.w;
-  message->i = -1;
+  message->i = 0;			/* Internal handle?  */
   message->pos.x = 0;
   message->pos.y = 0;
-  message->flags = 4;
+  message->flags = wimp_DATA_REQUEST_CLIPBOARD;
   message->file_types[0] = 0xFFF;
   message->file_types[1] = -1;
   xwimp_send_message(wimp_USER_MESSAGE, &rdisplay->poll_block.message, wimp_BROADCAST);
@@ -361,9 +364,9 @@ gdk_riscos_clipboard_claim(GdkDisplay *display, const void *data, size_t size)
   if (rdisplay->clipboard.buffer)
     free(rdisplay->clipboard.buffer);
 
-  rdisplay->clipboard.buffer = malloc(size + 1);
+  rdisplay->clipboard.buffer = malloc(size);
   if (!rdisplay->clipboard.buffer)
-      return;
+    return;
   memcpy(rdisplay->clipboard.buffer, data, size);
 
   rdisplay->clipboard.size = size;
@@ -371,12 +374,12 @@ gdk_riscos_clipboard_claim(GdkDisplay *display, const void *data, size_t size)
 
   if (!rdisplay->clipboard.claimed)
     {
-      wimp_message message;
-      message.size = sizeof(wimp_full_message_claim_entity);
-      message.your_ref = 0;
-      message.action = message_CLAIM_ENTITY;
-      message.data.claim_entity.flags = wimp_CLAIM_CLIPBOARD;
-      xwimp_send_message(wimp_USER_MESSAGE, &message, wimp_BROADCAST);
+      wimp_message *message = &rdisplay->poll_block.message;
+      message->size = sizeof(wimp_full_message_claim_entity);
+      message->your_ref = 0;
+      message->action = message_CLAIM_ENTITY;
+      message->data.claim_entity.flags = wimp_CLAIM_CLIPBOARD;
+      xwimp_send_message(wimp_USER_MESSAGE, message, wimp_BROADCAST);
       rdisplay->clipboard.claimed = TRUE;
     }
 }
@@ -388,14 +391,12 @@ gdk_riscos_clipboard_release(GdkDisplay *display)
 
   if (rdisplay->clipboard.claimed)
     {
-      wimp_message message;
-      message.size = sizeof(wimp_full_message_release_entity);
-      message.sender = 0;
-      message.my_ref = 0;
-      message.your_ref = 0;
-      message.action = message_RELEASE_ENTITY;
-      message.data.release_entity.flags = wimp_RELEASE_CLIPBOARD;
-      xwimp_send_message(wimp_USER_MESSAGE, &message, wimp_BROADCAST);
+      wimp_message *message = &rdisplay->poll_block.message;
+      message->size = sizeof(wimp_full_message_release_entity);
+      message->your_ref = 0;
+      message->action = message_RELEASE_ENTITY;
+      message->data.release_entity.flags = wimp_RELEASE_CLIPBOARD;
+      xwimp_send_message(wimp_USER_MESSAGE, message, wimp_BROADCAST);
     }
 }
 
@@ -407,7 +408,10 @@ gdk_riscos_clipboard_free(GdkDisplay *display)
   if (rdisplay->clipboard.claimed)
     {
       if (rdisplay->clipboard.buffer)
-	free(rdisplay->clipboard.buffer);
+	{
+	  free(rdisplay->clipboard.buffer);
+	  rdisplay->clipboard.buffer = NULL;
+	}
 
       rdisplay->clipboard.size = 0;
       rdisplay->clipboard.max_size = 0;

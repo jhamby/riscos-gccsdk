@@ -299,13 +299,13 @@ set_screen_resolution (GdkScreen *screen, int eigen)
       dpi = 180;
       break;
     case 1:
-      dpi = 90;
+      dpi = 96;
       break;
     case 2:
       dpi = 45;
       break;
     default:
-      dpi = 90;
+      dpi = 96;
       break;
     }
 

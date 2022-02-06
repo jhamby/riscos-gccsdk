@@ -60,7 +60,6 @@ _gdk_riscos_display_get_selection_owner (GdkDisplay *display,
 
   return NULL;
 }
-extern void __write_backtrace(int);
 
 gboolean
 _gdk_riscos_display_set_selection_owner (GdkDisplay *display,
@@ -104,12 +103,12 @@ _gdk_riscos_display_set_selection_owner (GdkDisplay *display,
     {
       riscos_display->selection_window = owner;
 
-      wimp_message message;
-      message.size = sizeof(wimp_full_message_claim_entity);
-      message.your_ref = 0;
-      message.action = message_CLAIM_ENTITY;
-      message.data.claim_entity.flags = wimp_CLAIM_CARET_OR_SELECTION;
-      xwimp_send_message(wimp_USER_MESSAGE, &message, wimp_BROADCAST);
+      wimp_message *message = &riscos_display->poll_block.message;
+      message->size = sizeof(wimp_full_message_claim_entity);
+      message->your_ref = 0;
+      message->action = message_CLAIM_ENTITY;
+      message->data.claim_entity.flags = wimp_CLAIM_CARET_OR_SELECTION;
+      xwimp_send_message(wimp_USER_MESSAGE, message, wimp_BROADCAST);
     }
 
   return TRUE;
@@ -261,6 +260,8 @@ _gdk_riscos_realloc_selection (GdkRiscosSelection *selection, size_t size)
   if (!selection->buffer)
     {
       selection->buffer = malloc(size);
+      if (!selection->buffer)
+	return false;
       selection->max_size = size;
     }
   else
@@ -312,12 +313,12 @@ void gdk_riscos_selection_claim (GdkDisplay *display, const void *data, size_t s
 
   if (!riscos_display->selection.claimed)
     {
-      wimp_message message;
-      message.size = sizeof(wimp_full_message_claim_entity);
-      message.your_ref = 0;
-      message.action = message_CLAIM_ENTITY;
-      message.data.claim_entity.flags = wimp_CLAIM_SELECTION;
-      xwimp_send_message(wimp_USER_MESSAGE, &message, wimp_BROADCAST);
+      wimp_message *message = &riscos_display->poll_block.message;
+      message->size = sizeof(wimp_full_message_claim_entity);
+      message->your_ref = 0;
+      message->action = message_CLAIM_ENTITY;
+      message->data.claim_entity.flags = wimp_CLAIM_SELECTION;
+      xwimp_send_message(wimp_USER_MESSAGE, message, wimp_BROADCAST);
       riscos_display->selection.claimed = TRUE;
     }
 }
