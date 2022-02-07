@@ -41,6 +41,8 @@
 
 #define BUFFER_SIZE 1024
 
+#define TIMEOUT 100
+
 typedef struct
 {
   wimp_w w;
@@ -91,6 +93,7 @@ clipboard_data_type_is_cb(wimp_event_no event, wimp_block *block, void *data)
   wimp_full_message_data_xfer *message = (wimp_full_message_data_xfer *)block;
   Transfer *transfer = (Transfer *)data;
   transfer->result = (void *)message->file_type;
+  transfer->status = STATUS_FINISHED;
   return TRUE;
 }
 
@@ -121,11 +124,11 @@ gdk_riscos_clipboard_is_text_available(GdkDisplay *display)
 
   gdk_riscos_add_message_handler (message_DATA_SAVE, clipboard_data_type_is_cb, &transfer);
 
-  /* We should get a reply within 10 WIMP polls.  */
-  for (int i = 10; i; --i)
+  uint32_t timeout = os_read_monotonic_time() + TIMEOUT;
+  while (os_read_monotonic_time() < timeout)
     {
       g_main_context_iteration(NULL, FALSE);
-      if (transfer.result)
+      if (transfer.status != STATUS_RUNNING)
 	break;
     }
 
@@ -334,8 +337,13 @@ gdk_riscos_clipboard_request_text(GdkDisplay *display)
   gdk_riscos_add_message_handler(message_RAM_FETCH, clipboard_ram_fetch_cb, &transfer);
   gdk_riscos_add_message_handler(message_DATA_LOAD, clipboard_data_load_cb, &transfer);
 
-  while (transfer.status == STATUS_RUNNING)
-    g_main_context_iteration(NULL, FALSE);
+  uint32_t timeout = os_read_monotonic_time() + TIMEOUT;
+  while (os_read_monotonic_time() < timeout)
+    {
+      g_main_context_iteration(NULL, FALSE);
+      if (transfer.status != STATUS_RUNNING)
+	break;
+    }
 
   gdk_riscos_remove_message_handler(message_DATA_LOAD, clipboard_data_load_cb, &transfer);
   gdk_riscos_remove_message_handler(message_RAM_FETCH, clipboard_ram_fetch_cb, &transfer);
