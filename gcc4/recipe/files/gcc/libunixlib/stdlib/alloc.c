@@ -3966,6 +3966,22 @@ void *__memalign (size_t alignment, size_t bytes)
 }
 weak_alias (__memalign, memalign)
 
+int __posix_memalign(void **memptr, size_t alignment, size_t size)
+{
+  assert(memptr);
+
+  /* If the alignment has more than 1 bit set, then it's not a power of 2.  */
+  if (__builtin_popcount(alignment) != 1 || (alignment & 3) != 0)
+    return EINVAL;
+
+  void *ptr = __memalign(alignment, size);
+
+  *memptr = ptr;
+
+  return ptr ? 0 : ENOMEM;
+}
+weak_alias (__posix_memalign, posix_memalign)
+
 void *__valloc (size_t bytes)
 {
   void *ptr;

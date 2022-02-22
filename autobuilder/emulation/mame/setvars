@@ -1,7 +1,7 @@
 
 AB_ROVERSION=2
 
-AB_URL=http://ftp.ubuntu.com/ubuntu/ubuntu/pool/multiverse/m/mame/mame_0.145.orig.tar.bz2
+AB_URL=https://launchpad.net/debian/+archive/primary/+sourcefiles/mame/0.145-1/mame_0.145.orig.tar.xz
 
 ab_package () {
   ab_create_app Mame Apps/Emulation

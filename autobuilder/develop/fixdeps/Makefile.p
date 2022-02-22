@@ -5,4 +5,4 @@
  
  fixdeps: fixdeps.cc
 -	$(CXX) -o fixdeps fixdeps.cc -liostream
-+	$(CXX) -o fixdeps fixdeps.cc
++	$(CXX) -static -o fixdeps fixdeps.cc

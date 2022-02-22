@@ -1,6 +1,6 @@
---- conf.d/Makefile.am.orig	2013-10-11 05:27:33.000000000 +0100
-+++ conf.d/Makefile.am	2015-04-03 12:35:09.119523503 +0100
-@@ -45,8 +45,8 @@
+--- conf.d/Makefile.am.orig	2018-03-27 09:40:07.000000000 +0100
++++ conf.d/Makefile.am	2021-10-30 11:52:13.840359652 +0100
+@@ -47,8 +47,8 @@
  EXTRA_DIST = $(template_DATA) $(DOC_SOURCES)
  CLEANFILES = $(DOC_FILES)
  
@@ -11,7 +11,7 @@
  
  templatedir = $(TEMPLATEDIR)
  template_DATA =				\
-@@ -83,21 +83,21 @@
+@@ -90,21 +90,21 @@
  README: $(srcdir)/README.in
  	sed "s|\@TEMPLATEDIR\@|$(templatedir)|" $< > $@
  

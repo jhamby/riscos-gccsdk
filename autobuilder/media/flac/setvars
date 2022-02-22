@@ -12,5 +12,5 @@ ab_package () {
 
   ab_docs doc/html
     
-  $AB_HOME/add-riscpkg -unixlib -name FLAC
+  $AB_HOME/add-riscpkg -unixlib -name FLAC -copyrightfile COPYING
 }

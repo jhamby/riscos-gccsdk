@@ -20,6 +20,7 @@
 #define SHMOP_OPEN	0
 #define SHMOP_UNLINK	1
 #define SHMOP_CLOSE	2
+#define SHMOP_DUP	3
 
 #define LOGGING 0
 #define TRACING 0
@@ -43,7 +44,7 @@
 *	    r2 = flags
 *	    r3 = mode
 *	  Exit:
-*	    r0 = handle (not guarenteed to be lowest fd in current process) if success (V flag
+*	    r0 = handle (will not be lowest fd in current process) if success (V flag
 *			 clear) or error pointer (V flag set).
 *	1 - shm_unlink
 *	  Entry:
@@ -55,11 +56,19 @@
 *	    r1 = fd
 *	  Exit:
 *	    r0 = 0 for success (V flag clear) or error pointer (V flag set).
+*	3 - dup
+*	  Entry:
+*	    r1 = fd
+*	  Exit:
+*	    r0 = new handle (will not be the lowest fd in current process) if success (V flag
+*			     clear) or error pointer (V flag set).
+*		 Currently, we just increase the ref count and return the same handle.
 */
 
 static _kernel_oserror *shm_open(const char *name, int flags, int mode, shm_object **result);
 static _kernel_oserror *shm_unlink(const char *name);
 static _kernel_oserror *shm_close(shm_object *obj);
+static _kernel_oserror *shm_dup(shm_object *obj);
 
 _kernel_oserror *
 shm_op(_kernel_swi_regs *r)
@@ -81,6 +90,11 @@ shm_op(_kernel_swi_regs *r)
     break;
   case SHMOP_CLOSE:
     err = shm_close((shm_object *)r->r[1]);
+    break;
+  case SHMOP_DUP:
+    err = shm_dup((shm_object *)r->r[1]);
+    if (!err)
+      r->r[0] = r->r[1];
     break;
   }
 
@@ -147,7 +161,7 @@ create_shm_object(const char *name, shm_object **result)
   strcpy(shm->name, name);
   shm->valid = VALID_SHM;
   shm->fd_type = FD_TYPE_SHM;
-  shm->ref_count = 2;
+  shm->ref_count = 1;
   shm->linked = true;
 
   linklist_add_to_end(&global.shm_object_list, &shm->link);
@@ -260,7 +274,9 @@ bool shm_deref_object(shm_object *shm)
   if (shm->valid != VALID_SHM)
     return false;
 
-  if (shm->ref_count-- == 0)
+  if (shm->ref_count > 0)
+    shm->ref_count--;
+  else
     {
       TRACE("shm_deref_object: deleting shared memory object %p, \"%s\", unmapping memory", shm, shm->name);
 
@@ -303,4 +319,15 @@ void shm_cleanup_app(app_object *app)
 
       shm = next;
     }
+}
+
+_kernel_oserror *
+shm_dup(shm_object *shm)
+{
+  if (shm->valid != VALID_SHM)
+    return armeabisupport_EBADF;
+
+  shm->ref_count++;
+
+  return NULL;
 }

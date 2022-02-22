@@ -1,0 +1,4 @@
+cp $H/!Sargasso/feed.c feed.c
+cp $H/!Sargasso/feed.h feed.h
+cp $H/!Sargasso/sargasso.c sargasso.c
+cp $H/!Sargasso/Makefile Makefile

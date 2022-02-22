@@ -1,0 +1,17 @@
+AB_INSTALL=yes
+
+AB_MESON=yes
+AB_MESON_FLAGS="$AB_MESON_FLAGS -Dlibproxy_support=false -Dgnome_proxy_support=false"
+
+ab_package() {
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton glib-networking
+
+    # This is a dlopen library, so we can't use ab_add_sharedlib
+    mkdir -p $AA/gio/modules
+    cp -T $S/$AB_MESON_BUILD_DIR/tls/gnutls/libgiognutls.so $AA/gio/modules/libgiognutls.so,E1F
+
+    $AB_HOME/add-riscpkg -package glib-networking -name glib-networking -section Library \
+       -depends SharedLibs-C2 -depends LibGNUTLS
+  fi
+}

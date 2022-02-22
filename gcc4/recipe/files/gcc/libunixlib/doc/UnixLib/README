@@ -424,4 +424,43 @@ registered for use in and by UnixLib :
 
 The previous usage of the OS system variables Unix$* has been discontinued.
 
+
+Using Unixlib with GCC version 8 and higher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to better support the porting of programs from Unix, newer
+versions of GCC starting with version 8 use a different ABI than GCC 4.
+
+ARMEABI stacks
+~~~~~~~~~~~~~~
+
+In these newer versions, the chunked stack is replaced with a flat stack
+of 1MB. This applies to both the main stack and any stacks used by pthreads.
+In order to minimise the amount of memory used, the full 1MB is not
+initially mapped in and instead memory pages are mapped in on demand.
+A module called ARMEABISupport is provided to handle the allocation and
+management of these stacks and it contains an abort handler to handle
+the on demand page mapping.
+
+ARMEABI mmap
+~~~~~~~~~~~~
+
+In addition ARMEABISupport provides an implementation of mmap. The original
+implementation of mmap in Unixlib has some limitations that make it unsuitable
+for general use and in fact I suspect it was designed for use solely by malloc.
+The major drawback is that it only allows up to 8 areas at any one time. As
+malloc is able to use mmap, it's possible that the 8 areas may well be all used
+when a program tries to use mmap. This usually requires replacing the calls to
+mmap with custom memory management routines that often have there own limitations
+such as a maximum dynamic area size that may or may not be big enough for the
+programs needs.
+To overcome these limitation ARMEABISupport uses a pool of dynamic areas
+each of which has a maximum size of 100MB. ARMEABISupport will create new
+dynamic areas as required to accommodate as many mmap requests as the
+machines free memory will allow.
+This also overcomes the 128MB cap on the maximum size of a dynamic area that is
+usually imposed by RISC OS.
+When a mmap pool allocator no longer contains any allocations, the dynamic area
+is destroyed.
+
 -EOF-

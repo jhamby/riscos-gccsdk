@@ -1,4 +1,4 @@
-This is GTK 3.8.6.
+This is GTK 3.24.23.
 
 Notes
 -----
@@ -7,20 +7,20 @@ and blue pixel components. GDK then ensures via Cairo that the sprite
 surfaces created use the same ordering. This behaviour can be overridden
 using the --swap-redblue=[yes,1,no,0] command line option.
 
-* The toolbox can be used by calling gdk_riscos_enable_toolbox before opening
+* The toolbox can be used by calling gdk_riscos_enable_toolbox() before opening
 the display. The windows created by GDK are still WIMP only though, and are not
-toolbox objects.
+toolbox objects, but can be nested within Toolbox windows.
 
 * Use SELECT shift drag to resize windows.
 
 * GTK+3 is customisable by creating the file:
 
-!Boot.Choices.config.gtk-3/0.gtk/css
+!Boot.Choices.gtk.gtk-3/0.gtk/css
 
 and uses a subset of the CSS3 standard.
 
-* Uses the RISC OS Sprite Surface in Cairo as a backing store
-which is then rendered into a window.
+* Uses the RISC OS Sprite Surface in Cairo as a backing store which is then
+rendered into a window.
 
 
 Known problems/things to fix (not a complete list)

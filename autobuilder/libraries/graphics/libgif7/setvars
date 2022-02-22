@@ -1,6 +1,8 @@
 
 AB_INSTALL=yes
 
+AB_DISTRO=buster
+
 ab_package()
 {
   ab_create_app LibGIF7-Dev Apps/Library libgif7-dev

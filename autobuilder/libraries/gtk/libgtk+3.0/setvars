@@ -1,8 +1,13 @@
 # Need gobject-introspection package installed on host system so that automake doesn't
 # fail with 'HAVE_INTROSPECTION does not appear in AM_CONDITIONAL' error.
 # Need libgtk2.0-bin package installed on host for gtk-update-icon-cache program.
+# FIXME: We're not using autotools anymore, so is this still required?
 
-AB_URL=http://ftp.gnome.org/pub/gnome/sources/gtk+/3.8/gtk+-3.8.6.tar.xz
+AB_GIT=https://gitlab.gnome.org/GNOME/gtk.git
+AB_GIT_TAGORBRANCH=3.24.23
+
+AB_CATEGORY=Library
+AB_LICENSE=Free
 
 AB_INSTALL=yes
 
@@ -16,26 +21,16 @@ fi
 # exit 1
 #fi
 
-export ac_cv_path_CUPS_CONFIG=no
-export gio_can_sniff=no
-
-#chmod +x mkinstalldirs
-
-if [ "x$RO_USE_CLANG" == "xyes" ]; then
-  AB_PRECONF="LIBS=\"-lc++abi\""
-fi
-
-AB_CONFLAGS="--disable-xkb --disable-glibtest --disable-cups --disable-papi --enable-gtk2-dependency --enable-riscos-backend"
-
 mkdir -p $S/gdk/riscos
 ln -T -s -f $H/gdk.riscos.gdkwindow-riscos.c $S/gdk/riscos/gdkwindow-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkwindow-riscos.h $S/gdk/riscos/gdkwindow-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkmonitor-riscos.h $S/gdk/riscos/gdkmonitor-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkmonitor-riscos.c $S/gdk/riscos/gdkmonitor-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkcursor-riscos.c $S/gdk/riscos/gdkcursor-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkscreen-riscos.h $S/gdk/riscos/gdkscreen-riscos.h
 ln -T -s -f $H/gdk.riscos.gdkscreen-riscos.c $S/gdk/riscos/gdkscreen-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkvisual-riscos.c $S/gdk/riscos/gdkvisual-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkevents-riscos.c $S/gdk/riscos/gdkevents-riscos.c
-ln -T -s -f $H/gdk.riscos.gdkclipboard-riscos.c $S/gdk/riscos/gdkclipboard-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkglobals-riscos.c $S/gdk/riscos/gdkglobals-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkkeys-riscos.c $S/gdk/riscos/gdkkeys-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkdnd-riscos.c $S/gdk/riscos/gdkdnd-riscos.c
@@ -48,24 +43,32 @@ ln -T -s -f $H/gdk.riscos.gdkdevice-riscos.h $S/gdk/riscos/gdkdevice-riscos.h
 ln -T -s -f $H/gdk.riscos.gdkdevice-riscos.c $S/gdk/riscos/gdkdevice-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkdevicemanager-riscos.h $S/gdk/riscos/gdkdevicemanager-riscos.h
 ln -T -s -f $H/gdk.riscos.gdkdevicemanager-riscos.c $S/gdk/riscos/gdkdevicemanager-riscos.c
+ln -T -s -f $H/gdk.riscos.gdkseat-riscos.h $S/gdk/riscos/gdkseat-riscos.h
+ln -T -s -f $H/gdk.riscos.gdkseat-riscos.c $S/gdk/riscos/gdkseat-riscos.c
 ln -T -s -f $H/gdk.riscos.gdkriscos.h $S/gdk/riscos/gdkriscos.h
 ln -T -s -f $H/gdk.riscos.gdkprivate-riscos.h $S/gdk/riscos/gdkprivate-riscos.h
 ln -T -s -f $H/gdk.riscos.gdkriscosdisplaymanager.h $S/gdk/riscos/gdkriscosdisplaymanager.h
 ln -T -s -f $H/gdk.riscos.gdkriscoscursor.h $S/gdk/riscos/gdkriscoscursor.h
 ln -T -s -f $H/gdk.riscos.gdkriscosvisual.h $S/gdk/riscos/gdkriscosvisual.h
 ln -T -s -f $H/gdk.riscos.gdkriscoswindow.h $S/gdk/riscos/gdkriscoswindow.h
-ln -T -s -f $H/gdk.riscos.Makefile.am $S/gdk/riscos/Makefile.am
+ln -T -s -f $H/gdk.riscos.gdkriscosmonitor.h $S/gdk/riscos/gdkriscosmonitor.h
+ln -T -s -f $H/gdk.riscos.gdkclipboard-riscos.c $S/gdk/riscos/gdkclipboard-riscos.c
+ln -T -s -f $H/gdk.riscos.meson.build $S/gdk/riscos/meson.build
 
-autoreconf --force --install
+AB_MESON=yes
+
+AB_MESON_FLAGS="$AB_MESON_FLAGS -Dx11_backend=false -Dwayland_backend=false \
+		-Dwin32_backend=false -Dquartz_backend=false -Driscos_backend=true \
+		-Dintrospection=false"
 
 # $1 = app name
 # $2 = binary location (not including .libs)
 # $3 = binary name
 create_test_app() {
-  dot_libs=
-  if [ "$RO_SHAREDLIBS" == "yes" ]; then
-    dot_libs="/.libs"
-  fi
+#  dot_libs=
+#  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+#    dot_libs="/.libs"
+#  fi
 
   mkdir $A/$1
 
@@ -75,28 +78,18 @@ create_test_app() {
   echo "Set XDG_CONFIG_HOME /Boot:Choices/config" >> $A/$1/!Run,feb
   echo "Run <Obey\$Dir>.$3 > <Obey\$Dir>.debug 2>&1" >> $A/$1/!Run,feb
 
-  cp $2$dot_libs/$3$AB_EXEEXT $A/$1/$3$AB_EXEEXT
+  cp $2/$3$AB_EXEEXT $A/$1/$3$AB_EXEEXT
 }
 
 ab_package() {
   #libgtk+3-dev
-  ab_create_app LibGTK+3 Apps/Library libgtk+3-dev
+  ab_create_app LibGTK+3-Dev Apps/Library libgtk+3-dev
 
   HERE=`pwd`
-  cd $A
+  devdir=$D/libgtk+3-dev/Apps/Library
 
-  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+  ab_add_headers $GCCSDK_INSTALL_ENV/include/gtk-3.0 $devdir/\!LibGTK+3-Dev/gtk-3
 
-  mv include/gtk-3.0 gtk-3.0
-  rm -rf include
-
-  mv lib/*.a .
-  rm -rf lib
-
-  mv doc/$RO_PKG/* doc
-  rm -rf doc/$RO_PKG
-
-  cd $HERE
 
   cp $H/ReadMe $A/!ReadMe
 
@@ -107,8 +100,8 @@ ab_package() {
 
     AB_COMPONENTS=""
 
-    ab_add_sharedlib $S/gdk/.libs libgdk-3.so.0
-    ab_add_sharedlib $S/gtk/.libs libgtk-3.so.0
+    ab_add_sharedlib $S/$AB_MESON_BUILD_DIR/gdk libgdk-3.so.0
+    ab_add_sharedlib $S/$AB_MESON_BUILD_DIR/gtk libgtk-3.so.0
 
     $AB_HOME/add-riscpkg -package "libgtk+3" -name LibGtk+3 \
 	-depends SharedLibs-C2 -depends LibCairo2 -depends LibGlib2.0 \
@@ -118,16 +111,16 @@ ab_package() {
   #libgtk+3-tests
   ab_create_app LibGTK+3Tests Apps/Library libgtk+3-tests
 
-  create_test_app !GridPacking $S/examples grid-packing
-  create_test_app !HelloWorld $S/examples hello-world
-  create_test_app !BloatPad $S/examples bloatpad
-  create_test_app !Drawing $S/examples drawing
-  create_test_app !Sunny $S/examples sunny
-  create_test_app !TestBBox $S/tests testbbox
-  create_test_app !TestCairo $S/tests testcairo
-  create_test_app !TestEllipsise $S/tests testellipsise
-  create_test_app !TestScrolledWindow $S/tests testscrolledwindow
-  create_test_app !TestToolTips $S/tests testtooltips
+  create_test_app !GridPacking $S/$AB_MESON_BUILD_DIR/examples grid-packing
+  create_test_app !HelloWorld $S/$AB_MESON_BUILD_DIR/examples hello-world
+#  create_test_app !BloatPad $S/examples bloatpad
+  create_test_app !Drawing $S/$AB_MESON_BUILD_DIR/examples drawing
+  create_test_app !Sunny $S/$AB_MESON_BUILD_DIR/examples sunny
+  create_test_app !TestBBox $S/$AB_MESON_BUILD_DIR/tests testbbox
+  create_test_app !TestCairo $S/$AB_MESON_BUILD_DIR/tests testcairo
+  create_test_app !TestEllipsise $S/$AB_MESON_BUILD_DIR/tests testellipsise
+  create_test_app !TestScrolledWindow $S/$AB_MESON_BUILD_DIR/tests testscrolledwindow
+  create_test_app !TestToolTips $S/$AB_MESON_BUILD_DIR/tests testtooltips
 
   # Simple !Run file that opens the application directory when double
   # clicked to show all the available tests.

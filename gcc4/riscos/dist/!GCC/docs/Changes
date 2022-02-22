@@ -2,6 +2,81 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For more details on all UnixLib changes, see !GCC.docs.libunixlib.ChangeLog.
 
+
+GCCSDK GCC 4.7.4 Release 6 (Released on 21 December 2021)
+==========================
+
+Bug fixes and other improvements:
+
+ - Add __get_riscosify_control() and __set_riscosify_control() to unixlib/local.h (r7592).
+- Shared memory improvements (r7564,r7565)
+- Add support for running statically linked binaries that contain PIC. (r7561)
+- Fix build on ARM Linux. Tested on a Raspberry Pi 3B.
+- mmap implementation (r7555)
+- Add support for relocations in Thumb code. (r7551)b support.
+- include/stdint.h: Remove the __STDC_LIMIT_MACROS and __STDC_CONSTANT_MACROS checks to comply with C11/C++11. (r7466)
+- include/paths.h: New header. This header is common on Unix systems, and contains a reduced set of defines from other platforms that are relevant to UnixLib. (r7444)
+- gcccompat/atomics.c: Add missing 64-bit atomic functions. (r7442)
+- include/regex.h: Add include for sys/types.h so that size_t is defined. (r7441)
+- configure.ac: Bump version number to mark improved library loading speed. (r7439)
+- Improve library loading speed by increasingthe file buffer size. (r7438)
+- Update download location for ppl, the previous location stopped accepting anonymous ftp logins (r7419)
+- Corrects the function name of exp2l in UnixLib builds. (r7394)
+- include/pthread.h: Fix static initialisers. (r7367)
+- Add cross file for meson build  system suitable for arm-unknown-riscos. (r7362)
+- Use a pragma to turn off an unwanted memset like instruction sequence recognised by GCC10 (r7360)
+
+
+GCCSDK GCC 4.7.4 Release 5 (Released on 29 July 2020)
+==========================
+
+The main feature of this GCC release is correcting a problem with GCC 4.7.4 release 4 which created an incompatibility with the earlier versions of the shared libraries.
+
+ - include/pthread.h(struct __pthread_cond): Swap "waiting" and "clock_id" positions in an attempt to retain compatibility with older versions of Unixlib. (r7348, r7350)
+ - pthread_cond_init :Fix bug introduced in r7252. The attr parameter can be NULL, which means use default values. Fixes phread_cond_init failure in python3. (r7347)
+ - Fix _kernel_osbget as it was always returning an error (r7350)
+ - Implement isblank function (r7349)
+
+
+GCCSDK GCC 4.7.4 Release 4 (Released on 5 July 2020)
+==========================
+
+The main feature of this GCC release is ARMEABI support.
+
+Bugfixes and other improvements
+ - atomics.c: Provide a non-ARMv7 version for GCC 4. (r7311)
+ - signal: Fix use of wrong register. (r7308)
+ - unix/ul_select.c(select): Fix time calculation so that the tv_usec part of the timeout is not ignored. (r7304)
+ - --riscos-abi command line option for GCC 4. (r7300)
+ - ARMEABI support (r7252, r7257, r7258, r7259, r7263, r7266, r7267, r7270, r7289, r7290, r7291, r7293, r7294, r7296, r7299)
+ - Use EventFD can be used as an event wait/notify mechanism instead of using pipes. (r7292)
+ - SOMManager: Fix memory leak (r7276)
+ - string: Remove rogue #include. (r7265)
+ - sys/exec.c(execve): For a non-chunked stack, don't call __stackalloc_trim. (r7253)
+ - Add support for GCC 8 (ARMEABI). (r7252)
+ - Improve pthread performance/reliability. (r7252
+ - Update the URLs used when building the toolchain to use https. (r7251)
+ - Fix broken link for libmpc, which required updating it from 0.8.2 to 1.1.0. (r7251)
+ - Ensure that _XOPEN_SOURCE is set correctly when _POSIX_C_SOURCE is greater than or equal to 200112L. (r7250)
+ - Set PKG_CONFIG_LIBDIR in toolchain CMake file. (r7208)
+ - Set HTML MIME type on !GCC/docs/index.html so it's readable in WebSVN. (r7190)
+ - Add support for building GCC with gperf >= 3.1. (r7189)
+ - Patch building of GCC with automake 1.11 on perl >= 5.26. (r7188)
+ - Fix currently-broken download URL for GMP library. (r7183)
+ - Build fixes to improve compatibility with newer versions of Linux. (r7173)
+
+
+GCCSDK GCC 4.7.4 Release 3 (Released on 8 February 2017)
+==========================
+
+The main feature of this GCC release is support for the Raspberry Pi 3. The compilers will now run on the Raspberry Pi 3 and produce executables that run on the Raspberry Pi 3.
+
+Bugfixes and other improvements:
+ - UnixLib: Fix for memory corruption when mixing VFP and non-VFP shared libraries at runtime (r6962).
+ - UnixLib: Use LDREX/STREX instructions instead of SWP where depending on OS (r7043, r7075)
+ - UnixLib: Set the character flag for /dev/dsp so that libraries like libSDL2 can detect it correctly. (r7099)
+
+
 GCCSDK GCC 4.7.4 Release 2 (released 13 September 2015)
 ==========================
   - Unixlib: Add support for __cxa_atexit (r6754,r6778,r6916).

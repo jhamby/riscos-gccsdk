@@ -1,6 +1,6 @@
---- gio/gunixmounts.c.orig	2019-01-21 13:38:50.000000000 +0000
-+++ gio/gunixmounts.c	2020-08-02 17:55:12.113956435 +0100
-@@ -934,6 +934,20 @@
+--- gio/gunixmounts.c.orig	2021-03-18 13:47:48.292693100 +0000
++++ gio/gunixmounts.c	2022-01-14 11:46:15.220532194 +0000
+@@ -956,6 +956,20 @@
    return return_list;
  }
  
@@ -21,7 +21,7 @@
  /* Common code {{{2 */
  #else
  #error No _g_get_unix_mounts() implementation for system
-@@ -1457,6 +1471,14 @@
+@@ -1479,6 +1493,14 @@
    return _g_get_unix_mounts ();
  }
  

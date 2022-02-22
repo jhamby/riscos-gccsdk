@@ -1,7 +1,7 @@
 libpkg
 tbx
-libcurl3
+libcurl4
 libssh2
-libssl1.0.2
+libssl1.1.1
 native-riscpkg-gencontrol
 native-ccres

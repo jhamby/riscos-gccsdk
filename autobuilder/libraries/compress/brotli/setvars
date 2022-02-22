@@ -1,0 +1,45 @@
+
+AB_PRECONF=:
+
+ab_make()
+{
+  mkdir -p build
+  cd build
+
+  cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE=$AB_CMAKE_TOOLCHAIN_FILE \
+	 -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV \
+	 -DCMAKE_BUILD_TYPE=Release \
+	 -DCMAKE_AR=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar \
+	 ..
+
+  ninja && ninja install
+}
+
+ab_package()
+{
+  ab_create_app LibBrotli-Dev Apps/Library libbrotli-dev
+
+  HERE=`pwd`
+  devdir=$D/libbrotli-dev/Apps/Library
+
+  ab_add_headers $S/c/include/brotli $devdir/\!LibBrotli-Dev/brotli
+  cp $S/build/*.a $A
+
+  mkdir -p $A/docs
+  cp $S/README $S/LICENSE $A/docs
+
+  $AB_HOME/add-riscpkg -unixlib -name LibBrotli-Dev -copyrightfile LICENSE
+
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
+    ab_create_sharedlib_skeleton libbrotli
+
+    AB_COMPONENTS=""
+
+    ab_add_sharedlib $S/build libbrotlicommon.so.1
+    ab_add_sharedlib $S/build libbrotlidec.so.1
+    ab_add_sharedlib $S/build libbrotlienc.so.1
+
+    $AB_HOME/add-riscpkg -package "libbrotli" -name "LibBrotli" \
+        -depends SharedLibs-C2
+  fi
+}

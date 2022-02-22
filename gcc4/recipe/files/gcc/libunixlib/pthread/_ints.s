@@ -2,14 +2,16 @@
 @ disable_ints can be called multiple times, provided enable_ints is
 @ subsequently called an equal number of times
 @ Written by Martin Piper and Alex Waugh
-@ Copyright (c) 2002-2016 UnixLib Developers
+@ Copyright (c) 2002-2022 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
 	.text
 
 	.global	__pthread_disable_ints
+	.protected __pthread_disable_ints
 	.global	__pthread_enable_ints
+	.protected __pthread_enable_ints
 	.global	__pthread_protect_unsafe
 
 @ Disable context switches by incrementing the semaphore

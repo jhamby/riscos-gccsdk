@@ -1,3 +1,14 @@
+Tue Dec 21 13:21:51 GMT 2021  Lee Noar  <lee.noar@sky.com>
+
+	* mmap-asm.s: Some additional comments.
+	* shm.c: Add dup op to shm. This simply increases the ref count and
+	returns the same handle. The standard states that dup() will return
+	the lowest fd, but that isn't possible here. However, as that is usually
+	used to redirect stdout/stderr to another file, it shouldn't be an issue
+	with shared memory.
+	Start the ref count from 1 rather than 2, now that dup() is catered for.
+	* configure.ac: Bump version to v1.04.
+
 Tue Jun 15 19:49:50 BST 2021  Lee Noar  <lee.noar@sky.com>
 
 	* types.h: Add a list of shared memory objects to the global variables.

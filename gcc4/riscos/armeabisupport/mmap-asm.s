@@ -47,22 +47,25 @@ mmap_abort_handler:
 	MOVEQ	r0, #ABORT_HANDLER_PASS_ON
 	LDMEQFD	sp!, {r1-r8, r10-r11, pc}	@ End of block list, pass on
 
+	@ The block list is kept in ascending address order
 	@ r7 = Base address of dynamic area
 	@ r8 = MMap block
 	LDR	r2, [r8, #MMAP_BLOCK_END_PAGE]
 	ADD	r2, r7, r2, LSL#PAGE_SHIFT		@ Convert page number to address
+	@ If the fault address is higher than the end of this block, then that eliminates
+	@ this block as a candidate.
 	CMP	r1, r2
 	LDRHI	r8, [r8, #MMAP_BLOCK_LINK + LINKHDR_NEXT]
 	BHI	1b
 
-	@ We know that the fault address is lower than the end of the current block
+	@ We now know that the fault address is lower than the end of the current block
 	@ and we've already eliminated all blocks before the current block. If the
 	@ fault address is below the start of the current block, then it must be within
 	@ an unallocated region.
 	LDR	r2, [r8, #MMAP_BLOCK_START_PAGE]
 	ADD	r2, r7, r2, LSL#PAGE_SHIFT
 	CMP	r1, r2
-	BLO	mapabort_mmap_area
+	BLO	mmapabort_mmap_area
 
 	@ Found a valid mmap block, map the page in
 	SUB	r4, r1, r7				@ fault address - da base address
@@ -126,7 +129,7 @@ mmapabort_swi_error:
 	MOV	r0, #ABORT_HANDLER_ERROR
 	ORR	r0, r0, #(ABORT_ERROR_MMAP_INTERNAL << 8)
 	LDMFD	sp!, {r1-r8, r10-r11, pc}
-mapabort_mmap_area:
+mmapabort_mmap_area:
 	MOV	r0, #ABORT_HANDLER_ERROR
 	ORR	r0, r0, #(ABORT_ERROR_MMAP_AREA << 8)
 	LDMFD	sp!, {r1-r8, r10-r11, pc}

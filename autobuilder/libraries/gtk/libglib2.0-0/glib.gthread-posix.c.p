@@ -1,6 +1,6 @@
---- glib/gthread-posix.c.orig	2016-10-22 06:21:26.000000000 +0100
-+++ glib/gthread-posix.c	2019-05-25 20:46:11.310795799 +0100
-@@ -439,6 +439,12 @@
+--- glib/gthread-posix.c.orig	2021-03-18 13:47:48.335693400 +0000
++++ glib/gthread-posix.c	2022-01-14 11:46:15.232532114 +0000
+@@ -447,6 +447,12 @@
    if G_UNLIKELY (rwlock == NULL)
      g_thread_abort (errno, "malloc");
  

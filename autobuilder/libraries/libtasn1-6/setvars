@@ -1,7 +1,11 @@
 AB_INSTALL=yes
 AB_ROVERSION=2
 
+export CFLAGS='-std=c99'
+
 export gl_cv_func_gettimeofday_clobber=no
+
+AB_PRECONF="AR_FLAGS=\"cru\""
 
 ab_package() {
   ab_create_app LibTASN1 Apps/Library libtasn1-dev

@@ -3,7 +3,7 @@
 AB_URL=https://www.riscosopen.org/zipfiles/platform/common/BonusBinDev.zip
 AB_CATEGORY=Development
 AB_COPYSOURCE=no
-AB_ROVERSION=2
+AB_ROVERSION=3
 
 # Binary so no configure or build
 AB_CONFIG=

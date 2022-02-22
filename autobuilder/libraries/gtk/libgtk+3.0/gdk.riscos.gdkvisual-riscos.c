@@ -93,6 +93,7 @@ _gdk_riscos_screen_init_visuals (GdkScreen *screen)
   visuals[0]->blue_mask = 0xff;
   visuals[0]->colormap_size = 256;
   visuals[0]->bits_per_rgb = 8;
+#ifdef __OLD__
   gdk_visual_decompose_mask (visuals[0]->red_mask,
 			     &visuals[0]->red_shift,
 			     &visuals[0]->red_prec);
@@ -102,7 +103,7 @@ _gdk_riscos_screen_init_visuals (GdkScreen *screen)
   gdk_visual_decompose_mask (visuals[0]->blue_mask,
 			     &visuals[0]->blue_shift,
 			     &visuals[0]->blue_prec);
-
+#endif
   visuals[1] = g_object_new (GDK_TYPE_RISCOS_VISUAL, NULL);
   visuals[1]->screen = screen;
   visuals[1]->type = GDK_VISUAL_TRUE_COLOR;
@@ -113,6 +114,7 @@ _gdk_riscos_screen_init_visuals (GdkScreen *screen)
   visuals[1]->blue_mask = 0xff;
   visuals[1]->colormap_size = 256;
   visuals[1]->bits_per_rgb = 8;
+#ifdef __OLD__
   gdk_visual_decompose_mask (visuals[1]->red_mask,
 			     &visuals[1]->red_shift,
 			     &visuals[1]->red_prec);
@@ -122,7 +124,7 @@ _gdk_riscos_screen_init_visuals (GdkScreen *screen)
   gdk_visual_decompose_mask (visuals[1]->blue_mask,
 			     &visuals[1]->blue_shift,
 			     &visuals[1]->blue_prec);
-
+#endif
   riscos_screen->system_visual = visuals[1];
   riscos_screen->rgba_visual = visuals[0];
 

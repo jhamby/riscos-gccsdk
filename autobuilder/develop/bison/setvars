@@ -2,6 +2,8 @@
 # patches are for the default stable fetches - Sept 2020
 # bison_3.3.2.dsfg.orig.tar.xz
 # and bison_3.3.2.dsfg-1.debian.tar.xz
+AB_DISTRO=buster
+
 AB_ROVERSION=2
 AB_CONFLAGS="--prefix=/home"
 #  for "previous declaration of 'rpl_gettimeofday' was here" error
@@ -69,9 +71,10 @@ ab_package() {
   cp $S/COPYING $A
   cp $S/README $A    
 
-  $AB_HOME/add-riscpkg -package LibBison-Dev -section Library \
-          -components "Apps.Library.!LibBison (Movable)" \
-          -unixlib
+  AB_DEBNAME=libbison-dev
+  
+  $AB_HOME/add-riscpkg -unixlib -package LibBison-Dev -section Library
+
 }
 
 touch --date="Jan 01 2000" \

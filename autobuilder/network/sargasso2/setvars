@@ -1,0 +1,11 @@
+AB_INSTALL=no
+AB_NOREMOTE=yes
+AB_PVERSION=2.0.9
+
+ab_package () {
+  ab_create_app Sargasso Apps/Network
+  ab_makerun $S/!RunImage$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -unixlib -package sargasso -name Sargasso -suggests MPlayer \
+   -suggests YT-DLP -copyrightfile $H/LICENSE
+}

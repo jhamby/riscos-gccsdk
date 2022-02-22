@@ -1,17 +1,6 @@
 AB_INSTALL=yes
 AB_PRECONF=:
-AB_ROVERSION=5
-
-# NOTE: building this as a shared lib causes Qt 5 to fail to load
-# its RISC OS plugin due to libbz2 not loading, as a dependency
-# of libfontconfig. Building libbz2 as a static library, using
-# "-fPIC" so that we can link it into shared libs that need it,
-# is a good workaround for now.
-#
-# I'm unsure if the SOManager's failure to load libbz2 as a
-# shared library from fontconfig is due to the dependencies
-# being nested too many layers deep, or for some other reason.
-RO_SHAREDLIBS=no
+AB_ROVERSION=1
 
 ab_package() {
   cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
@@ -25,7 +14,7 @@ ab_package() {
   $AB_HOME/add-riscpkg -package bzip2 -unixlib -section Utilities
 
   AB_COMPONENTS=""
-  
+
   # Package libraries
   ab_create_app LibBZ2 Apps/Library libbz2-dev
 
@@ -48,22 +37,20 @@ ab_package() {
   $AB_HOME/add-riscpkg -package libbz2-dev -name LibBZ2-Dev -section Library -unixlib -copyrightfile $S/LICENSE
 
   mkdir -p $D/libbz2-dev/RiscPkg
-  echo "Description: high-quality block-sorting file compressor library - development" >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " Static libraries and include files for the bzip2 compressor library." >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " ." >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " bzip2 is a freely available, patent free, high-quality data compressor." >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " It typically compresses files to within 10% to 15% of the best available" >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " techniques, whilst being around twice as fast at compression and six" >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " times faster at decompression." >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " ." >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " bzip2 compresses files using the Burrows-Wheeler block-sorting text" >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " compression algorithm, and Huffman coding.  Compression is generally" >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " considerably better than that achieved by more conventional" >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " LZ77/LZ78-based compressors, and approaches the performance of the PPM" >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " family of statistical compressors." >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " ." >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " The archive file format of bzip2 (.bz2) is incompatible with that of its" >> $D/libbz2-dev/RiscPkg/Control,fff
-  echo " predecessor, bzip (.bz)." >> $D/libbz2-dev/RiscPkg/Control,fff
+
+cat <<EOF  >> $D/libbz2-dev/RiscPkg/Control,fff
+Description: Static libraries and include files for the bzip2 compressor library.
+ bzip2 is a freely available, patent free, data compressor.
+ .
+ bzip2 compresses files using the Burrows-Wheeler block-sorting text
+ compression algorithm, and Huffman coding.  Compression is generally
+ considerably better than that achieved by more conventional
+ LZ77/LZ78-based compressors, and approaches the performance of the PPM
+ family of statistical compressors.
+ .
+ The archive file format of bzip2 (.bz2) is incompatible with that of its
+ predecessor, bzip (.bz).
+EOF
 
   cd $HERE
 

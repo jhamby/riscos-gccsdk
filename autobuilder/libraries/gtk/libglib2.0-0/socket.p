@@ -1,6 +1,6 @@
---- gio/gsocket.c.orig	2019-01-21 13:38:50.000000000 +0000
-+++ gio/gsocket.c	2020-08-02 17:55:12.121956360 +0100
-@@ -4665,6 +4665,9 @@
+--- gio/gsocket.c.orig	2021-03-18 13:47:48.286693000 +0000
++++ gio/gsocket.c	2022-01-14 11:46:15.228532142 +0000
+@@ -4875,6 +4875,9 @@
        vectors = &one_vector;
      }
  
@@ -10,15 +10,15 @@
  #ifndef G_OS_WIN32
    {
      GOutputMessage output_message;
-@@ -4797,6 +4800,7 @@
-     return bytes_sent;
+@@ -5017,6 +5020,7 @@
+     return G_POLLABLE_RETURN_OK;
    }
  #endif
 +#endif
  }
  
  /**
-@@ -5130,6 +5134,9 @@
+@@ -5362,6 +5366,9 @@
        vectors = &one_vector;
      }
  
@@ -28,7 +28,7 @@
  #ifndef G_OS_WIN32
    {
      GInputMessage input_message;
-@@ -5282,6 +5289,7 @@
+@@ -5518,6 +5525,7 @@
      return bytes_received;
    }
  #endif

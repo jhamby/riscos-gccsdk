@@ -19,6 +19,8 @@
 #include "gdkselection.h"
 #include "gdkproperty.h"
 #include "gdkprivate.h"
+#include "gdkprivate-riscos.h"
+#include "gdkriscos.h"
 #include <oslib/wimp.h>
 
 #include <string.h>
@@ -97,7 +99,17 @@ _gdk_riscos_display_set_selection_owner (GdkDisplay *display,
       owner_list = g_slist_prepend (owner_list, info);
     }
 
-  riscos_display->selection_window = owner;
+  if (riscos_display->selection_window != owner)
+    {
+      riscos_display->selection_window = owner;
+
+      wimp_message *message = &riscos_display->poll_block.message;
+      message->size = sizeof(wimp_full_message_claim_entity);
+      message->your_ref = 0;
+      message->action = message_CLAIM_ENTITY;
+      message->data.claim_entity.flags = wimp_CLAIM_CARET_OR_SELECTION;
+      xwimp_send_message(wimp_USER_MESSAGE, message, wimp_BROADCAST);
+    }
 
   return TRUE;
 }
@@ -131,6 +143,84 @@ _gdk_riscos_display_convert_selection (GdkDisplay *display,
 {
 }
 
+static gint
+make_list (const gchar  *text,
+           gint          length,
+           gboolean      latin1,
+           gchar      ***list)
+{
+  GSList *strings = NULL;
+  gint n_strings = 0;
+  gint i;
+  const gchar *p = text;
+  const gchar *q;
+  GSList *tmp_list;
+  GError *error = NULL;
+
+  while (p < text + length)
+    {
+      gchar *str;
+
+      q = p;
+      while (*q && q < text + length)
+        q++;
+
+      if (latin1)
+        {
+          str = g_convert (p, q - p,
+                           "UTF-8", "ISO-8859-1",
+                           NULL, NULL, &error);
+
+          if (!str)
+            {
+              g_warning ("Error converting selection from STRING: %s",
+                         error->message);
+              g_error_free (error);
+            }
+        }
+      else
+        {
+          str = g_strndup (p, q - p);
+          if (!g_utf8_validate (str, -1, NULL))
+            {
+              g_warning ("Error converting selection from UTF8_STRING");
+              g_free (str);
+              str = NULL;
+            }
+        }
+
+      if (str)
+        {
+          strings = g_slist_prepend (strings, str);
+          n_strings++;
+        }
+
+      p = q + 1;
+    }
+
+  if (list)
+    {
+      *list = g_new (gchar *, n_strings + 1);
+      (*list)[n_strings] = NULL;
+    }
+
+  i = n_strings;
+  tmp_list = strings;
+  while (tmp_list)
+    {
+      if (list)
+        (*list)[--i] = tmp_list->data;
+      else
+        g_free (tmp_list->data);
+
+      tmp_list = tmp_list->next;
+    }
+
+  g_slist_free (strings);
+
+  return n_strings;
+}
+
 gint
 _gdk_riscos_display_text_property_to_utf8_list (GdkDisplay    *display,
 						 GdkAtom        encoding,
@@ -139,6 +229,21 @@ _gdk_riscos_display_text_property_to_utf8_list (GdkDisplay    *display,
 						 gint           length,
 						 gchar       ***list)
 {
+  g_return_val_if_fail (text != NULL, 0);
+  g_return_val_if_fail (length >= 0, 0);
+  g_return_val_if_fail (GDK_IS_DISPLAY (display), 0);
+
+  if (encoding == GDK_TARGET_STRING)
+    {
+      return make_list ((gchar *)text, length, TRUE, list);
+    }
+  else if (encoding == gdk_atom_intern_static_string ("UTF8_STRING"))
+    {
+      return make_list ((gchar *)text, length, FALSE, list);
+    }
+
+  if (list)
+    *list = NULL;
   return 0;
 }
 
@@ -147,4 +252,73 @@ _gdk_riscos_display_utf8_to_string_target (GdkDisplay  *display,
 					    const gchar *str)
 {
   return NULL;
+}
+
+static gboolean
+_gdk_riscos_realloc_selection (GdkRiscosSelection *selection, size_t size)
+{
+  if (!selection->buffer)
+    {
+      selection->buffer = malloc(size);
+      if (!selection->buffer)
+	return false;
+      selection->max_size = size;
+    }
+  else
+    {
+      if (size > selection->max_size)
+	{
+	  void *new_buffer = realloc(selection->buffer, size);
+	  if (!new_buffer)
+	    return false;
+	  selection->buffer = new_buffer;
+	  selection->max_size = size;
+	}
+    }
+
+  return true;
+}
+
+void gdk_riscos_selection_release (GdkDisplay *display)
+{
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+
+  if (riscos_display->selection.claimed)
+    {
+      if (riscos_display->selection.buffer)
+	free(riscos_display->selection.buffer);
+      riscos_display->selection.buffer = NULL;
+      riscos_display->selection.max_size = 0;
+      riscos_display->selection.size = 0;
+      riscos_display->selection.claimed = FALSE;
+    }
+}
+
+void gdk_riscos_selection_claim (GdkDisplay *display, const void *data, size_t size)
+{
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+
+  if (!size)
+    {
+      gdk_riscos_selection_release (display);
+      return;
+    }
+
+  if (size > riscos_display->selection.max_size)
+    if (!_gdk_riscos_realloc_selection(&riscos_display->selection, size))
+      return;
+
+  riscos_display->selection.size = size;
+  memcpy(riscos_display->selection.buffer, data, size);
+
+  if (!riscos_display->selection.claimed)
+    {
+      wimp_message *message = &riscos_display->poll_block.message;
+      message->size = sizeof(wimp_full_message_claim_entity);
+      message->your_ref = 0;
+      message->action = message_CLAIM_ENTITY;
+      message->data.claim_entity.flags = wimp_CLAIM_SELECTION;
+      xwimp_send_message(wimp_USER_MESSAGE, message, wimp_BROADCAST);
+      riscos_display->selection.claimed = TRUE;
+    }
 }

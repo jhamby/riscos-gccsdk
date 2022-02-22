@@ -27,6 +27,7 @@
 #include "gdkdevice-riscos.h"
 #include "gdkkeysyms.h"
 #include "gdkprivate-riscos.h"
+#include "gdkseat-riscos.h"
 
 #define HAS_FOCUS(toplevel)                           \
   ((toplevel)->has_focus || (toplevel)->has_pointer_focus)
@@ -38,10 +39,10 @@ static GList * gdk_riscos_device_manager_list_devices (GdkDeviceManager *device_
 							 GdkDeviceType     type);
 static GdkDevice * gdk_riscos_device_manager_get_client_pointer (GdkDeviceManager *device_manager);
 
-G_DEFINE_TYPE (GdkRISCOSDeviceManager, gdk_riscos_device_manager, GDK_TYPE_DEVICE_MANAGER)
+G_DEFINE_TYPE (GdkRiscosDeviceManager, gdk_riscos_device_manager, GDK_TYPE_DEVICE_MANAGER)
 
 static void
-gdk_riscos_device_manager_class_init (GdkRISCOSDeviceManagerClass *klass)
+gdk_riscos_device_manager_class_init (GdkRiscosDeviceManagerClass *klass)
 {
   GdkDeviceManagerClass *device_manager_class = GDK_DEVICE_MANAGER_CLASS (klass);
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -83,14 +84,14 @@ create_core_keyboard (GdkDeviceManager *device_manager,
 }
 
 static void
-gdk_riscos_device_manager_init (GdkRISCOSDeviceManager *device_manager)
+gdk_riscos_device_manager_init (GdkRiscosDeviceManager *device_manager)
 {
 }
 
 static void
 gdk_riscos_device_manager_finalize (GObject *object)
 {
-  GdkRISCOSDeviceManager *device_manager;
+  GdkRiscosDeviceManager *device_manager;
 
   device_manager = GDK_RISCOS_DEVICE_MANAGER (object);
 
@@ -103,7 +104,7 @@ gdk_riscos_device_manager_finalize (GObject *object)
 static void
 gdk_riscos_device_manager_constructed (GObject *object)
 {
-  GdkRISCOSDeviceManager *device_manager;
+  GdkRiscosDeviceManager *device_manager;
   GdkDisplay *display;
 
   device_manager = GDK_RISCOS_DEVICE_MANAGER (object);
@@ -120,7 +121,7 @@ static GList *
 gdk_riscos_device_manager_list_devices (GdkDeviceManager *device_manager,
 					  GdkDeviceType     type)
 {
-  GdkRISCOSDeviceManager *riscos_device_manager = (GdkRISCOSDeviceManager *) device_manager;
+  GdkRiscosDeviceManager *riscos_device_manager = (GdkRiscosDeviceManager *) device_manager;
   GList *devices = NULL;
 
   if (type == GDK_DEVICE_TYPE_MASTER)
@@ -135,7 +136,7 @@ gdk_riscos_device_manager_list_devices (GdkDeviceManager *device_manager,
 static GdkDevice *
 gdk_riscos_device_manager_get_client_pointer (GdkDeviceManager *device_manager)
 {
-  GdkRISCOSDeviceManager *riscos_device_manager = (GdkRISCOSDeviceManager *) device_manager;
+  GdkRiscosDeviceManager *riscos_device_manager = (GdkRiscosDeviceManager *) device_manager;
 
   return riscos_device_manager->core_pointer;
 }

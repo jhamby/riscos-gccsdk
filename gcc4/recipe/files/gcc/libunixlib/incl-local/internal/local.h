@@ -110,15 +110,6 @@ extern const char *__sfixfind (const char *__sfix, size_t __len);
 
 extern const char __filename_char_map[256];
 
-/* Gets the __riscosify_control value which can be defined by
-   the global variable __riscosify_control in the user program.
-   Returns a copy of __riscosify_control_internal (with a default
-   value of 0) when __riscosify_control is not defined.  */
-extern int __get_riscosify_control (void);
-/* Sets the __riscosify_control value when it's defined.
-   Otherwise __riscosify_control_internal gets written.  */
-extern void __set_riscosify_control (int __riscosify_flags);
-
 /* Get an object's filetype, object type, etc and do some common checks.
    Returns nonzero and sets errno on error. Returns riscosified filename
    in __buffer. __objtype, __ftype and __attr may be NULL if not needed. */

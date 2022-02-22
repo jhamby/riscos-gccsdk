@@ -1,4 +1,4 @@
-AB_URL=http://ffmpeg.org/releases/ffmpeg-4.3.1.tar.xz
+AB_URL=http://ffmpeg.org/releases/ffmpeg-4.4.tar.xz
 
 AB_INSTALL=env
 
@@ -27,7 +27,6 @@ AB_PRECONF=:
 		--enable-network \
 		--disable-libzvbi \
 		--disable-libx264 \
-		--enable-libwavpack \
 		--enable-libvorbis \
 		--enable-libtwolame \
 		--enable-libopus \

@@ -1,0 +1,17 @@
+AB_INSTALL=env
+
+# build the buster version as newer versions require full c++11 support
+AB_DISTRO=buster
+
+AB_CONFLAGS='--with-random=/dev/random'
+
+ab_package() {
+  # Package programs
+  ab_create_command_app QPDF Apps/Document qpdf
+  ab_add_commands $S/qpdf/build/qpdf
+
+  cp -av doc $S/ChangeLog $S/LICENSE.txt $S/NOTICE.md $S/TODO $S/README.* $A/
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile LICENSE.txt -package qpdf -name QPDF -section Document
+
+ }

@@ -1,0 +1,29 @@
+AB_GIT=https://github.com/jcupitt/libvips.git
+
+AB_INSTALL=yes
+AB_PVERSION=8.12
+
+AB_MANPAGE="man/vips.1 man/vipsedit.1 man/vipsheader.1 man/vipsthumbnail.1"
+AB_PRECONF="AR_FLAGS=\"cru\""
+export NOCONFIGURE=yes
+
+./autogen.sh
+
+ab_package() {
+
+  ab_create_command_app Vips Apps/Graphics
+
+    ab_add_commands $S/tools/vips$AB_EXEEXT
+    ab_add_commands $S/tools/vipsedit$AB_EXEEXT
+    ab_add_commands $S/tools/vipsheader$AB_EXEEXT
+    ab_add_commands $S/tools/vipsthumbnail$AB_EXEEXT
+
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/NEWS $S/README.md $S/THANKS $A/
+
+  mkdir -p $A/doc
+  mv $D/*faf $A/doc
+  
+  $AB_HOME/add-riscpkg -unixlib -package vips -name Vips -copyrightfile $S/COPYING
+
+}
+export LIBS='-lz -lbz2 -lfontconfig -lpng -lintl -ltiff -lwebp -llzma -lxml2 -lglib-2.0 -lgobject-2.0 -lgio-2.0 -lgmodule-2.0 -lpcre -ljpeg -lfreetype -lffi -lexpat -llcms2'

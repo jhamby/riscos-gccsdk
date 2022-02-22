@@ -1,7 +1,6 @@
-AB_HG=https://hg.libsdl.org/SDL/
-AB_HG_BRANCH=SDL-1.2
+AB_GIT=https://github.com/libsdl-org/SDL-1.2.git
 AB_PVERSION=1.2.16
-AB_ROVERSION=1
+AB_ROVERSION=2
 AB_LICENCE=Free
 AB_CONFLAGS="--enable-video-x11=no --enable-arm-simd=yes --enable-arm-neon=yes"
 
@@ -10,7 +9,7 @@ if [ "x$RO_BUILD_OPENGL" != "xyes" ]; then
   AB_CONFLAGS="$AB_CONFLAGS --enable-video-opengl=no"
 fi
 
-AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
+AB_INSTALLDOCS="COPYING README.md README.RISCOS README-SDL.txt WhatsNew"
 AB_SHORTDESC="Allows programs portable low level access to a video, audio, mouse, and keyboard"
 
 # AB_INSTALL=yes

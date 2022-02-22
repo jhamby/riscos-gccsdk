@@ -18,6 +18,8 @@
  * Written by Lee Noar using code and guidance from other targets.
  */
 
+#include "config.h"
+
 #include "gdkdisplay-riscos.h"
 #include "gdkriscos.h"
 #include "gdkscreen-riscos.h"
@@ -25,6 +27,7 @@
 #include "gdkwindow-riscos.h"
 #include "gdkprivate-riscos.h"
 #include "gdkdevicemanager-riscos.h"
+#include "gdkseat-riscos.h"
 
 #include "oslib/wimp.h"
 #include "oslib/osspriteop.h"
@@ -42,6 +45,13 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+
+#define INLINE_EVENT_HANDLERS 0
+#if INLINE_EVENT_HANDLERS
+#define INLINE_EVENT_HANDLER
+#else
+#define INLINE_EVENT_HANDLER __attribute__((noinline))
+#endif
 
 #define DEBUG_REDRAW 0
 
@@ -69,7 +79,6 @@ typedef struct _GdkEventSource
   GdkDisplay *display;
 } GdkEventSource;
 
-/* TODO: Move keyboard stuff to gdkkeys-riscos.c */
 struct keymapping
 {
     int riscos_key_code;
@@ -82,7 +91,7 @@ struct internal_mapping
   guint internal_code;
 };
 
-/* A hashmap may be better at runtime, but still needs to be initialised from
+/* We use a hashmap at runtime for speed, but it still needs to be initialised from
  * something like the following.
  * TODO: check some of these codes at runtime.
  */
@@ -195,6 +204,8 @@ static const struct keymapping function_keymap[] = {
     { wimp_KEY_HOME, GDK_KEY_Home },
     { wimp_KEY_DELETE, GDK_KEY_Delete },
     { wimp_KEY_PRINT, GDK_KEY_Print },
+    { wimp_KEY_PAGE_DOWN, GDK_KEY_Page_Down },
+    { wimp_KEY_PAGE_UP, GDK_KEY_Page_Up },
     { wimp_KEY_F1, GDK_KEY_F1 },
     { wimp_KEY_F2, GDK_KEY_F2 },
     { wimp_KEY_F3, GDK_KEY_F3 },
@@ -305,8 +316,8 @@ gdk_riscos_remove_raw_event_handler (wimp_event_no type,
 				     void *handler_data)
 {
   GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY(_gdk_display);
-  GList *list = g_list_first (riscos_display->raw_event_handlers);
-  GList *node = g_list_first(list);
+  GList *list = riscos_display->raw_event_handlers;
+  GList *node = list;
 
   while (node)
     {
@@ -315,14 +326,56 @@ gdk_riscos_remove_raw_event_handler (wimp_event_no type,
       if (handler->type == type &&
 	  handler->window_handle == window_handle &&
 	  handler->handler_func == handler_func &&
-	  handler->handler_data == handler_data) {
-	g_free(handler);
-        list = g_list_delete_link(list, node);
-      }
+	  handler->handler_data == handler_data)
+	{
+	  g_free(handler);
+	  list = g_list_delete_link(list, node);
+	}
       node = next;
     }
 
   riscos_display->raw_event_handlers = list;
+}
+
+int
+gdk_riscos_remove_raw_event_handler_matched(GDKEventHandlerMatchType mask,
+					    wimp_event_no type,
+					    wimp_w window_handle,
+					    gdk_riscos_raw_event_handler handler_func,
+					    void *handler_data)
+{
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY(_gdk_display);
+  GList *list = riscos_display->raw_event_handlers;
+  GList *node = list;
+  int count = 0;
+  int target = __builtin_popcount((unsigned)mask);
+
+  while (node)
+    {
+      GList *next = g_list_next(node);
+      raw_event_handler_data *handler = node->data;
+      int match = 0;
+
+      if ((mask & GDK_EVENT_HANDLER_MATCH_TYPE) && handler->type == type)
+	match++;
+      if ((mask & GDK_EVENT_HANDLER_MATCH_WINDOW) && handler->window_handle == window_handle)
+	match++;
+      if ((mask & GDK_EVENT_HANDLER_MATCH_FUNC) && handler->handler_func == handler_func)
+	match++;
+      if ((mask & GDK_EVENT_HANDLER_MATCH_DATA) && handler->handler_data == handler_data)
+	match++;
+      if (match == target)
+	{
+	  count++;
+	  g_free(handler);
+	  list = g_list_delete_link(list, node);
+	}
+      node = next;
+    }
+
+  riscos_display->raw_event_handlers = list;
+
+  return count;
 }
 
 void
@@ -338,8 +391,8 @@ gdk_riscos_add_message_handler (unsigned message_no,
   message->handler_func = handler_func;
   message->data = data;
 
-  riscos_display->message_handlers = g_list_append (riscos_display->message_handlers,
-						    message);
+  riscos_display->message_handlers = g_list_prepend (riscos_display->message_handlers,
+						     message);
 }
 
 void
@@ -349,7 +402,7 @@ gdk_riscos_remove_message_handler (unsigned message_no,
 {
   GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY(_gdk_display);
   GList *list = riscos_display->message_handlers;
-  GList *node = g_list_first(list);
+  GList *node = list;
 
   while (node)
     {
@@ -357,17 +410,78 @@ gdk_riscos_remove_message_handler (unsigned message_no,
       message_handler_data *handler = node->data;
       if (handler->message_no == message_no &&
 	  handler->handler_func == handler_func &&
-	  handler->data == data) {
-	g_free(handler);
-        list = g_list_delete_link(list, node);
-      }
+	  handler->data == data)
+	{
+	  g_free(handler);
+	  list = g_list_delete_link(list, node);
+	}
       node = next;
     }
 
   riscos_display->message_handlers = list;
 }
 
-static wimp_w
+int
+gdk_riscos_remove_message_handler_matched (GDKMessageHandlerMatchType mask,
+					   unsigned message_no,
+					   gdk_riscos_message_handler handler_func,
+					   void *data)
+{
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY(_gdk_display);
+  GList *list = riscos_display->message_handlers;
+  GList *node = list;
+  int count = 0;
+  int target = __builtin_popcount((unsigned)mask);
+
+  while (node)
+    {
+      GList *next = g_list_next(node);
+      message_handler_data *handler = node->data;
+      int match = 0;
+
+      if ((mask & GDK_MESSAGE_HANDLER_MATCH_TYPE) && handler->message_no == message_no)
+	match++;
+      if ((mask & GDK_MESSAGE_HANDLER_MATCH_FUNC) && handler->handler_func == handler_func)
+	match++;
+      if ((mask & GDK_MESSAGE_HANDLER_MATCH_DATA) && handler->data == data)
+	match++;
+      if (match == target)
+	{
+	  count++;
+	  g_free(handler);
+	  list = g_list_delete_link(list, node);
+	}
+      node = next;
+    }
+
+  riscos_display->message_handlers = list;
+
+  return count;
+}
+
+void
+gdk_riscos_remove_message_handler_by_data (void *data)
+{
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY(_gdk_display);
+  GList *list = riscos_display->message_handlers;
+  GList *node = list;
+
+  while (node)
+    {
+      GList *next = g_list_next(node);
+      message_handler_data *handler = node->data;
+      if (handler->data == data)
+	{
+	  g_free(handler);
+	  list = g_list_delete_link(list, node);
+	}
+      node = next;
+    }
+
+  riscos_display->message_handlers = list;
+}
+
+static wimp_w INLINE_EVENT_HANDLER
 get_event_window (wimp_block *poll_block, wimp_event_no event_type)
 {
   wimp_w result = wimp_BACKGROUND;
@@ -393,44 +507,48 @@ get_event_window (wimp_block *poll_block, wimp_event_no event_type)
     case wimp_KEY_PRESSED:
       result = poll_block->key.w;
       break;
+    case wimp_SCROLL_REQUEST:
+      result = poll_block->scroll.w;
+      break;
     }
 
   return result;
 }
 
-static gboolean
+static gboolean INLINE_EVENT_HANDLER
 call_raw_event_handlers (GdkRiscosDisplay *riscos_display,
 			 wimp_block *poll_block,
 			 wimp_event_no event_type)
 {
-  GList *list = g_list_first (riscos_display->raw_event_handlers);
+  GList *list = riscos_display->raw_event_handlers;
   wimp_w event_window = get_event_window (poll_block, event_type);
   while (list)
     {
       raw_event_handler_data *raw_event = list->data;
-      if ((raw_event->type == (wimp_event_no)-1 || event_type == raw_event->type) &&
+      GList *next = g_list_next(list);
+      if ((raw_event->type == GDK_RISCOS_ANY_WIMP_EVENT || event_type == raw_event->type) &&
 	  (raw_event->window_handle == wimp_BACKGROUND || event_window == raw_event->window_handle))
 	if (raw_event->handler_func (event_type, poll_block, raw_event->handler_data))
 	  return TRUE;
 
-      list = g_list_next(list);
+      list = next;
     }
 
   return FALSE;
 }
 
-static gboolean
+static gboolean INLINE_EVENT_HANDLER
 call_message_handlers (int event_no,
 		       GdkRiscosDisplay *riscos_display,
 		       wimp_block *poll_block)
 {
-  GList *list = g_list_first (riscos_display->message_handlers);
+  GList *list = riscos_display->message_handlers;
   wimp_message *message = &poll_block->message;
 
   while (list)
     {
       message_handler_data *handler = list->data;
-      if (message->action == handler->message_no)
+      if (handler->message_no == GDK_RISCOS_ANY_WIMP_MESSAGE || message->action == handler->message_no)
 	if (handler->handler_func (event_no, poll_block, handler->data))
 	  return TRUE;
       list = g_list_next(list);
@@ -474,7 +592,7 @@ null_redraw (wimp_draw *redraw)
     return err;
 }
 
-static void
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_redraw_event (GdkRiscosDisplay *riscos_display,
 				wimp_block *poll_block)
 {
@@ -508,12 +626,14 @@ gdk_riscos_handle_redraw_event (GdkRiscosDisplay *riscos_display,
 #if DEBUG_REDRAW
       err =
 #endif
-	xosspriteop_put_sprite_user_coords (osspriteop_PTR,
-					    impl->surface_sprite_area,
-					    (osspriteop_id)impl->surface_sprite_pointer,
-					    origin.x,
-					    origin.y,
-					    os_ACTION_OVERWRITE);
+      xosspriteop_put_sprite_scaled (osspriteop_PTR,
+				     impl->surface_sprite_area,
+				     (osspriteop_id)impl->surface_sprite_pointer,
+				     origin.x,
+				     origin.y,
+				     os_ACTION_OVERWRITE | osspriteop_USE_PALETTE,
+				     NULL,//riscos_display->render_scale_ptr, /* NULL means no scaling.  */
+				     riscos_display->trans_table);
       xwimp_get_rectangle (redraw, &more);
     }
 
@@ -525,7 +645,7 @@ gdk_riscos_handle_redraw_event (GdkRiscosDisplay *riscos_display,
 #endif
 }
 
-static void
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_open_event (GdkRiscosDisplay *riscos_display,
 			      wimp_block *poll_block)
 {
@@ -594,7 +714,7 @@ gdk_riscos_handle_open_event (GdkRiscosDisplay *riscos_display,
 
 /* We don't actually close the window here, we merely report it. It's upto
  * the caller whether the window should be closed or some other action taken.  */
-static void
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_close_event (GdkRiscosDisplay *riscos_display,
 			       wimp_block *poll_block)
 {
@@ -620,14 +740,13 @@ create_focus_event (GdkRiscosDisplay *rdisplay,
 		    gboolean   in)
 {
   GdkEvent *event;
-  GdkRISCOSDeviceManager *device_manager;
+  GdkSeat *seat = gdk_display_get_default_seat(&rdisplay->parent_instance);
 
   event = gdk_event_new (GDK_FOCUS_CHANGE);
   event->focus_change.window = g_object_ref (window);
   event->focus_change.in = in;
 
-  device_manager = GDK_RISCOS_DEVICE_MANAGER (rdisplay->parent_instance.device_manager);
-  gdk_event_set_device (event, device_manager->core_keyboard);
+  gdk_event_set_device (event, gdk_seat_get_keyboard (seat));
 
   return event;
 }
@@ -668,7 +787,7 @@ _gdk_riscos_update_focus_window (GdkRiscosDisplay *rdisplay,
       send_event (event);
       rdisplay->focus_window = g_object_ref (window);
 
-      /* Broadcast the fact that we are claiming the clipboard/selection/caret.  */
+      /* Broadcast the fact that we are claiming the selection/caret.  */
       rdisplay->poll_block.message.size = sizeof(wimp_full_message_claim_entity);
       rdisplay->poll_block.message.your_ref = 0;
       rdisplay->poll_block.message.action = message_CLAIM_ENTITY;
@@ -677,7 +796,39 @@ _gdk_riscos_update_focus_window (GdkRiscosDisplay *rdisplay,
     }
 }
 
-static void
+static void handle_mode_change(GdkRiscosDisplay *rdisplay)
+{
+#define XEIG_FACTOR 0
+#define YEIG_FACTOR 1
+#define NCOLOUR 2
+
+  GdkRiscosScreen *screen = GDK_RISCOS_SCREEN (rdisplay->default_screen);
+  os_VDU_VAR_LIST(4) vdu = { { os_VDUVAR_XEIG_FACTOR,
+				  os_VDUVAR_YEIG_FACTOR,
+				  os_VDUVAR_NCOLOUR,
+				  os_VDUVAR_END_LIST } };
+
+  xos_read_vdu_variables ((os_vdu_var_list *)&vdu, (int *)&vdu);
+
+  if (vdu.var[XEIG_FACTOR] == screen->x_eigen_factor &&
+      vdu.var[YEIG_FACTOR] == screen->y_eigen_factor &&
+      (vdu.var[NCOLOUR] == -1 && rdisplay->trans_table == NULL))
+    {
+      /* If we currently don't have a colourtrans table, and no other
+       * attributes have changed, then we have nothing to do.  */
+      return;
+    }
+
+  _gdk_riscos_screen_update (rdisplay->default_screen);
+  _gdk_riscos_display_generate_transtable (rdisplay);
+  _gdk_riscos_display_calculate_render_scale (rdisplay);
+
+#undef XEIG_FACTOR
+#undef YEIG_FACTOR
+#undef NCOLOUR
+}
+
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_message (int event_no,
 			   GdkRiscosDisplay *riscos_display,
 			   wimp_block *poll_block)
@@ -692,18 +843,21 @@ gdk_riscos_handle_message (int event_no,
       switch (message->action)
 	{
 	case message_RAM_TRANSMIT:
-	  if (riscos_display->selection_xfer_progress)
+	  if (riscos_display->clipboard_xfer_progress)
 	    {
-	      free(riscos_display->selection_xfer_progress);
-	      riscos_display->selection_xfer_progress = NULL;
+	      free(riscos_display->clipboard_xfer_progress);
+	      riscos_display->clipboard_xfer_progress = NULL;
 	    }
-	  break;
+	  return;
 	}
-      return;
     }
 
   switch (message->action)
     {
+    case message_MODE_CHANGE:
+      handle_mode_change(riscos_display);
+      break;
+
     case message_DATA_LOAD:
       if (message->my_ref == 0) /* 0 = from the filer */
 	{
@@ -735,76 +889,90 @@ gdk_riscos_handle_message (int event_no,
       break;
 
     case message_CLAIM_ENTITY: {
-      if (message->sender != riscos_display->task_handle &&
-	  message->data.claim_entity.flags & wimp_CLAIM_CARET_OR_SELECTION &&
-	  riscos_display->focus_window)
-	_gdk_riscos_update_focus_window(riscos_display, riscos_display->focus_window, FALSE);
+      if (message->sender != riscos_display->task_handle)
+	{
+	  if (message->data.claim_entity.flags & wimp_CLAIM_CARET)
+	    {
+	      if (riscos_display->focus_window)
+		_gdk_riscos_update_focus_window (riscos_display, riscos_display->focus_window, FALSE);
+	    }
+	  if (message->data.claim_entity.flags & wimp_CLAIM_SELECTION)
+	    {
+	      gdk_riscos_selection_release (&riscos_display->parent_instance);
+	    }
+	  if (message->data.claim_entity.flags & wimp_CLAIM_CLIPBOARD)
+	    {
+	      gdk_riscos_clipboard_free (&riscos_display->parent_instance);
+	    }
+	}
       break;
     }
 
-    case message_RELEASE_ENTITY:
-/*      printf("message_RELEASE_ENTITY");*/
-      break;
-
     case message_DATA_REQUEST: {
-      if ((message->data.data_request.flags & wimp_DATA_REQUEST_CLIPBOARD) == 0 ||
-	  !riscos_display->selection_window)
+      if (!riscos_display->clipboard.claimed ||
+	  (message->data.data_request.flags & wimp_DATA_REQUEST_CLIPBOARD) == 0)
 	break;
 
       message->size = sizeof(wimp_full_message_data_xfer);
       message->your_ref = message->my_ref;
       message->action = message_DATA_SAVE;
-      message->data.data_xfer.est_size = riscos_display->selection.size;
+      message->data.data_xfer.est_size = riscos_display->clipboard.size;
       message->data.data_xfer.file_type = 0xFFF;
-      strcpy(message->data.data_xfer.file_name, "gtk-selection");
+      strcpy(message->data.data_xfer.file_name, "gtk-clipboard");
       xwimp_send_message(wimp_USER_MESSAGE_RECORDED, message, message->sender);
 
-      riscos_display->selection_xfer_progress = malloc(sizeof(GdkRiscosSelectionXferProgress));
-      riscos_display->selection_xfer_progress->bytes_remaining = riscos_display->selection.size;
-      riscos_display->selection_xfer_progress->bytes_sent = 0;
-      
+      riscos_display->clipboard_xfer_progress = malloc(sizeof(GdkRiscosXferProgress));
+      riscos_display->clipboard_xfer_progress->bytes_remaining = riscos_display->clipboard.size;
+      riscos_display->clipboard_xfer_progress->bytes_transfered = 0;
+
       break;
     }
 
     case message_RAM_FETCH: {
-      if (!riscos_display->selection_window ||
-	  !riscos_display->selection.buffer ||
-	  !riscos_display->selection_xfer_progress)
+      if (!riscos_display->clipboard.buffer ||
+	  !riscos_display->clipboard_xfer_progress)
 	break;
 
       /* Send as much data as the receiver can handle.  */
-      size_t bytes_to_transfer = MIN(message->data.ram_xfer.size, riscos_display->selection_xfer_progress->bytes_remaining);
+      size_t bytes_to_transfer = MIN(message->data.ram_xfer.size, riscos_display->clipboard_xfer_progress->bytes_remaining);
+      /* Only send recorded if there is more data to send.  */
       if (bytes_to_transfer > 0)
 	{
 	  xwimp_transfer_block(riscos_display->task_handle,
-			       riscos_display->selection.buffer + riscos_display->selection_xfer_progress->bytes_sent,
+			       (guchar *)riscos_display->clipboard.buffer + riscos_display->clipboard_xfer_progress->bytes_transfered,
 			       message->sender,
 			       message->data.ram_xfer.addr,
 			       bytes_to_transfer);
-	  riscos_display->selection_xfer_progress->bytes_remaining -= bytes_to_transfer;
-	  riscos_display->selection_xfer_progress->bytes_sent += bytes_to_transfer;
 	}
 
       message->size = sizeof(wimp_full_message_ram_xfer);
       message->your_ref = message->my_ref;
       message->action = message_RAM_TRANSMIT;
       message->data.ram_xfer.size = bytes_to_transfer;
-      /* Only send recorded if there is more data to send.  */
-      xwimp_send_message(riscos_display->selection_xfer_progress->bytes_remaining > 0 ?
-			    wimp_USER_MESSAGE_RECORDED :
-			    wimp_USER_MESSAGE,
-			 message,
-			 message->sender);
-      if (riscos_display->selection_xfer_progress->bytes_remaining == 0)
+      if (riscos_display->clipboard_xfer_progress->bytes_remaining > 0)
 	{
-	  free(riscos_display->selection_xfer_progress);
-	  riscos_display->selection_xfer_progress = NULL;
+	  /* Only send recorded if there is more data to send.  */
+	  xwimp_send_message(wimp_USER_MESSAGE_RECORDED,
+			     message,
+			     message->sender);
+
+	  riscos_display->clipboard_xfer_progress->bytes_remaining -= bytes_to_transfer;
+	  riscos_display->clipboard_xfer_progress->bytes_transfered += bytes_to_transfer;
+	}
+      else
+	{
+	  xwimp_send_message(wimp_USER_MESSAGE,
+			     message,
+			     message->sender);
+	  free(riscos_display->clipboard_xfer_progress);
+	  riscos_display->clipboard_xfer_progress = NULL;
 	}
 
       break;
     }
 
     case message_QUIT:
+      gdk_riscos_clipboard_release(&riscos_display->parent_instance);
       exit (0);
       break;
     }
@@ -893,65 +1061,37 @@ create_button_event (GdkRiscosDisplay *rdisplay,
 		     GdkWindow *gdk_window,
 		     GdkEventType type)
 {
-  GdkRISCOSDeviceManager *device_manager =
-    (GdkRISCOSDeviceManager *)gdk_display_get_device_manager (gdk_window_get_display (gdk_window));
-
+  GdkSeat *seat = gdk_display_get_default_seat(&rdisplay->parent_instance);
   GdkEvent *event = gdk_event_new (type);
 
   event->button.window = g_object_ref (gdk_window);
   event->button.send_event = FALSE;
   event->button.time = rdisplay->last_seen_time;
   event->button.axes = NULL;
-  event->button.device = device_manager->core_pointer;
+  event->button.device = gdk_seat_get_pointer (seat);
 
   return event;
 }
 
 static void
 start_resize_window (GdkRiscosDisplay *rdisplay,
-		     wimp_pointer *mouse)
+		     GdkWindow *window)
 {
-  wimp_drag drag;
-
-  drag.w = mouse->w;
-  drag.type = wimp_DRAG_SYSTEM_SIZE;
-  if (xwimp_drag_box(&drag) == NULL)
+  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (window->impl);
+  if (impl->user_can_resize)
     {
-      rdisplay->system_drag = TRUE;
+      wimp_drag drag;
+
+      drag.w = impl->id;
+      drag.type = wimp_DRAG_SYSTEM_SIZE;
+      if (xwimp_drag_box(&drag) == NULL)
+	{
+	  rdisplay->system_drag = TRUE;
+	}
     }
 }
 
-/*static void
-gdk_riscos_handle_gain_focus_event (GdkRiscosDisplay *rdisplay,
-				    wimp_block *poll_block)
-{
-  wimp_caret *riscos_event = &poll_block->caret;
-  GdkWindow *gdk_window;
-
-  gdk_window = g_hash_table_lookup (rdisplay->id_ht,
-				    riscos_event->w);
-  if (gdk_window == NULL)
-    return;
-
-  _gdk_riscos_update_focus_window (rdisplay, gdk_window, TRUE);
-}
-
-static void
-gdk_riscos_handle_lose_focus_event (GdkRiscosDisplay *rdisplay,
-				    wimp_block *poll_block)
-{
-  wimp_caret *riscos_event = &poll_block->caret;
-  GdkWindow *gdk_window;
-
-  gdk_window = g_hash_table_lookup (rdisplay->id_ht,
-				    riscos_event->w);
-  if (gdk_window == NULL)
-    return;
-
-  _gdk_riscos_update_focus_window (rdisplay, gdk_window, FALSE);
-}*/
-
-static void
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_mouse_click (GdkRiscosDisplay *rdisplay,
 			       wimp_block *poll_block)
 {
@@ -960,6 +1100,9 @@ gdk_riscos_handle_mouse_click (GdkRiscosDisplay *rdisplay,
   GdkWindow *gdk_window = g_hash_table_lookup (rdisplay->id_ht, mouse->w);
   if (!gdk_window)
     return;
+
+  GdkRiscosSeat *riscos_seat = GDK_RISCOS_SEAT(gdk_display_get_default_seat(&rdisplay->parent_instance));
+  riscos_seat->pointer_grab = gdk_window;
 
   GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (gdk_window->impl);
 
@@ -993,7 +1136,7 @@ gdk_riscos_handle_mouse_click (GdkRiscosDisplay *rdisplay,
   _gdk_riscos_update_focus_window (rdisplay, gdk_window, TRUE);
 }
 
-static void
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_enter_event (GdkRiscosDisplay *rdisplay,
 			       wimp_block *poll_block)
 {
@@ -1006,6 +1149,8 @@ gdk_riscos_handle_enter_event (GdkRiscosDisplay *rdisplay,
 				    riscos_event->w);
   if (gdk_window == NULL)
     return;
+
+  GdkSeat *seat = gdk_display_get_default_seat(&rdisplay->parent_instance);
 
   xwimp_get_pointer_info (&mouse);
 
@@ -1028,12 +1173,12 @@ gdk_riscos_handle_enter_event (GdkRiscosDisplay *rdisplay,
   gdk_event->crossing.focus = FALSE;
   gdk_event->crossing.state = modifiers | buttons;
   
-  gdk_event_set_device (gdk_event, rdisplay->parent_instance.core_pointer);
+  gdk_event_set_device (gdk_event, gdk_seat_get_pointer (seat));
 
   send_event (gdk_event);
 }
 
-static void
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_leave_event (GdkRiscosDisplay *rdisplay,
 			       wimp_block *poll_block)
 {
@@ -1046,6 +1191,8 @@ gdk_riscos_handle_leave_event (GdkRiscosDisplay *rdisplay,
 				    riscos_event->w);
   if (gdk_window == NULL)
     return;
+
+  GdkSeat *seat = gdk_display_get_default_seat(&rdisplay->parent_instance);
 
   xwimp_get_pointer_info (&mouse);
 
@@ -1068,44 +1215,33 @@ gdk_riscos_handle_leave_event (GdkRiscosDisplay *rdisplay,
   gdk_event->crossing.focus = FALSE;
   gdk_event->crossing.state = modifiers | buttons;
 
-  gdk_event_set_device (gdk_event, rdisplay->parent_instance.core_pointer);
+  gdk_event_set_device (gdk_event, gdk_seat_get_pointer (seat));
 
   send_event (gdk_event);
 }
 
 /*
- * Need a better container for key codes, perhaps a hashmap?
  * Return -1 if there is no mapping.  */
-static int keyboard_map_wimp_to_internal (int wimp_key)
+static int keyboard_map_wimp_to_internal (GdkRiscosDisplay *riscos_display, int wimp_key)
 {
-  guint result = -1;
+  int result = GPOINTER_TO_INT(g_hash_table_lookup (riscos_display->inkey_hashtable,
+						    GINT_TO_POINTER(wimp_key)));
 
-  int i;
-  for (i = 0; i < sizeof (internal_keymap) / sizeof (struct internal_mapping); i++)
-    if (internal_keymap[i].wimp_code == wimp_key)
-      {
-	result = internal_keymap[i].internal_code;
-	break;
-      }
-
-  return result;
+  return result ? result : -1;
 }
 
 static guint
-map_keyboard_wimp_to_gdk (int key, guint modifiers)
+map_keyboard_wimp_to_gdk (GdkRiscosDisplay *riscos_display, int key, guint modifiers)
 {
-  guint result = (guint)key;
+  guint result;
 
-  if (key <= 26 && modifiers & GDK_CONTROL_MASK)
+  if (key <= 26 && (modifiers & GDK_CONTROL_MASK))
     return key + 'a' - 1;
 
-  int i;
-  for (i = 0; i < sizeof (function_keymap) / sizeof (struct keymapping); i++)
-    if (function_keymap[i].riscos_key_code == key)
-      {
-	result = function_keymap[i].gdk_key_code;
-	break;
-      }
+  result = GPOINTER_TO_INT(g_hash_table_lookup (riscos_display->gdkkey_hashtable,
+						GINT_TO_POINTER(key)));
+  if (!result)
+    result = (guint)key;
 
   return result;
 }
@@ -1122,7 +1258,7 @@ static void dump_keys_down(GdkRiscosDisplay *rdisplay)
       int code = GPOINTER_TO_INT (iterator->data);
       int inkey_code = keyboard_map_wimp_to_internal (code);
 
-      printf("    inkey (%d), code (%d, '%c')",inkey_code,code,code);
+      log_printf("    inkey (%d), code (%d, '%c')",inkey_code,code,code);
       iterator = next;
     }
 }
@@ -1140,7 +1276,7 @@ check_key_down_no_window (GdkRiscosDisplay *rdisplay)
     {
       GSList *next = iterator->next;
       int code = GPOINTER_TO_INT (iterator->data);
-      int inkey_code = keyboard_map_wimp_to_internal (code);
+      int inkey_code = keyboard_map_wimp_to_internal (rdisplay, code);
 
       if (inkey_code >= 0)
 	{
@@ -1163,12 +1299,13 @@ check_key_down (GdkRiscosDisplay *rdisplay,
 		guint state)
 {
   GSList *iterator = rdisplay->key_down_list;
+  GdkSeat *seat = gdk_display_get_default_seat(&rdisplay->parent_instance);
 
   while (iterator)
     {
       GSList *next = iterator->next;
       int code = GPOINTER_TO_INT (iterator->data);
-      int inkey_code = keyboard_map_wimp_to_internal (code);
+      int inkey_code = keyboard_map_wimp_to_internal (rdisplay, code);
 
       if (inkey_code >= 0 && osbyte1 (osbyte_IN_KEY, inkey_code ^ 0xff, 0xff) == 0)
 	  {
@@ -1179,14 +1316,14 @@ check_key_down (GdkRiscosDisplay *rdisplay,
 	    event->key.send_event = FALSE;
 	    event->key.time = rdisplay->last_seen_time;
 	    event->key.state = state;
-	    event->key.keyval = map_keyboard_wimp_to_gdk (code, state);
+	    event->key.keyval = map_keyboard_wimp_to_gdk (rdisplay, code, state);
 	    event->key.length = 0;
 	    event->key.string = NULL;
 	    event->key.hardware_keycode = event->key.keyval;
 	    event->key.group = 0;
 	    event->key.is_modifier = FALSE;
 
-	    gdk_event_set_device (event, rdisplay->parent_instance.core_pointer);
+	    gdk_event_set_device (event, gdk_seat_get_pointer (seat));
 
 	    send_event (event);
 #if 0
@@ -1210,7 +1347,7 @@ check_key_down (GdkRiscosDisplay *rdisplay,
     }
 }
 
-static void
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
 {
   GdkEvent *event;
@@ -1222,14 +1359,16 @@ gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
 
   xwimp_get_pointer_info (&mouse);
   
-  GdkWindow *gdk_window = g_hash_table_lookup (rdisplay->id_ht, mouse.w);
-  if (!gdk_window)
+  GdkWindow *mouse_window = g_hash_table_lookup (rdisplay->id_ht, mouse.w);
+  if (!mouse_window)
     {
       check_key_down_no_window (rdisplay);
       return;
     }
 
-  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (gdk_window->impl);
+  GdkRiscosSeat *riscos_seat = GDK_RISCOS_SEAT(gdk_display_get_default_seat(&rdisplay->parent_instance));
+  GdkWindow *event_window = riscos_seat->pointer_grab ? : mouse_window;
+  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (event_window->impl);
 
   GdkPoint mouse_pos, global_pos, local_pos;
   gdk_riscos_screen_point_to_pixel (impl->screen, (GdkPoint *)&mouse.pos, &mouse_pos);
@@ -1241,7 +1380,7 @@ gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
   guint old_buttons = gdk_riscos_translate_buttons (rdisplay->last_click.buttons);
 
   check_key_down (rdisplay,
-		  gdk_window,
+		  mouse_window,
 		  modifiers | buttons);
 
   if (rdisplay->system_drag)
@@ -1254,10 +1393,13 @@ gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
     {
       if (old_buttons != 0 && buttons == 0)
 	{
+	  if (riscos_seat->pointer_grab)
+	    riscos_seat->pointer_grab = NULL;
+
 	  _gdk_riscos_display_set_last_seen_time (rdisplay);
 
 	  event = create_button_event (rdisplay,
-				       gdk_window,
+				       event_window,
 				       GDK_BUTTON_RELEASE);
 
 	  event->button.x = local_pos.x;
@@ -1279,7 +1421,7 @@ gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
       
       if (current_button == GDK_BUTTON_PRIMARY && modifiers & GDK_SHIFT_MASK)
 	{
-	  start_resize_window (rdisplay, &mouse);
+	  start_resize_window (rdisplay, mouse_window);
 	  return;
 	}
     }
@@ -1295,7 +1437,7 @@ gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
   /* Check if this window has requested to be notified of motion events.
      TODO: Reduce the number of events for MOTION_HINT and check for button
      presses for BUTTON_MOTION masks.  */
-  GdkEventMask event_mask = gdk_window_get_events (gdk_window) | impl->event_mask;
+  GdkEventMask event_mask = gdk_window_get_events (mouse_window) | impl->event_mask;
   if ((event_mask & (GDK_POINTER_MOTION_MASK |
 		    GDK_POINTER_MOTION_HINT_MASK |
 		    GDK_BUTTON_MOTION_MASK |
@@ -1312,7 +1454,7 @@ gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
   _gdk_riscos_display_set_last_seen_time (rdisplay);
 
   event = gdk_event_new (GDK_MOTION_NOTIFY);
-  event->motion.window = g_object_ref (gdk_window);
+  event->motion.window = g_object_ref (event_window/*mouse_window*/);
   event->motion.send_event = FALSE;
   event->motion.time = rdisplay->last_seen_time;
   event->motion.x = local_pos.x;
@@ -1320,13 +1462,14 @@ gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
   event->motion.axes = NULL;
   event->motion.state = modifiers | buttons;
   event->motion.is_hint = FALSE;
-  event->motion.device = rdisplay->parent_instance.core_pointer;
   event->motion.x_root = global_pos.x;
   event->motion.y_root = global_pos.y;
+  gdk_event_set_device (event, gdk_seat_get_pointer (&riscos_seat->parent_instance));
+  gdk_event_set_seat (event, &riscos_seat->parent_instance);
 #if 0
 {
   char buffer[150];
-	      
+
   sprintf (buffer, "MOTION_NOTIFY : local(%f,%f) : global(%f,%f)",event->motion.x,event->motion.y,event->motion.x_root,event->motion.y_root);
   report_text0 (buffer);
 }
@@ -1334,20 +1477,45 @@ gdk_riscos_handle_null_event (GdkRiscosDisplay *rdisplay)
   send_event (event);
 }
 
-static void
+static void INLINE_EVENT_HANDLER
 gdk_riscos_handle_key_press (GdkRiscosDisplay *rdisplay,
 			     wimp_block *poll_block)
 {
   wimp_key *key = &poll_block->key;
 
+  switch (key->c)
+  {
+  case 3: /* CTRL-C */
+/*    if (event->key.state & GDK_CONTROL_MASK)*/
+      {
+	gdk_riscos_clipboard_claim(&rdisplay->parent_instance,
+				   rdisplay->selection.buffer,
+				   rdisplay->selection.size);
+      }
+    return;
+
+  case KEYCODE_F12:
+  case KEYCODE_SHIFT_F12:
+  case KEYCODE_CTRL_F12:
+  case KEYCODE_CTRL_SHIFT_F12:
+    xwimp_process_key(key->c);
+    return;
+  }
+
   GdkWindow *gdk_window = g_hash_table_lookup (rdisplay->id_ht, key->w);
   if (!gdk_window)
     return;
 
+  GdkSeat *seat = gdk_display_get_default_seat (&rdisplay->parent_instance);
+
   wimp_pointer mouse;
   xwimp_get_pointer_info (&mouse);
 
-  guint modifiers = gdk_riscos_read_modifiers ();
+  /* Make sure top bit set characters entered via the ALT key can get through.  */
+  guint modifiers = ((key->c & 0x80) == 0) ?
+			gdk_riscos_read_modifiers () :
+			0;
+
   guint buttons = gdk_riscos_translate_buttons (mouse.buttons);
 
   _gdk_riscos_display_set_last_seen_time (rdisplay);
@@ -1357,21 +1525,20 @@ gdk_riscos_handle_key_press (GdkRiscosDisplay *rdisplay,
   event->key.send_event = FALSE;
   event->key.time = rdisplay->last_seen_time;
   event->key.state = modifiers | buttons;
-  event->key.keyval = map_keyboard_wimp_to_gdk (key->c, modifiers);
+  event->key.keyval = map_keyboard_wimp_to_gdk (rdisplay, key->c, modifiers);
   event->key.length = 0;
   event->key.string = NULL;
   event->key.hardware_keycode = event->key.keyval;
   event->key.group = 0;
   event->key.is_modifier = FALSE;
 
-  gdk_event_set_device (event, rdisplay->parent_instance.core_pointer);
+  gdk_event_set_device (event, gdk_seat_get_keyboard (seat));
 
   send_event (event);
-
 #if 0
     {
       char buffer[150];
-      
+
       sprintf (buffer, "KEY_PRESS wimp (%d) state (%X) '%c'",key->c,event->key.state, key->c);
       report_text0 (buffer);
     }
@@ -1380,15 +1547,66 @@ gdk_riscos_handle_key_press (GdkRiscosDisplay *rdisplay,
 					     GUINT_TO_POINTER (key->c));
 }
 
+static void INLINE_EVENT_HANDLER
+gdk_riscos_handle_scroll_request(GdkRiscosDisplay *rdisplay,
+				 wimp_block *poll_block)
+{
+  wimp_scroll *scroll = &poll_block->scroll;
+
+  GdkWindow *gdk_window = g_hash_table_lookup (rdisplay->id_ht, scroll->w);
+  if (!gdk_window)
+    return;
+
+  GdkSeat *seat = gdk_display_get_default_seat(&rdisplay->parent_instance);
+  GdkWindowImplRiscos *impl = GDK_WINDOW_IMPL_RISCOS (gdk_window->impl);
+
+  wimp_pointer mouse;
+  xwimp_get_pointer_info (&mouse);
+
+  GdkPoint mouse_pos, global_pos, local_pos;
+  gdk_riscos_screen_point_to_pixel (impl->screen, (GdkPoint *)&mouse.pos, &mouse_pos);
+  gdk_riscos_screen_global_point (impl->screen, &mouse_pos, &global_pos);
+  gdk_riscos_window_map_from_global (impl->wrapper, &mouse_pos, &local_pos);
+
+  guint modifiers = gdk_riscos_read_modifiers ();
+  guint buttons = gdk_riscos_translate_buttons (mouse.buttons);
+
+  _gdk_riscos_display_set_last_seen_time (rdisplay);
+
+  GdkEvent *event = gdk_event_new (GDK_SCROLL);
+  event->scroll.window = g_object_ref (gdk_window);
+  event->scroll.send_event = FALSE;
+  event->scroll.time = rdisplay->last_seen_time;
+  event->scroll.x = local_pos.x;
+  event->scroll.y = local_pos.y;
+  event->scroll.state = modifiers | buttons;
+  event->scroll.delta_x = event->scroll.delta_y = 0;
+
+  gboolean extended_scroll = (scroll->ymin && (scroll->ymin & 3) == 0) ||
+			     (scroll->xmin && (scroll->xmin & 3) == 0);
+  if (extended_scroll)
+    {
+      event->scroll.direction = GDK_SCROLL_SMOOTH;
+      event->scroll.delta_x = (scroll->xmin / 4) * SCROLL_X_DELTA;
+      event->scroll.delta_y = -(scroll->ymin / 4) * SCROLL_Y_DELTA;
+    }
+  else if (scroll->xmin)
+    event->scroll.direction = (scroll->xmin < 0) ? GDK_SCROLL_LEFT : GDK_SCROLL_RIGHT;
+  else if (scroll->ymin)
+    event->scroll.direction = (scroll->ymin < 0) ? GDK_SCROLL_DOWN : GDK_SCROLL_UP;
+
+  event->scroll.device = gdk_seat_get_pointer (seat);
+  event->scroll.x_root = global_pos.x;
+  event->scroll.y_root = global_pos.y;
+
+  send_event (event);
+}
+
 static gboolean
 gdk_event_prepare (GSource *source,
 		   gint    *timeout)
 {
-//  gdk_threads_enter ();
-  
   *timeout = 0;
-
-//  gdk_threads_leave ();
 
   return TRUE;
 }
@@ -1406,8 +1624,6 @@ gdk_event_dispatch (GSource     *source,
 {
   GdkDisplay *display = ((GdkEventSource*) source)->display;
   GdkEvent *event;
-  
-  gdk_threads_enter ();
 
   event = gdk_display_get_event (display);
 
@@ -1417,8 +1633,6 @@ gdk_event_dispatch (GSource     *source,
 
       gdk_event_free (event);
     }
-
-  gdk_threads_leave ();
 
   return TRUE;
 }
@@ -1437,16 +1651,10 @@ _gdk_riscos_event_loop_init (GdkDisplay *display)
   GdkEventSource *event_source;
 
   /* Hook into the GLib main loop */
-
-//  event_poll_fd.events = G_IO_IN;
-//  event_poll_fd.fd = -1;
-
   source = g_source_new (&event_funcs, sizeof (GdkEventSource));
   g_source_set_name (source, "GDK RISC OS WIMP Event source"); 
   event_source = (GdkEventSource *) source;
   event_source->display = display;
-
-//  g_source_add_poll (source, &event_poll_fd);
 
   /* Using a priority of GDK_PRIORITY_EVENTS prevents the widget expose
    * signals from getting through, so use a lower priority.  */
@@ -1491,6 +1699,9 @@ poll_wimp_event (GdkRiscosDisplay *rdisplay,
       case wimp_KEY_PRESSED:
 	gdk_riscos_handle_key_press (rdisplay, poll_block);
 	break;
+      case wimp_SCROLL_REQUEST:
+	gdk_riscos_handle_scroll_request (rdisplay, poll_block);
+	break;
 #if 0
       /* NOTE: The RISC OS clipboard model states that we should ignore
        * the wimp_LOSE_CARET/wimp_GAIN_CARET events and use message_CLAIM_ENTITY
@@ -1534,5 +1745,17 @@ gdk_riscos_event_poll (wimp_block *poll_block)
 void
 _gdk_riscos_events_init (GdkDisplay *display)
 {
+  GdkRiscosDisplay *riscos_display = GDK_RISCOS_DISPLAY (display);
+
+  for (int i = 0; i < sizeof (function_keymap) / sizeof (struct keymapping); i++)
+    g_hash_table_insert (riscos_display->gdkkey_hashtable,
+			 GINT_TO_POINTER (function_keymap[i].riscos_key_code),
+			 GINT_TO_POINTER (function_keymap[i].gdk_key_code));
+
+  for (int i = 0; i < sizeof (internal_keymap) / sizeof (struct internal_mapping); i++)
+    g_hash_table_insert (riscos_display->inkey_hashtable,
+			 GINT_TO_POINTER (internal_keymap[i].wimp_code),
+			 GINT_TO_POINTER (internal_keymap[i].internal_code));
+
   _gdk_riscos_event_loop_init (display);
 }

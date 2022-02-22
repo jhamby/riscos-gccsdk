@@ -1,7 +1,9 @@
-
-AB_URL=http://www.cloudsprinter.com/random/crazeespod.src.zip
+AB_GIT=https://github.com/riscos-dot-info/crazeespod.git
 
 AB_PVERSION=0.1.1
+AB_ROVERSION=2
+
+export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile -lmikmod -lFLAC -lwebp"
 
 ab_package() {
   ab_create_app CrazeeSpod Apps/Games

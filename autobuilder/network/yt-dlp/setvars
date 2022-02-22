@@ -1,0 +1,32 @@
+AB_URL=https://files.pythonhosted.org/packages/5c/e0/e5bae3e87ee6da0f7507f3b58c5e9ffc1500de0742886ccc72c1a56740f2/yt-dlp-2022.2.4.tar.gz
+
+AB_PACKAGES=yt-dlp
+AB_CATEGORY=System
+AB_ROVERSION=1
+AB_PRECONF=:
+AB_MAKE=:
+
+python3 setup.py build
+
+ab_package() {
+
+  mkdir -p $D/yt-dlp/Resources/!PythonSite/Python38/Site-Packages
+  mkdir -p $D/yt-dlp/Resources/!PythonSite/Scripts
+
+  cp -rav $S/build/lib/yt_dlp $D/yt-dlp/Resources/!PythonSite/Python38/Site-Packages
+  cp -av $H/yt-dlp,feb $D/yt-dlp/Resources/!PythonSite/Scripts
+
+  $AB_HOME/add-riscpkg -section Development -package yt-dlp -name YT-DLP -depends "Python-38" \
+   -depends ZLib1g -depends LibSSL -depends TaskRunner -copyrightfile LICENSE
+
+  mkdir -p $D/yt-dlp/RiscPkg
+
+cat <<EOF  >> $D/yt-dlp/RiscPkg/Control,fff
+Description: A youtube-dl fork with additional features and fixes
+ yt-dlp is a youtube-dl fork based on the now inactive youtube-dlc. The main
+ focus of this project is adding new features and patches while also keeping
+ up to date with the original project
+EOF
+
+}
+

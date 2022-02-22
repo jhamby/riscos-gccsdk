@@ -1,0 +1,15 @@
+Description: image processing system good for very large ones (tools)
+ VIPS is an image processing system designed with efficiency in mind.
+ It is good with large images (ones that larger than the amount of RAM in
+ your machine), and for working with colour.  It can perform many
+ image manipulation tasks much faster than other packages such as
+ ImageMagick and the GIMP and includes some special features such as
+ creating single "mosaic" images from multiple parts.
+ .
+ VIPS consists of two main components: an image processing library
+ with some command-line tools and a spreadsheet-like graphical user
+ interface.  The graphical interface is available in the nip2 package.
+ .
+ This package includes several command-line utilities that make it
+ possible to use some vips functionality from shell scripts or the
+ command line.

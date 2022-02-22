@@ -1,0 +1,7 @@
+x wipe <Sargasso$Dir>.temp.playlist/m3u ~CF~V
+<Sargasso$Dir>.Poll 3
+<Sargasso$Dir>.Banner
+python3 <Sargasso$Dir>.yt-dlp/py --no-cache-dir -f %0 -g %1 > <Sargasso$Dir>.temp.playlist/m3u
+settype <Sargasso$Dir>.temp.playlist/m3u m3ufile
+basic -quit <Sargasso$Dir>.temp.alignoff
+filer_run <Sargasso$Dir>.temp.playlist/m3u

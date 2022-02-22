@@ -1,7 +1,5 @@
-AB_URL=http://deb.debian.org/debian/pool/main/f/fontconfig/fontconfig_2.11.0.orig.tar.xz
-
 AB_CATEGORY=Fonts
-AB_ROVERSION=4
+AB_ROVERSION=1
 
 if [ "$RO_SHAREDLIBS" == "yes" ]; then
   AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev libfontconfig1"
@@ -18,17 +16,6 @@ AB_INSTALL=env
 # Only install library files (but this prevents the headers from being installed
 # so comment it out).
 #AB_INSTALLTARGET="-C src install"
-
-# Prevent "{cp/mv} does not exist" errors when ro_install is used.
-export CPPROG=/bin/cp
-export MVPROG=/bin/mv
-
-if [ -d $S/b ]; then
-  # Note: Debian patch adds the documentation and other missing files, but places them
-  # in a directory called 'b' by mistake; merge 'b' into main source tree.
-  cp -R $S/b/* $S/
-  rm -rf $S/b
-fi
 
 autoreconf -fi
 
@@ -47,23 +34,29 @@ ab_package() {
   # Put correct directories in font file
   sed -e "s#@FC_DEFAULT_FONTS@#/UnixFont:truetype#" \
      -e "s#~/.fonts#/\&lt;Choices\$Write\&gt;/UnixFC#" \
-     -e "s#@FC_FONTPATH@##" \
+     -e "s#@FC_FONTPATH@#<dir>/UnixFont:otf</dir>#" \
      -e "s#@FC_CACHEDIR@#/UnixFC:cache#" \
      -e "s#~/.fontconfig#\&lt;Choices\$Write\&gt;/fontconfig_cache#" \
+     -e "s#@CONFIGDIR@#conf.d#" \
      $S/fonts.conf.in > $A/fonts/fonts.conf
 
   mkdir -p $A/fonts/conf.avail
   mkdir -p $A/fonts/conf.d
 
-  AVAIL_CONF="$S/conf.d/10-autohint.conf $S/conf.d/10-no-sub-pixel.conf
+  AVAIL_CONF="$S/conf.d/10-autohint.conf
+    $S/conf.d/10-hinting-full.conf $S/conf.d/10-hinting-medium.conf
+    $S/conf.d/10-hinting-none.conf $S/conf.d/10-hinting-slight.conf
+    $S/conf.d/10-no-sub-pixel.conf
     $S/conf.d/10-sub-pixel-bgr.conf $S/conf.d/10-sub-pixel-rgb.conf
     $S/conf.d/10-sub-pixel-vbgr.conf $S/conf.d/10-sub-pixel-vrgb.conf
     $S/conf.d/10-unhinted.conf
+    $S/conf.d/11-lcdfilter-default.conf $S/conf.d/11-lcdfilter-legacy.conf
+    $S/conf.d/11-lcdfilter-light.conf
     $S/conf.d/20-unhint-small-vera.conf $S/conf.d/25-unhint-nonlatin.conf
-    $S/conf.d/30-metric-aliases.conf $S/conf.d/30-urw-aliases.conf
-    $S/conf.d/40-nonlatin.conf $S/conf.d/45-latin.conf
+    $S/conf.d/30-metric-aliases.conf
+    $S/conf.d/40-nonlatin.conf $S/conf.d/45-generic.conf $S/conf.d/45-latin.conf
     $S/conf.d/49-sansserif.conf $S/conf.d/50-user.conf
-    $S/conf.d/51-local.conf $S/conf.d/60-latin.conf
+    $S/conf.d/51-local.conf $S/conf.d/60-generic.conf $S/conf.d/60-latin.conf
     $S/conf.d/65-fonts-persian.conf $S/conf.d/65-khmer.conf
     $S/conf.d/65-nonlatin.conf $S/conf.d/69-unifont.conf
     $S/conf.d/70-no-bitmaps.conf
@@ -71,7 +64,7 @@ ab_package() {
     $S/conf.d/90-synthetic.conf"
 
   CONFD_CONF="$S/conf.d/20-unhint-small-vera.conf
-    $S/conf.d/30-metric-aliases.conf $S/conf.d/30-urw-aliases.conf
+    $S/conf.d/30-metric-aliases.conf
     $S/conf.d/40-nonlatin.conf $S/conf.d/45-latin.conf
     $S/conf.d/49-sansserif.conf $S/conf.d/50-user.conf
     $S/conf.d/51-local.conf $S/conf.d/60-latin.conf
@@ -143,7 +136,7 @@ ab_package() {
     ab_add_sharedlib $S/src/.libs libfontconfig.so.1
 
     $AB_HOME/add-riscpkg -package libfontconfig1 -name LibFontConfig1 \
-	-section Library -depends "FontConfig-Config" -depends LibExpat1 -depends LibFreeType6
-
+	-section Library -depends "FontConfig-Config" -depends LibExpat1 -depends LibFreeType6 \
+	-depends LibUUID
   fi
 }

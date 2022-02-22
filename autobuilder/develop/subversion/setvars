@@ -1,4 +1,4 @@
-
+AB_URL=http://archive.apache.org/dist/subversion/subversion-1.6.23.tar.bz2
 AB_CONFLAGS="\
 --with-apr=$GCCSDK_INSTALL_ENV/bin/apr-1-config \
 --with-apr-util=$GCCSDK_INSTALL_ENV/bin/apu-1-config \

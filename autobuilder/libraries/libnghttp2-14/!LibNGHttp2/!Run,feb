@@ -1,0 +1,6 @@
+| Run file for LibNGHttp2
+
+IfThere <Obey$Dir>.!Sprites then IconSprites <Obey$Dir>.!Sprites
+
+Set LibNGHttp2$Dir <Obey$Dir>
+Set LibNGhttp2$Path <Obey$Dir>.

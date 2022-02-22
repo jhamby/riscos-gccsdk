@@ -1,0 +1,5 @@
+Description: arcade style game
+ This package provides the game engine for Rocks'n'Diamonds, an arcade
+ game in the tradition of "Boulder Dash", "Emerald Mine", "Supaplex",
+ "Sokoban", "Legend Of Zelda", etcetera. Game levels emulating all of
+ these can be downloaded from ArtSoft.org.

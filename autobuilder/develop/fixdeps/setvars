@@ -1,6 +1,7 @@
 AB_SVN=http://source.riscpkg.org/svn/FixDeps/trunk/
 AB_PVERSION=`grep "^Version:" RiscPkg/Control | cut -d' ' -f2`
 AB_COPYSOURCE=yes
+AB_ROVERSION=2
 # Default cleanup should get everything
 AB_DISTCLEAN=':'
 

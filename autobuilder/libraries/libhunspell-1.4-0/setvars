@@ -3,6 +3,8 @@ AB_URL=http://deb.debian.org/debian/pool/main/h/hunspell/hunspell_1.4.1.orig.tar
 AB_INSTALL=env
 AB_ROVERSION=2
 
+AB_DISTRO=stretch
+
 ab_package() {
   ab_create_sharedlib_skeleton libhunspell
 
