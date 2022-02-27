@@ -1,0 +1,7 @@
+Set MUView$Dir <Obey$Dir>
+
+Iconsprites <MUView$Dir>.!Sprites
+if "<File$Type_ADF>" = "" then Set File$Type_ADF "PDF"
+Set Alias$@RunType_ADF Run <MUView$Dir>.!Run %%*0
+if "<File$Type_A76>" = "" then Set File$Type_A76 "EPUB"
+Set Alias$@RunType_A76 Run <MUView$Dir>.!Run %%*0

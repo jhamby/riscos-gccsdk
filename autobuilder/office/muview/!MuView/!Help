@@ -1,0 +1,69 @@
+MuView - PDF, XPS and E-book Viewer (0.05 alpha)
+
+The latest version is available from https://www.riscosports.co.uk
+
+The !MuView application is just a simple front end onto the MuPDF 1.18.0 libraries.
+
+See the MuPDF website at http://mupdf.com for more information.
+
+Getting Started
+---------------
+Before running MuView ensure the RISC OS ROM you are using is from 18-Feb-18 onwards otherwise MuView will fail to run              causing an abort.
+After double clicking the MuView application the MuView icon appears on the iconbar.
+
+To display a file just drop the file onto the MuView iconbar icon. Valid file types are,
+PDF
+GIF
+PNG
+JPEG
+BMP
+TIFF
+SVG
+EPUB (A76)
+
+The following file types don't currently exist on RISC OS so they will have to be set before
+dropping the file onto the icon bar icon.
+CBZ (AB1)
+FB2 (AAF)
+XPS (AB2)
+
+Additionally PDF and EPUB files can be double-clicked to load.
+To navigate a document press Page Up/Page Down.
+To zoom in/out press the Up/Down cursor keys.
+To roate clockwise/anti clockwise press the Right/Left cursor keys.
+To go to a specific page click menu. Navigate to the 'Goto Page' dialogue. Enter the page
+number and press return or click Goto.
+
+History
+-------
+RISC OS Version 0.01 alpha (30-Mar-18)
+- this is the initial alpha release of MuView.
+RISC OS Version 0.02 alpha (03-Nov-19)
+- 2nd alpha version
+- Updated the MuPDF library to 1.16.1
+- Added zoom and rotate
+- Current page number of total pages is shown in the window title bar
+RISC OS Version 0.03 alpha (08-May-20)
+- Update the MuPDF library to 1.17
+- Add goto page
+RISC OS Version 0.04 alpha (14-Oct-20)
+- Update the MuPDF library to 1.18
+- Add simple save as text, html, svg and pdf
+RISC OS Version 0.05 alpha (27-Feb-22)
+-- In 180dpi screen mode the display is correctly scaled
+-- Built with the GCCSDK autobuilder
+Issues
+------
+It is the fifth alpha version so there will still be bugs and many missing features.
+
+This is the only documentation for the moment. More documentation will
+gradually appear as features are added/completed.
+
+Contact
+-------
+Chris Gransden - chrisg@riscosports.co.uk
+
+License
+-------
+
+See the COPYING file in the !MuView folder.
