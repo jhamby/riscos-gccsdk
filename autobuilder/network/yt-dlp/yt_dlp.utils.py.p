@@ -1,6 +1,6 @@
---- yt_dlp/utils.py.orig	2021-11-18 14:26:22.595464307 +0000
-+++ yt_dlp/utils.py	2021-11-18 18:50:29.670000000 +0000
-@@ -6412,10 +6416,11 @@
+--- yt_dlp/utils.py.orig	2022-03-24 17:27:17.530502733 +0000
++++ yt_dlp/utils.py	2022-03-27 08:29:25.767874719 +0100
+@@ -5098,10 +5098,11 @@
      try:
          plugins_spec = importlib.util.spec_from_file_location(
              name, os.path.join(get_executable_path(), 'ytdlp_plugins', name, '__init__.py'))

@@ -1,5 +1,5 @@
---- yt_dlp/postprocessor/ffmpeg.py.orig	2022-02-04 11:44:05.847384293 +0000
-+++ yt_dlp/postprocessor/ffmpeg.py	2022-02-04 11:31:45.850000000 +0000
+--- yt_dlp/postprocessor/ffmpeg.py.orig	2022-03-24 17:27:17.534502884 +0000
++++ yt_dlp/postprocessor/ffmpeg.py	2022-03-27 08:31:57.874254342 +0100
 @@ -92,7 +92,8 @@
          programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
  
