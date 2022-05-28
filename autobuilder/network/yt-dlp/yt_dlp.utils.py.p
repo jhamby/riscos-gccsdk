@@ -1,7 +1,7 @@
---- yt_dlp/utils.py.orig	2022-03-24 17:27:17.530502733 +0000
-+++ yt_dlp/utils.py	2022-03-27 08:29:25.767874719 +0100
-@@ -5098,10 +5098,11 @@
-     try:
+--- yt_dlp/utils.py.orig	2022-05-28 07:38:47.078303731 +0100
++++ yt_dlp/utils.py	2022-05-28 07:41:50.922582144 +0100
+@@ -4920,10 +4920,11 @@
+     with contextlib.suppress(FileNotFoundError):
          plugins_spec = importlib.util.spec_from_file_location(
              name, os.path.join(get_executable_path(), 'ytdlp_plugins', name, '__init__.py'))
 -        plugins = importlib.util.module_from_spec(plugins_spec)
