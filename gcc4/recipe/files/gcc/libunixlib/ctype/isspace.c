@@ -3,6 +3,7 @@
  */
 
 #include <ctype.h>
+#include <locale.h>
 
 int
 (isspace) (int c)
@@ -10,3 +11,8 @@ int
   return isspace (c);
 }
 
+int
+isspace_l (int c, locale_t locobj)
+{
+  return ((&locobj->ctype[1])[c] & ___ctype_white);
+}

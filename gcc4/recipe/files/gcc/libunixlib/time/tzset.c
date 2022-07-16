@@ -36,7 +36,7 @@ tzset (void)
   /* Get timezone information for current territory.  */
   _kernel_swi_regs regs;
 #ifndef __TARGET_SCL__
-  regs.r[0] = __locale_territory[LC_TIME];
+  regs.r[0] = __locale_global.locale_territory[LC_TIME];
 #else
   regs.r[0] = -1; /* Current territory.  */
 #endif

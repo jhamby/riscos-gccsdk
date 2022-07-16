@@ -1,7 +1,7 @@
 /*
  * File taken from glibc 2.11.
  * Following changes were made:
- *   - Disabled non-standard reentrant locale prototypes.
+ *   - None
  */
 
 /* Copyright (C) 1995-2008, 2009 Free Software Foundation, Inc.
@@ -172,7 +172,6 @@ extern int wcsncmp (__const wchar_t *__s1, __const wchar_t *__s2, size_t __n)
 __END_NAMESPACE_STD
 #endif
 
-#if 0
 #ifdef __USE_XOPEN2K8
 /* Compare S1 and S2, ignoring case.  */
 extern int wcscasecmp (__const wchar_t *__s1, __const wchar_t *__s2) __THROW;
@@ -183,14 +182,13 @@ extern int wcsncasecmp (__const wchar_t *__s1, __const wchar_t *__s2,
 
 /* Similar to the two functions above but take the information from
    the provided locale and not the global locale.  */
-# include <xlocale.h>
+# include <bits/locale_t.h>
 
 extern int wcscasecmp_l (__const wchar_t *__s1, __const wchar_t *__s2,
-			 __locale_t __loc) __THROW;
+			 locale_t __loc) __THROW;
 
 extern int wcsncasecmp_l (__const wchar_t *__s1, __const wchar_t *__s2,
-			  size_t __n, __locale_t __loc) __THROW;
-#endif
+			  size_t __n, locale_t __loc) __THROW;
 #endif
 
 __BEGIN_NAMESPACE_STD
@@ -205,21 +203,19 @@ extern size_t wcsxfrm (wchar_t *__restrict __s1,
 __END_NAMESPACE_STD
 
 #ifdef __USE_XOPEN2K8
-#if 0
 /* Similar to the two functions above but take the information from
    the provided locale and not the global locale.  */
 
 /* Compare S1 and S2, both interpreted as appropriate to the
    LC_COLLATE category of the given locale.  */
 extern int wcscoll_l (__const wchar_t *__s1, __const wchar_t *__s2,
-		      __locale_t __loc) __THROW;
+		      locale_t __loc) __THROW;
 
 /* Transform S2 into array pointed to by S1 such that if wcscmp is
    applied to two transformed strings the result is the as applying
    `wcscoll' to the original strings.  */
 extern size_t wcsxfrm_l (wchar_t *__s1, __const wchar_t *__s2,
-			 size_t __n, __locale_t __loc) __THROW;
-#endif
+			 size_t __n, locale_t __loc) __THROW;
 
 #ifndef __TARGET_SCL__
 /* Duplicate S, returning an identical malloc'd string.  */

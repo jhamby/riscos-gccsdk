@@ -191,7 +191,7 @@ __unixinit (void)
   __pthread_prog_init ();
   __unixlib_signal_initialise (__u);
   /* Initialise ctype tables to the C locale.  */
-  __build_ctype_tables (-2);
+  __build_ctype_tables (&__locale_global, -2);
   /* Define and initialise the Unix I/O.  */
   initialise_unix_io ();
   __stdioinit ();

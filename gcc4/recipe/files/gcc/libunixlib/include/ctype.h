@@ -51,6 +51,48 @@ extern int isxdigit (int __c) __THROW;
 extern int isblank (int __c) __THROW;
 
 #ifndef __TARGET_SCL__
+#  ifdef __USE_XOPEN2K8
+#    include <bits/locale_t.h>
+
+/* c is alphabetic or numeric.  */
+extern int isalnum_l (int __c, locale_t locobj) __THROW;
+
+/* c is alphabetic.  */
+extern int isalpha_l (int __c, locale_t locobj) __THROW;
+
+/* c is a control character.  */
+extern int iscntrl_l (int __c, locale_t locobj) __THROW;
+
+/* c is a decimal digit.  */
+extern int isdigit_l (int __c, locale_t locobj) __THROW;
+
+/* c is any printable character other than a space. */
+extern int isgraph_l (int __c, locale_t locobj) __THROW;
+
+/* c is a lower-case letter.  */
+extern int islower_l (int __c, locale_t locobj) __THROW;
+
+/* c is an upper-case letter.  */
+extern int isupper_l (int __c, locale_t locobj) __THROW;
+
+/* c is a printable character.  */
+extern int isprint_l (int __c, locale_t locobj) __THROW;
+
+/* c is a printable character other than a space or a
+   alphanumeric character.  */
+extern int ispunct_l (int __c, locale_t locobj) __THROW;
+
+/* c is a white space character e.g. space, newline, tab, linefeed,
+   return, vertical tab.  */
+extern int isspace_l (int __c, locale_t locobj) __THROW;
+
+/* c is a hex digit.  */
+extern int isxdigit_l (int __c, locale_t locobj) __THROW;
+
+/* c is tab or space.  */
+extern int isblank_l (int __c, locale_t locobj) __THROW;
+#  endif
+
 /* Characteristics. */
 extern const unsigned char * const __ctype;
 /* Lower case table.  */
@@ -108,12 +150,20 @@ extern const unsigned char __ctype[];
 extern int toupper (int __c) __THROW;
 #ifndef __TARGET_SCL__
 #  define toupper(c) ((int) __ctype_upper[(int) (c)])
+
+#  ifdef __USE_XOPEN2K8
+extern int toupper_l (int __c, locale_t locobj) __THROW;
+#  endif
 #endif
 
 /* Convert c to lower case.  */
 extern int tolower (int __c) __THROW;
 #ifndef __TARGET_SCL__
 #  define tolower(c) ((int) __ctype_lower[(int) (c)])
+
+#  ifdef __USE_XOPEN2K8
+extern int tolower_l (int __c, locale_t locobj) __THROW;
+#  endif
 #endif
 
 #ifndef __TARGET_SCL__
@@ -135,6 +185,11 @@ extern int toascii (int __c) __THROW;
 /* Is c an ASCII character.  */
 extern int isascii (int __c) __THROW;
 #    define isascii(c) ((unsigned)(c) <= 0x7f)
+
+#    ifdef __USE_XOPEN2K8
+extern int toascii_l (int __c, locale_t locobj) __THROW;
+extern int isascii_l (int __c, locale_t locobj) __THROW;
+#    endif
 #  endif
 #endif
 

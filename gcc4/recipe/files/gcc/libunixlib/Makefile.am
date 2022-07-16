@@ -583,11 +583,11 @@ locale_src =
 else
 locale_src = \
 	locale/localeconv.c \
+	locale/newlocale.c \
 	locale/nl_langinfo.c \
 	locale/setlocale.c \
 	locale/strcoll.c \
-	locale/strxfrm.c \
-	locale/territory.c
+	locale/strxfrm.c
 endif
 locale_src += \
 	locale/iconv.c
@@ -1312,6 +1312,7 @@ libc_headers = \
 	bits/in.h \
 	bits/libc-lock.h \
 	bits/locale.h \
+	bits/locale_t.h \
 	bits/mathcalls.h \
 	bits/mathdef.h \
 	bits/mathinline.h \

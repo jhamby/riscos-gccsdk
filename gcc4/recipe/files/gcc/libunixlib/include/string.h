@@ -93,6 +93,16 @@ extern size_t strxfrm (char *__restrict __dest,
 		       const char *__restrict __src, size_t __n)
      __THROW __nonnull ((2));
 
+#ifdef __USE_XOPEN2K8
+#include <bits/locale_t.h>
+
+extern int strcoll_l (const char *__s1, const char *__s2, locale_t __l)
+     __THROW __attribute_pure__ __nonnull ((1, 2, 3));
+
+extern size_t strxfrm_l (char *__dest, const char *__src, size_t __n,
+			 locale_t __l) __THROW __nonnull ((2, 4));
+#endif
+
 /* Find the first occurrence of c in s. */
 extern char *strchr (const char *__s, int __c)
      __THROW __attribute_pure__ __nonnull ((1)) __wur;
@@ -281,12 +291,28 @@ extern int strcasecmp (const char *__s1, const char *__s2)
 /* Compare no more than N chars of S1 and S2, ignoring case.  */
 extern int strncasecmp (const char *__s1, const char *__s2, size_t __n)
      __THROW __attribute_pure__ __nonnull ((1, 2)) __wur;
+
+#  ifdef __USE_XOPEN2K8
+#    include <bits/locale_t.h>
+
+extern int strcasecmp_l (const char *__s1, const char *__s2, locale_t __loc)
+     __THROW __attribute_pure__ __nonnull ((1, 2, 3));
+
+extern int strncasecmp_l (const char *__s1, const char *__s2,
+                          size_t __n, locale_t __loc)
+     __THROW __attribute_pure__ __nonnull ((1, 2, 4));
+#  endif
 #endif /* Use BSD.  */
 
 #if defined __USE_XOPEN2K || defined __USE_MISC
 /* Re-entrant version of strerror */
 extern int strerror_r (int __errnum, char *__strerrbuf, size_t __buflen)
      __THROW __nonnull ((2));
+#endif
+
+#ifdef __USE_XOPEN2K8
+/* Translate error number to string according to the locale L.  */
+extern char *strerror_l (int __errnum, locale_t __l) __THROW;
 #endif
 
 #ifndef __TARGET_SCL__

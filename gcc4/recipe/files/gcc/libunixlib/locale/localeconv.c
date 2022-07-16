@@ -14,8 +14,6 @@
 
 /* #define DEBUG */
 
-int __setlocale_called = 1;
-
 static int
 read_symbol (int reason_code, int territory)
 {
@@ -71,97 +69,124 @@ read_byte_list (int reason_code, char **grouping, int territory)
   *grouping = new_grouping;
 }
 
-static struct lconv lc = { NULL, NULL, NULL, NULL, NULL,
-			   NULL, NULL, NULL, NULL, NULL,
-			   CHAR_MAX, CHAR_MAX, CHAR_MAX, CHAR_MAX,
-			   CHAR_MAX, CHAR_MAX, CHAR_MAX, CHAR_MAX };
+void
+__localeconv_lconv_init (struct lconv *lc)
+{
+  memset(lc, 0, sizeof(*lc));
+  lc->int_frac_digits = lc->frac_digits = lc->p_cs_precedes =
+  lc->p_sep_by_space = lc->n_cs_precedes = lc->n_sep_by_space =
+  lc->p_sign_posn = lc->n_sign_posn = CHAR_MAX;
+}
 
-/* Defined by POSIX as not threadsafe */
-struct lconv *
-localeconv (void)
+void
+__localeconv_lconv_fini (struct lconv *lc)
+{
+  free(lc->decimal_point);
+  free(lc->thousands_sep);
+  free(lc->grouping);
+  free(lc->int_curr_symbol);
+  free(lc->currency_symbol);
+  free(lc->mon_decimal_point);
+  free(lc->mon_thousands_sep);
+  free(lc->mon_grouping);
+  free(lc->positive_sign);
+  free(lc->negative_sign);
+}
+
+void
+__localeconv_l (locale_t locobj)
 {
   int numeric, monetary;
 
   /* If setlocale has not been called since the last call to
      localeconv, then the lconv structure will be the same.  */
-  if (!__setlocale_called)
-    return &lc;
+  if (!locobj->lc_needs_refresh)
+    return;
 
-  __setlocale_called = 0;
+  locobj->lc_needs_refresh = 0;
 
-  numeric = __locale_territory[LC_NUMERIC];
-  monetary = __locale_territory[LC_MONETARY];
+  numeric = locobj->locale_territory[LC_NUMERIC];
+  monetary = locobj->locale_territory[LC_MONETARY];
 
   /* See the PRMs regarding SWI Territory_ReadSymbols for the
      meanings of the following numbers.  */
   if (numeric == -1)
     {
       /* We're using the 'C' locale.  */
-      free (lc.decimal_point);
-      lc.decimal_point = strdup (".");
-      free (lc.thousands_sep);
-      lc.thousands_sep = strdup ("");
-      free (lc.grouping);
-      lc.grouping = strdup ("");
+      free (locobj->lc.decimal_point);
+      locobj->lc.decimal_point = strdup (".");
+      free (locobj->lc.thousands_sep);
+      locobj->lc.thousands_sep = strdup ("");
+      free (locobj->lc.grouping);
+      locobj->lc.grouping = strdup ("");
     }
   else
     {
-      free (lc.decimal_point);
-      lc.decimal_point = strdup ((char *) read_symbol (0, numeric));
-      free (lc.thousands_sep);
-      lc.thousands_sep = strdup ((char *) read_symbol (1, numeric));
-      read_byte_list (2, &lc.grouping, numeric);
+      free (locobj->lc.decimal_point);
+      locobj->lc.decimal_point = strdup ((char *) read_symbol (0, numeric));
+      free (locobj->lc.thousands_sep);
+      locobj->lc.thousands_sep = strdup ((char *) read_symbol (1, numeric));
+      read_byte_list (2, &locobj->lc.grouping, numeric);
     }
   if (monetary == -1)
     {
       /* We using the 'C' locale.  Empty strings and CHAR_MAX means
 	 that these fields are unspecified.  */
-      free (lc.mon_decimal_point);
-      lc.mon_decimal_point = strdup ("");
-      free (lc.mon_thousands_sep);
-      lc.mon_thousands_sep = strdup ("");
-      free (lc.mon_grouping);
-      lc.mon_grouping = strdup ("");
-      lc.int_frac_digits = CHAR_MAX;
-      lc.frac_digits = CHAR_MAX;
-      free (lc.currency_symbol);
-      lc.currency_symbol = strdup ("");
-      free (lc.int_curr_symbol);
-      lc.int_curr_symbol = strdup ("");
-      lc.p_cs_precedes = CHAR_MAX;
-      lc.n_cs_precedes = CHAR_MAX;
-      lc.p_sep_by_space = CHAR_MAX;
-      lc.n_sep_by_space = CHAR_MAX;
-      free (lc.positive_sign);
-      lc.positive_sign = strdup ("");
-      free (lc.negative_sign);
-      lc.negative_sign = strdup ("");
-      lc.p_sign_posn = CHAR_MAX;
-      lc.n_sign_posn = CHAR_MAX;
+      free (locobj->lc.mon_decimal_point);
+      locobj->lc.mon_decimal_point = strdup ("");
+      free (locobj->lc.mon_thousands_sep);
+      locobj->lc.mon_thousands_sep = strdup ("");
+      free (locobj->lc.mon_grouping);
+      locobj->lc.mon_grouping = strdup ("");
+      locobj->lc.int_frac_digits = CHAR_MAX;
+      locobj->lc.frac_digits = CHAR_MAX;
+      free (locobj->lc.currency_symbol);
+      locobj->lc.currency_symbol = strdup ("");
+      free (locobj->lc.int_curr_symbol);
+      locobj->lc.int_curr_symbol = strdup ("");
+      locobj->lc.p_cs_precedes = CHAR_MAX;
+      locobj->lc.n_cs_precedes = CHAR_MAX;
+      locobj->lc.p_sep_by_space = CHAR_MAX;
+      locobj->lc.n_sep_by_space = CHAR_MAX;
+      free (locobj->lc.positive_sign);
+      locobj->lc.positive_sign = strdup ("");
+      free (locobj->lc.negative_sign);
+      locobj->lc.negative_sign = strdup ("");
+      locobj->lc.p_sign_posn = CHAR_MAX;
+      locobj->lc.n_sign_posn = CHAR_MAX;
     }
   else
     {
-      free (lc.int_curr_symbol);
-      lc.int_curr_symbol = strdup ((char *)read_symbol (3, monetary));
-      free (lc.currency_symbol);
-      lc.currency_symbol = strdup ((char *)read_symbol (4, monetary));
-      free (lc.mon_decimal_point);
-      lc.mon_decimal_point = strdup ((char *)read_symbol (5, monetary));
-      free (lc.mon_thousands_sep);
-      lc.mon_thousands_sep = strdup ((char *)read_symbol (6, monetary));
-      read_byte_list (7, &lc.mon_grouping, monetary);
-      free (lc.positive_sign);
-      lc.positive_sign = strdup ((char *)read_symbol (8, monetary));
-      free (lc.negative_sign);
-      lc.negative_sign = strdup ((char *)read_symbol (9, monetary));
-      lc.int_frac_digits = (char)read_symbol (10, monetary);
-      lc.frac_digits = (char)read_symbol (11, monetary);
-      lc.p_cs_precedes = (char)read_symbol (12, monetary);
-      lc.p_sep_by_space = (char)read_symbol (13, monetary);
-      lc.n_cs_precedes = (char)read_symbol (14, monetary);
-      lc.n_sep_by_space = (char)read_symbol (15, monetary);
-      lc.p_sign_posn = (char)read_symbol (16, monetary);
-      lc.n_sign_posn = (char)read_symbol (17, monetary);
+      free (locobj->lc.int_curr_symbol);
+      locobj->lc.int_curr_symbol = strdup ((char *)read_symbol (3, monetary));
+      free (locobj->lc.currency_symbol);
+      locobj->lc.currency_symbol = strdup ((char *)read_symbol (4, monetary));
+      free (locobj->lc.mon_decimal_point);
+      locobj->lc.mon_decimal_point = strdup ((char *)read_symbol (5, monetary));
+      free (locobj->lc.mon_thousands_sep);
+      locobj->lc.mon_thousands_sep = strdup ((char *)read_symbol (6, monetary));
+      read_byte_list (7, &locobj->lc.mon_grouping, monetary);
+      free (locobj->lc.positive_sign);
+      locobj->lc.positive_sign = strdup ((char *)read_symbol (8, monetary));
+      free (locobj->lc.negative_sign);
+      locobj->lc.negative_sign = strdup ((char *)read_symbol (9, monetary));
+      locobj->lc.int_frac_digits = (char)read_symbol (10, monetary);
+      locobj->lc.frac_digits = (char)read_symbol (11, monetary);
+      locobj->lc.p_cs_precedes = (char)read_symbol (12, monetary);
+      locobj->lc.p_sep_by_space = (char)read_symbol (13, monetary);
+      locobj->lc.n_cs_precedes = (char)read_symbol (14, monetary);
+      locobj->lc.n_sep_by_space = (char)read_symbol (15, monetary);
+      locobj->lc.p_sign_posn = (char)read_symbol (16, monetary);
+      locobj->lc.n_sign_posn = (char)read_symbol (17, monetary);
     }
-  return &lc;
+  return;
+}
+
+/* Defined by POSIX as not threadsafe */
+struct lconv *
+localeconv (void)
+{
+  __localeconv_l (&__locale_global);
+
+  return &__locale_global.lc;
 }
