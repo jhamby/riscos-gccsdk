@@ -1,13 +1,15 @@
-/* Case insensitive string comparison.
-   Copyright (c) 2002-2011 UnixLib Developers.  */
+/* Case insensitive string comparison using
+   POSIX.1-2008 extended locales.
+   Copyright (c) 2002-2022 UnixLib Developers.  */
 
+#define __USE_XOPEN2K8
 #include <string.h>
 #include <strings.h>
 #include <ctype.h>
 #include <locale.h>
 
 int
-stricmp (const char *s1, const char *s2)
+strcasecmp_l (const char *s1, const char *s2, locale_t locobj)
 {
   const unsigned char *p1 = (const unsigned char *) s1;
   const unsigned char *p2 = (const unsigned char *) s2;
@@ -18,12 +20,11 @@ stricmp (const char *s1, const char *s2)
 
   while (! result)
     {
-      result = tolower (*p1) - tolower (*p2);
+      result = tolower_l (*p1, locobj) - tolower_l (*p2, locobj);
       if (*p1++ == '\0')
-	break;
+        break;
       p2 ++;
     }
 
   return result;
 }
-strong_alias (stricmp, strcasecmp)

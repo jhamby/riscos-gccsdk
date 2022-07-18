@@ -1033,6 +1033,10 @@ if !ARM_EABI
 string_src += \
 	string/mempcpy.c
 endif
+# support for POSIX-1.2008 extended locales
+string_src += \
+	string/strcasecmp_l.c \
+	string/strncasecmp_l.c
 
 if UNIXLIB_BUILDING_SCL
 sys_src =
