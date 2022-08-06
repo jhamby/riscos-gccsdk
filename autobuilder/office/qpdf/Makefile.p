@@ -1,11 +1,11 @@
---- Makefile.orig	2021-10-23 09:48:15.242622719 +0100
-+++ Makefile	2021-10-23 09:48:22.974450371 +0100
+--- Makefile.orig	2022-08-06 08:47:02.992456455 +0100
++++ Makefile	2022-08-06 08:47:14.788417890 +0100
 @@ -35,7 +35,7 @@
  # install to install in a separate location.  This is useful for
  # packagers.
  
--BUILD_ITEMS := manual libqpdf zlib-flate libtests qpdf examples
-+BUILD_ITEMS := manual libqpdf zlib-flate qpdf examples
+-BUILD_ITEMS := manual libqpdf zlib-flate libtests qpdf fuzz examples
++BUILD_ITEMS := manual libqpdf zlib-flate qpdf fuzz examples
  OUTPUT_DIR = build
  ALL_TARGETS =
  

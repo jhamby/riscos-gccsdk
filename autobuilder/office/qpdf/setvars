@@ -1,7 +1,6 @@
 AB_INSTALL=env
 
-# build the buster version as newer versions require full c++11 support
-AB_DISTRO=buster
+AB_URL=https://github.com/qpdf/qpdf/releases/download/release-qpdf-9.0.2/qpdf-9.0.2.tar.gz
 
 AB_CONFLAGS='--with-random=/dev/random'
 
