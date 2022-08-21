@@ -1,5 +1,5 @@
---- unix/uxshare.c.orig	2017-11-05 16:54:17.434747853 +0000
-+++ unix/uxshare.c	2017-11-05 16:55:07.377459827 +0000
+--- unix/sharing.c.orig	2017-11-05 16:54:17.434747853 +0000
++++ unix/sharing.c	2017-11-05 16:55:07.377459827 +0000
 @@ -298,6 +299,7 @@
          sfree(lockname);
          return SHARE_NONE;

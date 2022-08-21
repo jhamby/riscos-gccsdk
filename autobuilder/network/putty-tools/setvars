@@ -1,20 +1,38 @@
-AB_URL=https://the.earth.li/~sgtatham/putty/latest/putty-0.76.tar.gz
+AB_URL=https://the.earth.li/~sgtatham/putty/latest/putty-0.77.tar.gz
 
-AB_CONFLAGS='--without-gtk --without-gssapi'
+export CFLAGS='-std=c99 -D_GNU_SOURCE'
+
+AB_DISTCLEAN="$AB_MAKE -C build clean"
+
+ab_make() {
+   mkdir build && cd build
+   cmake -DCMAKE_TOOLCHAIN_FILE=../../../../env/toolchain-riscos.cmake \
+         -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTAL_ENV \
+         -DCMAKE_EXE_LINKER_FLAGS='-static -L ../../../../../env/lib' \
+         -DPUTTY_GTK_VERSION=0 \
+         -DPUTTY_GSSAPI=STATIC \
+         ..
+   $AB_MAKE
+   cd ..
+}
+
 
 ab_package() {
   ab_create_command_app PuttyTools Apps/Network
-  ab_add_commands $S/psftp$AB_EXEEXT
-  ab_add_commands $S/puttygen$AB_EXEEXT
+  ab_add_commands $S/build/psftp
+  ab_add_commands $S/build/pscp
+  ab_add_commands $S/build/puttygen
 
    
   mkdir -p $A/doc
   
   rman -f HTML $S/doc/psftp.1 > $A/doc/psftp.html
   rman -f HTML $S/doc/puttygen.1 > $A/doc/puttygen.html
+  rman -f HTML $S/doc/pscp.1 > $A/doc/pscp.html
+
 
   cp -av $S/LICENCE $A
-  cp -av $S/doc/*.html $A/doc
+  cp -av $S/doc/html/*.html $A/doc
 
   $AB_HOME/add-riscpkg -unixlib -package puttytools -name PuttyTools -copyrightfile LICENCE -section Network
 }
