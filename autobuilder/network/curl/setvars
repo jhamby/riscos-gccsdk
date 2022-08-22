@@ -1,4 +1,4 @@
-AB_URL=http://ftp.debian.org/debian/pool/main/c/curl/curl_7.81.0.orig.tar.gz
+AB_URL=http://ftp.debian.org/debian/pool/main/c/curl/curl_7.84.0.orig.tar.gz
 AB_ROVERSION=1
 
 # make distclean seems to get stuck in an infinite loop
