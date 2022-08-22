@@ -4,7 +4,7 @@ AB_ROVERSION=1
 # make distclean seems to get stuck in an infinite loop
 AB_DISTCLEAN='$AB_MAKE -C src clean'
 
-AB_CONFLAGS='--with-ssl --enable-ares --disable-ipv6 --without-gnutls --with-libssh2 --with-ca-bundle=InetDBase:CertData'
+AB_CONFLAGS='--with-ssl --enable-ares --disable-ipv6 --without-brotli --without-gnutls --with-libssh2 --with-ca-bundle=InetDBase:CertData'
 
 autoreconf -fi
 
