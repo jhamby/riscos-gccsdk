@@ -1,0 +1,6 @@
+| Boot file for LibCJSON1
+|
+If "<LibCJSON1$Dir>" = "" Then Set LibCJSON1$Dir <Obey$Dir>
+If "<LibCJSON1$Path>" = "" Then Set LibCJSON1$Path <Obey$Dir>.
+
+IfThere <LibCJSON1$Dir>.!Sprites then IconSprites <LibCJSON1$Dir>.!Sprites
