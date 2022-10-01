@@ -1,0 +1,6 @@
+| Run file for Libmosquitto1
+
+Set Libmosquitto1$Dir <Obey$Dir>
+Set Libmosquitto1$Path <Obey$Dir>.
+
+IfThere <Libmosquitto1$Dir>.!Sprites then IconSprites <Libmosquitto1$Dir>.!Sprites
