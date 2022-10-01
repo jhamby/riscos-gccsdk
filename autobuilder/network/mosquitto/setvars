@@ -1,6 +1,6 @@
 AB_INSTALL=no
 
-# Assum we're building everything statically
+# Assume we're building everything statically
 ab_make() {
    mkdir build && cd build
    cmake -DCMAKE_TOOLCHAIN_FILE=../../../env/toolchain-riscos.cmake \
