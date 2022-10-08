@@ -1,5 +1,4 @@
-AB_URL=https://files.pythonhosted.org/packages/f8/ef/cdf55266ace06a9451e94a594dd57202910f86b24adfc5f5af4c66331322/yt-dlp-2022.9.1.tar.gz
-
+AB_URL=https://files.pythonhosted.org/packages/77/e8/b5fd86e2756e2be93c64e90123c0ff31780616f499d97156150327025877/yt-dlp-2022.10.4.tar.gz
 AB_PACKAGES=yt-dlp
 AB_CATEGORY=System
 AB_ROVERSION=1
