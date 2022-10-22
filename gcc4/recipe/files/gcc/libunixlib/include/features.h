@@ -30,6 +30,7 @@
 
    __STRICT_ANSI__	ISO Standard C.
    _ISOC99_SOURCE	Extensions to ISO C89 from ISO C99.
+   _ISOC11_SOURCE	Extensions to ISO C99 from ISO C11.
    _POSIX_SOURCE	IEEE Std 1003.1.
    _POSIX_C_SOURCE	If ==1, like _POSIX_SOURCE; if >=2 add IEEE Std 1003.2;
 			if >=199309L, add IEEE Std 1003.1b-1993;
@@ -62,8 +63,10 @@
    These are defined by this file and are used by the
    header files to decide what to declare or define:
 
+   __USE_ISOC11		Define ISO C11 things.
    __USE_ISOC99		Define ISO C99 things.
    __USE_ISOC95		Define ISO C90 AMD1 (C95) things.
+   __USE_ISOCXX11	Define ISO C++11 things.
    __USE_POSIX		Define IEEE Std 1003.1 things.
    __USE_POSIX2		Define IEEE Std 1003.2 things.
    __USE_POSIX199309	Define IEEE Std 1003.1, and .1b things.
@@ -98,8 +101,10 @@
 
 
 /* Undefine everything, so we get a clean slate.  */
+#undef	__USE_ISOC11
 #undef	__USE_ISOC99
 #undef	__USE_ISOC95
+#undef	__USE_ISOCXX11
 #undef	__USE_POSIX
 #undef	__USE_POSIX2
 #undef	__USE_POSIX199309
@@ -158,6 +163,8 @@
 #ifdef _GNU_SOURCE
 # undef  _ISOC99_SOURCE
 # define _ISOC99_SOURCE	1
+# undef  _ISOC11_SOURCE
+# define _ISOC11_SOURCE	1
 # undef  _POSIX_SOURCE
 # define _POSIX_SOURCE	1
 # undef  _POSIX_C_SOURCE
@@ -178,7 +185,8 @@
 
 /* If nothing (other than _GNU_SOURCE) is defined,
    define _BSD_SOURCE and _SVID_SOURCE.  */
-#if (!defined __STRICT_ANSI__ && !defined _ISOC99_SOURCE && \
+#if (!defined __STRICT_ANSI__ && \
+     !defined _ISOC99_SOURCE && !defined _ISOC11_SOURCE && \
      !defined _POSIX_SOURCE && !defined _POSIX_C_SOURCE && \
      !defined _XOPEN_SOURCE && !defined _XOPEN_SOURCE_EXTENDED && \
      !defined _BSD_SOURCE && !defined _SVID_SOURCE)
@@ -186,19 +194,38 @@
 # define _SVID_SOURCE	1
 #endif
 
+/* This is to enable the ISO C11 extension.  */
+#if (defined _ISOC11_SOURCE \
+     || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 201112L))
+# define __USE_ISOC11	1
+#endif
+
 /* This is to enable the ISO C99 extension.  Also recognize the old macro
    which was used prior to the standard acceptance.  This macro will
    eventually go away and the features enabled by default once the ISO C99
    standard is widely adopted.  */
-#if (defined _ISOC99_SOURCE || defined _ISOC9X_SOURCE \
+#if (defined _ISOC99_SOURCE || defined _ISOC9X_SOURCE || defined _ISOC11_SOURCE \
      || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L))
 # define __USE_ISOC99	1
 #endif
 
 /* This is to enable the ISO C90 Amendment 1:1995 extension.  */
-#if (defined _ISOC99_SOURCE || defined _ISOC9X_SOURCE \
+#if (defined _ISOC99_SOURCE || defined _ISOC9X_SOURCE || defined _ISOC11_SOURCE \
      || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199409L))
 # define __USE_ISOC95	1
+#endif
+
+#ifdef __cplusplus
+/* This is to enable compatibility for ISO C++17.  */
+# if __cplusplus >= 201703L
+#  define __USE_ISOC11	1
+# endif
+/* This is to enable compatibility for ISO C++11.
+   Check the temporary macro for now, too.  */
+# if __cplusplus >= 201103L || defined __GXX_EXPERIMENTAL_CXX0X__
+#  define __USE_ISOCXX11	1
+#  define __USE_ISOC99	1
+# endif
 #endif
 
 /* If none of the ANSI/POSIX macros are defined, use POSIX.1 and POSIX.2

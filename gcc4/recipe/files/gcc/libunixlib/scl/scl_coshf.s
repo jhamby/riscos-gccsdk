@@ -4,6 +4,9 @@
 @ Only suited for APCS-32 linking (SharedCLibrary 5) with code compiled
 @ with GCCSDK 4.x.
 
+@ Note that this function was absent from the stubs prior to
+@ SharedCLibrary 6.09.
+
 #include "internal/elf-macros.s"
 #include "internal/scl-macros.s"
 

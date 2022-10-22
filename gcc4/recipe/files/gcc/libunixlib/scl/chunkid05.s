@@ -572,8 +572,7 @@ remainderf_FIXME_float_arg:
 	@ Entry 71
 	@ Inverse hyperbolic cosine function
 	@ float acoshf (float x);
-	@ Implemented in scl_acoshf.s
-	MOV	PC, #0
+	MOV	PC, #0		@ FIXME
 
 	@ Entry 72
 	@ Inverse hyperbolic sine function
@@ -585,8 +584,7 @@ remainderf_FIXME_float_arg:
 	@ Entry 73
 	@ Inverse hyperbolic sine function
 	@ float asinhf (float x);
-	@ Implemented in scl_sinhf.s
-	MOV	PC, #0
+	MOV	PC, #0		@ FIXME
 
 	@ Entry 74
 	@ Inverse hyperbolic tangent function
@@ -1090,6 +1088,37 @@ fmaf_FIXME_float_arg:
 	@ FILE *tmpfile64 (void);
 	@ with #define _LARGEFILE64_SOURCE
 	DefSCLFnc	tmpfile64
+
+	@ Entry
+	@ void *aligned_alloc(size_t, size_t);
+	DefSCLFnc	aligned_alloc
+
+	@ Entry
+	@ int at_quick_exit(void (*)(void));
+	DefSCLFnc	at_quick_exit
+
+	@ Entry
+	@ void quick_exit (int);
+	DefSCLFnc	quick_exit
+
+	@ Entry
+	@ int timespec_get (struct timespec *, int);
+	DefSCLFnc	timespec_get
+
+	@ Entry
+	@ float coshf (float x);
+	@ Implemented in scl_coshf.s
+	MOV	PC, #0
+
+	@ Entry
+	@ float sinhf (float x);
+	@ Implemented in scl_coshf.s
+	MOV	PC, #0
+
+	@ Entry
+	@ float tanhf (float x);
+	@ Implemented in scl_tanhf.s
+	MOV	PC, #0
 
 extra_vectors_end:
 	.space	extra_vectors_end - extra_vectors_begin

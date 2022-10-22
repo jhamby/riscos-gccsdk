@@ -114,6 +114,9 @@
 # define __BEGIN_NAMESPACE_C99	namespace __c99 {
 # define __END_NAMESPACE_C99	}
 # define __USING_NAMESPACE_C99(name) using __c99::name;
+# define __BEGIN_NAMESPACE_C11	namespace __c11 {
+# define __END_NAMESPACE_C11	}
+# define __USING_NAMESPACE_C11(name) using __c11::name;
 #else
 /* For compatibility we do not add the declarations into any
    namespace.  They will end up in the global namespace which is what
@@ -124,6 +127,9 @@
 # define __BEGIN_NAMESPACE_C99
 # define __END_NAMESPACE_C99
 # define __USING_NAMESPACE_C99(name)
+# define __BEGIN_NAMESPACE_C11
+# define __END_NAMESPACE_C11
+# define __USING_NAMESPACE_C11(name)
 #endif
 
 
@@ -214,6 +220,24 @@
 # define __attribute_malloc__ __attribute__ ((__malloc__))
 #else
 # define __attribute_malloc__ /* Ignore */
+#endif
+
+/* Tell the compiler which arguments to an allocation function
+   indicate the size of the allocation.  */
+#if __GNUC_PREREQ (4, 3)
+# define __attribute_alloc_size__(params) \
+  __attribute__ ((__alloc_size__ params))
+#else
+# define __attribute_alloc_size__(params) /* Ignore.  */
+#endif
+
+/* Tell the compiler which argument to an allocation function
+   indicates the alignment of the allocation.  */
+#if __GNUC_PREREQ (4, 9)
+# define __attribute_alloc_align__(param) \
+  __attribute__ ((__alloc_align__ param))
+#else
+# define __attribute_alloc_align__(param) /* Ignore.  */
 #endif
 
 /* At some point during the gcc 2.96 development the `pure' attribute
