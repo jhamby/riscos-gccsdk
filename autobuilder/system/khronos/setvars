@@ -79,6 +79,7 @@ ab_make() {
   $AB_MAKE
   $AB_MAKE install
 
+  ( cd userland/host_applications/linux/apps/hello_pi/libs/revision; $AB_MAKE )
   ( cd userland/host_applications/linux/apps/hello_pi/hello_triangle; $AB_MAKE )
   ( cd userland/host_applications/linux/apps/hello_pi/hello_triangle2; $AB_MAKE )
   ( cd userland/host_applications/linux/apps/hello_pi/hello_tiger; $AB_MAKE )
@@ -171,10 +172,6 @@ ab_package() {
   ab_add_headers $GCCSDK_INSTALL_ENV/vfp/include/vcinclude $A/vcinclude
   ab_add_headers $GCCSDK_INSTALL_ENV/vfp/include/interface $A/interface
 
-  # Remove empty directories created above.
-  rmdir $A/interface/h
-  rmdir $A/interface/vmcs_host/khronos/h
-  
   mkdir -p $A/h
   cp -f $GCCSDK_INSTALL_ENV/vfp/include/bcm_host.h $A/h/bcm_host
   cp -f $S/*.a $A
