@@ -1,10 +1,10 @@
---- src/video/raspberry/SDL_rpievents.c.orig	2016-01-02 19:56:31.000000000 +0000
-+++ src/video/raspberry/SDL_rpievents.c	2016-08-19 20:33:25.204582307 +0100
+--- src/video/raspberry/SDL_rpievents.c.orig	2022-11-23 20:09:51.186116000 +0000
++++ src/video/raspberry/SDL_rpievents.c	2022-11-23 20:12:41.568563444 +0000
 @@ -33,12 +33,228 @@
  #include "../../core/linux/SDL_evdev.h"
  #endif
  
-+#ifdef __riscos__
++#ifdef __RISCOS__
 +#include <pthread.h>
 +#include <swis.h>
 +#include "oslib/wimp.h"
@@ -171,11 +171,12 @@
      SDL_EVDEV_Poll();
  #endif
 -    
-+#ifdef __riscos__
++#ifdef __RISCOS__
 +    SDL_VideoData *driverdata = (SDL_VideoData *)_this->driverdata;
 +    SDL_Mouse *mouse = SDL_GetMouse();
-+    int x, y, buttons;
++    int i, x, y, buttons;
 +    uint32_t screen_height = driverdata->screen_height;
++    uint8_t key;
 +
 +    _swix(OS_Mouse, _OUTR(0,2), &x, &y, &buttons);
 +    x >>= driverdata->eigen_x;
@@ -192,7 +193,6 @@
 +    driverdata->old_mouse_buttons = buttons;
 +
 +    // Check for key releases
-+    int i;
 +    for (i = 0; i < RISCOS_MAX_KEYS_PRESSED; i++) {
 +	if (driverdata->key_pressed[i])
 +	    if (_swi(OS_Byte, _INR(0,2)|_RETURN(1), osbyte_IN_KEY,
@@ -204,7 +204,7 @@
 +    }
 +
 +    // Check for key presses
-+    uint8_t key = _swi(OS_Byte, _IN(0)|_RETURN(1), osbyte_SCAN_KEYBOARD_LIMITED);
++    key = _swi(OS_Byte, _IN(0)|_RETURN(1), osbyte_SCAN_KEYBOARD_LIMITED);
 +    if (key != 0xff) {
 +	uint32_t already_pressed = 0;
 +

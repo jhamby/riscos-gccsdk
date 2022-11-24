@@ -1,40 +1,48 @@
---- src/video/SDL_egl.c.orig	2017-11-26 09:29:07.341380436 +0000
-+++ src/video/SDL_egl.c	2017-11-26 09:36:26.418068053 +0000
-@@ -43,6 +43,14 @@
- #endif /* EGL_KHR_create_context */
+--- src/video/SDL_egl.c.orig	2022-11-23 22:42:11.777073000 +0000
++++ src/video/SDL_egl.c	2022-11-23 22:43:31.126162366 +0000
+@@ -58,6 +58,14 @@
+ #endif /* EGL_EXT_present_opaque */
  
  #if SDL_VIDEO_DRIVER_RPI
 +
-+#  if __riscos__
-+#    define DEFAULT_EGL "/SharedLibs:lib/abi-2.0/vfp/libEGL.so"
-+#    define DEFAULT_OGL_ES2 "/SharedLibs:lib/abi-2.0/vfp/libGLESv2.so"
++#  if __RISCOS__
++#    define DEFAULT_EGL "libEGL.so"
++#    define DEFAULT_OGL_ES2 "libGLESv2.so"
 +/* These two don't actually exist on RISC OS.  */
-+#    define DEFAULT_OGL_ES_PVR "/SharedLibs:lib/abi-2.0/vfp/libGLES_CM.so"
-+#    define DEFAULT_OGL_ES "/SharedLibs:lib/abi-2.0/vfp/libGLESv1_CM.so"
++#    define DEFAULT_OGL_ES_PVR "libGLES_CM.so"
++#    define DEFAULT_OGL_ES "libGLESv1_CM.so"
 +#  else
  /* Raspbian places the OpenGL ES/EGL binaries in a non standard path */
- #define DEFAULT_EGL "/opt/vc/lib/libbrcmEGL.so"
- #define DEFAULT_OGL_ES2 "/opt/vc/lib/libbrcmGLESv2.so"
-@@ -50,6 +58,7 @@
- #define ALT_OGL_ES2 "/opt/vc/lib/libGLESv2.so"
- #define DEFAULT_OGL_ES_PVR "/opt/vc/lib/libGLES_CM.so"
- #define DEFAULT_OGL_ES "/opt/vc/lib/libGLESv1_CM.so"
-+#  endif
+ #define DEFAULT_EGL ( vc4 ? "libEGL.so.1" : "libbrcmEGL.so" )
+ #define DEFAULT_OGL_ES2 ( vc4 ? "libGLESv2.so.2" : "libbrcmGLESv2.so" )
+@@ -65,6 +73,7 @@
+ #define ALT_OGL_ES2 "libGLESv2.so"
+ #define DEFAULT_OGL_ES_PVR ( vc4 ? "libGLES_CM.so.1" : "libbrcmGLESv2.so" )
+ #define DEFAULT_OGL_ES ( vc4 ? "libGLESv1_CM.so.1" : "libbrcmGLESv2.so" )
++#endif
  
  #elif SDL_VIDEO_DRIVER_ANDROID || SDL_VIDEO_DRIVER_VIVANTE
  /* Android */
-@@ -781,11 +790,12 @@
-         ANativeWindow_setBuffersGeometry(nw, 0, 0, format);
+@@ -1200,8 +1209,8 @@
+     EGLint format_wanted;
+     EGLint format_got;
+ #endif
+-    /* max 2 key+value pairs, plus terminator. */
+-    EGLint attribs[5];
++    /* max 3 key+value pairs, plus terminator. */
++    EGLint attribs[7];
+     int attr = 0;
+ 
+     EGLSurface * surface;
+@@ -1242,6 +1251,11 @@
      }
- #endif    
--    
+ #endif
+ 
++#if defined(__RISCOS__) && defined(SDL_VIDEO_DRIVER_RPI)
++    attribs[attr++] = EGL_RENDER_BUFFER;
++    attribs[attr++] = EGL_SINGLE_BUFFER;
++#endif
 +
-+    EGLint attribs[] = { EGL_RENDER_BUFFER, EGL_SINGLE_BUFFER, EGL_NONE, EGL_NONE };    
+     attribs[attr++] = EGL_NONE;
+     
      surface = _this->egl_data->eglCreateWindowSurface(
-             _this->egl_data->egl_display,
-             _this->egl_data->egl_config,
--            nw, NULL);
-+            nw, attribs/*NULL*/);
-     if (surface == EGL_NO_SURFACE) {
-         SDL_EGL_SetError("unable to create an EGL window surface", "eglCreateWindowSurface");
-     }
