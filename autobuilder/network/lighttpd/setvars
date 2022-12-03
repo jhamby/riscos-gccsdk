@@ -1,4 +1,4 @@
-AB_INSTALL=no
+AB_INSTALL=yes
 
 AB_CONFLAGS='--with-libxml --with-webdav-props'
 
@@ -7,14 +7,18 @@ ab_package() {
   ab_create_command_app Lighttpd Apps/Network
   ab_add_commands $S/src/lighttpd,e1f
 
-  mkdir -f$A/modules $A/httpd/sockets $A/httpd/vhosts
-  
-  cp -av $S/src/.libs/*.so $A/modules
+  mkdir -p $A/modules $A/httpd/sockets $A/httpd/vhosts
+
+for i in `find src/.libs -name "lib*.so"` ; do dest=`basename $i | sed 's/^lib//g'` ; cp -L "$i" $S/src/.libs/$dest ; done
+
+  cp -av $S/src/.libs/mod*.so $A/modules
   cp -av $S/doc/config/conf.d $A/httpd
   cp -av $S/doc/config/vhosts.d $A/httpd
   cp -av COPYING NEWS $A
   
   ab_docs $S/doc/lighttpd.8
  
-  $AB_HOME/add-riscpkg -unixlib -package lighttpd -name Lighttpd -copyrightfile $S/COPYING
+  $AB_HOME/add-riscpkg -unixlib -package lighttpd -name Lighttpd -depends LibPcre3 -depends LibSSL1.1 -copyrightfile $S/COPYING
 }
+
+export LIBS='-ldl'

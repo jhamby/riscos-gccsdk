@@ -2,5 +2,3 @@
 
 Set Lighttpd$Dir <Obey$Dir>
 IfThere <Lighttpd$Dir>.!Sprites then Iconsprites <Lighttpd$Dir>.!Sprites
-
-|Set Alias$lighttpd WimpSlot -min 407k|MRun <Lighttpd$Dir>.lighttpd %%*0

@@ -1,7 +1,5 @@
 | !Run file for Lighttpd
 
-|Wimpslot min 1024k -max 1024k
-
 Set Lighthttpd$Dir <Obey$Dir>
 
 <Lighttpd$Dir>.startlighttpd
