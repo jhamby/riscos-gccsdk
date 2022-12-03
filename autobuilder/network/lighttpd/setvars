@@ -1,4 +1,4 @@
-AB_INSTALL=yes
+AB_INSTALL=no
 
 AB_CONFLAGS='--with-libxml --with-webdav-props'
 
@@ -7,7 +7,7 @@ ab_package() {
   ab_create_command_app Lighttpd Apps/Network
   ab_add_commands $S/src/lighttpd,e1f
 
-  mkdir -p $A/modules $A/httpd $A/httpd/htdocs $A/httpd/sockets $A/httpd/vhosts
+  mkdir -f$A/modules $A/httpd/sockets $A/httpd/vhosts
   
   cp -av $S/src/.libs/*.so $A/modules
   cp -av $S/doc/config/conf.d $A/httpd
