@@ -1,0 +1,2 @@
+echo "Started..."
+Run <Lighttpd$Dir>.lighttpd -m /<Lighttpd$Dir>/modules -D -f /<Lighttpd$Dir>/httpd/lighttpd.conf 
