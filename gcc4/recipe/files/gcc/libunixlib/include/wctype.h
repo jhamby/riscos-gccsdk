@@ -239,8 +239,9 @@ extern wctrans_t wctrans (__const char *__property) __THROW;
 extern wint_t towctrans (wint_t __wc, wctrans_t __desc) __THROW;
 __END_NAMESPACE_C99
 
-# ifdef __USE_XOPEN2K8
-#  include <bits/locale_t.h>
+# ifndef __TARGET_SCL__
+#  ifdef __USE_XOPEN2K8
+#   include <bits/locale_t.h>
 
 /* Test for any wide character for which `iswalpha' or `iswdigit' is
    true.  */
@@ -326,7 +327,8 @@ extern wctrans_t wctrans_l (__const char *__property, locale_t __locale)
 extern wint_t towctrans_l (wint_t __wc, wctrans_t __desc,
 			   locale_t __locale) __THROW;
 
-# endif /* Use POSIX 2008.  */
+#  endif /* Use POSIX 2008.  */
+# endif /* __TARGET_SCL__ */
 
 __END_DECLS
 

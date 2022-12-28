@@ -1280,6 +1280,7 @@ wchar_src = \
 	wchar/wcstok.c \
 	wchar/wcswidth.c \
 	wchar/wctob.c \
+	wchar/wctype_l.c \
 	wchar/wcwidth.c \
 	wchar/wmemchr.c \
 	wchar/wmemcmp.c \
