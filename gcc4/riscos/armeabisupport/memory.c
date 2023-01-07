@@ -1,6 +1,6 @@
 /* memory.c
  *
- * Copyright 2019-2021 GCCSDK Developers
+ * Copyright 2019-2023 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -1288,7 +1288,9 @@ allocator_munmap (armeabisupport_allocator_mmap *allocator,
 
   /* Keep the allocator overall size up to date.  */
   current = linklist_last_mmap_block (&allocator->block_list);
-  if (current->end_page < allocator->base.da.size)
+  if (!current)
+    allocator->base.da.size = 0;
+  else if (current->end_page < allocator->base.da.size)
     allocator->base.da.size = current->end_page;
 
   return NULL;

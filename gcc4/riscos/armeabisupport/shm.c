@@ -1,6 +1,6 @@
 /* shm.c
  *
- * Copyright 2021 GCCSDK Developers
+ * Copyright 2021-2023 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -293,9 +293,9 @@ bool shm_deref_object(shm_object *shm)
       return true;
     }
 
-    TRACE("shm_deref_object: shared memory object %p, \"%s\", ref=%d", shm, shm->name, shm->ref_count);
+  TRACE("shm_deref_object: shared memory object %p, \"%s\", ref=%d", shm, shm->name, shm->ref_count);
 
-    return false;
+  return false;
 }
 
 /* Remove any shared memory objects for the given app.  */
