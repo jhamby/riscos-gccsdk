@@ -1,15 +1,5 @@
 --- yt_dlp/plugins.py.orig	2023-01-07 10:32:52.210802507 +0000
 +++ yt_dlp/plugins.py	2023-01-07 10:33:54.922582393 +0000
-@@ -79,7 +79,8 @@
-
-         parts = Path(*fullname.split('.'))
-         locations = set()
--        for path in dict.fromkeys(candidate_locations):
-+        if sys.platform != "riscos":
-+         for path in dict.fromkeys(candidate_locations):
-             candidate = path / parts
-             if candidate.is_dir():
-                 locations.add(str(candidate))
 @@ -157,10 +157,11 @@
      with contextlib.suppress(FileNotFoundError):
          spec = importlib.util.spec_from_file_location(
