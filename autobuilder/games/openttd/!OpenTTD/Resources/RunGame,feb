@@ -20,4 +20,4 @@ Wimpslot -min 16K -max 16K
 <OpenTTD$Dir>.Resources.SampleSet
 
 Wimpslot -min 16384K -max 16384K
-<OpenTTD$Dir>.!RunImage -v sdl -s sdl -m null
+<OpenTTD$Dir>.!RunImage -v sdl -s sdl -b 8bpp-optimized -m null
