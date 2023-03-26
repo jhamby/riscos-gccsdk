@@ -27,12 +27,11 @@ unsigned int feed_count = 0;
 struct feed *feeds = 0;
 bool feed_work_needed = false;
 const char *feed_error = 0;
-static const char *feed_status_name[] = { "NEW", "FETCHING", "OK", "ERROR" };
+static const char *feed_status_name[] = { "NEW", "FETCHING", "OK", "ERROR", "PAUSED" };
 
 static CURLM *curl_multi_handle;
 static unsigned int fetching = 0;
 
-static void feed_set_status (struct feed *feed, feed_status status);
 static void feed_work_feed (struct feed *feed);
 static void feed_create_fetch (struct feed *feed);
 static void feed_start_fetch (struct feed *feed);
@@ -96,6 +95,8 @@ feed_init (void)
       feed_error = "Failed to initialise curl";
       return false;
     }
+
+  curl_multi_setopt(curl_multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
 
   xmlInitParser ();
 
@@ -415,6 +416,8 @@ feed_create_fetch (struct feed *feed)
   curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (curl, CURLOPT_MAXREDIRS, 2L);
   curl_easy_setopt (curl, CURLOPT_PROXY, http_proxy);
+  curl_easy_setopt (curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+  curl_easy_setopt (curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
 
   feed->curl = curl;
   feed->headers = headers;
@@ -1737,7 +1740,8 @@ feed_update (void)
   unsigned int i;
 
   for (i = 0; i != feed_count; i++)
-    feeds[i].status = FEED_UPDATE;
+    if (feeds[i].status != FEED_PAUSED)
+      feeds[i].status = FEED_UPDATE;
 
   feed_work_needed = true;
 }

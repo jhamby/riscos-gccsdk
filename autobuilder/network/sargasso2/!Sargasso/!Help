@@ -120,3 +120,18 @@ Link with libssl1.1.1l
 Adjust click on icon bar icon updates the feeds
 Add --no-cache-dir to youtubedl obey file
 Fix so that 'Quality' setting gets loaded
+
+2.0.10pre1 (12 Feb 2022)
+Link with libcurl 7.81 and libssl1.1.1m
+Use http/2 if available
+Add 'Catch up' option to feeds menu
+Add 'Pause/Resume' feed option to menu
+Adjust clicking on a feed toggles 'Pause'
+Add 'Margin' size setting to alter the gap between feeds
+
+2.0.10pre2 (09 Jul 2022)
+Link with libcurl 7.84 and libssl1.1.1o
+
+2.0.10 (26 Mar 2023)
+Link with libcurl 7.88 and libssl 3.0.8
+Add 'Open URL' to play youtube urls directly.

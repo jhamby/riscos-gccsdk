@@ -34,7 +34,7 @@
          /* Remove any PFS suites using weak DSA key exchange */ \
          "-DSS"
 
-typedef enum { FEED_NEW, FEED_FETCHING, FEED_OK, FEED_ERROR, FEED_UPDATE }
+typedef enum { FEED_NEW, FEED_FETCHING, FEED_OK, FEED_ERROR, FEED_PAUSED, FEED_UPDATE }
 		feed_status;
 
  /** SSL certificate info */
@@ -109,6 +109,7 @@ void feed_update(void);
 bool feed_list_load(const char *path);
 bool feed_list_save(const char *path);
 void feed_print(struct feed *feed);
+void feed_set_status (struct feed *feed, feed_status status);
 
 
 #endif

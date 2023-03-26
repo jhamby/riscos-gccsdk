@@ -19,6 +19,7 @@
 #include <oslib/wimp.h>
 #include <oslib/wimpspriteop.h>
 #include <rufl.h>
+#include <features.h>
 #include "feed.h"
 #ifdef FORTIFY
 #include "fortify.h"
@@ -29,7 +30,6 @@
 #endif
 
 #define MAX_LINES 200
-#define MARGIN 10
 #define FEEDS_READ "Choices:Sargasso.Feeds"
 #define FEEDS_WRITE "<Choices$Write>.Sargasso.Feeds"
 #define EXCLUDE_READ "Choices:Sargasso.Exclude"
@@ -62,10 +62,11 @@ bool quit = false;
 int interval = 5 * 60;
 unsigned int font_size_main = 18;
 unsigned int max_fetches = 5;
-unsigned int feed_description = 0;
+unsigned int margin = 10;
+unsigned int feed_description = 1;
 //unsigned int font_size = 18;
 char http_proxy[255] = "";
-char quality[] = "best";
+char quality[] = "b";
 os_t last_update = 0;
 
 char type1[7] = "";
@@ -73,14 +74,15 @@ char type2[7] = "";
 char type3[7] = "";
 char type4[7] = "";
 
+char youtube_url[512] = "";
 char exclude1[1030] = "";
 char exclude2[1030] = "";
 char exclude3[1030] = "";
 char exclude4[1030] = "";
-
+unsigned int catch_up = 0;
 wimp_t task;
 wimp_w info_window, main_window, feed_window, add_feed_window,
-  warning_window = 0, choices_window, exclude_window;
+  warning_window = 0, choices_window, exclude_window, open_url_window;
 osspriteop_area *sprites;
 struct paragraph *main_window_paragraphs = 0;
 struct paragraph *feed_window_paragraphs = 0;
@@ -89,21 +91,26 @@ char font_headings[200] = "Homerton";
 char font_summaries[200] = "NewHall";
 char font_links[200] = "Homerton";
 
+const char * const __program_name = "Sargasso";
+
 #define ICON_FLAGS (wimp_ICON_TEXT | \
 		(wimp_COLOUR_BLACK << wimp_ICON_FG_COLOUR_SHIFT))
-wimp_MENU (5) iconbar_menu = { {"Sargasso"}, wimp_COLOUR_BLACK,
+wimp_MENU (6) iconbar_menu = { {"Sargasso"}, wimp_COLOUR_BLACK,
 wimp_COLOUR_LIGHT_GREY, wimp_COLOUR_BLACK, wimp_COLOUR_WHITE,
 200, 44, 0,
 {{0, 0, ICON_FLAGS, {"Info"}},
+ {0, 0, ICON_FLAGS, {"Open URL..."}},
  {0, 0, ICON_FLAGS, {"Choices..."}},
  {0, 0, ICON_FLAGS, {"Exclude..."}},
  {0, 0, ICON_FLAGS, {"Update feeds"}},
  {wimp_MENU_LAST, 0, ICON_FLAGS, {"Quit"}}}
 };
-wimp_MENU (2) main_menu = { {"Sargasso"}, wimp_COLOUR_BLACK,
+wimp_MENU (4) main_menu = { {"Sargasso"}, wimp_COLOUR_BLACK,
 wimp_COLOUR_LIGHT_GREY, wimp_COLOUR_BLACK, wimp_COLOUR_WHITE,
 200, 44, 0,
 {{0, 0, ICON_FLAGS, {"Add feed..."}},
+ {0, 0, ICON_FLAGS, {"Pause/Resume feed"}},
+ {0, 0, ICON_FLAGS, {"Catch up"}},
  {wimp_MENU_LAST, 0, ICON_FLAGS, {"Remove feed"}}}
 };
 
@@ -112,15 +119,14 @@ unsigned int current_removing = 0;
 wimp_i current_font_menu;
 
 const char *default_feeds[] = {
-  "https://news.google.co.uk/?output=rss/?format=rss&edition=uk",
-  "https://www.ft.com/?output=rss/?format=rss&eidtion=uk",
+  "https://news.google.co.uk/news/rss/?gl=GB&ned=gb&hl=en",
+  "https://www.ft.com/world/uk?format=rss",
   "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss.xml",
   "http://rss.cnn.com/rss/edition.rss",
-  "http://www.drobe.co.uk/rss.php",
-  "http://www.theregister.co.uk/feeds/latest.rdf",
+  "https://www.theregister.co.uk/feeds/latest.rdf",
   "http://www.iconbar.co.uk/rss-rss20.php",
-  "http://www.mode7games.com/blog/?feed=rss2",
-  "http://www.riscosopen.org/forum/posts.rss",
+  "https://www.riscosopen.org/forum/posts.rss",
+  "https:/www.riscository.com/feed/"
 };
 
 void gui_init (void);
@@ -141,6 +147,7 @@ void click_main_window (unsigned int i);
 void update_feed_window (unsigned int i);
 void click_feed_link (unsigned int i);
 void click_item_link (unsigned int j);
+void open_url (void);
 struct paragraph *add_paragraph (struct paragraph **paragraph_list,
 				 int x0, int y0, int x1, int background,
 				 int colour, const char *font_family,
@@ -161,6 +168,7 @@ void set_icon_string (wimp_w w, wimp_i i, const char *text);
 void set_icon_selected (wimp_w w, wimp_i i, int feed_description_main);
 int get_icon_selected (wimp_w w, wimp_i i);
 
+const xmlChar *add_crs(const xmlChar *text);
 
 int
 main (int argc, char *argv[])
@@ -288,6 +296,7 @@ gui_init (void)
   warning_window = create_window ("warning");
   choices_window = create_window ("choices");
   exclude_window = create_window ("exclude");
+  open_url_window = create_window ("open_url");
 
   iconbar_menu.entries[0].sub_menu = (wimp_menu *) info_window;
 
@@ -497,6 +506,7 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
   int wx, wy;
   struct paragraph *p = NULL;
   char minutes[10];
+  char margin_size[3];
   char maxfetches[2];
   char fontmain[3];
   int mins;
@@ -505,7 +515,7 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
   if (w == wimp_ICON_BAR)
     {
       if (buttons == wimp_CLICK_MENU)
-	open_menu ((wimp_menu *) & iconbar_menu, x - 64, 96 + 44 * 5);
+	open_menu ((wimp_menu *) & iconbar_menu, x - 64, 96 + 44 * 6);
       else if (buttons == wimp_CLICK_SELECT)
 	open_window (main_window);
       else if (buttons == wimp_CLICK_ADJUST)
@@ -546,6 +556,12 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
 	    main_menu.entries[1].icon_flags |= wimp_ICON_SHADED;
 	  open_menu ((wimp_menu *) & main_menu, x - 64, y);
 	  current_removing = p ? p->click_i : 0;
+	}
+      else if (buttons == wimp_CLICK_ADJUST && w == main_window)
+	{
+	  current_removing = p ? p->click_i : 0;
+	  feed_set_status(&feeds[current_removing], FEED_PAUSED == feeds[current_removing].status ? FEED_OK : FEED_PAUSED);
+	  update_main_window ();
 	}
       else if (buttons == 0)
 	{
@@ -599,6 +615,20 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
 	close_window (exclude_window);
 
     }
+  else if (w == open_url_window && buttons)
+    {
+      if (i == 1)
+	{
+	  strcpy (youtube_url, get_icon_string (open_url_window, 0));
+          if (strlen(youtube_url > 0))
+            open_url();
+	  if (buttons == wimp_CLICK_SELECT)
+	    close_window (open_url_window);
+	}
+      else if (i == 2)
+	close_window (open_url_window);
+
+    }
   else if (w == choices_window && buttons)
     {
       if (i == 6)
@@ -626,7 +656,6 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
 	    font_size_main = 10;
 	  else if (font_size_main > 22)
 	    font_size_main = 22;
-	  feed_description = get_icon_selected (choices_window, 25);
 	  strcpy (http_proxy, get_icon_string (choices_window, 18));
 	  strcpy (quality, get_icon_string (choices_window, 24));
 	  choices_save ();
@@ -687,6 +716,23 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
 	  set_icon_string (choices_window, 26, fontmain);
 	  xwimp_set_caret_position (choices_window, 26,
 				    0, 0, -1, strlen (fontmain));
+	}
+      else if (i == 32 || i == 33)
+	{
+	  mins = atoi (get_icon_string (choices_window, 31));
+	  if ((i == 32 && buttons == wimp_CLICK_SELECT) ||
+	      (i == 33 && buttons == wimp_CLICK_ADJUST))
+	     margin -= 1;
+	  else
+	     margin += 1;
+	  if ( margin < 4)
+	     margin = 4;
+	  else if (10 < margin)
+	     margin = 10;
+	  snprintf (margin_size, sizeof margin_size, "%i", margin);
+	  set_icon_string (choices_window, 31, margin_size);
+	  xwimp_set_caret_position (choices_window, 31,
+				    0, 0, -1, strlen (margin_size));
 	}
       else if (i == 25)
 	{
@@ -823,6 +869,7 @@ menu_selection (wimp_selection * selection)
 {
   char minutes[10];
   char maxfetches[2];
+  char margin_size[3];
   char fontmain[3];
   wimp_pointer pointer;
 
@@ -832,9 +879,13 @@ menu_selection (wimp_selection * selection)
     {
       switch (selection->items[0])
 	{
-	case 1:
+        case 1:
+	  open_window (open_url_window);
+	  break;
+	case 2:
 	  snprintf (minutes, sizeof minutes, "%i", interval / 60);
 	  snprintf (maxfetches, sizeof maxfetches, "%i", max_fetches);
+	  snprintf (margin_size, sizeof margin_size, "%i", margin);
 	  snprintf (fontmain, sizeof fontmain, "%i", font_size_main);
 	  set_icon_string (choices_window, 18, http_proxy);
 	  set_icon_string (choices_window, 1, minutes);
@@ -842,6 +893,7 @@ menu_selection (wimp_selection * selection)
 	  set_icon_string (choices_window, 24, quality);
 	  set_icon_string (choices_window, 26, fontmain);
 	  set_icon_selected (choices_window, 25, feed_description);
+	  set_icon_string (choices_window, 31, margin_size);
 	  set_icon_string (choices_window, 8, font_headings);
 	  set_icon_string (choices_window, 11, font_summaries);
 	  set_icon_string (choices_window, 14, font_links);
@@ -849,7 +901,7 @@ menu_selection (wimp_selection * selection)
 	  xwimp_set_caret_position (choices_window, 1,
 				    0, 0, -1, strlen (minutes));
 	  break;
-	case 2:
+	case 3:
 
 	  set_icon_string (exclude_window, 6, type1);
 	  set_icon_string (exclude_window, 7, type2);
@@ -863,11 +915,11 @@ menu_selection (wimp_selection * selection)
 	  xwimp_set_caret_position (exclude_window, 6,
 				    0, 0, -1, strlen (type1));
 	  break;
-	case 3:
+	case 4:
 	  last_update = os_read_monotonic_time ();
 	  feed_update ();
 	  break;
-	case 4:
+	case 5:
 	  quit = true;
 	  break;
 	}
@@ -883,6 +935,15 @@ menu_selection (wimp_selection * selection)
 	  xwimp_set_caret_position (add_feed_window, 0, 0, 0, -1, 7);
 	  break;
 	case 1:
+	  feed_set_status(&feeds[current_removing], FEED_PAUSED == feeds[current_removing].status ? FEED_OK : FEED_PAUSED);
+	  update_main_window ();
+	  break;
+	case 2:
+	  catch_up = 1;
+	  update_main_window ();
+	  catch_up = 0;
+	  break;
+	case 3:
 	  feed_remove (current_removing);
 	  update_main_window ();
 	  close_window (feed_window);
@@ -1029,8 +1090,17 @@ update_main_window (void)
     {
       new_items = 0;
       for (j = 0; j != feeds[i].item_count; j++)
+      {
 	if (feeds[i].item[j].new_item)
 	  new_items++;
+
+      if (catch_up)
+        {
+	  new_items = 0;
+          feeds[i].item[j].new_item = false;
+	}
+      }
+
       style = new_items ? rufl_WEIGHT_900 : rufl_WEIGHT_400;
 
       p = add_paragraph (&main_window_paragraphs, 0, y, 700,
@@ -1041,12 +1111,16 @@ update_main_window (void)
 			 click_main_window, i);
       y1 = p->y1;
 
+
       switch (feeds[i].status)
 	{
 	case FEED_NEW:
 	case FEED_FETCHING:
 	case FEED_UPDATE:
 	  snprintf (status + i * 40, 40, "Fetching");
+	  break;
+	case FEED_PAUSED:
+	    snprintf (status + i * 40, 40, "%i items (Paused)", feeds[i].item_count);
 	  break;
 	case FEED_OK:
 	  if (new_items)
@@ -1070,7 +1144,7 @@ update_main_window (void)
 	{
 	  p = add_paragraph (&main_window_paragraphs, 0, y, WINDOW_WIDTH,
 			     0, 0x0000a0,
-			     font_summaries, style, 200,
+			     font_summaries, style, font_size_main * 10,
 			     (const xmlChar *) feeds[i].error,
 			     click_main_window, i);
 	  y = p->y1;
@@ -1080,12 +1154,12 @@ update_main_window (void)
 	{
 	  p = add_paragraph (&main_window_paragraphs, 0, y, WINDOW_WIDTH,
 			     0, 0x000000,
-			     font_summaries, rufl_WEIGHT_400, 200,
+			     font_summaries, rufl_WEIGHT_400, font_size_main * 10,
 			     feeds[i].description, click_main_window, i);
 	  y = p->y1;
 	}
 
-      y += MARGIN;
+      y += margin;
     }
 
   set_extent (main_window, y);
@@ -1168,7 +1242,7 @@ update_feed_window (unsigned int i)
 
   p = add_paragraph (&feed_window_paragraphs, 0, y, WINDOW_WIDTH,
 		     0xffaa99, 0x000000,
-		     font_headings, rufl_WEIGHT_400, font_size_main * 10,
+		     font_headings, rufl_WEIGHT_400, ( font_size_main != 18 ? 18 : font_size_main ) * 10,
 		     (const xmlChar *) feeds[i].title ? (const xmlChar *)
 		     feeds[i].title : (const xmlChar *) feeds[i].url, 0, 0);
   y = p->y1;
@@ -1206,7 +1280,7 @@ update_feed_window (unsigned int i)
       y = p->y1;
     }
 
-  y += MARGIN;
+  y += margin;
 
   for (j = 0; j != feeds[i].item_count; j++)
     {
@@ -1286,13 +1360,14 @@ update_feed_window (unsigned int i)
 			add_paragraph (&feed_window_paragraphs, 0, y,
 				       WINDOW_WIDTH, 0, 0x000000,
 				       font_summaries, style, 180,
+//				       add_crs(feeds[i].item[j].paragraph[k]), 0, j);
 				       feeds[i].item[j].paragraph[k], 0, j);
 		      y = p->y1;
 		    }
 		}
 	    }
 
-	  y += MARGIN;
+	  y += margin;
 
 	}
     }
@@ -1341,6 +1416,28 @@ click_item_link (unsigned int j)
 }
 
 
+void
+open_url (void)
+{
+  char youtubedl[255];
+  os_error *error;
+
+  sprintf (youtubedl, "%s %s %s", "<Sargasso$Dir>.youtubedl", quality,
+	   youtube_url);
+
+  if (strncmp
+      ((const char *) "https://www.youtube.com/watch?v=",
+       (const char *) youtube_url,
+       strlen ((const char *) "https://www.youtube.com/watch?v=")) == 0)
+    {
+      error = xtaskmanager_start_task (youtubedl);
+    }
+  if (error)
+    {
+      LOG (("xtaskmanager_start_task: 0x%x: %s", error->errnum, error->errmess));
+    }
+}
+
 struct paragraph *
 add_paragraph (struct paragraph **paragraph_list,
 	       int x0, int y0, int x1, int background, int colour,
@@ -1377,7 +1474,7 @@ add_paragraph (struct paragraph **paragraph_list,
   while (len && lines != MAX_LINES)
     {
       code = rufl_split (font_family, font_style, font_size, t, len,
-			 x1 - x0 - MARGIN - MARGIN, &char_offset, &actual_x);
+			 x1 - x0 - ( margin < 10 ? 10 : margin ) - ( margin < 10 ? 10 : margin ), &char_offset, &actual_x);
       if (code != rufl_OK)
 	{
 	  LOG (("rufl_split: %i", code));
@@ -1396,7 +1493,7 @@ add_paragraph (struct paragraph **paragraph_list,
       p->text[++lines] = t;
     }
 
-  p->y1 = p->y0 + MARGIN + lines * font_size * 0.2 + MARGIN;
+  p->y1 = p->y0 + margin + lines * font_size * 0.2 + margin;
   p->lines = lines;
 
   p->next = *paragraph_list;
@@ -1459,8 +1556,8 @@ redraw_window (wimp_draw * redraw, struct paragraph *paragraphs)
 	  code = rufl_paint (p->font_family, p->font_style,
 			     p->font_size, p->text[i],
 			     p->text[i + 1] - p->text[i],
-			     ox + p->x0 + MARGIN,
-			     oy - p->y0 - MARGIN -
+			     ox + p->x0 + ( margin < 10 ? 10 : margin ),
+			     oy - p->y0 - margin -
 			     i * p->font_size * 0.2 -
 			     p->font_size * 0.15, rufl_BLEND_FONT);
 	  if (code != rufl_OK)
@@ -1524,6 +1621,7 @@ choices_save (void)
   fprintf (choices, "feed_description: %i\n", feed_description);
   fprintf (choices, "proxy: %s\n", http_proxy);
   fprintf (choices, "quality: %s\n", quality);
+  fprintf (choices, "margin: %i\n", margin);
   fprintf (choices, "font_headings: %s\n", font_headings);
   fprintf (choices, "font_summaries: %s\n", font_summaries);
   fprintf (choices, "font_links: %s\n", font_links);
@@ -1558,6 +1656,7 @@ choices_load (void)
       sscanf (s, "feed_description: %i", &feed_description);
       sscanf (s, "proxy: %s", http_proxy);
       sscanf (s, "quality: %s", quality);
+      sscanf (s, "margin: %i", &margin);
       sscanf (s, "font_headings: %s", font_headings);
       sscanf (s, "font_summaries: %s", font_summaries);
       sscanf (s, "font_links: %s", font_links);
@@ -1746,4 +1845,27 @@ get_icon_selected (wimp_w w, wimp_i i)
     }
 
   return((icon_state.icon.flags & wimp_ICON_SELECTED) != 0) ? 1 : 0;
+}
+
+const xmlChar *add_crs(const xmlChar *text)
+{
+  xmlChar *s, *d;
+
+  if (!text)
+    return;
+
+  s = d = text;
+
+  while (*s)
+  {
+	  if (*s == '|' && s[1] == 'M')
+		  *d++ = 0x0a, s += 2;
+	  else
+		  *d++ = *s++;
+  }
+  *d = 0;
+
+  fprintf(stderr, "%s\n", text);
+  fflush(stderr);
+  return text;
 }
