@@ -1,4 +1,4 @@
-/* creat (), creat64 ()
+/* creat ()
  * Copyright (c) 2000-2011 UnixLib Developers
  */
 
@@ -10,10 +10,3 @@ creat (const char *file, __mode_t mode)
 {
   return open (file, O_WRONLY | O_CREAT | O_TRUNC, mode);
 }
-
-int
-creat64 (const char *file, __mode_t mode)
-{
-  return open64 (file, O_WRONLY | O_CREAT | O_TRUNC, mode);
-}
-

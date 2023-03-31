@@ -1160,7 +1160,9 @@ unix_src = \
 	unix/scl_ioctl.c \
 	unix/scl_isatty.c \
 	unix/scl_lseek.c \
+	unix/scl_lseek64.c \
 	unix/scl_open.c \
+	unix/scl_open64.c \
 	unix/scl_putenv.c \
 	unix/scl_read.c \
 	unix/scl_readv.c \
@@ -1177,7 +1179,6 @@ unix_src = \
 	unix/chmod.c \
 	unix/ul_clearenv.c \
 	unix/ul_close.c \
-	unix/creat.c \
 	unix/custom.c \
 	unix/dev.c \
 	unix/dirent.c \
@@ -1238,6 +1239,8 @@ unix_src = \
 	unix/ul_writev.c
 endif
 unix_src += \
+	unix/creat.c \
+	unix/creat64.c \
 	unix/fnmatch.c \
 	unix/getdomain.c \
 	unix/gethostnam.c \

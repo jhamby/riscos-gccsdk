@@ -225,6 +225,8 @@ extern int __REDIRECT (creat, (__const char *__file, __mode_t __mode),
 extern int creat64 (__const char *__file, __mode_t __mode) __nonnull ((1));
 #endif
 
+#ifndef __TARGET_SCL__
+
 #if !defined F_LOCK && (defined __USE_MISC || (defined __USE_XOPEN_EXTENDED \
 					       && !defined __USE_POSIX))
 /* NOTE: These declarations also appear in <unistd.h>; be sure to keep both
@@ -253,6 +255,8 @@ extern int __REDIRECT (lockf, (int __fd, int __cmd, __off64_t __len), lockf64);
 extern int lockf64 (int __fd, int __cmd, __off64_t __len);
 # endif
 #endif
+
+#endif /* __TARGET_SCL__ */
 
 __END_DECLS
 
