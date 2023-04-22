@@ -1,0 +1,6 @@
+| Run file for LibSSL
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibSSL$Dir <Obey$Dir>
+Set LibSSL$Path <Obey$Dir>.
