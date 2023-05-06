@@ -1,5 +1,8 @@
+AB_GIT=https://gitlab.xiph.org/xiph/opus.git
+AB_GIT_TAGORBRANCH=v1.4
 
-AB_ROVERSION=2
+AB_PVERSION=1.4
+AB_ROVERSION=1
 AB_INSTALL=yes
 
 AB_CONFLAGS='--disable-rtcd --disable-asm --enable-fixed-point --disable-intrinsics'
