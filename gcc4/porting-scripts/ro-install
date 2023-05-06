@@ -28,7 +28,7 @@ for param in $@ ; do
     continue
   fi
 
-  if [ "$param" == "-g" -o "$param" == "-m" ] ; then
+  if [ "$param" == "-g" -o "$param" == "-m" -o "$param" == "-d" ] ; then
     skip=true
     continue
   fi
