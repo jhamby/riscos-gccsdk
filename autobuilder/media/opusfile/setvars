@@ -1,4 +1,11 @@
+AB_GIT=https://gitlab.xiph.org/xiph/opusfile.git
+AB_GIT_TAGORBRANCH=v0.12
 
+AB_PVERSION=0.12
+AB_ROVERSION=1
 AB_INSTALL=yes
 
+AB_CONFLAGS='--enable-fixed-point'
 autoreconf -fi
+
+export LIBS='-ldl'
