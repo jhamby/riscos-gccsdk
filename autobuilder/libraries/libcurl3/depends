@@ -1,4 +1,3 @@
-libssl1.1.1
+libssl3
 zlib1g
-c-ares
-libnghttp2-14
+libcares
