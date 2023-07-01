@@ -1,0 +1,5 @@
+mkdir -p build/lib.linux-arm-3.11
+cd build/lib.linux-arm-3.11
+ln -s _sysconfigdata__linux_.py _sysconfigdata__.py
+cd ../..
+rm -f $GCCSDK_INSTALL_ENV/lib/python3.11/_sysconfigdata*
