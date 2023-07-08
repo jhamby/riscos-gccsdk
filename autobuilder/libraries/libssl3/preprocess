@@ -1,2 +1,0 @@
-wget  http://ftp.debian.org/debian/pool/main/o/openssl/openssl_3.1.0-1.debian.tar.xz
-tar -xvJf openssl_3.1.0-1.debian.tar.xz| patch -p1 || true
