@@ -2,6 +2,8 @@ AB_INSTALL=yes
 
 AB_CONFLAGS='--disable-python-bindings'
 
+autoreconf -fi
+
 ab_package()
 {
   ab_create_app LibNGHttp2 Apps/Library libnghttp2-dev
