@@ -1,5 +1,5 @@
-libssl1.1.1
+libssl3
 libssh2
 zlib1g
-c-ares
+libc-ares2
 libnghttp2-14
