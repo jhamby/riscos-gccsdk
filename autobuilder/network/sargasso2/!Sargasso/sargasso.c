@@ -69,16 +69,16 @@ char http_proxy[255] = "";
 char quality[] = "b";
 os_t last_update = 0;
 
-char type1[7] = "";
-char type2[7] = "";
-char type3[7] = "";
-char type4[7] = "";
+char type1[7] = {0};
+char type2[7] = {0};
+char type3[7] = {0};
+char type4[7] = {0};
 
-char youtube_url[512] = "";
-char exclude1[1030] = "";
-char exclude2[1030] = "";
-char exclude3[1030] = "";
-char exclude4[1030] = "";
+char youtube_url[512] = {0};
+char exclude1[1024] = {0};
+char exclude2[1024] = {0};
+char exclude3[1024] = {0};
+char exclude4[1024] = {0};
 unsigned int catch_up = 0;
 wimp_t task;
 wimp_w info_window, main_window, feed_window, add_feed_window,
@@ -168,7 +168,7 @@ void set_icon_string (wimp_w w, wimp_i i, const char *text);
 void set_icon_selected (wimp_w w, wimp_i i, int feed_description_main);
 int get_icon_selected (wimp_w w, wimp_i i);
 
-const xmlChar *add_crs(const xmlChar *text);
+const xmlChar *add_crs(xmlChar *text);
 
 int
 main (int argc, char *argv[])
@@ -620,7 +620,7 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
       if (i == 1)
 	{
 	  strcpy (youtube_url, get_icon_string (open_url_window, 0));
-          if (strlen(youtube_url > 0))
+          if (strlen(youtube_url) > 0)
             open_url();
 	  if (buttons == wimp_CLICK_SELECT)
 	    close_window (open_url_window);
@@ -695,7 +695,7 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
 	    max_fetches = 1;
 	  else if (max_fetches > 9)
 	    max_fetches = 9;
-	  snprintf (maxfetches, sizeof maxfetches, "%i", max_fetches);
+	  snprintf (maxfetches, sizeof maxfetches, "%u", max_fetches);
 	  set_icon_string (choices_window, 19, maxfetches);
 	  xwimp_set_caret_position (choices_window, 19,
 				    0, 0, -1, strlen (maxfetches));
@@ -712,7 +712,7 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
 	    font_size_main = 10;
 	  else if (font_size_main > 22)
 	    font_size_main = 22;
-	  snprintf (fontmain, sizeof fontmain, "%i", font_size_main);
+	  snprintf (fontmain, sizeof fontmain, "%u", font_size_main);
 	  set_icon_string (choices_window, 26, fontmain);
 	  xwimp_set_caret_position (choices_window, 26,
 				    0, 0, -1, strlen (fontmain));
@@ -729,15 +729,15 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
 	     margin = 4;
 	  else if (10 < margin)
 	     margin = 10;
-	  snprintf (margin_size, sizeof margin_size, "%i", margin);
+	  snprintf (margin_size, sizeof margin_size, "%u", margin);
 	  set_icon_string (choices_window, 31, margin_size);
 	  xwimp_set_caret_position (choices_window, 31,
 				    0, 0, -1, strlen (margin_size));
 	}
       else if (i == 25)
 	{
-	  if ((i == 25 && buttons == wimp_CLICK_SELECT) ||
-	      (i == 25 && buttons == wimp_CLICK_ADJUST))
+	  if ((buttons == wimp_CLICK_SELECT) ||
+	      (buttons == wimp_CLICK_ADJUST))
 		feed_description = !feed_description;
 	  	set_icon_selected (choices_window, 25, feed_description);
 	}
@@ -745,6 +745,7 @@ mouse_click (wimp_w w, wimp_i i, int x, int y, wimp_mouse_state buttons)
 	{
 	  if (i == 8 || i == 11 || i == 14)
 	    i--;
+
 	  wimp_window_state state;
 	  wimp_icon_state icon_state;
 	  state.w = w;
@@ -884,9 +885,9 @@ menu_selection (wimp_selection * selection)
 	  break;
 	case 2:
 	  snprintf (minutes, sizeof minutes, "%i", interval / 60);
-	  snprintf (maxfetches, sizeof maxfetches, "%i", max_fetches);
-	  snprintf (margin_size, sizeof margin_size, "%i", margin);
-	  snprintf (fontmain, sizeof fontmain, "%i", font_size_main);
+	  snprintf (maxfetches, sizeof maxfetches, "%u", max_fetches);
+	  snprintf (margin_size, sizeof margin_size, "%u", margin);
+	  snprintf (fontmain, sizeof fontmain, "%u", font_size_main);
 	  set_icon_string (choices_window, 18, http_proxy);
 	  set_icon_string (choices_window, 1, minutes);
 	  set_icon_string (choices_window, 19, maxfetches);
@@ -1120,14 +1121,14 @@ update_main_window (void)
 	  snprintf (status + i * 40, 40, "Fetching");
 	  break;
 	case FEED_PAUSED:
-	    snprintf (status + i * 40, 40, "%i items (Paused)", feeds[i].item_count);
+	    snprintf (status + i * 40, 40, "%u items (Paused)", feeds[i].item_count);
 	  break;
 	case FEED_OK:
 	  if (new_items)
 	    snprintf (status + i * 40, 40,
-		      "%i items (%i new)", feeds[i].item_count, new_items);
+		      "%u items (%u new)", feeds[i].item_count, new_items);
 	  else
-	    snprintf (status + i * 40, 40, "%i items", feeds[i].item_count);
+	    snprintf (status + i * 40, 40, "%u items", feeds[i].item_count);
 	  break;
 	case FEED_ERROR:
 	  snprintf (status + i * 40, 40, "Failed");
@@ -1404,6 +1405,13 @@ click_item_link (unsigned int j)
     {
       error = xtaskmanager_start_task (youtubedl);
     }
+  else if (strncmp
+      ((const char *) "https://m.youtube.com/watch?v=",
+       (const char *) feeds[current_feed].item[j].link,
+       strlen ((const char *) "https://m.youtube.com/watch?v=")) == 0)
+    {
+      error = xtaskmanager_start_task (youtubedl);
+    }
   else
     {
       error = xuri_dispatch (0, feeds[current_feed].item[j].link, task,
@@ -1420,7 +1428,7 @@ void
 open_url (void)
 {
   char youtubedl[255];
-  os_error *error;
+  os_error *error = 0;
 
   sprintf (youtubedl, "%s %s %s", "<Sargasso$Dir>.youtubedl", quality,
 	   youtube_url);
@@ -1429,6 +1437,13 @@ open_url (void)
       ((const char *) "https://www.youtube.com/watch?v=",
        (const char *) youtube_url,
        strlen ((const char *) "https://www.youtube.com/watch?v=")) == 0)
+    {
+      error = xtaskmanager_start_task (youtubedl);
+    }
+  else if (strncmp
+      ((const char *) "https://m.youtube.com/watch?v=",
+       (const char *) youtube_url,
+       strlen ((const char *) "https://m.youtube.com/watch?v=")) == 0)
     {
       error = xtaskmanager_start_task (youtubedl);
     }
@@ -1616,12 +1631,12 @@ choices_save (void)
       return;
     }
   fprintf (choices, "interval: %i\n", interval);
-  fprintf (choices, "max_fetches: %i\n", max_fetches);
-  fprintf (choices, "font_size_main: %i\n", font_size_main);
-  fprintf (choices, "feed_description: %i\n", feed_description);
+  fprintf (choices, "max_fetches: %u\n", max_fetches);
+  fprintf (choices, "font_size_main: %u\n", font_size_main);
+  fprintf (choices, "feed_description: %u\n", feed_description);
   fprintf (choices, "proxy: %s\n", http_proxy);
   fprintf (choices, "quality: %s\n", quality);
-  fprintf (choices, "margin: %i\n", margin);
+  fprintf (choices, "margin: %u\n", margin);
   fprintf (choices, "font_headings: %s\n", font_headings);
   fprintf (choices, "font_summaries: %s\n", font_summaries);
   fprintf (choices, "font_links: %s\n", font_links);
@@ -1651,12 +1666,12 @@ choices_load (void)
   while (fgets (s, sizeof s, choices))
     {
       sscanf (s, "interval: %i", &interval);
-      sscanf (s, "max_fetches: %i", &max_fetches);
-      sscanf (s, "font_size_main: %i", &font_size_main);
-      sscanf (s, "feed_description: %i", &feed_description);
+      sscanf (s, "max_fetches: %u", &max_fetches);
+      sscanf (s, "font_size_main: %u", &font_size_main);
+      sscanf (s, "feed_description: %u", &feed_description);
       sscanf (s, "proxy: %s", http_proxy);
       sscanf (s, "quality: %s", quality);
-      sscanf (s, "margin: %i", &margin);
+      sscanf (s, "margin: %u", &margin);
       sscanf (s, "font_headings: %s", font_headings);
       sscanf (s, "font_summaries: %s", font_summaries);
       sscanf (s, "font_links: %s", font_links);
@@ -1847,12 +1862,12 @@ get_icon_selected (wimp_w w, wimp_i i)
   return((icon_state.icon.flags & wimp_ICON_SELECTED) != 0) ? 1 : 0;
 }
 
-const xmlChar *add_crs(const xmlChar *text)
+const xmlChar *add_crs(xmlChar *text)
 {
   xmlChar *s, *d;
 
   if (!text)
-    return;
+    return NULL;
 
   s = d = text;
 

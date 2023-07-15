@@ -95,10 +95,10 @@ extern char type2[7];
 extern char type3[7];
 extern char type4[7];
 
-extern char exclude1[1030];
-extern char exclude2[1030];
-extern char exclude3[1030];
-extern char exclude4[1030];
+extern char exclude1[1024];
+extern char exclude2[1024];
+extern char exclude3[1024];
+extern char exclude4[1024];
 
 bool feed_init(void);
 void feed_quit(void);

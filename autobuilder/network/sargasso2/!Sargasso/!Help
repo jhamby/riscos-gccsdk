@@ -135,3 +135,8 @@ Link with libcurl 7.84 and libssl1.1.1o
 2.0.10 (26 Mar 2023)
 Link with libcurl 7.88 and libssl 3.0.8
 Add 'Open URL' to play youtube urls directly.
+
+2.0.11 (15 Jul 2023)
+Link with libcurl 8.0.1 and libssl 3.0.9
+Allow to play youtube urls from the 'mobile' site too
+Fix zeropain when using exclude filters

@@ -1,6 +1,6 @@
 AB_INSTALL=no
 AB_NOREMOTE=yes
-AB_PVERSION=2.0.10
+AB_PVERSION=2.0.11
 
 ab_package () {
   ab_create_app Sargasso Apps/Network
