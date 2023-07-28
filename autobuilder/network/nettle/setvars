@@ -2,7 +2,7 @@
 
 #AB_CVS_ROOT=:pserver:anonymous@nettle.cvs.sourceforge.net:/cvsroot/nettle
 #AB_CVS_MODULE=nettle
-AB_GIT=https://github.com/caliston/Nettle
+AB_GIT=https://github.com/dpt/Nettle
 
 AB_CATEGORY=Network
 AB_ROVERSION=1
