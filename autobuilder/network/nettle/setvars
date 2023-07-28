@@ -1,11 +1,9 @@
 # Setvars for Nettle
 
-#AB_CVS_ROOT=:pserver:anonymous@nettle.cvs.sourceforge.net:/cvsroot/nettle
-#AB_CVS_MODULE=nettle
 AB_GIT=https://github.com/dpt/Nettle
 
 AB_CATEGORY=Network
-AB_ROVERSION=1
+AB_ROVERSION=2
 AB_FULLNAME=Nettle
 
 # RISC OS make wrapper.  This can be set to just "make" if setting the
@@ -44,7 +42,7 @@ ab_package () {
    mkdir -p $D/Nettle/Apps/Network
    cp -r $S/nettle/!Nettle $D/Nettle/Apps/Network
    AB_COMPONENTS="Apps.Network.!Nettle (Movable)"
-   $AB_HOME/add-riscpkg -package Nettle -unixlib -copyrightfile $S/License \
+   $AB_HOME/add-riscpkg -package Nettle -unixlib -copyrightfile $S/nettle/License \
        -depends SocketWatch -depends CryptRandom
 }
 
