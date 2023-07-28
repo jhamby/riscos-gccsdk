@@ -1,10 +1,12 @@
 # Setvars for Nettle
 
-AB_CVS_ROOT=:pserver:anonymous@nettle.cvs.sourceforge.net:/cvsroot/nettle
-AB_CVS_MODULE=nettle
+#AB_CVS_ROOT=:pserver:anonymous@nettle.cvs.sourceforge.net:/cvsroot/nettle
+#AB_CVS_MODULE=nettle
+AB_GIT=https://github.com/caliston/Nettle
 
 AB_CATEGORY=Network
-AB_ROVERSION=5
+AB_ROVERSION=1
+AB_FULLNAME=Nettle
 
 # RISC OS make wrapper.  This can be set to just "make" if setting the
 # path causes problems - e.g., the native compiler is required too
@@ -15,12 +17,17 @@ AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 # with the same name as the package name specified in the variable.
 AB_PACKAGES=Nettle
 
+# Used for cleaning the build tree
+AB_DISTCLEAN="$AB_MAKE -C nettle distclean || $AB_MAKE -C nettle clean"
+
 # Make function
 #
 # Define this if you want special actions for make
 #
 ab_make () {
-	$AB_MAKE -f GNUmakefile
+  CC=$GCCSDK_INSTALL_ENV/arm-unknown-riscos-gcc \
+    ELF2AIF=$GCCSDK_INSTALL_CROSS/bin/elf2aif \
+    $AB_MAKE -C nettle -f GNUmakefile
 }
 
 # Package function
@@ -33,9 +40,9 @@ ab_make () {
 # $A RISC OS application (after calling ab_create_app, etc)
 #
 ab_package () {
-   AB_PVERSION=`grep -m 1 "RelVer" !Release,fd7 | cut -f 3 -d' '`
+   AB_PVERSION=`grep -m 1 "RelVer" nettle/!Release,feb | cut -f 3 -d' '`
    mkdir -p $D/Nettle/Apps/Network
-   cp -r $S/!Nettle $D/Nettle/Apps/Network
+   cp -r $S/nettle/!Nettle $D/Nettle/Apps/Network
    AB_COMPONENTS="Apps.Network.!Nettle (Movable)"
    $AB_HOME/add-riscpkg -package Nettle -unixlib -copyrightfile $S/License \
        -depends SocketWatch -depends CryptRandom

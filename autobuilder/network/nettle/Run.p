@@ -1,14 +1,11 @@
-Index: !Nettle/!Run,feb
-===================================================================
-RCS file: /cvsroot/nettle/nettle/!Nettle/!Run,feb,v
-retrieving revision 1.18
-diff -u -r1.18 !Run,feb
---- !Nettle/!Run,feb	11 Apr 2010 21:39:02 -0000	1.18
-+++ !Nettle/!Run,feb	31 May 2012 23:23:29 -0000
-@@ -32,5 +32,5 @@
+diff --git a/nettle/!Nettle/!Run,feb b/nettle/!Nettle/!Run,feb
+index 5dc5c88..a9529eb 100644
+--- nettle/!Nettle/!Run,feb
++++ nettle/!Nettle/!Run,feb
+@@ -32,5 +32,5 @@ RMEnsure ColourPicker 0.31 Error Nettle requires ColourPicker 0.31 or later
  
  RmEnsure WindowManager 3.98 Error Nettle requires the Nested WIMP window manager
  
 -WimpSlot -min 256K -max 256K
-+WimpSlot -min 2535K -max 2535K
++WimpSlot -min 3392K -max 3392K
  Run <Nettle$Dir>.!RunImage %*0 ><Nettle$Dir>.stdout 2><Nettle$Dir>.stderr
