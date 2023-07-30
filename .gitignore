@@ -21,6 +21,7 @@ gcc4/srcdir.orig/
 # directories used to rerun autoconf/automake.
 autom4te.cache/
 build-aux/
+tools/asasm/configure
 
 # directories and files created by the autobuilder.
 autobuilder/autobuilder_libraries/
