@@ -1,5 +1,5 @@
---- src/input.c.orig	2014-09-28 21:19:32.000000000 +1300
-+++ src/input.c	2020-06-30 01:24:43.216137584 +1200
+--- src/input.c.orig	2020-07-07 23:58:29.000000000 -0700
++++ src/input.c	2023-07-30 14:06:55.237976197 -0700
 @@ -31,7 +31,10 @@
   * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
   * SUCH DAMAGE.
@@ -12,10 +12,11 @@
  #include <stdio.h>	/* defines BUFSIZ */
  #include <fcntl.h>
  #include <unistd.h>
-@@ -185,13 +188,31 @@
+@@ -195,6 +198,25 @@
+ 
  	} else
  #endif
- 
++
 +#ifdef __riscos__
 +	if (parsefile->fd == 0 && buf) {
 +		_kernel_swi_regs regs;
@@ -27,22 +28,13 @@
 +		_kernel_swi(125,&regs,&regs);
 +			nr=regs.r[1];
 +			if (nr > 0) { 
-+            buf[nr]='\n';
++				buf[nr]='\n';
 +			buf[++nr]='\0';
 +			return nr;
 +			}
 +		}
 +#endif
-+
- #ifdef HETIO
- 		nr = hetio_read_input(parsefile->fd);
- 		if (nr == -255)
- #endif
++ 
  		nr = read(parsefile->fd, buf, IBUFSIZ - 1);
--
--
-+		
-+		
- 	if (nr < 0) {
- 		if (errno == EINTR)
- 			goto retry;
+ 
+ 

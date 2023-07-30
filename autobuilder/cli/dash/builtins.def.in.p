@@ -1,5 +1,5 @@
---- src/builtins.def.in.orig	2014-09-28 21:19:32.000000000 +1300
-+++ src/builtins.def.in	2020-06-27 02:47:16.486353837 +1200
+--- src/builtins.def.in.orig	2020-07-07 23:58:29.000000000 -0700
++++ src/builtins.def.in	2023-07-30 14:00:13.815131371 -0700
 @@ -46,7 +46,7 @@
   */
  
@@ -13,7 +13,7 @@
  #endif
  
  breakcmd	-s break -s continue
-+catcmd		cat
++catcmd		-u cat
  cdcmd		-u cd chdir
  commandcmd	-u command
  dotcmd		-s .
@@ -21,13 +21,13 @@
  hashcmd		hash
  jobscmd		-u jobs
  localcmd	-as local
-+lscmd		ls
-+mvcmd		mv
++lscmd		-u ls
++mvcmd		-u mv
  printfcmd	printf
- pwdcmd		pwd
+ pwdcmd		-u pwd
  readcmd		-u read
  returncmd	-s return
-+rmcmd		rm
++rmcmd		-u rm
  setcmd		-s set
  shiftcmd	-s shift
  timescmd	-s times
