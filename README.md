@@ -13,8 +13,13 @@ your `build-setvars` file.
 ```
 RO_USE_ARMEABIHF=yes
 RO_SHAREDLIBS=yes
-RO_GCC_CONFIG_FLAGS="--with-cpu=cortex-a72 --with-fpu=vfpv4"
+# RO_GCC_CONFIG_FLAGS="--with-cpu=cortex-a72 --with-fpu=vfpv4"
 ```
+
+Update for 2023: I'm going to use the Raspberry Pi OS (Raspbian) version
+of Debian 11 (bullseye) and no CPU or FPU customization in order to get
+a version of GCC 10.2.1 that builds by default for ARMv6 and above.
+This should cover all modern RISC OS PCs, including all Raspberry Pis.
 
 I originally patched GCC 10's `setvars` file to optimize for Cortex-A53,
 but then realized that it should be possible to change the CPU and FPU
