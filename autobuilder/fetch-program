@@ -105,9 +105,11 @@ else
     apt-get source $AB_PACKAGE
   else
     # Slower method.  Fetch packages file ourself and parse it.
-    debarchive=http://ftp.uk.debian.org/debian
+    #debarchive=http://ftp.uk.debian.org/debian
+    debarchive=http://raspbian.raspberrypi.org/raspbian
     #distros="testing stable"
-    distros="stable oldstable stretch"
+    #distros="stable oldstable stretch"
+    distros="bullseye"
     #debarchive=http://mirrors.kernel.org/debian
     #debarchive=http://gb.archive.ubuntu.com/ubuntu/
     #distros="precise"

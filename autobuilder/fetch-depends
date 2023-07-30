@@ -5,8 +5,8 @@
 PACKAGE=$1
 packindex=Packages.bz2
 
-debarchive=http://ftp.uk.debian.org/debian
-distro="testing"
+debarchive=http://raspbian.raspberrypi.org/raspbian
+distro="bullseye"
 #debarchive=http://gb.archive.ubuntu.com/ubuntu
 #distro="precise"
 
