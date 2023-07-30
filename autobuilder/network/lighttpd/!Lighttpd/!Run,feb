@@ -1,0 +1,5 @@
+| !Run file for Lighttpd
+
+Set Lighthttpd$Dir <Obey$Dir>
+
+<Lighttpd$Dir>.startlighttpd

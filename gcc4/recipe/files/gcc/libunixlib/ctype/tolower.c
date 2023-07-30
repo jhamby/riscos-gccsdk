@@ -3,6 +3,7 @@
  */
 
 #include <ctype.h>
+#include <locale.h>
 
 int
 (tolower) (int c)
@@ -10,3 +11,8 @@ int
   return tolower (c);
 }
 
+int
+tolower_l (int c, locale_t locobj)
+{
+  return (&locobj->ctype_lower[1])[c];
+}

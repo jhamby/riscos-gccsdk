@@ -378,6 +378,28 @@ ATOMIC_OP_FETCH(xor,(*ptr) ^= val,unsigned)
 ATOMIC_OP_FETCH(or,(*ptr) |= val,unsigned)
 ATOMIC_OP_FETCH(nand,(*ptr) = ~((*ptr) & val),unsigned)
 
+#define SYNC_LOCK_TEST_SET(size, type) \
+type \
+__builtin_sync_lock_test_and_set_##size (volatile type *ptr, type val) \
+{ \
+  type prev; \
+  \
+  __pthread_disable_ints (); \
+  \
+  prev = *ptr; \
+  *ptr = val; \
+  \
+  __pthread_enable_ints (); \
+  \
+  return prev; \
+} \
+__asm__(".hidden\t__builtin_sync_lock_test_and_set_"__STRING(size)"\n"); \
+__asm__(".global\t__sync_lock_test_and_set_"__STRING(size)"\n"); \
+__asm__("__sync_lock_test_and_set_"__STRING(size)"=__builtin_sync_lock_test_and_set_"__STRING(size));
+SYNC_LOCK_TEST_SET(1,char)
+SYNC_LOCK_TEST_SET(2,short)
+SYNC_LOCK_TEST_SET(8,long long)
+
 #ifdef __ARM_EABI__
 
 static int __cmpxchg (int oldval, int newval, volatile int *ptr)
@@ -397,25 +419,6 @@ static int __cmpxchg (int oldval, int newval, volatile int *ptr)
   return result;
 }
 
-#else
-
-static int __cmpxchg (int oldval, int newval, volatile void *ptr)
-{
-  int prev;
-
-  __pthread_disable_ints();
-
-  prev = *(int *)ptr;
-  if (prev == oldval)
-    *(int *)ptr = newval;
-
-  __pthread_enable_ints();
-
-  return prev;
-}
-
-#endif
-
 int __builtin_sync_lock_test_and_set_4 (volatile int *ptr, int val)
 {
   int failure, oldval;
@@ -430,6 +433,12 @@ int __builtin_sync_lock_test_and_set_4 (volatile int *ptr, int val)
 __asm__(".hidden\t__builtin_sync_lock_test_and_set_4\n"); \
 __asm__(".global\t__sync_lock_test_and_set_4\n"); \
 __asm__("__sync_lock_test_and_set_4=__builtin_sync_lock_test_and_set_4");
+
+#else
+
+SYNC_LOCK_TEST_SET(4,int)
+
+#endif
 
 void
 __builtin_sync_synchronize (void)

@@ -1,6 +1,6 @@
---- host_applications/linux/apps/hello_pi/hello_tiger/main.c.orig	2015-06-18 20:04:26.000000000 +0100
-+++ host_applications/linux/apps/hello_pi/hello_tiger/main.c	2015-06-26 11:53:53.059613771 +0100
-@@ -365,7 +365,8 @@
+--- host_applications/linux/apps/hello_pi/hello_tiger/main.c.orig	2022-11-23 17:52:43.936646162 +0000
++++ host_applications/linux/apps/hello_pi/hello_tiger/main.c	2022-11-23 17:52:44.064647585 +0000
+@@ -367,7 +367,8 @@
  	assert(eglGetError() == EGL_SUCCESS);
  	assert(numconfigs == 1);
  
@@ -10,7 +10,7 @@
  	assert(eglGetError() == EGL_SUCCESS);
  	eglcontext = eglCreateContext(egldisplay, eglconfig, NULL, NULL);
  	assert(eglGetError() == EGL_SUCCESS);
-@@ -382,6 +383,8 @@
+@@ -384,6 +385,8 @@
  	PS_destruct(tiger);
  	eglMakeCurrent(egldisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
  	assert(eglGetError() == EGL_SUCCESS);
@@ -19,7 +19,7 @@
  	eglTerminate(egldisplay);
  	assert(eglGetError() == EGL_SUCCESS);
  	eglReleaseThread();
-@@ -480,6 +483,7 @@
+@@ -482,6 +485,7 @@
  
  #elif defined __RASPBERRYPI__
  #include "bcm_host.h"
@@ -27,7 +27,7 @@
  int main(void)
  {
     uint32_t width, height;
-@@ -519,11 +523,14 @@
+@@ -528,11 +532,14 @@
     nativewindow.height = height;
     vc_dispmanx_update_submit_sync( dispman_update );
  

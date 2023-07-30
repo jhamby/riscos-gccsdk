@@ -48,7 +48,7 @@ __standard_time (const char *riscos_time, char *local_buffer)
 #ifdef __TARGET_SCL__
 					       -1,
 #else
-					       __locale_territory[LC_TIME],
+					       __locale_global.locale_territory[LC_TIME],
 #endif
 					       riscos_time,
 					       result,

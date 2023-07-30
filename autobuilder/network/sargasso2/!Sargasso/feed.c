@@ -27,12 +27,11 @@ unsigned int feed_count = 0;
 struct feed *feeds = 0;
 bool feed_work_needed = false;
 const char *feed_error = 0;
-static const char *feed_status_name[] = { "NEW", "FETCHING", "OK", "ERROR" };
+static const char *feed_status_name[] = { "NEW", "FETCHING", "OK", "ERROR", "PAUSED" };
 
 static CURLM *curl_multi_handle;
 static unsigned int fetching = 0;
 
-static void feed_set_status (struct feed *feed, feed_status status);
 static void feed_work_feed (struct feed *feed);
 static void feed_create_fetch (struct feed *feed);
 static void feed_start_fetch (struct feed *feed);
@@ -96,6 +95,8 @@ feed_init (void)
       feed_error = "Failed to initialise curl";
       return false;
     }
+
+  curl_multi_setopt(curl_multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
 
   xmlInitParser ();
 
@@ -415,6 +416,8 @@ feed_create_fetch (struct feed *feed)
   curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (curl, CURLOPT_MAXREDIRS, 2L);
   curl_easy_setopt (curl, CURLOPT_PROXY, http_proxy);
+  curl_easy_setopt (curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+  curl_easy_setopt (curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
 
   feed->curl = curl;
   feed->headers = headers;
@@ -925,18 +928,25 @@ feed_parse_item (struct feed *feed, xmlNode *node)
 	}
     }
 
-  feed_clean_text (title, process);
-  feed_clean_text (pub_date, process);
-  feed_clean_text (description, process);
+  if(title)
+    feed_clean_text (title, process);
+  if(pub_date)
+    feed_clean_text (pub_date, process);
+  if(description)
+    feed_clean_text (description, process);
 #ifdef DEBUG
-  fprintf (stderr, "Post Clean1a: %d %s %s title: %s\n", process, description, feed->title);
+  fprintf (stderr, "Post Clean1a: %d %s title: %s\n", process, description, feed->title);
   fprintf (stderr, "\n");
   fflush (stderr);
 #endif
-  feed_clean_text (link, process);
-  feed_clean_text (author, process);
-  feed_clean_text (category, process);
-  feed_clean_text (guid, process);
+  if(link)
+    feed_clean_text (link, process);
+  if(author)
+    feed_clean_text (author, process);
+  if(category)
+    feed_clean_text (category, process);
+  if(guid)
+    feed_clean_text (guid, process);
 
 #ifdef DEBUG
   fprintf (stderr, "Title: %s\n", title);
@@ -954,11 +964,12 @@ feed_parse_item (struct feed *feed, xmlNode *node)
 #endif
 
   skip = false;
-
+  if(type1[0])
   if (strcmp((const char *) type1, "title") == 0)
 	  if (strcmp((const char *) title, exclude1) == 0)
 		  skip = true;
 
+  if(type1[0])
   if (strcmp ((const char *) type1, "title") == 0 && skip == false) {
   
      re = pcre_compile(
@@ -982,10 +993,12 @@ feed_parse_item (struct feed *feed, xmlNode *node)
       skip = true;      
   }
 
+  if(type2[0])
   if (strcmp((const char *) type2, "title") == 0)
 	  if (strcmp((const char *) title, exclude2) == 0)
 		  skip = true;
 
+  if(type2[0])
   if (strcmp ((const char *) type2, "title") == 0 && skip == false) {
   
      re = pcre_compile(
@@ -1010,10 +1023,12 @@ feed_parse_item (struct feed *feed, xmlNode *node)
       
   }
 
+  if(type3[0])
   if (strcmp((const char *) type3, "title") == 0)
 	  if (strcmp((const char *) title, exclude3) == 0)
 		  skip = true;
 
+  if(type3[0])
   if (strcmp ((const char *) type3, "title") == 0 && skip == false) {
   
      re = pcre_compile(
@@ -1038,10 +1053,12 @@ feed_parse_item (struct feed *feed, xmlNode *node)
       
   }
 
+  if(type4[0])
   if (strcmp((const char *) type4, "title") == 0)
 	  if (strcmp((const char *) title, exclude4) == 0)
 		  skip = true;
 
+  if(type4[0])
   if (strcmp ((const char *) type4, "title") == 0 && skip == false) {
   
      re = pcre_compile(
@@ -1067,10 +1084,14 @@ feed_parse_item (struct feed *feed, xmlNode *node)
   }
 
 
+  if(type1[0])
+	if(author)
   if (strcmp((const char *) type1, "author") == 0)
 	  if (strcmp((const char *) author, exclude1) == 0)
 		  skip = true;
 
+  if(type1[0])
+	if(author)
       if (strcmp ((const char *) type1, "author") == 0 && skip == false) {
       
      re = pcre_compile(
@@ -1096,10 +1117,14 @@ feed_parse_item (struct feed *feed, xmlNode *node)
 	}
 
 
+  if(type2[0])
+	if(author)
   if (strcmp((const char *) type2, "author") == 0)
 	  if (strcmp((const char *) author, exclude2) == 0)
 		  skip = true;
 
+  if(type2[0])
+	if(author)
     if (strcmp ((const char *) type2, "author") == 0 && skip == false) {
       
      re = pcre_compile(
@@ -1124,10 +1149,14 @@ feed_parse_item (struct feed *feed, xmlNode *node)
 	  
 	}
 	 
+  if(type3[0])
+	if(author)
   if (strcmp((const char *) type3, "author") == 0)
 	  if (strcmp((const char *) author, exclude3) == 0)
 		  skip = true;
 
+  if(type1[0])
+	if(author)
       if (strcmp ((const char *) type3, "author") == 0 && skip == false) {
       
      re = pcre_compile(
@@ -1152,10 +1181,14 @@ feed_parse_item (struct feed *feed, xmlNode *node)
 	  
 	}
 
+  if(type4[0])
+	if(author)
   if (strcmp((const char *) type4, "author") == 0)
 	  if (strcmp((const char *) author, exclude4) == 0)
 		  skip = true;
 
+  if(type4[0])
+	if(author)
       if (strcmp ((const char *) type4, "author") == 0 && skip == false) {
       
      re = pcre_compile(
@@ -1366,7 +1399,8 @@ feed_parse_item (struct feed *feed, xmlNode *node)
 		}
 	    }
 	  feed->item[i].link = link;
-	  feed->item[i].author = author;
+	  if (author)
+	     feed->item[i].author = author;
 	  feed->item[i].pub_date = pub_date;
 	  feed->item[i].category = category;
 	  feed->item[i].guid = guid;
@@ -1539,7 +1573,8 @@ feed_parse_item (struct feed *feed, xmlNode *node)
 		}
 	    }
 	  feed->item[0].link = link;
-	  feed->item[0].author = author;
+	  if (author)
+	    feed->item[0].author = author;
 	  feed->item[0].pub_date = pub_date;
 	  feed->item[0].category = category;
 	  feed->item[0].guid = guid;
@@ -1737,7 +1772,8 @@ feed_update (void)
   unsigned int i;
 
   for (i = 0; i != feed_count; i++)
-    feeds[i].status = FEED_UPDATE;
+    if (feeds[i].status != FEED_PAUSED)
+      feeds[i].status = FEED_UPDATE;
 
   feed_work_needed = true;
 }

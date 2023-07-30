@@ -8,6 +8,12 @@ cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h \
 cp src/syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h \
    src/syscfg/lock-obj-pub.gnueabihf.h
 
+
+ab_make() {
+  $GCCSDK_INSTALL_ENV/ro-make
+  cp src/gpg-error-config $GCCSDK_INSTALL_ENV/bin/
+}
+
 ab_package() {
   ab_create_app LibGPGError Apps/Library libgpg-error-dev
 

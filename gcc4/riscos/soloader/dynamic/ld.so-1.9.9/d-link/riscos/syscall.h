@@ -377,6 +377,16 @@ _dl_som_free (void *addr)
 }
 
 static inline void
+ddeutils_clear_cl ()
+{
+  asm volatile ("	MOV	r0, #0;\n"
+		"	SWI	%[ddeutils_set_cl_size];\n"
+		: /* no outputs */
+		: [ddeutils_set_cl_size] "i" (SWI_X_BIT | 0x42581)
+		: "r0", "cc");
+}
+
+static inline void
 _dl_exit (int status)
 {
   asm volatile ("	swi	%[XSOM_DeregisterClient];\n"

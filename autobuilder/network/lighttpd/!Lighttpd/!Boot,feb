@@ -1,0 +1,4 @@
+| !Boot file for Lighttpd
+
+Set Lighttpd$Dir <Obey$Dir>
+IfThere <Lighttpd$Dir>.!Sprites then Iconsprites <Lighttpd$Dir>.!Sprites

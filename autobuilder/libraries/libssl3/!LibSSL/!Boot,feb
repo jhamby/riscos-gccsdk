@@ -1,0 +1,6 @@
+| Boot file for LibSSL
+|
+If "<LibSSL$Dir>" = "" Then Set LibSSL$Dir <Obey$Dir>
+If "<LibSSL$Path>" = "" Then Set LibSSL$Path <Obey$Dir>.
+
+IconSprites <LibSSL$Dir>.!Sprites

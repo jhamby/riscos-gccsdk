@@ -1,7 +1,8 @@
 
-AB_SVN=svn://svn.riscos.info/DeskLib/trunk/
-AB_SVN_AOF=svn://svn.riscos.info/DeskLib/branches/aof/
-AB_PVERSION=svn-$(date +%Y%m%d)
+#AB_GIT=https://github.com/riscos-dot-info/DeskLib.git
+AB_GIT=https://github.com/ccawley2011/DeskLib.git
+AB_GIT_TAGORBRANCH=autobuilder
+AB_PVERSION=git-$(date +%Y%m%d)
 
 AB_INSTALL=yes
 
@@ -43,15 +44,12 @@ ab_package() {
 
   ab_create_app DeskLib Apps/Library desklib
 
-  rsync -av --exclude='*/.svn*' ../\!DLUser $A/..
-  rsync -av --exclude='*/.svn*' ../\!DeskLib $A/..
-  rsync -av --exclude='*/.svn*' ../Examples $A/../\!DeskLib
+  rsync -av ../\!DLUser $A/..
+  rsync -av ../\!DeskLib $A/..
+  rsync -av ../Examples $A/../\!DeskLib
 
   move_riscos_source $A/../\!DLUser
   move_riscos_source $A
-
-  # Change library name to GCC friendly name
-  mv -f $A/DeskLib.a $A/libDesk.a
 
   # Remove shared library - it should be packaged in Sharedlibs
   rm -f $A/libDesk.so

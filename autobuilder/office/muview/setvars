@@ -1,0 +1,10 @@
+AB_INSTALL=no
+AB_NOREMOTE=yes
+AB_PVERSION=0.05alpha
+
+ab_package () {
+  ab_create_app MuView Apps/Document
+  ab_makerun $S/!RunImage$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -unixlib -package muview -name MuView -copyrightfile $A/!MuView/Copying
+}

@@ -9,3 +9,10 @@ int
 {
   return isblank (c);
 }
+
+int
+isblank_l (int c, locale_t locobj)
+{
+  (void) locobj;
+  return isblank (c);
+}

@@ -5,7 +5,7 @@
  
  #ifdef GFX_MULTI_FORMAT
 -	S9xSetRenderPixelFormat(RGB565);
-+	S9xSetRenderPixelFormat(BGR555);
++	S9xSetRenderPixelFormat(BGR565);
  #endif
  
  	uint32	saved_flags = CPU.Flags;

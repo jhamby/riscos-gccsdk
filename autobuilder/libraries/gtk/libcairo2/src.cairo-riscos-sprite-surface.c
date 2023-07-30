@@ -69,6 +69,13 @@ struct _cairo_riscos_sprite_surface {
     int				sprite_area_size;
     /* Unique id of this surface.  */
     int				ID;
+    /* Save area in case of vdu redirection.  */
+    osspriteop_save_area	*save_area;
+    /* The values required to restore the previous context after a vdu redirection.  */
+    int context0;
+    int context1;
+    int context2;
+    int context3;
 };
 
 static cairo_bool_t
@@ -96,7 +103,7 @@ cairo_riscos_sprite_surface_write_to_file (cairo_surface_t *abstract_surface,
     os_error *err;
 
     cairo_riscos_sprite_surface_t *surface = (cairo_riscos_sprite_surface_t *)abstract_surface;
-    
+
     if (!_cairo_surface_is_riscos (abstract_surface))
 	return _cairo_surface_set_error (abstract_surface,
 					 _cairo_error (CAIRO_STATUS_SURFACE_TYPE_MISMATCH));
@@ -110,41 +117,72 @@ cairo_riscos_sprite_surface_write_to_file (cairo_surface_t *abstract_surface,
 cairo_status_t
 cairo_riscos_switch_output_to_surface (cairo_surface_t *abstract_surface)
 {
-    const cairo_riscos_sprite_surface_t *surface;
+    cairo_riscos_sprite_surface_t *surface;
     os_error *err;
     char name[16];
+
+    if (!abstract_surface)
+	return CAIRO_STATUS_NULL_POINTER;
 
     surface = (cairo_riscos_sprite_surface_t *)abstract_surface;
 
     sprintf (name, "surface%d", surface->ID);
 
+    if (!surface->save_area) {
+	int area_size;
+
+	err = xosspriteop_read_save_area_size(osspriteop_NAME,
+					      surface->sprite_area,
+					      (osspriteop_id)name,
+					      &area_size);
+	if (err)
+	    return cairo_riscos_error ((_kernel_oserror *)err);
+
+	if (area_size) {
+	    surface->save_area = (osspriteop_save_area *)malloc(area_size);
+	    if (!surface->save_area)
+		return CAIRO_STATUS_NO_MEMORY;
+
+	    /* Only the first word needs to be zero for a new save area.  */
+	    *((int *)surface->save_area) = 0;
+	}
+    }
+
     err = xosspriteop_switch_output_to_sprite (osspriteop_NAME,
 					       surface->sprite_area,
 					       (osspriteop_id)name,
-					       NULL,
-					       NULL,
-					       NULL,
-					       NULL,
-					       NULL);
+					       surface->save_area,
+					       &surface->context0,
+					       &surface->context1,
+					       &surface->context2,
+					       &surface->context3);
     return cairo_riscos_error ((_kernel_oserror *)err);
 }
 
 cairo_status_t
 cairo_riscos_switch_output_from_surface (cairo_surface_t *abstract_surface)
 {
-    const cairo_riscos_sprite_surface_t *surface;
+    cairo_riscos_sprite_surface_t *surface;
     os_error *err;
+
+    if (!abstract_surface)
+	return CAIRO_STATUS_NULL_POINTER;
 
     surface = (cairo_riscos_sprite_surface_t *)abstract_surface;
 
-    err = xosspriteop_switch_output_to_sprite (osspriteop_NAME,
-					       surface->sprite_area,
-					       0,
+    err = xosspriteop_switch_output_to_sprite (surface->context0,
+					       (osspriteop_area *)surface->context1,
+					       (osspriteop_id)surface->context2,
+					       (osspriteop_save_area *)surface->context3,
 					       NULL,
 					       NULL,
 					       NULL,
-					       NULL,
-					       NULL); 
+					       NULL);
+    if (surface->save_area) {
+	free(surface->save_area);
+	surface->save_area = NULL;
+    }
+
     return cairo_riscos_error ((_kernel_oserror *)err);
 }
 
@@ -254,7 +292,7 @@ _cairo_riscos_sprite_surface_finish (void *abstract_surface)
     cairo_riscos_sprite_surface_t *surface = abstract_surface;
 
     cairo_riscos_memory_free (surface->sprite_area, surface->sprite_area_size);
-    
+
     return _cairo_image_surface_finish (abstract_surface);
 }
 
@@ -443,6 +481,7 @@ cairo_riscos_sprite_surface_create (cairo_format_t format,
     surface->ID = ID++;
     surface->sprite_area = sprite_area;
     surface->sprite_area_size = sprite_area_size;
+    surface->save_area = NULL;
 
     return (cairo_surface_t *)surface;
 }
@@ -484,7 +523,7 @@ cairo_riscos_sprite_surface_get_info (cairo_surface_t *abstract_surface,
 								&sprite_pointer));
 	sprite_area = surface->sprite_area;
     }
-    
+
     if (sprite_area_ret)
 	*sprite_area_ret = sprite_area;
     if (sprite_pointer_ret)
@@ -505,7 +544,7 @@ cairo_riscos_sprite_surface_set_size (cairo_surface_t *abstract_surface,
 
     char name[16];
     sprintf (name, "surface%d", surface->ID);
-    
+
     if (width <= 0 || height <= 0)
         return;
 

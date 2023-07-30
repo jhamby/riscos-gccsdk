@@ -46,3 +46,12 @@ __END_DECLS
    (__ASSERT_CAST ((expr) || (__assert2 (#expr, __PRETTY_FUNCTION__, __FILE__, __LINE__), 0)))
 
 #endif /* NDEBUG */
+
+#if (defined __USE_ISOC11                       \
+     && (!defined __STDC_VERSION__              \
+         || __STDC_VERSION__ <= 201710L         \
+         || !__GNUC_PREREQ (13, 0))             \
+     && !defined __cplusplus)
+# undef static_assert
+# define static_assert _Static_assert
+#endif

@@ -1,5 +1,7 @@
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="GPLv2"
+AB_ROVERSION=2
+AB_DISTRO=buster
 
 (unset CC; unset CXX; ./configure)
 make -C objs/lang
@@ -55,4 +57,3 @@ ab_package () {
   $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -name OpenTTD
 }
 
-export LIBS='-lSDL'

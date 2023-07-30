@@ -1,10 +1,9 @@
-AB_URL=https://download.imagemagick.org/ImageMagick/download/ImageMagick-6.9.12-21.tar.xz
-
+AB_URL=https://imagemagick.org/archive/ImageMagick-6.9.12-84.tar.xz
 AB_INSTALL=yes
 AB_MANPAGE=utilities/ImageMagick.1
 
 # AB_CONFLAGS needs updating if building with RO_SHAREDLIBES=yes
-AB_CONFLAGS="--with-perl=no --disable-largefile --disable-shared --with-rsvg=no --with-gslib=no --with-lcms --with-pic=no --without-x --without-dmalloc"
+AB_CONFLAGS="--with-perl=no --disable-largefile --disable-shared --with-rsvg=yes --with-gslib=no --with-lcms --with-pic=no --without-x --without-dmalloc"
 
 autoreconf -fi
 
@@ -59,4 +58,4 @@ ab_package() {
 
 }
 
-export LIBS='-llzma'
+export LIBS='-llzma -ldl -lwebp'

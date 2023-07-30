@@ -20,6 +20,9 @@ History
 -------
 RISC OS Version 1.00 (11-Apr-12)
 - this is the initial version of Snes9x built for RISC OS.
+RISC OS Version 1.01 (03-Sep-22)
+- now shows the correct colours.
+
 
 Issues
 ------
@@ -34,4 +37,4 @@ exceptions and try again.
 
 Contact
 -------
-Chris Gransden - chrisg@care4free.net
+Chris Gransden - chrisg@riscosports.co.uk

@@ -1,0 +1,5 @@
+| Boot file for SDL2 library
+
+IconSprites <Obey$Dir>.!Sprites
+If "<SDL2$Dir>" = "" Then Set SDL2$Dir <Obey$Dir>
+If "<SDL2$Path>" = "" Then Set SDL2$Path <Obey$Dir>.,<Obey$Dir>.SDL2.

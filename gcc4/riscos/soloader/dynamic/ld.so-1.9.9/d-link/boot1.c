@@ -1086,7 +1086,10 @@ ATTRIBUTE_HIDDEN void * _dl_malloc(int size)
 
   /* Allow for 4k of stack.  */
   if (_dl_malloc_addr + size >= (sp - 4096))
-    _dl_generate_error(&error_nomem);
+    {
+      ddeutils_clear_cl();
+      _dl_generate_error(&error_nomem);
+    }
 
   retval = _dl_malloc_addr;
   _dl_malloc_addr += size;

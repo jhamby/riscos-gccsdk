@@ -1,0 +1,3 @@
+cp $H/!MuView/muview.c muview.c
+cp $H/!MuView/timer.c timer.c
+cp $H/!MuView/Makefile Makefile

@@ -1,0 +1,39 @@
+AB_INSTALL=no
+
+# Assume we're building everything statically
+ab_make() {
+   mkdir build && cd build
+   cmake -DCMAKE_TOOLCHAIN_FILE=../../../env/toolchain-riscos.cmake \
+         -DCMAKE_EXE_LINKER_FLAGS='-L$GCCSDK_INSTALL_ENV/lib' \
+         -DWITH_STATIC_LIBRARIES=ON \
+         -DOPENSSL_CRYPTO_LIBRARY=$GCCSDK_INSTALL_ENV/lib/libcrypto.a \
+         -DCJSON_LIBRARY=$GCCSDK_INSTALL_ENV/lib/libcjson.a \
+         -DCMAKE_SHARED_LINKER_FLAGS= \
+         -DCMAKE_EXE_LINKER_FLAGS=-static \
+         -DOPENSSL_SSL_LIBRARY=$GCCSDK_INSTALL_ENV/lib/libssl.a \
+         -DWITH_PIC=OFF \
+         -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV \
+         ..
+   $AB_MAKE
+   cd ..
+}
+
+ab_package() {
+
+  ab_create_command_app Mosquitto Apps/Network
+  ab_add_commands $S/build/src/mosquitto
+  ab_add_commands $S/build/apps/mosquitto_passwd/mosquitto_passwd
+  ab_add_commands $S/build/client/mosquitto_pub
+  ab_add_commands $S/build/client/mosquitto_rr
+  ab_add_commands $S/build/client/mosquitto_sub
+
+  cp -av $S/about.html $S/aclfile.example $S/ChangeLog.txt $S/CONTRIBUTING.md $S/LICENSE.txt $S/edl-v10 $S/epl-v20 $S/mosquitto.conf $S/NOTICE.md $S/pskfile.example $S/pwfile.example $S/README.md $A/
+
+   ab_docs $S/man/mosquitto_passwd.1
+   ab_docs $S/man/mosquitto_pub.1
+   ab_docs $S/man/mosquitto_sub.1
+   ab_docs $S/man/mosquitto_rr.1
+   ab_docs $S/man/mosquitto.conf.5
+ 
+  $AB_HOME/add-riscpkg -unixlib -package mosquitto -name Mosquitto -copyrightfile $S/LICENSE.txt
+}

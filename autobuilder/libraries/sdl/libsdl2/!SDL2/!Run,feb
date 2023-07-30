@@ -1,0 +1,4 @@
+| Run file to set up paths for SDLLib
+
+Set SDL$Dir <Obey$Dir>
+Set SDL$Path <SDL$Dir>.,<SDL$Dir>.SDL.

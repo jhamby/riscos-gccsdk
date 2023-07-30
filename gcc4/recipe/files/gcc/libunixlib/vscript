@@ -58,6 +58,9 @@ VERSION {
      __init_des_r;
      __init_des;
      __invalidate;
+     __locale_global;
+     __localeconv_lconv_init;
+     __localeconv_lconv_fini;
      malloc_trim;
      malloc_trim_unlocked;
      malloc_unlocked;
@@ -80,6 +83,7 @@ VERSION {
      __res_vinit;
      __runtime_features;
      __setup_signalhandler_stack;
+     __setlocale_l;
      __sdirinit;
      __sfixinit;
      __sfixfind;

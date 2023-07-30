@@ -71,6 +71,20 @@ extern int atexit (void (*__atexit_function) (void)) __THROW __nonnull ((1));
 extern void exit (int __status) __THROW __attribute__ ((__noreturn__));
 __END_NAMESPACE_STD
 
+#if defined __USE_ISOC11 || defined __USE_ISOCXX11
+#  ifdef __TARGET_SCL__
+__BEGIN_NAMESPACE_C11
+/* Register a function to be called when `quick_exit' is called.  */
+extern int at_quick_exit (void (*__func) (void)) __THROW __nonnull ((1));
+
+/* Call all functions registered with `at_quick_exit' in the reverse
+   of the order in which they were registered and terminate program
+   execution with STATUS.  */
+extern void quick_exit (int __status) __THROW __attribute__ ((__noreturn__));
+__END_NAMESPACE_C11
+#  endif
+#endif
+
 #ifdef __USE_ISOC99
 __BEGIN_NAMESPACE_C99
 /* Terminate the program with status.  Don't call any functions
@@ -178,6 +192,17 @@ __END_NAMESPACE_STD
 #  ifndef __TARGET_SCL__
 /* Allocate size bytes on a page boundary. The storage cannot be freed.  */
 extern void *valloc (size_t __bytes) __THROW __attribute_malloc__ __wur;
+#  endif
+#endif
+
+#ifdef __USE_ISOC11
+#  ifdef __TARGET_SCL__
+__BEGIN_NAMESPACE_C11
+/* ISO C variant of aligned allocation.  */
+extern void *aligned_alloc (size_t __alignment, size_t __size)
+     __THROW __attribute_malloc__ __attribute_alloc_align__ ((1))
+     __attribute_alloc_size__ ((2)) __wur;
+__END_NAMESPACE_C11
 #  endif
 #endif
 

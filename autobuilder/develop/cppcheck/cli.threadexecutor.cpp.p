@@ -1,11 +1,11 @@
---- cli/threadexecutor.cpp.orig	2016-03-25 09:27:43.486113352 +0000
-+++ cli/threadexecutor.cpp	2016-03-25 09:28:08.990113629 +0000
-@@ -143,7 +143,7 @@
+--- cli/threadexecutor.cpp.orig	2022-07-16 09:42:01.848267719 +0100
++++ cli/threadexecutor.cpp	2022-07-16 09:44:14.080252172 +0100
+@@ -202,7 +202,7 @@
  
  bool ThreadExecutor::checkLoadAverage(size_t nchildren)
  {
--#if defined(__CYGWIN__) || defined(__QNX__)  // getloadavg() is unsupported on Cygwin, Qnx.
-+#if defined(__CYGWIN__) || defined(__QNX__) || defined(__riscos__) // getloadavg() is unsupported on Cygwin, Qnx.
+-#if defined(__CYGWIN__) || defined(__QNX__) || defined(__HAIKU__)  // getloadavg() is unsupported on Cygwin, Qnx, Haiku.
++#if defined(__CYGWIN__) || defined(__QNX__) || defined(__HAIKU__) || defined(__riscos__) // getloadavg() is unsupported on Cygwin, Qnx, Haiku.
      return true;
  #else
-     if (!nchildren || !_settings.loadAverage) {
+     if (!nchildren || !mSettings.loadAverage) {

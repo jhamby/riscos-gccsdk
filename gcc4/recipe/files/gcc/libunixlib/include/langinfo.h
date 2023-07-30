@@ -580,17 +580,11 @@ enum
 extern char *nl_langinfo (nl_item __item) __THROW;
 
 
-#if 0
-#ifdef	__USE_GNU
-/* This interface is for the extended locale model.  See <locale.h> for
-   more information.  */
-
-/* Get locale datatype definition.  */
-# include <xlocale.h>
+#ifdef	__USE_XOPEN2K8
+# include <bits/locale_t.h>
 
 /* Just like nl_langinfo but get the information from the locale object L.  */
-extern char *nl_langinfo_l (nl_item __item, __locale_t l);
-#endif
+extern char *nl_langinfo_l (nl_item __item, locale_t __l);
 #endif
 
 __END_DECLS

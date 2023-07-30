@@ -1,4 +1,4 @@
 Set Sargasso$Dir <Obey$Dir>
 IconSprites <Sargasso$Dir>.!Sprites
-WimpSlot -min 5012K -max 5012K
+WIMPSLOT
 Run <Sargasso$Dir>.!RunImage ><Sargasso$Dir>.Sargasso/Log 2>&1

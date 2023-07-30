@@ -1,7 +1,11 @@
+AB_GIT=https://github.com/libsndfile/libsndfile.git
+AB_GIT_TAGORBRANCH=1.2.0
 
 AB_INSTALL=yes
 
-AB_CONFLAGS='--disable-external-libs'
+AB_CONFLAGS='--disable-external-libs --disable-mpeg --disable-sqlite'
 
 # for 'libgsm.a-static: No such file or directory' error
 AB_PRECONF="AR_FLAGS=\"cru\""
+
+autoreconf -vif

@@ -195,7 +195,7 @@ territory_number (const char *locale)
 }
 
 static void
-do_lc_all (char *buffer, int size)
+do_lc_all (locale_t locobj, char *buffer, int size)
 {
   char temp[64];
   int category, same = 1;
@@ -204,13 +204,13 @@ do_lc_all (char *buffer, int size)
      setlocale to set all locales.  If all locales are
      the same, then we can produce a very short string.  */
   for (category = 1; category < LC_ALL; ++category)
-    if (__locale_territory[0] != __locale_territory[category])
+    if (locobj->locale_territory[0] != locobj->locale_territory[category])
       same = 0;
 
   if (same)
     {
       /* All locales are set to the same territory.  */
-      territory_name (__locale_territory[0], buffer, size);
+      territory_name (locobj->locale_territory[0], buffer, size);
     }
   else
     {
@@ -218,7 +218,7 @@ do_lc_all (char *buffer, int size)
 	   LC_CATEGORY=country;LC_CATEGORY=country; ...  */
       for (category = 0; category < LC_ALL; ++category)
 	{
-	  territory_name (__locale_territory[category], temp, sizeof (temp));
+	  territory_name (locobj->locale_territory[category], temp, sizeof (temp));
 	  buffer = stpcpy (buffer, locale_names[category]);
 	  *buffer++ = '=';
 	  buffer = stpcpy (buffer, temp);
@@ -230,15 +230,13 @@ do_lc_all (char *buffer, int size)
 }
 
 char *
-setlocale (int category, const char *locale)
+__setlocale_l (locale_t locobj, int category, const char *locale)
 {
   int new_territory, changed;
   static char old_locale[256];
 
-  PTHREAD_UNSAFE
-
   /* This tells localeconv to re-read data for the lconv structure.  */
-  __setlocale_called = 1;
+  locobj->lc_needs_refresh = 1;
 
   if (locale == NULL)
     {
@@ -247,11 +245,11 @@ setlocale (int category, const char *locale)
 	{
 	  /* The locale string is specially encoded for LC_ALL so we
 	     could restore all locales at any time.  */
-	  do_lc_all (old_locale, sizeof (old_locale));
+	  do_lc_all (locobj, old_locale, sizeof (old_locale));
 	  return old_locale;
 	}
 
-      territory_name (__locale_territory[category], old_locale, sizeof (old_locale));
+      territory_name (locobj->locale_territory[category], old_locale, sizeof (old_locale));
       return old_locale;
     }
 
@@ -270,7 +268,7 @@ setlocale (int category, const char *locale)
       /* Encode the locale string, as we will be returning this
 	 later.  Remember, setlocale returns the locale settings
 	 that are about to be changed.  */
-      do_lc_all (old_locale, sizeof (old_locale));
+      do_lc_all (locobj, old_locale, sizeof (old_locale));
 
       /* Check for an encoded (composite) name.  Simply looking for
 	 a semi-colon will verify this.  */
@@ -332,11 +330,11 @@ setlocale (int category, const char *locale)
 
 	  /* We now know all locales exist, so set them.  */
 	  for (category = 0; category < LC_ALL; ++category)
-	    __locale_territory[category] = territory_number (newnames[category]);
+	    locobj->locale_territory[category] = territory_number (newnames[category]);
 
 	  /* Re-build the character type tables according to the new
 	     locale settings.  */
-	  __build_ctype_tables (__locale_territory[LC_CTYPE]);
+	  __build_ctype_tables (locobj, locobj->locale_territory[LC_CTYPE]);
 	  return old_locale;
 	}
     }
@@ -359,21 +357,21 @@ setlocale (int category, const char *locale)
       /* Change the locale for all categories. old_locale was created
 	 when we previously checked for a composite string.  */
       for (category = 0; category < LC_ALL; ++category)
-	if (__locale_territory[category] != new_territory)
+	if (locobj->locale_territory[category] != new_territory)
 	  {
-	    __locale_territory[category] = new_territory;
+	    locobj->locale_territory[category] = new_territory;
 	    changed = 1;
 	  }
     }
   else
     {
       /* Change the locale for just one category.  */
-      territory_name (__locale_territory[category],
+      territory_name (locobj->locale_territory[category],
 		      old_locale, sizeof (old_locale));
 
-      if (__locale_territory[category] != new_territory)
+      if (locobj->locale_territory[category] != new_territory)
 	{
-	  __locale_territory[category] = new_territory;
+	  locobj->locale_territory[category] = new_territory;
 	  changed = 1;
 	}
     }
@@ -384,7 +382,16 @@ setlocale (int category, const char *locale)
      is changing.  The GNU Java compiler is known to repeatedly call
      setlocale.  */
   if (changed && (category == LC_ALL || category == LC_CTYPE))
-    __build_ctype_tables (new_territory);
+    __build_ctype_tables (locobj, new_territory);
 
   return old_locale;
+}
+
+char *
+setlocale (int category, const char *locale)
+{
+
+  PTHREAD_UNSAFE
+
+  return __setlocale_l(&__locale_global, category, locale);
 }

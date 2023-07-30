@@ -23,7 +23,7 @@ mktime (struct tm *brokentime)
 #ifdef __TARGET_SCL__
 						     -1,
 #else
-						     __locale_territory[LC_TIME],
+						     __locale_global.locale_territory[LC_TIME],
 #endif
 						     riscos_time,
 						     ordinals)) != NULL)

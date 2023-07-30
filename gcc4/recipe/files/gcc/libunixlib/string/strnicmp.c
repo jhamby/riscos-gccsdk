@@ -5,6 +5,7 @@
 #include <string.h>
 #include <strings.h>
 #include <ctype.h>
+#include <locale.h>
 
 int
 strnicmp (const char *s1, const char *s2, size_t n)
@@ -25,4 +26,3 @@ strnicmp (const char *s1, const char *s2, size_t n)
   return i - j;
 }
 strong_alias (strnicmp, strncasecmp)
-

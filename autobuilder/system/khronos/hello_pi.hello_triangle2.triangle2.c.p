@@ -1,15 +1,15 @@
---- host_applications/linux/apps/hello_pi/hello_triangle2/triangle2.c.orig	2015-06-22 20:29:42.000000000 +0100
-+++ host_applications/linux/apps/hello_pi/hello_triangle2/triangle2.c	2015-06-26 12:18:16.347655735 +0100
-@@ -42,6 +42,8 @@
- #include "EGL/egl.h"
- #include "EGL/eglext.h"
+--- host_applications/linux/apps/hello_pi/hello_triangle2/triangle2.c.orig	2022-11-23 17:47:07.056363390 +0000
++++ host_applications/linux/apps/hello_pi/hello_triangle2/triangle2.c	2022-11-23 17:47:07.176365152 +0000
+@@ -44,6 +44,8 @@
+ 
+ #include "revision.h"
  
 +#include <swis.h>
 +
  typedef struct
  {
     uint32_t screen_width;
-@@ -181,7 +183,8 @@
+@@ -183,7 +185,8 @@
        
     check();
  
@@ -19,7 +19,7 @@
     assert(state->surface != EGL_NO_SURFACE);
     check();
  
-@@ -441,8 +444,44 @@
+@@ -446,8 +449,44 @@
          check();
  }
  
@@ -64,7 +64,7 @@
      static int fd = -1;
      const int width=state->screen_width, height=state->screen_height;
      static int x=800, y=400;
-@@ -477,8 +516,24 @@
+@@ -482,8 +521,24 @@
     if (outx) *outx = x;
     if (outy) *outy = y;
     return 0;
@@ -91,7 +91,7 @@
  //==============================================================================
  
  int main ()
-@@ -504,6 +559,9 @@
+@@ -515,6 +570,9 @@
        if (b) break;
        draw_triangles(state, cx, cy, 0.003, x, y);
     }

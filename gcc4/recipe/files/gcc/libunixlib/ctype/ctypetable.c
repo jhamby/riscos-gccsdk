@@ -10,36 +10,35 @@
 #include <internal/os.h>
 #include <internal/unix.h>
 
-/* Note the offset 1 and depth 257 instead of 0 and 256: ISO C says we must
-   support EOF.  */
-static unsigned char ctype[257];
-const unsigned char * const __ctype = &ctype[1];
-
-static short ctype_upper[257];
-const short * const __ctype_upper = &ctype_upper[1];
-
-static short ctype_lower[257];
-const short * const __ctype_lower = &ctype_lower[1];
+/* Global containing current locale settings. */
+struct _locale __locale_global;
+/* Offset 1 as the first entry is reserved for EOF.  */
+const unsigned char * const __ctype = &__locale_global.ctype[1];
+const short * const __ctype_upper = &__locale_global.ctype_upper[1];
+const short * const __ctype_lower = &__locale_global.ctype_lower[1];
 
 void
-__build_ctype_tables (int territory)
+__build_ctype_tables (locale_t locobj, int territory)
 {
   PTHREAD_UNSAFE
 
   if (territory == -2)
     {
-      /* Initialise the array. This is only done by __unixinit().  */
+      /* Initialise the array. This is only done by __unixinit()/newlocale().  */
       territory = -1;
-      for (int x = 0; x <= LC_ALL; x++)
-        __locale_territory[x] = -1;
+      for (int x = 0; x < LC_ALL; x++)
+        locobj->locale_territory[x] = -1;
+      __localeconv_lconv_init(&locobj->lc);
+      locobj->lc_needs_refresh = 1;
     }
 
   /* Initialise ctype_upper/ctype_lower tables.  */
   for (int x = 0; x < 257; x++)
     {
-      /* In the C/POSIX locate, tolower(top bit set char)
+      /* In the C/POSIX locale, tolower(top bit set char)
 	 should return the character unchanged.  */
-      ctype_lower[x] = ctype_upper[x] = x - 1;
+      locobj->ctype_lower[x] = locobj->ctype_upper[x] = x - 1;
+      locobj->ctype[x] = 0;
     }
 
   int regs[10];
@@ -61,7 +60,7 @@ __build_ctype_tables (int territory)
 	  for (int offset = 1; bits; bits = bits >> 1, offset += 1)
 	    {
 	      if (bits & 1)
-		ctype[pos + offset] |= 1 << code;
+		locobj->ctype[pos + offset] |= 1 << code;
 	    }
 	  pos += 32;
 	}
@@ -80,7 +79,7 @@ __build_ctype_tables (int territory)
   int y = (territory == -1) ? 128 : 256;
   for (int x = 1; x <= y; x++)
     {
-      ctype_lower[x] = (short)*p++;
-      ctype_upper[x] = (short)*q++;
+      locobj->ctype_lower[x] = (short)*p++;
+      locobj->ctype_upper[x] = (short)*q++;
     }
 }

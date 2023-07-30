@@ -24,3 +24,10 @@ nl_langinfo(nl_item item)
 
   return (char *)value;
 }
+
+char *
+nl_langinfo_l (nl_item item, locale_t l)
+{
+  (void) l;
+  return nl_langinfo(item);
+}

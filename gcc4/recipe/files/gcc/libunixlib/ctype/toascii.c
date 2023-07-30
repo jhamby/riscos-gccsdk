@@ -10,3 +10,9 @@ int
   return toascii (c);
 }
 
+int
+toascii_l (int c, locale_t locobj)
+{
+  (void) locobj;
+  return toascii (c);
+}

@@ -4,14 +4,14 @@
  #include "EGL/egl.h"
  #include "EGL/eglext.h"
  
-+#ifdef __riscos__
++#ifdef __RISCOS__
 +#include "oslib/os.h"
 +#endif
 +
  typedef struct SDL_VideoData
  {
      uint32_t egl_refcount;      /* OpenGL ES reference count              */
-+#ifdef __riscos__
++#ifdef __RISCOS__
 +    uint32_t eigen_x;
 +    uint32_t eigen_y;
 +    uint32_t screen_width;

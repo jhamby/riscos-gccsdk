@@ -4,6 +4,7 @@
 #include <string.h>
 #include <strings.h>
 #include <ctype.h>
+#include <locale.h>
 
 int
 stricmp (const char *s1, const char *s2)

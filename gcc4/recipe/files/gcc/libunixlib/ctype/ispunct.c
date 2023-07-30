@@ -3,6 +3,7 @@
  */
 
 #include <ctype.h>
+#include <locale.h>
 
 int
 (ispunct) (int c)
@@ -10,3 +11,8 @@ int
   return ispunct (c);
 }
 
+int
+ispunct_l (int c, locale_t locobj)
+{
+  return ((&locobj->ctype[1])[c] & ___ctype_punc);
+}

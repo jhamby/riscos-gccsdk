@@ -1,0 +1,15 @@
+This is the RISC OS port of Simple DirectMedia Layer 2 (SDL2).
+
+The library was built using the autobuilder cross-compiled
+using the GCCSDK against UnixLib.
+
+See www.riscos.info for more information on the GCCSDK and
+the autobuilder.
+
+To use the main SDL2 library, add -ISDL2: to the compile flags
+and link using -LSDL2: -lSDL
+
+See the doc subdirectory for more documentation and/or
+the SDL web site at:
+
+https://www.libsdl.org

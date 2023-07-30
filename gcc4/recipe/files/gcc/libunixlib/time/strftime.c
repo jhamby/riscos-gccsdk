@@ -353,7 +353,7 @@ territory_convert (const char *format, const char *timep,
   int regs[10];
   char buffer[64];
 
-  regs[0] = __locale_territory[LC_TIME];
+  regs[0] = __locale_global.locale_territory[LC_TIME];
   regs[1] = (int)timep;
   regs[2] = (int)buffer;
   regs[3] = sizeof (buffer) - 1;
@@ -368,7 +368,7 @@ territory_standard (int swinum, const char *timep, char *pt, const char *ptlim)
   int regs[10];
   char buffer[64];
 
-  regs[0] = __locale_territory[LC_TIME];
+  regs[0] = __locale_global.locale_territory[LC_TIME];
   regs[1] = (int)timep;
   regs[2] = (int)buffer;
   regs[3] = sizeof (buffer) - 1;

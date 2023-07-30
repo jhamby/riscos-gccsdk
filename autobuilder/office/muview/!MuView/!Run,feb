@@ -1,0 +1,8 @@
+<Obey$Dir>.!Boot
+
+|RMEnsure TimerMod 0.00 RMLoad System:Modules.TimerMod
+|RMEnsure TimerMod 0.00 Error ImageView requires the TimerMod module
+
+set MuView$TmpFile RAM::RamDisc0.$.MuView_sprite
+WimpSlot -min 40000k -max 40000k
+/<MUView$Dir>.!RunImage %*0 1><MUView$Dir>.muview/log 2>&1

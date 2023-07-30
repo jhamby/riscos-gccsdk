@@ -3,6 +3,7 @@
  */
 
 #include <ctype.h>
+#include <locale.h>
 
 int
 (iscntrl) (int c)
@@ -10,3 +11,8 @@ int
   return iscntrl (c);
 }
 
+int
+iscntrl_l (int c, locale_t locobj)
+{
+  return ((&locobj->ctype[1])[c] & ___ctype_ctrl);
+}

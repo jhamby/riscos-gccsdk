@@ -211,3 +211,10 @@ strerror_r (int errnum, char *strerrbuf, size_t buflen)
 
   return 0;
 }
+
+char *
+strerror_l (int errnum, locale_t l)
+{
+  (void) l;
+  return strerror (errnum);
+}

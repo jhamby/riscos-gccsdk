@@ -1,3 +1,4 @@
+AB_URL=https://sourceforge.net/projects/xmp/files/libxmp/4.5.0/libxmp-4.5.0.tar.gz
 AB_INSTALL=yes
 AB_PRECONF="CFLAGS=\"-O2 -fno-strict-aliasing\""
 AB_CONFLAGS='--disable-shared'

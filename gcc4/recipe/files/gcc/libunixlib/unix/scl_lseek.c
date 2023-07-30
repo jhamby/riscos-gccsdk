@@ -7,8 +7,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-__off_t
-lseek (int fd, __off_t offset, int whence)
+#ifndef LSEEK_FUNCTION
+#define LSEEK_FUNCTION lseek
+#endif
+
+off_t
+LSEEK_FUNCTION (int fd, off_t offset, int whence)
 {
   if ((unsigned)fd >= __FD_SOCKET_OFFSET)
     return __set_errno (ENOSYS);
@@ -17,19 +21,3 @@ lseek (int fd, __off_t offset, int whence)
     return r;
   return ftello (&__iob[fd]);
 }
-
-__off64_t
-lseek64 (int fd, __off64_t offset, int whence)
-{
-#if __UNIXLIB_LFS64_SUPPORT
-#  error "64-bit LFS support missing."
-#else
-  /* Check if the __off64_t offset fits in a __off_t one.  Further
-     checking will be done in lseek itself.  */
-  if (offset != (__off64_t)(__off_t)offset)
-    return __set_errno (EOVERFLOW);
-#endif
-
-  return lseek (fd, (__off_t) offset, whence);
-}
-

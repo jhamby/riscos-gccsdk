@@ -583,11 +583,11 @@ locale_src =
 else
 locale_src = \
 	locale/localeconv.c \
+	locale/newlocale.c \
 	locale/nl_langinfo.c \
 	locale/setlocale.c \
 	locale/strcoll.c \
-	locale/strxfrm.c \
-	locale/territory.c
+	locale/strxfrm.c
 endif
 locale_src += \
 	locale/iconv.c
@@ -1033,6 +1033,10 @@ if !ARM_EABI
 string_src += \
 	string/mempcpy.c
 endif
+# support for POSIX-1.2008 extended locales
+string_src += \
+	string/strcasecmp_l.c \
+	string/strncasecmp_l.c
 
 if UNIXLIB_BUILDING_SCL
 sys_src =
@@ -1156,7 +1160,9 @@ unix_src = \
 	unix/scl_ioctl.c \
 	unix/scl_isatty.c \
 	unix/scl_lseek.c \
+	unix/scl_lseek64.c \
 	unix/scl_open.c \
+	unix/scl_open64.c \
 	unix/scl_putenv.c \
 	unix/scl_read.c \
 	unix/scl_readv.c \
@@ -1173,7 +1179,6 @@ unix_src = \
 	unix/chmod.c \
 	unix/ul_clearenv.c \
 	unix/ul_close.c \
-	unix/creat.c \
 	unix/custom.c \
 	unix/dev.c \
 	unix/dirent.c \
@@ -1234,6 +1239,8 @@ unix_src = \
 	unix/ul_writev.c
 endif
 unix_src += \
+	unix/creat.c \
+	unix/creat64.c \
 	unix/fnmatch.c \
 	unix/getdomain.c \
 	unix/gethostnam.c \
@@ -1276,6 +1283,7 @@ wchar_src = \
 	wchar/wcstok.c \
 	wchar/wcswidth.c \
 	wchar/wctob.c \
+	wchar/wctype_l.c \
 	wchar/wcwidth.c \
 	wchar/wmemchr.c \
 	wchar/wmemcmp.c \
@@ -1312,6 +1320,7 @@ libc_headers = \
 	bits/in.h \
 	bits/libc-lock.h \
 	bits/locale.h \
+	bits/locale_t.h \
 	bits/mathcalls.h \
 	bits/mathdef.h \
 	bits/mathinline.h \

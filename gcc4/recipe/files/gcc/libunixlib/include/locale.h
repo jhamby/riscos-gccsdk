@@ -33,15 +33,15 @@ __BEGIN_DECLS
 /* Entire locale.  */
 #  define LC_ALL 6
 
-#define LC_COLLATE_MASK (1L << 1)
-#define LC_CTYPE_MASK (1L << 2)
-#define LC_MESSAGES_MASK (1L << 3)
-#define LC_MONETARY_MASK (1L << 4)
-#define LC_NUMERIC_MASK (1L << 5)
-#define LC_TIME_MASK (1L << 6)
-#define LC_ALL_MASK (LC_COLLATE_MASK | LC_CTYPE_MASK | LC_MESSAGES_MASK | LC_MONETARY_MASK | LC_NUMERIC_MASK | LC_TIME_MASK)
-
-typedef struct _locale *locale_t;
+#  ifdef __USE_XOPEN2K8
+#    define LC_COLLATE_MASK (1L << 0)
+#    define LC_CTYPE_MASK (1L << 1)
+#    define LC_MESSAGES_MASK (1L << 2)
+#    define LC_MONETARY_MASK (1L << 3)
+#    define LC_NUMERIC_MASK (1L << 4)
+#    define LC_TIME_MASK (1L << 5)
+#    define LC_ALL_MASK (LC_COLLATE_MASK | LC_CTYPE_MASK | LC_MESSAGES_MASK | LC_MONETARY_MASK | LC_NUMERIC_MASK | LC_TIME_MASK)
+#  endif
 
 #else
 /* String collation (functions 'strcoll' and 'strxfrm').  */
@@ -121,13 +121,20 @@ extern char *setlocale (int __category, const char *__locale) __THROW;
 extern struct lconv *localeconv (void) __THROW;
 
 #ifndef __TARGET_SCL__
+#  ifdef __USE_XOPEN2K8
+#    include <bits/locale_t.h>
+
 extern locale_t uselocale(locale_t newloc);
 
 extern void freelocale(locale_t locobj);
 
 extern locale_t newlocale(int category_mask, const char *locale,
                           locale_t base);
-# define LC_GLOBAL_LOCALE        ((locale_t) -1L)
+
+extern locale_t duplocale(locale_t locobj);
+
+#    define LC_GLOBAL_LOCALE        ((locale_t) -1L)
+#  endif
 #endif
 
 __END_NAMESPACE_STD

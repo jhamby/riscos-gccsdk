@@ -1,0 +1,6 @@
+| Boot file for Libmosquitto1
+|
+If "<Libmosquitto1$Dir>" = "" Then Set Libmosquitto1$Dir <Obey$Dir>
+If "<Libmosquitto1$Path>" = "" Then Set Libmosquitto1$Path <Obey$Dir>.
+
+IfThere <Libmosquitto1$Dir>.!Sprites then IconSprites <Libmosquitto1$Dir>.!Sprites

@@ -1,0 +1,36 @@
+AB_INSTALL=yes
+
+AB_CMAKE=yes
+AB_CMAKE_FLAGS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV -DCMAKE_EXE_LINKER_FLAGS=-ldl -DWITH_STATIC_LIBRARIES=ON -DWITH_LIB_CPP=OFF -DWITH_CLIENTS=OFF -DWITH_BROKER=OFF -DWITH_APPS=OFF -DWITH_PLUGINS=OFF'
+AB_CMAKE_BUILD_DIR=build
+
+ab_package() {
+  
+  ab_create_app LibMosquitto1 Apps/Library libmosquitto1-dev
+
+  HERE=`pwd`
+
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+  mv lib/*.a .
+  rm -rf lib
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib -name LibMosquitto1-Dev -copyrightfile $S/LICENSE
+  
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    ab_create_sharedlib_skeleton libmosquitto1
+    ab_add_sharedlib $S/build/lib libmosquitto.so.1
+
+    AB_DEBNAME=libmosquitto1
+
+    $AB_HOME/add-riscpkg -package libmosquitto1 -name LibMosquitto1 -unixlib \
+         -depends SharedLibs -copyrightfile $S/LICENSE
+  fi
+}

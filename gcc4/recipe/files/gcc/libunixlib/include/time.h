@@ -63,12 +63,12 @@ typedef __timer_t timer_t;
 
 #if !defined __timespec_defined && defined __need_timespec
 #define __timespec_defined 1
-
+#include <unixlib/types.h>
 /* POSIX.1b structure for a time value.  This is like a `struct timeval' but
    has nanoseconds instead of microseconds.  */
 struct timespec
 {
-  long int tv_sec;  /* Seconds.  */
+  __time_t tv_sec;  /* Seconds.  */
   long int tv_nsec; /* Nanoseconds.  */
 };
 #endif
@@ -88,6 +88,11 @@ __BEGIN_DECLS
 
 /* Obsolete name for CLOCKS_PER_SEC.  */
 #define CLK_TCK CLOCKS_PER_SEC
+
+#ifdef __USE_ISOC11
+/* Time base values for timespec_get.  */
+# define TIME_UTC 1
+#endif
 
 __BEGIN_NAMESPACE_STD
 
@@ -171,8 +176,6 @@ extern char *ctime_r (const time_t *__timer, char *__buffer) __THROW;
 
 #endif
 
-/* C99 Additions.  */
-
 #ifdef __USE_POSIX199309
 
 /* Identifier for system-wide realtime clock.  */
@@ -203,6 +206,16 @@ extern int clock_settime (clockid_t __clk_id, const struct timespec *__tp) __THR
 extern int nanosleep (const struct timespec *__req,
 		      struct timespec *__rem);
 #endif
+#endif
+
+/* C11 Additions.  */
+
+#ifdef __USE_ISOC11
+#  ifdef __TARGET_SCL__
+/* Set TS to calendar time based in time base BASE.  */
+extern int timespec_get (struct timespec *__ts, int __base)
+     __THROW __nonnull ((1));
+#  endif
 #endif
 
 /* System V compatibility.  */

@@ -1,5 +1,5 @@
---- host_applications/linux/apps/hello_pi/hello_triangle/triangle.c.orig	2016-05-28 10:35:58.991165772 +0100
-+++ host_applications/linux/apps/hello_pi/hello_triangle/triangle.c	2016-05-28 10:35:59.111165776 +0100
+--- host_applications/linux/apps/hello_pi/hello_triangle/triangle.c.orig	2022-11-23 17:47:07.056363390 +0000
++++ host_applications/linux/apps/hello_pi/hello_triangle/triangle.c	2022-11-23 17:47:07.184365269 +0000
 @@ -33,6 +33,7 @@
  #include <math.h>
  #include <assert.h>
@@ -8,16 +8,16 @@
  
  #include "bcm_host.h"
  
-@@ -42,7 +43,7 @@
+@@ -44,7 +45,7 @@
  
- #include "cube_texture_and_coords.h"
+ #include "revision.h"
  
 -#define PATH "./"
 +#define PATH "/<Khronos$Test>/"
  
  #define IMAGE_SIZE 128
  
-@@ -169,8 +170,9 @@
+@@ -171,8 +172,9 @@
     nativewindow.width = state->screen_width;
     nativewindow.height = state->screen_height;
     vc_dispmanx_update_submit_sync( dispman_update );
@@ -29,7 +29,7 @@
     assert(state->surface != EGL_NO_SURFACE);
  
     // connect the context to the surface
-@@ -178,7 +180,7 @@
+@@ -180,7 +182,7 @@
     assert(EGL_FALSE != result);
  
     // Set background color and clear buffers
@@ -38,7 +38,7 @@
  
     // Enable back face culling.
     glEnable(GL_CULL_FACE);
-@@ -540,12 +542,16 @@
+@@ -548,12 +550,16 @@
     // initialise the OGLES texture(s)
     init_textures(state);
  

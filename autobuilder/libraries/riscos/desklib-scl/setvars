@@ -1,6 +1,8 @@
-AB_SVN=svn://svn.riscos.info/DeskLib/trunk/
-AB_SVN_AOF=svn://svn.riscos.info/DeskLib/branches/aof/
-AB_PVERSION=svn-$(date +%Y%m%d)
+
+#AB_GIT=https://github.com/riscos-dot-info/DeskLib.git
+AB_GIT=https://github.com/ccawley2011/DeskLib.git
+AB_GIT_TAGORBRANCH=autobuilder
+AB_PVERSION=git-$(date +%Y%m%d)
 
 AB_INSTALL=yes
 

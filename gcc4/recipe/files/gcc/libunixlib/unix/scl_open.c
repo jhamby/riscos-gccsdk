@@ -14,8 +14,12 @@
 #include <internal/os.h>
 #include <internal/swiparams.h>
 
+#ifndef OPEN_FUNCTION
+#define OPEN_FUNCTION open
+#endif
+
 int
-open (const char *file, int oflag, ...)
+OPEN_FUNCTION (const char *file, int oflag, ...)
 {
   if (file == NULL)
     return __set_errno (EINVAL);

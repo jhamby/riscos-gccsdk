@@ -37,6 +37,16 @@ extern int strcasecmp (const char *__s1, const char *__s2);
 /* Compare n chars of S1 and S2, ignoring case.  */
 extern int strncasecmp (const char *__s1, const char *__s2, size_t __n);
 
+#  ifdef __USE_XOPEN2K8
+#    include <bits/locale_t.h>
+
+extern int strcasecmp_l (const char *__s1, const char *__s2, locale_t __loc)
+     __THROW __attribute_pure__ __nonnull ((1, 2, 3));
+
+extern int strncasecmp_l (const char *__s1, const char *__s2,
+                          size_t __n, locale_t __loc)
+     __THROW __attribute_pure__ __nonnull ((1, 2, 4));
+#  endif
 
 /* Return the position of the first bit set in I, or 0 if none are set.
    The least-significant bit is position 1, the most-significant 32.  */
