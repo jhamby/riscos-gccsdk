@@ -1,10 +1,10 @@
-AB_URL=http://deb.debian.org/debian/pool/main/b/bash/bash_4.4.orig.tar.xz
+#AB_URL=http://deb.debian.org/debian/pool/main/b/bash/bash_4.4.orig.tar.xz
 
-AB_ROVERSION=2
-AB_CONFLAGS="--disable-nls --without-bash-malloc --disable-process-substitution --with-curses=yes"
+#AB_ROVERSION=2
+AB_CONFLAGS="--disable-nls --without-bash-malloc --disable-process-substitution --with-installed-readline --enable-readline"
 
-ln -s mksignames$AB_EXEEXT mksignames
-ln -s mksyntax$AB_EXEEXT mksyntax
+#ln -s mksignames$AB_EXEEXT mksignames
+#ln -s mksyntax$AB_EXEEXT mksyntax
 
 AB_MANPAGE=doc/bash.1
 
@@ -18,6 +18,5 @@ ab_package () {
   mkdir -p $A/doc
   cp $S/doc/bash.html $S/doc/bash.pdf $S/doc/bash.ps $A/doc
 
-  $AB_HOME/add-riscpkg -name Bash -unixlib -depends SharedLibs -depends LibReadline7 \
-	  -depends LibNCurses6
+  $AB_HOME/add-riscpkg -name Bash -unixlib -depends SharedLibs -depends LibReadline8
  }
