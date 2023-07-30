@@ -1,34 +1,19 @@
-AB_URL=https://ftp.gnu.org/gnu/gcc/gcc-10.3.0/gcc-10.3.0.tar.xz
+AB_URL=https://ftp.gnu.org/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz
 
 AB_INSTALL=no
 
-AB_ROVERSION=1
+AB_ROVERSION=2
 
-GCC_VERSION=10.3.0
-BINUTILS_VERSION=2.31.1
+GCC_VERSION=10.2.0
+BINUTILS_VERSION=2.30
 
 AB_CATEGORY="Development"
 
-AB_ROVERSION=1
+AB_ROVERSION=2
 AB_MAKE=
 AB_PRECONF=":"
 AB_CONFIG=
-#AB_DISTCLEAN="$AB_MAKE do-distclean || $AB_MAKE do-clean"
-
-# Set RO_GCC_CONFIG_FLAGS to change the defaults of ARMv7-A and VFPv3.
-if [ "x$RO_GCC_CONFIG_FLAGS" == "x" ]; then
-  RO_GCC_CONFIG_FLAGS="--with-fpu=vfpv3 --with-arch=armv7-a"
-fi
-
-# The standard enabled languages and shared libraries.
-RO_GCC_ENABLE_LANGUAGES="c,c++,fortran"
-RO_GCC_ENABLE_SHARED="libunixlib,libgcc,libstdc++,libgfortran,libbacktrace"
-
-# Set RO_GCC_ADD_LANGUAGES to "ada" to add Ada to the languages to build.
-if [ "x$RO_GCC_ADD_LANGUAGES" == "xada" ]; then
-  RO_GCC_ENABLE_LANGUAGES="$RO_GCC_ENABLE_LANGUAGES,ada"
-  RO_GCC_ENABLE_SHARED="$RO_GCC_ENABLE_SHARED,libgnat"
-fi
+AB_DISTCLEAN="$AB_MAKE do-distclean || $AB_MAKE do-clean"
 
 export GCCSDK_RISCOS_ABI_VERSION=armeabihf
 
@@ -47,15 +32,15 @@ fi
 
 download_binutils() {
   pushd .. > /dev/null
-  wget https://ftp.gnu.org/gnu/binutils/binutils-2.31.1.tar.xz
-  tar xfJ binutils-2.31.1.tar.xz
-  ln -sTf $H/ld.emulparams.armelf_riscos_eabi.sh $S/../binutils-2.31.1/ld/emulparams/armelf_riscos_eabi.sh
-  ln -sTf $H/gas.config.te-riscos.h $S/../binutils-2.31.1/gas/config/te-riscos.h
+  wget https://ftp.gnu.org/gnu/binutils/binutils-2.30.tar.xz
+  tar xfJ binutils-2.30.tar.xz
+  ln -sTf $H/ld.emulparams.armelf_riscos_eabi.sh $S/../binutils-2.30/ld/emulparams/armelf_riscos_eabi.sh
+  ln -sTf $H/gas.config.te-riscos.h $S/../binutils-2.30/gas/config/te-riscos.h
   popd > /dev/null
 }
 
 patch_binutils() {
-  pushd ../binutils-2.31.1 > /dev/null
+  pushd ../binutils-2.30 > /dev/null
 
   echo Patching binutils...
   patch_ok=true
@@ -75,24 +60,19 @@ patch_binutils() {
 }
 
 build_cross_binutils() {
-  pushd ../binutils-2.31.1 > /dev/null
+  pushd ../binutils-2.30 > /dev/null
 
-  # NOTE: binutils-2.31 and newer need autoconf-2.69.
-  # Comment out the use of GCC 4 binutils and use /usr/bin for now.
+  HOST_4_7_4_GCC=$(realpath $GCCSDK_INSTALL_CROSSBIN/../../gcc4)
+  AUTOTOOLS_BUILD=$HOST_4_7_4_GCC/builddir/installed-buildtools-for-gcc/bin
 
-  # HOST_4_7_4_GCC=$(realpath $GCCSDK_INSTALL_CROSSBIN/../../gcc4)
-  # AUTOTOOLS_BUILD=$HOST_4_7_4_GCC/builddir/installed-buildtools-for-gcc/bin
-  # ( cd ld; PATH="$AUTOTOOLS_BUILD:$PATH" $AUTOTOOLS_BUILD/autoreconf )
-
-  # Hopefully the system autoconf is the correct version.
-  ( cd ld; autoreconf )
+  ( cd ld; PATH="$AUTOTOOLS_BUILD:$PATH" $AUTOTOOLS_BUILD/autoreconf )
 
   mkdir -p cross-build
   cd cross-build
 
   CC=/usr/bin/gcc CXX=/usr/bin/g++ \
   ../configure --prefix=$GCCSDK_INSTALL_ENV --target=arm-riscos-gnueabihf --disable-nls --disable-werror
-  make -j6 && make install
+  make $MAKEFLAGS && make install
 
   popd > /dev/null
 
@@ -109,7 +89,7 @@ build_cross_binutils() {
 }
 
 build_native_binutils() {
-  pushd ../binutils-2.31.1
+  pushd ../binutils-2.30
 
   mkdir -p native-build native-install
   pushd native-build > /dev/null
@@ -117,7 +97,7 @@ build_native_binutils() {
   ../configure --prefix=$(realpath ../native-install) --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf \
 		--with-stage1-ldflags="$S/cross-build/ld-riscos/d-link/libdl/libdl.2.0.0.so" \
 		--disable-nls --disable-werror --with-system-zlib=no
-  make -j6 && make install
+  make $MAKEFLAGS && make install
   popd > /dev/null
 
   popd > /dev/null
@@ -169,10 +149,13 @@ copy_link_gcc() {
 }
 
 build_cross_compiler() {
+  # GCC 10.x.0 requires a specific version of autoconf.
+  export AUTOCONF=autoconf2.69
+
   ( autogen Makefile.def )
-  ( autoconf )
-  ( $HOST_4_7_4_SCRIPTS/gcc/reconf-libunixlib )
-  ( $HOST_4_7_4_SCRIPTS/gcc/reconf-libstdc++ )
+  ( $AUTOCONF )
+  ( $H/reconf-libunixlib )
+  ( $H/reconf-libstdc++ )
 
   mkdir -p cross-build
   pushd cross-build >/dev/null
@@ -183,8 +166,8 @@ build_cross_compiler() {
   #CC=$HOME/ProgDev/toolchains/bin/gcc CXX=$HOME/ProgDev/toolchains/bin/g++ \
   CC=/usr/bin/gcc CXX=/usr/bin/g++ \
   ../configure --prefix=$GCCSDK_INSTALL_ENV --target=arm-riscos-gnueabihf \
-	       --enable-shared=$RO_GCC_ENABLE_SHARED \
-	       --enable-languages=$RO_GCC_ENABLE_LANGUAGES \
+	       --enable-shared=libunixlib,libgcc,libstdc++,libgfortran,libbacktrace \
+	       --enable-languages=c,c++,fortran \
 	       --enable-threads=posix \
 	       --enable-sjlj-exceptions=no \
 	       --enable-__cxa_atexit \
@@ -198,13 +181,14 @@ build_cross_compiler() {
 	       --disable-libgomp \
 	       --disable-libitm \
 	       --disable-lto \
-	       --with-pkgversion='GCCSDK GCC 10.3.0 Release 1' \
+	       --with-pkgversion='GCCSDK GCC 10.2.0 Release 2' \
 	       --with-bugurl=http://gccsdk.riscos.info/ \
 	       --with-abi=aapcs-linux \
 	       --with-float=hard \
-	       $RO_GCC_CONFIG_FLAGS
+	       --with-fpu=vfpv3 \
+	       --with-arch=armv7-a
 
-  make -j6 && make install
+  make $MAKEFLAGS && make install
 
   popd >/dev/null
 }
@@ -215,8 +199,8 @@ build_native_compiler() {
 # --with-stage1-ldflags="" is used to remove the --static-libstdc++ flag.
   CC=arm-riscos-gnueabihf-gcc CXX=arm-riscos-gnueabihf-g++ \
   ../configure --prefix=$(realpath ../native-install) --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf \
-	       --enable-shared=$RO_GCC_ENABLE_SHARED \
-	       --enable-languages=$RO_GCC_ENABLE_LANGUAGES \
+	       --enable-shared=libunixlib,libgcc,libstdc++,libgfortran,libbacktrace \
+	       --enable-languages=c,c++,fortran \
 	       --enable-threads=posix \
 	       --enable-sjlj-exceptions=no \
 	       --enable-__cxa_atexit \
@@ -229,15 +213,16 @@ build_native_compiler() {
 	       --disable-libssp \
 	       --disable-libgomp \
 	       --disable-lto \
-	       --with-pkgversion='GCCSDK GCC 10.3.0 Release 1' \
+	       --with-pkgversion='GCCSDK GCC 10.2.0 Release 2' \
 	       --with-bugurl=http://gccsdk.riscos.info/ \
 	       --with-abi=aapcs-linux \
 	       --with-float=hard \
+	       --with-fpu=vfpv3 \
+	       --with-arch=armv7-a \
 	       --with-stage1-ldflags="" \
-	       --with-diagnostics-color=never \
-	       $RO_GCC_CONFIG_FLAGS
+	       --with-diagnostics-color=never
 
-  make -j6 && make install
+  make $MAKEFLAGS && make install
 
   popd >/dev/null
 }
@@ -249,7 +234,7 @@ build_dynamic_linker() {
   pushd cross-build/ld-riscos >/dev/null
 
   CC=$GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-gcc ../../ld-riscos/configure --prefix=$GCCSDK_INSTALL_ENV --host=arm-riscos-gnueabihf --target=arm-riscos-gnueabihf
-  make -j6 && make install
+  make $MAKEFLAGS && make install
 
   popd >/dev/null
 }
@@ -271,7 +256,7 @@ install_cross_compiler_to_env() {
   ln -sf $GCCSDK_INSTALL_ENV/bin/arm-riscos-gnueabihf-g++ $GCCSDK_INSTALL_CROSSBIN/arm-riscos-gnueabihf-g++
 }
 
-if [ ! -e binutils-2.31.1.tar.xz ]; then
+if [ ! -e binutils-2.30.tar.xz ]; then
   download_binutils
   patch_binutils
   build_cross_binutils
