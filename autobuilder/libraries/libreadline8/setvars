@@ -1,0 +1,49 @@
+AB_INSTALL=yes
+
+ab_make()
+{
+   eval $AB_MAKE
+
+   # Create directories install libraries for tar version of libraries
+   mkdir -p $AB_DIR/package/include/readline
+}
+
+ab_package() {
+  ab_create_app LibReadline8 Apps/Library libreadline8-dev
+
+  cp README $A\!Help
+
+  HERE=`pwd`
+  cd $A
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/* .
+  rm -rf include
+
+  mv lib/*.a .
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  cp -r examples $A/doc
+
+  $AB_HOME/add-riscpkg -package libreadline8-dev -name LibReadline8-Dev -unixlib
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+     ab_create_sharedlib_skeleton libreadline8
+
+     ln -sfT libhistory.so.8.1 $S/shlib/libhistory.so
+     ln -sfT libhistory.so.8.1 $S/shlib/libhistory.so.8
+
+     ln -sfT libreadline.so.8.1 $S/shlib/libreadline.so
+     ln -sfT libreadline.so.8.1 $S/shlib/libreadline.so.8
+
+     ab_add_sharedlib $S/shlib libhistory.so.8
+     ab_add_sharedlib $S/shlib libreadline.so.8
+
+     $AB_HOME/add-riscpkg -package libreadline8 -name LibReadline8 -depends SharedLibs
+  fi
+}
