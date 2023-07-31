@@ -1,6 +1,12 @@
 AB_INSTALL=env
 
+# Stable Raspberry Pi OS only has Python 3.9.2.
+AB_DISTRO=testing
+
 AB_CONFLAGS='--with-build-python=/usr/bin/python3.11 --with-system-expat --with-system-ffi --disable-ipv6 --with-ensurepip=no --disable-test-modules'
+
+# Rebuild configure after patching configure.ac.
+autoconf2.69
 
 export ac_cv_file__dev_ptmx=no
 export set ac_cv_file__dev_ptc=no
