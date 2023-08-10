@@ -1,12 +1,14 @@
---- configure.ac.orig	2021-07-29 01:14:17.282895213 -0700
-+++ configure.ac	2021-07-29 12:05:54.403186055 -0700
-@@ -2445,6 +2445,30 @@
+--- configure.ac.orig	2023-08-09 22:33:02.563068485 -0700
++++ configure.ac	2023-08-09 22:42:22.378317832 -0700
+@@ -2391,6 +2391,32 @@
              have_timers=yes
          fi
          ;;
 +    arm-*riscos*)
 +        ARCH=riscos
++        CheckDiskAudio
 +        CheckOSS
++        CheckDLOPEN
 +        CheckPTHREAD
 +        # Set up files for the video library
 +        if test x$enable_video = xyes; then
@@ -31,13 +33,17 @@
      *-*-linux*|*-*-uclinux*|*-*-gnu*|*-*-k*bsd*-gnu|*-*-bsdi*|*-*-freebsd*|*-*-dragonfly*|*-*-netbsd*|*-*-openbsd*|*-*-sysv5*|*-*-solaris*|*-*-hpux*|*-*-irix*|*-*-aix*|*-*-osf*)
          case "$host" in
              *-*-linux*)         ARCH=linux ;;
-@@ -2927,30 +2951,6 @@
+@@ -2878,34 +2904,6 @@
              have_timers=yes
          fi
          ;;
 -    *-riscos)
 -        ARCH=riscos
+-        CheckDummyVideo
+-        CheckDiskAudio
+-        CheckDummyAudio
 -        CheckOSS
+-        CheckDLOPEN
 -        CheckPTHREAD
 -        # Set up files for the video library
 -        if test x$enable_video = xyes; then
@@ -59,6 +65,6 @@
 -            have_timers=yes
 -        fi
 -        ;;
-     *)
-         AC_MSG_ERROR([
- *** Unsupported host:  Please add to configure.ac
+     *-*-os2*)
+         ARCH=os2
+         if test "$build" != "$host"; then # cross-compiling
