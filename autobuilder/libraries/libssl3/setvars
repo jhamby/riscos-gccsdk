@@ -8,7 +8,11 @@
 
 # v4 for Strongarm and later
 # choose (arm) architecture  [ v3 | v4 | v6zk ]
-AB_ROARCHV=v3
+AB_ROARCHV=v6zk
+
+# Raspbian Bullseye doesn't have libssl3 yet
+AB_DISTRO=testing
+
 AB_ROVERSION=$AB_ROARCHV"-1"
 AB_RISCOS_CONF_STATIC="perl Configure --prefix="$GCCSDK_INSTALL_ENV" riscos-arm"$AB_ROARCHV"-static"
 AB_RISCOS_CONF_SHARED="perl Configure --prefix="$GCCSDK_INSTALL_ENV" riscos-arm"$AB_ROARCHV"-shared"
