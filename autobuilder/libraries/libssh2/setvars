@@ -1,6 +1,9 @@
 # libssh2 just builds.  No autobuilder magic required!
 AB_INSTALL=yes
 
+# use testing version to get libssl3
+AB_DISTRO=testing
+
 if [ ! -d docs/man3 ] ; then
   ln -s ../docs docs/man3
 fi
