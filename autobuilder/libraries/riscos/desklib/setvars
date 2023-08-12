@@ -8,6 +8,15 @@ AB_INSTALL=yes
 
 AB_MAKE="cd $PWD/\!DLSources; $AB_MAKE -f Makefile.unix"
 
+# Remove "DeskLib:" from include pathnames
+find $S -type f -name '*.[ch]' -exec sed -i 's/Desk[Ll]ib://' {} \;
+
+# Rename internal Url header file that conflicts with public DeskLib header filename
+mv "$S/!DLSources/Libraries/Url/Url.h" "$S/!DLSources/Libraries/Url/UrlDefs.h"
+
+# Delete conflicting strdup() implementation
+rm "$S/!DLSources/Libraries/Str/strdup.c"
+
 move_riscos_source() {
   local header_dir
   local f
