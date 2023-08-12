@@ -1,5 +1,5 @@
---- Makefile.orig	2021-07-31 22:17:31.401019478 -0700
-+++ Makefile	2021-07-31 22:18:28.313168197 -0700
+--- Makefile.orig	2020-06-13 08:26:09.830314511 +0100
++++ Makefile	2020-06-13 08:28:04.252046239 +0100
 @@ -13,20 +13,20 @@
  # ------------------------------------------------------------------
  
@@ -14,11 +14,12 @@
 +#CC=gcc
 +#AR=ar
  RANLIB=ranlib
- LDFLAGS=
+-LDFLAGS=
++LDFLAGS=-static
  
  BIGFILES=-D_FILE_OFFSET_BITS=64
 -CFLAGS=-Wall -Winline -O2 -g $(BIGFILES)
-+CFLAGS=-Wall -Winline -O3 -fPIC $(BIGFILES)
++CFLAGS=-Wall -Winline -O3 -g $(BIGFILES)
  
  # Where you want it installed when you do 'make install'
 -PREFIX=/usr/local
@@ -31,11 +32,11 @@
        bzlib.o
  
 -all: libbz2.a bzip2 bzip2recover test
-+all: libbz2.a bzip2$(AB_EXEEXT) bzip2recover$(AB_EXEEXT) # libbz2.so # test
++all: libbz2.a bzip2$(AB_EXEEXT) bzip2recover$(AB_EXEEXT) libbz2.so # test
  
 -bzip2: libbz2.so bzip2.o
 -	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2
-+bzip2$(AB_EXEEXT): libbz2.a bzip2.o
++bzip2$(AB_EXEEXT): libbz2.so bzip2.o
 +	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o bzip2$(AB_EXEEXT) bzip2.o -L. -lbz2
  
 -bzip2recover: bzip2recover.o
@@ -86,8 +87,7 @@
 +#	chmod a+r $(PREFIX)/man/man1/bzip2.1
  	cp -f bzlib.h $(PREFIX)/include
  	chmod a+r $(PREFIX)/include/bzlib.h
--	cp -fa libbz2.a libbz2.so* $(PREFIX)/lib
-+	cp -fa libbz2.a $(PREFIX)/lib
+ 	cp -fa libbz2.a libbz2.so* $(PREFIX)/lib
  	chmod a+r $(PREFIX)/lib/libbz2.a
 -	cp -f bzgrep $(PREFIX)/bin/bzgrep
 -	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzegrep
